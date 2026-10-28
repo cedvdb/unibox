@@ -174,6 +174,11 @@ tool/site.sh --base=/unibox/ --url=https://cedvdb.github.io/unibox/
 | `/main.client.js` | The browser runtime the two above load |
 | `/flutter/listings/`, `/flutter/signup/`, `/flutter/pricing/` | The same pages, rendered by Flutter |
 
+`build/site/version.txt` names the commit the site was built from. A deploy is not
+instant and is not always the one it looks like — one publication here shipped the
+previous build while its script was current — so `curl …/unibox/version.txt` answers
+"am I looking at a stale page?" without reading CSS class hashes.
+
 The pages link with paths relative to their own depth and the documents carry **no
 `<base>` element**, so the same build works at `/` and at `/unibox/`: a base href of
 `/` would send every relative link, and both frames, to the domain root.

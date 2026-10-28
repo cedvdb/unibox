@@ -120,6 +120,14 @@ fi
 # and Jekyll drops paths it thinks are special.
 : >"$site/.nojekyll"
 
+# The commit the published site was built from. A deploy is not instant and not
+# always the one we think it is — one publication in this repository shipped the
+# previous build while its script was current — so "is the site stale?" should be
+# answerable with one request rather than by reading CSS class hashes.
+git -C "$root" rev-parse HEAD >"$site/version.txt" 2>/dev/null || date -u +%Y-%m-%dT%H:%M:%SZ >"$site/version.txt"
+printf '%s
+' "$(git -C "$root" log -1 --format='%s' 2>/dev/null || echo 'unknown')" >>"$site/version.txt"
+
 printf '\n==> Built %s (base %s)\n' "$site" "$base"
 
 if [ "$serve" -eq 1 ]; then
