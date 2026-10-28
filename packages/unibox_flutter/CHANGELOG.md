@@ -2,6 +2,16 @@
 
 ## 0.1.0
 
+- A pressable box is one semantics node carrying its role, its name and its action, as
+  Flutter's own buttons are. The `Focus` widget around it described itself, which made a
+  node inside the control that took the label and the tap action: an *enabled* button was
+  read as "Save" with no role at all, while its role sat on an empty parent, and only a
+  disabled one — with no action to merge into — was announced as the button it is.
+- A box with an `onLongPress` announces it as `Semantics.onLongPress`, which is what a
+  native `InkWell` offers: a "hold to delete" row is now findable and invokable by a
+  reader. A browser has no such action, so the web renderer stays quiet about it and its
+  README records the difference.
+
 - A box whose semantics state `pressed` is announced as toggled, which is what Flutter
   calls the state a browser writes as `aria-pressed`. A toggle button — a filter chip, a
   segment — used to be announced as the selected item of a set instead, so the two

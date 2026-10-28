@@ -40,6 +40,22 @@ class FlutterBoxState extends State<FlutterBox> {
   bool _focused = false;
   bool _pressed = false;
 
+  /// The keyboard focus of this box, when it is focusable.
+  ///
+  /// The box states its own focusable and focused flags to a screen reader, so the
+  /// [Focus] widget around it must not state them again: a `Focus` that describes
+  /// itself is a semantics node of its own, and the label and the tap action merged
+  /// into *that* node instead of the one carrying the button role — which is how an
+  /// enabled button came to be announced as plain text with a tap action, and a
+  /// disabled one, with no action to merge into, as the button it is.
+  final FocusNode _focusNode = FocusNode(debugLabel: 'unibox-box');
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final core.Box box = widget.box;
@@ -473,6 +489,10 @@ class FlutterBoxState extends State<FlutterBox> {
 
     if (focusable) {
       result = Focus(
+        focusNode: _focusNode,
+        // The box describes its own focus to a reader; a second description here
+        // would be a node of its own and split the control in two.
+        includeSemantics: false,
         onFocusChange: _setFocused,
         onKeyEvent: _handleKeyEvent,
         child: result,
@@ -548,12 +568,19 @@ class FlutterBoxState extends State<FlutterBox> {
   /// A plain enabled container is left untouched: an extra `Semantics` node on
   /// every box would only make the tree harder to read. A box with a description
   /// or a disabled state gets one, and so does a focusable box, which needs the
-  /// focused flag to be announced.
+  /// focused flag to be announced — and so does one with a long press, because a
+  /// long press is an *action*: Flutter's own `InkWell` hands it to a reader the same
+  /// way, and without it a "hold to delete" row is a control a screen reader cannot
+  /// find. The web has no equivalent action, which is why `Box.onLongPress` is
+  /// documented there as a pointer affordance.
   Widget _describeToSemantics(Widget content, core.Box box) {
     final core.BoxSemantics? semantics = box.semantics;
     final bool focusable = box.isFocusable && box.enabled;
+    final core.LongPressCallback? longPress = box.enabled
+        ? box.onLongPress
+        : null;
 
-    if (semantics == null && box.enabled) {
+    if (semantics == null && box.enabled && longPress == null) {
       return content;
     }
 
@@ -562,7 +589,7 @@ class FlutterBoxState extends State<FlutterBox> {
     final String? label = semantics?.label;
 
     return Semantics(
-      container: semantics != null,
+      container: semantics != null || longPress != null,
       // A label replaces the contents, so the accessible name cannot drift
       // away from what the screen reader reads.
       excludeSemantics: label != null,
@@ -577,6 +604,9 @@ class FlutterBoxState extends State<FlutterBox> {
       enabled: box.enabled,
       focusable: focusable,
       focused: focusable ? _focused : null,
+      // A reader can move the focus here, which is what a native control offers and
+      // what the `Focus` widget above no longer states for it.
+      onFocus: focusable ? _focusNode.requestFocus : null,
       role: _semanticsRole(semantics?.element ?? core.BoxElement.div),
       expanded: semantics?.expanded,
       // `aria-current` has no Flutter counterpart; the closest thing a phone
@@ -585,6 +615,7 @@ class FlutterBoxState extends State<FlutterBox> {
           semantics?.selected ?? (semantics?.current == null ? null : true),
       hidden: semantics?.hidden ?? false,
       liveRegion: semantics?.liveRegion ?? false,
+      onLongPress: longPress,
       child: content,
     );
   }

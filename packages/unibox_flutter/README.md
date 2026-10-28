@@ -65,12 +65,23 @@ it. Nothing in this section changes a pixel.
 | `BoxSemantics.element` = `main`, `nav`, `header`, `footer`, `aside`, `section`, `article`, `figure` | nothing: Flutter's accessibility tree has no landmarks, and a phone reader navigates by headings and reading order |
 | `BoxSemantics.role` | `button`, `link`, `header`, `checked`/`toggled` and the focused flag of `Semantics` |
 | `BoxSemantics.expanded` / `.selected` | `Semantics.expanded` / `Semantics.selected` |
+| `BoxSemantics.pressed` | `Semantics.toggled`, which is also what a `switch_`'s `checked` becomes |
 | `BoxSemantics.hidden` | `Semantics.hidden`, and the box is never focusable |
 | `BoxSemantics.liveRegion` | `Semantics.liveRegion` |
 | `BoxSemantics.label` | `Semantics.label`, with the contents excluded so the two cannot drift |
 | `BoxSemantics.current` | `selected: true`: Flutter has no `aria-current`, so the current item is announced as the selected item of a set |
+| `Box.onLongPress` | `Semantics.onLongPress`: an action a reader can invoke, which is what a native `InkWell` offers. The web has no equivalent, so the web README records the difference |
 | `TextInputNode.required` / `.invalid` | `Semantics.isRequired` / `Semantics.validationResult` |
 | `TextInputNode.description` | `Semantics.hint`, announced after the label |
+
+**One node per control.** A box that can be pressed is described by one `Semantics`
+node carrying its role, its name and its action, the way Flutter's own buttons are:
+the `Focus` widget around it is built with `includeSemantics: false`, and the focus
+itself is stated by the box. A `Focus` that describes itself makes a node of its own
+*inside* the control, and the label and the tap action merge into that one — so an
+enabled button read as "Save" with a tap action and no role at all, while the role sat
+on an empty parent. A disabled button, having no action to merge, was the only one
+announced correctly.
 
 ## Text mapping
 

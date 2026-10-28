@@ -280,6 +280,14 @@ Flutter counterpart has it.
 | `TextInputNode.invalid` | `aria-invalid="true"` |
 | `TextInputNode.description` | `aria-description`, carrying the text itself so no element has to be referenced by an id |
 
+**What a browser has no word for: the long press.** `Box.onLongPress` is a pointer
+gesture on this target, and ARIA has no action for it, so nothing here announces one.
+Flutter does — the renderer hands it to a reader as `Semantics(onLongPress:)`, which is
+what a native `InkWell` does — so a "hold to delete" row is reachable by a screen reader
+on a phone and invisible to one in a browser. An application that has to offer it to
+both says so in the tree: a visible control beside the row, or a `BoxSemantics.label`
+that names what the hold does.
+
 ## Text mapping
 
 A `TextNode` becomes a `<span>`, so it flows inline like Flutter's `Text` does

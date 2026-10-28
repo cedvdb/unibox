@@ -795,6 +795,12 @@ the same level announced in Flutter. Landmarks (`main`, `nav`, ...) exist only o
 web; Flutter's accessibility tree has no landmarks, so there they stay ordinary
 containers.
 
+A control is **one node** for a reader: its role, its name and its action together, on
+both targets — the button flag does not sit on a parent while the tap action sits on a
+child, which is a shape a reader cannot use. A long press is the one action the two
+trees do not share: Flutter offers it (`Semantics.onLongPress`, as a native `InkWell`
+does) and a browser has no equivalent, so on the web a hold is a pointer gesture.
+
 ## What the host owns
 
 The tree is a description, not a program: everything that changes over time belongs

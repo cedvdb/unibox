@@ -266,6 +266,12 @@ class Box extends UINode {
   final TapDownCallback? onTapDown;
 
   /// Called when the box is long pressed.
+  ///
+  /// It is an action a screen reader can invoke where the platform has one: the
+  /// Flutter renderer hands it to `Semantics(onLongPress:)`, as `InkWell` does. A
+  /// browser has no such action, so on the web a hold is a pointer gesture and
+  /// nothing more — a control only a hold reaches needs a visible target beside it,
+  /// or a [BoxSemantics.label] that says what the hold does.
   final LongPressCallback? onLongPress;
 
   /// Called when the pointer enters or leaves the box.

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `Box.onLongPress` says in its doc what each target does with it: the Flutter renderer
+  hands it to a screen reader as an action, and a browser has no equivalent, so on the
+  web a hold is a pointer gesture and a control only a hold reaches needs a visible
+  target or a label that says what the hold does.
+
 - `BoxSemantics.pressed` is the state of a toggle button: `aria-pressed` on the web and
   Flutter's `toggled`. It is not `selected`, and the difference is not cosmetic —
   `aria-selected` is only honoured on an option, a tab, a row or a grid cell, so a
