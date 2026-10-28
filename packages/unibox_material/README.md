@@ -247,7 +247,7 @@ the conformance table already pins — the class is a combination, not a new tok
 | padding | `16` on every edge | the room Material gives card content |
 | background | `BoxColors.white` | the surface, until a colour scheme exists |
 | radius | `12` | the medium shape of Material 3 |
-| shadow | `MaterialCard.elevatedShadow` | elevation level one, one of its two layers |
+| shadow | `MaterialCard.elevatedShadow` — `MaterialElevation.level1` | elevation level one, one of its two layers |
 | typography | `MaterialTypography.bodyMedium` | inherited by the texts inside |
 | layout | a column (`Box`'s default), with `crossAlign: stretch` | a card stacks its content and stretches it to the card, so a row of it spans the width |
 
@@ -526,6 +526,27 @@ codepoints are not the legacy `Icons` ones (`home` is `e9b2`, not `e88a`). A web
 export has no shaker of its own: serve the subset the Flutter build wrote, or one
 from `pyftsubset`, with its `@font-face`, plus `font-display: block` and a preload so
 a glyph does not flash as text.
+
+## Elevation
+
+Material states five levels for a raised surface, and each is two shadow layers; a
+`BoxShadow` is one, so `MaterialElevation` holds the wide, soft layer of each — the
+one that reads as height — in one place:
+
+| Level | Shadow | Material gives it to |
+| --- | --- | --- |
+| `level1` | 0 1px 3px at 15% | a card, a sheet, a raised button |
+| `level2` | 0 2px 6px | a card under the pointer |
+| `level3` | 0 4px 8px | a dialog, a date picker, a floating action button |
+| `level4` | 0 6px 10px | a drawer as it opens |
+| `level5` | 0 8px 12px | the highest surface Material states |
+| `sheet` | 0 -1px 3px | level one, cast upwards: a sheet rises from the bottom edge |
+
+A component names the level it rests at rather than writing a shadow, which is what
+keeps `MaterialCard`, `MaterialDialog` and `MaterialBottomSheet` in step: an app that
+replaces one level replaces it on every surface that uses it. How a shadow is
+*blurred* is outside the parity contract — a browser and Skia rasterise it
+differently — so a level states the shape of the shadow, not a pixel promise.
 
 ## Fidelity
 

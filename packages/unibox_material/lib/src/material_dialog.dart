@@ -1,5 +1,6 @@
 import 'package:unibox_core/unibox_core.dart';
 
+import 'material_elevation.dart';
 import 'material_palette.dart';
 import 'material_typography.dart';
 
@@ -61,11 +62,7 @@ final class MaterialDialog extends OverlayNode {
        );
 
   /// Material's level-three elevation: the shadow a dialog is raised by.
-  static const BoxShadow elevation = BoxShadow(
-    color: BoxColor.rgba(0, 0, 0, 0x1F),
-    offsetY: 4,
-    blurRadius: 12,
-  );
+  static const BoxShadow elevation = MaterialElevation.level3;
 
   /// The title: the headline role, in the on-surface colour.
   static BoxTextStyle _contentStyle() => MaterialTypography.bodyMedium.merge(

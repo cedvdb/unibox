@@ -2,6 +2,12 @@
 
 ## 0.1.0
 
+- `MaterialElevation`: the five levels of Material 3 as the shadow each one casts,
+  plus the upward level a sheet throws. `MaterialCard.elevatedShadow`,
+  `MaterialDialog.elevation` and the bottom sheet's shadow are now this scale rather
+  than three near-copies, and a dialog's level is stated at the level's own value
+  (0 4px 8px at 15%) instead of a shadow of its own.
+
 - `MaterialCard` stretches the children it holds (`crossAlign: CrossAlign.stretch`,
   still a parameter). A card's content spans the card, and a `width: double.infinity`
   inside it means the same thing on both targets: a browser resolves `100%` against a

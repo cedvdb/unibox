@@ -28,7 +28,14 @@ the design system it leans on is `packages/unibox_material`.
   measuring the rendered widths, then fix where the model is wrong — a stretch that one
   target applies and the other does not is the drift this repository exists to prevent.
 
-- [ ] **2. Cards do not share one shadow.**
+- [x] **2. Cards do not share one shadow.** *Done.*
+
+  Measured first: the four listing cards carried the same `box-shadow` on the web
+  (`0 1px 3px` at 15%), so the difference was elsewhere — the dialog's own surface
+  wrote a fourth shadow of its own (`0 12px 32px` at 8%) while the package already
+  held three near-copies (card, dialog, sheet). `MaterialElevation` is now the one
+  place a shadow is written, the three components read it by level, and the example's
+  dialog uses `MaterialDialog.elevation` instead of a literal.
 
   The example's cards draw different elevations. `MaterialCard` defaults to the level
   one shade while the listing card is a card with a photo, and nothing states one

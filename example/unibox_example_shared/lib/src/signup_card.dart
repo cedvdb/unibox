@@ -1,4 +1,5 @@
 import 'package:unibox_core/unibox_core.dart';
+import 'package:unibox_material/unibox_material.dart';
 
 import 'page.dart';
 import 'theme.dart';
@@ -140,11 +141,9 @@ Box buildSignupCard({
     backgroundColor: const BoxColor.role(ExampleColor.surface),
     borderRadius: 16,
     border: const BoxBorder(color: ExamplePalette.border),
-    shadow: const BoxShadow(
-      color: BoxColor(0x14000000),
-      offsetY: 12,
-      blurRadius: 32,
-    ),
+    // The dialog's own elevation, not a shadow written here: a surface that is raised
+    // by hand is the fourth shadow in a page that has three, and the one that drifts.
+    shadow: MaterialDialog.elevation,
     children: <UINode>[
       _banner(),
       _closeRow(onDismiss),
