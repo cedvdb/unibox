@@ -229,26 +229,40 @@ than an assumption.
 - `tool/` measures the handover: the exported page is served, driven, and timed from the
   first byte to the first Flutter frame, with the number recorded beside the export.
 
-### What is not wired yet: the boot's own base path
+### The boot's base path, and how it was proved
 
-A takeover page loads `flutter_bootstrap.js`, and Flutter resolves its entrypoint against
-`document.baseURI` — `new URL(path, document.baseURI)`. Our documents sit at `web/listings/`
-with no `<base>` element, so the bundle is fetched correctly from `../../flutter/` and then asks
-for `/web/listings/main.dart.js`, which is a 404. The page boots into nothing.
+A takeover page loads the application, and Flutter resolves its own entrypoint against
+`document.baseURI` — `new URL(path, document.baseURI)`. Our documents sit at `web/listings/`,
+so the generated bootstrap asked for `web/listings/main.dart.js` and the page booted into
+nothing.
 
-Three ways out, and the first is the one that keeps the page's own relative links working:
+The fix is the build's, not a document's: the last line of `flutter_bootstrap.js` is an
+unconfigured `_flutter.loader.load()`, and the loader takes the base as an argument, so
+`tool/site.sh` writes `flutter/app.js` — the same bootstrap with that one call configured:
 
-1. **Replace `flutter_bootstrap.js` with our own loader call** that passes
-   `{config: {basePath: '../../flutter/'}}`. Flutter supports it for exactly this case; it costs
-   one file in the export and no `<base>`.
-2. Give the document a `<base href="../../flutter/">` — which then rewrites every relative link,
-   every `src` and both frames of the comparison. Not worth it.
-3. Move the takeover documents to the site root, where the default resolves. That loses the
-   per-route documents the export exists to write.
+```js
+_flutter.loader.load({config: {
+  entrypointBaseUrl: '/flutter/',
+  canvasKitBaseUrl: '/flutter/canvaskit/',
+  assetBase: '/flutter/'
+}});
+```
 
-Until one of them lands, `/web/listings/` is a document that does not become the application:
-the score is real, the handover is not. The gate measures the document, so it cannot see this —
-which is the same gap the boot-to-interactive number covers.
+Replacing the bootstrap is not an option: `_flutter.buildConfig`, which the loader reads before
+anything else, is defined inside it. `assetBase` is the directory and not the `assets/` path,
+because Flutter appends `assets/` itself — the first attempt asked for
+`/flutter/assets/assets/FontManifest.json`.
+
+**Checked, not assumed.** Serve the built site and dump the DOM after the scripts have run:
+
+```shell
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new   --virtual-time-budget=40000 --dump-dom http://127.0.0.1:8000/web/listings/
+```
+
+The document boots `app.js`, which fetches `main.dart.js`, `canvaskit` and
+`assets/FontManifest.json` from `/flutter/`, and `flt-glass-pane` is in the dump — the page has
+become the application. Headless never moves a pointer, so the check passes only with a policy
+that boots unbidden: `BootPolicy.immediately` for the run, `onPointer` in the page.
 
 ### The gate: measured, not predicted
 

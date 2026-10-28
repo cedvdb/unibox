@@ -3,11 +3,13 @@ import 'package:unibox_html/unibox_html.dart';
 
 import 'fonts.dart';
 
-/// The bootstrap the page loads to become the application.
+/// The loader the page boots the application through.
 ///
 /// The documents sit two directories below the site root, which is where `tool/site.sh` puts
-/// the output of `flutter build web`.
-const String boot = '../../flutter/flutter_bootstrap.js';
+/// the output of `flutter build web`. It is not Flutter's own `flutter_bootstrap.js`: that one
+/// resolves its entrypoint against the document, which is the wrong directory from here, so the
+/// site writes a loader that states where the application is instead.
+const String boot = '../../flutter/app.js';
 
 /// The example as a document, rendered from the same tree the app draws.
 ///

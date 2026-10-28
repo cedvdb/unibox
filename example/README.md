@@ -235,6 +235,7 @@ tool/site.sh --base=/unibox/ --url=https://cedvdb.github.io/unibox/
 | `/web/listings/` | The example as a document — the left frame, and the page the app takes over |
 | `/web/signup/` | The same page with the sign-up dialog over it |
 | `/flutter/listings/`, `/flutter/signup/` | The same example, built by Flutter — the right frame |
+| `/flutter/app.js` | The loader a document boots the application through, with the base path `flutter_bootstrap.js` cannot know |
 
 `build/site/version.txt` names the commit the site was built from. A deploy is not
 instant and is not always the one it looks like — one publication here shipped the

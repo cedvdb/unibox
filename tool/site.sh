@@ -77,6 +77,32 @@ mkdir -p "$site/flutter" "$site/assets/fonts"
 cp example/unibox_example_flutter/assets/fonts/*.ttf "$site/assets/fonts/"
 cp -R example/unibox_example_flutter/build/web/. "$site/flutter/"
 
+# The loader a document anywhere on the site can boot the application through.
+#
+# Flutter resolves its own entrypoint against `document.baseURI`, and a takeover document sits
+# at `web/listings/`, so the generated bootstrap would ask for `web/listings/main.dart.js` and
+# get a 404. Its last line is an unconfigured `_flutter.loader.load()`, and the loader takes the
+# base as an argument, so the build patches that one call with the path the site is served from.
+#
+# Replacing the bootstrap is not an option: `_flutter.buildConfig`, which the loader reads
+# before anything else, is defined inside it.
+python3 - "$site/flutter/flutter_bootstrap.js" "${base}flutter/" "$site/flutter/app.js" <<'PATCH'
+import sys
+
+source, base, out = sys.argv[1], sys.argv[2], sys.argv[3]
+text = open(source).read()
+called = '_flutter.loader.load();'
+configured = (
+    '_flutter.loader.load({config:{entrypointBaseUrl:"%s",'
+    'canvasKitBaseUrl:"%scanvaskit/",assetBase:"%s"}});' % (base, base, base)
+)
+
+if called not in text:
+    raise SystemExit('the bootstrap no longer ends with an unconfigured load()')
+
+open(out, 'w').write(text.replace(called, configured))
+PATCH
+
 # A static host has no rewrite rule, so a Flutter route is a real file. The build's
 # absolute base href is what lets the copied document resolve its assets from a
 # deeper path. The two routes are the two states of the example: the page, and the

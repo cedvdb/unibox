@@ -109,10 +109,7 @@ void main() {
       () {
         final String html = buildExampleDocument();
 
-        expect(
-          html,
-          contains('rel="prefetch" href="../../flutter/flutter_bootstrap.js"'),
-        );
+        expect(html, contains('rel="prefetch" href="../../flutter/app.js"'));
         expect(html, contains('unibox.boot'));
       },
     );
