@@ -126,8 +126,11 @@ void main() {
         RecordingHost().card(const SignupFormState(newsletter: true)),
       ).whereType<Box>().firstWhere((Box box) => box.width == 24);
 
-      expect(checkbox.backgroundColor, ExamplePalette.accent);
-      expect(checkbox.border?.color, ExamplePalette.accent);
+      expect(
+        checkbox.backgroundColor,
+        const BoxColor.role(ExampleColor.accent),
+      );
+      expect(checkbox.border?.color, const BoxColor.role(ExampleColor.accent));
       expect(textsIn(checkbox), <String>['✓']);
     });
 
@@ -136,7 +139,7 @@ void main() {
           .whereType<Box>()
           .firstWhere((Box box) => box.width == 24);
 
-      expect(checkbox.backgroundColor, ExamplePalette.panel);
+      expect(checkbox.backgroundColor, const BoxColor.role(ExampleColor.panel));
       expect(checkbox.children, isEmpty);
     });
 

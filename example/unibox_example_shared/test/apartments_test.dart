@@ -106,8 +106,9 @@ void main() {
 
         expect(field.backgroundColor, const BoxColor.role(ExampleColor.panel));
         expect(
-          ExamplePalette.theme.resolve(field.backgroundColor!),
-          ExamplePalette.panel,
+          ExamplePalette.themeFor(ExampleSeed.blue)
+              .resolve(field.backgroundColor!),
+          ExamplePalette.materialFor(ExampleSeed.blue).surfaceContainerLowest,
           reason: 'the field is the example white on both targets',
         );
       },
@@ -143,7 +144,10 @@ void main() {
       expect(pill.visibleUntil, 900);
       expect(pill.margin, const BoxSpacing.only(bottom: 24));
       expect(pill.shadow, MaterialElevation.level3);
-      expect(validateTree(page, theme: ExamplePalette.theme), isEmpty);
+      expect(
+        validateTree(page, theme: ExamplePalette.themeFor(ExampleSeed.blue)),
+        isEmpty,
+      );
     });
 
     test('offers no way into a map view of its own', () {

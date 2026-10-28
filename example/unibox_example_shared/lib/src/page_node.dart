@@ -4,6 +4,7 @@ import 'apartments.dart';
 import 'page.dart';
 import 'page_state.dart';
 import 'signup_card.dart';
+import 'theme.dart';
 
 /// The example as one node: the bar, the listings and the sign-up dialog, drawn
 /// from [ExampleState].
@@ -13,8 +14,12 @@ import 'signup_card.dart';
 /// node cannot know — the surface and how a link opens — which is why each host of
 /// the example is one small file.
 final class ExamplePageNode extends StatefulNode<ExampleState, ExampleStore> {
-  /// Creates the page, starting with [initialForm] and with the dialog open when
-  /// [signupOpen] is set.
+  /// Creates the page, starting with [initialForm], with the dialog open when
+  /// [signupOpen] is set, and marked as drawn with [seed].
+  ///
+  /// [seed] is only what the picker marks as in force: the palette itself is the
+  /// theme the host installs, which is why the two must agree and why the host
+  /// passes the same value to both.
   ///
   /// [signupOpen] is for a static export: a document has no click to open the
   /// dialog, so it is rendered in the state it should start in.
@@ -22,13 +27,14 @@ final class ExamplePageNode extends StatefulNode<ExampleState, ExampleStore> {
   factory ExamplePageNode({
     SignupFormState initialForm = const SignupFormState(),
     bool signupOpen = false,
+    ExampleSeed seed = ExampleSeed.blue,
     Object? key,
   }) {
     return ExamplePageNode._(
       key: key,
       create: () => ExampleStore(initial: initialForm, openSignup: signupOpen),
       view: (ExampleState state, ExampleStore store) =>
-          exampleView(state: state, store: store),
+          exampleView(state: state, store: store, seed: seed),
     );
   }
 
@@ -39,9 +45,14 @@ final class ExamplePageNode extends StatefulNode<ExampleState, ExampleStore> {
 ///
 /// The dialog is part of the tree only while it is open: a closed dialog is
 /// simply absent, so the renderer sees an ordinary page and no overlay at all.
-UINode exampleView({required ExampleState state, required ExampleStore store}) {
+UINode exampleView({
+  required ExampleState state,
+  required ExampleStore store,
+  ExampleSeed seed = ExampleSeed.blue,
+}) {
   return buildExamplePage(
     current: state.current,
+    seed: seed,
     onNavigate: store.navigate,
     page: buildApartmentsPage(
       filter: state.filter,

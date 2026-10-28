@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:jaspr/server.dart';
 import 'package:jaspr_test/jaspr_test.dart';
 import 'package:unibox_example_jaspr/document.dart';
+import 'package:unibox_example_jaspr/main.dart';
 import 'package:unibox_example_shared/unibox_example_shared.dart';
 
 void main() {
@@ -31,6 +32,32 @@ void main() {
       expect(html, contains('--unibox-color-canvas'));
       expect(html, contains('--unibox-color-accent'));
       expect(html, contains('--unibox-color-panel'));
+    });
+
+    test('can be written in any seed the picker offers', () async {
+      // The export writes the page in the default seed, because a static file is
+      // rendered once. The runtime asks for another one with `?seed=<name>` and
+      // renders the same root with that palette — so the seed has to reach the
+      // `:root` block, not just the tree.
+      for (final ExampleSeed seed in <ExampleSeed>[
+        ExampleSeed.rose,
+        ExampleSeed.green,
+      ]) {
+        final ResponseLike page = await renderComponent(
+          buildExampleRoot(seed: seed),
+        );
+        final String rendered = utf8.decode(page.body);
+        final String accent = ExamplePalette.materialFor(seed).primary.value
+            .toRadixString(16)
+            .substring(2)
+            .toUpperCase();
+
+        expect(
+          rendered.toLowerCase(),
+          contains('#$accent'.toLowerCase()),
+          reason: 'the ${seed.name} accent is missing from the page',
+        );
+      }
     });
 
     test('points the tree at those properties instead of a value', () {

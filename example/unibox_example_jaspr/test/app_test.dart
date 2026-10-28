@@ -212,10 +212,13 @@ void main() {
       );
       expect(anchor.events?.keys, contains('click'));
 
+      // The item of the page the reader is on — the palette swatches above the bar
+      // are links too, so the item is the one that says it is current.
       final TestRenderElement item = elementsOf(find.tag('div')).firstWhere(
-        (TestRenderElement element) => element.attributes?['role'] == 'link',
+        (TestRenderElement element) =>
+            element.attributes?['aria-current'] == 'page',
       );
-      expect(item.attributes?['aria-current'], 'page');
+      expect(item.attributes?['role'], 'link');
       expect(item.attributes?['tabindex'], '0');
 
       // The form is a button, so a reader hears one navigation and one button.

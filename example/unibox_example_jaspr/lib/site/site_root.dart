@@ -18,7 +18,7 @@ Component buildSiteRoot() {
   return renderJaspr(
     // The page is built from material components, which name colour roles: the
     // theme answers them, once, for the whole page.
-    theme: ExamplePalette.theme,
+    theme: ExamplePalette.themeFor(ExampleSeed.blue),
     buildSitePage(
       frame: ({required String src, required String title}) =>
           IframeNode(src: src, title: title, resizable: true),

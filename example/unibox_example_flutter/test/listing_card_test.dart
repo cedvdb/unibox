@@ -30,7 +30,7 @@ void main() {
           buildApartmentsPage(),
           // The page's own palette: it names the example's roles, and the Material
           // ones its components name are lent by the same theme.
-          theme: ExamplePalette.theme,
+          theme: ExamplePalette.themeFor(ExampleSeed.blue),
         ),
       ),
     );

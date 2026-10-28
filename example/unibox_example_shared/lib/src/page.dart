@@ -74,6 +74,7 @@ Box buildExamplePage({
   required void Function(ExamplePage page) onNavigate,
   required UINode page,
   OverlayNode? dialog,
+  ExampleSeed seed = ExampleSeed.blue,
 }) {
   return Box(
     direction: Axis.vertical,
@@ -81,9 +82,66 @@ Box buildExamplePage({
     height: double.infinity,
     backgroundColor: const BoxColor.role(ExampleColor.canvas),
     children: <UINode>[
+      _seedPicker(current: seed),
       _navigationBar(current: current, onNavigate: onNavigate),
       page,
       ?dialog,
+    ],
+  );
+}
+
+/// The row above the bar: the palettes the page can be drawn with.
+///
+/// A swatch is a link to the page it is on with `?seed=<name>` in the address. The
+/// address is what a browser follows, so a document can be rendered in any palette
+/// without a runtime; the Flutter host reads the same address in its link policy and
+/// rebuilds with another theme instead of loading a page, which is why the picker is
+/// a link and not a switch: the tree states where to go, the host decides what going
+/// there means.
+///
+/// The swatch is painted with the accent its seed *grows*, not with the seed itself.
+/// A tonal spot palette spends a saturated colour on a low chroma one, so a picker
+/// showing the seed would promise a blue and deliver a slate.
+UINode _seedPicker({required ExampleSeed current}) {
+  return Box(
+    direction: Axis.horizontal,
+    mainAlign: MainAlign.center,
+    crossAlign: CrossAlign.center,
+    width: double.infinity,
+    gap: 8,
+    padding: const BoxSpacing.symmetric(horizontal: 24, vertical: 8),
+    backgroundColor: const BoxColor.role(ExampleColor.panel),
+    textStyle: ExampleType.muted,
+    children: <UINode>[
+      const TextNode('Palette'),
+      for (final ExampleSeed seed in ExampleSeed.values)
+        LinkNode(
+          '?seed=${seed.name}',
+          child: Box(
+            width: 22,
+            height: 22,
+            borderRadius: 11,
+            backgroundColor: seed.accent,
+            // The seed in force is ringed: a swatch of its own accent does not say
+            // which of the six the page is drawn with.
+            border: BoxBorder(
+              width: seed == current ? 2 : 1,
+              color: BoxColor.role(
+                seed == current ? ExampleColor.text : ExampleColor.border,
+              ),
+            ),
+            semantics: BoxSemantics(
+              role: BoxRole.link,
+              label: seed == current
+                  ? '${seed.label} palette, in force'
+                  : '${seed.label} palette',
+            ),
+            stateStyles: const <BoxState, BoxStyle>{
+              BoxState.hover: BoxStyle(transform: BoxTransform(scale: 1.15)),
+            },
+            transition: ExampleType.transition,
+          ),
+        ),
     ],
   );
 }
@@ -186,7 +244,9 @@ UINode _navigationItem(
       mainAlign: MainAlign.center,
       padding: const BoxSpacing.symmetric(horizontal: 12, vertical: 6),
       borderRadius: 8,
-      backgroundColor: current ? ExamplePalette.accentSurface : null,
+      backgroundColor: current
+          ? BoxColor.role(ExampleColor.accentSurface)
+          : null,
       textStyle: current ? ExampleType.navCurrent : ExampleType.nav,
       semantics: BoxSemantics(
         role: BoxRole.link,
@@ -195,7 +255,9 @@ UINode _navigationItem(
         current: current ? BoxCurrent.page : null,
       ),
       stateStyles: <BoxState, BoxStyle>{
-        BoxState.hover: BoxStyle(backgroundColor: ExamplePalette.accentSurface),
+        BoxState.hover: BoxStyle(
+          backgroundColor: BoxColor.role(ExampleColor.accentSurface),
+        ),
       },
       transition: ExampleType.transition,
       children: <UINode>[TextNode(page.label)],
@@ -220,12 +282,16 @@ UINode _signUp({required TapCallback onTap}) {
     mainAlign: MainAlign.center,
     padding: const BoxSpacing.symmetric(horizontal: 14, vertical: 8),
     borderRadius: 8,
-    backgroundColor: ExamplePalette.accent,
+    backgroundColor: BoxColor.role(ExampleColor.accent),
     textStyle: ExampleType.button,
     semantics: const BoxSemantics(role: BoxRole.button),
     stateStyles: <BoxState, BoxStyle>{
-      BoxState.hover: BoxStyle(backgroundColor: ExamplePalette.accentHover),
-      BoxState.pressed: BoxStyle(backgroundColor: ExamplePalette.accentPressed),
+      BoxState.hover: BoxStyle(
+        backgroundColor: BoxColor.role(ExampleColor.accentHover),
+      ),
+      BoxState.pressed: BoxStyle(
+        backgroundColor: BoxColor.role(ExampleColor.accentPressed),
+      ),
     },
     transition: ExampleType.transition,
     children: <UINode>[TextNode(ExamplePage.signup.label)],

@@ -18,6 +18,7 @@ class ExampleApp extends JasprStateful {
   const ExampleApp({
     this.initialForm = const SignupFormState(),
     this.openSignup = false,
+    this.seed = ExampleSeed.blue,
     super.key,
   });
 
@@ -27,9 +28,16 @@ class ExampleApp extends JasprStateful {
   /// Whether the first render has the sign-up dialog open.
   final bool openSignup;
 
+  /// The palette the page is drawn with, which the picker in the tree replaces.
+  final ExampleSeed seed;
+
   @override
   core.StatefulNode<Object, core.Store<Object>> createNode() {
-    return ExamplePageNode(initialForm: initialForm, signupOpen: openSignup);
+    return ExamplePageNode(
+      initialForm: initialForm,
+      signupOpen: openSignup,
+      seed: seed,
+    );
   }
 }
 
@@ -40,9 +48,12 @@ class ExampleApp extends JasprStateful {
 /// with and the markup it keeps are the same tree. The theme has to be part of it:
 /// the page names colour roles, and a root without the scope would render them
 /// unanswered the moment the runtime took over.
-Component buildExampleRoot({bool openSignup = false}) {
+Component buildExampleRoot({
+  bool openSignup = false,
+  ExampleSeed seed = ExampleSeed.blue,
+}) {
   return JasprThemeScope(
-    theme: ExamplePalette.theme,
-    child: ExampleApp(openSignup: openSignup),
+    theme: ExamplePalette.themeFor(seed),
+    child: ExampleApp(openSignup: openSignup, seed: seed),
   );
 }

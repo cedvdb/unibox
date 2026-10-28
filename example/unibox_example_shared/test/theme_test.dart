@@ -3,88 +3,145 @@ import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_example_shared/unibox_example_shared.dart';
 import 'package:unibox_material/unibox_material.dart';
 
-/// Holds the example's palette to the one seed it is grown from, and its two
+/// Holds the example's palettes to the seeds they are grown from, and its two
 /// vocabularies apart.
 ///
-/// The colours of the example are read out of the palette Material builds for
-/// [ExamplePalette.seed] rather than typed into `theme.dart`, and the tree both
-/// names [ExampleColor] roles and draws components from `unibox_material`, which
-/// name [MaterialColorRole]s of their own. Those are the three things these tests
-/// keep: every role comes from the seed, one theme answers both vocabularies, and
-/// no two roles write the same custom property on the web — two members called
-/// `surface` would write `--unibox-color-surface` twice, and the browser would keep
-/// the last while Flutter resolved each one, which no token table can catch because
-/// both renderers were right about their own colour.
+/// The tree names [ExampleColor] roles and nothing else, so every colour the page
+/// shows is answered by the theme the host installs for the seed in the address.
+/// These are the facts that keeps: each seed grows a whole palette, every role is
+/// answered by every seed, no two roles claim one custom property on the web, and a
+/// seed the address does not name falls back to the one the example is branded with.
 void main() {
-  group('ExamplePalette', () {
-    test('grows every colour from the seed', () {
-      final MaterialPalette grown = MaterialPalette.fromSeed(
-        ExamplePalette.seed,
-      );
+  group('ExampleSeed', () {
+    test('has a seed for every palette the picker offers', () {
+      expect(ExampleSeed.values, isNotEmpty);
+      // The first seed is the default, which is what `/` and an unknown name give.
+      expect(ExampleSeed.fromName(null), ExampleSeed.values.first);
+      expect(ExampleSeed.fromName('nonsense'), ExampleSeed.values.first);
+      expect(ExampleSeed.fromName('green'), ExampleSeed.green);
+    });
 
-      expect(ExamplePalette.accent, grown.primary);
-      expect(ExamplePalette.accentSurface, grown.secondaryContainer);
-      expect(ExamplePalette.panel, grown.surfaceContainerLowest);
-      expect(ExamplePalette.canvas, grown.surfaceContainerLow);
-      expect(ExamplePalette.text, grown.onSurface);
-      expect(ExamplePalette.muted, grown.onSurfaceVariant);
-      expect(ExamplePalette.border, grown.outlineVariant);
-      expect(ExamplePalette.danger, grown.error);
+    test('paints each swatch with the accent its seed grows', () {
+      for (final ExampleSeed seed in ExampleSeed.values) {
+        expect(
+          seed.accent,
+          ExamplePalette.materialFor(seed).primary,
+          reason: '${seed.name} shows the colour the page will use',
+        );
+      }
+      // Six seeds that all looked the same would be a picker of one colour.
+      expect(
+        ExampleSeed.values.map((ExampleSeed seed) => seed.accent).toSet(),
+        hasLength(ExampleSeed.values.length),
+      );
+    });
+  });
+
+  group('ExamplePalette', () {
+    test('grows every colour of a seed from that seed', () {
+      for (final ExampleSeed seed in ExampleSeed.values) {
+        final MaterialPalette grown = MaterialPalette.fromSeed(seed.color);
+        final UniboxTheme theme = ExamplePalette.themeFor(seed);
+
+        expect(
+          theme.resolve(const BoxColor.role(ExampleColor.accent)),
+          grown.primary,
+        );
+        expect(
+          theme.resolve(const BoxColor.role(ExampleColor.panel)),
+          grown.surfaceContainerLowest,
+        );
+        expect(
+          theme.resolve(const BoxColor.role(ExampleColor.canvas)),
+          grown.surfaceContainerLow,
+        );
+        expect(
+          theme.resolve(const BoxColor.role(ExampleColor.text)),
+          grown.onSurface,
+        );
+        expect(
+          theme.resolve(const BoxColor.role(ExampleColor.muted)),
+          grown.onSurfaceVariant,
+        );
+        expect(
+          theme.resolve(const BoxColor.role(ExampleColor.border)),
+          grown.outlineVariant,
+        );
+        expect(
+          theme.resolve(const BoxColor.role(ExampleColor.danger)),
+          grown.error,
+        );
+      }
+    });
+
+    test('answers every role, for every seed', () {
+      for (final ExampleSeed seed in ExampleSeed.values) {
+        final UniboxTheme theme = ExamplePalette.themeFor(seed);
+
+        for (final ExampleColor role in ExampleColor.values) {
+          expect(theme.colorOf(role), isNotNull, reason: '${seed.name} $role');
+        }
+        // The components of `unibox_material` name roles of their own and are drawn
+        // inside the same page, so one theme answers both vocabularies.
+        for (final MaterialColorRole role in MaterialColorRole.values) {
+          expect(theme.colorOf(role), isNotNull, reason: '${seed.name} $role');
+        }
+      }
+    });
+
+    test('mixes the palette layers into the accent', () {
+      // The accent's two states are Material's own layers resolved against the
+      // fill: opaque colours, because a box paints one colour and not a layer.
+      for (final ExampleSeed seed in ExampleSeed.values) {
+        final UniboxTheme theme = ExamplePalette.themeFor(seed);
+        final BoxColor accent = theme.resolve(
+          const BoxColor.role(ExampleColor.accent),
+        );
+        final BoxColor hover = theme.resolve(
+          const BoxColor.role(ExampleColor.accentHover),
+        );
+
+        expect(hover.isOpaque, isTrue, reason: seed.name);
+        expect(hover, isNot(accent), reason: seed.name);
+      }
     });
 
     test('gives the confirmation a seed of its own', () {
       // Material's roles carry an error and no success, so the example grows a
-      // second palette rather than inventing a green.
+      // second palette rather than inventing a green — and it is the same one for
+      // every brand seed, because a confirmation is a convention.
       final MaterialPalette grown = MaterialPalette.fromSeed(
         ExamplePalette.successSeed,
       );
 
-      expect(ExamplePalette.success, grown.primary);
-      expect(ExamplePalette.successSurface, grown.secondaryContainer);
-    });
+      for (final ExampleSeed seed in ExampleSeed.values) {
+        final UniboxTheme theme = ExamplePalette.themeFor(seed);
 
-    test('mixes the state layers into the accent', () {
-      // The accent's two states are Material's own layers resolved against the
-      // fill: opaque colours, darker than the accent, because the on-surface colour
-      // they are made of is near black in this scheme.
-      expect(ExamplePalette.accentHover.isOpaque, isTrue);
-      expect(
-        ExamplePalette.accentHover.red,
-        lessThan(ExamplePalette.accent.red),
-      );
-      expect(
-        ExamplePalette.accentPressed.red,
-        lessThanOrEqualTo(ExamplePalette.accentHover.red),
-      );
-    });
-
-    test('answers every role the pages name', () {
-      for (final ExampleColor role in ExampleColor.values) {
-        expect(ExamplePalette.theme.colorOf(role), isNotNull, reason: '$role');
-      }
-      for (final MaterialColorRole role in MaterialColorRole.values) {
-        expect(ExamplePalette.theme.colorOf(role), isNotNull, reason: '$role');
+        expect(
+          theme.resolve(const BoxColor.role(ExampleColor.success)),
+          grown.primary,
+        );
+        expect(
+          theme.resolve(const BoxColor.role(ExampleColor.successSurface)),
+          grown.secondaryContainer,
+        );
       }
     });
-  });
 
-  group('ExamplePalette.theme', () {
     test('names every role once, across both vocabularies', () {
-      expect(ExamplePalette.theme.clashes, isEmpty);
-    });
-
-    test('answers the panel the example paints its raised surfaces with', () {
-      expect(
-        ExamplePalette.theme.resolve(const BoxColor.role(ExampleColor.panel)),
-        ExamplePalette.panel,
-      );
+      for (final ExampleSeed seed in ExampleSeed.values) {
+        expect(
+          ExamplePalette.themeFor(seed).clashes,
+          isEmpty,
+          reason: seed.name,
+        );
+      }
     });
 
     test('leaves the Material roles to the Material palette', () {
       expect(
-        ExamplePalette.theme.resolve(
-          const BoxColor.role(MaterialColorRole.surface),
-        ),
+        ExamplePalette.themeFor(ExampleSeed.blue)
+            .resolve(const BoxColor.role(MaterialColorRole.surface)),
         ExamplePalette.material.surface,
         reason: 'a Material component keeps the colour its palette states',
       );

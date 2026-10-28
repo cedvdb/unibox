@@ -20,8 +20,15 @@ void main() {
 
   if (example != null) {
     // The page the path names decides the state the document starts in, the way the
-    // exported document itself was written.
-    runApp(buildExampleRoot(openSignup: example == ExamplePage.signup));
+    // exported document itself was written — and the address decides the palette,
+    // which the export cannot: a static file is written once, and `?seed=teal` is
+    // the picker asking for a second one.
+    runApp(
+      buildExampleRoot(
+        openSignup: example == ExamplePage.signup,
+        seed: ExampleSeed.fromName(Uri.base.queryParameters['seed']),
+      ),
+    );
     return;
   }
 

@@ -48,15 +48,54 @@ void main() {
       expect(page.direction, Axis.vertical);
     });
 
-    test('stacks the navigation above the page it was given', () {
-      final Box content = Box(key: 'content');
-      final List<UINode> children = RecordingHost()
-          .frame(page: content)
-          .children;
+    test(
+      'stacks the picker and the navigation above the page it was given',
+      () {
+        final Box content = Box(key: 'content');
+        final List<UINode> children = RecordingHost()
+            .frame(page: content)
+            .children;
 
-      expect(children, hasLength(2));
-      expect(children.first, isA<Box>());
-      expect(children.last, same(content));
+        // The palette row, the bar, the page: the picker is above the bar because it
+        // restyles everything below it, including the bar itself.
+        expect(children, hasLength(3));
+        expect(children.first, isA<Box>());
+        expect(children.last, same(content));
+      },
+    );
+
+    test('offers a swatch per seed, as a link to this page with that seed', () {
+      final Box page = RecordingHost().frame();
+      final List<LinkNode> swatches = flatten(page)
+          .whereType<LinkNode>()
+          .where((LinkNode link) => link.url.startsWith('?seed='))
+          .toList();
+
+      expect(swatches, hasLength(ExampleSeed.values.length));
+      expect(swatches.map((LinkNode link) => link.url), <String>[
+        for (final ExampleSeed seed in ExampleSeed.values) '?seed=${seed.name}',
+      ]);
+      // Each swatch is painted with the accent its seed grows and says which one it
+      // is, because a circle of colour has no text to read.
+      for (final LinkNode link in swatches) {
+        final Box swatch = link.child as Box;
+        final ExampleSeed seed = ExampleSeed.values[swatches.indexOf(link)];
+
+        expect(swatch.backgroundColor, seed.accent);
+        expect(swatch.semantics?.label, contains(seed.label));
+      }
+    });
+
+    test('rings the seed the page is drawn with', () {
+      final Box page = RecordingHost().frame(seed: ExampleSeed.rose);
+      final Map<String, double?> widths = <String, double?>{
+        for (final LinkNode link in flatten(page).whereType<LinkNode>())
+          if (link.url.startsWith('?seed='))
+            link.url: (link.child as Box).border?.width,
+      };
+
+      expect(widths['?seed=rose'], 2);
+      expect(widths['?seed=blue'], 1);
     });
 
     test('offers a link per destination and a button for the form', () {
@@ -92,9 +131,12 @@ void main() {
       final Box open = navLabelBox(page, 'Apartments');
       final Box other = navLabelBox(page, 'Sign up');
 
-      expect(open.backgroundColor, ExamplePalette.accentSurface);
-      expect(open.textStyle?.color, ExamplePalette.accent);
-      expect(other.backgroundColor, ExamplePalette.accent);
+      expect(
+        open.backgroundColor,
+        const BoxColor.role(ExampleColor.accentSurface),
+      );
+      expect(open.textStyle?.color, const BoxColor.role(ExampleColor.accent));
+      expect(other.backgroundColor, const BoxColor.role(ExampleColor.accent));
       expect(other.textStyle?.color, ExampleType.button.color);
     });
 
@@ -125,7 +167,7 @@ void main() {
           .frame(dialog: dialog)
           .children;
 
-      expect(children, hasLength(3));
+      expect(children, hasLength(4));
       expect(children.last, same(dialog));
     });
 

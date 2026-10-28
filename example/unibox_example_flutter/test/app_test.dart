@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:unibox_core/unibox_core.dart' as core;
+import 'package:unibox_example_shared/unibox_example_shared.dart';
 import 'package:unibox_flutter/unibox_flutter.dart';
 
 import 'support/harness.dart';
@@ -22,6 +24,31 @@ void main() {
       expect(find.text('Join Unibox'), findsNothing);
       expect(find.byType(TextField), findsNothing);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('draws the page in the palette the picker chooses', (
+      tester,
+    ) async {
+      await pumpApp(tester);
+
+      core.UniboxTheme installed() =>
+          tester.widget<UniboxThemeScope>(find.byType(UniboxThemeScope)).theme;
+
+      expect(installed(), ExamplePalette.themeFor(ExampleSeed.blue));
+
+      // The swatch is a link to this page with `?seed=<name>`: the host answers the
+      // address with another theme instead of loading anything, so the page keeps
+      // its store — the dialog, the filter and the fields stay where they were.
+      await tester.tap(find.bySemanticsLabel('Rose palette'));
+      await tester.pump();
+
+      expect(installed(), ExamplePalette.themeFor(ExampleSeed.rose));
+      expect(
+        installed().resolve(const core.BoxColor.role(ExampleColor.accent)),
+        ExamplePalette.materialFor(ExampleSeed.rose).primary,
+      );
+      // Nothing navigated: the page is still the one the reader was on.
+      expect(find.text('Via Bellavista 12'), findsOneWidget);
     });
 
     testWidgets('opens the sign-up dialog from the bar', (tester) async {

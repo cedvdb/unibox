@@ -71,14 +71,22 @@ the listings document is the one that can be read without dismissing anything, a
 form
 is its own url.
 
-## One seed, one palette
+## One seed, six palettes
 
-The example is branded with a single colour. `ExamplePalette.seed` is `#2D6CF3`, and
-every other colour is read out of the palette Material grows from it
+The example is branded with a single colour. `ExampleSeed.blue` is `#2D6CF3`, and
+every colour of the page is read out of the palette Material grows from it
 (`MaterialPalette.fromSeed`) — the accent, the tint behind the open navigation item,
-the card, the page, the text, the muted text, the border and the error. Nothing else
-in the example is a hex value, so a different brand is a different seed and no other
-line changes.
+the card, the page, the text, the muted text and the border. A tree holds no colour of
+its own: it names roles, and the theme the host installs answers them.
+
+That is what makes the row above the navigation bar possible. It offers six seeds,
+and each swatch is a link to *this page* with `?seed=<name>` in the address — the
+address is the whole mechanism, and both hosts answer it their own way:
+
+| Host | What `?seed=rose` means |
+| --- | --- |
+| Flutter | its link policy reads the address, installs the rose palette and redraws. Nothing loads, and the page keeps its store: the dialog stays open, the filter stays chosen |
+| Jaspr | the browser follows the link, `main.client.js` reads the address and renders the root with that palette, because a static document was rendered before the reader clicked |
 
 Three things are worth knowing about the result:
 
@@ -86,21 +94,22 @@ Three things are worth knowing about the result:
   and it spends a saturated brand colour on a palette of low chroma: the vivid
   `#2D6CF3` becomes `#4A5C92`. That is the algorithm being faithful to Material
   rather than to the seed, and `MaterialSchemeVariant.fidelity` is the dial that keeps
-  the brand's own chroma instead — a second palette is one argument away.
+  the brand's own chroma instead. The swatches show the accent each seed *grows*, for
+  the same reason: a picker painted with the seeds would promise colours the page does
+  not use.
 - **The two states of the accent are the palette's own layers.** Material paints a
   hover as 8% of `onSurface` over a fill; a box paints one opaque colour, so the
   example mixes that layer into the accent. The opacities stay in the palette rather
   than in the example.
 - **The confirmation is a second seed.** Material's roles carry an error and no
   success, so `#15803D` seeds a small palette of its own and the message takes its
-  green from that.
+  green from that. It is the same green under all six brand seeds, because a
+  confirmation is a convention and not a brand.
 
-The values are `final` and not `const`, which is the one cost of the change: a
-palette grown from a seed is computed when the page is built, so the styles that name
-its colours are computed too, and a few `const` nodes became plain ones. What the tree
-still does is name roles — `BoxColor.role(ExampleColor.canvas)` — and the theme, which
-now carries both the example's vocabulary and Material's, answers them once for the
-whole page.
+What the picker does not do is restyle the pages that surround the example. The site's
+own catalogue is written by the build with the default seed, so a page and the frame
+embedded in it are never two palettes of one page; on the web the picker changes the
+example's documents, which are the ones a reader opens.
 
 ## One font, one set of weights
 
