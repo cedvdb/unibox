@@ -106,9 +106,11 @@ text input. The conformance suite from `unibox_testing` is wired before the seco
 node, so each one lands against the table rather than after it. Then `<style>`,
 `toHtml()`, and `toDocument()` with a typed head.
 
-**3. The script.** `uniboxClientScript` — ink from a press position, overlay
-dismissal, press recording — plus a `node --test` suite that runs it against a small
-fake DOM, since no Dart suite can exercise it.
+**3. The script, and the gate.** `uniboxClientScript` — ink from a press position,
+overlay dismissal, press recording — plus a `node --test` suite that runs it against a
+small fake DOM, since no Dart suite can exercise it. `tool/lighthouse.sh` and its budget
+land here too, so the performance claim is measured from the first exported page rather
+than added at the end.
 
 **4. The example.** `example/unibox_example_jaspr` becomes an HTML host: `tool/`
 exports one document per route with `sitemap.xml` and `robots.txt`, the takeover page
@@ -143,6 +145,64 @@ want changing:
 - Every class containing a settled spelling gets a new name, because a class name is a hash
   of the text. That is why the spellings change in one commit, after the renderer is gone,
   rather than as a side effect of anything else.
+
+## Handover and Lighthouse
+
+The handover is part of the framework, not glue a host writes for itself. That means the
+library ships four things, and each is specified rather than suggested:
+
+1. the recorder, which captures where the reader was scrolled and what they pressed;
+2. a boot contract — one global, one entry point — so the script that preloads and the
+   application that arrives agree without the page knowing which implementation it got;
+3. the Flutter side: `BoxScrollOffset`, `UniboxScrollScope`, and `initialScrollOffset` on
+   a scrolling box, so the app starts where the reader left rather than at the top;
+4. a documented deferral, since when to boot is the whole performance story.
+
+### What each metric asks of the renderer
+
+| Metric | What the renderer must do | How it is pinned |
+| --- | --- | --- |
+| CLS | write `width` and `height` on every image the node sizes, and `aspect-ratio` when it states both | a test per image case, and `validateTree` reports an image with no size at all |
+| CLS | never restate a look in a state rule that would move something (the `declaredOnly` rule already in `unibox_css`) | the conformance table |
+| LCP | no render-blocking request of its own: one stylesheet, no `@import`, nothing third party | the emitted document |
+| LCP | the image the tree marks `fetchPriority: high` is written as such, and a `loading: lazy` one never is | a test per attribute |
+| INP, TBT | no JavaScript in the document until the host asks for the bootstrap | the document has no `<script>` when `recordScroll: false` |
+| unused CSS | only the classes the tree wears are emitted, one rule per distinct look | `classCount` against the tree |
+| SEO | real text, `<h1>`–`<h6>`, `<a href>`, `<img alt>`, `lang`, title, description | the existing conformance cases |
+
+The CSS is emitted as a string and the document chooses: inline it for a single page,
+serve it as one cached file for a set of pages. Both are a `toDocument` parameter rather
+than an assumption.
+
+### What the example must prove (phase 4)
+
+- The bootstrap never runs at parse time. It starts on intent — `pointerover`,
+  `touchstart`, `keydown`, or a focus inside the first viewport — and otherwise on idle,
+  so a reader who only reads never pays for the application.
+- The ink plays on the press that starts the boot, so the first interaction of a reader
+  who did want the app is acknowledged rather than dead.
+- The document preloads the faces the application draws with, and the fallback carries a
+  `size-adjust`, because a font swap at boot is a layout shift.
+- `tool/` measures the handover: the exported page is served, driven, and timed from the
+  first byte to the first Flutter frame, with the number recorded beside the export.
+
+### The gate
+
+`tool/lighthouse.sh` runs Lighthouse against the exported pages in CI with a budget, not a
+printout: performance ≥ 95 on a mobile profile, LCP ≤ 2.0 s, CLS ≤ 0.02, and total
+blocking time of zero before the application boots. A page that misses the budget fails
+the build the way a test fails, because a performance claim that is not gated is a claim
+nobody checks.
+
+### The two tensions worth naming
+
+- **Deferring the boot costs the first interaction.** A reader who presses a control that
+  needs the application waits for it. Pre-warming on hover and focus hides most of that,
+  and a control that could be a link or a form should be one — which is the same advice
+  the model already gives: a destination is a `LinkNode`, an action is the application.
+- **Inline CSS trades caching for a round trip.** One document wins by inlining; a site of
+  pages wins by a shared file. The document decides, and `tool/lighthouse.sh` measures the
+  choice that was made.
 
 ## Acceptance
 
