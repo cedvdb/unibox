@@ -249,3 +249,13 @@ CssDeclarations textInputDeclarations({core.BoxSpacing? padding}) {
     // `resize` is ignored by an `<input>`, so this only ever reaches a textarea.
     ..add('resize', 'none');
 }
+
+/// The declarations of a link.
+///
+/// A link inherits the colour and the underline of the text around it, because the model
+/// has no look for a link: a tree that wants one styles the `Box` or the `TextNode` it
+/// wraps. Without this a browser paints every link blue and underlined, which is a look
+/// the Flutter renderer cannot draw.
+CssDeclarations linkDeclarations() => CssDeclarations()
+  ..add('color', 'inherit')
+  ..add('text-decoration', 'none');

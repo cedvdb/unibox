@@ -24,3 +24,6 @@
 library;
 
 export 'src/escape.dart';
+export 'src/plan.dart';
+export 'src/render.dart';
+export 'src/stylesheet.dart';

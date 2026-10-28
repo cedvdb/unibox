@@ -36,10 +36,20 @@ attribute because an unescaped one is how a `class` becomes an `onload`.
 of only patching it: a URL comes from data, and a `javascript:` href is a script that runs
 when a reader clicks.
 
+## The element plan
+
+`ElementPlan` is the whole decision of what a tree becomes, as a value: a tag, its
+attributes in a fixed order, the class it wears, and the elements inside it. It carries no
+markup, so `toHtml()` writes it to a string and a DOM renderer could build nodes from the
+same value — which is what would let a client renderer adopt a server's page instead of
+repainting it. It is decided here, once, before a second renderer exists to disagree.
+
+A node this renderer cannot draw throws rather than being skipped: a tree built for
+another target fails loudly instead of shipping a page with a piece missing.
+
 ## What is still to come
 
-The emitter itself: the element plan (which element a node becomes, and in what order its
-attributes are written), one function per node, the stylesheet that collects the rules
-from `unibox_css`, and `toHtml()`/`toDocument()`. Then the conformance suite from
-`unibox_testing`, which is what holds this renderer to the same appearance as the Flutter
-one.
+Grid, stack and positioned nodes, the text input, the overlay (drawn open) and a
+`StatefulNode` (its initial state); the container queries a width threshold needs;
+`toDocument()` with a typed head; and the conformance suite from `unibox_testing`, which
+is what holds this renderer to the same appearance as the Flutter one.

@@ -1,0 +1,255 @@
+import 'package:unibox_core/unibox_core.dart' as core;
+import 'package:unibox_css/unibox_css.dart';
+
+import 'escape.dart';
+import 'plan.dart';
+import 'stylesheet.dart';
+
+/// The tree as an HTML fragment, with one `<style>` element in front of it.
+///
+/// A fragment is what an island inside someone else's page needs; `toDocument` is what a
+/// crawler needs. Both come from the same plan, so a page and a fragment never disagree
+/// about what an element is.
+///
+/// Interactivity is not part of it: a `StatefulNode` draws the state its store starts in,
+/// an `OverlayNode` draws its overlay open, and no callback becomes a listener. A document
+/// is a snapshot of a state, and the application is what makes it move.
+String toHtml(core.UINode node, {core.UniboxTheme? theme}) {
+  final Stylesheet sheet = Stylesheet();
+  final ElementPlan plan = planNode(node, sheet);
+
+  return '<style>${sheetWithRoot(sheet, theme: theme)}</style>${plan.write()}';
+}
+
+/// The CSS a document needs before the tree: the typography of the model, the colours of
+/// the theme, then every class the tree wears.
+///
+/// The `:root` block first, because it is what a text with no declarations of its own
+/// inherits; the classes after it, so a look always outranks the default it started from.
+String sheetWithRoot(Stylesheet sheet, {core.UniboxTheme? theme}) {
+  final CssDeclarations root = defaultTypographyDeclarations();
+
+  if (theme != null) {
+    root.addAllIn(themeDeclarations(theme));
+  }
+
+  return ':root{${root.text}}${sheet.css}';
+}
+
+/// The plan of [node], with every look it needs registered in [sheet].
+///
+/// A node this renderer cannot draw is reported instead of skipped: a tree built for
+/// another target fails loudly, rather than shipping a page with a piece missing.
+ElementPlan planNode(core.UINode node, Stylesheet sheet) => switch (node) {
+  final core.Box box => _planBox(box, sheet),
+  final core.TextNode text => _planText(text, sheet),
+  final core.ImageNode image => _planImage(image, sheet),
+  final core.LinkNode link => _planLink(link, sheet),
+  _ => throw UnsupportedError(
+    'No HTML renderer for ${node.runtimeType} yet: this target draws $supportedNodes.',
+  ),
+};
+
+/// What this renderer draws so far, named for the message a missing one prints.
+const String supportedNodes = 'a Box, a TextNode, an ImageNode and a LinkNode';
+
+ElementPlan _planBox(core.Box box, Stylesheet sheet) {
+  final core.BoxStyle style = box.computedStyle;
+
+  if (style.visibleFrom != null || style.visibleUntil != null) {
+    throw UnsupportedError(
+      'A box that is visible only at some widths needs a container query, which this '
+      'renderer does not write yet: ${box.debugName}.',
+    );
+  }
+
+  final core.BoxElement element = box.semantics?.element ?? core.BoxElement.div;
+  // A painted leaf takes no pointer: it has nothing to press, and letting it be the
+  // target would put a decoration in front of the control it was drawn for.
+  final bool listens =
+      box.enabled &&
+      (box.onTap != null ||
+          box.onTapDown != null ||
+          box.onLongPress != null ||
+          box.onHover != null);
+  final bool capturesPointer =
+      box.children.isNotEmpty ||
+      listens ||
+      box.stateStyle(core.BoxState.hover) != null ||
+      box.stateStyle(core.BoxState.pressed) != null;
+
+  final CssDeclarations declarations = boxDeclarations(
+    style,
+    interactive: box.isInteractive,
+    capturesPointer: capturesPointer,
+    element: element,
+  );
+  final String className = sheet.classFor(
+    'box',
+    declarations,
+    (String name) => stateRules(box, name),
+  );
+
+  return ElementPlan(
+    tag: element.name,
+    className: className,
+    attributes: <String, String>{...boxAttributes(box), ...nodeAttributes(box)},
+    children: <ElementPlan>[
+      for (final core.UINode child in box.children) planNode(child, sheet),
+    ],
+  );
+}
+
+/// The accessibility attributes of a box.
+///
+/// The element already announces what it is, so `role` is only written when the box asks
+/// for one its element does not imply: a `<nav>` is a navigation landmark without a
+/// `role="navigation"` next to it, and `role="link"` on a `<div>` is the only way to say
+/// what that div means.
+Map<String, String> boxAttributes(core.Box box) {
+  final core.BoxSemantics? semantics = box.semantics;
+  final core.BoxRole role = semantics?.role ?? core.BoxRole.none;
+  final core.BoxElement element = semantics?.element ?? core.BoxElement.div;
+  final Map<String, String> attributes = <String, String>{};
+  final String? roleName = htmlRoleOf(role);
+  final String? label = semantics?.label;
+  final bool? checked = semantics?.checked;
+  final bool isCheckable =
+      role == core.BoxRole.checkbox || role == core.BoxRole.switch_;
+
+  if (roleName != null && roleName != impliedRoleOf(element)) {
+    attributes['role'] = roleName;
+  }
+
+  if (label != null) {
+    attributes['aria-label'] = label;
+  }
+
+  if (isCheckable && checked != null) {
+    attributes['aria-checked'] = '$checked';
+  }
+
+  if (!box.enabled) {
+    attributes['aria-disabled'] = 'true';
+  }
+
+  if (box.isFocusable && box.enabled) {
+    attributes['tabindex'] = '0';
+  }
+
+  final bool? expanded = semantics?.expanded;
+  final bool? selected = semantics?.selected;
+
+  if (expanded != null) {
+    attributes['aria-expanded'] = '$expanded';
+  }
+
+  if (selected != null) {
+    attributes['aria-selected'] = '$selected';
+  }
+
+  // A hidden box keeps its look and leaves the accessibility tree, and it is never
+  // focusable, so it cannot be a focusable element with `aria-hidden`.
+  if (semantics?.hidden ?? false) {
+    attributes['aria-hidden'] = 'true';
+  }
+
+  if (semantics?.liveRegion ?? false) {
+    attributes['aria-live'] = 'polite';
+  }
+
+  final core.BoxCurrent? current = semantics?.current;
+
+  if (current != null) {
+    // Which kind of current this is, not just that it is current: a navigation item
+    // announces "current page", a step of a flow something else.
+    attributes['aria-current'] = current.name;
+  }
+
+  return attributes;
+}
+
+/// The attributes every element a node drew carries: its name, and its key when it has one
+/// a page could answer.
+///
+/// The name is a literal a node states, so an inspector reads a tree instead of a wall of
+/// hashes. The key is the identity a client renderer adopts an element by, and it is
+/// written only when it is a `String` or an `int`: any other key's `toString()` is an
+/// instance hash, which names one node two ways across a server and a browser.
+Map<String, String> nodeAttributes(core.UINode node) {
+  final Object? key = node.key;
+
+  return <String, String>{
+    'data-unibox-node': node.debugName,
+    if (key is String || key is int) 'data-unibox-key': key.toString(),
+  };
+}
+
+ElementPlan _planText(core.TextNode node, Stylesheet sheet) {
+  final String className = sheet.classFor('text', textDeclarations(node));
+
+  return ElementPlan(
+    tag: textTagOf(node.headingLevel),
+    className: className,
+    attributes: nodeAttributes(node),
+    text: node.text,
+  );
+}
+
+ElementPlan _planImage(core.ImageNode node, Stylesheet sheet) {
+  final String className = sheet.classFor('image', imageDeclarations(node));
+  final int? width = _pixels(node.width);
+  final int? height = _pixels(node.height);
+
+  return ElementPlan(
+    tag: 'img',
+    className: className,
+    attributes: <String, String>{
+      'src': safeUrl(node.src),
+      'alt': node.alt,
+      // A browser that knows the size reserves the box before the picture arrives, which
+      // is the difference between a page that settles and one that shifts.
+      if (width != null) 'width': '$width',
+      if (height != null) 'height': '$height',
+      'srcset': ?node.resolvedSrcSet,
+      'sizes': ?node.sizes,
+      // The browser's own default is omitted: a document states what it wants, not
+      // what it would have done anyway.
+      if (node.loading != core.ImageLoading.eager) 'loading': node.loading.name,
+      if (node.fetchPriority != core.ImageFetchPriority.auto)
+        'fetchpriority': node.fetchPriority.name,
+      ...nodeAttributes(node),
+    },
+  );
+}
+
+/// [value] in whole pixels, or `null` when it is missing or unbounded.
+///
+/// The attributes are a hint for the browser's layout, so a fraction of a pixel or an
+/// infinite box has nothing to say — the CSS keeps the exact size.
+int? _pixels(double? value) {
+  if (value == null || !value.isFinite) {
+    return null;
+  }
+
+  return value.round();
+}
+
+ElementPlan _planLink(core.LinkNode node, Stylesheet sheet) {
+  final String className = sheet.classFor('link', linkDeclarations());
+  final bool newTab = node.newTab;
+
+  return ElementPlan(
+    tag: 'a',
+    className: className,
+    attributes: <String, String>{
+      'href': safeUrl(node.url),
+      if (newTab) 'target': '_blank',
+      // A link that opens a new tab hands the opener to the page it opens unless it is
+      // told not to.
+      if (newTab) 'rel': 'noopener noreferrer',
+      ...nodeAttributes(node),
+    },
+    children: <ElementPlan>[planNode(node.child, sheet)],
+  );
+}
