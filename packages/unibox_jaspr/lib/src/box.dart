@@ -5,6 +5,7 @@ import 'package:jaspr/jaspr.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
 import 'package:universal_web/web.dart' as web;
 
+import 'labels.dart';
 import 'render.dart';
 import 'stylesheet.dart';
 import 'values.dart';
@@ -43,7 +44,8 @@ class JasprBox extends StatelessComponent {
     final List<Component> children = box.children
         .map(renderNode)
         .toList(growable: false);
-    final Map<String, String>? attributes = _attributes();
+    final Map<String, String> attributes = withNodeLabel(box, _attributes());
+
     final Map<String, EventCallback>? events = _events();
     final core.BoxElement element =
         box.semantics?.element ?? core.BoxElement.div;

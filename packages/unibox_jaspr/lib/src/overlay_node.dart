@@ -5,6 +5,7 @@ import 'package:jaspr/jaspr.dart';
 import 'package:universal_web/web.dart' as web;
 import 'package:unibox_core/unibox_core.dart' as core;
 
+import 'labels.dart';
 import 'render.dart';
 import 'stylesheet.dart';
 import 'values.dart';
@@ -121,10 +122,10 @@ class _JasprOverlayState extends State<JasprOverlay> {
           styles: sheet == null ? content : null,
         ),
       ],
-      attributes: const <String, String>{
+      attributes: withNodeLabel(component.node, const <String, String>{
         'role': 'dialog',
         'aria-modal': 'true',
-      },
+      }),
       classes: _className(sheet, 'overlay', layer),
       styles: sheet == null ? layer : null,
     );

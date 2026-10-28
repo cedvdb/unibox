@@ -3,6 +3,7 @@ import 'package:jaspr/jaspr.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
 import 'package:universal_web/web.dart' as web;
 
+import 'labels.dart';
 import 'stylesheet.dart';
 import 'values.dart';
 
@@ -72,7 +73,7 @@ class JasprTextInput extends StatelessComponent {
         disabled: !node.enabled,
         readonly: node.readOnly,
         autofocus: node.autofocus,
-        attributes: _attributes(),
+        attributes: withNodeLabel(node, _attributes()),
         classes: className,
         styles: className == null ? styles : null,
         events: listeners,
@@ -83,7 +84,8 @@ class JasprTextInput extends StatelessComponent {
       type: _inputType(node),
       value: node.value,
       disabled: !node.enabled,
-      attributes: _attributes(includeBooleanFlags: true),
+      attributes: withNodeLabel(node, _attributes(includeBooleanFlags: true)),
+
       classes: className,
       styles: className == null ? styles : null,
       events: listeners,

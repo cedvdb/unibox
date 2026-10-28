@@ -131,7 +131,8 @@ Box(
 | --- | --- | --- | --- |
 | `backgroundColor` | `BoxColor?` | none | Colour behind the children. |
 | `border` | `BoxBorder?` | none | Line around the box, with a width and a colour. |
-| `borderRadius` | `double?` | square | Corner radius in logical pixels. |
+| `borderRadius` | `double?` | square | Corner radius in logical pixels, the same on all four. |
+| `corners` | `BoxBorderRadius?` | square | The radius of each corner, for a box that is not round on all four — a filled text field rounds its top and leaves the bottom square. Takes precedence over `borderRadius`. |
 | `shadow` | `BoxShadow?` | none | Drop shadow: colour, offset, blur, spread. |
 | `opacity` | `double?` | solid | `0` (invisible) to `1` (solid). The box keeps its room either way. |
 | `transform` | `BoxTransform?` | none | Moves, turns or scales the box about its centre (`scale`, `rotation` in degrees, `offsetX`, `offsetY`). It paints differently without taking different room, so text inside never reflows. |
@@ -699,6 +700,11 @@ to the host that draws it.
 | **The document**: title, language, description, canonical url, structured data | Those describe a page, not a region of one. The Flutter host gives them to its `MaterialApp`, the Jaspr host to its `Document`. |
 | **The fonts** | A font file is an asset of the application, and it has to be the same file on both sides. |
 | **Effects with no common description** | That is what [`EmbedNode`](#embednode) is for. |
+
+The one thing a host does not choose is the name on each element: the Jaspr renderer
+always writes `data-unibox-node="…"` on the elements a node drew, because a name
+carries no look and an inspector without it reads a page of hashes. Flutter has no
+DOM to write it in, which is the whole reason the two targets stay apart here.
 
 The example shows the first two in practice: a `StatefulWidget` and a
 `StatefulComponent` hold the same form state and pass it into the same tree.

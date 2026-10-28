@@ -2,6 +2,7 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
 
+import 'labels.dart';
 import 'render.dart';
 import 'stylesheet.dart';
 
@@ -42,10 +43,10 @@ class JasprGrid extends StatelessComponent {
         ],
       );
 
-      return div(children, classes: className);
+      return div(children, classes: className, attributes: withNodeLabel(node));
     }
 
-    return div(children, styles: styles);
+    return div(children, styles: styles, attributes: withNodeLabel(node));
   }
 
   Map<String, String> _declarations() {

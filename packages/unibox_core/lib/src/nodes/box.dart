@@ -2,6 +2,7 @@ import '../callbacks.dart';
 import '../enums.dart';
 import '../tokens/box_border.dart';
 import '../tokens/box_color.dart';
+import '../tokens/box_border_radius.dart';
 import '../tokens/box_semantics.dart';
 import '../tokens/box_shadow.dart';
 import '../tokens/box_spacing.dart';
@@ -56,6 +57,7 @@ class Box extends UINode {
     this.margin,
     this.backgroundColor,
     this.borderRadius,
+    this.corners,
     this.border,
     this.shadow,
     this.textStyle,
@@ -138,7 +140,17 @@ class Box extends UINode {
   final BoxColor? backgroundColor;
 
   /// The corner radius in logical pixels.
+  /// The corner radius in logical pixels, one for all four corners.
+  ///
+  /// A box that must not be round everywhere names the four in [corners]
+  /// instead.
   final double? borderRadius;
+
+  /// The radius of each corner, for a box that is not round on all four.
+  ///
+  /// Takes precedence over [borderRadius]. `validateTree` reports a box that
+  /// sets both, since only one answer can be drawn.
+  final BoxBorderRadius? corners;
 
   /// The border painted around the box.
   final BoxBorder? border;
@@ -277,6 +289,7 @@ class Box extends UINode {
     margin: margin,
     backgroundColor: backgroundColor,
     borderRadius: borderRadius,
+    corners: corners,
     border: border,
     shadow: shadow,
     textStyle: textStyle,

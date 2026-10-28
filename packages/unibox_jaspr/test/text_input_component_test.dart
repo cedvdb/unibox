@@ -155,6 +155,7 @@ void main() {
       expect(attributesOf(find.tag('textarea')), <String, String>{
         'placeholder': 'Write something',
         'rows': '4',
+        'data-unibox-node': 'text-input',
       });
       expect(find.text('First line'), findsOneComponent);
     });

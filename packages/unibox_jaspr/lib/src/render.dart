@@ -44,6 +44,12 @@ import 'text_node.dart';
 /// custom properties and the theme itself as one `:root` block, which is what lets
 /// a host stylesheet or a dark-mode block outrank the tree. A tree that names a
 /// role and is given no theme fails with the role in the message.
+///
+/// Every element the tree draws carries the name of the node that drew it
+/// (`data-unibox-node="material-card"`), so an inspector reads the tree instead
+/// of a wall of hashes. It changes nothing else — the same classes, the same
+/// rules, the same elements — and it is not a switch, because an attribute that
+/// carries no look has nothing to turn off.
 Component renderJaspr(core.UINode node, {core.UniboxTheme? theme}) {
   _reportTreeIssues(node, theme);
 

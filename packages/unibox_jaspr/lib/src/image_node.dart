@@ -2,6 +2,7 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
 
+import 'labels.dart';
 import 'stylesheet.dart';
 import 'values.dart';
 
@@ -46,12 +47,12 @@ class JasprImage extends StatelessComponent {
       alt: node.alt,
       width: _pixels(node.width),
       height: _pixels(node.height),
-      attributes: <String, String>{
+      attributes: withNodeLabel(node, <String, String>{
         'srcset': ?node.resolvedSrcSet,
         'sizes': ?node.sizes,
         'loading': node.loading.name,
         'fetchpriority': node.fetchPriority.name,
-      },
+      }),
       classes: className,
       styles: className == null ? styles : null,
     );

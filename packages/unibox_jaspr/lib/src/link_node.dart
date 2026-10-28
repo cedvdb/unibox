@@ -2,6 +2,7 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
 
+import 'labels.dart';
 import 'render.dart';
 import 'stylesheet.dart';
 
@@ -47,7 +48,8 @@ class JasprLink extends StatelessComponent {
       <Component>[renderNode(node.child)],
       href: node.url,
       target: newTab ? Target.blank : null,
-      attributes: newTab ? _newTabAttributes : null,
+      attributes: withNodeLabel(node, newTab ? _newTabAttributes : null),
+
       classes: className,
       styles: className == null ? _anchorStyles : null,
       events: onTap == null

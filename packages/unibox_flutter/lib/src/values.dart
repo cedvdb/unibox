@@ -163,12 +163,14 @@ BoxDecoration? toDecoration(core.BoxStyle style) {
   final bool hasBorder = border != null && border.isVisible;
   final core.BoxShadow? shadow = style.shadow;
   final double? borderRadius = style.borderRadius;
+  final core.BoxBorderRadius? corners = style.corners;
   final core.BoxColor? backgroundColor = style.backgroundColor;
 
   if (backgroundColor == null &&
       !hasBorder &&
       shadow == null &&
-      borderRadius == null) {
+      borderRadius == null &&
+      corners == null) {
     return null;
   }
 
@@ -177,12 +179,23 @@ BoxDecoration? toDecoration(core.BoxStyle style) {
     border: hasBorder
         ? Border.all(color: toColor(border.color), width: border.width)
         : null,
-    borderRadius: borderRadius == null
+    borderRadius: corners != null
+        ? toFlutterBorderRadius(corners)
+        : borderRadius == null
         ? null
         : BorderRadius.circular(borderRadius),
     boxShadow: shadow == null ? null : <BoxShadow>[toBoxShadow(shadow)],
   );
 }
+
+/// The four corners of [corners] as Flutter's own radius.
+BorderRadius toFlutterBorderRadius(core.BoxBorderRadius corners) =>
+    BorderRadius.only(
+      topLeft: Radius.circular(corners.topLeft),
+      topRight: Radius.circular(corners.topRight),
+      bottomRight: Radius.circular(corners.bottomRight),
+      bottomLeft: Radius.circular(corners.bottomLeft),
+    );
 
 /// Builds the [BoxConstraints] described by the min/max tokens of [style].
 ///

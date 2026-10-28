@@ -3,6 +3,7 @@ import 'package:jaspr/jaspr.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
 
 import 'keys.dart';
+import 'labels.dart';
 import 'render.dart';
 import 'stylesheet.dart';
 import 'values.dart';
@@ -34,6 +35,7 @@ class JasprStack extends StatelessComponent {
       ],
       classes: className,
       styles: className == null ? styles : null,
+      attributes: withNodeLabel(node),
     );
   }
 
@@ -80,6 +82,7 @@ class JasprPositioned extends StatelessComponent {
       <Component>[child],
       classes: className,
       styles: className == null ? styles : null,
+      attributes: withNodeLabel(node),
     );
   }
 }

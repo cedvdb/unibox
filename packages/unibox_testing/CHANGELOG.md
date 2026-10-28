@@ -2,6 +2,9 @@
 
 ## 0.1.0
 
+- `BoxAppearance.corners` and a case that rounds two corners, so the four radii are
+  compared the way every other token is.
+
 The first release of the presentation contract: **test only**, a `dev_dependency`
 of the two renderers and never something an application installs.
 

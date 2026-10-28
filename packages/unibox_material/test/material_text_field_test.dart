@@ -22,7 +22,8 @@ void main() {
         fill.backgroundColor,
         const BoxColor.role(MaterialColorRole.surfaceContainerHighest),
       );
-      expect(fill.borderRadius, 4);
+      expect(fill.corners, const BoxBorderRadius(topLeft: 4, topRight: 4));
+      expect(fill.borderRadius, isNull);
       expect(fill.minHeight, 56);
       expect(fill.border, isNull);
 

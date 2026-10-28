@@ -19,6 +19,7 @@ void main() {
       expect(find.tag('a'), findsOneComponent);
       expect(attributesOf(find.tag('a')), <String, String>{
         'href': 'https://example.com',
+        'data-unibox-node': 'link',
       });
       expect(find.text('Example'), findsOneComponent);
     });
@@ -84,6 +85,7 @@ void main() {
         'rel': 'noopener noreferrer',
         'href': 'https://example.com',
         'target': '_blank',
+        'data-unibox-node': 'link',
       });
     });
 

@@ -1,6 +1,7 @@
 import '../enums.dart';
 import 'box_border.dart';
 import 'box_color.dart';
+import 'box_border_radius.dart';
 import 'box_shadow.dart';
 import 'box_spacing.dart';
 import 'box_text_style.dart';
@@ -45,6 +46,7 @@ final class BoxStyle {
     this.margin,
     this.backgroundColor,
     this.borderRadius,
+    this.corners,
     this.border,
     this.shadow,
     this.textStyle,
@@ -119,8 +121,17 @@ final class BoxStyle {
   /// The background color of the box.
   final BoxColor? backgroundColor;
 
-  /// The corner radius in logical pixels.
+  /// The corner radius in logical pixels, one radius for all four corners.
+  ///
+  /// A box that must not be round everywhere — a filled text field rounds its
+  /// top and leaves the bottom square — names the four in [corners] instead.
   final double? borderRadius;
+
+  /// The radius of each corner, for a box that is not round on all four.
+  ///
+  /// Takes precedence over [borderRadius]; `validateTree` reports a box that sets
+  /// both, because the model cannot honour two answers.
+  final BoxBorderRadius? corners;
 
   /// The border painted around the box.
   final BoxBorder? border;
@@ -257,6 +268,7 @@ final class BoxStyle {
     BoxSpacing? margin,
     BoxColor? backgroundColor,
     double? borderRadius,
+    BoxBorderRadius? corners,
     BoxBorder? border,
     BoxShadow? shadow,
     BoxTextStyle? textStyle,
@@ -283,6 +295,7 @@ final class BoxStyle {
       margin: margin ?? this.margin,
       backgroundColor: backgroundColor ?? this.backgroundColor,
       borderRadius: borderRadius ?? this.borderRadius,
+      corners: corners ?? this.corners,
       border: border ?? this.border,
       shadow: shadow ?? this.shadow,
       textStyle: textStyle ?? this.textStyle,
@@ -324,6 +337,7 @@ final class BoxStyle {
       margin: other.margin ?? margin,
       backgroundColor: other.backgroundColor ?? backgroundColor,
       borderRadius: other.borderRadius ?? borderRadius,
+      corners: other.corners ?? corners,
       border: other.border ?? border,
       shadow: other.shadow ?? shadow,
       textStyle: textStyle?.merge(other.textStyle) ?? other.textStyle,
@@ -354,6 +368,7 @@ final class BoxStyle {
       other.margin == margin &&
       other.backgroundColor == backgroundColor &&
       other.borderRadius == borderRadius &&
+      other.corners == corners &&
       other.border == border &&
       other.shadow == shadow &&
       other.textStyle == textStyle &&
@@ -381,6 +396,7 @@ final class BoxStyle {
     margin,
     backgroundColor,
     borderRadius,
+    corners,
     border,
     shadow,
     textStyle,
@@ -408,6 +424,7 @@ final class BoxStyle {
       if (margin != null) 'margin: $margin',
       if (backgroundColor != null) 'backgroundColor: $backgroundColor',
       if (borderRadius != null) 'borderRadius: $borderRadius',
+      if (corners != null) 'corners: $corners',
       if (border != null) 'border: $border',
       if (shadow != null) 'shadow: $shadow',
       if (textStyle != null) 'textStyle: $textStyle',
