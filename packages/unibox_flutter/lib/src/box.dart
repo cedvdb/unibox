@@ -6,6 +6,7 @@ import 'package:unibox_core/unibox_core.dart' as core;
 
 import 'keys.dart';
 import 'render.dart';
+import 'shape.dart';
 import 'stack_node.dart';
 import 'text_style_scope.dart';
 import 'theme_scope.dart';
@@ -87,13 +88,16 @@ class FlutterBoxState extends State<FlutterBox> {
       content = Padding(padding: toEdgeInsets(padding), child: content);
     }
 
+    final core.BoxShape? shape = style.shape;
+
     // A scrolling box already clips its own viewport, but squarely: it needs an
     // explicit clip only when the box is rounded, so that the content is cut to the
     // radius the way CSS cuts it.
     final double radius = style.borderRadius ?? 0;
     final bool clipsContent =
         style.overflow == core.Overflow.hidden ||
-        (style.overflow == core.Overflow.scroll && radius > 0);
+        (style.overflow == core.Overflow.scroll &&
+            (radius > 0 || shape != null));
 
     // The clip goes *inside* the decoration, not around it. CSS cuts a box's content
     // to its radius and never its own `box-shadow`, which paints outside the border
@@ -103,9 +107,28 @@ class FlutterBoxState extends State<FlutterBox> {
       content = _clipTo(content, style);
     }
 
-    final BoxDecoration? decoration = toDecoration(style);
-    if (decoration != null) {
-      content = _decorated(decoration, _paintTiming(style.transition), content);
+    // A shape replaces the rectangle the decoration would paint: the same box, drawn
+    // as its outline. It goes where the decoration goes — around the clipped content
+    // — so the fill is behind the children, the way CSS paints a background behind
+    // content, and the clip still cuts them to the same path.
+    if (shape != null) {
+      content = CustomPaint(
+        painter: UniboxShapePainter(
+          shape: shape,
+          fill: style.backgroundColor,
+          border: style.border,
+        ),
+        child: content,
+      );
+    } else {
+      final BoxDecoration? decoration = toDecoration(style);
+      if (decoration != null) {
+        content = _decorated(
+          decoration,
+          _paintTiming(style.transition),
+          content,
+        );
+      }
     }
 
     content = _applyDimensions(content, style);
@@ -187,6 +210,12 @@ class FlutterBoxState extends State<FlutterBox> {
   /// would be rounded in the browser and square in Flutter. The radius is the one
   /// the box paints with, so the clip and the decoration can never disagree.
   Widget _clipTo(Widget child, core.BoxStyle style) {
+    final core.BoxShape? shape = style.shape;
+
+    if (shape != null) {
+      return ClipPath(clipper: UniboxShapeClipper(shape), child: child);
+    }
+
     final double? radius = style.borderRadius;
 
     if (radius == null || radius <= 0) {

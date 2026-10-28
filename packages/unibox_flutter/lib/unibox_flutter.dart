@@ -27,6 +27,7 @@ export 'src/link_node.dart'
     show FlutterLinkOpener, FlutterLink, FlutterLinkScope;
 export 'src/overlay_node.dart' show FlutterOverlay;
 export 'src/render.dart';
+export 'src/shape.dart' show pathOf;
 export 'src/stack_node.dart' show FlutterStack;
 export 'src/stateful_node.dart' show FlutterStateful;
 export 'src/text_input_node.dart' show FlutterTextInput;
