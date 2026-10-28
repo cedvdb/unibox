@@ -700,6 +700,11 @@ to the host that draws it.
 | **The fonts** | A font file is an asset of the application, and it has to be the same file on both sides. |
 | **Effects with no common description** | That is what [`EmbedNode`](#embednode) is for. |
 
+The one thing a host does not choose is the name on each element: the Jaspr renderer
+always writes `data-unibox-node="…"` on the elements a node drew, because a name
+carries no look and an inspector without it reads a page of hashes. Flutter has no
+DOM to write it in, which is the whole reason the two targets stay apart here.
+
 The example shows the first two in practice: a `StatefulWidget` and a
 `StatefulComponent` hold the same form state and pass it into the same tree.
 

@@ -29,6 +29,7 @@ export 'src/embed_node.dart'
     show JasprComponentEmbedBuilder, JasprComponentNode;
 export 'src/grid_node.dart' show JasprGrid;
 export 'src/image_node.dart' show JasprImage;
+export 'src/labels.dart' show nodeLabelAttribute;
 export 'src/link_node.dart' show JasprLink;
 export 'src/render.dart';
 export 'src/stylesheet.dart' show JasprThemeScope, UniboxStylesheetScope;

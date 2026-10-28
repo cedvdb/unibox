@@ -155,6 +155,7 @@ host that renders it.
 | `Theme.of(context).colorScheme.primary` | `MaterialPalette.light.primary` (or `dark`), passed into the tree |
 | `MediaQuery`, `LayoutBuilder` | host work: measure there and pass the answer in |
 | a third party widget | an `EmbedNode` that carries that `Widget` in `implementations` |
+| reading a rendered page in an inspector | every element carries `data-unibox-node="spot-card"`; name a node with `debugLabel`, never with `key` |
 
 ### From HTML and CSS
 

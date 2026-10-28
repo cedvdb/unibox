@@ -17,6 +17,7 @@ void main() {
         // The defaults are written out: the model's answer, not the user agent's.
         'loading': 'eager',
         'fetchpriority': 'auto',
+        'data-unibox-node': 'image',
       });
       expect(stylesOf(find.tag('img')), <String, String>{
         'display': 'block',

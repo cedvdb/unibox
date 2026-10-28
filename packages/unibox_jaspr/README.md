@@ -191,6 +191,40 @@ JavaScript for it. A tappable box also gets `cursor: pointer`. Long presses map
 to pointer listeners with a 500 ms threshold and suppress the follow-up `click`,
 mirroring Flutter.
 
+## Developer labels
+
+An element's `class` is a hash of its declarations — `unibox-box-1f3c9a7b` — which is
+what makes two elements with the same look share one rule, and what makes a page of
+them unreadable in an inspector. So every element a node draws also carries the name
+of that node:
+
+```html
+<div class="unibox-box-1f3c9a7b" data-unibox-node="material-card">…</div>
+```
+
+| The element | `data-unibox-node` |
+| --- | --- |
+| drawn by a node | the name of that node |
+| a wrapper the renderer invents — a stack's cell wrapper | absent: no node drew it |
+
+The value is `UINode.debugName`: `debugLabel` when a node names itself, else the type
+in kebab case without its `Node` suffix. `Box` reads `box`, `TextNode` reads `text`,
+`LinkNode` reads `link`, `GridNode` reads `grid`, `MaterialCard` reads
+`material-card`, and a private class loses its underscore. A derived name is read
+from the runtime type, so it is only meaningful in an unobfuscated build; override
+`debugLabel` for a spelling that survives one.
+
+It is written always, with no flag to turn it off. An attribute that carries no look
+has nothing a switch could protect, and because there is no switch, a server render
+and the client that hydrates it cannot disagree about it.
+
+It is an attribute rather than a class because `class` is the stylesheet's namespace:
+a second class there would either carry no rule — confusing every reader of the
+output — or become a look a host can write and Flutter cannot. A name adds no class,
+no rule and no element, and nothing reads it back, so it cannot change what a page
+looks like: two node types with the same look share one class and one rule while
+carrying different names.
+
 ## Element mapping
 
 `BoxSemantics.element` decides the tag a box renders as. Everything the box

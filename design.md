@@ -592,4 +592,28 @@ What that buys, stated as the invariants the feature has to keep:
 - no renderer reads a viewport anywhere: the web asks CSS, Flutter asks the
   constraints of the node it is drawing.
 
-
+### 5.16 A name is for a developer, and it is not a look
+- An element's `class` is the hash of its declarations, which is what makes six
+  listings with one look cost one rule. That name says nothing to a reader, so every
+  element a node drew also carries the name of its node:
+  `data-unibox-node="material-card"`.
+- It is written always, and not behind a flag. A name carries no look, so there is
+  nothing a switch could protect; and a page cannot disagree between its server render
+  and the client that hydrates it when there is no switch for the two to differ on.
+- It is an attribute and not a class because `class` is the stylesheet's namespace. A
+  second class there would either carry no rule — misleading every reader of the
+  output, including the suites, which resolve a look through the classes an element
+  wears — or become a look a host can write and Flutter cannot draw.
+- A label is never part of the presentation: no class, no class key, no rule, no
+  element, no layout. Two node types with the same look share one class and one rule
+  while carrying different names, which the suite pins.
+- The name is `UINode.debugLabel` when a node gives one, else the type in kebab case
+  without its `Node` suffix: `TextNode` reads `text`, `MaterialCard` reads
+  `material-card`. A derived name is read from the runtime type, so a minified build
+  may rename it; a package that wants a spelling it can rely on overrides
+  `debugLabel`, and the design-system packages already read well without it.
+- What it is not: a semantic. A screen reader hears the element, its `role` and its
+  `aria-*`; nothing reads the label back, and nothing may start to.
+- A wrapper a renderer invents — a stack's cell — has no name, because no node drew
+  it. That absence is meaningful: an element without the attribute is not part of the
+  description.

@@ -2,6 +2,11 @@
 
 ## 0.1.0
 
+- Every element a node draws carries `data-unibox-node="<name>"`, so an inspector
+  reads the tree instead of a wall of hashes. It is written always, with no flag: a
+  name adds no class, no rule and no element, and two node types with the same look
+  still share one class while carrying different names. A wrapper the renderer
+  invents carries no name, since no node drew it.
 - A `TextInputNode.placeholderStyle` becomes a `::placeholder` rule next to the field's
   own class, and its declarations are part of that class's key, so two fields that
   differ only in the colour of their hint do not share a class.

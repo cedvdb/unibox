@@ -2,6 +2,7 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
 
+import 'labels.dart';
 import 'stylesheet.dart';
 import 'values.dart';
 
@@ -36,6 +37,7 @@ class JasprText extends StatelessComponent {
         children,
         classes: className,
         styles: className == null ? styles : null,
+        attributes: withNodeLabel(node),
       );
     }
 
@@ -47,6 +49,7 @@ class JasprText extends StatelessComponent {
       children: children,
       classes: className,
       styles: className == null ? styles : null,
+      attributes: withNodeLabel(node),
     );
   }
 

@@ -240,6 +240,7 @@ void main() {
         'role': 'button',
         'aria-label': 'Create account',
         'tabindex': '0',
+        'data-unibox-node': 'box',
       });
       expect(stylesOf(find.tag('div'))['cursor'], 'pointer');
     });
@@ -258,12 +259,16 @@ void main() {
       expect(attributesOf(find.tag('div'))['aria-checked'], 'true');
     });
 
-    testComponents('renders no attributes for a plain container', (
+    testComponents('renders no semantics for a plain container', (
       tester,
     ) async {
       pumpNode(tester, const core.Box());
 
-      expect(attributesOf(find.tag('div')), isEmpty);
+      // The node's own name is the only attribute: the name says what an element
+      // is, and a container is nothing for a screen reader.
+      expect(attributesOf(find.tag('div')), <String, String>{
+        'data-unibox-node': 'box',
+      });
     });
 
     testComponents('keeps a box without a role out of the tab order', (
