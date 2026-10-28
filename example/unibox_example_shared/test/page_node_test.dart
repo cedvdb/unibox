@@ -29,6 +29,34 @@ void main() {
       expect(store.state.current, ExamplePage.apartments);
     });
 
+    test('publishes every field it carries, not only the form', () {
+      // The store skips a publish whose state equals the last one, so a field left out
+      // of `==` is a change nobody draws: the map, the destination, the filter and the
+      // layout were all silent before they were compared.
+      final ExampleStore store = ExampleStore();
+      int notifications = 0;
+      store.addListener(() => notifications++);
+
+      store.openMap();
+      expect(store.state.mapOpen, isTrue, reason: 'the map view is a state');
+
+      store.closeMap();
+      store.navigate(ExamplePage.pricing);
+      expect(store.state.page, ExamplePage.pricing);
+
+      store.chooseFilter('Studio');
+      expect(store.state.filter, 'Studio');
+
+      store.showListings(ListingsView.list);
+      expect(store.state.view, ListingsView.list);
+
+      expect(
+        notifications,
+        5,
+        reason: 'one publish per change, no more, no less',
+      );
+    });
+
     test('publishes a change and nothing for the same value', () {
       final ExampleStore store = ExampleStore();
       int notifications = 0;

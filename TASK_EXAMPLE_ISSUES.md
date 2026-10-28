@@ -130,11 +130,9 @@ Two things were found while wiring it, both worth recording:
    real divergence: a box that paints and holds nothing now takes no pointer, and a stack
    cell is a placement rather than a control. `toBoxStyles` states the rule and
    `test/box_component_test.dart` pins both halves of it.
-2. **A press on a control inside the page still does not reach the page's store.** With the
-   decoration out of the way the press lands on the content (a `click` is delivered to the
-   label), and a chip or a segmented button built on its own reports its `onTap` and its
-   `onSelect` — but the same control inside `ExamplePageNode` leaves `ExampleState`
-   unchanged. The page's other listener, the navigation, publishes and redraws, so the store
-   is wired; what is not yet understood is the press inside a stateful node, and it is the
-   next thing to look at. It is not covered by a test, because the tree walk cannot see into
-   a `StatefulNode`'s view: a well is a node and its children belong to its state.
+2. **`ExampleState.==` compared two of its six fields.** `StateStore` skips a publish whose
+   state equals the last one, so a field left out of `==` is a change that draws nothing —
+   and `mapOpen`, `page` and the two new fields were all left out. The navigation appeared to
+   work only because it also changes `signupOpen`; opening the map from the floating button,
+   choosing a filter and picking a layout were silent on both targets. Every field is compared
+   now, and `test/page_node_test.dart` publishes one change per field to hold it there.

@@ -78,20 +78,27 @@ final class ExampleState {
 
   @override
   bool operator ==(Object other) {
+    // Every field, because the store skips a publish whose state equals the last
+    // one: a field left out of this comparison is a change that draws nothing.
     return other is ExampleState &&
         other.form == form &&
-        other.signupOpen == signupOpen;
+        other.signupOpen == signupOpen &&
+        other.mapOpen == mapOpen &&
+        other.page == page &&
+        other.filter == filter &&
+        other.view == view;
   }
 
   /// Two states with equal values hash alike, which is what lets the store skip
   /// a rebuild that would draw the same tree again.
   @override
-  int get hashCode => Object.hash(form, signupOpen, mapOpen);
+  int get hashCode =>
+      Object.hash(form, signupOpen, mapOpen, page, filter, view);
 
   @override
   String toString() =>
       'ExampleState(form: $form, signupOpen: $signupOpen, mapOpen: $mapOpen, '
-      'page: $page)';
+      'page: $page, filter: $filter, view: $view)';
 }
 
 /// The store of `ExamplePageNode`: every interaction of the page as one

@@ -406,10 +406,10 @@ UINode _filters({
         ],
       ),
       Box(
-        // Below this the row is the chips' and the switch leaves rather than squeeze
-        // them: a segmented button has a width, and a width it cannot have is a control
-        // that looks broken.
-        visibleFrom: 560,
+        // The same threshold the two chips a narrow surface cannot hold already use:
+        // below it the row belongs to the chips, and a switch squeezed into what is
+        // left is a control that looks broken.
+        visibleFrom: 900,
         children: <UINode>[
           MaterialSegmentedButton(
             width: 216,
