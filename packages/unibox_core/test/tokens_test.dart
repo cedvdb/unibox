@@ -1,6 +1,9 @@
 import 'package:test/test.dart';
 import 'package:unibox_core/unibox_core.dart';
 
+/// One role, so the resolve test can watch a theme answer it.
+enum _ShapeColor { surface }
+
 void main() {
   group('BoxColor', () {
     test('exposes the channels of a raw ARGB value', () {
@@ -741,6 +744,56 @@ void main() {
       const Box box = Box(visibleFrom: 600, style: BoxStyle(visibleFrom: 2000));
 
       expect(box.computedStyle.visibleFrom, 600);
+    });
+  });
+
+  group('BoxStyle shape', () {
+    const BoxShape hexagon = BoxShape(
+      viewBoxWidth: 100,
+      viewBoxHeight: 100,
+      commands: <BoxPathCommand>[BoxPathMoveTo(0, 0), BoxPathClose()],
+    );
+
+    test('merges like every other token', () {
+      const BoxStyle base = BoxStyle();
+
+      expect(base.merge(const BoxStyle(shape: hexagon)).shape, hexagon);
+      expect(const BoxStyle(shape: hexagon).merge(base).shape, hexagon);
+      expect(
+        const BoxStyle(shape: hexagon)
+            .merge(const BoxStyle(backgroundColor: BoxColor.white))
+            .shape,
+        hexagon,
+        reason: 'a style that does not name a shape keeps the one under it',
+      );
+    });
+
+    test('is copied and reported by copyWith and toString', () {
+      final BoxStyle style = const BoxStyle().copyWith(shape: hexagon);
+
+      expect(style.shape, hexagon);
+      expect(style.toString(), contains('BoxShape'));
+      expect(style, isNot(const BoxStyle()));
+    });
+
+    test('survives resolve, which only looks colours up', () {
+      const BoxStyle style = BoxStyle(
+        shape: hexagon,
+        corners: BoxBorderRadius(topLeft: 4, topRight: 4),
+        visibleFrom: 600,
+        backgroundColor: BoxColor.role(_ShapeColor.surface),
+      );
+
+      final BoxStyle resolved = style.resolve(
+        const UniboxTheme(
+          colors: <Enum, BoxColor>{_ShapeColor.surface: BoxColor.white},
+        ),
+      );
+
+      expect(resolved.backgroundColor, BoxColor.white);
+      expect(resolved.shape, hexagon);
+      expect(resolved.corners, style.corners);
+      expect(resolved.visibleFrom, 600);
     });
   });
 }
