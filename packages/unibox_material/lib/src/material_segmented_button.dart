@@ -1,5 +1,6 @@
 import 'package:unibox_core/unibox_core.dart';
 
+import 'material_check_mark.dart';
 import 'material_ink_well.dart';
 import 'material_palette.dart';
 import 'material_typography.dart';
@@ -42,9 +43,9 @@ final class MaterialSegment {
 ///
 /// **The chosen segment shows a check**, in place of the icon it would otherwise draw
 /// — Material's own behaviour, so a control that carries pictures still says which
-/// choice is on. The check is drawn from boxes ([_check]): an icon font is a host
-/// asset, and this package ships none. Pass `showSelectedIcon: false` for a control
-/// whose fill is enough, and the icon stays where it is.
+/// choice is on. The check is a [MaterialCheckMark] — drawn from boxes, because a font
+/// is a host asset and this package ships none. Pass `showSelectedIcon: false` for a
+/// control whose fill is enough, and the icon stays where it is.
 ///
 /// **What Material draws that this does not.** The container announces no
 /// `radiogroup`: `BoxSemantics` has no group role, so each segment is a button that
@@ -121,10 +122,11 @@ final class MaterialSegmentedButton extends Box {
   }) {
     final BoxColor foreground = _foregroundOf(selected);
     // Material puts the check of the chosen segment *in place of* its icon, so a
-    // control that carries pictures still says which one is chosen. It is drawn from
-    // boxes: a glyph from a font is a host asset, and this package ships none.
+    // control that carries pictures still says which one is chosen. The mark is drawn
+    // from boxes ([MaterialCheckMark]): a glyph from a font is a host asset, and this
+    // package ships none.
     final UINode? leading = selected && showSelectedIcon
-        ? _check(foreground)
+        ? MaterialCheckMark(color: foreground, size: iconSize)
         : segment.icon;
 
     return Box(
@@ -174,44 +176,6 @@ final class MaterialSegmentedButton extends Box {
       ],
     );
   }
-
-  /// The check of a chosen segment: the two strokes of a tick, drawn as rotated
-  /// bars, so a control that has to say which choice is active needs no font.
-  static UINode _check(BoxColor color) {
-    const double size = iconSize;
-    final double stroke = size / 7;
-
-    return StackNode(
-      width: size,
-      height: size,
-      children: <UINode>[
-        // The short stroke: from the middle down to the corner.
-        _centred(
-          Box(
-            width: size * 0.45,
-            height: stroke,
-            borderRadius: stroke / 2,
-            backgroundColor: color,
-            transform: BoxTransform(rotation: 45, offsetX: -size * 0.22),
-          ),
-        ),
-        // The long stroke: up to the top right.
-        _centred(
-          Box(
-            width: size * 0.8,
-            height: stroke,
-            borderRadius: stroke / 2,
-            backgroundColor: color,
-            transform: BoxTransform(rotation: -45, offsetX: size * 0.12),
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// [child] in the middle of the box that holds it.
-  static UINode _centred(UINode child) =>
-      PositionedNode(alignment: BoxAlignment.center, child: child);
 
   /// The rule between two segments: a hairline the colour of the outline.
   static UINode _divider() => Box(

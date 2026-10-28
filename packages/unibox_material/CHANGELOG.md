@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- `MaterialCheckMark` is Material's check without a font: the two strokes of the tick
+  drawn as rotated bars, at the weight and the lengths of the glyph itself — a 2 pixel
+  stroke, a 7.07 pixel short arm and a 14 pixel long one in its 24 pixel grid, with the
+  elbow placed so the inked mark is centred. A chosen chip or segment can say what is on
+  in an application that ships no icons, and a tick tuned by eye — a seventh of its box,
+  nearly twice Material's weight — no longer reads as a pen stroke beside the type. A
+  chosen segment of `MaterialSegmentedButton` draws it, and the example's chips use it
+  instead of keeping a second tick of their own.
+
 - `MaterialChip`'s close target centres the cross it holds, so the ring a hover or a
   focus draws around it sits on the cross rather than four pixels to its left: the well
   is a column, and without a cross alignment its node hugged the start of the target.

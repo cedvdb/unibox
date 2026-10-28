@@ -438,7 +438,7 @@ MaterialSegmentedButton(
 | height, radius | 40, and 20: a full round |
 | container | a 1 pixel `outline` line, `overflow: hidden` so a chosen fill is cut to the rounded ends it reaches |
 | chosen | a `secondaryContainer` fill, an `onSecondaryContainer` label, a check, and `selected` for a screen reader |
-| check | 18 pixels, drawn from boxes, in place of the chosen segment's icon; `showSelectedIcon: false` keeps the icon |
+| check | 18 pixels, a `MaterialCheckMark`, in place of the chosen segment's icon; `showSelectedIcon: false` keeps the icon |
 | icon | `iconSize` = 18, 8 from the label and 12 from the segment's edge |
 | label | `labelLarge`, `onSurface` or `onSecondaryContainer` |
 | dividers | a 1 pixel box the colour of the outline between two segments |
@@ -452,10 +452,10 @@ that is what the well's `mainAlign` and `crossAlign` are for, and why a segment 
 say `width: double.infinity` and mean it on both targets.
 
 A chosen segment draws an 18 pixel check in place of its icon, which is what Material
-does, so a control of pictures still says which one is on. The check is boxes and
-transforms rather than a glyph — an icon font is a host asset and this package ships
-none — and `showSelectedIcon: false` leaves the icon where it is for a control whose
-fill is enough.
+does, so a control of pictures still says which one is on. The check is a
+`MaterialCheckMark` — two rotated bars with Material's own weight, because an icon font
+is a host asset and this package ships none — and `showSelectedIcon: false` leaves the
+icon where it is for a control whose fill is enough.
 
 **What stays approximate.** The container is not a `radiogroup`, because `BoxSemantics`
 has no group role: every segment is a button that says whether it is the chosen one. A
@@ -551,16 +551,19 @@ whether it is chosen, which is a state a screen reader hears rather than a colou
 
 **What stays approximate.** Material gives a 32 pixel chip a 48 pixel touch target by
 padding the shape invisibly, and this model has no invisible padding — a chip's target
-is the chip. A chosen filter chip also shows a check mark in Material; here the check
-is `leading`, because it is a glyph and a glyph comes from a font. The example draws one
-from boxes, which is what makes the selected chip on this site look like Material's.
+is the chip. A chosen filter chip also shows a check mark in Material; here the check is
+`leading`, because a chip carries whatever node the caller gives it. `MaterialCheckMark`
+is the one to pass, and it is what the example passes: the mark is drawn from boxes, so
+it needs no font and looks like Material's own.
 
 `leading` and `trailing` take a node each, and `onRemove` turns the chip into an input
 chip: the trailing node is wrapped in a round well of its own, so a press on the cross
-removes the chip instead of choosing it. The glyph is the caller's — a check, a folder
-and a cross all come from a font, and a font is a host asset this package does not
-ship. `MaterialIcon` is the way in when an application has one; the example draws its
-four glyphs from boxes instead.
+removes the chip instead of choosing it. That well centres its node on both axes — a
+well is a column, and a cross pinned to its start would leave the ring of a hover four
+pixels off the cross it belongs to. The glyph itself is the caller's — a folder and a
+cross come from a font, and a font is a host asset this package does not ship.
+`MaterialIcon` is the way in when an application has one; the example draws its four
+glyphs from boxes instead.
 
 ## The dialog and the bottom sheet
 
@@ -623,6 +626,34 @@ codepoints are not the legacy `Icons` ones (`home` is `e9b2`, not `e88a`). A web
 export has no shaker of its own: serve the subset the Flutter build wrote, or one
 from `pyftsubset`, with its `@font-face`, plus `font-display: block` and a preload so
 a glyph does not flash as text.
+
+### The one glyph this package draws
+
+`MaterialCheckMark` is Material's check without a font: the two strokes of the tick,
+drawn as rotated bars, so a chosen chip or segment can say what is on even in an
+application that ships no icons at all.
+
+```dart
+MaterialChip(
+  label: const TextNode('Two rooms'),
+  selected: true,
+  leading: MaterialCheckMark(
+    color: const BoxColor.role(MaterialColorRole.onSecondaryContainer),
+  ),
+)
+```
+
+Its numbers are the glyph's rather than a guess. Material's check is a polygon of its
+24 pixel grid, and reduced to two centre lines it is a 2 pixel stroke, a 7.07 pixel
+short arm and a 14 pixel long one at 45° each; the elbow then falls where the inked
+mark is centred in the square, which is Material's own `9.55` across and a sixth of a
+stroke below its `16.6` down — the difference between a round cap and the mitred end of
+a polygon. The shares scale with `size`, so the same weight comes out at 18, at 12 and
+at 40, and a tick drawn at a seventh of its box — nearly twice Material's weight — is
+what makes a hand-tuned one read as a pen stroke beside Material's type.
+
+It takes no semantics: it is decoration beside a label, and the control it sits in says
+what is chosen through its own `selected`.
 
 ## Elevation
 

@@ -334,7 +334,10 @@ UINode _chips() {
             onTap: () {},
             // Material's chip glyph is 18, and the check is drawn rather than set:
             // a font is a host asset and this package ships none.
-            leading: glyphCheck(onSelected, size: MaterialChip.iconSize),
+            leading: MaterialCheckMark(
+              color: onSelected,
+              size: MaterialChip.iconSize,
+            ),
           ),
           MaterialChip(
             label: const TextNode('Studio'),

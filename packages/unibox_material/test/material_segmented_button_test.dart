@@ -118,7 +118,7 @@ void main() {
 
       // A chosen segment shows the check *instead of* its icon, which is what
       // Material does: a control that carries pictures still says which one is on.
-      expect(_checkOf(_wellBox(segments.last)), isNotNull);
+      expect(_checkOf(_wellBox(segments.last)), isA<MaterialCheckMark>());
       expect(_nodesOf(_wellBox(segments.last)), isNot(contains(same(icon))));
       expect(_checkOf(_wellBox(segments.first)), isNull);
       expect(_nodesOf(_wellBox(segments.first)), contains(same(icon)));

@@ -501,7 +501,7 @@ UINode _filterChip(
   return MaterialChip(
     label: TextNode(label),
     selected: selected,
-    leading: selected ? glyphCheck(onSelected, size: 12) : null,
+    leading: selected ? MaterialCheckMark(color: onSelected, size: 12) : null,
     trailing: selected ? glyphClose(onSelected) : null,
     onRemove: selected ? () => onFilter?.call(null) : null,
     onTap: () => onFilter?.call(selected ? null : label),

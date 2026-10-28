@@ -5,43 +5,15 @@
 /// small pictures it needs instead. Each is boxes, radii and transforms, which means
 /// both renderers draw the same shape without an asset and without a codepoint map.
 ///
+/// A check is the exception, and the reason it is not here: `unibox_material` already
+/// draws one for the check of a chosen chip and segment (`MaterialCheckMark`), so the
+/// example wears that rather than keeping a second tick that could drift from it.
+///
 /// `MaterialIcon` is the way in when an application *does* ship a font; this file is
 /// the way in when it does not.
 library;
 
 import 'package:unibox_core/unibox_core.dart';
-
-/// A check: the two strokes of a tick, drawn as rotated bars.
-UINode glyphCheck(BoxColor color, {double size = 14}) {
-  final double stroke = size / 7;
-
-  return StackNode(
-    width: size,
-    height: size,
-    children: <UINode>[
-      // The short stroke: from the middle down to the corner.
-      _centred(
-        Box(
-          width: size * 0.45,
-          height: stroke,
-          borderRadius: stroke / 2,
-          backgroundColor: color,
-          transform: BoxTransform(rotation: 45, offsetX: -size * 0.22),
-        ),
-      ),
-      // The long stroke: up to the top right.
-      _centred(
-        Box(
-          width: size * 0.8,
-          height: stroke,
-          borderRadius: stroke / 2,
-          backgroundColor: color,
-          transform: BoxTransform(rotation: -45, offsetX: size * 0.12),
-        ),
-      ),
-    ],
-  );
-}
 
 /// A cross: two bars at right angles, the close of an input chip.
 UINode glyphClose(BoxColor color, {double size = 10}) {
