@@ -466,12 +466,21 @@ needs no case for it: there is no second implementation to hold in step. A page
 rendered without a client runtime subscribes to nothing, so it shows the resting
 well, and a region that cannot be pressed listens to no pointer at all.
 
-It paints **no surface of its own**: the tints and the ink have to sit above the
-fill they belong to, so the filled box goes around the ink well. Wrapped the other
-way round the fill would hide both. The well clips its own content to
-`borderRadius`, which is what keeps a drop inside a rounded button, and `ink` is the
-one colour that is not a role — the ink has to contrast with the fill around the
-well, which the well cannot see.
+It paints **no surface unless it is given one**: the tints and the ink have to sit above
+the fill they belong to, so by default the filled box goes around the ink well. Wrapped
+the other way round the fill would hide both. Pass `fill:` — and `border:` with it —
+and the well paints that surface itself, under a layer of tints of its own, which is
+what a control needs when the whole of it is one target. The well clips its own content
+to `borderRadius`, which is what keeps a drop inside a rounded button, and `ink` is the
+one colour that is not a role — the ink has to contrast with the fill around the well,
+which the well cannot see.
+
+**A target can be taller than the shape.** `tapTargetHeight` makes the region a finger
+can hit taller than the shape it paints, with the shape centred in it: Material states
+48 for a touch target over a 32 pixel chip. The tints, the ink and the fill stay on the
+shape — a tint is the shape — so the extra room takes the press and paints nothing, and
+a drop that lands in it still starts where the pill would see the press. It is layout
+and not paint: a row of chips is as tall as the target.
 
 What it is not is a timeline the host owns: the ink is a state machine and a timer,
 so a press costs a rebuild of one subtree per frame for 450ms. On the web that is
@@ -601,7 +610,7 @@ MaterialChip(label: const TextNode('Studio'), onTap: filter)
 
 | Token | Value |
 | --- | --- |
-| height | `controlHeight` = 32, stated rather than left to the line, so an 18 pixel glyph does not make one chip taller than another |
+| height | `controlHeight` = 32 painted, in a target of `minTapTarget` = 48: the pill is centred in the room Material gives a finger, so an 18 pixel glyph can make neither a taller chip nor a smaller one |
 | radius | 8, the small shape of Material 3 |
 | unselected | no fill, a 1 pixel `outline` line, `onSurfaceVariant` label |
 | selected | `secondaryContainer` fill, no line, `onSecondaryContainer` label |
@@ -621,12 +630,12 @@ clips to the radius, so the ink of a press stays inside too.
 A chip is a control: it announces itself as a button when it can be pressed, and says
 whether it is chosen, which is a state a screen reader hears rather than a colour.
 
-**What stays approximate.** Material gives a 32 pixel chip a 48 pixel touch target by
-padding the shape invisibly, and this model has no invisible padding — a chip's target
-is the chip. A chosen filter chip also shows a check mark in Material; here the check is
-`leading`, because a chip carries whatever node the caller gives it. `MaterialCheckMark`
-is the one to pass, and it is what the example passes: the mark is drawn from boxes, so
-it needs no font and looks like Material's own.
+**What stays approximate.** A chosen filter chip shows a check mark in Material; here the
+check is `leading`, because a chip carries whatever node the caller gives it.
+`MaterialCheckMark` is the one to pass, and it is what the example passes: the mark is
+drawn from boxes, so it needs no font and looks like Material's own. The 48 pixel target
+is the room around the pill and not a painted shape, so hovering the pill's top and
+bottom eight pixels takes the press but paints no tint.
 
 `leading` and `trailing` take a node each, and `onRemove` turns the chip into an input
 chip: the trailing node is wrapped in a round well of its own, so a press on the cross
@@ -696,9 +705,16 @@ keys are deliberately not modelled (`BoxRole` has no tab, for the reason
 **Where it sits is the tree's business**, and so is the safe area: the bar is a row
 that fills the width and states its height, and being at the bottom is a
 `PositionedNode` at the bottom of a `StackNode`, or the last row of a full height
-column. The indicator does not slide, the label does not fade and the bar does not
-hide as the page scrolls: the first two are animations and the third is scroll
-state, and a switch of destination here is a rebuild.
+column.
+
+**The pill arrives.** A chosen destination's indicator fades in and grows out of its
+icon over `MaterialNavigationBar.indicatorTransition` (500ms, `easeInOut`), because the
+pill is drawn at every destination and a switch changes its look rather than inserting
+a node: the model eases paint and never layout, which is also why the pill does not
+travel between destinations — a slide would need the width of its neighbours. The label
+changes colour at once and the icon swaps rather than cross-fading, since a text colour
+is not a paint a transition eases and the icon is the caller's node. The bar does not
+hide as the page scrolls: that is scroll state, which the model does not have.
 
 ## The dialog and the bottom sheet
 
@@ -824,9 +840,9 @@ a navigation bar 80 pixels tall on `surfaceContainer`, its chosen destination's 
 on a 64 by 32 `secondaryContainer` pill; and a bottom sheet that fills the width up
 to 640 pixels, with a drag handle and a shadow that rises. Still approximate: the sheet
 rounds all four corners, the handle is not draggable, shadows are one layer where
-Material has two, the navigation indicator does not slide, and the ink is one circle
-that grows and fades where Material draws a splash with a fading highlight and a
-second ripple when the press is released.
+Material has two, the navigation indicator fades and grows in place instead of sliding
+between destinations, and the ink is one circle that grows and fades where Material
+draws a splash with a fading highlight and a second ripple when the press is released.
 
 ## Line heights
 

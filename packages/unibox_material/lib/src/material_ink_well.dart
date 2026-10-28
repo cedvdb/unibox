@@ -159,11 +159,21 @@ final class MaterialInkStore extends StateStore<MaterialInkState> {
 /// tint eases instead of flashing, the ink, and the button role when the region
 /// can be tapped.
 ///
-/// **It paints no surface of its own.** The ink and the tints have to sit *above*
-/// the fill they belong to, so the filled box goes around the ink well, not
-/// inside it; wrapped the other way round the fill would hide both. The well
-/// clips its own content to [borderRadius], which is how a drop stays inside a
-/// rounded button.
+/// **It paints no surface unless it is given one.** The ink and the tints have to sit
+/// *above* the fill they belong to, so by default the filled box goes around the ink
+/// well, not inside it; wrapped the other way round the fill would hide both. Pass
+/// [fill] — and [border] with it — and the well paints that surface itself, under the
+/// tints: a box has one background, so the two are composited into the one colour it
+/// can paint, which is the same arithmetic a host does when it paints a hover into a
+/// button's fill. The well clips its own content to [borderRadius], which is how a drop
+/// stays inside a rounded button.
+///
+/// **A target can be taller than the shape.** A chip paints 32 pixels and a finger
+/// needs 48: [tapTargetHeight] makes the region a caller can hit taller than the pill it
+/// paints, and the pill is centred in it. The tints and the ink stay on the shape — a
+/// tint is the shape — so hovering the extra room takes the press but paints nothing.
+/// Material does the same thing with its padded tap target, and the room is layout, not
+/// paint: a row of chips is as tall as the target.
 ///
 /// **What the ink needs.** A region only ripples when it can be pressed — an
 /// `onTap` or an `onLongPress`, and [enabled] — so a well that only paints a
@@ -182,6 +192,11 @@ final class MaterialInkWell
   /// [onTap] is read here instead of being passed straight through, because a
   /// tappable region is what gets the button role. [padding] is the room between
   /// the edge of the well and [child]; the ink is painted under it.
+  ///
+  /// [fill] and [border] are the surface the well tints, when it paints one itself;
+  /// [tapTargetHeight] is a target taller than [height], which the shape is centred
+  /// in. A target needs a [height] to centre within, so it is ignored by a well that
+  /// hugs its content.
   MaterialInkWell({
     super.key,
     required UINode child,
@@ -195,6 +210,9 @@ final class MaterialInkWell
     double? height,
     int? flex,
     double? borderRadius,
+    BoxColor? fill,
+    BoxBorder? border,
+    double? tapTargetHeight,
     BoxColor ink = defaultInk,
     BoxSemantics? semantics,
     BoxTransition transition = defaultTransition,
@@ -203,7 +221,11 @@ final class MaterialInkWell
     BoxStyle? pressedStyle,
     MainAlign? mainAlign,
     CrossAlign? crossAlign,
-  }) : super(
+  }) : assert(
+         tapTargetHeight == null || height != null,
+         'A tap target taller than the shape needs a height to centre the shape in.',
+       ),
+       super(
          create: MaterialInkStore.new,
          view: (MaterialInkState state, MaterialInkStore store) => _inkWellView(
            state,
@@ -219,6 +241,9 @@ final class MaterialInkWell
            height: height,
            flex: flex,
            borderRadius: borderRadius,
+           fill: fill,
+           border: border,
+           tapTargetHeight: tapTargetHeight,
            ink: ink,
            semantics: semantics,
            transition: transition,
@@ -244,17 +269,29 @@ final class MaterialInkWell
   static BoxStyle _tint(BoxColor color) => BoxStyle(backgroundColor: color);
 }
 
-/// The well, its ink and its content, as one box.
+/// The well, its ink and its content, as one box — or two layers of box when it paints
+/// a surface, and three when the target is taller than the shape.
 ///
-/// Four layers, painted in this order: the fill (outside, in the box around the
-/// well), the tints (this box's own background), the ink, and the content. The
-/// ink goes under the content and above the tints because a drop is meant to be
-/// read through the label, not over it.
+/// The layers are painted in this order: the surface (given to the well, or painted by
+/// the box around it), the tints, the ink and the content. The ink goes under the
+/// content and above the tints because a drop is meant to be read through the label,
+/// not over it.
 ///
-/// The drops sit in the stack the well holds, and the well clips them to its
-/// radius. Clipping at the well rather than in a filling layer is what keeps the
-/// ripple off a rule the model does not have: a child that fills a positioned
-/// parent does not fill on the web, so every box in the ink carries its own size.
+/// A fill and a tint have to be two boxes, because a box paints one background: the
+/// well's own box carries the surface and clips it, and a box inside it carries the
+/// three state layers. The tints cannot be composited into the fill either — a role has
+/// no channels until a theme resolves it, which happens at render time and not while
+/// the tree is built.
+///
+/// The drops sit in the stack under the tints, and the well clips them to its radius.
+/// Clipping at the well rather than in a filling layer is what keeps the ripple off a
+/// rule the model does not have: a child that fills a positioned parent does not fill
+/// on the web, so every box in the ink carries its own size.
+///
+/// When [tapTargetHeight] is taller than [height] there is one more box outside: the
+/// target, with the shape centred in it. The tints, the ink, the surface and the clip
+/// belong to the shape; only the presses belong to the room around it, and every press
+/// is moved into the shape's own coordinates so a drop still starts where it landed.
 UINode _inkWellView(
   MaterialInkState state,
   MaterialInkStore store, {
@@ -269,6 +306,9 @@ UINode _inkWellView(
   required double? height,
   required int? flex,
   required double? borderRadius,
+  required BoxColor? fill,
+  required BoxBorder? border,
+  required double? tapTargetHeight,
   required BoxColor ink,
   required BoxSemantics? semantics,
   required BoxTransition transition,
@@ -280,34 +320,53 @@ UINode _inkWellView(
 }) {
   final bool pressable = enabled && (onTap != null || onLongPress != null);
 
-  return Box(
-    onTap: onTap,
-    onTapDown: pressable
-        ? (BoxTapEvent event) => store.press(event.position)
-        : null,
-    onLongPress: onLongPress,
-    onHover: onHover,
-    enabled: enabled,
-    margin: margin,
+  // The room a taller target keeps above and below the shape, on each side.
+  final double slop = tapTargetHeight != null && height != null
+      ? ((tapTargetHeight - height) / 2).clamp(0, double.infinity)
+      : 0;
+
+  void press(BoxTapEvent event) => store.press(
+    slop == 0 ? event.position : _insideShape(event.position, slop),
+  );
+
+  final BoxSemantics? resolvedSemantics =
+      semantics ??
+      (onTap == null ? null : const BoxSemantics(role: BoxRole.button));
+
+  // The stack fills the well across its cross axis, so a well given a size is filled
+  // rather than hugged: the tints belong to the whole region, not to the label inside
+  // it. A *full width* well stretches by default — a web flex column otherwise shrinks
+  // the stack to its content — while one with no width of its own is a chip in a row and
+  // has nothing to stretch to. A caller can always say.
+  final CrossAlign resolvedCross =
+      crossAlign ??
+      (width == double.infinity ? CrossAlign.stretch : CrossAlign.start);
+
+  final UINode stack = StackNode(
+    children: <UINode>[
+      for (final MaterialInkDrop drop in state.drops) _dropView(drop, ink),
+      // The content sizes the stack; a drop takes no room of its own.
+      // The cell is a flex row on the web, which sizes its box to the content.
+      Box(
+        width: width == double.infinity ? double.infinity : null,
+        crossAlign: width == double.infinity
+            ? CrossAlign.stretch
+            : CrossAlign.start,
+        padding: padding,
+        children: <UINode>[child],
+      ),
+    ],
+  );
+
+  // The three state layers, over whatever surface is under them.
+  final Box tints = Box(
+    // The shape's own size, so the tints cover it and not only the content inside it.
     width: width,
     height: height,
-    flex: flex,
     borderRadius: borderRadius,
-    overflow: Overflow.hidden,
-    // The stack fills the well across its cross axis, so a well given a size is
-    // filled rather than hugged: the tints belong to the whole region, not to the
-    // label inside it. A *full width* well stretches by default — a web flex column
-    // otherwise shrinks the stack to its content, and a row with a flexible part
-    // would not reach the edge of the well — while one with no width of its own is a
-    // chip in a row and has nothing to stretch to. A caller can always say.
     mainAlign: mainAlign,
-    crossAlign:
-        crossAlign ??
-        (width == double.infinity ? CrossAlign.stretch : CrossAlign.start),
+    crossAlign: resolvedCross,
     transition: transition,
-    semantics:
-        semantics ??
-        (onTap == null ? null : const BoxSemantics(role: BoxRole.button)),
     hoverStyle:
         hoverStyle ??
         MaterialInkWell._tint(
@@ -325,25 +384,65 @@ UINode _inkWellView(
             const BoxColor.role(MaterialColorRole.pressedLayer),
           ),
     },
-    children: <UINode>[
-      StackNode(
-        children: <UINode>[
-          for (final MaterialInkDrop drop in state.drops) _dropView(drop, ink),
-          // The content sizes the stack; a drop takes no room of its own.
-          // The cell is a flex row on the web, which sizes its box to the content.
-          Box(
-            width: width == double.infinity ? double.infinity : null,
-            crossAlign: width == double.infinity
-                ? CrossAlign.stretch
-                : CrossAlign.start,
-            padding: padding,
-            children: <UINode>[child],
-          ),
-        ],
-      ),
-    ],
+    children: <UINode>[stack],
+  );
+
+  // A well with a surface, or with a target taller than its shape, is layered: the
+  // outer box is the surface and the clip, and the tints are one box inside it. A well
+  // with neither stays one box, which is what it has always been.
+  final bool layered = fill != null || border != null || slop > 0;
+
+  UINode shape({required bool interactive}) => Box(
+    onTap: interactive ? onTap : null,
+    onTapDown: interactive && pressable ? press : null,
+    onLongPress: interactive ? onLongPress : null,
+    onHover: interactive ? onHover : null,
+    enabled: enabled,
+    margin: interactive ? margin : null,
+    flex: interactive ? flex : null,
+    semantics: interactive ? resolvedSemantics : null,
+    width: width,
+    height: height,
+    backgroundColor: fill,
+    border: border,
+    borderRadius: borderRadius,
+    overflow: Overflow.hidden,
+    mainAlign: mainAlign,
+    crossAlign: resolvedCross,
+    transition: transition,
+    // With no surface of its own the tints are the shape, so they stay on this box.
+    hoverStyle: layered ? null : tints.hoverStyle,
+    stateStyles: layered ? null : tints.stateStyles,
+    children: <UINode>[if (layered) tints else stack],
+  );
+
+  if (slop == 0) {
+    // One box: the region a caller presses is the region it paints.
+    return shape(interactive: true);
+  }
+
+  return Box(
+    onTap: onTap,
+    onTapDown: pressable ? press : null,
+    onLongPress: onLongPress,
+    onHover: onHover,
+    enabled: enabled,
+    margin: margin,
+    width: width,
+    height: tapTargetHeight,
+    flex: flex,
+    // The shape is painted in the middle of the target, so the room a finger gets is
+    // the same above and below the pill it aims at.
+    mainAlign: MainAlign.center,
+    crossAlign: CrossAlign.center,
+    semantics: resolvedSemantics,
+    children: <UINode>[shape(interactive: false)],
   );
 }
+
+/// [position] moved into the shape, which a taller target centres in itself.
+BoxPoint _insideShape(BoxPoint position, double slop) =>
+    BoxPoint(position.x, (position.y - slop).clamp(0, double.infinity));
 
 /// One drop: a circle centred on the press, growing as it fades.
 ///

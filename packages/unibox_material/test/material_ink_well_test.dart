@@ -259,6 +259,55 @@ void main() {
       );
     });
 
+    test('paints the surface it is given under its tints', () {
+      // A fill and a tint are two boxes, because a box paints one background: the
+      // well's own box carries the surface and clips it, and the box inside it carries
+      // the three state layers.
+      final Box well = _view(
+        MaterialInkWell(
+          onTap: _tap,
+          fill: const BoxColor(0xFF00FF00),
+          border: const BoxBorder(color: BoxColor(0xFF0000FF)),
+          child: const TextNode('Two rooms'),
+        ),
+        MaterialInkStore(),
+      );
+
+      expect(well.backgroundColor, const BoxColor(0xFF00FF00));
+      expect(well.border, const BoxBorder(color: BoxColor(0xFF0000FF)));
+      expect(well.hoverStyle, isNull, reason: 'the tints are not the surface');
+      expect(
+        (well.children.single as Box).hoverStyle?.backgroundColor,
+        const BoxColor.role(MaterialColorRole.hoverLayer),
+      );
+    });
+
+    test('takes a press on a target taller than the shape it paints', () {
+      // Material states 48 for a touch target over a 32 pixel chip: the shape is
+      // centred in the target, so the room above it is target and not paint — and a
+      // press there still starts its drop where the pill would see it.
+      final MaterialInkStore store = MaterialInkStore();
+      final Box well = _view(
+        MaterialInkWell(
+          onTap: _tap,
+          height: 32,
+          tapTargetHeight: 48,
+          child: const TextNode('Studio'),
+        ),
+        store,
+      );
+
+      expect(well.height, 48);
+      expect(well.mainAlign, MainAlign.center);
+      expect((well.children.single as Box).height, 32);
+
+      well.onTapDown!(const BoxTapEvent(position: BoxPoint(10, 40)));
+
+      // 40 is 4 pixels inside the pill, whose top edge is at 8.
+      expect(store.state.drops.single.position, const BoxPoint(10, 32));
+      store.onUnmount();
+    });
+
     test('draws a tree the model can validate, at rest and under a press', () {
       final MaterialInkStore store = MaterialInkStore();
       final MaterialInkWell well = MaterialInkWell(

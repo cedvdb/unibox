@@ -26,9 +26,16 @@ Box _box(MaterialChip chip) {
   return box;
 }
 
-/// The box inside the well that carries the chip's padding and its content.
+/// The pill: the shape the well paints, which sits inside the taller target.
+Box _pill(MaterialChip chip) => _box(chip).children.single as Box;
+
+/// The layer of state tints, which the pill holds because a fill and a tint cannot be
+/// the same background.
+Box _tints(MaterialChip chip) => _pill(chip).children.single as Box;
+
+/// The box inside the tints that carries the chip's padding and its content.
 Box _content(MaterialChip chip) =>
-    _box(chip).children
+    _tints(chip).children
         .whereType<StackNode>()
         .single
         .children
@@ -45,9 +52,9 @@ void main() {
       final MaterialChip chip = MaterialChip(label: const TextNode('Studio'));
 
       expect(chip, isA<Box>());
-      expect(chip.backgroundColor, isNull);
+      expect(_pill(chip).backgroundColor, isNull);
       expect(
-        chip.border?.color,
+        _pill(chip).border?.color,
         const BoxColor.role(MaterialColorRole.outline),
       );
       expect(chip.borderRadius, MaterialChip.radius);
@@ -61,11 +68,11 @@ void main() {
       );
 
       expect(
-        chip.backgroundColor,
+        _pill(chip).backgroundColor,
         const BoxColor.role(MaterialColorRole.secondaryContainer),
       );
       expect(
-        chip.border,
+        _pill(chip).border,
         isNull,
         reason: 'the fill is the state, so there is no line as well',
       );
@@ -87,7 +94,12 @@ void main() {
           _content(chip).padding,
           const BoxSpacing.symmetric(horizontal: 16, vertical: 6),
         );
-        expect(_box(chip).borderRadius, MaterialChip.radius);
+        expect(_pill(chip).borderRadius, MaterialChip.radius);
+        expect(
+          _box(chip).borderRadius,
+          isNull,
+          reason: 'the target paints nothing and clips nothing',
+        );
         expect(_box(chip).onTap, _tap);
       },
     );
@@ -128,17 +140,21 @@ void main() {
       );
     });
 
-    test('is 32 tall whatever it carries, and fades when disabled', () {
+    test('paints 32 in a 48 tall target, and fades when disabled', () {
       final MaterialChip plain = MaterialChip(label: const TextNode('Garden'));
       final MaterialChip withGlyph = MaterialChip(
         label: const TextNode('Garden'),
         leading: const TextNode('check-18'),
       );
 
-      // The height and the fade belong to the chip itself: the well inside it has no
-      // size of its own and takes the room the pill gives it.
-      expect(plain.minHeight, MaterialChip.controlHeight);
-      expect(withGlyph.minHeight, MaterialChip.controlHeight);
+      // The pill is Material's 32 whatever the chip carries, and the region a finger
+      // gets is the 48 Material states for a touch target: the pill is centred in it,
+      // so a glyph taller than the line cannot make one chip taller than its neighbour.
+      expect(_pill(plain).height, MaterialChip.controlHeight);
+      expect(_pill(withGlyph).height, MaterialChip.controlHeight);
+      expect(_box(plain).height, MaterialChip.minTapTarget);
+      expect(MaterialChip.minTapTarget, 48);
+      expect(plain.minHeight, MaterialChip.minTapTarget);
       expect(plain.opacity, isNull);
       expect(
         MaterialChip(label: const TextNode('Garden'), enabled: false).opacity,

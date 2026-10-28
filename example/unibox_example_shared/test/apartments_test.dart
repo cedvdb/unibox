@@ -5,6 +5,19 @@ import 'package:unibox_material/unibox_material.dart';
 
 import 'support/tree.dart';
 
+/// The pill a chip paints: its fill, its line and its clip.
+///
+/// A chip paints a surface of its own, so its well is layered — a 48 pixel target, the
+/// 32 pixel pill inside it, and the tints over the pill.
+Box _pill(MaterialChip chip) {
+  final MaterialInkWell well = chip.children.single as MaterialInkWell;
+  final MaterialInkStore store = MaterialInkStore();
+  final Box target = well.viewFor(store.state, store) as Box;
+  store.dispose();
+
+  return target.children.single as Box;
+}
+
 void main() {
   group('Apartment', () {
     test('summarises itself for the card', () {
@@ -155,21 +168,24 @@ void main() {
           if (node is MaterialChip) node,
       ];
 
-      final MaterialChip chosen = chips.firstWhere(
-        (MaterialChip chip) => chip.children.isNotEmpty && chip.border == null,
-      );
+      MaterialChip chosen = chips.first;
+      for (final MaterialChip chip in chips) {
+        if (_pill(chip).backgroundColor != null) {
+          chosen = chip;
+        }
+      }
 
       expect(
-        (chosen.children.single as MaterialInkWell),
+        chosen.children.single,
         isA<MaterialInkWell>(),
-        reason: 'a chip is a fill around a well',
+        reason: 'a chip is a well, which paints the pill and takes the press',
       );
       expect(
-        chosen.backgroundColor,
+        _pill(chosen).backgroundColor,
         const BoxColor.role(MaterialColorRole.secondaryContainer),
       );
       expect(
-        chips.where((MaterialChip chip) => chip.border != null),
+        chips.where((MaterialChip chip) => _pill(chip).border != null),
         isNotEmpty,
         reason: 'the filters that are not chosen are outlined',
       );

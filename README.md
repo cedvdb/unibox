@@ -75,9 +75,9 @@ python3 tool/seo_report.py build/site
 
 | Document | Words | `h1` | `h2` | Links | Fields | Bytes |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Jaspr `/` | 492 | 1 | 2 | 9 | 2 | 126 283 |
-| Jaspr `/web/listings/` | 132 | 1 | 0 | 1 | 0 | 58 777 |
-| Jaspr `/web/signup/` | 149 | 1 | 1 | 3 | 2 | 68 483 |
+| Jaspr `/` | 492 | 1 | 2 | 9 | 2 | 129 767 |
+| Jaspr `/web/listings/` | 132 | 1 | 0 | 1 | 0 | 60 510 |
+| Jaspr `/web/signup/` | 149 | 1 | 1 | 3 | 2 | 70 216 |
 | **Flutter `/flutter/listings/`** | **4** | **0** | **0** | **0** | **0** | **772** |
 
 The first row is the whole site as one page: the claim, the comparison and the

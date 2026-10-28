@@ -92,10 +92,11 @@ final class MaterialNavigationDestination {
 /// itself is a `nav` landmark on the web. A tab strip's arrow keys and roving focus
 /// are not modelled, which is why the role is a button and not a tab.
 ///
-/// **What Material draws that this does not.** The indicator slides and the label
-/// fades over half a second; here a switch of destination is a rebuild, like every
-/// other change of state. The bar also does not hide as the page scrolls: that is
-/// scroll state, which the model does not have.
+/// **What Material draws that this still does not.** The label fades between its two
+/// colours where the pill fades and grows, and the icon swaps rather than cross-fading:
+/// a text colour is not a paint a transition eases, and the icon is the caller's node.
+/// The bar also does not hide as the page scrolls: that is scroll state, which the
+/// model does not have.
 final class MaterialNavigationBar extends Box {
   /// Creates a navigation bar with [destinations], [selected] of them chosen.
   ///
@@ -153,6 +154,24 @@ final class MaterialNavigationBar extends Box {
 
   /// The height of the indicator pill, and the radius that rounds it fully.
   static const double indicatorHeight = 32;
+
+  /// How a chosen destination's pill arrives.
+  ///
+  /// Material fades the indicator in and grows it out of the icon, over half a second;
+  /// the model eases paint — opacity and transform — and never layout, so the pill is
+  /// drawn at every destination and a switch is a change of look. The curve is the
+  /// closest of the five the model has to Material's emphatic easing.
+  ///
+  /// The icon itself does not cross-fade: it is the caller's node, and a destination
+  /// that wants a filled glyph while it is chosen passes a
+  /// [MaterialNavigationDestination.selectedIcon].
+  static const BoxTransition indicatorTransition = BoxTransition(
+    duration: Duration(milliseconds: 500),
+    curve: BoxCurve.easeInOut,
+  );
+
+  /// How much smaller the pill is while its destination is not the chosen one.
+  static const double _indicatorRestScale = 0.85;
 
   /// The colour the icon of the chosen destination is drawn in, inside its pill.
   ///
@@ -245,21 +264,36 @@ final class MaterialNavigationBar extends Box {
 
   /// The pill behind a destination's icon, filled only while it is chosen.
   ///
-  /// It is drawn whether or not there is an icon, so a destination without a
-  /// picture still lines up with the ones beside it.
+  /// The pill is in the tree at every destination and only its look changes, so a
+  /// switch of destination is the pill fading in and growing out of the icon rather
+  /// than a node appearing. The model eases paint and never layout, so a pill that
+  /// *slid* between destinations is not on the table: that would need the width of its
+  /// neighbours, which a tree does not know.
+  ///
+  /// The icon is a sibling painted above the pill, so the fade belongs to the pill and
+  /// not to the picture the caller gave. A destination without an icon keeps its empty
+  /// pill, which is what keeps the labels of a bar in line.
   static UINode _indicator({
     required UINode? icon,
     required bool selected,
     required BoxColor color,
   }) {
-    return Box(
+    return StackNode(
       width: indicatorWidth,
       height: indicatorHeight,
-      borderRadius: indicatorHeight / 2,
-      backgroundColor: selected ? color : null,
-      mainAlign: MainAlign.center,
-      crossAlign: CrossAlign.center,
-      children: <UINode>[?icon],
+      children: <UINode>[
+        Box(
+          width: indicatorWidth,
+          height: indicatorHeight,
+          borderRadius: indicatorHeight / 2,
+          backgroundColor: selected ? color : null,
+          opacity: selected ? 1 : 0,
+          transform: BoxTransform(scale: selected ? 1 : _indicatorRestScale),
+          transition: indicatorTransition,
+        ),
+        if (icon != null)
+          PositionedNode(alignment: BoxAlignment.center, child: icon),
+      ],
     );
   }
 

@@ -55,9 +55,13 @@ Box _paddedBox(Box drawn) => drawn.children
 Box _content(MaterialNavigationBar bar, int index) =>
     _paddedBox(_wellBox(_well(bar, index))).children.single as Box;
 
+/// The slot above the label of one destination: the pill and its icon, layered.
+StackNode _slot(MaterialNavigationBar bar, int index) =>
+    _content(bar, index).children.first as StackNode;
+
 /// The pill above the label of one destination.
 Box _pill(MaterialNavigationBar bar, int index) =>
-    _content(bar, index).children.first as Box;
+    _slot(bar, index).children.first as Box;
 
 /// The colour a destination draws its label in.
 BoxColor? _labelColour(MaterialNavigationBar bar, int index) =>
@@ -135,11 +139,32 @@ void main() {
     test('draws the chosen icon in place of the resting one', () {
       final MaterialNavigationBar bar = _bar(selected: 1);
 
-      expect((_pill(bar, 1).children.single as TextNode).text, 'Map, chosen');
+      // The icon is a sibling above the pill, so the fade belongs to the pill and not
+      // to the picture the caller gave.
+      final PositionedNode icon = _slot(bar, 1).children.last as PositionedNode;
+      expect(icon.alignment, BoxAlignment.center);
+      expect((icon.child as TextNode).text, 'Map, chosen');
       expect(
-        _pill(bar, 2).children,
-        isEmpty,
+        _slot(bar, 2).children,
+        hasLength(1),
         reason: 'a destination without a picture keeps an empty pill',
+      );
+    });
+
+    test('fades and grows the pill instead of popping it in', () {
+      final MaterialNavigationBar bar = _bar(selected: 1);
+
+      // The pill is drawn at every destination, so a switch of destination is a change
+      // of look: the chosen one is opaque and full size, the others are out of sight.
+      for (int i = 0; i < bar.children.length; i++) {
+        final Box pill = _pill(bar, i);
+        expect(pill.opacity, i == 1 ? 1 : 0);
+        expect(pill.transform?.scale, i == 1 ? 1 : lessThan(1));
+        expect(pill.transition, MaterialNavigationBar.indicatorTransition);
+      }
+      expect(
+        MaterialNavigationBar.indicatorTransition.duration,
+        const Duration(milliseconds: 500),
       );
     });
 

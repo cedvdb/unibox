@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- `MaterialChip`'s target is 48 pixels around a pill that still paints 32. Material states
+  one target for a touch screen and a 32 pixel chip is below it; the pill is centred in the
+  room and the tints stay on the pill, so hovering the extra eight pixels takes the press
+  and paints nothing. A chip takes 48 in a row now, which is what Flutter's padded tap
+  target does too.
+- `MaterialInkWell` can paint the surface it tints and take a target taller than its shape:
+  `fill` and `border` put the surface on the well, under a layer of tints of its own, and
+  `tapTargetHeight` adds room a finger can hit without painting it. A well with neither is
+  the one box it has always been, so every other component is unchanged.
+- `MaterialNavigationBar`'s indicator arrives: the pill is drawn at every destination and
+  the chosen one fades in and grows out of its icon over `indicatorTransition` (500ms,
+  `easeInOut`). The model eases paint and not layout, so the pill does not travel between
+  destinations; the label still changes colour at once and the icon still swaps.
+
 - `MaterialNavigationBar`: Material 3's navigation bar — three to five destinations in
   one 80 pixel row on the new `surfaceContainer` role, an equal share each, the chosen
   destination's icon on a 64 by 32 `secondaryContainer` pill at radius 16 and its label

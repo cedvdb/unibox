@@ -18,11 +18,13 @@ import 'material_typography.dart';
 /// it belongs to. Two paddings, one on each, is what made the example's chips tint far
 /// beyond themselves when they were composed by hand.
 ///
-/// The height is Material's 32: `labelLarge`'s 20 pixel line with six above and below.
+/// The height it *paints* is Material's 32: `labelLarge`'s 20 pixel line with six above
+/// and below. The region a finger hits is 48, because Material states one target for a
+/// touch screen and a 32 pixel chip is below it: the pill is centred in a target of
+/// [minTapTarget], which is the size the chip takes in a row.
 /// Selected, the chip fills with `secondaryContainer` and drops its line — no border,
 /// because the fill is the state — and a leading check is drawn when [leading] is
-/// given; unselected it is a `surface` fill with an `outline` line and the quieter
-/// `onSurfaceVariant` label.
+/// given; unselected it has an `outline` line and the quieter `onSurfaceVariant` label.
 ///
 /// A chip is a control, so it announces itself as a button when it can be pressed,
 /// and says whether it is chosen: `selected` is the pressed state a screen reader
@@ -49,12 +51,12 @@ final class MaterialChip extends Box {
     BoxTransition? transition,
     super.key,
   }) : super(
-         backgroundColor: selected ? _selectedFill : null,
-         border: selected ? null : _outline,
          borderRadius: radius,
-         // Material's 32: `labelLarge`'s 20 pixel line with six above and below, held
-         // even when a leading or trailing glyph is taller than the line it sits on.
-         minHeight: controlHeight,
+         // The shape is the well's now, because the target is taller than it: the chip
+         // is as tall as the finger it is aimed at, and paints the 32 pixel pill in the
+         // middle of that.
+         minHeight: minTapTarget,
+         mainAlign: MainAlign.center,
          // A disabled chip fades rather than changing role: Material draws the label at
          // 38% and the line at 12%, and one opacity is what this model can say without
          // an alpha role per token.
@@ -63,6 +65,14 @@ final class MaterialChip extends Box {
            MaterialInkWell(
              onTap: onTap,
              enabled: enabled,
+             // Material's 32: `labelLarge`'s 20 pixel line with six above and below,
+             // held even when a leading or trailing glyph is taller than the line it
+             // sits on. The 48 around it is the target, which is not paint: a chip
+             // that painted 48 would be a chip Material does not have.
+             height: controlHeight,
+             tapTargetHeight: minTapTarget,
+             fill: selected ? _selectedFill : null,
+             border: selected ? null : _outline,
              borderRadius: radius,
              ink: ink ?? _inkOf(selected),
              // Material pads only the side a node sits on: 16 where the label meets
@@ -100,6 +110,14 @@ final class MaterialChip extends Box {
 
   /// The height Material gives a chip, whatever it carries.
   static const double controlHeight = 32;
+
+  /// The height of the region a finger has to hit.
+  ///
+  /// Material states 48 for a touch target and a chip paints 32, so the two numbers
+  /// differ on purpose: the pill is centred in a target this tall (see
+  /// `MaterialInkWell.tapTargetHeight`). It is layout and not paint, which means a row
+  /// of chips is 48 tall — the same thing Flutter's padded tap target does.
+  static const double minTapTarget = 48;
 
   /// How far a node inside a chip sits from the edge of the pill, and from the label.
   ///
