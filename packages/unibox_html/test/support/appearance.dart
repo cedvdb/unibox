@@ -352,3 +352,30 @@ core.TextOverflow? _overflowOf(
       ? core.TextOverflow.ellipsis
       : core.TextOverflow.clip;
 }
+
+/// The presentation this renderer gave the root overlay of [html].
+///
+/// The barrier colour comes from the rule its own element wears and the alignment from the
+/// keywords the layer is given, so neither is read from the node.
+OverlayAppearance overlayAppearanceOf(String html) {
+  final Map<String, Map<String, String>> rules = rulesOf(html);
+  final List<String> classes = RegExp(r'class="([^"]+)"')
+      .allMatches(html.substring(html.indexOf('</style>')))
+      .map((RegExpMatch match) => match.group(1)!)
+      .toList(growable: false);
+
+  // The layer, then the barrier it holds: the first two classes of the rendering.
+  final Map<String, String> layer =
+      rules[classes.first] ?? const <String, String>{};
+  final Map<String, String> barrier =
+      rules[classes.length > 1 ? classes[1] : ''] ?? const <String, String>{};
+
+  return OverlayAppearance(
+    barrierColor: colorOf(barrier['background-color'])!,
+    alignment: switch (layer['align-items']) {
+      'start' => core.OverlayAlignment.top,
+      'end' => core.OverlayAlignment.bottom,
+      _ => core.OverlayAlignment.center,
+    },
+  );
+}

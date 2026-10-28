@@ -33,4 +33,18 @@ void main() {
       );
     });
   }
+
+  for (final OverlayCase testCase in overlayCases) {
+    test('a document ${testCase.description}', () {
+      final OverlayAppearance appearance = overlayAppearanceOf(
+        toHtml(testCase.node, showOverlays: true),
+      );
+
+      expect(
+        appearance.differencesFrom(testCase.expected),
+        isEmpty,
+        reason: 'the overlay presents differently from the table',
+      );
+    });
+  }
 }
