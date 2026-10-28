@@ -43,9 +43,10 @@ project has decided not to have, because the application is already the runtime.
 unibox_core     pure — the nodes, the tokens, the defaults
 unibox_css      pure — tokens to CSS declarations, the class hash, the state rules
 unibox_html     pure — toHtml(), toDocument(), and a small optional script
+unibox_dom      the browser — the same tree into DOM nodes (phase 6)
 unibox_flutter  the widgets, and toWidget()
 unibox_material the design system, unchanged
-unibox_testing  the appearance both renderers owe, unchanged
+unibox_testing  the appearance every renderer owes, unchanged
 ```
 
 Both web-facing packages are pure Dart with no dependencies, so a document can be
@@ -86,7 +87,14 @@ not Dart — compiled to JavaScript.
    the only spelling. An `action: 'list.reorder'` attribute would be a second, untyped way
    to say it, and it exists only when nothing can run a closure on the client — which
    `unibox_dom` changes.
-11. **Nothing is released, so nothing is owed compatibility.** A rename, a deletion or a
+11. **Jaspr is not kept.** `unibox_dom` is what `unibox_jaspr` was standing in for: a Dart
+   renderer that runs in a browser. Keeping both would mean four renderings to hold to one
+   appearance and a "which client renderer" question in every page of documentation, for a
+   second implementation of a job that has one answer. Between phase 5 and phase 6 the
+   example has no client runtime and relies on the takeover — which is the path the whole
+   change exists to prove — and `jaspr` may remain only as a *host* dependency drawing
+   ordinary Jaspr components of its own.
+12. **Nothing is released, so nothing is owed compatibility.** A rename, a deletion or a
    spelling change is one commit with a changelog line, not a deprecation period:
    `design.md` §5.7 describes a promise that has not started. `unibox_jaspr` therefore
    goes outright rather than through a forwarding member, `toComponent()` goes with it,
@@ -136,11 +144,12 @@ that no longer exists (interaction, stateful, overlay, hydration). Update
 new section: a document has no behaviour on the web — `AI_INSTRUCTIONS.md`, the
 CHANGELOGs and `TASK_PLAN.md`.
 
-**6. `unibox_dom`, the compiled client renderer.** The same tree into DOM nodes, with the
-same declarations from `unibox_css` and the same element plan as the string renderer, so it
-adopts the page the server wrote instead of repainting it. Client only — `package:web` and
-`dart:js_interop` — compiled by the host with `dart compile js`. Born with a fourth
-conformance suite, because a renderer that is not held to the table is a third design.
+**6. `unibox_dom`, the client renderer that replaces Jaspr.** The same tree into DOM nodes,
+with the same declarations from `unibox_css` and the same element plan as the string
+renderer, so it adopts the page the server wrote instead of repainting it. Client only —
+`package:web` and `dart:js_interop` — compiled by the host with `dart compile js`. Born
+with a conformance suite, because a renderer that is not held to the table is a third
+design.
 
 **7. Cleanup.** Delete the cross-check tests and their temporary dependency on the removed
 package.
@@ -267,14 +276,15 @@ question becomes whether anything can run that closure in a browser.
 
 ### The client is compiled, not stringly
 
-A second renderer, `unibox_dom`, renders the same tree into DOM nodes on the client and is
-compiled to JavaScript with `dart compile js`, the way the Jaspr example ships
-`main.client.js` today. Callbacks work because they are Dart closures in the same program
+`unibox_dom` renders the same tree into DOM nodes on the client and is compiled to
+JavaScript with `dart compile js`, the way the Jaspr example ships `main.client.js` today.
+It is not a fourth renderer: it is the third one, and the one `unibox_jaspr` was standing
+in for. Deleting that package and adding this one leaves the count where it started. Callbacks work because they are Dart closures in the same program
 as the store; no attribute protocol exists and none is needed.
 
 What it is:
 
-- a fourth renderer, client only: `package:web` and `dart:js_interop` are its dependencies,
+- the third renderer, client only: `package:web` and `dart:js_interop` are its dependencies,
   and nothing else;
 - the same declarations from `unibox_css`, so a class name is the same string on the server
   and in the browser — which is what lets it adopt the server's DOM instead of repainting;
@@ -288,8 +298,9 @@ What it costs, honestly:
   hydration and its retake/finalize logic; a second implementation means owning that
   class of bug again — focus, selection, scroll inside a patched subtree, an element
   reused for a different node.
-- **A fourth conformance suite**, and the table now holds Flutter, HTML and DOM to one
-  appearance, down to the wrapper a stack cell adds.
+- **A conformance suite of its own**, though not a fourth one: the table goes on holding
+  three renderings to one appearance, as it does today with Jaspr. The suite replaces a
+  suite rather than adding one.
 - **A build entry per application**, since a client renderer only runs compiled.
 - **Three ways for a page to be interactive** — nothing, the document runtime, or
   Flutter — which is one choice more than a reader of the docs can hold without help.
