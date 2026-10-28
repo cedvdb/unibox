@@ -38,8 +38,9 @@ UINode buildMaterialGallery() {
       _section(
         'Text fields',
         'The filled field: surfaceContainerHighest, a bottom line that thickens and '
-            'turns primary on focus, the label inside the fill, and the padding on '
-            'the input so the whole field takes focus.',
+            'turns primary on focus, the label on the line while it is empty and at '
+            'the top of the fill once it is not. Type in either field: the state is '
+            "the field's, so a half finished address says so, and finishing it stops.",
         _fields(palette),
       ),
       _section(
@@ -250,8 +251,19 @@ UINode _buttons() {
   );
 }
 
-/// A field at rest and a field that says what is wrong with the value.
+/// Two fields, one in each of the label's positions, and both validating.
+///
+/// The pair is a comparison, so the only thing that differs is the value: the first
+/// is empty and its label *is* the line, the second starts with the beginning of an
+/// address and its label has floated to the top of the fill. Typing in either asks
+/// the same validator, so a half finished address turns the line and the message
+/// red and finishing it takes both away — the state is the field's, not the page's.
 UINode _fields(MaterialPalette palette) {
+  const String hint = 'you@example.com';
+  const String helper = 'We only use it for the receipt.';
+  String? invalidAddress(String value) =>
+      value.contains('@') ? null : 'Enter an address with an @';
+
   return Box(
     direction: Axis.horizontal,
     crossAlign: CrossAlign.start,
@@ -263,23 +275,24 @@ UINode _fields(MaterialPalette palette) {
           MaterialTextField(
             width: double.infinity,
             label: 'Email',
-            placeholder: 'you@example.com',
+            placeholder: hint,
+            helper: helper,
             inputType: InputType.email,
+            validator: invalidAddress,
           ),
         ],
       ),
       Box(
         width: 320,
         children: <UINode>[
-          // The field owns its own state: type in it and the error appears and
-          // goes away as the address becomes one.
           MaterialTextField(
             width: double.infinity,
             label: 'Email',
-            placeholder: 'you@example.com',
-            helper: 'We only use it for the receipt.',
-            validator: (String value) =>
-                value.contains('@') ? null : 'Enter an address with an @',
+            placeholder: hint,
+            helper: helper,
+            inputType: InputType.email,
+            initialValue: 'ada@',
+            validator: invalidAddress,
           ),
         ],
       ),
