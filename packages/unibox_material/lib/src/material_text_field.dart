@@ -87,6 +87,7 @@ final class MaterialFieldStore extends StateStore<MaterialFieldState> {
 final class _Field {
   const _Field({
     required this.value,
+    required this.initialValue,
     required this.label,
     required this.placeholder,
     required this.helper,
@@ -107,6 +108,7 @@ final class _Field {
   });
 
   final String? value;
+  final String? initialValue;
   final String? label;
   final String? placeholder;
   final String? helper;
@@ -145,8 +147,9 @@ final class _Field {
 /// colour of the line and the label. A form still owns what the value is *worth* —
 /// the request, the button it enables — through [onChanged].
 ///
-/// Pass [value] to control the text from outside, and [error] to show a message the
-/// form decided on ("that address is taken"); both outrank the field's own state.
+/// Pass [initialValue] for a field the form does not control and [value] to control
+/// one from outside; [error] shows a message the form decided on ("that address is
+/// taken"), and all three outrank what the store starts with.
 /// [helper] is the quiet line under the field while there is nothing wrong.
 ///
 /// The field is a box and the value is the core input node, so both targets draw it
@@ -187,6 +190,7 @@ final class MaterialTextField
   MaterialTextField({
     Object? key,
     String? value,
+    String? initialValue,
     String? label,
     String? placeholder,
     String? helper,
@@ -207,6 +211,7 @@ final class MaterialTextField
   }) : this._(
          _Field(
            value: value,
+           initialValue: initialValue,
            label: label,
            placeholder: placeholder,
            helper: helper,
@@ -230,7 +235,8 @@ final class MaterialTextField
 
   MaterialTextField._(_Field field, {super.key})
     : super(
-        create: () => MaterialFieldStore(value: field.value ?? ''),
+        create: () =>
+            MaterialFieldStore(value: field.value ?? field.initialValue ?? ''),
         view: (MaterialFieldState state, MaterialFieldStore store) =>
             _fieldView(field, state, store),
       );

@@ -143,6 +143,23 @@ void main() {
       expect(messageOf(right), 'We only use it for the receipt.');
     });
 
+    test('starts with the text it was given, unless the form controls it', () {
+      // `initialValue` seeds the store, so the field keeps whatever the user types
+      // over it; `value` is the form's and follows every rebuild.
+      expect(
+        inputOf(treeOf(MaterialTextField(initialValue: 'ada@'))).value,
+        'ada@',
+      );
+      expect(
+        inputOf(
+          treeOf(
+            MaterialTextField(value: 'ada@example.com', initialValue: 'ada@'),
+          ),
+        ).value,
+        'ada@example.com',
+      );
+    });
+
     test('lets the form overrule the value and the message', () {
       final Box tree = treeOf(
         MaterialTextField(

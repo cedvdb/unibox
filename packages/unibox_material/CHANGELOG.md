@@ -2,6 +2,10 @@
 
 ## 0.1.0
 
+- `MaterialTextField.initialValue` seeds the text of a field the form does not control,
+  where `value` takes it over; the gallery's two fields are the same field in the
+  label's two positions now, both validating.
+
 - `MaterialTextField` and `MaterialBottomSheet` draw Material's shape: round at the
   top, square where they meet the line or the edge, now that the model has a
   corner token.

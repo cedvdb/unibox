@@ -427,9 +427,10 @@ MaterialTextField(
 ```
 
 The field holds what only it can know. What the value is *worth* — the request it
-starts, the button it enables — is the form's store, reached through `onChanged`, and
-`value` and `error` let a form control the text and show a message of its own ("that
-address is taken"), because both outrank the field's state.
+starts, the button it enables — is the form's store, reached through `onChanged`.
+`initialValue` seeds the text the user then owns, `value` controls it from outside, and
+`error` shows a message the form decided on ("that address is taken"); all three
+outrank what the store starts with.
 
 `validator` is asked once the field has been touched, which is a keystroke or leaving
 it. Answering `null` means nothing is wrong: the line and the label stay in the resting
