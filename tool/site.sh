@@ -54,10 +54,14 @@ step 'Resolving the workspace'
 flutter pub get || fail 'flutter pub get'
 
 step 'Rendering the pages'
+# The commit the site is built from, asked for once and used twice: it goes into
+# `version.txt` and into every page's `unibox-build` meta, so a page can name itself
+# and a tab opened before a deploy can be told from the deployed one.
+build="$(git -C "$root" rev-parse HEAD 2>/dev/null || date -u +%Y-%m-%dT%H:%M:%SZ)"
 # The gallery, the showcase and the example are three node trees; one script writes
 # all of their documents, so the site and the app cannot disagree about a path.
 rm -rf "$site"
-(cd example/unibox_example_jaspr && dart run bin/build_site.dart --out="$site") \
+(cd example/unibox_example_jaspr && dart run bin/build_site.dart --out="$site" --build="$build") \
   || fail 'the site render'
 
 step 'Compiling the browser runtime'
@@ -124,7 +128,8 @@ fi
 # always the one we think it is — one publication in this repository shipped the
 # previous build while its script was current — so "is the site stale?" should be
 # answerable with one request rather than by reading CSS class hashes.
-git -C "$root" rev-parse HEAD >"$site/version.txt" 2>/dev/null || date -u +%Y-%m-%dT%H:%M:%SZ >"$site/version.txt"
+printf '%s
+' "$build" >"$site/version.txt"
 printf '%s
 ' "$(git -C "$root" log -1 --format='%s' 2>/dev/null || echo 'unknown')" >>"$site/version.txt"
 

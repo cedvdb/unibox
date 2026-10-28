@@ -9,7 +9,7 @@ import 'package:unibox_example_shared/unibox_example_shared.dart';
 /// example it compares.
 ///
 /// ```sh
-/// dart run bin/build_site.dart --out=build/site
+/// dart run bin/build_site.dart --out=build/site --build=$(git rev-parse HEAD)
 /// ```
 ///
 /// The site is four kinds of document. The **front page** says what the library is
@@ -26,17 +26,24 @@ Future<void> main(List<String> arguments) async {
   Jaspr.initializeApp();
 
   final Directory out = Directory(_option(arguments, 'out') ?? 'build/site');
+  // `tool/site.sh` passes the commit it writes into `version.txt`, so a page can
+  // name the build it came from and a stale tab can be told from a live one.
+  final String? build = _option(arguments, 'build');
 
-  await _write(out, 'index.html', buildSiteDocument(page: SitePage.home));
+  await _write(
+    out,
+    'index.html',
+    buildSiteDocument(page: SitePage.home, build: build),
+  );
   await _write(
     out,
     'material/index.html',
-    buildSiteDocument(page: SitePage.material),
+    buildSiteDocument(page: SitePage.material, build: build),
   );
   await _write(
     out,
     'showcase/index.html',
-    buildSiteDocument(page: SitePage.showcase),
+    buildSiteDocument(page: SitePage.showcase, build: build),
   );
 
   for (final ExamplePage page in ExamplePage.values) {
@@ -44,7 +51,7 @@ Future<void> main(List<String> arguments) async {
         ? 'web/listings/index.html'
         : 'web/${page.name}/index.html';
 
-    await _write(out, path, buildExampleDocument(page: page));
+    await _write(out, path, buildExampleDocument(page: page, build: build));
   }
 }
 

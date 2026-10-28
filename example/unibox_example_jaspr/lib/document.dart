@@ -37,7 +37,10 @@ import 'main.dart';
 /// twice to a search engine. A host that needs more — a canonical url, Open Graph
 /// tags, structured data — adds them through `Document.head`, which is where
 /// elements that do not belong to the tree go.
-Document buildExampleDocument({ExamplePage page = ExamplePage.apartments}) {
+Document buildExampleDocument({
+  ExamplePage page = ExamplePage.apartments,
+  String? build,
+}) {
   return Document(
     // Without `lang` both a screen reader and a crawler have to guess which
     // language the page is in.
@@ -50,7 +53,12 @@ Document buildExampleDocument({ExamplePage page = ExamplePage.apartments}) {
     base: null,
     title: _titleOf(page),
     viewport: 'width=device-width, initial-scale=1',
-    meta: <String, String>{'description': _descriptionOf(page)},
+    meta: <String, String>{
+      'description': _descriptionOf(page),
+      // The commit this document was rendered from, for the same reason the site's
+      // pages carry one: a stale tab and a deployed page look identical.
+      'unibox-build': ?build,
+    },
     // The documents of the example sit two directories below the site root.
     head: <Component>[
       fontFaces('../../'),

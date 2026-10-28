@@ -179,6 +179,12 @@ instant and is not always the one it looks like — one publication here shipped
 previous build while its script was current — so `curl …/unibox/version.txt` answers
 "am I looking at a stale page?" without reading CSS class hashes.
 
+Every page carries the same fact as `<meta name="unibox-build" content="…">`, because
+`version.txt` answers for the site while a tab answers for one document: a page opened
+before a deploy keeps drawing the markup it arrived with, which is identical to the
+deployed page down to a layout the new build has already fixed. `curl` the page itself
+when what is on screen and what is in the repository disagree.
+
 The pages link with paths relative to their own depth and the documents carry **no
 `<base>` element**, so the same build works at `/` and at `/unibox/`: a base href of
 `/` would send every relative link, and both frames, to the domain root.

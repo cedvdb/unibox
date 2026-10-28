@@ -1,6 +1,10 @@
+import 'dart:convert';
+
+import 'package:jaspr/server.dart';
 import 'package:test/test.dart';
 import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_example_jaspr/site/iframe_node.dart';
+import 'package:unibox_example_jaspr/site/site_document.dart';
 import 'package:unibox_example_shared/unibox_example_shared.dart';
 import 'package:unibox_material/unibox_material.dart';
 
@@ -10,6 +14,8 @@ import 'package:unibox_material/unibox_material.dart';
 /// the site is built with the library it documents, and a page that no renderer can
 /// honour would be an embarrassing demonstration.
 void main() {
+  setUpAll(Jaspr.initializeApp);
+
   test('the front page sells one thing and points at three places', () {
     final UINode landing = buildLanding();
 
@@ -23,6 +29,23 @@ void main() {
       'flutter/listings/',
       'web/listings/',
     ]);
+  });
+
+  test('a page names the build it was rendered from', () async {
+    // A tab opened before a deploy draws the same markup as the deployed page, so a
+    // layout the new build has fixed still looks broken in it. The stamp is the fact
+    // that separates the two, and it costs a reader one request to read.
+    expect(
+      await _render(
+        buildSiteDocument(page: SitePage.material, build: 'abc1234'),
+      ),
+      contains('name="unibox-build" content="abc1234"'),
+    );
+    // A build that cannot name itself writes no stamp rather than an empty one.
+    expect(
+      await _render(buildSiteDocument(page: SitePage.material)),
+      isNot(contains('unibox-build')),
+    );
   });
 
   test('the gallery is a valid tree that shows the Material package', () {
@@ -171,3 +194,7 @@ Iterable<UINode> _flatten(UINode root) sync* {
     yield* _flatten(child);
   }
 }
+
+/// [document] as the bytes a browser receives.
+Future<String> _render(Document document) async =>
+    utf8.decode((await renderComponent(document)).body);

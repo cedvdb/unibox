@@ -13,7 +13,14 @@ import 'site_root.dart';
 /// describe a page. `fill` is the browser half of [buildSiteFrame]'s `fill` — the
 /// percentage heights of the showcase need a root with a height to resolve against,
 /// and the body margin has to go or it paints a frame nothing in the tree asked for.
-Document buildSiteDocument({required SitePage page}) {
+///
+/// `build` is the commit the document was rendered from, written into the head as
+/// `unibox-build`. A tab opened before a deploy and the deployed page look the
+/// same, down to a layout the new build has already fixed, so the one thing that
+/// separates them is a fact carried by the document itself: `curl` the page and the
+/// stamp answers the question the screenshot cannot. It is `null` for a build that
+/// cannot name itself — a test, or a local run outside a repository.
+Document buildSiteDocument({required SitePage page, String? build}) {
   final MaterialPalette palette = MaterialPalette.light;
 
   return Document(
@@ -42,6 +49,9 @@ Document buildSiteDocument({required SitePage page}) {
           'One Unibox node tree, drawn by Jaspr as HTML and CSS on the left and by '
               'Flutter on the right.',
       },
+      // The commit this document was rendered from. A stale tab and the deployed
+      // page are otherwise identical to look at.
+      'unibox-build': ?build,
     },
     // The home document is the site root; the gallery and the showcase live one
     // directory below it.
