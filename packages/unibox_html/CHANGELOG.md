@@ -34,10 +34,17 @@
   hint is a `::placeholder` rule of its own and part of the class key, or two fields that
   differ only in their hint would share a class.
 
-- An `OverlayNode` is drawn open, because that is the state the document was rendered from:
-  a fixed layer carrying the dialog semantics, a scrim that covers the page, and content
-  positioned above the scrim. It is taken out of the flow by the element and never by a
-  second slot on a parent, so an overlay sits where the tree put it.
+- `toDocument()` writes a page: the encoding and the language first, then the title, the
+  description, the canonical url and the Open Graph pair a link preview uses, then the
+  stylesheet — in the head, so nothing flashes unstyled — then the scripts the host needs,
+  deferred. Metadata a host needs and the model does not know goes through `meta`, and a
+  script is a `DocumentScript` value rather than a string of markup, so a `src` cannot be
+  assembled wrong and an inline body can take a `nonce`.
+
+- An `OverlayNode` is **hidden** in a document, not drawn: it exists for a state a client
+  renderer draws, and nothing in a static page can ask for it. `showOverlays: true` is for
+  a page whose purpose *is* the dialog — a `/signup` url that publishes that state — and
+  changes nothing about what the node means.
 
 - A `StatefulNode` is drawn as the state its store starts in. The store is created only to
   be read: `onMount` is not called and no listener is added, which is what the store's own

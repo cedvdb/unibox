@@ -14,11 +14,36 @@ import 'stylesheet.dart';
 /// Interactivity is not part of it: a `StatefulNode` draws the state its store starts in,
 /// an `OverlayNode` draws its overlay open, and no callback becomes a listener. A document
 /// is a snapshot of a state, and the application is what makes it move.
-String toHtml(core.UINode node, {core.UniboxTheme? theme}) {
+String toHtml(
+  core.UINode node, {
+  core.UniboxTheme? theme,
+  bool showOverlays = false,
+}) {
   final Stylesheet sheet = Stylesheet();
-  final ElementPlan plan = planNode(node, sheet);
+  final ElementPlan plan = planNode(
+    node,
+    sheet,
+    options: PlanOptions(showOverlays: showOverlays),
+  );
 
   return '<style>${sheetWithRoot(sheet, theme: theme)}</style>${plan.write()}';
+}
+
+/// The plan of [node] and the CSS it needs, for a caller that wants the two separately
+/// — a page puts the stylesheet in the head and the tree in the body.
+({ElementPlan plan, String css}) renderFragment(
+  core.UINode node, {
+  core.UniboxTheme? theme,
+  bool showOverlays = false,
+}) {
+  final Stylesheet sheet = Stylesheet();
+  final ElementPlan plan = planNode(
+    node,
+    sheet,
+    options: PlanOptions(showOverlays: showOverlays),
+  );
+
+  return (plan: plan, css: sheetWithRoot(sheet, theme: theme));
 }
 
 /// The CSS a document needs before the tree: the typography of the model, the colours of
@@ -40,28 +65,48 @@ String sheetWithRoot(Stylesheet sheet, {core.UniboxTheme? theme}) {
 ///
 /// A node this renderer cannot draw is reported instead of skipped: a tree built for
 /// another target fails loudly, rather than shipping a page with a piece missing.
-ElementPlan planNode(core.UINode node, Stylesheet sheet) => switch (node) {
-  final core.Box box => _planBox(box, sheet),
+ElementPlan planNode(
+  core.UINode node,
+  Stylesheet sheet, {
+  PlanOptions options = const PlanOptions(),
+}) => switch (node) {
+  final core.Box box => _planBox(box, sheet, options),
   final core.TextNode text => _planText(text, sheet),
   final core.ImageNode image => _planImage(image, sheet),
-  final core.LinkNode link => _planLink(link, sheet),
-  final core.GridNode grid => _planGrid(grid, sheet),
-  final core.StackNode stack => _planStack(stack, sheet),
+  final core.LinkNode link => _planLink(link, sheet, options),
+  final core.GridNode grid => _planGrid(grid, sheet, options),
+  final core.StackNode stack => _planStack(stack, sheet, options),
   final core.TextInputNode field => _planTextInput(field, sheet),
-  final core.OverlayNode overlay => _planOverlay(overlay, sheet),
+  final core.OverlayNode overlay => _planOverlay(overlay, sheet, options),
   final core.StatefulNode<Object, core.Store<Object>> stateful => _planStateful(
     stateful,
     sheet,
+    options,
   ),
   _ => throw UnsupportedError(
     'No HTML renderer for ${node.runtimeType} yet: this target draws $supportedNodes.',
   ),
 };
 
+/// What a rendering may say about the state it draws.
+///
+/// An overlay is hidden by default, because a document has no interaction: no reader can
+/// ask for the dialog, so painting it would show a state nobody is in. A host that
+/// publishes a state at its own url — a `/signup` page whose purpose *is* the dialog —
+/// says so here, and the document shows it. Nothing about the node changes either way:
+/// presence in the tree is the state, and this only decides whether a page draws it.
+final class PlanOptions {
+  /// Creates the options of a rendering.
+  const PlanOptions({this.showOverlays = false});
+
+  /// Whether an overlay in the tree is drawn rather than hidden.
+  final bool showOverlays;
+}
+
 /// What this renderer draws so far, named for the message a missing one prints.
 const String supportedNodes = 'a Box, a TextNode, an ImageNode and a LinkNode';
 
-ElementPlan _planBox(core.Box box, Stylesheet sheet) {
+ElementPlan _planBox(core.Box box, Stylesheet sheet, PlanOptions options) {
   final core.BoxStyle style = box.computedStyle;
 
   if (style.visibleFrom != null || style.visibleUntil != null) {
@@ -103,7 +148,8 @@ ElementPlan _planBox(core.Box box, Stylesheet sheet) {
     className: className,
     attributes: <String, String>{...boxAttributes(box), ...nodeAttributes(box)},
     children: <ElementPlan>[
-      for (final core.UINode child in box.children) planNode(child, sheet),
+      for (final core.UINode child in box.children)
+        planNode(child, sheet, options: options),
     ],
   );
 }
@@ -243,7 +289,11 @@ int? _pixels(double? value) {
   return value.round();
 }
 
-ElementPlan _planLink(core.LinkNode node, Stylesheet sheet) {
+ElementPlan _planLink(
+  core.LinkNode node,
+  Stylesheet sheet,
+  PlanOptions options,
+) {
   final String className = sheet.classFor('link', linkDeclarations());
   final bool newTab = node.newTab;
 
@@ -258,11 +308,15 @@ ElementPlan _planLink(core.LinkNode node, Stylesheet sheet) {
       if (newTab) 'rel': 'noopener noreferrer',
       ...nodeAttributes(node),
     },
-    children: <ElementPlan>[planNode(node.child, sheet)],
+    children: <ElementPlan>[planNode(node.child, sheet, options: options)],
   );
 }
 
-ElementPlan _planGrid(core.GridNode node, Stylesheet sheet) {
+ElementPlan _planGrid(
+  core.GridNode node,
+  Stylesheet sheet,
+  PlanOptions options,
+) {
   final String className = sheet.classFor('grid', gridDeclarations(node));
 
   return ElementPlan(
@@ -270,7 +324,8 @@ ElementPlan _planGrid(core.GridNode node, Stylesheet sheet) {
     className: className,
     attributes: nodeAttributes(node),
     children: <ElementPlan>[
-      for (final core.UINode child in node.children) planNode(child, sheet),
+      for (final core.UINode child in node.children)
+        planNode(child, sheet, options: options),
     ],
   );
 }
@@ -282,7 +337,11 @@ ElementPlan _planGrid(core.GridNode node, Stylesheet sheet) {
 /// positioned. It carries no `data-unibox-node`, because no node drew it — and that
 /// absence is meaningful: an element without the attribute is not part of the
 /// description.
-ElementPlan _planStack(core.StackNode node, Stylesheet sheet) {
+ElementPlan _planStack(
+  core.StackNode node,
+  Stylesheet sheet,
+  PlanOptions options,
+) {
   final String className = sheet.classFor('stack', stackDeclarations(node));
 
   return ElementPlan(
@@ -291,12 +350,16 @@ ElementPlan _planStack(core.StackNode node, Stylesheet sheet) {
     attributes: nodeAttributes(node),
     children: <ElementPlan>[
       for (final core.UINode child in node.children)
-        _planStackCell(child, sheet),
+        _planStackCell(child, sheet, options),
     ],
   );
 }
 
-ElementPlan _planStackCell(core.UINode child, Stylesheet sheet) {
+ElementPlan _planStackCell(
+  core.UINode child,
+  Stylesheet sheet,
+  PlanOptions options,
+) {
   final core.UINode content = child is core.PositionedNode
       ? child.child
       : child;
@@ -312,7 +375,7 @@ ElementPlan _planStackCell(core.UINode child, Stylesheet sheet) {
   return ElementPlan(
     tag: 'div',
     className: sheet.classFor('stack-child', declarations),
-    children: <ElementPlan>[planNode(content, sheet)],
+    children: <ElementPlan>[planNode(content, sheet, options: options)],
   );
 }
 
@@ -424,7 +487,11 @@ Map<String, String>? autofillAttributeOf(core.TextInputNode node) {
 /// tree: it is drawn where the tree put it and taken out of the flow by
 /// `position: fixed`, never by a second slot on a parent. Its layer carries the dialog
 /// semantics, its scrim covers the page, and its content paints above the scrim.
-ElementPlan _planOverlay(core.OverlayNode node, Stylesheet sheet) {
+ElementPlan _planOverlay(
+  core.OverlayNode node,
+  Stylesheet sheet,
+  PlanOptions options,
+) {
   final String layer = sheet.classFor(
     'overlay',
     overlayDeclarations(node.alignment),
@@ -442,6 +509,10 @@ ElementPlan _planOverlay(core.OverlayNode node, Stylesheet sheet) {
     tag: 'div',
     className: layer,
     attributes: <String, String>{
+      // `hidden` is HTML's own way of saying "not rendered": no layout, no box, and
+      // nothing for a screen reader. The element stays in the page so a client renderer
+      // can adopt it instead of building it, and unhides it when its state says open.
+      if (!options.showOverlays) 'hidden': '',
       'role': 'dialog',
       'aria-modal': 'true',
       ...nodeAttributes(node),
@@ -451,7 +522,7 @@ ElementPlan _planOverlay(core.OverlayNode node, Stylesheet sheet) {
       ElementPlan(
         tag: 'div',
         className: content,
-        children: <ElementPlan>[planNode(node.child, sheet)],
+        children: <ElementPlan>[planNode(node.child, sheet, options: options)],
       ),
     ],
   );
@@ -467,6 +538,7 @@ ElementPlan _planOverlay(core.OverlayNode node, Stylesheet sheet) {
 ElementPlan _planStateful(
   core.StatefulNode<Object, core.Store<Object>> node,
   Stylesheet sheet,
+  PlanOptions options,
 ) {
   final core.Store<Object> store = node.createStore();
 

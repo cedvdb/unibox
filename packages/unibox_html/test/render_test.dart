@@ -377,13 +377,26 @@ void main() {
       expect(html, contains('>Sign up</span>'));
     });
 
-    test('is drawn open, which is what a document is', () {
-      // A static document has nothing to click, so the only state it can be in is the
-      // one it was rendered from.
-      expect(
-        toHtml(const core.OverlayNode(child: core.TextNode('Hello'))),
-        contains('Hello'),
+    test('is hidden, because a document has no one to ask for it', () {
+      // The node exists for a state a client renderer draws. Nothing in a static page can
+      // open it, so painting it would show a state nobody is in.
+      final String html = toHtml(
+        const core.OverlayNode(child: core.TextNode('Hello')),
       );
+
+      expect(html, contains('hidden'));
+    });
+
+    test('is drawn when the page exists to show it', () {
+      // `/signup`, whose whole purpose is the dialog, says so: the state is published at
+      // its own url, and the node means the same thing either way.
+      final String html = toHtml(
+        const core.OverlayNode(child: core.TextNode('Hello')),
+        showOverlays: true,
+      );
+
+      expect(html, isNot(contains('hidden')));
+      expect(html, contains('role="dialog"'));
     });
 
     test('is never in the flow of its parent', () {
