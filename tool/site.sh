@@ -54,8 +54,8 @@ step 'Resolving the workspace'
 flutter pub get || fail 'flutter pub get'
 
 step 'Rendering the pages'
-# The gallery, the showcase and the example are three node trees; one script writes
-# all of their documents, so the site and the app cannot disagree about a path.
+# The site is one node tree and the example is another; one script writes all of
+# their documents, so the site and the app cannot disagree about a path.
 rm -rf "$site"
 (cd example/unibox_example_jaspr && dart run bin/build_site.dart --out="$site") \
   || fail 'the site render'
@@ -78,15 +78,15 @@ step 'Building the Flutter web app'
 
 step 'Assembling the site'
 mkdir -p "$site/flutter" "$site/assets/fonts"
-cp docs/hero.svg docs/hero-compact.svg "$site/assets/"
 # The same four faces the Flutter app bundles, so a weight is drawn on both sides.
 cp example/unibox_example_flutter/assets/fonts/*.ttf "$site/assets/fonts/"
 cp -R example/unibox_example_flutter/build/web/. "$site/flutter/"
 
 # A static host has no rewrite rule, so a Flutter route is a real file. The build's
 # absolute base href is what lets the copied document resolve its assets from a
-# deeper path.
-for route in listings signup pricing; do
+# deeper path. The two routes are the two states of the example: the page, and the
+# page with the sign-up dialog open.
+for route in listings signup; do
   mkdir -p "$site/flutter/$route"
   cp "$site/flutter/index.html" "$site/flutter/$route/index.html"
 done
@@ -106,11 +106,6 @@ if [[ -n "$url" ]]; then
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>${url}</loc></url>
-  <url><loc>${url}material/</loc></url>
-  <url><loc>${url}showcase/</loc></url>
-  <url><loc>${url}web/listings/</loc></url>
-  <url><loc>${url}web/signup/</loc></url>
-  <url><loc>${url}web/pricing/</loc></url>
 </urlset>
 SITEMAP
   printf 'Sitemap: %ssitemap.xml\n' "$url" >>"$site/robots.txt"

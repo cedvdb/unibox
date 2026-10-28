@@ -2,125 +2,99 @@ import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_material/unibox_material.dart';
 
 import '../icons.dart';
+import 'section.dart';
 
-/// The Material library as one node tree: the type scale, the colour roles and the
-/// components, drawn by the web renderer like any other page.
+/// The third band: the Material library as one node tree — the type scale, the
+/// colour roles and the components.
 ///
-/// The page is a demonstration and a claim at once. Every value on it is a `const`
+/// The band is a demonstration and a claim at once. Every value on it is a `const`
 /// in `unibox_material` — no colour is typed into this file — and every component is
 /// a node the two renderers already draw, so nothing here is a screenshot.
-UINode buildMaterialGallery() {
+///
+/// It is a band of the page rather than a page of its own: the heading names what
+/// the catalogue is, and each block under it is an `h3`, so the page still has one
+/// `h1` and two `h2`s above it.
+UINode buildMaterialSection() {
   const MaterialPalette palette = MaterialPalette.light;
 
-  // A measure, not the window: the gallery is a catalogue, and a paragraph or a row of
-  // buttons stretched across a 27 inch screen is unreadable however well it renders.
-  // The column is centred in whatever width the page is given, and fills a phone.
-  return Box(
-    width: double.infinity,
-    direction: Axis.horizontal,
-    mainAlign: MainAlign.center,
-    children: <UINode>[
-      Box(
-        width: double.infinity,
-        maxWidth: 960,
-        padding: const BoxSpacing.symmetric(horizontal: 32, vertical: 32),
-        gap: 48,
-        children: <UINode>[
-          _header(palette),
-          _section(
-            'Type scale',
-            'The fifteen roles as const BoxTextStyle values. A box passes one down; a '
-                'text names the one it wants.',
-            _typeScale(),
-          ),
-          _section(
-            'Colour roles',
-            'MaterialPalette.light and .dark: the roles as const BoxColor values, read '
-                'when the tree is built rather than looked up at render time.',
-            _palette(palette),
-          ),
-          _section(
-            'Buttons',
-            'A MaterialButton is a fill around the ink well, so the hover, focus and '
-                'press tints paint over the colour rather than replacing it, and a press '
-                'spreads ink from where it landed. Hold one down to see both.',
-            _buttons(),
-          ),
-          _section(
-            'Chips and segments',
-            'A chip is one choice, a segmented button is a set of them in one pill. Both '
-                'carry a node in front of the label and both are a fill around the ink '
-                'well, so their tints stop at the shape they belong to. A chip with a '
-                'close is removed by pressing the cross; a segment moves the choice it '
-                'belongs to.',
-            _choices(),
-          ),
-          _section(
-            'Text fields',
-            'The filled field: surfaceContainerHighest, a bottom line that thickens and '
-                'turns primary on focus, the label on the line while it is empty and at '
-                'the top of the fill once it is not. Type in either field: the state is '
-                "the field's, so a half finished address says so, and finishing it stops.",
-            _fields(palette),
-          ),
-          _section(
-            'Cards and tiles',
-            'A card is a box with the Material surface, radius and elevation; a list tile '
-                'is a box with a leading, a title, an optional supporting text and a '
-                'trailing node.',
-            _cards(palette),
-          ),
-          _section(
-            'Navigation bar',
-            'A navigation bar is one row of equal shares on the navigation surface: the '
-                'chosen destination sits on a secondary container pill, the rest are '
-                'quiet, and every destination inks where the press landed. Press one.',
-            NavigationDemo(),
-          ),
-          _section(
-            'Dialog',
-            'A dialog is an OverlayNode rather than a call: it is in the tree only while '
-                'the state says it is open, it covers the page behind a barrier and leaves '
-                'on Escape or a press on the barrier. Press the button.',
-            DialogDemo(),
-          ),
-        ],
-      ),
-    ],
+  return siteBand(
+    background: palette.surface,
+    child: Box(
+      width: double.infinity,
+      gap: 48,
+      children: <UINode>[
+        siteHeading(
+          title: 'Material 3, as values and nodes',
+          lead:
+              'The type scale is fifteen const BoxTextStyle values, the palette is '
+              'a value the tree wears, and every component is a node built from the '
+              'node that already draws it. Nothing here is a widget the renderers do '
+              'not already have.',
+        ),
+        _section(
+          'Type scale',
+          'The fifteen roles as const BoxTextStyle values. A box passes one down; a '
+              'text names the one it wants.',
+          _typeScale(),
+        ),
+        _section(
+          'Colour roles',
+          'MaterialPalette.light and .dark: the roles as const BoxColor values, read '
+              'when the tree is built rather than looked up at render time.',
+          _palette(palette),
+        ),
+        _section(
+          'Buttons',
+          'A MaterialButton is a fill around the ink well, so the hover, focus and '
+              'press tints paint over the colour rather than replacing it, and a press '
+              'spreads ink from where it landed. Hold one down to see both.',
+          _buttons(),
+        ),
+        _section(
+          'Chips and segments',
+          'A chip is one choice, a segmented button is a set of them in one pill. Both '
+              'carry a node in front of the label and both are a fill around the ink '
+              'well, so their tints stop at the shape they belong to. A chip with a '
+              'close is removed by pressing the cross; a segment moves the choice it '
+              'belongs to.',
+          _choices(),
+        ),
+        _section(
+          'Text fields',
+          'The filled field: surfaceContainerHighest, a bottom line that thickens and '
+              'turns primary on focus, the label on the line while it is empty and at '
+              'the top of the fill once it is not. Type in either field: the state is '
+              "the field's, so a half finished address says so, and finishing it stops.",
+          _fields(palette),
+        ),
+        _section(
+          'Cards and tiles',
+          'A card is a box with the Material surface, radius and elevation; a list tile '
+              'is a box with a leading, a title, an optional supporting text and a '
+              'trailing node.',
+          _cards(palette),
+        ),
+        _section(
+          'Navigation bar',
+          'A navigation bar is one row of equal shares on the navigation surface: the '
+              'chosen destination sits on a secondary container pill, the rest are '
+              'quiet, and every destination inks where the press landed. Press one.',
+          NavigationDemo(),
+        ),
+        _section(
+          'Dialog',
+          'A dialog is an OverlayNode rather than a call: it is in the tree only while '
+              'the state says it is open, it covers the page behind a barrier and leaves '
+              'on Escape or a press on the barrier. Press the button.',
+          DialogDemo(),
+        ),
+      ],
+    ),
   );
 }
 
-/// The name of the package and what the page shows.
-UINode _header(MaterialPalette palette) {
-  return Box(
-    gap: 8,
-    children: <UINode>[
-      // The page has exactly one h1, and this is it: a crawler and a screen reader
-      // build the outline from the headings, and a document without one reads as an
-      // untitled fragment.
-      TextNode(
-        'Material 3',
-        style: MaterialTypography.displaySmall,
-        headingLevel: 1,
-      ),
-      Box(
-        width: double.infinity,
-        maxWidth: 720,
-        children: <UINode>[
-          TextNode(
-            'The fifteen type roles, the colour roles and the components of '
-            'Material 3, written as values and nodes. Both renderers draw them '
-            'from the same tree.',
-            style: MaterialTypography.bodyLarge,
-            color: palette.onSurfaceVariant,
-          ),
-        ],
-      ),
-    ],
-  );
-}
-
-/// A titled block of the gallery.
+/// A titled block of the catalogue: an `h3`, the sentence that explains it, and the
+/// nodes that show it.
 UINode _section(String title, String description, UINode content) {
   const MaterialPalette palette = MaterialPalette.light;
 
@@ -135,7 +109,11 @@ UINode _section(String title, String description, UINode content) {
       Box(
         gap: 4,
         children: <UINode>[
-          TextNode(title, style: MaterialTypography.titleLarge),
+          TextNode(
+            title,
+            style: MaterialTypography.titleLarge,
+            headingLevel: 3,
+          ),
           Box(
             width: double.infinity,
             maxWidth: 720,
@@ -210,6 +188,8 @@ UINode _palette(MaterialPalette palette) {
     ('onSurfaceVariant', palette.onSurfaceVariant),
     ('surfaceContainerLowest', palette.surfaceContainerLowest),
     ('surfaceContainerLow', palette.surfaceContainerLow),
+    ('surfaceContainer', palette.surfaceContainer),
+    ('surfaceContainerHigh', palette.surfaceContainerHigh),
     ('surfaceContainerHighest', palette.surfaceContainerHighest),
     ('outline', palette.outline),
     ('outlineVariant', palette.outlineVariant),

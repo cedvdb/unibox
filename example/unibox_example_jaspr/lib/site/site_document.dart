@@ -1,85 +1,76 @@
-import 'package:jaspr/dom.dart' hide BoxShadow;
+import 'package:jaspr/dom.dart';
 import 'package:jaspr/server.dart';
-import 'package:unibox_core/unibox_core.dart';
-import 'package:unibox_example_shared/unibox_example_shared.dart';
-import 'package:unibox_material/unibox_material.dart';
 
 import '../fonts.dart';
 import 'site_root.dart';
 
-/// The document a page of the site is served as.
+/// The document the site is served as.
 ///
-/// The metadata belongs to the document, not to the tree: a title and a description
-/// describe a page. `fill` is the browser half of [buildSiteFrame]'s `fill` — the
-/// percentage heights of the showcase need a root with a height to resolve against,
-/// and the body margin has to go or it paints a frame nothing in the tree asked for.
-Document buildSiteDocument({required SitePage page}) {
-  final MaterialPalette palette = MaterialPalette.light;
-
+/// One page, three bands — the claim, the comparison, the catalogue — so there is one
+/// title and one description, and they describe the whole of it.
+///
+/// The default body margin is removed: Flutter lays its page out edge to edge, and the
+/// eight pixels a browser reserves around a body would show as a white frame around
+/// the canvas the tree asked for. The page is longer than a viewport, so nothing here
+/// gives it the height of one: it scrolls, and its bands paint their own backgrounds
+/// down its whole length.
+///
+/// The metadata is the host's, not the tree's: a title and a description describe a
+/// *document*, while a node tree describes a region of one. A host that needs more — a
+/// canonical url, Open Graph tags, structured data — adds them through
+/// `Document.head`, which is where elements that do not belong to the tree go.
+Document buildSiteDocument() {
   return Document(
+    // Without `lang` both a screen reader and a crawler have to guess which language
+    // the page is in.
     lang: 'en',
-    // The site is served from a subdirectory — `/unibox/` — so the default base
-    // href of `/` would resolve every relative link, and both frames, against the
-    // domain root: a page of 404s. No base element makes the browser resolve
-    // against the document, which is what a page that links with `../` expects.
+    // No `<base>` element: the site may be served from a subdirectory — `/unibox/` —
+    // so the default `/` would resolve every relative link, the two frames included,
+    // against the domain root. Without it the browser resolves against the document.
     base: null,
-    title: switch (page) {
-      SitePage.home => 'Unibox — one tree, two renderers',
-      SitePage.material => 'Unibox — Material 3, as values and nodes',
-      SitePage.showcase => 'Unibox — the same tree, drawn twice',
-    },
+    title: 'Unibox — one tree, two renderers',
     viewport: 'width=device-width, initial-scale=1',
     meta: <String, String>{
-      'description': switch (page) {
-        SitePage.home =>
-          'Describe a screen once, in plain Dart, and draw it twice: Flutter '
-              'widgets in an app and HTML with CSS in a browser.',
-        SitePage.material =>
-          'The Material 3 type scale, the colour roles and the components of '
-              'Unibox, written as values and nodes that render the same on both '
-              'targets.',
-        SitePage.showcase =>
-          'One Unibox node tree, drawn by Jaspr as HTML and CSS on the left and by '
-              'Flutter on the right.',
-      },
+      'description':
+          'Describe a screen once, in plain Dart, and draw it twice: Flutter widgets '
+          'in an app and HTML with CSS in a browser. The Material 3 type scale, the '
+          'colour roles and the components, as values and nodes.',
     },
-    // The home document is the site root; the gallery and the showcase live one
-    // directory below it.
     head: <Component>[
-      fontFaces(page == SitePage.home ? '' : '../'),
-      // The browser runtime, one directory up from every page but the root. It is
-      // what makes the gallery's ripple move; the page reads without it.
+      fontFaces(''),
+      // The browser runtime, beside the page. The document is static HTML and CSS,
+      // which is what a crawler reads and what a page without JavaScript keeps; this
+      // script makes it react. It renders the same root the server rendered (see
+      // `buildSiteRoot`), so the page it replaces is the page it drew.
       Component.element(
         tag: 'script',
-        attributes: <String, String>{
-          'src': '${'../' * page.depth}main.client.js',
-          'defer': '',
-        },
+        attributes: <String, String>{'src': 'main.client.js', 'defer': ''},
       ),
     ],
     styles: <StyleRule>[
-      StyleRule(
-        selector: const Selector('html, body'),
-        styles: Styles(height: const Unit.percent(100), margin: Spacing.zero),
-      ),
-      StyleRule(
-        selector: const Selector('body'),
+      // The font is the one thing the model leaves to the application:
+      // `BoxTextStyle.defaults` has no family, because a font file is an asset.
+      // Flutter hands the tree the platform UI font by saying nothing, so the
+      // document asks CSS for the same thing — a browser falls back along the stack to
+      // the face its platform considers the UI font. The stack is written raw because
+      // a comma separated list is a CSS construct, while a
+      // `BoxTextStyle.fontFamily` names one family, which Flutter and CSS both
+      // understand the same way.
+      const StyleRule(
+        selector: Selector('body'),
         styles: Styles(
+          margin: Spacing.zero,
           raw: <String, String>{
-            'background-color': '#${_hex(palette.surface)}',
-            'font-family': "UniboxText, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+            'font-family':
+                "UniboxText, system-ui, -apple-system, 'Segoe UI', Roboto, "
+                'sans-serif',
           },
         ),
       ),
     ],
-    // The shell the browser redraws: the runtime renders the same root, so the
-    // gallery arrives and keeps arriving as one tree.
-    body: buildSiteRoot(page),
+    // The theme is the host's to install, and `buildSiteRoot` does it inside the
+    // renderer, which is also what the browser runtime calls: the page that arrives
+    // and the page it redraws are one root, not two that look alike.
+    body: buildSiteRoot(),
   );
-}
-
-/// A colour as `RRGGBB`, for the one rule the frame writes as raw CSS.
-String _hex(BoxColor color) {
-  final String digits = color.value.toRadixString(16).padLeft(8, '0');
-  return digits.substring(2).toUpperCase();
 }

@@ -81,6 +81,23 @@ void main() {
       expect(store.state.signupOpen, isFalse);
       expect(store.state.form.name, 'Ada');
     });
+
+    test('publishes the map, which is a view of its own', () {
+      // The map is a member of the state like the dialog, so opening it has to be a
+      // change the store publishes: a field left out of `ExampleState ==` is a
+      // toggle that draws nothing.
+      final ExampleStore store = ExampleStore();
+      int notifications = 0;
+      store.addListener(() => notifications++);
+
+      store.openMap();
+      expect(store.state.mapOpen, isTrue);
+      expect(notifications, 1);
+
+      store.closeMap();
+      expect(store.state.mapOpen, isFalse);
+      expect(notifications, 2);
+    });
   });
 
   group('ExamplePageNode', () {

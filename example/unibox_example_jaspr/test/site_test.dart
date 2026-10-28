@@ -4,50 +4,62 @@ import 'package:unibox_example_jaspr/site/iframe_node.dart';
 import 'package:unibox_example_shared/unibox_example_shared.dart';
 import 'package:unibox_material/unibox_material.dart';
 
-/// Pins the page trees the site is made of.
+/// Pins the site the host publishes.
 ///
-/// They are node trees, so `validateTree` is the first check a page has to pass —
-/// the site is built with the library it documents, and a page that no renderer can
-/// honour would be an embarrassing demonstration.
+/// The page is a node tree, so `validateTree` is the first check it has to pass — the
+/// site is built with the library it documents, and a page no renderer can honour
+/// would be an embarrassing demonstration. The two frames are the one thing the tree
+/// cannot describe, so the host's stand-in is what this file checks them through.
 void main() {
-  test('the front page sells one thing and points at three places', () {
-    final UINode landing = buildLanding();
+  /// The page as the export draws it: with an `<iframe>` in each panel.
+  UINode sitePage() => buildSitePage(
+    frame: ({required String src, required String title}) =>
+        IframeNode(src: src, title: title, resizable: true),
+  );
 
-    expect(validateTree(landing, theme: MaterialPalette.lightTheme), isEmpty);
-    expect(_texts(landing), contains('Describe a screen once.'));
-    // The bar carries the catalogue and the comparison. The page itself offers the
-    // three places its claim points at — a page it serves, the same screen in
-    // Flutter, and the page a crawler reads — and otherwise asks for nothing.
-    expect(_links(landing), <String>[
-      'web/pricing/',
-      'flutter/listings/',
+  test('the site is one valid page that frames the example twice', () {
+    final UINode page = sitePage();
+
+    expect(validateTree(page, theme: MaterialPalette.lightTheme), isEmpty);
+
+    final List<IframeNode> frames = _flatten(page)
+        .whereType<IframeNode>()
+        .toList();
+
+    expect(frames, hasLength(2));
+    expect(frames.map((IframeNode node) => node.src), <String>[
       'web/listings/',
+      'flutter/listings/',
+    ], reason: 'the comparison shows the Jaspr page and the Flutter build');
+    expect(frames.map((IframeNode node) => node.title), <String>[
+      'Jaspr — HTML and CSS',
+      'Flutter — the same tree',
     ]);
   });
 
-  test('the gallery is a valid tree that shows the Material package', () {
-    final UINode gallery = buildMaterialGallery();
+  test('the catalogue is a band of the page, not a page of its own', () {
+    final UINode page = sitePage();
 
-    expect(validateTree(gallery, theme: MaterialPalette.lightTheme), isEmpty);
-    expect(_texts(gallery), contains('Material 3'));
-    expect(_texts(gallery), contains('Sphinx of black quartz'));
-    expect(_texts(gallery), contains('Ada Lovelace'));
-    // A simple dialog of its own, not the app's sign-up form, and no link to the
-    // comparison: the gallery is the Material page, the showcase has its own.
+    expect(_texts(page), contains('Material 3, as values and nodes'));
+    expect(_texts(page), contains('Sphinx of black quartz'));
+    expect(_texts(page), contains('Ada Lovelace'));
+    expect(_texts(page), contains('Listings'));
+    // An h1 belongs to the hero, so the catalogue cannot have one.
     expect(
-      _flatten(gallery).whereType<DialogDemo>(),
+      _flatten(page)
+          .whereType<TextNode>()
+          .where((TextNode node) => node.headingLevel == 1),
       hasLength(1),
-      reason: 'the page opens a dialog of its own',
     );
-    expect(_texts(gallery), isNot(contains('Open the sign-up dialog')));
-    expect(_texts(gallery), isNot(contains('Compare both renderings')));
+    // A dialog of its own, and nothing else that opens one.
+    expect(_flatten(page).whereType<DialogDemo>(), hasLength(1));
   });
 
   test('the card leaves ink from the rows that look tappable', () {
     // A tile is an ink well, and a well only listens when it is given something to
     // do: a row with no callback draws a button that answers nothing, which is what
     // the card did before it passed one.
-    final List<MaterialInkWell> wells = _flatten(buildMaterialGallery())
+    final List<MaterialInkWell> wells = _flatten(buildMaterialSection())
         .whereType<MaterialInkWell>()
         .toList();
 
@@ -70,38 +82,6 @@ void main() {
         reason: 'the row under $text listens for a press',
       );
     }
-  });
-
-  test('the navigation bar moves the page it is on', () {
-    final NavigationDemo demo = NavigationDemo();
-    final NavigationStore store = demo.create();
-
-    MaterialNavigationBar barOf(UINode page) =>
-        _flatten(page).whereType<MaterialNavigationBar>().single;
-
-    final MaterialNavigationBar first = barOf(demo.viewFor(store.state, store));
-
-    expect(first.children, hasLength(3));
-    expect(
-      first.semantics?.element,
-      BoxElement.nav,
-      reason: 'the bar is the navigation landmark of the page',
-    );
-    expect(_currentOf(first, 0), BoxCurrent.page);
-    expect(_currentOf(first, 1), isNull);
-
-    store.choose(2);
-
-    final MaterialNavigationBar chosen = barOf(
-      demo.viewFor(store.state, store),
-    );
-
-    expect(_currentOf(chosen, 0), isNull);
-    expect(
-      _currentOf(chosen, 2),
-      BoxCurrent.page,
-      reason: 'the destination the store chose is the page being read',
-    );
   });
 
   test('the dialog demo opens a dialog of its own, and closes it', () {
@@ -132,16 +112,6 @@ void main() {
       isEmpty,
     );
   });
-
-  test('the showcase puts the two renderings side by side', () {
-    final UINode showcase = buildShowcase(
-      frame: ({required String src, required String title}) =>
-          IframeNode(src: src, title: title),
-    );
-
-    expect(validateTree(showcase, theme: MaterialPalette.lightTheme), isEmpty);
-    expect(_embeds(showcase), hasLength(2));
-  });
 }
 
 /// The children of [node], which for a `StatefulNode` are the tree it draws for the
@@ -162,18 +132,6 @@ Iterable<UINode> _children(UINode node) sync* {
   yield* node.children;
 }
 
-/// The `current` a destination of [bar] announces, read from the box its ink well
-/// draws.
-BoxCurrent? _currentOf(MaterialNavigationBar bar, int index) {
-  final Box item = bar.children[index] as Box;
-  final MaterialInkWell well = item.children.single as MaterialInkWell;
-  final MaterialInkStore store = well.create();
-  final UINode view = well.viewFor(store.state, store);
-  store.dispose();
-
-  return (view as Box).semantics?.current;
-}
-
 /// Every text under [node], which is how a page assertion reads.
 Iterable<String> _texts(UINode node) sync* {
   if (node is TextNode) {
@@ -185,18 +143,7 @@ Iterable<String> _texts(UINode node) sync* {
   }
 }
 
-/// Every link destination under [node].
-Iterable<String> _links(UINode node) sync* {
-  if (node is LinkNode) {
-    yield node.url;
-  }
-
-  for (final UINode child in _children(node)) {
-    yield* _links(child);
-  }
-}
-
-/// Every embed under [node]: the frames of the showcase.
+/// Every embed under [node]: the frames of the comparison.
 Iterable<EmbedNode> _embeds(UINode node) sync* {
   if (node is EmbedNode) {
     yield node;

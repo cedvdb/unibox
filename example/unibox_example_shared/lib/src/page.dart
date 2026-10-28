@@ -11,18 +11,11 @@ import 'theme.dart';
 /// [signup] is not a page: it is the sign-up form, which the frame shows as a
 /// dialog over the listings. [apartments] is the page itself.
 enum ExamplePage {
-  /// The sign-up form, shown as a dialog over the page.
-  signup('Sign up'),
-
   /// The list of apartments.
   apartments('Apartments'),
 
-  /// The page a customer lands on: what it costs, and why.
-  ///
-  /// It is here because it is the kind of page this library exists for. A pricing
-  /// page has to be found, so it is written once as a tree and served as HTML and
-  /// CSS; the same tree is the screen in the app.
-  pricing('Pricing');
+  /// The sign-up form, shown as a dialog over the page.
+  signup('Sign up');
 
   const ExamplePage(this.label);
 
@@ -32,21 +25,17 @@ enum ExamplePage {
 
 /// The addresses of the example's documents, relative to any of them.
 ///
-/// Every destination is written into its own directory — `web/listings/`,
-/// `web/signup/`, and the same pair under `flutter/` — so a sibling link is the
-/// same string from every document, which is why the tree can carry it without the
-/// host telling it where it is. It is also how a static page does what a click on a
-/// button cannot without a client runtime: follow a link and land on the state the
-/// destination names.
+/// Every destination is written into its own directory — `web/listings/` and
+/// `web/signup/` — so a sibling link is the same string from every document,
+/// which is why the tree can carry it without the host telling it where it is. It
+/// is also how a static page does what a click on a button cannot without a
+/// client runtime: follow a link and land on the state the destination names.
 abstract final class ExampleRoutes {
   /// The document that shows the listings.
   static const String listings = '../listings/';
 
   /// The document that shows the sign-up dialog open over the listings.
   static const String signup = '../signup/';
-
-  /// The document that shows what the product costs.
-  static const String pricing = '../pricing/';
 }
 
 /// The frame every page is drawn in: the canvas, the navigation bar, [page] and,
@@ -163,7 +152,6 @@ UINode _navigationItem(
     // without it, adding a destination linked its item to the listings.
     switch (page) {
       ExamplePage.signup => ExampleRoutes.signup,
-      ExamplePage.pricing => ExampleRoutes.pricing,
       ExamplePage.apartments => ExampleRoutes.listings,
     },
     child: Box(

@@ -193,6 +193,9 @@ logical pixels. `design.md` §5.15 holds the reasoning; these are the pieces.
 - [x] Task 117: `unibox_material` — `MaterialIcon`: a glyph of an icon font in a square `Box`, by codepoint or by ligature name. A codepoint that comes from a const `IconData` is what the Flutter tree shaker can subset (10.7 MB became 3.6 kB in the check), a ligature name ships the whole font, and a web export serves whatever subset the host puts next to its `@font-face`; the README states the recipe and the Symbols codepoints.
 - [x] Task 131: `unibox_material` — `MaterialNavigationBar`, the Material 3 navigation bar: three to five destinations in one 80 pixel row, an equal share each and a `MaterialInkWell` over every share, the chosen destination's icon on a 64 by 32 `secondaryContainer` pill at radius 16 and its label in `onSurface` `labelMedium`, announced as a button that is the current page. The container is `surfaceContainer`, a role the palette was missing, so it joins `MaterialColorRole` and both schemes; the icon colours are public constants because a picture carries its own colour on both targets. The gallery gains a state-driven bar, and the example test pins that a press moves the chosen destination.
 
+### Phase 25: One page
+- [x] Task 132: The example is one page. The **pricing page is gone** — a second content tree kept in step by hand, for a demonstration the site already makes — and the site's three documents (home, gallery, showcase) became one page of three bands: the hero, which sells with a large claim, an eyebrow, two calls to action and the claim drawn as one tree above two cards; the comparison, framing the example in both renderings in fixed-height panels; and the Material catalogue, with one `h1` for the page, an `h2` per band and an `h3` per block. The bar became a header and the page ends in a footer. `SitePage` and `sitePageForPath` are deleted, so the runtime picks a root by path — the page, or one state of the example — and `bin/build_site.dart` writes `index.html` plus the example's two states. The example's state lost its stored page (the current destination is derived) and now compares every field, which is what makes the map toggle redraw; `tool/site.sh`, `tool/seo_report.py` and the crawler table follow, and the numbers are re-measured from a fresh build.
+
 ## Decisions
 
 - **License:** MIT, at the root and in every package.
@@ -233,6 +236,14 @@ heaviest thing left in it, and the rule stands for an application that has one.
   listener list, so the model keeps its no-dependency rule, and a state layer per
   target — the drift this project exists to remove — never appears. A view draws
   one tree; a modal is not modelled yet, which is in Deferred.
+- **One page, not three:** the site was a home, a gallery and a comparison, and a
+  reader had to click through them to see the claim settle. One page puts the claim,
+  the evidence and the catalogue in one scroll — a band each — which is also what
+  removes the one thing a static site cannot do well: a route. Nothing has to be
+  discovered by a click any more, so a document without JavaScript loses nothing. The
+  example keeps its own two documents, because being open is state and an `<iframe>`
+  can only load a document.
+
 - **Design systems are packages:** the Material 3 type scale lives in
   `unibox_material`, not in `unibox_core` and not in a renderer. The core keeps
   one neutral default and no brand, a package of `const` tokens is what an

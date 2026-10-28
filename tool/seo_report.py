@@ -45,10 +45,8 @@ def report(root: str, path: str, label: str) -> None:
 
 DOCUMENTS = [
     ('index.html', 'jaspr   /'),
-    ('material/index.html', 'jaspr   /material/'),
     ('web/listings/index.html', 'jaspr   /web/listings/'),
     ('web/signup/index.html', 'jaspr   /web/signup/'),
-    ('web/pricing/index.html', 'jaspr   /web/pricing/'),
     ('flutter/index.html', 'flutter /flutter/listings/'),
 ]
 

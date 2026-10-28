@@ -3,21 +3,24 @@
 These packages render **the same node tree** with both renderers: one description,
 two host applications. The description is a single page component —
 `ExamplePageNode`, a `StatefulNode` — that draws a list of apartments behind a
-navigation bar and a sign-up form the bar opens as a dialog over it: two
-controlled text inputs, a hand drawn checkbox, a hover aware button, a link and a
-status line, in a card that a barrier and `Escape` dismiss. The list scrolls under
-the bar.
+navigation bar and a sign-up form the bar opens as a dialog over it: two controlled
+text inputs, a hand drawn checkbox, a hover aware button, a link and a status line, in
+a card that a barrier and `Escape` dismiss. The list scrolls under the bar.
+
+That page is the *example*. The **site** is one page of its own: the claim, the
+comparison — the example drawn by both renderers, side by side — and the Material
+catalogue the whole thing is built with.
 
 | Package | Role |
 | --- | --- |
-| `unibox_example_shared` | The page as one node (`ExamplePageNode`, with `ExampleState` and `ExampleStore`) and the parts it is built from (`buildExamplePage`, `buildApartmentsPage`, `buildSignupDialog`), the three site pages (`buildLanding`, `buildMaterialGallery`, `buildShowcase`), the site frame and its destinations, plus the palette. The listings are a `GridNode` of `MaterialCard`s, so the example also shows the design-system package. Pure Dart, no renderer. |
+| `unibox_example_shared` | The example as one node (`ExamplePageNode`, with `ExampleState` and `ExampleStore`) and the parts it is built from (`buildExamplePage`, `buildApartmentsPage`, `buildSignupDialog`); the site as one node (`buildSitePage`) and its three bands (`buildHeroSection`, `buildShowcaseSection`, `buildMaterialSection`); plus the palette. The listings are a `GridNode` of `MaterialCard`s, so the example also shows the design-system package. Pure Dart, no renderer. |
 | `unibox_example_flutter` | Flutter host: one file (`lib/main.dart`) — the surface and the link policy. |
-| `unibox_example_jaspr` | Jaspr host: the document, the shipped font faces, the one `<iframe>` node the showcase needs, and the build script — no page trees, which live in the shared package. |
+| `unibox_example_jaspr` | Jaspr host: the site's document, the example's document, the shipped font faces, the one `<iframe>` node the comparison needs, and the build script — no page trees, which live in the shared package. |
 
 Neither host holds state. The page owns it in `ExampleStore`; the host renders the
-node through `FlutterStateful`, which creates the store, subscribes to it and
-disposes it. What a host still supplies is what a node cannot know — the surface
-the tree is drawn on and how a link opens — which is why each one is a single
+node through `FlutterStateful` or `JasprStateful`, which creates the store, subscribes
+to it and disposes it. What a host still supplies is what a node cannot know — the
+surface the tree is drawn on and how a link opens — which is why each one is a single
 small file.
 
 ## One component, two small hosts
@@ -153,10 +156,37 @@ blur, placeholder and focus colours, and hit testing. A browser and Flutter neve
 agree on those down to the pixel, and the goal is that the two renderings are
 recognisably the same page.
 
-## The static site
+## The site is one page
 
-`tool/site.sh` builds the site into `build/site`, a directory any static host can
-publish:
+`buildSitePage` is the whole site: a header, three bands and a footer, in the order
+the argument needs.
+
+| Band | What it says |
+| --- | --- |
+| the hero | the claim — *describe a screen once* — with the two ways in, and the claim drawn as one tree above two cards |
+| *the same tree, drawn twice* | the example in two frames: the Jaspr page on the left, the Flutter build on the right, each resizable |
+| *Material 3, as values and nodes* | the catalogue: the type scale, the colour roles and every component |
+
+The comparison comes before the catalogue on purpose: the claim is that the two
+renderings agree, so a reader should meet the evidence before the design system the
+evidence is drawn with. Every band is a node tree — the frames are the only thing the
+model cannot describe, and they arrive through `ShowcaseFrame`/`EmbedNode`.
+
+There is one `h1` (the claim), an `h2` per band and an `h3` per block of the
+catalogue, so the outline a crawler and a screen reader build the page from is the
+outline a reader sees. The header and the footer are landmarks, the links are real
+`LinkNode`s, and the page needs no route: a reader scrolls from the claim to the
+evidence, which is a thing a static document can do without a click.
+
+The example itself is not a page of the site any more. Its two documents —
+`build/site/web/listings/index.html` and `build/site/web/signup/index.html` — exist
+because the left frame has to load one and because being open is state: a browser
+without the client bundle can only be shown one state at a time, so the sign-up
+dialog gets its own url and the nav links to it. The Flutter build sits beside them at
+`build/site/flutter/`, with one document per state for the same reason.
+
+`tool/site.sh` builds the whole thing into `build/site`, a directory any static host
+can publish:
 
 ```shell
 tool/site.sh --serve                        # http://localhost:8000/
@@ -165,47 +195,46 @@ tool/site.sh --base=/unibox/ --url=https://cedvdb.github.io/unibox/
 
 | Path | What it is |
 | --- | --- |
-| `/` | What the library is, and the two ways in |
-| `/material/` | The Material library: the type scale, the colour roles and the components |
-| `/showcase/` | The example drawn by both renderers, side by side in two frames |
-| `/web/listings/` | The example's listings, rendered by Jaspr |
+| `/` | The site: the claim, the comparison and the catalogue, as one page |
+| `/web/listings/` | The example, rendered by Jaspr — the left frame |
 | `/web/signup/` | The same page with the sign-up dialog over it |
-| `/web/pricing/` | The marketing page: what it costs, and the questions people ask |
-| `/main.client.js` | The browser runtime the two above load |
-| `/flutter/listings/`, `/flutter/signup/`, `/flutter/pricing/` | The same pages, rendered by Flutter |
+| `/main.client.js` | The browser runtime the three above load |
+| `/flutter/listings/`, `/flutter/signup/` | The same example, built by Flutter — the right frame |
 
-The pages link with paths relative to their own depth and the documents carry **no
-`<base>` element**, so the same build works at `/` and at `/unibox/`: a base href of
-`/` would send every relative link, and both frames, to the domain root.
+The page links with relative paths and the documents carry **no `<base>` element**, so
+the same build works at `/` and at `/unibox/`: a base href of `/` would send every
+relative link, and both frames, to the domain root.
 
-The gallery and the showcase are node trees as well, so the site is built with the
-library it documents. The gallery's dialog is the exception that proves the rule:
-the button is a `MaterialInkWell` over a filled box — so a press leaves ink where it
-landed — and the `MaterialDialog` is in the tree only while the demo's store says it
-is open. The runtime is what makes the press do anything, and a document without
-JavaScript shows the button, no ink and no dialog.
+The site is a node tree as well, so it is built with the library it documents. The
+catalogue's dialog is the exception that proves the rule: the button is a
+`MaterialInkWell` over a filled box — so a press leaves ink where it landed — and the
+`MaterialDialog` is in the tree only while the demo's store says it is open. The
+runtime is what makes the press do anything, and a document without JavaScript shows
+the button, no ink and no dialog.
 
-The one thing the model cannot describe is an `<iframe>`, and that is what `EmbedNode` is for: the showcase's two frames are the only non-node
-content on the site, and the page around them is boxes and text.
+The one thing the model cannot describe is an `<iframe>`, and that is what `EmbedNode`
+is for: the comparison's two frames are the only non-node content on the site, and the
+page around them is boxes and text.
 
-Being open is state, and a static page cannot be clicked into existence, so the
-export writes one document per destination and the Flutter app reads the path it was
-served at (`signupOpenFromUrl`) to start in the matching state. A static host has no
+Being open is state, and a static page cannot be clicked into existence, so the export
+writes one document per state of the example and the Flutter app reads the path it was
+served at (`signupOpenFromUrl`) to start in the matching one. A static host has no
 rewrite rule either, which is why every Flutter route is a real `index.html`: the
 build writes one entry document and the script copies it to each route, with the
 absolute base href that lets the assets resolve from any depth.
 
-The Jaspr pages arrive as HTML and CSS and then keep going: `web/main.client.dart`
-is a browser entrypoint of three lines, `tool/site.sh` compiles it to
-`/main.client.js`, and the document loads it with `defer`. It is written by hand
-rather than generated by `jaspr_builder` because the page is one component — nothing
-has to be matched against a server tree, and no code lives in the repository only
-because a builder wrote it. Both sides build the same root (`buildExampleRoot`), and
-the class names of the stylesheet are content hashes, so the markup the runtime
-draws is the markup the server wrote: a page that survives its own hydration, and a
-crawler that reads the same document either way. What reacts is the state — a press
-on the barrier closes the dialog, the form edits its store — and a document without
-JavaScript still shows the state it was exported in.
+The page arrives as HTML and CSS and then keeps going: `web/main.client.dart` is a
+browser entrypoint of a few lines, `tool/site.sh` compiles it to `/main.client.js`,
+and the document loads it with `defer`. It is written by hand rather than generated by
+`jaspr_builder` because the page is one component — nothing has to be matched against
+a server tree, and no code lives in the repository only because a builder wrote it.
+The runtime picks the root by path: the site page, or one state of the example. Both
+sides build that root with the same function, and the class names of the stylesheet
+are content hashes, so the markup the runtime draws is the markup the server wrote: a
+page that survives its own hydration, and a crawler that reads the same document
+either way. What reacts is the state — a press on the barrier closes the dialog, the
+form edits its store — and a document without JavaScript still shows the state it was
+exported in.
 
 The deployment is `.github/workflows/pages.yml` — verify, build, publish. It needs
 one setting a workflow cannot make: Settings → Pages → Source: **GitHub Actions**.
@@ -234,44 +263,46 @@ flutter test
 
 ## Jaspr app
 
-The host is two files: `lib/main.dart` holds `ExampleApp`, the same node in its
-server form, and `lib/document.dart` puts it in a document (language, title,
-description, the `html, body` height and the font stack). `bin/build_site.dart`
-renders that document once per destination, next to the gallery and the showcase
-the site also publishes:
+The host is four files: `lib/main.dart` holds `ExampleApp`, the same node in its
+server form, `lib/document.dart` puts it in a document (language, title, description,
+the `html, body` height and the font stack), and `lib/site/` holds the site's own
+document and its root — the page, its `<iframe>` frame, and the palette the page's
+roles resolve against. `bin/build_site.dart` writes the site page and the two states
+of the example:
 
 ```shell
 cd example/unibox_example_jaspr
 dart run bin/build_site.dart --out=build/site
-open build/site/web/listings/index.html
+open build/site/index.html
 ```
 
-There is one file per destination because being open is state, and a static
-export cannot keep state — open the document you want. `web/listings/index.html` is
-the listings; `web/signup/index.html` is the same page with the dialog already open.
-The navigation is a real link for the same reason: a click follows it to the document
-that draws the state, because a page has no client runtime to open a dialog with.
-The whole site, with both renderings and the Flutter build beside them, is
-`tool/site.sh` (see [the static site](#the-static-site)).
+There is one document per state of the example because being open is state, and a
+static export cannot keep state — open the document you want.
+`web/listings/index.html` is the listings; `web/signup/index.html` is the same page
+with the dialog already open. The navigation is a real link for the same reason: a
+click follows it to the document that draws the state, because a page with no client
+runtime cannot open a dialog. The whole site, with both renderings and the Flutter
+build beside them, is `tool/site.sh` (see [the site is one page](#the-site-is-one-page)).
 
-Each page is a document before it is a picture: the bar is a `<nav>`, the page box
-is a `<main>`, the card an `<article>`, the listings a `<ul>` of `<li>`s, the page
-title an `<h1>`, and the confirmation a live region. None of
-that changed a pixel, which is what the semantics tokens are for; open the export
-in a reader or a crawler and the outline is there.
+The page is a document before it is a picture: the header is a `<header>`, the hero's
+claim an `<h1>`, each band an `<h2>`, each block of the catalogue an `<h3>`, the
+example's bar a `<nav>`, its page box a `<main>`, the card an `<article>`, the
+listings a `<ul>` of `<li>`s, and the confirmation a live region. None of that changed
+a pixel, which is what the semantics tokens are for; open the export in a reader or a
+crawler and the outline is there.
 
-Each page also arrives with what a search engine reads before any script runs:
-`<html lang="en">`, its own `<title>` and description
-(`buildExampleDocument(page:)`), the text and the `role` attributes as markup, and
-a `robots.txt` next to the two documents. A sitemap would need the address the
-pages are served from, so it is left to the deployment.
+The document also arrives with what a search engine reads before any script runs:
+`<html lang="en">`, one `<title>` and one description
+(`buildSiteDocument()`, `buildExampleDocument(page:)`), the text and the `role`
+attributes as markup, and a `robots.txt` next to it. A sitemap would need the address
+the page is served from, so `tool/site.sh --url=…` writes one when it is given it.
 
-What cannot be crawled is the navigation between the two files: the bar opens the
-dialog and switches the page in host state (`onTap`), and a box with
-`BoxRole.link` has no `href`, so a crawler sees two documents and no link between
-them. A page that has
-to be found makes sense as a `LinkNode` with a real url — which is the router work
-`TASK_PLAN.md` lists as deferred.
+The page's links are real: the header, the hero and the footer are `LinkNode`s and the
+frames are `<iframe>`s, so a crawler follows all of them without JavaScript. What it
+cannot follow is the example's own bar: a box with `BoxRole.link` has no `href`, and
+the item that opens the dialog is a `BoxRole.button`, so inside the frame a reader sees
+documents and no link between them. A page that has to be found makes sense as a
+`LinkNode` with a real url — which is the router work `TASK_PLAN.md` lists as deferred.
 
 The static export is a snapshot of the server render: the markup, the inline
 styles, the scoped hover rules and the media query are all there, but the `click`

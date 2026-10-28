@@ -5,27 +5,24 @@ import 'package:unibox_material/unibox_material.dart';
 
 import 'iframe_node.dart';
 
-/// The body of a site page, as the export draws it and as the browser redraws it.
+/// The body of the site page, as the export draws it and as the browser redraws it.
 ///
-/// One function for both sides, for the reason `buildExampleRoot` has one: the
-/// client runtime replaces the page with a render of this, and a root that differed
-/// would be a second design of the same document. The gallery needs it for the
-/// ripple — the ink is a `StatefulNode`, so a press leaves a drop only where a store
-/// is subscribed.
-Component buildSiteRoot(SitePage page) {
+/// One function for both sides: the client runtime replaces the page with a render of
+/// this, and a root that differed would be a second design of the same document. The
+/// gallery needs it for the ripple — the ink is a `StatefulNode`, so a press leaves a
+/// drop only where a store is subscribed.
+///
+/// The two frames of the comparison are the one thing a node tree cannot describe, so
+/// this is where the host supplies them: an `<iframe>` per panel, resizable, which is
+/// what lets a reader narrow one and watch the page inside reflow.
+Component buildSiteRoot() {
   return renderJaspr(
-    // The gallery and the bar are built from material components, which name
-    // colour roles: the theme answers them, once, for the whole page.
+    // The page is built from material components, which name colour roles: the
+    // theme answers them, once, for the whole page.
     theme: MaterialPalette.lightTheme,
     buildSitePage(
-      page,
-      frame: ({required String src, required String title}) => IframeNode(
-        src: src,
-        title: title,
-        // A reader drags either frame narrower to watch the page inside reflow,
-        // which is the comparison the showcase exists for.
-        resizable: true,
-      ),
+      frame: ({required String src, required String title}) =>
+          IframeNode(src: src, title: title, resizable: true),
     ),
   );
 }

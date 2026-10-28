@@ -114,10 +114,7 @@ Document buildExampleDocument({ExamplePage page = ExamplePage.apartments}) {
     // they are given values. The `:root` block of the document follows from it.
     // `buildExampleRoot` is the same call the browser runtime makes, so the page
     // that arrives and the page it redraws are one root, not two that look alike.
-    body: buildExampleRoot(
-      openSignup: page == ExamplePage.signup,
-      initialPage: page,
-    ),
+    body: buildExampleRoot(openSignup: page == ExamplePage.signup),
   );
 }
 
@@ -129,7 +126,6 @@ Document buildExampleDocument({ExamplePage page = ExamplePage.apartments}) {
 String _titleOf(ExamplePage page) {
   return switch (page) {
     ExamplePage.signup => 'Join Unibox — sign up',
-    ExamplePage.pricing => 'Pricing — Unibox',
     ExamplePage.apartments => 'Apartments — Unibox',
   };
 }
@@ -146,8 +142,5 @@ String _descriptionOf(ExamplePage page) {
     ExamplePage.apartments =>
       'Six apartments with a map beside the listings on a wide screen and the '
           'listings alone on a narrow one, from the same node tree.',
-    ExamplePage.pricing =>
-      'What it costs to describe a screen once: the plans, and the questions '
-          'people ask before they start.',
   };
 }

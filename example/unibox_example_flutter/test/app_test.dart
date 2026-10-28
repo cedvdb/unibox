@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:unibox_example_shared/unibox_example_shared.dart';
 import 'package:unibox_flutter/unibox_flutter.dart';
 
 import 'support/harness.dart';
@@ -81,20 +80,6 @@ void main() {
         'ada@example.com',
       );
       expect(find.text('Looks good - press Create account.'), findsOneWidget);
-    });
-
-    testWidgets('starts on the pricing page when the route says so', (
-      tester,
-    ) async {
-      await pumpApp(tester, page: ExamplePage.pricing);
-
-      // The route is the page: the same document the web export writes, drawn by
-      // the app instead of by the server.
-      expect(find.text('What it costs'), findsOneWidget);
-      expect(find.text('Solo'), findsOneWidget);
-      // `Apartments` is also a destination in the bar, so the check is that the
-      // listings content is gone rather than that the word is.
-      expect(find.textContaining('old town'), findsNothing);
     });
 
     testWidgets('shows the confirmation after submitting', (tester) async {

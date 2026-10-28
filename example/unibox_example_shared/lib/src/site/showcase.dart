@@ -1,6 +1,8 @@
 import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_material/unibox_material.dart';
 
+import 'section.dart';
+
 /// A frame of the showcase: the node that draws [src], which the host supplies.
 ///
 /// A frame is an `EmbedNode` — an `<iframe>` on the web — which is the one thing
@@ -10,41 +12,59 @@ typedef ShowcaseFrame = UINode Function({
   required String title,
 });
 
-/// The same node tree, drawn twice: the web rendering on the left and the Flutter
-/// build of it on the right.
+/// The second band: the same node tree, drawn twice, side by side.
 ///
 /// Two frames rather than two links, because the point is the comparison: resize the
-/// window and both answer the same breakpoint, on the same node tree. The page is a
-/// node tree as well — the bar and the two captions are boxes and texts, and the
+/// window and both answer the same breakpoint, on the same node tree. The band is a
+/// node tree as well — the heading and the two captions are boxes and texts, and the
 /// frames are the one thing the model cannot describe, so they arrive through
 /// [ShowcaseFrame].
-UINode buildShowcase({required ShowcaseFrame frame}) {
+///
+/// It comes before the catalogue on purpose: the claim is that the two renderings
+/// agree, and a reader should meet the evidence before the design system the
+/// evidence is drawn with.
+UINode buildShowcaseSection({required ShowcaseFrame frame}) {
   const MaterialPalette palette = MaterialPalette.light;
 
-  return Box(
-    direction: Axis.horizontal,
-    width: double.infinity,
-    height: double.infinity,
-    gap: 1,
-    backgroundColor: palette.outlineVariant,
-    children: <UINode>[
-      _panel(
-        title: 'Jaspr — HTML and CSS',
-        src: '../web/listings/',
-        palette: palette,
-        frame: frame,
-      ),
-      _panel(
-        title: 'Flutter — the same tree',
-        src: '../flutter/listings/',
-        palette: palette,
-        frame: frame,
-      ),
-    ],
+  return siteBand(
+    background: palette.surfaceContainerLow,
+    child: Box(
+      width: double.infinity,
+      gap: 32,
+      children: <UINode>[
+        siteHeading(
+          title: 'The same tree, drawn twice',
+          lead:
+              'Left, the page Jaspr serves: HTML and CSS, every word and link in '
+              'the document a crawler reads. Right, exactly the same node tree '
+              'built by Flutter. Drag a frame narrower and both answer the same '
+              'breakpoint, because neither one decides its own layout.',
+        ),
+        GridNode(
+          minItemWidth: 380,
+          maxColumns: 2,
+          gap: 20,
+          children: <UINode>[
+            _panel(
+              title: 'Jaspr — HTML and CSS',
+              src: 'web/listings/',
+              palette: palette,
+              frame: frame,
+            ),
+            _panel(
+              title: 'Flutter — the same tree',
+              src: 'flutter/listings/',
+              palette: palette,
+              frame: frame,
+            ),
+          ],
+        ),
+      ],
+    ),
   );
 }
 
-/// One half of the comparison: a caption and the frame under it.
+/// One half of the comparison: a caption, a way to open it alone, and the frame.
 UINode _panel({
   required String title,
   required String src,
@@ -52,26 +72,47 @@ UINode _panel({
   required ShowcaseFrame frame,
 }) {
   return Box(
-    flex: 1,
-    direction: Axis.vertical,
-    height: double.infinity,
-    backgroundColor: palette.surface,
+    width: double.infinity,
+    gap: 10,
     children: <UINode>[
       Box(
+        direction: Axis.horizontal,
+        mainAlign: MainAlign.spaceBetween,
+        crossAlign: CrossAlign.center,
         width: double.infinity,
-        padding: const BoxSpacing.symmetric(horizontal: 16, vertical: 10),
         children: <UINode>[
           TextNode(
             title,
-            style: MaterialTypography.labelMedium.copyWith(
+            style: MaterialTypography.labelLarge.copyWith(
               color: palette.onSurfaceVariant,
+            ),
+          ),
+          LinkNode(
+            src,
+            child: Box(
+              padding: const BoxSpacing.symmetric(horizontal: 8, vertical: 4),
+              borderRadius: 8,
+              children: <UINode>[
+                TextNode(
+                  'Open',
+                  style: MaterialTypography.labelLarge.copyWith(
+                    color: palette.primary,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       ),
+      // A frame needs a height of its own: it is a window, not a paragraph, and an
+      // iframe with no height is a sliver.
       Box(
-        flex: 1,
         width: double.infinity,
+        height: 560,
+        borderRadius: 18,
+        overflow: Overflow.hidden,
+        border: BoxBorder(color: palette.outlineVariant),
+        backgroundColor: palette.surface,
         children: <UINode>[frame(src: src, title: title)],
       ),
     ],

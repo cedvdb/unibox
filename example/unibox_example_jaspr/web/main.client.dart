@@ -1,14 +1,12 @@
 import 'package:jaspr/client.dart';
 import 'package:unibox_example_jaspr/main.dart';
-import 'package:unibox_example_jaspr/site/page_for_path.dart';
 import 'package:unibox_example_jaspr/site/site_root.dart';
-import 'package:unibox_example_shared/unibox_example_shared.dart';
 
 /// The browser half of the site.
 ///
-/// A static export writes one document per destination, so the runtime asks the
-/// browser which document it is on rather than being compiled once per page. Each
-/// branch renders the same root its document was exported from, which is the only
+/// The export writes the one page and the two states of the example, so the runtime
+/// asks the browser which document it is on rather than being compiled once per page.
+/// Each branch renders the same root its document was exported from, which is the only
 /// way the page that arrives and the page it keeps can be one page.
 ///
 /// `tool/site.sh` compiles this file to `main.client.js` beside the pages. It is
@@ -18,24 +16,10 @@ import 'package:unibox_example_shared/unibox_example_shared.dart';
 void main() {
   final String path = Uri.base.path;
 
-  if (path.endsWith('/web/listings/') ||
-      path.endsWith('/web/signup/') ||
-      path.endsWith('/web/pricing/')) {
-    runApp(
-      buildExampleRoot(
-        openSignup: path.endsWith('/signup/'),
-        initialPage: path.endsWith('/pricing/')
-            ? ExamplePage.pricing
-            : ExamplePage.apartments,
-      ),
-    );
+  if (path.endsWith('/web/listings/') || path.endsWith('/web/signup/')) {
+    runApp(buildExampleRoot(openSignup: path.endsWith('/signup/')));
     return;
   }
 
-  // A page of the site itself, by the path it was exported to. The home document
-  // names no destination — it is the directory the others sit under — so it is the
-  // fallback and not part of the search. The page's own path is matched without its
-  // trailing slash, because the export writes a directory per destination and a
-  // browser reports that directory either way.
-  runApp(buildSiteRoot(sitePageForPath(path) ?? SitePage.home));
+  runApp(buildSiteRoot());
 }
