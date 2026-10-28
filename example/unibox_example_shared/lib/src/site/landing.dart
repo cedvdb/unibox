@@ -1,31 +1,38 @@
 import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_material/unibox_material.dart';
 
-/// The front page: what the library is, and the two ways into it.
+/// The front page: why the library exists, and the ways into it.
 ///
-/// The page answers the question a visitor arrives with — "what is this?" — before
-/// it shows anything, and then offers the two things the repository can prove: the
-/// Material library as values and nodes, and one page drawn by both renderers.
+/// The page answers the question a visitor arrives with — "what is this for?" — before
+/// it shows anything. The answer is a search one: a screen drawn in Flutter is a canvas
+/// that a crawler cannot read and a screen written again as HTML is a second design to
+/// keep in step, so a page that has to rank is written once here and drawn by both.
+///
+/// Both sections are [GridNode]s: the hero and the cards fold from two columns to one
+/// as the window narrows, without a breakpoint written into the tree. A page about a
+/// mobile web cannot be one that overflows a phone.
 UINode buildLanding() {
   const MaterialPalette palette = MaterialPalette.light;
 
   return Box(
     width: double.infinity,
     padding: const BoxSpacing.symmetric(horizontal: 32, vertical: 64),
-    gap: 40,
+    gap: 56,
     children: <UINode>[
-      Box(
-        direction: Axis.horizontal,
-        crossAlign: CrossAlign.start,
+      GridNode(
+        minItemWidth: 420,
+        // Two children, two tracks: `auto-fill` would open a third empty one on a
+        // wide screen and leave the hero two thirds as wide as the page.
+        maxColumns: 2,
         gap: 48,
         children: <UINode>[
           Box(
-            flex: 2,
             gap: 16,
             children: <UINode>[
               TextNode(
                 'Describe a screen once.',
                 style: MaterialTypography.displayMedium,
+                headingLevel: 1,
               ),
               TextNode(
                 'Unibox is one immutable tree of nodes — boxes, text, images, links, '
@@ -47,12 +54,15 @@ UINode buildLanding() {
             ],
           ),
           Box(
-            flex: 1,
             maxWidth: 480,
             gap: 8,
             children: <UINode>[
               ImageNode(
                 'assets/hero-compact.svg',
+                // A grid decides its row height from its tallest slot, so the
+                // figure states one: the two targets then reserve the same space
+                // while the columns change.
+                height: 300,
                 alt:
                     'One node tree splits into a Flutter panel drawing it through '
                     'tree.toWidget() and a Jaspr panel drawing it through '
@@ -70,24 +80,111 @@ UINode buildLanding() {
           ),
         ],
       ),
+      _why(palette),
       Box(
-        direction: Axis.horizontal,
-        crossAlign: CrossAlign.stretch,
+        gap: 16,
+        children: <UINode>[
+          TextNode(
+            'Where to go',
+            style: MaterialTypography.titleLarge,
+            headingLevel: 2,
+          ),
+          GridNode(
+            minItemWidth: 320,
+            maxColumns: 2,
+            gap: 24,
+            children: <UINode>[
+              _choice(
+                title: 'The Material library',
+                body:
+                    'The fifteen type roles, the colour roles and six components, '
+                    'typeset and painted by the same node tree.',
+                href: 'material/',
+              ),
+              _choice(
+                title: 'The same tree, drawn twice',
+                body:
+                    'The example page rendered by Jaspr on the left and Flutter on '
+                    'the right. Resize the window: both answer the same breakpoint.',
+                href: 'showcase/',
+              ),
+            ],
+          ),
+        ],
+      ),
+    ],
+  );
+}
+
+/// Why the library exists, and the two shapes a page it describes can be served in.
+///
+/// This is the argument the repository is built on, so it is written on the page
+/// rather than left to a `README` a visitor never opens: a search engine, a link
+/// preview and a reader without JavaScript all see the same document, and the screen
+/// in the app is not a second design of it.
+UINode _why(MaterialPalette palette) {
+  return Box(
+    gap: 16,
+    children: <UINode>[
+      TextNode(
+        'Why this exists',
+        style: MaterialTypography.headlineMedium,
+        headingLevel: 2,
+      ),
+      Box(
+        maxWidth: 760,
+        gap: 16,
+        children: <UINode>[
+          TextNode(
+            'A screen drawn in Flutter is a canvas. It is the right thing inside an '
+            'app and the wrong thing for a page that has to be found: a search '
+            'engine, a link preview and a reader without JavaScript all get an empty '
+            'document. Writing that page a second time as HTML gets the page indexed '
+            'and gives the team two designs to keep in step, which drift the week '
+            'after they are written.',
+            style: MaterialTypography.bodyLarge,
+            color: palette.onSurfaceVariant,
+          ),
+          TextNode(
+            'Unibox is the one description those two can share. A page that has to '
+            'rank is written once as a tree; the export writes it as HTML and CSS, and '
+            'the same tree draws the app\'s version of that screen. Nothing is designed '
+            'twice, so nothing can disagree — and everything else in the application '
+            'stays ordinary Flutter, screen for screen.',
+            style: MaterialTypography.bodyLarge,
+            color: palette.onSurfaceVariant,
+          ),
+        ],
+      ),
+      GridNode(
+        minItemWidth: 320,
+        // Three cards, three tracks: a fourth would stay empty and squeeze them.
+        maxColumns: 3,
         gap: 24,
         children: <UINode>[
           _choice(
-            title: 'The Material library',
+            title: 'Indexable, and static',
             body:
-                'The fifteen type roles, the colour roles and six components, '
-                'typeset and painted by the same node tree.',
-            href: 'material/',
+                'Server-rendered HTML and CSS with no JavaScript in it: what a '
+                'crawler reads and what a reader without scripts keeps. The '
+                'listings below are one.',
+            href: 'web/listings/',
           ),
           _choice(
-            title: 'The same tree, drawn twice',
+            title: 'Indexable, and live',
             body:
-                'The example page rendered by Jaspr on the left and Flutter on the '
-                'right. Resize the window: both answer the same breakpoint.',
-            href: 'showcase/',
+                'The same document plus one client bundle, which redraws the same '
+                'tree into the same page: the dialog opens, the form validates, the '
+                'ink spreads.',
+            href: 'web/signup/',
+          ),
+          _choice(
+            title: 'The app, from that tree',
+            body:
+                'The same screen compiled by Flutter. It is the app beside the page '
+                'rather than a takeover of it: Flutter draws to a canvas, so it '
+                'cannot adopt server-rendered HTML without repainting it.',
+            href: 'flutter/listings/',
           ),
         ],
       ),
@@ -99,7 +196,8 @@ UINode buildLanding() {
 ///
 /// The tint is a state layer inside the border, not around it, because a layer
 /// paints *above* the surface it belongs to: wrapped the other way round, the
-/// card's own background would cover it.
+/// card's own background would cover it. The card fills the slot it is given, so a
+/// [GridNode] decides how many fit and the page folds to one column on a phone.
 UINode _choice({
   required String title,
   required String body,
@@ -108,7 +206,7 @@ UINode _choice({
   return LinkNode(
     href,
     child: Box(
-      width: 360,
+      width: double.infinity,
       borderRadius: 12,
       border: const BoxBorder(
         color: BoxColor.role(MaterialColorRole.outlineVariant),

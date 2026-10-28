@@ -68,7 +68,8 @@ UINode _header(MaterialPalette palette) {
     children: <UINode>[
       TextNode('Material 3', style: MaterialTypography.displaySmall),
       Box(
-        width: 720,
+        width: double.infinity,
+        maxWidth: 720,
         children: <UINode>[
           TextNode(
             'The fifteen type roles, the colour roles and the components of '
@@ -96,7 +97,8 @@ UINode _section(String title, String description, UINode content) {
         children: <UINode>[
           TextNode(title, style: MaterialTypography.titleLarge),
           Box(
-            width: 720,
+            width: double.infinity,
+            maxWidth: 720,
             children: <UINode>[
               TextNode(
                 description,
@@ -120,13 +122,15 @@ UINode _typeScale() {
     gap: 12,
     children: <UINode>[
       for (final MaterialTypeRole role in MaterialTypeRole.values)
-        Box(
-          direction: Axis.horizontal,
-          crossAlign: CrossAlign.start,
+        // A grid, so the role's name sits above its sample on a narrow window: a
+        // 57 pixel line cannot share a row with a 180 pixel label and stay put.
+        GridNode(
+          minItemWidth: 240,
+          maxColumns: 2,
           gap: 24,
           children: <UINode>[
             Box(
-              width: 180,
+              width: double.infinity,
               children: <UINode>[
                 TextNode(
                   _label(role.name),
@@ -136,7 +140,7 @@ UINode _typeScale() {
               ],
             ),
             Box(
-              flex: 1,
+              width: double.infinity,
               children: <UINode>[
                 TextNode(
                   'Sphinx of black quartz',
@@ -170,19 +174,15 @@ UINode _palette(MaterialPalette palette) {
     ('scrim', palette.scrim),
   ];
 
-  return Box(
+  // One grid, not rows of five: the swatches fold to however many fit, which is
+  // what keeps the catalogue readable on a phone.
+  return GridNode(
+    minItemWidth: 150,
+    maxColumns: 4,
     gap: 16,
     children: <UINode>[
-      for (int start = 0; start < roles.length; start += 5)
-        Box(
-          direction: Axis.horizontal,
-          gap: 16,
-          children: <UINode>[
-            for (final (String name, BoxColor color)
-                in roles.skip(start).take(5))
-              _swatch(name, color, palette),
-          ],
-        ),
+      for (final (String name, BoxColor color) in roles)
+        _swatch(name, color, palette),
     ],
   );
 }
@@ -194,7 +194,7 @@ UINode _palette(MaterialPalette palette) {
 /// happened the first time this page was published.
 UINode _swatch(String name, BoxColor color, MaterialPalette palette) {
   return Box(
-    width: 150,
+    width: double.infinity,
     gap: 6,
     children: <UINode>[
       Box(
@@ -238,9 +238,8 @@ String _hex(BoxColor color) {
 
 /// The button shapes, each in a resting state a static page can show.
 UINode _buttons() {
-  return Box(
-    direction: Axis.horizontal,
-    crossAlign: CrossAlign.center,
+  return GridNode(
+    minItemWidth: 150,
     gap: 16,
     children: <UINode>[
       MaterialButton.filled(label: const TextNode('Filled'), onTap: () {}),
@@ -264,13 +263,13 @@ UINode _fields(MaterialPalette palette) {
   String? invalidAddress(String value) =>
       value.contains('@') ? null : 'Enter an address with an @';
 
-  return Box(
-    direction: Axis.horizontal,
-    crossAlign: CrossAlign.start,
+  return GridNode(
+    minItemWidth: 280,
+    maxColumns: 2,
     gap: 24,
     children: <UINode>[
       Box(
-        width: 320,
+        width: double.infinity,
         children: <UINode>[
           MaterialTextField(
             width: double.infinity,
@@ -283,7 +282,7 @@ UINode _fields(MaterialPalette palette) {
         ],
       ),
       Box(
-        width: 320,
+        width: double.infinity,
         children: <UINode>[
           MaterialTextField(
             width: double.infinity,
@@ -302,13 +301,13 @@ UINode _fields(MaterialPalette palette) {
 
 /// A card with a call to action, and two tiled rows.
 UINode _cards(MaterialPalette palette) {
-  return Box(
-    direction: Axis.horizontal,
-    crossAlign: CrossAlign.start,
+  return GridNode(
+    minItemWidth: 320,
+    maxColumns: 2,
     gap: 24,
     children: <UINode>[
       MaterialCard(
-        width: 360,
+        width: double.infinity,
         gap: 8,
         children: <UINode>[
           TextNode('Order summary', style: MaterialTypography.titleLarge),
@@ -322,7 +321,7 @@ UINode _cards(MaterialPalette palette) {
         ],
       ),
       Box(
-        flex: 1,
+        width: double.infinity,
         borderRadius: 12,
         border: BoxBorder(color: palette.outlineVariant),
         // The rows are flush with the rounded edge, so the container clips them:
@@ -390,9 +389,11 @@ final class DialogDemo extends StatefulNode<bool, DialogDemoStore> {
 UINode _dialogView(bool open, DialogDemoStore store) {
   const MaterialPalette palette = MaterialPalette.light;
 
-  return Box(
-    direction: Axis.horizontal,
-    crossAlign: CrossAlign.start,
+  // A grid, so the button and the note beside it stack on a narrow window instead
+  // of pushing the page sideways.
+  return GridNode(
+    minItemWidth: 240,
+    maxColumns: 3,
     gap: 24,
     children: <UINode>[
       Box(
@@ -414,7 +415,7 @@ UINode _dialogView(bool open, DialogDemoStore store) {
         ],
       ),
       Box(
-        width: 320,
+        width: double.infinity,
         children: <UINode>[
           TextNode(
             'Title, content and actions, on the surface a dialog is raised by. The '
