@@ -35,6 +35,13 @@ void exportTo(Directory output) {
         theme: ExamplePalette.theme,
         // A document has no click, so the one that exists to *show* the dialog says so.
         showOverlays: page == ExamplePage.signup,
+        // The bundle is downloaded while the reader reads, and boots when they ask. The
+        // example is the application's front door, so a reader who only reads still gets
+        // it — after the load, when the browser is idle.
+        prefetch: <String>[boot],
+        scripts: <DocumentScript>[
+          DocumentScript.inline(body: bootScript(boot)),
+        ],
       ),
     );
 
@@ -51,6 +58,12 @@ String _routeOf(ExamplePage page) => switch (page) {
   ExamplePage.apartments => 'listings',
   ExamplePage.signup => 'signup',
 };
+
+/// The bootstrap the page loads to become the application.
+///
+/// The pages sit one directory below the Flutter build, which is where
+/// `flutter build web` writes this file.
+const String boot = '../flutter_bootstrap.js';
 
 /// The origin the example pretends to be published from.
 ///

@@ -59,6 +59,24 @@ void main() {
     expect(read('listings/index.html'), isNot(contains('role="dialog"')));
   });
 
+  test('downloads the application while the reader reads', () {
+    // Deferred execution, not a deferred download: a boot on a cold cache is a dead click.
+    expect(
+      read('listings/index.html'),
+      contains(
+        '<link rel="prefetch" href="../flutter_bootstrap.js" as="script">',
+      ),
+    );
+  });
+
+  test('boots the application only when the reader asks, or when the browser is idle', () {
+    final String listings = read('listings/index.html');
+
+    expect(listings, contains('unibox.boot'));
+    expect(listings, contains('pointerover'));
+    expect(listings, contains('requestIdleCallback'));
+  });
+
   test('gives every document a canonical url and a description', () {
     final String listings = read('listings/index.html');
 

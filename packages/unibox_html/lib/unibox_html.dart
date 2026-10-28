@@ -24,6 +24,7 @@
 library;
 
 export 'src/client/all.dart' show uniboxClientScript;
+export 'src/client/boot.dart' show bootScript;
 export 'src/client/press.dart'
     show pressKeyAttribute, pressRecordLimit, pressScript;
 export 'src/document.dart';

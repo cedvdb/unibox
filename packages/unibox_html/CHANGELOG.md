@@ -8,6 +8,17 @@
   never one assembled from data a reader supplied. An embed carrying a payload for another
   target is reported, not skipped.
 
+- `bootScript(src, whenIdle: …)`: the handover, as one script. It loads the application on
+  intent — a pointer, a touch, a key, a focus — and, for a page that exists for its
+  application, when the browser is idle after the load. The url it is given is escaped both
+  as a JavaScript string and for a raw text element, because a parameter that becomes markup
+  is an injection.
+
+- `toDocument(prefetch: …)`: the bundle is fetched at a low priority while the reader reads,
+  so a boot that waits for intent is never a boot on a cold cache. Deferring the execution
+  is the point; deferring the download as well is how a page gets a good score and a
+  two-second dead click.
+
 - The client code is a folder: `client/press.dart` holds the record and the script that
   keeps it, and `client/all.dart` is the name a host includes. The scroll recorder joins
   them when `unibox_jaspr` goes, so every line of client code ends up in one place.

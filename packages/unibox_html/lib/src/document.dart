@@ -87,6 +87,7 @@ String toDocument(
   String? canonical,
   Map<String, String> meta = const <String, String>{},
   List<DocumentScript> scripts = const <DocumentScript>[],
+  List<String> prefetch = const <String>[],
   core.UniboxTheme? theme,
   bool showOverlays = false,
 }) {
@@ -136,6 +137,13 @@ String toDocument(
       '<meta name="${escapeAttribute(entry.key)}" '
       'content="${escapeAttribute(entry.value)}">',
     );
+  }
+
+  // Fetched at a low priority while the reader reads, so a boot that waits for intent is
+  // never a boot on a cold cache. The download is not what the reader pays for; the
+  // execution is.
+  for (final String url in prefetch) {
+    head.write('<link rel="prefetch" href="${safeUrl(url)}" as="script">');
   }
 
   head.write('<style>${rendered.css}</style>');
