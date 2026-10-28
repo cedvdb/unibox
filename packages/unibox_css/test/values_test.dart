@@ -79,4 +79,84 @@ void main() {
       expect(cssObjectFit(core.ImageFit.scaleDown), 'scale-down');
     });
   });
+
+  group('a layout keyword', () {
+    test('names the axis as CSS does', () {
+      expect(cssFlexDirection(core.Axis.horizontal), 'row');
+      expect(cssFlexDirection(core.Axis.vertical), 'column');
+    });
+
+    test('distributes as CSS does', () {
+      expect(cssJustifyContent(core.MainAlign.start), 'start');
+      expect(cssJustifyContent(core.MainAlign.center), 'center');
+      expect(cssJustifyContent(core.MainAlign.end), 'end');
+      expect(cssJustifyContent(core.MainAlign.spaceBetween), 'space-between');
+      expect(cssJustifyContent(core.MainAlign.spaceAround), 'space-around');
+      expect(cssJustifyContent(core.MainAlign.spaceEvenly), 'space-evenly');
+    });
+
+    test('aligns as CSS does', () {
+      expect(cssAlignItems(core.CrossAlign.start), 'start');
+      expect(cssAlignItems(core.CrossAlign.center), 'center');
+      expect(cssAlignItems(core.CrossAlign.end), 'end');
+      expect(cssAlignItems(core.CrossAlign.stretch), 'stretch');
+    });
+
+    test('scrolls only when the content overflows', () {
+      // `auto` rather than `scroll`: a scrollbar appears when there is something to
+      // scroll, which is what a Flutter `SingleChildScrollView` does.
+      expect(cssOverflow(core.Overflow.visible), 'visible');
+      expect(cssOverflow(core.Overflow.hidden), 'hidden');
+      expect(cssOverflow(core.Overflow.scroll), 'auto');
+    });
+
+    test('aligns text as CSS does', () {
+      expect(cssTextAlign(core.TextAlign.left), 'left');
+      expect(cssTextAlign(core.TextAlign.center), 'center');
+      expect(cssTextAlign(core.TextAlign.right), 'right');
+      expect(cssTextAlign(core.TextAlign.justify), 'justify');
+    });
+
+    test('states a weight as a number rather than a name', () {
+      // `bold` resolves differently in different fonts; 700 does not.
+      expect(cssFontWeight(core.FontWeight.normal), '400');
+      expect(cssFontWeight(core.FontWeight.medium), '500');
+      expect(cssFontWeight(core.FontWeight.semiBold), '600');
+      expect(cssFontWeight(core.FontWeight.bold), '700');
+    });
+  });
+
+  group('a border, a shadow and a corner', () {
+    test('are written in the order CSS reads them', () {
+      expect(
+        cssBorder(
+          const core.BoxBorder(width: 2, color: core.BoxColor(0xFF112233)),
+        ),
+        'solid #112233 2px',
+      );
+      expect(
+        cssBoxShadow(
+          const core.BoxShadow(
+            color: core.BoxColor(0xFF112233),
+            offsetX: 1,
+            offsetY: 2,
+            blurRadius: 4,
+            spreadRadius: 6,
+          ),
+        ),
+        '1px 2px 4px 6px #112233',
+      );
+      expect(
+        cssCorners(
+          const core.BoxBorderRadius(
+            topLeft: 8,
+            topRight: 8,
+            bottomRight: 0,
+            bottomLeft: 0,
+          ),
+        ),
+        '8px 8px 0px 0px',
+      );
+    });
+  });
 }

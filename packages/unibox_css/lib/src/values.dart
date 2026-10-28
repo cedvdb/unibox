@@ -98,3 +98,80 @@ String cssObjectFit(core.ImageFit fit) {
     core.ImageFit.scaleDown => 'scale-down',
   };
 }
+
+/// A model [core.Axis] as the CSS `flex-direction` keyword.
+String cssFlexDirection(core.Axis axis) => switch (axis) {
+  core.Axis.horizontal => 'row',
+  core.Axis.vertical => 'column',
+};
+
+/// A model [core.MainAlign] as the CSS `justify-content` keyword.
+String cssJustifyContent(core.MainAlign align) => switch (align) {
+  core.MainAlign.start => 'start',
+  core.MainAlign.center => 'center',
+  core.MainAlign.end => 'end',
+  core.MainAlign.spaceBetween => 'space-between',
+  core.MainAlign.spaceAround => 'space-around',
+  core.MainAlign.spaceEvenly => 'space-evenly',
+};
+
+/// A model [core.CrossAlign] as the CSS `align-items` keyword.
+String cssAlignItems(core.CrossAlign align) => switch (align) {
+  core.CrossAlign.start => 'start',
+  core.CrossAlign.center => 'center',
+  core.CrossAlign.end => 'end',
+  core.CrossAlign.stretch => 'stretch',
+};
+
+/// A model [core.Overflow] as the CSS `overflow` keyword.
+///
+/// A scrollable box maps to `auto`, so scrollbars appear only when the content
+/// actually overflows — which is what a Flutter `SingleChildScrollView` does too.
+String cssOverflow(core.Overflow overflow) => switch (overflow) {
+  core.Overflow.visible => 'visible',
+  core.Overflow.hidden => 'hidden',
+  core.Overflow.scroll => 'auto',
+};
+
+/// A model [core.FontWeight] as the number CSS wants.
+///
+/// The model names four weights and CSS accepts any hundreds value; the number is
+/// written rather than `normal` or `bold`, so a host that sets a weight between two
+/// of the model's cannot be surprised by what `bold` resolves to.
+String cssFontWeight(core.FontWeight weight) => switch (weight) {
+  core.FontWeight.normal => '400',
+  core.FontWeight.medium => '500',
+  core.FontWeight.semiBold => '600',
+  core.FontWeight.bold => '700',
+};
+
+/// A model [core.TextAlign] as the CSS `text-align` keyword.
+String cssTextAlign(core.TextAlign align) => switch (align) {
+  core.TextAlign.left => 'left',
+  core.TextAlign.center => 'center',
+  core.TextAlign.right => 'right',
+  core.TextAlign.justify => 'justify',
+};
+
+/// A model [core.BoxBorder] as CSS writes a `border`.
+///
+/// CSS states the style first, then the colour, then the width, which is the order
+/// the declaration is written in here.
+String cssBorder(core.BoxBorder border) =>
+    'solid ${cssColor(border.color)} ${cssPixels(border.width)}';
+
+/// A model [core.BoxShadow] as CSS writes one shadow.
+///
+/// Offset, blur, spread, colour — the order CSS reads them in.
+String cssBoxShadow(core.BoxShadow shadow) => <String>[
+  cssPixels(shadow.offsetX),
+  cssPixels(shadow.offsetY),
+  cssPixels(shadow.blurRadius),
+  cssPixels(shadow.spreadRadius),
+  cssColor(shadow.color),
+].join(' ');
+
+/// The four corner radii of [corners], in CSS's order: top left, top right,
+/// bottom right, bottom left.
+String cssCorners(core.BoxBorderRadius corners) =>
+    corners.radii.map(cssPixels).join(' ');

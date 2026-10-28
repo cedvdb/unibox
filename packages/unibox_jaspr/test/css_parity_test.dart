@@ -71,6 +71,88 @@ void main() {
       });
     }
   });
+  group('a keyword is spelled the same way', () {
+    test('for every axis', () {
+      for (final core.Axis axis in core.Axis.values) {
+        expect(
+          declarationsOf(Styles(flexDirection: toCssFlexDirection(axis))),
+          'flex-direction:${css.cssFlexDirection(axis)}',
+        );
+      }
+    });
+
+    test('for every main alignment', () {
+      for (final core.MainAlign align in core.MainAlign.values) {
+        expect(
+          declarationsOf(Styles(justifyContent: toCssJustifyContent(align))),
+          'justify-content:${css.cssJustifyContent(align)}',
+        );
+      }
+    });
+
+    test('for every cross alignment', () {
+      for (final core.CrossAlign align in core.CrossAlign.values) {
+        expect(
+          declarationsOf(Styles(alignItems: toCssAlignItems(align))),
+          'align-items:${css.cssAlignItems(align)}',
+        );
+      }
+    });
+
+    test('for every overflow', () {
+      for (final core.Overflow overflow in core.Overflow.values) {
+        expect(
+          declarationsOf(Styles(overflow: toCssOverflow(overflow))),
+          'overflow:${css.cssOverflow(overflow)}',
+        );
+      }
+    });
+
+    test('for every weight and every text alignment', () {
+      for (final core.FontWeight weight in core.FontWeight.values) {
+        expect(
+          declarationsOf(Styles(fontWeight: toCssFontWeight(weight))),
+          'font-weight:${css.cssFontWeight(weight)}',
+        );
+      }
+
+      for (final core.TextAlign align in core.TextAlign.values) {
+        expect(
+          declarationsOf(Styles(textAlign: toCssTextAlign(align))),
+          'text-align:${css.cssTextAlign(align)}',
+        );
+      }
+    });
+  });
+
+  group('a border, a shadow and a corner are spelled the same way', () {
+    test('as a border', () {
+      const core.BoxBorder border = core.BoxBorder(
+        width: 2,
+        color: core.BoxColor(0xFF112233),
+      );
+
+      expect(
+        declarationsOf(Styles(border: toCssBorder(border))),
+        'border:${css.cssBorder(border)}',
+      );
+    });
+
+    test('as a shadow', () {
+      const core.BoxShadow shadow = core.BoxShadow(
+        color: core.BoxColor(0xFF112233),
+        offsetX: 1,
+        offsetY: 2,
+        blurRadius: 4,
+        spreadRadius: 6,
+      );
+
+      expect(
+        declarationsOf(Styles(shadow: toCssBoxShadow(shadow))),
+        'box-shadow:${css.cssBoxShadow(shadow)}',
+      );
+    });
+  });
 }
 
 /// A role a design system would name; any enum does.
