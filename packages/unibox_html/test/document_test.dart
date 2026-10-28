@@ -108,10 +108,10 @@ void main() {
     test('carries the scripts the host needs, deferred', () {
       final String html = toDocument(
         const core.TextNode('Hi'),
-        scripts: const <DocumentScript>[DocumentScript(src: '/main.client.js')],
+        scripts: const <DocumentScript>[DocumentScript(src: '/app.js')],
       );
 
-      expect(html, contains('<script src="/main.client.js" defer></script>'));
+      expect(html, contains('<script src="/app.js" defer></script>'));
     });
 
     test('takes a nonce for a policy that refuses inline script', () {

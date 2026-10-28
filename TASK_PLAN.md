@@ -309,7 +309,7 @@ Deliberately out of scope for this pass, with the reason they were left:
 - `Box.onScroll` and scroll position *out of* a tree: needs a shared scroll model that
   neither `SingleChildScrollView` nor the browser state exposes the same way. What has
   landed is the other direction — a page records where it was scrolled and a takeover
-  starts there (the key attribute, and `JasprScrollRecorder` in `unibox_jaspr`) — because
+  starts there (the key attribute, and `scrollScript` in `unibox_html`) — because
   a position read *before* the tree is drawn is a value the host can pass in, while a
   position reported *while* it scrolls is a callback neither host spells the same way.
 - A focus frame around a field: the browser's native ring is stripped (it sits
@@ -377,7 +377,7 @@ Deliberately out of scope for this pass, with the reason they were left:
   no longer in the way: `MaterialInkWell` clips its own content and lets every box in
   the ink carry its size, so the ripple does not need the rule.
 - An icon subset for the web export. Flutter's `--tree-shake-icons` is a build feature of
-  the Flutter target; a Jaspr export serves whatever font the host puts beside its
+  the Flutter target; a web export serves whatever font the host puts beside its
   `@font-face`. The subset has to be produced once — the Flutter build already writes it,
   or `pyftsubset` makes one — and copied into the static site. **Deferred**: the
   material README states the recipe, and the example carries no icons.

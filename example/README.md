@@ -232,9 +232,8 @@ tool/site.sh --base=/unibox/ --url=https://cedvdb.github.io/unibox/
 | Path | What it is |
 | --- | --- |
 | `/` | The site: the claim, the comparison and the catalogue, as one page |
-| `/web/listings/` | The example, rendered by the document renderer — the left frame |
+| `/web/listings/` | The example as a document — the left frame, and the page the app takes over |
 | `/web/signup/` | The same page with the sign-up dialog over it |
-| `/main.client.js` | The browser runtime the three above load |
 | `/flutter/listings/`, `/flutter/signup/` | The same example, built by Flutter — the right frame |
 
 `build/site/version.txt` names the commit the site was built from. A deploy is not

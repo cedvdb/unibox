@@ -579,7 +579,7 @@ on both targets, at every width.
 element and its subtree stay in the DOM, stay in the HTML a crawler reads, and stay
 queryable — what they lose is layout, paint, focus and their place in the
 accessibility tree. That is the property the whole design leans on (the markup is the
-same at every width, so a hydrated page cannot disagree with the server), and it is
+same at every width, so nothing that adopts it can draw a different page), and it is
 also its price: a hidden subtree still ships, and an `<iframe>` inside one may still
 load. Hiding because of **state** is the opposite and stays the view's job — a node
 the view does not return is genuinely absent from the DOM, which is why the map's
@@ -601,8 +601,8 @@ tree gets to the DOM that stays.
 
 What that buys, stated as the invariants the feature has to keep:
 
-- the markup is identical at every width, so a hydrated page cannot disagree with
-  the server's;
+- the markup is identical at every width, so a client that adopts it draws the same
+  page;
 - every variant is in the CSS, mobile-first: the base rule describes the narrow
   layout and the container query adds the wide one, so a browser without container
   queries still renders the mobile layout rather than a broken desktop one;
@@ -620,7 +620,7 @@ What that buys, stated as the invariants the feature has to keep:
   `data-unibox-node="material-card"`.
 - It is written always, and not behind a flag. A name carries no look, so there is
   nothing a switch could protect; and a page cannot disagree between its server render
-  and the client that hydrates it when there is no switch for the two to differ on.
+  and the client that adopts it when there is no switch for the two to differ on.
 - It is an attribute and not a class because `class` is the stylesheet's namespace. A
   second class there would either carry no rule — misleading every reader of the
   output, including the suites, which resolve a look through the classes an element

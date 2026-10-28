@@ -229,6 +229,27 @@ than an assumption.
 - `tool/` measures the handover: the exported page is served, driven, and timed from the
   first byte to the first Flutter frame, with the number recorded beside the export.
 
+### What is not wired yet: the boot's own base path
+
+A takeover page loads `flutter_bootstrap.js`, and Flutter resolves its entrypoint against
+`document.baseURI` — `new URL(path, document.baseURI)`. Our documents sit at `web/listings/`
+with no `<base>` element, so the bundle is fetched correctly from `../../flutter/` and then asks
+for `/web/listings/main.dart.js`, which is a 404. The page boots into nothing.
+
+Three ways out, and the first is the one that keeps the page's own relative links working:
+
+1. **Replace `flutter_bootstrap.js` with our own loader call** that passes
+   `{config: {basePath: '../../flutter/'}}`. Flutter supports it for exactly this case; it costs
+   one file in the export and no `<base>`.
+2. Give the document a `<base href="../../flutter/">` — which then rewrites every relative link,
+   every `src` and both frames of the comparison. Not worth it.
+3. Move the takeover documents to the site root, where the default resolves. That loses the
+   per-route documents the export exists to write.
+
+Until one of them lands, `/web/listings/` is a document that does not become the application:
+the score is real, the handover is not. The gate measures the document, so it cannot see this —
+which is the same gap the boot-to-interactive number covers.
+
 ### The gate: measured, not predicted
 
 `tool/lighthouse.sh` runs Lighthouse against the exported pages in CI with a budget, not a
