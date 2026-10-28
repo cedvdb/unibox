@@ -10,10 +10,9 @@ workspace:
   - packages/unibox_testing
   - packages/unibox_core
   - packages/unibox_flutter
-  - packages/unibox_jaspr
   - packages/unibox_css
   - packages/unibox_html
   - packages/unibox_material
   - example/unibox_example_shared
   - example/unibox_example_flutter
-  - example/unibox_example_jaspr
+  - example/unibox_example_site

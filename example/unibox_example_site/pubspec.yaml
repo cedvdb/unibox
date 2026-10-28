@@ -1,0 +1,18 @@
+name: unibox_example_site
+description: The site of the example, exported as documents a crawler can read.
+publish_to: none
+version: 0.1.0
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  unibox_core: ^0.1.0
+  unibox_example_shared: ^0.1.0
+  unibox_html: ^0.1.0
+  unibox_material: ^0.1.0
+
+dev_dependencies:
+  lints: ^6.1.0
+  test: ^1.25.8

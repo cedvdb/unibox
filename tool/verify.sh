@@ -72,10 +72,9 @@ packages/unibox_testing|dart
 packages/unibox_material|dart
 packages/unibox_css|dart
 packages/unibox_html|dart
-packages/unibox_jaspr|dart
 packages/unibox_flutter|flutter
 example/unibox_example_shared|dart
-example/unibox_example_jaspr|dart
+example/unibox_example_site|dart
 example/unibox_example_flutter|flutter
 SUITES
 fi
@@ -83,7 +82,7 @@ fi
 if [ "$build_docs" -eq 1 ]; then
   # dartdoc reports a problem as a warning and still exits 0, which is why CI
   # reads the log as well; a public member without a doc comment has to fail here.
-  for package in unibox_core unibox_testing unibox_material unibox_css unibox_html unibox_flutter unibox_jaspr; do
+  for package in unibox_core unibox_testing unibox_material unibox_css unibox_html unibox_flutter; do
     step "Documenting $package"
     output="$(mktemp -d)/docs"
     log="$(mktemp)"

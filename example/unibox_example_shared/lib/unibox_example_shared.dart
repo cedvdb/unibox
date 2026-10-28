@@ -3,8 +3,8 @@
 /// [ExamplePageNode] is the application the site compares: a [StatefulNode] whose
 /// store holds the form and whether the sign-up dialog is open, and whose view draws
 /// the navigation bar, the listings and the dialog. The tree is plain Dart, so the
-/// same node renders as Flutter widgets in `unibox_example_flutter` and as HTML/CSS
-/// in `unibox_example_jaspr`.
+/// same node renders as Flutter widgets in `unibox_example_flutter` and as a document in
+/// `unibox_example_site`.
 ///
 /// The site itself is one page — [buildSitePage] — of three bands: the claim, the
 /// comparison, and the Material catalogue. Its sections are node trees too, so the

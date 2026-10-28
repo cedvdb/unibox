@@ -59,17 +59,14 @@ jobs:
       - name: unibox_html
         working-directory: packages/unibox_html
         run: dart test
-      - name: unibox_jaspr
-        working-directory: packages/unibox_jaspr
-        run: dart test
       - name: unibox_flutter
         working-directory: packages/unibox_flutter
         run: flutter test
       - name: example shared tree
         working-directory: example/unibox_example_shared
         run: dart test
-      - name: example Jaspr host
-        working-directory: example/unibox_example_jaspr
+      - name: example site host
+        working-directory: example/unibox_example_site
         run: dart test
       - name: example Flutter host
         working-directory: example/unibox_example_flutter
@@ -107,7 +104,6 @@ jobs:
           unibox_css
           unibox_html
           unibox_flutter
-          unibox_jaspr
           PACKAGES
 
   performance:

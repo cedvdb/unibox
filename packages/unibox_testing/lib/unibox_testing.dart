@@ -2,7 +2,7 @@
 ///
 /// One table of boxes, one of texts, one of overlays, and the presentation each
 /// of them has to be given, checked from the output of every renderer: `unibox_flutter` reads
-/// it out of the widget tree it built, `unibox_jaspr` out of the CSS it emitted.
+/// it out of the widget tree it built, `unibox_html` out of the CSS it emitted.
 /// Neither reads the node tree, so a renderer that stops honouring a token fails a
 /// test instead of drifting away from the other one.
 ///
