@@ -186,6 +186,7 @@ logical pixels. `design.md` §5.15 holds the reasoning; these are the pieces.
 - [ ] Task 128: Example — the map returns to the listings page as the wide-only column, the grid takes `maxColumns: 2` beside it, and below 900 a floating button opens the map as an `OverlayNode` (state, not width). Four widths are checked in both renderings, and the DOM is compared between the widths to prove it is identical.
 - [x] Task 129: `unibox_material` — `MaterialInkWell` returns as a state layer, now that the palette names the three layers: hover, focus and press as roles, a 100ms fade, the button role when it can be tapped, and no surface of its own, so the filled box goes around it. The gallery uses it for its buttons and its Dialog section is a `DialogDemo` `StatefulNode` whose button opens a real `MaterialDialog` — which needed two browser fixes: `JasprStylesheet` keeps the sheet in `<style id="unibox-styles">` in the head and appends a look a redrawn subtree registers (before, a dialog opened by a store arrived with no `position: fixed` layer), and the overlay hears `Escape` on the document. `sitePageForPath` also answers a page whose document is linked as `index.html`, which the runtime used to render as the home page.
 - [x] Task 130: `unibox_material` — `MaterialInkWell` ripples. The ink is state: a `MaterialInkStore` adds a drop where the pointer landed, a timer advances it every frame, and the view draws one circle per drop (12% of `onSurface`, 280 pixels at its widest, gone after 450ms) under the content. The well became a `StatefulNode` over the box it already drew, and it clips its own content to its radius, so no renderer learned a new trick and the ripple needed no fill rule. The example's `RippleButton` and its `RippleStore` are gone — the design system has the component — and the gallery's buttons and dialog actions name the ink that contrasts with their fill.
+- [x] Task 131: `BoxShape` — a box can be painted in an outline instead of a rectangle. The value is a path in a view box, in the command vocabulary of SVG's `d` (`M`, `L`, `C`, `Q`, `A`, `Z`) with a fill rule; the background fills it, the border is a stroke along it, `overflow: hidden` clips the children to it, and `BoxFillRule.evenOdd` turns two circles into a ring. Flutter draws it with `CustomPaint` over `pathOf(shape, size)` and clips with `ClipPath`; the web paints an `<svg viewBox>` layer whose path reads three custom properties, so a state rule can paint a shape and a transition can ease it, and clips through a `clip-path` in bounding box units. Layout is untouched, so the label of a ring is an ordinary child. Documented in `design.md` §5.17, with the deferred progress ring now expressible as an annulus sector the material package can compute.
 
 ### Phase 24: Material fidelity
 - [x] Task 116: Audit the Material components against the Material 3 specification and fix the gaps: card variants on the palette, list tile padding and palette colours, text field minimum height, focused outline, hover and disabled states, dialog content and action colours, a full-width bottom sheet with a drag handle and an upward shadow.
@@ -362,9 +363,10 @@ Deliberately out of scope for this pass, with the reason they were left:
   `@font-face`. The subset has to be produced once — the Flutter build already writes it,
   or `pyftsubset` makes one — and copied into the static site. **Deferred**: the
   material README states the recipe, and the example carries no icons.
-- A circular progress indicator. A ring needs an arc, and the model has no gradient, no
-  per-side border and no clipping that punches a hole, so it cannot be composed from
-  boxes; indeterminate, it also needs an animation the model does not have. A node is
+- A circular progress indicator. A ring needs an arc, and the model had no gradient, no
+  per-side border and no clipping that punched a hole; Task 131 gave it `BoxShape`, so a
+  determinate ring is now an annulus sector — a path the material package can compute —
+  and only the indeterminate sweep needs a store and a timer. A node is
   therefore the only way to describe one, and it was written for the overlays PR with
   Material's defaults in core, no conformance case and a debug `assert` for the range.
   **Discarded** until it carries no design-system numbers, `validateTree` bounds the

@@ -67,6 +67,13 @@ UINode buildMaterialSection() {
         // wall of swatches need a name, not a paragraph.
         _section('Type scale', _typeScale()),
         _section('Colour roles', _palette(palette)),
+        // The third value a box can name: its outline. A ring is one path with two
+        // circles and the even-odd rule, and the label in its hole is an ordinary child.
+        _section(
+          'Shapes',
+          _shapes(palette),
+          note: 'A path in a view box: a hexagon, a circle, and a ring.',
+        ),
       ],
     ),
   );
@@ -222,6 +229,91 @@ UINode _swatch(String name, BoxColor color, MaterialPalette palette) {
     ],
   );
 }
+
+/// The outlines a box can wear: a hexagon, a circle and a ring.
+///
+/// Each one is a `BoxShape` — a path in a 100 by 100 view box — so the same value
+/// draws the same silhouette at 40 pixels and at 96. Nothing else about the box
+/// changes: the label inside the ring is a child that the column centres.
+UINode _shapes(MaterialPalette palette) {
+  return Box(
+    direction: Axis.horizontal,
+    crossAlign: CrossAlign.center,
+    gap: 24,
+    children: <UINode>[
+      _badge(_hexagon, palette.primary, palette.onPrimary, '6'),
+      _badge(
+        BoxShape.circle,
+        palette.primaryContainer,
+        palette.onPrimaryContainer,
+        'Ada',
+        outline: palette.primary,
+      ),
+      // The label of a ring sits in the hole, so it is painted in the ring's own
+      // colour rather than on top of it.
+      _badge(_ring, palette.primary, palette.primary, '42%'),
+    ],
+  );
+}
+
+/// One shape with its label, both centred in the box's rectangle.
+///
+/// [outline] draws a border along the outline rather than around the rectangle,
+/// which is what a shape does with the same token a square box uses.
+UINode _badge(
+  BoxShape shape,
+  BoxColor fill,
+  BoxColor ink,
+  String label, {
+  BoxColor? outline,
+}) {
+  return Box(
+    width: 96,
+    height: 96,
+    shape: shape,
+    backgroundColor: fill,
+    border: outline == null ? null : BoxBorder(width: 2, color: outline),
+    mainAlign: MainAlign.center,
+    crossAlign: CrossAlign.center,
+    children: <UINode>[
+      TextNode(
+        label,
+        style: MaterialTypography.labelLarge.copyWith(color: ink),
+      ),
+    ],
+  );
+}
+
+/// A hexagon: six edges of the view box.
+const BoxShape _hexagon = BoxShape(
+  viewBoxWidth: 100,
+  viewBoxHeight: 100,
+  commands: <BoxPathCommand>[
+    BoxPathMoveTo(50, 0),
+    BoxPathLineTo(93, 25),
+    BoxPathLineTo(93, 75),
+    BoxPathLineTo(50, 100),
+    BoxPathLineTo(7, 75),
+    BoxPathLineTo(7, 25),
+    BoxPathClose(),
+  ],
+);
+
+/// A ring: an outer circle and an inner one, the second punched out by the
+/// even-odd rule.
+const BoxShape _ring = BoxShape(
+  viewBoxWidth: 100,
+  viewBoxHeight: 100,
+  fillRule: BoxFillRule.evenOdd,
+  commands: <BoxPathCommand>[
+    BoxPathMoveTo(50, 0),
+    BoxPathArcTo(50, 100, radiusX: 50, radiusY: 50),
+    BoxPathArcTo(50, 0, radiusX: 50, radiusY: 50),
+    BoxPathMoveTo(50, 12),
+    BoxPathArcTo(50, 88, radiusX: 38, radiusY: 38),
+    BoxPathArcTo(50, 12, radiusX: 38, radiusY: 38),
+  ],
+);
 
 /// A Material button: a filled surface with a [MaterialInkWell] over it.
 ///

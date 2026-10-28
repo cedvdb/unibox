@@ -126,6 +126,7 @@ void main() {
         'Dialog',
         'Type scale',
         'Colour roles',
+        'Shapes',
       ]);
     });
 
