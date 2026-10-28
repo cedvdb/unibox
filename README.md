@@ -602,8 +602,8 @@ A scale can be written by hand, as the example does, or taken ready made:
 [`unibox_material`](packages/unibox_material/README.md) holds the Material 3 type
 scale as `const BoxTextStyle` values (`MaterialTypography.titleLarge`,
 `MaterialTypography.bodyMedium`, ...), the colour roles as a `MaterialPalette` value,
-and eight components built from the same tokens: a card, a list tile, a button, an ink well, a
-text field, an icon, a dialog and a bottom sheet. It is optional and pure Dart, and the
+and nine components built from the same tokens: a card, a list tile, a button, a chip,
+an ink well, a text field, an icon, a progress ring and a bottom sheet. It is optional and pure Dart, and the
 renderers do not know it exists — a tree that uses it is drawn by the same two
 renderers as one that does not.
 

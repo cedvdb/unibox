@@ -2,6 +2,15 @@
 
 ## 0.1.0
 
+- `MaterialChip`: a Material 3 filter chip — the small 8 pixel shape at 32 pixels tall,
+  a 1 pixel `outline` line and an `onSurfaceVariant` label when it is not chosen, a
+  `secondaryContainer` fill and an `onSecondaryContainer` label when it is, 16 pixels
+  of room in the well and a button role that says whether it is chosen. The room sits
+  in the ink well alone, so a hover tint reaches exactly the edge of the pill.
+- `secondary`, `onSecondary`, `secondaryContainer` and `onSecondaryContainer` join the
+  colour roles: the accent a chosen control wears, which a chip and a segmented button
+  fill with.
+
 - `MaterialElevation`: the five levels of Material 3 as the shadow each one casts,
   plus the upward level a sheet throws. `MaterialCard.elevatedShadow`,
   `MaterialDialog.elevation` and the bottom sheet's shadow are now this scale rather

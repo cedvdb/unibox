@@ -19,6 +19,18 @@ enum MaterialColorRole {
   /// The text and icons drawn on [primaryContainer].
   onPrimaryContainer,
 
+  /// The accent of a quieter, chosen thing: a selected chip, a selected segment.
+  secondary,
+
+  /// The text and icons drawn on [secondary].
+  onSecondary,
+
+  /// The container a chosen control fills with.
+  secondaryContainer,
+
+  /// The text and icons drawn on [secondaryContainer].
+  onSecondaryContainer,
+
   /// The page itself.
   surface,
 
@@ -102,6 +114,10 @@ final class MaterialPalette {
     required this.onPrimary,
     required this.primaryContainer,
     required this.onPrimaryContainer,
+    required this.secondary,
+    required this.onSecondary,
+    required this.secondaryContainer,
+    required this.onSecondaryContainer,
     required this.surface,
     required this.onSurface,
     required this.onSurfaceVariant,
@@ -127,6 +143,18 @@ final class MaterialPalette {
 
   /// The text and icons drawn on [primaryContainer].
   final BoxColor onPrimaryContainer;
+
+  /// The accent of a quieter, chosen thing: a selected chip or segment.
+  final BoxColor secondary;
+
+  /// The text and icons drawn on [secondary].
+  final BoxColor onSecondary;
+
+  /// The container a chosen control fills with.
+  final BoxColor secondaryContainer;
+
+  /// The text and icons drawn on [secondaryContainer].
+  final BoxColor onSecondaryContainer;
 
   /// The background of a page.
   final BoxColor surface;
@@ -193,6 +221,10 @@ final class MaterialPalette {
       MaterialColorRole.onPrimary: onPrimary,
       MaterialColorRole.primaryContainer: primaryContainer,
       MaterialColorRole.onPrimaryContainer: onPrimaryContainer,
+      MaterialColorRole.secondary: secondary,
+      MaterialColorRole.onSecondary: onSecondary,
+      MaterialColorRole.secondaryContainer: secondaryContainer,
+      MaterialColorRole.onSecondaryContainer: onSecondaryContainer,
       MaterialColorRole.surface: surface,
       MaterialColorRole.onSurface: onSurface,
       MaterialColorRole.onSurfaceVariant: onSurfaceVariant,
@@ -224,6 +256,10 @@ final class MaterialPalette {
     onPrimary: BoxColor(0xFFFFFFFF),
     primaryContainer: BoxColor(0xFFEADDFF),
     onPrimaryContainer: BoxColor(0xFF21005D),
+    secondary: BoxColor(0xFF625B71),
+    onSecondary: BoxColor(0xFFFFFFFF),
+    secondaryContainer: BoxColor(0xFFE8DEF8),
+    onSecondaryContainer: BoxColor(0xFF1D192B),
     surface: BoxColor(0xFFFEF7FF),
     onSurface: BoxColor(0xFF1D1B20),
     onSurfaceVariant: BoxColor(0xFF49454F),
@@ -244,6 +280,10 @@ final class MaterialPalette {
     onPrimary: BoxColor(0xFF381E72),
     primaryContainer: BoxColor(0xFF4F378B),
     onPrimaryContainer: BoxColor(0xFFEADDFF),
+    secondary: BoxColor(0xFFCCC2DC),
+    onSecondary: BoxColor(0xFF332D41),
+    secondaryContainer: BoxColor(0xFF4A4458),
+    onSecondaryContainer: BoxColor(0xFFE8DEF8),
     surface: BoxColor(0xFF141218),
     onSurface: BoxColor(0xFFE6E0E9),
     onSurfaceVariant: BoxColor(0xFFCAC4D0),

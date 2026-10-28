@@ -322,35 +322,16 @@ UINode _filters({TapCallback? onOpenMap}) {
 }
 
 /// One pill of the filter row.
+///
+/// A `MaterialChip` and not a box with an ink well around it: the chip owns the room
+/// inside the pill, so the tint of a hover reaches exactly its edge. Composed by hand
+/// with a padding on the well *and* one on the box inside it, the tint extended past
+/// the pill by 14 pixels on every side.
 UINode _chip(String label, {bool selected = false, TapCallback? onTap}) {
-  return MaterialInkWell(
+  return MaterialChip(
+    label: TextNode(label),
+    selected: selected,
     onTap: onTap ?? () {},
-    borderRadius: 999,
-    padding: const BoxSpacing.symmetric(horizontal: 14, vertical: 8),
-    child: Box(
-      borderRadius: 999,
-      backgroundColor: selected
-          ? const BoxColor.role(MaterialColorRole.primaryContainer)
-          : null,
-      border: selected
-          ? null
-          : const BoxBorder(
-              color: BoxColor.role(MaterialColorRole.outlineVariant),
-            ),
-      padding: const BoxSpacing.symmetric(horizontal: 14, vertical: 8),
-      children: <UINode>[
-        TextNode(
-          label,
-          style: MaterialTypography.labelLarge.merge(
-            BoxTextStyle(
-              color: selected
-                  ? const BoxColor.role(MaterialColorRole.onPrimaryContainer)
-                  : const BoxColor.role(MaterialColorRole.onSurfaceVariant),
-            ),
-          ),
-        ),
-      ],
-    ),
   );
 }
 

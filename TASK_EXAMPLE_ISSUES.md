@@ -42,7 +42,14 @@ the design system it leans on is `packages/unibox_material`.
   elevation for both. Fix in the design system if the default is wrong, in the example
   if the default is right and the page overrides it.
 
-- [ ] **3. A hovered chip's ink well goes far beyond the chip.**
+- [x] **3. A hovered chip's ink well goes far beyond the chip.** *Done.*
+
+  The cause was two paddings: the well carried 14/8 of room and a box inside it carried
+  another 14/8, so the tint was a whole pill bigger than the pill. `MaterialChip` states
+  the room once, in the well, and clips to the small 8 pixel shape; the filter row is a
+  chip and nothing else. Measured in Chromium: the hover tint and the pill are both 75
+  by 32 at radius 8. The palette also grew the four `secondary` roles, because a chosen
+  control in Material 3 fills with the secondary container.
 
   `_chip` wraps a `MaterialInkWell` around a box that carries the pill's padding and
   radius, so the well is bigger than the pill it belongs to and its tint spills past the

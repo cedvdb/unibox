@@ -201,6 +201,7 @@ renderFlutter(page, theme: MaterialPalette.lightTheme);
 | Role | What Material paints with it |
 | --- | --- |
 | `primary`, `onPrimary`, `primaryContainer`, `onPrimaryContainer` | an accent and the text on it |
+| `secondary`, `onSecondary`, `secondaryContainer`, `onSecondaryContainer` | the quieter accent a chosen control wears |
 | `surface`, `onSurface`, `onSurfaceVariant` | the page, its text, and its lower emphasis text |
 | `surfaceContainerLowest`, `surfaceContainerLow`, `surfaceContainerHigh`, `surfaceContainerHighest` | the tones a card, a dialog and a filled field sit at |
 | `outline`, `outlineVariant` | a line that frames a control, and one that only separates |
@@ -465,6 +466,32 @@ The caret, the selection, the IME and autofill are the platform's, because the i
 node delegates them — so a dark app renders the same field with
 `theme: MaterialPalette.darkTheme` *and* a matching `ColorScheme` to `MaterialApp`.
 
+## The chip
+
+`MaterialChip` is a filter chip: a label in a pill, chosen or not.
+
+```dart
+MaterialChip(label: const TextNode('Two rooms'), selected: true, onTap: filter)
+MaterialChip(label: const TextNode('Studio'), onTap: filter)
+```
+
+| Token | Value |
+| --- | --- |
+| height | 32: `labelLarge`'s 20 pixel line with six above and below |
+| radius | 8, the small shape of Material 3 |
+| unselected | no fill, a 1 pixel `outline` line, `onSurfaceVariant` label |
+| selected | `secondaryContainer` fill, no line, `onSecondaryContainer` label |
+| room | 16 either side, and 8 on the leading side when a node sits there |
+
+It is a [Box] around a `MaterialInkWell`, like `MaterialButton`, and the padding is
+**the well's alone**: one node carries the room inside the chip, so the tint of a
+hover reaches exactly the edge of the pill. Two paddings — one on the well and one on
+a box inside it — is what made a hand-built chip tint 14 pixels past itself. The well
+clips to the radius, so the ink of a press stays inside too.
+
+A chip is a control: it announces itself as a button when it can be pressed, and says
+whether it is chosen, which is a state a screen reader hears rather than a colour.
+
 ## The dialog and the bottom sheet
 
 Both are `OverlayNode`s, so they sit in the tree where the state says they belong, and
@@ -602,7 +629,7 @@ them knowing its name.
 
 ## Scope
 
-The type scale, the colour roles, and eight components. What is deliberately not here
+The type scale, the colour roles, and nine components. What is deliberately not here
 is written on the class that lacks it, and it is all platform behaviour rather than a
 value the model could carry:
 
