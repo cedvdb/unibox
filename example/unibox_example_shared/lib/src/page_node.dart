@@ -57,9 +57,6 @@ UINode exampleView({required ExampleState state, required ExampleStore store}) {
         onNavigate: store.navigate,
       ),
       ExamplePage.apartments || ExamplePage.signup => buildApartmentsPage(
-        mapOpen: state.mapOpen,
-        onOpenMap: store.openMap,
-        onCloseMap: store.closeMap,
         filter: state.filter,
         view: state.view,
         onFilter: store.chooseFilter,

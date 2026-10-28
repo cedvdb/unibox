@@ -14,7 +14,6 @@ final class ExampleState {
   const ExampleState({
     this.form = const SignupFormState(),
     this.signupOpen = false,
-    this.mapOpen = false,
     this.page = ExamplePage.apartments,
     this.filter = defaultFilter,
     this.view = ListingsView.grid,
@@ -35,12 +34,6 @@ final class ExampleState {
   /// How the listings are drawn: one column, or a grid.
   final ListingsView view;
 
-  /// Whether the map is open as a view of its own.
-  ///
-  /// It only matters on a narrow surface: from 900 logical pixels the map is drawn
-  /// beside the listings, and the toggle that opens it is not drawn at all.
-  final bool mapOpen;
-
   /// The page below the bar, which is the destination the bar highlights.
   ///
   /// The sign-up form is not a page: it is a dialog over whichever page this is, so it
@@ -52,7 +45,6 @@ final class ExampleState {
   ExampleState copyWith({
     SignupFormState? form,
     bool? signupOpen,
-    bool? mapOpen,
     ExamplePage? page,
     Object? filter = _unchanged,
     ListingsView? view,
@@ -60,7 +52,6 @@ final class ExampleState {
     return ExampleState(
       form: form ?? this.form,
       signupOpen: signupOpen ?? this.signupOpen,
-      mapOpen: mapOpen ?? this.mapOpen,
       page: page ?? this.page,
       // A filter is cleared by passing `null`, which is a value and not "unchanged".
       filter: identical(filter, _unchanged) ? this.filter : filter as String?,
@@ -78,7 +69,6 @@ final class ExampleState {
     return other is ExampleState &&
         other.form == form &&
         other.signupOpen == signupOpen &&
-        other.mapOpen == mapOpen &&
         other.page == page &&
         other.filter == filter &&
         other.view == view;
@@ -87,13 +77,12 @@ final class ExampleState {
   /// Two states with equal values hash alike, which is what lets the store skip
   /// a rebuild that would draw the same tree again.
   @override
-  int get hashCode =>
-      Object.hash(form, signupOpen, mapOpen, page, filter, view);
+  int get hashCode => Object.hash(form, signupOpen, page, filter, view);
 
   @override
   String toString() =>
-      'ExampleState(form: $form, signupOpen: $signupOpen, mapOpen: $mapOpen, '
-      'page: $page, filter: $filter, view: $view)';
+      'ExampleState(form: $form, signupOpen: $signupOpen, page: $page, '
+      'filter: $filter, view: $view)';
 }
 
 /// The store of `ExamplePageNode`: every interaction of the page as one
@@ -142,12 +131,6 @@ final class ExampleStore extends StateStore<ExampleState> {
 
   /// Draws the listings in the layout [view] names.
   void showListings(ListingsView view) => state = state.copyWith(view: view);
-
-  /// Opens the map as a view of its own, which is what a narrow surface offers.
-  void openMap() => state = state.copyWith(mapOpen: true);
-
-  /// Closes the map view.
-  void closeMap() => state = state.copyWith(mapOpen: false);
 
   /// Follows a destination of the bar.
   ///

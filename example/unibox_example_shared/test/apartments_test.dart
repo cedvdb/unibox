@@ -78,9 +78,9 @@ void main() {
       expect((scrollingBox(page).children.single as Box).padding, isNotNull);
     });
 
-    test('floats the map button at the bottom centre of the page', () {
-      // The listing scrolls under the button, so the two are siblings in a stack:
-      // the scroll box and an aligned cell, which needs no measurement of a window.
+    test('floats a pill at the bottom centre of the page', () {
+      // The listing scrolls under the pill, so the two are siblings in a stack: the
+      // scroll box and an aligned cell, which needs no measurement of a window.
       final Box page = buildApartmentsPage();
       final StackNode stack = page.children.single as StackNode;
       final PositionedNode floating = stack.children.last as PositionedNode;
@@ -94,19 +94,36 @@ void main() {
       );
 
       // A threshold measures the box it is drawn in, so the cell holds a box that
-      // spans the page and centres the button — a button placed straight into the
-      // cell was drawn on a wide window as well, because there was no box for its
-      // `visibleUntil` to measure.
+      // spans the page and centres the pill — a pill placed straight into the cell was
+      // drawn on a wide window as well, because there was no box for its `visibleUntil`
+      // to measure. The margin is the distance to the bottom of the page, stated by the
+      // pill rather than measured by a renderer.
       final Box row = floating.child as Box;
-      final Box button = row.children.single as Box;
+      final Box pill = row.children.single as Box;
 
       expect(row.width, double.infinity);
-      // The box stacks its children, so centring the button across the page is its
-      // cross axis, not its main one.
+      // The box stacks its children, so centring the pill across the page is its cross
+      // axis, not its main one.
       expect(row.crossAlign, CrossAlign.center);
-      expect(button.visibleUntil, 900);
-      expect(button.shadow, MaterialElevation.level3);
+      expect(pill.visibleUntil, 900);
+      expect(pill.margin, const BoxSpacing.only(bottom: 24));
+      expect(pill.shadow, MaterialElevation.level3);
       expect(validateTree(page, theme: ExamplePalette.theme), isEmpty);
+    });
+
+    test('offers no way into a map view of its own', () {
+      // The map is the column beside the cards, and a narrow page has nowhere to put
+      // it: the pill is the shape of a floating action, so nothing in the page opens a
+      // second view, and the filter row no longer carries a chip that stood in for one.
+      final Box page = buildApartmentsPage();
+
+      expect(flatten(page).whereType<OverlayNode>(), isEmpty);
+      expect(
+        flatten(page).whereType<MaterialChip>(),
+        hasLength(3),
+        reason:
+            'two rooms, a studio and a garden: three filters, no map control',
+      );
     });
 
     test('draws a filter as a chosen chip with a cross that clears it', () {

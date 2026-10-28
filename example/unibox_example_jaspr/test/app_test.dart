@@ -90,13 +90,13 @@ void main() {
           )
           .toList();
 
-      // The four filters and the cross of the removable one, the two segments of the
-      // layout switch, the floating map button, the opt-in row, the dialog's barrier
-      // and the sign-up button of the bar; the submit button is disabled until the
-      // form is complete, and a disabled box listens to nothing. The destinations of
-      // the bar are anchors and the close control is one too, so they are not counted
-      // here.
-      expect(clickable, hasLength(11));
+      // The three filters and the cross of the removable one, the two segments of the
+      // layout switch, the floating pill at the bottom of the listings, the opt-in row,
+      // the dialog's barrier and the sign-up button of the bar; the submit button is
+      // disabled until the form is complete, and a disabled box listens to nothing. The
+      // destinations of the bar are anchors and the close control is one too, so they are
+      // not counted here.
+      expect(clickable, hasLength(10));
 
       // A destination is an anchor instead, because the `href` is what a page
       // without the client runtime follows: the two items of the bar and the way out
@@ -142,7 +142,7 @@ void main() {
           .toList();
 
       // The same set, and now the submit button as well.
-      expect(clickable, hasLength(12));
+      expect(clickable, hasLength(11));
 
       final TestRenderElement button = elementsOf(find.tag('div')).lastWhere(
         (TestRenderElement element) => element.attributes?['role'] == 'button',

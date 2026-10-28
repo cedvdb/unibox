@@ -94,11 +94,11 @@ beside them. It is the shape a real listing page has, drawn from the model:
 | Part | What draws it |
 | --- | --- |
 | the search bar | a rounded `Box` with a border, and a magnifier of two boxes and a 45° transform — no icon font, no asset |
-| the filters | pills of `MaterialInkWell`, one of them selected; `With a garden` is `visibleFrom: 900` and `Map` is `visibleUntil: 900` |
+| the filters | pills of `MaterialInkWell`, one of them selected; `With a garden` is `visibleFrom: 900` |
 | the cards | a `GridNode` of 240 pixel minimum, two columns at most, so the grid reflows from one column to two as its own width grows — not the window's |
 | each card | a `MaterialCard` with a Pexels photo (`ImageNode`, `ImageFit.cover`), the name, the district, two words about the flat, the summary and the rent |
 | the map | drawn from nodes: a surface, four parks, three rotated roads, the district names and three price pins placed with `PositionedNode` |
-| the map view on a phone | the map column is `visibleFrom: 900`, so below it the `Map` pill opens an `OverlayNode` with the same map — state, not structure |
+| the pill on a phone | the map column is `visibleFrom: 900`, so below it the page floats a `Map` pill over the bottom of the listing — placed, not measured, and it does nothing when pressed |
 
 The map is drawn rather than embedded on purpose: a real map is a third-party embed
 with a key and a script, and this one shows the shape of a map without either. It is
@@ -106,10 +106,15 @@ also the one place the example uses `visibleFrom`/`visibleUntil`, the token a wi
 needs — `design.md` §5.15 records why a width is measured on the box and not on the
 window.
 
-**Why the map toggle is a pill and not a floating button.** A floating button has to
-stay put while the page scrolls, and that is `position: fixed`; the model has no such
-token, and an overlay would put a barrier over the page. So the toggle sits with the
-filters on a narrow surface, which is the honest limit rather than a hidden one.
+**Why the floating pill is placed, and why it is inert.** A control pinned to the
+bottom of a page has to stay put while the page scrolls, which `position: fixed` does
+and a flow box cannot: the listing is the box that scrolls, so a `PositionedNode` in a
+`StackNode` with the page as its cell is where the placement belongs, and the pill's
+own `margin` is the 24 pixels between it and the edge. That is the pill's whole job —
+it is the shape of a floating action at the bottom centre of a narrow page. Pressing it
+does nothing: the map it would open is the column beside the cards, a wide page has
+that column already, and a narrow one has nowhere to put a second view of it, so
+nothing in the page opens an overlay.
 
 The page scrolls, not the document. `Overflow.scroll` on the box below the
 navigation is a `SingleChildScrollView` in Flutter and `overflow: auto` in CSS,

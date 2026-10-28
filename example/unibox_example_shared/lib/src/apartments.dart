@@ -158,14 +158,12 @@ enum ListingsView {
 /// CSS puts it inside the scrollport (so it scrolls away). Moving it one level
 /// in leaves both renderers scrolling the same content.
 ///
-/// The map is a column beside the cards on a wide surface and a view of its own on
-/// a narrow one: `visibleFrom` decides which of the two boxes is drawn, and
-/// [mapOpen] — the page's own state — decides whether that view is open. Neither
-/// is a second tree: the map is in the markup at every width.
+/// The map is a column beside the cards on a wide surface — `visibleFrom` is the whole
+/// of that decision — and it is in the markup at every width, because it is one tree.
+/// A narrow page has nowhere to put a column, so it carries a pill floating over the
+/// bottom of the list instead: the same tree at every window, and the placement a phone
+/// gets.
 Box buildApartmentsPage({
-  bool mapOpen = false,
-  TapCallback? onOpenMap,
-  TapCallback? onCloseMap,
   String? filter = defaultListingFilter,
   ListingsView view = ListingsView.grid,
   void Function(String? filter)? onFilter,
@@ -191,9 +189,6 @@ Box buildApartmentsPage({
             overflow: Overflow.scroll,
             children: <UINode>[
               _content(
-                mapOpen: mapOpen,
-                onOpenMap: onOpenMap,
-                onCloseMap: onCloseMap,
                 filter: filter,
                 view: view,
                 onFilter: onFilter,
@@ -203,42 +198,25 @@ Box buildApartmentsPage({
           ),
           PositionedNode(
             alignment: BoxAlignment.bottomCenter,
-            // The cell holds one box, and the button sits inside it. A width
-            // threshold measures the box it is drawn in, and the page above this
-            // stack is a `<main>` landmark rather than a box, so a threshold placed
-            // straight into the cell had nothing to measure: the button was drawn on
-            // a wide window too, where the map already has a column of its own. This
-            // box spans the page and centres the button in it.
+            // The cell holds one box, and the pill sits inside it. A width threshold
+            // measures the box it is drawn in, and the page above this stack is a
+            // `<main>` landmark rather than a box, so a threshold placed straight into
+            // the cell had nothing to measure. This box spans the page and centres the
+            // pill in it.
             child: Box(
               width: double.infinity,
               crossAlign: CrossAlign.center,
-              children: <UINode>[_mapButton(onOpenMap)],
+              children: <UINode>[_mapButton()],
             ),
           ),
         ],
       ),
-      // The opened map is an overlay over the whole page, so it sits beside the
-      // stack rather than inside the box that scrolls.
-      if (mapOpen)
-        OverlayNode(
-          onDismiss: onCloseMap,
-          barrierColor: const BoxColor(0x66000000),
-          child: Box(
-            width: double.infinity,
-            height: double.infinity,
-            padding: const BoxSpacing.all(16),
-            children: <UINode>[_map()],
-          ),
-        ),
     ],
   );
 }
 
 /// Everything the page holds, in the box that scrolls.
 Box _content({
-  required bool mapOpen,
-  required TapCallback? onOpenMap,
-  required TapCallback? onCloseMap,
   required String? filter,
   required ListingsView view,
   required void Function(String? filter)? onFilter,
@@ -253,13 +231,7 @@ Box _content({
     children: <UINode>[
       _heading(),
       _searchBar(),
-      _filters(
-        filter: filter,
-        onFilter: onFilter,
-        onOpenMap: onOpenMap,
-        view: view,
-        onView: onView,
-      ),
+      _filters(filter: filter, onFilter: onFilter, view: view, onView: onView),
       Box(
         direction: Axis.horizontal,
         width: double.infinity,
@@ -383,7 +355,6 @@ UINode _magnifier() {
 UINode _filters({
   required String? filter,
   required void Function(String? filter)? onFilter,
-  required TapCallback? onOpenMap,
   required ListingsView view,
   required void Function(ListingsView view)? onView,
 }) {
@@ -407,11 +378,6 @@ UINode _filters({
             children: <UINode>[
               _filterChip('With a garden', filter: filter, onFilter: onFilter),
             ],
-          ),
-          Box(
-            // The toggle to the map view, where the map is not already beside it.
-            visibleUntil: 900,
-            children: <UINode>[_mapChip(onOpenMap)],
           ),
         ],
       ),
@@ -450,13 +416,19 @@ UINode _filters({
   );
 }
 
-/// The floating Map button: the map's way in where it is not already beside the
-/// listing.
+/// The floating action at the bottom of the page.
 ///
-/// It is a `PositionedNode` with an alignment and a margin rather than offsets, so
-/// it stays at the bottom centre of the page whatever the window is — and only
-/// where the map has no column of its own.
-UINode _mapButton(TapCallback? onOpenMap) {
+/// It is here for where it sits, not for what it does. A `PositionedNode` with an
+/// alignment fills the page and puts the pill at the bottom centre of it, and the pill's
+/// own margin is the 24 pixels between it and the edge: no renderer measures a window, and
+/// the listing scrolls under it because the stack it is placed in does not scroll. Only a
+/// narrow page draws it, because from 900 pixels the map has a column of its own.
+///
+/// The press is deliberately empty. A wide page shows the map beside the cards and a
+/// narrow one has nowhere to put it, so the pill is the *shape* of a floating action —
+/// its elevation, its radius, the ink a press leaves — rather than a way into a view that
+/// is not there.
+UINode _mapButton() {
   return Box(
     visibleUntil: 900,
     margin: const BoxSpacing.only(bottom: 24),
@@ -465,14 +437,10 @@ UINode _mapButton(TapCallback? onOpenMap) {
     backgroundColor: const BoxColor.role(MaterialColorRole.primaryContainer),
     children: <UINode>[
       MaterialInkWell(
-        onTap: onOpenMap ?? () {},
+        onTap: () {},
         borderRadius: 16,
         ink: const BoxColor.role(MaterialColorRole.onPrimaryContainer),
         padding: const BoxSpacing.symmetric(horizontal: 20, vertical: 14),
-        semantics: const BoxSemantics(
-          role: BoxRole.button,
-          label: 'Open the map',
-        ),
         child: TextNode(
           'Map',
           style: MaterialTypography.labelLarge.merge(
@@ -515,18 +483,6 @@ UINode _filterChip(
     trailing: selected ? glyphClose(onSelected) : null,
     onRemove: selected ? () => onFilter?.call(null) : null,
     onTap: () => onFilter?.call(selected ? null : label),
-  );
-}
-
-/// The toggle to the map, where the map has no column of its own.
-///
-/// A chip with a pin in front: it opens a view rather than choosing a filter, which is
-/// why it carries no `selected` and no cross.
-UINode _mapChip(TapCallback? onOpenMap) {
-  return MaterialChip(
-    label: const TextNode('Map'),
-    leading: glyphPin(const BoxColor.role(MaterialColorRole.onSurfaceVariant)),
-    onTap: onOpenMap ?? () {},
   );
 }
 

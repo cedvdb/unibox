@@ -182,3 +182,23 @@ it was, what the measurement said, and where the fix belongs.
   reads `Unibox Apartments Pricing`, the button is a `div[role=button]` outside it, the
   bar fits 375 pixels without overflowing, and a press opens the dialog with the address
   left on `/web/listings/`.
+
+## Follow-up: the two controls of a demo page
+
+- **The sign-up control is not a link.** *Done.* It was an `<a href="../signup/">` around
+  a button-roled box, so a press both opened the dialog and loaded a document — the flash.
+  It is a `div[role=button]` outside the `<nav>` now, with no `href`, and the only anchors
+  on the page are the two destinations. Measured in Chromium: the anchors of
+  `/web/listings/` are `Apartments` and `Pricing`, and the sign-up control's path is
+  `span < div[role=button] < div < div`.
+
+- **The map left the filter row, and the pill stopped pretending.** *Done.* The chips are
+  the three filters; `Map` was a fourth chip that opened a full-screen `OverlayNode` of the
+  same map the wide page already shows as a column. The pill stays where it was — a
+  `PositionedNode` at the bottom centre, 24 pixels above the edge, drawn only below 900
+  pixels — and it does nothing when pressed, because there is no second view to open: the
+  narrow page has nowhere to put one. `ExampleState.mapOpen`, `openMap` and `closeMap` went
+  with the overlay; the map column, `_map()` and the elevation of the pill stayed. Measured
+  in Chromium at 420 by 820: one control says `Map`, its bottom edge is 24 pixels above the
+  bottom of the window, it holds that place while the list scrolls 500 pixels under it,
+  and a press changes nothing — no overlay, and the address stays on `/web/listings/`.
