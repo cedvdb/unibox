@@ -1,7 +1,7 @@
 import '../enums.dart';
 import 'box_border.dart';
 import 'box_color.dart';
-import 'box_corners.dart';
+import 'box_border_radius.dart';
 import 'box_shadow.dart';
 import 'box_spacing.dart';
 import 'box_text_style.dart';
@@ -131,7 +131,7 @@ final class BoxStyle {
   ///
   /// Takes precedence over [borderRadius]; `validateTree` reports a box that sets
   /// both, because the model cannot honour two answers.
-  final BoxCorners? corners;
+  final BoxBorderRadius? corners;
 
   /// The border painted around the box.
   final BoxBorder? border;
@@ -268,7 +268,7 @@ final class BoxStyle {
     BoxSpacing? margin,
     BoxColor? backgroundColor,
     double? borderRadius,
-    BoxCorners? corners,
+    BoxBorderRadius? corners,
     BoxBorder? border,
     BoxShadow? shadow,
     BoxTextStyle? textStyle,

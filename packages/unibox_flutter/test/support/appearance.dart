@@ -47,7 +47,7 @@ BoxAppearance appearanceOf(WidgetTester tester) {
   final Border? border = decoration?.border as Border?;
   final BorderSide? side = border?.top;
   final Color? background = decoration?.color;
-  final core.BoxCorners? corners = _cornersOf(radius);
+  final core.BoxBorderRadius? corners = _cornersOf(radius);
 
   return BoxAppearance(
     direction: _axisOf(flex.direction),
@@ -410,9 +410,9 @@ core.CrossAlign _crossAlignOf(CrossAxisAlignment align) {
 }
 
 /// The four corners Flutter drew, or `null` when it drew no decoration.
-core.BoxCorners? _cornersOf(BorderRadius? radius) => radius == null
+core.BoxBorderRadius? _cornersOf(BorderRadius? radius) => radius == null
     ? null
-    : core.BoxCorners(
+    : core.BoxBorderRadius(
         topLeft: radius.topLeft.x,
         topRight: radius.topRight.x,
         bottomRight: radius.bottomRight.x,

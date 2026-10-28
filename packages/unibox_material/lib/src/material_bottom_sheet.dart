@@ -21,7 +21,7 @@ import 'material_typography.dart';
 ///
 /// **Round at the top, square where it meets the screen.** Material rounds the two
 /// corners the sheet rises from and squares the two that meet the edge, which is
-/// what [BoxCorners] states.
+/// what [BoxBorderRadius] states.
 final class MaterialBottomSheet extends OverlayNode {
   /// Creates the sheet.
   MaterialBottomSheet({
@@ -39,7 +39,7 @@ final class MaterialBottomSheet extends OverlayNode {
            backgroundColor: const BoxColor.role(
              MaterialColorRole.surfaceContainerLow,
            ),
-           corners: const BoxCorners(topLeft: 28, topRight: 28),
+           corners: const BoxBorderRadius(topLeft: 28, topRight: 28),
            padding: const BoxSpacing.all(24),
            gap: 16,
            width: double.infinity,

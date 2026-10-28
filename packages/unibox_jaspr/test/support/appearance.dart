@@ -404,14 +404,14 @@ double? _uniformRadiusOf(String? value) {
 }
 
 /// The four corners, or `null` when the declaration gives every corner the same.
-core.BoxCorners? _cornersOf(String? value) {
+core.BoxBorderRadius? _cornersOf(String? value) {
   final List<double>? radii = _radiiOf(value);
 
   if (radii == null || radii.toSet().length == 1) {
     return null;
   }
 
-  return core.BoxCorners(
+  return core.BoxBorderRadius(
     topLeft: radii[0],
     topRight: radii[1],
     bottomRight: radii[2],

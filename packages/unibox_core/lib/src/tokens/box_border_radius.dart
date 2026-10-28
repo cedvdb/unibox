@@ -1,5 +1,9 @@
 /// The radius of each corner of a box, in logical pixels.
 ///
+/// This is Flutter's `BorderRadius` under the package's `Box` prefix — the name
+/// is prefixed because `BorderRadius` is a `dart:ui` type, and a token with that
+/// name would be a compile error in any file that imports Flutter unprefixed.
+///
 /// [BoxStyle.borderRadius] is one radius for all four corners, which is what most
 /// boxes want. A box that must not be round everywhere names the four here — a
 /// Material filled text field rounds its top corners and leaves the bottom square,
@@ -8,15 +12,15 @@
 /// ```dart
 /// Box(
 ///   backgroundColor: BoxColor.white,
-///   corners: BoxCorners(topLeft: 4, topRight: 4),
+///   corners: BoxBorderRadius(topLeft: 4, topRight: 4),
 /// )
 /// ```
 ///
 /// A corner left out is square. The four are one value, so a box that rounds two
 /// corners declares it once rather than composing two half boxes.
-final class BoxCorners {
+final class BoxBorderRadius {
   /// Creates the four corners; a corner not named is square.
-  const BoxCorners({
+  const BoxBorderRadius({
     this.topLeft = 0,
     this.topRight = 0,
     this.bottomRight = 0,
@@ -24,7 +28,7 @@ final class BoxCorners {
   });
 
   /// Creates corners that are all [radius].
-  const BoxCorners.all(double radius)
+  const BoxBorderRadius.all(double radius)
     : topLeft = radius,
       topRight = radius,
       bottomRight = radius,
@@ -64,7 +68,7 @@ final class BoxCorners {
 
   @override
   bool operator ==(Object other) =>
-      other is BoxCorners &&
+      other is BoxBorderRadius &&
       other.topLeft == topLeft &&
       other.topRight == topRight &&
       other.bottomRight == bottomRight &&
@@ -75,6 +79,6 @@ final class BoxCorners {
 
   @override
   String toString() =>
-      'BoxCorners(topLeft: $topLeft, topRight: $topRight, '
+      'BoxBorderRadius(topLeft: $topLeft, topRight: $topRight, '
       'bottomRight: $bottomRight, bottomLeft: $bottomLeft)';
 }

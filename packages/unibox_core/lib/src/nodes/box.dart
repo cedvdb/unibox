@@ -2,7 +2,7 @@ import '../callbacks.dart';
 import '../enums.dart';
 import '../tokens/box_border.dart';
 import '../tokens/box_color.dart';
-import '../tokens/box_corners.dart';
+import '../tokens/box_border_radius.dart';
 import '../tokens/box_semantics.dart';
 import '../tokens/box_shadow.dart';
 import '../tokens/box_spacing.dart';
@@ -150,7 +150,7 @@ class Box extends UINode {
   ///
   /// Takes precedence over [borderRadius]. `validateTree` reports a box that
   /// sets both, since only one answer can be drawn.
-  final BoxCorners? corners;
+  final BoxBorderRadius? corners;
 
   /// The border painted around the box.
   final BoxBorder? border;

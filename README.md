@@ -132,7 +132,7 @@ Box(
 | `backgroundColor` | `BoxColor?` | none | Colour behind the children. |
 | `border` | `BoxBorder?` | none | Line around the box, with a width and a colour. |
 | `borderRadius` | `double?` | square | Corner radius in logical pixels, the same on all four. |
-| `corners` | `BoxCorners?` | square | The radius of each corner, for a box that is not round on all four — a filled text field rounds its top and leaves the bottom square. Takes precedence over `borderRadius`. |
+| `corners` | `BoxBorderRadius?` | square | The radius of each corner, for a box that is not round on all four — a filled text field rounds its top and leaves the bottom square. Takes precedence over `borderRadius`. |
 | `shadow` | `BoxShadow?` | none | Drop shadow: colour, offset, blur, spread. |
 | `opacity` | `double?` | solid | `0` (invisible) to `1` (solid). The box keeps its room either way. |
 | `transform` | `BoxTransform?` | none | Moves, turns or scales the box about its centre (`scale`, `rotation` in degrees, `offsetX`, `offsetY`). It paints differently without taking different room, so text inside never reflows. |

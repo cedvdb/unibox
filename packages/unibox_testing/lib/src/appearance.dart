@@ -79,7 +79,7 @@ final class BoxAppearance {
   final double? borderRadius;
 
   /// The four corners, when the box is not round on all four.
-  final core.BoxCorners? corners;
+  final core.BoxBorderRadius? corners;
 
   /// The thickness of the line drawn around the box, or `null` for no border.
   final double? borderWidth;

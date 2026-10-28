@@ -139,7 +139,7 @@ host that renders it.
 | `Transform.scale`, `Transform.rotate` | `transform: BoxTransform(scale:, rotation:, offsetX:, offsetY:)` |
 | `AnimatedContainer` | `transition: BoxTransition(...)` plus a `BoxState` style |
 | `ClipRRect` | `overflow: Overflow.hidden` with `borderRadius` |
-| `BorderRadius.vertical(top:)`, `BorderRadius.only(...)` | `corners: BoxCorners(topLeft:, topRight:)` — a box that is not round on all four |
+| `BorderRadius.vertical(top:)`, `BorderRadius.only(...)` | `corners: BoxBorderRadius(topLeft:, topRight:)` — a box that is not round on all four |
 | `SingleChildScrollView` | `Box(overflow: Overflow.scroll)` |
 | `Stack` + `Positioned` | `StackNode` + `PositionedNode` |
 | `Semantics(button: true, label:)` | `semantics: BoxSemantics(role: BoxRole.button, label: …)` |

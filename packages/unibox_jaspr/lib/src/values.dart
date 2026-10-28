@@ -401,7 +401,7 @@ Map<String, String>? _lookDeclarations(core.BoxTransform? transform) {
 /// A length in logical pixels, as CSS writes it.
 /// The four corner radii as CSS reads them: top left, top right, bottom right,
 /// bottom left.
-String _cornersText(core.BoxCorners corners) =>
+String _cornersText(core.BoxBorderRadius corners) =>
     corners.radii.map(_pixels).join(' ');
 
 String _pixels(double value) => '${_number(value)}px';
@@ -583,7 +583,7 @@ Styles toBoxStyles(
   final double? opacity = style.opacity;
   final double? gap = style.gap;
   final double? borderRadius = style.borderRadius;
-  final core.BoxCorners? corners = style.corners;
+  final core.BoxBorderRadius? corners = style.corners;
   final int? flex = style.flex;
   final String? roleBackground = backgroundColor == null
       ? null

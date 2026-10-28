@@ -2,7 +2,7 @@
 
 ## 0.1.0
 
-- A `BoxCorners` becomes `BorderRadius.only`, so a box that rounds only two corners
+- A `BoxBorderRadius` becomes `BorderRadius.only`, so a box that rounds only two corners
   draws the same shape it does on the web.
 
 - A `TextInputNode.placeholderStyle` becomes the field's `hintStyle`, so the hint of an
