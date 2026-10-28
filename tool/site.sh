@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
-# Builds the static site: the web rendering from the Jaspr export, the same pages
-# from the Flutter build, and one landing page that shows them side by side.
+# Builds the static site: the documents `unibox_html` writes, the Flutter build of the same
+# tree, and one landing page that shows them side by side.
 #
 # Usage:
 #   tool/site.sh                          # for http://localhost:8000/
@@ -60,18 +60,9 @@ step 'Rendering the pages'
 # live page without reading CSS class hashes.
 build="$(git -C "$root" rev-parse HEAD 2>/dev/null || true)"
 rm -rf "$site"
-(cd example/unibox_example_jaspr &&
+(cd example/unibox_example_site &&
   dart run bin/build_site.dart --out="$site" ${build:+--build="$build"}) \
   || fail 'the site render'
-
-step 'Compiling the browser runtime'
-# The example's pages are HTML and CSS that a crawler can read; this bundle is what
-# makes them react in a browser. It is compiled from `web/main.client.dart` by hand
-# rather than by `jaspr_builder`, because the page is one component and needs no
-# generated entrypoint.
-(cd example/unibox_example_jaspr &&
-  dart compile js -O2 -o "$site/main.client.js" web/main.client.dart) \
-  || fail 'the client bundle'
 
 step 'Building the Flutter web app'
 # The service worker is off on purpose: a demo that caches its own old build is

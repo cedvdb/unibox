@@ -1,6 +1,6 @@
 name: Pages
 
-# Publishes the example as a static site: the Jaspr export and the Flutter build of
+# Publishes the example as a static site: the documents `unibox_html` writes and the Flutter build of
 # the same node tree, with a landing page that shows them side by side.
 #
 # One-time setup, and the one step a workflow cannot do for you: Settings -> Pages ->
