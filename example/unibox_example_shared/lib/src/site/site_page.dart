@@ -1,6 +1,7 @@
 import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_material/unibox_material.dart';
 
+import '../theme.dart';
 import 'gallery.dart';
 import 'landing.dart';
 import 'showcase.dart';
@@ -49,7 +50,7 @@ UINode buildSiteFrame({
   required UINode page,
   bool fill = false,
 }) {
-  final MaterialPalette palette = MaterialPalette.light;
+  final MaterialPalette palette = ExamplePalette.material;
 
   return Box(
     direction: Axis.vertical,

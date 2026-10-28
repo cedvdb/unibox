@@ -260,7 +260,9 @@ twenty-four roles, and the four state layers are still derived from the generate
 spends it on its own palettes, which means it *replaces the tone* — a palette needs
 all of them, from a white sheet to a near-black line — and, in the default variant,
 it lowers the chroma too. The example's `#2D6CF3` is a saturated blue; its
-`tonalSpot` accent is `#4A5C92`, a quiet one. That is Material You's whole
+`tonalSpot` accent is `#4A5C92`, a quiet one — and that is the palette the example
+itself is drawn with, since its whole theme is grown from that one seed. That is
+Material You's whole
 temperament, and the variant is the dial:
 
 | Variant | What it does with the seed |

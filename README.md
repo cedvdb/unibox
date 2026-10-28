@@ -611,7 +611,8 @@ getters of a `BoxColor` and a preset cannot take those names.
 
 They are conveniences, not a design system. A screen with a palette of its own
 states it in Dart and passes it around, the way
-[`ExamplePalette`](example/unibox_example_shared/lib/src/theme.dart) does, so the
+[`ExamplePalette`](example/unibox_example_shared/lib/src/theme.dart) does — grown
+there from one seed with `MaterialPalette.fromSeed` — so the
 same colours are used by both hosts. Typography carries colour as well: `color` on
 a text, or `color` in a `BoxTextStyle` that a box passes down.
 

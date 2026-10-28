@@ -19,7 +19,7 @@ void main() {
   test('the front page states one claim and points at the comparison', () {
     final UINode landing = buildLanding();
 
-    expect(validateTree(landing, theme: MaterialPalette.lightTheme), isEmpty);
+    expect(validateTree(landing, theme: ExamplePalette.theme), isEmpty);
     expect(_texts(landing), contains('Describe a screen once.'));
     expect(_texts(landing), contains('Compare both renderings'));
     // The bar carries the catalogue and the comparison. The page itself offers the
@@ -48,7 +48,7 @@ void main() {
   test('the gallery is a valid tree that shows the Material package', () {
     final UINode gallery = buildMaterialGallery();
 
-    expect(validateTree(gallery, theme: MaterialPalette.lightTheme), isEmpty);
+    expect(validateTree(gallery, theme: ExamplePalette.theme), isEmpty);
     expect(_texts(gallery), contains('Material 3'));
     expect(_texts(gallery), contains('Sphinx of black quartz'));
     expect(_texts(gallery), contains('Ada Lovelace'));
@@ -127,7 +127,7 @@ void main() {
           IframeNode(src: src, title: title),
     );
 
-    expect(validateTree(showcase, theme: MaterialPalette.lightTheme), isEmpty);
+    expect(validateTree(showcase, theme: ExamplePalette.theme), isEmpty);
     expect(_embeds(showcase), hasLength(2));
   });
 }

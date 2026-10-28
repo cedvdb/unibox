@@ -2,15 +2,17 @@ import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_material/unibox_material.dart';
 
 import '../icons.dart';
+import '../theme.dart';
 
 /// The Material library as one node tree: the type scale, the colour roles and the
 /// components, drawn by the web renderer like any other page.
 ///
-/// The page is a demonstration and a claim at once. Every value on it is a `const`
-/// in `unibox_material` — no colour is typed into this file — and every component is
-/// a node the two renderers already draw, so nothing here is a screenshot.
+/// The page is a demonstration and a claim at once. Every value on it comes from
+/// `unibox_material` — no colour is typed into this file, and the palette is the one
+/// the example grows from its seed — and every component is a node the two renderers
+/// already draw, so nothing here is a screenshot.
 UINode buildMaterialGallery() {
-  const MaterialPalette palette = MaterialPalette.light;
+  final MaterialPalette palette = ExamplePalette.material;
 
   // A measure, not the window: the gallery is a catalogue, and a paragraph or a row of
   // buttons stretched across a 27 inch screen is unreadable however well it renders.
@@ -35,7 +37,8 @@ UINode buildMaterialGallery() {
           ),
           _section(
             'Colour roles',
-            'MaterialPalette.light and .dark: the roles as const BoxColor values, read '
+            'One seed grown into the roles: MaterialPalette.fromSeed keeps the hue '
+                'of the brand colour and replaces its tone, and the values are read '
                 'when the tree is built rather than looked up at render time.',
             _palette(palette),
           ),
@@ -125,7 +128,7 @@ UINode _header(MaterialPalette palette) {
 
 /// A titled block of the gallery.
 UINode _section(String title, String description, UINode content) {
-  const MaterialPalette palette = MaterialPalette.light;
+  final MaterialPalette palette = ExamplePalette.material;
 
   return Box(
     width: double.infinity,
@@ -165,7 +168,7 @@ UINode _section(String title, String description, UINode content) {
 
 /// One row per type role: the role's name and a line of text typeset with it.
 UINode _typeScale() {
-  const MaterialPalette palette = MaterialPalette.light;
+  final MaterialPalette palette = ExamplePalette.material;
 
   return Box(
     gap: 12,
@@ -647,7 +650,7 @@ final class DialogDemo extends StatefulNode<bool, DialogDemoStore> {
 
 /// The button, the dialog when it is open, and what the section says about it.
 UINode _dialogView(bool open, DialogDemoStore store) {
-  const MaterialPalette palette = MaterialPalette.light;
+  final MaterialPalette palette = ExamplePalette.material;
 
   // A grid, so the button and the note beside it stack on a narrow window instead
   // of pushing the page sideways.

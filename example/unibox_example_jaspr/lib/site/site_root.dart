@@ -1,7 +1,6 @@
 import 'package:jaspr/jaspr.dart';
 import 'package:unibox_example_shared/unibox_example_shared.dart';
 import 'package:unibox_jaspr/unibox_jaspr.dart';
-import 'package:unibox_material/unibox_material.dart';
 
 import 'iframe_node.dart';
 
@@ -15,8 +14,9 @@ import 'iframe_node.dart';
 Component buildSiteRoot(SitePage page) {
   return renderJaspr(
     // The gallery and the bar are built from material components, which name
-    // colour roles: the theme answers them, once, for the whole page.
-    theme: MaterialPalette.lightTheme,
+    // colour roles: the theme answers them, once, for the whole page. It is the
+    // example's own theme, so the page and the app are one brand.
+    theme: ExamplePalette.theme,
     buildSitePage(
       page,
       frame: ({required String src, required String title}) => IframeNode(

@@ -21,7 +21,7 @@ import 'site_root.dart';
 /// stamp answers the question the screenshot cannot. It is `null` for a build that
 /// cannot name itself — a test, or a local run outside a repository.
 Document buildSiteDocument({required SitePage page, String? build}) {
-  final MaterialPalette palette = MaterialPalette.light;
+  final MaterialPalette palette = ExamplePalette.material;
 
   return Document(
     lang: 'en',

@@ -140,7 +140,7 @@ UINode _navigationBar({
         gap: 12,
         flex: 1,
         children: <UINode>[
-          const TextNode('Unibox', style: ExampleType.brand),
+          TextNode('Unibox', style: ExampleType.brand),
           Box(
             flex: 1,
             // A column, not a row: a grid inside a row is unbounded again, and an
@@ -207,7 +207,7 @@ UINode _navigationItem(
         // a set in Flutter.
         current: current ? BoxCurrent.page : null,
       ),
-      stateStyles: const <BoxState, BoxStyle>{
+      stateStyles: <BoxState, BoxStyle>{
         BoxState.hover: BoxStyle(backgroundColor: ExamplePalette.accentSurface),
       },
       transition: ExampleType.transition,
@@ -238,7 +238,7 @@ UINode _signUp({required TapCallback onTap}) {
     backgroundColor: ExamplePalette.accent,
     textStyle: ExampleType.button,
     semantics: const BoxSemantics(role: BoxRole.button),
-    stateStyles: const <BoxState, BoxStyle>{
+    stateStyles: <BoxState, BoxStyle>{
       BoxState.hover: BoxStyle(backgroundColor: ExamplePalette.accentHover),
       BoxState.pressed: BoxStyle(backgroundColor: ExamplePalette.accentPressed),
     },

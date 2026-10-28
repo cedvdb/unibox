@@ -1,6 +1,8 @@
 import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_material/unibox_material.dart';
 
+import '../theme.dart';
+
 /// A frame of the showcase: the node that draws [src], which the host supplies.
 ///
 /// A frame is an `EmbedNode` — an `<iframe>` on the web — which is the one thing
@@ -19,7 +21,7 @@ typedef ShowcaseFrame = UINode Function({
 /// frames are the one thing the model cannot describe, so they arrive through
 /// [ShowcaseFrame].
 UINode buildShowcase({required ShowcaseFrame frame}) {
-  const MaterialPalette palette = MaterialPalette.light;
+  final MaterialPalette palette = ExamplePalette.material;
 
   return Box(
     direction: Axis.horizontal,

@@ -140,7 +140,7 @@ Box buildSignupCard({
     padding: const BoxSpacing.all(24),
     backgroundColor: const BoxColor.role(ExampleColor.panel),
     borderRadius: 16,
-    border: const BoxBorder(color: ExamplePalette.border),
+    border: BoxBorder(color: ExamplePalette.border),
     // The dialog's own elevation, not a shadow written here: a surface that is raised
     // by hand is the fourth shadow in a page that has three, and the one that drifts.
     shadow: MaterialDialog.elevation,
@@ -201,12 +201,12 @@ UINode _closeRow(TapCallback onDismiss) {
           padding: const BoxSpacing.symmetric(horizontal: 12, vertical: 6),
           borderRadius: 8,
           semantics: const BoxSemantics(role: BoxRole.button, label: 'Close'),
-          stateStyles: const <BoxState, BoxStyle>{
+          stateStyles: <BoxState, BoxStyle>{
             BoxState.hover: BoxStyle(
               backgroundColor: ExamplePalette.accentSurface,
             ),
           },
-          children: const <UINode>[TextNode('Close', style: ExampleType.nav)],
+          children: <UINode>[TextNode('Close', style: ExampleType.nav)],
         ),
       ),
     ],
@@ -248,10 +248,7 @@ UINode _field(TextInputNode node, {String? error}) {
           children: <UINode>[
             TextNode(
               error,
-              style: const BoxTextStyle(
-                fontSize: 12,
-                color: ExamplePalette.danger,
-              ),
+              style: BoxTextStyle(fontSize: 12, color: ExamplePalette.danger),
             ),
           ],
         ),
@@ -289,8 +286,8 @@ UINode _avatarChip() {
     height: 64,
     borderRadius: 32,
     backgroundColor: ExamplePalette.panel,
-    border: const BoxBorder(width: 4, color: ExamplePalette.accent),
-    textStyle: const BoxTextStyle(
+    border: BoxBorder(width: 4, color: ExamplePalette.accent),
+    textStyle: BoxTextStyle(
       fontSize: 20,
       fontWeight: FontWeight.bold,
       color: ExamplePalette.accent,
@@ -309,7 +306,7 @@ UINode _avatarChip() {
 /// the text as a header, which is the outline a crawler and a screen reader build
 /// the page from. The line under it stays plain text.
 UINode _heading() {
-  return const Box(
+  return Box(
     direction: Axis.vertical,
     gap: 4,
     textStyle: ExampleType.title,
@@ -357,7 +354,7 @@ UINode _newsletterRow(SignupFormState state, TapCallback onToggle) {
         ),
         children: <UINode>[
           if (state.newsletter)
-            const TextNode(
+            TextNode(
               '✓',
               fontSize: 12,
               fontWeight: FontWeight.bold,
@@ -393,7 +390,7 @@ UINode _footer(SignupFormState state, TapCallback onSubmit) {
         backgroundColor: ExamplePalette.accent,
         textStyle: ExampleType.button,
         transition: ExampleType.transition,
-        stateStyles: const <BoxState, BoxStyle>{
+        stateStyles: <BoxState, BoxStyle>{
           BoxState.hover: BoxStyle(backgroundColor: ExamplePalette.accentHover),
           // Pressed, the button gives a little: the scale is painted, so nothing
           // around it moves and the label does not reflow.
@@ -412,7 +409,7 @@ UINode _footer(SignupFormState state, TapCallback onSubmit) {
         semantics: BoxSemantics(role: BoxRole.button, label: 'Create account'),
         children: <UINode>[const TextNode('Create account')],
       ),
-      const Box(
+      Box(
         direction: Axis.horizontal,
         mainAlign: MainAlign.center,
         textStyle: ExampleType.link,
@@ -438,10 +435,7 @@ UINode? _status(SignupFormState state) {
       // A live region, so a screen reader announces the confirmation when it
       // appears instead of leaving the reader to go looking for it.
       semantics: const BoxSemantics(liveRegion: true),
-      textStyle: const BoxTextStyle(
-        fontSize: 13,
-        color: ExamplePalette.success,
-      ),
+      textStyle: BoxTextStyle(fontSize: 13, color: ExamplePalette.success),
       children: <UINode>[
         TextNode(
           'Thanks, ${state.name.trim()}! '

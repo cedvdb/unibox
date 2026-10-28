@@ -1,6 +1,7 @@
 import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_material/unibox_material.dart';
 
+import '../theme.dart';
 import 'site_page.dart';
 
 /// The front page: one claim, three lines about how it is kept, and the numbers.
@@ -10,7 +11,7 @@ import 'site_page.dart';
 /// same tree side by side. The catalogue lives in the bar, where a reader who wants it
 /// will go looking.
 UINode buildLanding() {
-  const MaterialPalette palette = MaterialPalette.light;
+  final MaterialPalette palette = ExamplePalette.material;
 
   return Box(
     width: double.infinity,

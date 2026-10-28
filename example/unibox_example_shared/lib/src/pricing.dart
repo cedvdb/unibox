@@ -175,9 +175,9 @@ UINode _hero({required TapCallback onStart}) {
             child: Box(
               padding: const BoxSpacing.symmetric(horizontal: 20, vertical: 12),
               borderRadius: 10,
-              border: const BoxBorder(color: ExamplePalette.border),
+              border: BoxBorder(color: ExamplePalette.border),
               children: <UINode>[
-                const TextNode('See the listings', style: ExampleType.muted),
+                TextNode('See the listings', style: ExampleType.muted),
               ],
             ),
           ),
@@ -212,7 +212,7 @@ UINode _bandCard(RentBand band) {
     padding: const BoxSpacing.all(20),
     borderRadius: 16,
     backgroundColor: ExamplePalette.panel,
-    border: const BoxBorder(color: ExamplePalette.border),
+    border: BoxBorder(color: ExamplePalette.border),
     children: <UINode>[
       TextNode(band.name, style: ExampleType.navCurrent, headingLevel: 3),
       // The price over what it is per, rather than beside it: a row of two texts
@@ -272,11 +272,7 @@ UINode _footer({required void Function(ExamplePage page) onNavigate}) {
     padding: const BoxSpacing.only(top: 16),
     // A border draws on all four sides, so the hairline above the footer is one
     // offset pixel of a shadow with no blur — the same tokens in both renderers.
-    shadow: const BoxShadow(
-      color: ExamplePalette.border,
-      offsetY: -1,
-      blurRadius: 0,
-    ),
+    shadow: BoxShadow(color: ExamplePalette.border, offsetY: -1, blurRadius: 0),
     children: <UINode>[
       TextNode(
         'This page is a node tree like every other screen of the example: it is '
@@ -291,7 +287,7 @@ UINode _footer({required void Function(ExamplePage page) onNavigate}) {
         onTap: () => onNavigate(ExamplePage.apartments),
         child: Box(
           children: <UINode>[
-            const TextNode('Go to the listings', style: ExampleType.nav),
+            TextNode('Go to the listings', style: ExampleType.nav),
           ],
         ),
       ),
