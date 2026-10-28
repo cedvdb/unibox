@@ -597,7 +597,7 @@ A scale can be written by hand, as the example does, or taken ready made:
 [`unibox_material`](packages/unibox_material/README.md) holds the Material 3 type
 scale as `const BoxTextStyle` values (`MaterialTypography.titleLarge`,
 `MaterialTypography.bodyMedium`, ...), the colour roles as a `MaterialPalette` value,
-and seven components built from the same tokens: a card, a list tile, an ink well, a
+and eight components built from the same tokens: a card, a list tile, a button, an ink well, a
 text field, an icon, a dialog and a bottom sheet. It is optional and pure Dart, and the
 renderers do not know it exists — a tree that uses it is drawn by the same two
 renderers as one that does not.
@@ -755,7 +755,7 @@ written inline.
 | `packages/unibox_flutter` | The Flutter renderer: `renderFlutter(node)` and `node.toWidget()`. |
 | `packages/unibox_jaspr` | The Jaspr renderer: `renderJaspr(node)` and `node.toComponent()`. |
 | `packages/unibox_testing` | The tables both renderers are tested against. Development only, not published. |
-| `packages/unibox_material` | The Material 3 type scale, the colour roles as a theme, and the components built from them (card, list tile, ink well, text field, dialog, bottom sheet). Optional: no renderer depends on it. |
+| `packages/unibox_material` | The Material 3 type scale, the colour roles as a theme, and the components built from them (card, list tile, button, ink well, text field, dialog, bottom sheet). Optional: no renderer depends on it. |
 | `example/` | Two pages, one form and one navigation bar shared by a Flutter app and a static site. |
 
 Dependencies point one way: both renderers depend on `unibox_core`, never the other

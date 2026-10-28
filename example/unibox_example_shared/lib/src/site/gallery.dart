@@ -30,10 +30,10 @@ UINode buildMaterialGallery() {
       ),
       _section(
         'Buttons',
-        'A button is a box with a state layer: the hover, focus and press tints are '
-            'the ink well, painted over the fill so the colour stays, and a press '
+        'A MaterialButton is a fill around the ink well, so the hover, focus and '
+            'press tints paint over the colour rather than replacing it, and a press '
             'spreads ink from where it landed. Hold one down to see both.',
-        _buttons(palette),
+        _buttons(),
       ),
       _section(
         'Text fields',
@@ -220,33 +220,6 @@ UINode _swatch(String name, BoxColor color, MaterialPalette palette) {
 /// the ink well; the other way round the background would hide both. The ink is the
 /// label's colour, because that is the one value here that is known to contrast
 /// with the fill.
-UINode _button(
-  String label,
-  BoxColor background,
-  BoxColor foreground,
-  MaterialPalette palette,
-) {
-  return Box(
-    borderRadius: 20,
-    backgroundColor: background,
-    border: background == palette.surface
-        ? BoxBorder(color: palette.outline)
-        : null,
-    children: <UINode>[
-      MaterialInkWell(
-        onTap: () {},
-        borderRadius: 20,
-        ink: foreground,
-        padding: const BoxSpacing.symmetric(horizontal: 20, vertical: 10),
-        child: TextNode(
-          label,
-          style: MaterialTypography.labelLarge.copyWith(color: foreground),
-        ),
-      ),
-    ],
-  );
-}
-
 /// `surfaceContainerLow` as `Surface container low`, for a label a reader can scan.
 String _label(String camelCase) {
   final String spaced = camelCase.replaceAllMapped(
@@ -263,20 +236,16 @@ String _hex(BoxColor color) {
 }
 
 /// The button shapes, each in a resting state a static page can show.
-UINode _buttons(MaterialPalette palette) {
+UINode _buttons() {
   return Box(
     direction: Axis.horizontal,
     crossAlign: CrossAlign.center,
     gap: 16,
     children: <UINode>[
-      _button('Filled', palette.primary, palette.onPrimary, palette),
-      _button(
-        'Tonal',
-        palette.primaryContainer,
-        palette.onPrimaryContainer,
-        palette,
-      ),
-      _button('Outlined', palette.surface, palette.primary, palette),
+      MaterialButton.filled(label: const TextNode('Filled'), onTap: () {}),
+      MaterialButton.tonal(label: const TextNode('Tonal'), onTap: () {}),
+      MaterialButton.outlined(label: const TextNode('Outlined'), onTap: () {}),
+      MaterialButton.text(label: const TextNode('Text'), onTap: () {}),
     ],
   );
 }
@@ -336,7 +305,7 @@ UINode _cards(MaterialPalette palette) {
               color: palette.onSurfaceVariant,
             ),
           ),
-          _button('Confirm', palette.primary, palette.onPrimary, palette),
+          MaterialButton.filled(label: const TextNode('Confirm'), onTap: () {}),
         ],
       ),
       Box(
@@ -445,30 +414,17 @@ UINode _dialogView(bool open, DialogDemoStore store) {
           title: 'Delete listing?',
           content: const TextNode('The photos go with it.'),
           actions: <UINode>[
-            _dialogAction('Cancel', store.close, palette),
-            _dialogAction('Delete', store.close, palette),
+            MaterialButton.text(
+              label: const TextNode('Cancel'),
+              onTap: store.close,
+            ),
+            MaterialButton.text(
+              label: const TextNode('Delete'),
+              onTap: store.close,
+            ),
           ],
           onDismiss: store.close,
         ),
-    ],
-  );
-}
-
-/// One action of the dialog: a label with an ink well over it.
-UINode _dialogAction(String label, TapCallback onTap, MaterialPalette palette) {
-  return Box(
-    borderRadius: 20,
-    children: <UINode>[
-      MaterialInkWell(
-        onTap: onTap,
-        borderRadius: 20,
-        ink: palette.primary,
-        padding: const BoxSpacing.symmetric(horizontal: 12, vertical: 8),
-        child: TextNode(
-          label,
-          style: MaterialTypography.labelLarge.copyWith(color: palette.primary),
-        ),
-      ),
     ],
   );
 }

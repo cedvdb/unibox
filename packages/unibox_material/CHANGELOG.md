@@ -51,6 +51,10 @@ has to know this package exists.
 - `MaterialCard`: a card as a node that extends `Box` — 16 of padding, a white
   surface, a 12 pixel radius, the shade of elevation level one and `bodyMedium` for
   the texts inside, every one of them a parameter.
+- `MaterialButton`: the four Material 3 shapes — `filled`, `tonal`, `outlined` and
+  `text` — as one `Box` around a `MaterialInkWell`, so a press inks the button over its
+  fill. Every colour is a role, the label is `labelLarge`, the radius is 20, an optional
+  `icon` sits before the label, and a disabled button keeps its place without its ink.
 - `MaterialListTile` is now a row wrapped in a `MaterialInkWell`, so a press inks it
   where it landed instead of only tinting it, and its state layers are roles the host
   theme answers. `MaterialListTile.row` is the row itself, and a `borderRadius`
