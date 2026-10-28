@@ -138,6 +138,17 @@ void main() {
       expect(_content(well).crossAlign, CrossAlign.stretch);
     });
 
+    test('keeps a well that has no width sized to its content', () {
+      final Box well = _view(
+        MaterialInkWell(onTap: _tap, child: const TextNode('Ada')),
+        MaterialInkStore(),
+      );
+
+      // Stretching a well in an unbounded row would ask for an infinite width.
+      expect(well.crossAlign, isNot(CrossAlign.stretch));
+      expect(_content(well).crossAlign, isNot(CrossAlign.stretch));
+    });
+
     test('eases the tint over Material\'s short fade', () {
       final Box well = _view(
         MaterialInkWell(onTap: _tap, child: const TextNode('Ada')),

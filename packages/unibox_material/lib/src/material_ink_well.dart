@@ -287,8 +287,11 @@ UINode _inkWellView(
     height: height,
     flex: flex,
     // A web flex column shrinks the stack to its content, so a row with a flexible
-    // part would not reach the edge of a full-width well.
-    crossAlign: CrossAlign.stretch,
+    // part would not reach the edge of a full-width well. Only a full-width well
+    // stretches: a chip in a row has no width to stretch to.
+    crossAlign: width == double.infinity
+        ? CrossAlign.stretch
+        : CrossAlign.start,
     borderRadius: borderRadius,
     overflow: Overflow.hidden,
     transition: transition,
@@ -320,7 +323,9 @@ UINode _inkWellView(
           // The cell is a flex row on the web, which sizes its box to the content.
           Box(
             width: width == double.infinity ? double.infinity : null,
-            crossAlign: CrossAlign.stretch,
+            crossAlign: width == double.infinity
+                ? CrossAlign.stretch
+                : CrossAlign.start,
             padding: padding,
             children: <UINode>[child],
           ),
