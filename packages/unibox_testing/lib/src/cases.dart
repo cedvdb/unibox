@@ -178,12 +178,25 @@ const List<BoxCase> boxCases = <BoxCase>[
       children: _children,
     ),
     expected: BoxAppearance(
+      // A rendering can only report the two axis factors: `scale` is a shorthand
+      // for stretching both, and a matrix does not remember which was written.
       transform: core.BoxTransform(
-        scale: 1.5,
+        scaleX: 1.5,
+        scaleY: 1.5,
         rotation: 15,
         offsetX: 6,
         offsetY: -8,
       ),
+    ),
+  ),
+  BoxCase(
+    description: 'stretches the box on one axis and not the other',
+    box: core.Box(
+      transform: core.BoxTransform(scaleX: 0.4),
+      children: _children,
+    ),
+    expected: BoxAppearance(
+      transform: core.BoxTransform(scaleX: 0.4, scaleY: 1),
     ),
   ),
   BoxCase(
@@ -227,7 +240,7 @@ const List<BoxCase> boxCases = <BoxCase>[
         curve: core.BoxCurve.easeIn,
       ),
       opacity: 0.75,
-      transform: core.BoxTransform(scale: 1.25),
+      transform: core.BoxTransform(scale: 1.25, scaleY: 0.8),
       children: _children,
     ),
     expected: BoxAppearance(
@@ -246,7 +259,7 @@ const List<BoxCase> boxCases = <BoxCase>[
       transitionDuration: Duration(milliseconds: 120),
       transitionCurve: core.BoxCurve.easeIn,
       opacity: 0.75,
-      transform: core.BoxTransform(scale: 1.25),
+      transform: core.BoxTransform(scaleX: 1.25, scaleY: 1),
     ),
   ),
 ];

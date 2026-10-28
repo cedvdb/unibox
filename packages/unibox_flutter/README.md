@@ -319,7 +319,9 @@ animated versions take over (`TweenAnimationBuilder` over `BoxTransform`,
 state that introduces a scale would start from the end value instead of easing.
 
 The parts of a transform are interpolated one by one, not as one matrix: a matrix lerp
-would shrink a box that only turns. Layout never animates, and neither does the border
+would shrink a box that only turns. `scaleX` and `scaleY` multiply `scale` into the two
+axes of that matrix, so a box can stretch sideways at its own height — which is how
+Material's navigation indicator grows out of its icon. Layout never animates, and neither does the border
 width: a state that moves the box changes the widget tree instead, which is what both
 targets do when a layout change has to be animated by the host.
 

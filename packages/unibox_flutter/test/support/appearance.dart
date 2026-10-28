@@ -259,13 +259,13 @@ core.BoxTransform? _transformBefore(List<Element> parts, int end) {
   for (var index = 0; index < end; index++) {
     final Widget widget = parts[index].widget;
     if (widget is Transform) {
+      // A transform is read as the two axis factors it paints, because a matrix
+      // cannot say which of `scale` and `scaleX`/`scaleY` produced it: the model's
+      // shorthand and its per-axis stretch are the same pixels.
       final Matrix4 matrix = widget.transform;
-      final double scale = math.sqrt(
-        matrix.entry(0, 0) * matrix.entry(0, 0) +
-            matrix.entry(1, 0) * matrix.entry(1, 0),
-      );
       final core.BoxTransform transform = core.BoxTransform(
-        scale: _rounded(scale),
+        scaleX: _rounded(_hypot(matrix.entry(0, 0), matrix.entry(1, 0))),
+        scaleY: _rounded(_hypot(matrix.entry(0, 1), matrix.entry(1, 1))),
         rotation: _rounded(
           math.atan2(matrix.entry(1, 0), matrix.entry(0, 0)) * 180 / math.pi,
         ),
@@ -284,6 +284,12 @@ core.BoxTransform? _transformBefore(List<Element> parts, int end) {
 /// change its look; a solid box and one that happens to be at rest paint the
 /// same thing.
 double? _opacityValue(double value) => value >= 1 ? null : value;
+
+/// The length of the vector ([x], [y]).
+///
+/// A rotation and a scale are the same two entries of a matrix, so each axis factor
+/// is a length: the diagonal would read `0` for a box turned 90 degrees.
+double _hypot(double x, double y) => math.sqrt(x * x + y * y);
 
 /// Rounds a number that was read out of a matrix.
 ///

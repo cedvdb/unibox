@@ -157,21 +157,32 @@ final class MaterialNavigationBar extends Box {
 
   /// How a chosen destination's pill arrives.
   ///
-  /// Material fades the indicator in and grows it out of the icon, over half a second;
-  /// the model eases paint — opacity and transform — and never layout, so the pill is
-  /// drawn at every destination and a switch is a change of look. The curve is the
-  /// closest of the five the model has to Material's emphatic easing.
+  /// Flutter animates the destination over 500ms with `easeInOutCubicEmphasized`,
+  /// stretching the indicator **sideways** from 40% of its width, and fades it over
+  /// 100ms whenever the animation changes direction. Those two speeds are what the
+  /// parts below say: the fade is the base, the stretch its own part.
   ///
-  /// The icon itself does not cross-fade: it is the caller's node, and a destination
-  /// that wants a filled glyph while it is chosen passes a
-  /// [MaterialNavigationDestination.selectedIcon].
+  /// Two approximations, both because of what the model has: `easeOut` is the
+  /// closest of the five curves it shares with CSS to Material's emphatic easing, and
+  /// the reverse curve is the same one flipped where Flutter uses a differently
+  /// shaped one on the way back.
   static const BoxTransition indicatorTransition = BoxTransition(
-    duration: Duration(milliseconds: 500),
-    curve: BoxCurve.easeInOut,
+    duration: Duration(milliseconds: 100),
+    curve: BoxCurve.easeOut,
+    parts: <BoxTransitionPart>[
+      BoxTransitionPart(
+        properties: <BoxProperty>{BoxProperty.transform},
+        duration: Duration(milliseconds: 500),
+        curve: BoxCurve.easeOut,
+      ),
+    ],
   );
 
-  /// How much smaller the pill is while its destination is not the chosen one.
-  static const double _indicatorRestScale = 0.85;
+  /// How wide the pill is, as a share of its own width, where it is not chosen.
+  ///
+  /// Material starts the stretch at four tenths and stops drawing it altogether once
+  /// the destination is dismissed; the opacity above is what hides the sliver.
+  static const double _indicatorRestScale = 0.4;
 
   /// The colour the icon of the chosen destination is drawn in, inside its pill.
   ///
@@ -207,7 +218,13 @@ final class MaterialNavigationBar extends Box {
   /// The space between the indicator pill and the label.
   static const double _labelGap = 4;
 
-  /// One destination: the pill, the label, and a well over the whole share.
+  /// One destination: the pill, the icon and the label, under a well over the whole
+  /// share.
+  ///
+  /// The pill is a layer *behind* the well and not a node inside it, which is what
+  /// makes a hover tint the whole destination — the square a finger aims at — and a
+  /// press lay its ink over the pill instead of behind it. Material paints its
+  /// indicator on the Material under the splash for the same reason.
   static UINode _destination({
     required MaterialNavigationDestination destination,
     required bool selected,
@@ -218,6 +235,10 @@ final class MaterialNavigationBar extends Box {
     required BoxTransition? transition,
   }) {
     final BoxColor foreground = _foregroundOf(selected);
+    // The filled glyph Material pairs with an outlined one, when the caller has both.
+    final UINode? icon = selected
+        ? destination.selectedIcon ?? destination.icon
+        : destination.icon;
 
     // The role and the colour are stated once on the box around the label, because
     // typography is the one thing a box passes down.
@@ -225,75 +246,88 @@ final class MaterialNavigationBar extends Box {
       BoxTextStyle(color: foreground),
     );
 
-    return MaterialInkWell(
-      onTap: onTap,
+    return Box(
       width: double.infinity,
-      // A definite height, not `double.infinity`: a box that fills its share
-      // vertically cannot say so in Flutter, where a flex hands its children an
-      // unbounded main axis. The bar states the height, and the share inherits it.
       height: barHeight,
-      padding: _itemPadding,
-      ink: ink ?? foreground,
-      transition: transition ?? MaterialInkWell.defaultTransition,
-      semantics: BoxSemantics(
-        role: BoxRole.button,
-        label: destination.semanticsLabel,
-        selected: selected,
-        // The destination that is chosen is the page being read, which is what a
-        // nav item means by current.
-        current: selected ? BoxCurrent.page : null,
-      ),
-      child: Box(
-        width: double.infinity,
-        gap: _labelGap,
-        crossAlign: CrossAlign.center,
-        textStyle: style,
-        children: <UINode>[
-          _indicator(
-            icon: selected
-                ? destination.selectedIcon ?? destination.icon
-                : destination.icon,
-            selected: selected,
-            color: indicatorColor,
-          ),
-          Box(children: <UINode>[destination.label]),
-        ],
-      ),
+      children: <UINode>[
+        StackNode(
+          width: double.infinity,
+          height: barHeight,
+          children: <UINode>[
+            // The indicator, centred on the share and as far from the top as the
+            // icon is, because that is the slot the icon sits in.
+            PositionedNode(
+              left: 0,
+              right: 0,
+              top: _itemPadding.top,
+              child: Box(
+                direction: Axis.horizontal,
+                mainAlign: MainAlign.center,
+                children: <UINode>[
+                  _indicator(selected: selected, color: indicatorColor),
+                ],
+              ),
+            ),
+            MaterialInkWell(
+              onTap: onTap,
+              width: double.infinity,
+              // A definite height, not `double.infinity`: a box that fills its share
+              // vertically cannot say so in Flutter, where a flex hands its children
+              // an unbounded main axis. The bar states the height, and the share
+              // inherits it.
+              height: barHeight,
+              padding: _itemPadding,
+              ink: ink ?? foreground,
+              transition: transition ?? MaterialInkWell.defaultTransition,
+              semantics: BoxSemantics(
+                role: BoxRole.button,
+                label: destination.semanticsLabel,
+                selected: selected,
+                // The destination that is chosen is the page being read, which is
+                // what a nav item means by current.
+                current: selected ? BoxCurrent.page : null,
+              ),
+              child: Box(
+                width: double.infinity,
+                gap: _labelGap,
+                crossAlign: CrossAlign.center,
+                textStyle: style,
+                children: <UINode>[
+                  // The slot the icon sits in, held open with or without a picture so
+                  // a destination without one still lines up with the ones beside it.
+                  Box(
+                    width: indicatorWidth,
+                    height: indicatorHeight,
+                    mainAlign: MainAlign.center,
+                    crossAlign: CrossAlign.center,
+                    children: <UINode>[?icon],
+                  ),
+                  Box(children: <UINode>[destination.label]),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
   /// The pill behind a destination's icon, filled only while it is chosen.
   ///
-  /// The pill is in the tree at every destination and only its look changes, so a
-  /// switch of destination is the pill fading in and growing out of the icon rather
-  /// than a node appearing. The model eases paint and never layout, so a pill that
-  /// *slid* between destinations is not on the table: that would need the width of its
-  /// neighbours, which a tree does not know.
-  ///
-  /// The icon is a sibling painted above the pill, so the fade belongs to the pill and
-  /// not to the picture the caller gave. A destination without an icon keeps its empty
-  /// pill, which is what keeps the labels of a bar in line.
-  static UINode _indicator({
-    required UINode? icon,
-    required bool selected,
-    required BoxColor color,
-  }) {
-    return StackNode(
+  /// It is in the tree at every destination and only its look changes, so a switch of
+  /// destination is the pill fading in and stretching out of the icon rather than a
+  /// node appearing. Material stretches it **sideways only**, at its own height, which
+  /// is why the transform has two axes; the fade is quicker than the stretch, so the
+  /// colour arrives before the shape has finished travelling.
+  static UINode _indicator({required bool selected, required BoxColor color}) {
+    return Box(
       width: indicatorWidth,
       height: indicatorHeight,
-      children: <UINode>[
-        Box(
-          width: indicatorWidth,
-          height: indicatorHeight,
-          borderRadius: indicatorHeight / 2,
-          backgroundColor: selected ? color : null,
-          opacity: selected ? 1 : 0,
-          transform: BoxTransform(scale: selected ? 1 : _indicatorRestScale),
-          transition: indicatorTransition,
-        ),
-        if (icon != null)
-          PositionedNode(alignment: BoxAlignment.center, child: icon),
-      ],
+      borderRadius: indicatorHeight / 2,
+      backgroundColor: selected ? color : null,
+      opacity: selected ? 1 : 0,
+      transform: BoxTransform(scaleX: selected ? 1 : _indicatorRestScale),
+      transition: indicatorTransition,
     );
   }
 

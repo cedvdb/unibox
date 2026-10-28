@@ -112,7 +112,12 @@ Matrix4 toMatrix4(core.BoxTransform transform) {
   return Matrix4.identity()
     ..translateByDouble(transform.offsetX, transform.offsetY, 0, 1)
     ..rotateZ(transform.rotation * math.pi / 180)
-    ..scaleByDouble(transform.scale, transform.scale, 1, 1);
+    ..scaleByDouble(
+      transform.scale * transform.scaleX,
+      transform.scale * transform.scaleY,
+      1,
+      1,
+    );
 }
 
 /// Converts a Unibox [core.BoxCurve] to a Flutter [Curve].

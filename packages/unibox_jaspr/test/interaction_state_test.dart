@@ -77,7 +77,24 @@ void main() {
 
       expect(
         stylesOf(find.tag('div'))['transform'],
-        'translate(10px, -4px) rotate(15deg) scale(2)',
+        // Both axes are written, because the model can stretch a box on one of them.
+        'translate(10px, -4px) rotate(15deg) scale(2, 2)',
+      );
+    });
+
+    testComponents('stretches a box on one axis and not the other', (
+      tester,
+    ) async {
+      // Material's navigation indicator grows sideways at its own height, which is
+      // what the two axes are for.
+      pumpNode(
+        tester,
+        const core.Box(transform: core.BoxTransform(scaleX: 0.4)),
+      );
+
+      expect(
+        stylesOf(find.tag('div'))['transform'],
+        'translate(0px, 0px) rotate(0deg) scale(0.4, 1)',
       );
     });
 

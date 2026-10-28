@@ -707,14 +707,22 @@ that fills the width and states its height, and being at the bottom is a
 `PositionedNode` at the bottom of a `StackNode`, or the last row of a full height
 column.
 
-**The pill arrives.** A chosen destination's indicator fades in and grows out of its
-icon over `MaterialNavigationBar.indicatorTransition` (500ms, `easeInOut`), because the
-pill is drawn at every destination and a switch changes its look rather than inserting
-a node: the model eases paint and never layout, which is also why the pill does not
-travel between destinations — a slide would need the width of its neighbours. The label
-changes colour at once and the icon swaps rather than cross-fading, since a text colour
-is not a paint a transition eases and the icon is the caller's node. The bar does not
-hide as the page scrolls: that is scroll state, which the model does not have.
+**The pill arrives, the way Flutter draws it.** The chosen destination's indicator is
+stretched sideways out of its icon — `scaleX` from 40% to full, at its own height — over
+500ms, and faded over 100ms, which is `MaterialNavigationBar.indicatorTransition`'s two
+parts: the fade is the base speed and the stretch its own (`BoxTransitionPart`). The pill
+is in the tree at every destination and only its look changes, so a switch never inserts a
+node; the model eases paint and never layout, which is also why the pill does not travel
+*along* the bar between destinations. Two approximations: `easeOut` is the closest curve
+the model shares with CSS to Material's emphatic easing, and the reverse uses the same one
+where Flutter flips a differently shaped curve. The label changes colour at once, and the
+icon swaps rather than cross-fading, because a text colour is not a paint a transition
+eases and the icon is the caller's node.
+
+**The pill is a layer behind the well.** A destination is a stack of the indicator and the
+ink well over it, so a hover tints the whole square a finger aims at — not only the pill —
+and a press lays its ink over the pill instead of behind it. That is the order Material
+paints in: its indicator is ink on the `Material`, and a splash is a later ink feature.
 
 ## The dialog and the bottom sheet
 

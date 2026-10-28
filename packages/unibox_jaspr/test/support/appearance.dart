@@ -234,11 +234,14 @@ core.BoxTransform? _transformOf(String? value) {
     throw FormatException('Not a transform of the model: $value');
   }
 
+  final double x = double.parse(match.group(4)!);
   final core.BoxTransform transform = core.BoxTransform(
     offsetX: _pixels(match.group(1)!),
     offsetY: _pixels(match.group(2)!),
     rotation: double.parse(match.group(3)!),
-    scale: double.parse(match.group(4)!),
+    // Written per axis, because the model can stretch a box on one of them.
+    scaleX: x,
+    scaleY: match.group(5) == null ? x : double.parse(match.group(5)!),
   );
 
   // An identity transform and no transform paint the same box.
@@ -248,7 +251,7 @@ core.BoxTransform? _transformOf(String? value) {
 /// The four numbers of the transform the renderer writes, in its order.
 final RegExp _transformPattern = RegExp(
   r'translate\((-?[\d.]+)px, (-?[\d.]+)px\) '
-  r'rotate\((-?[\d.]+)deg\) scale\((-?[\d.]+)\)',
+  r'rotate\((-?[\d.]+)deg\) scale\((-?[\d.]+)(?:, (-?[\d.]+))?\)',
 );
 
 /// The number [value] names, or `null` when there is no value.

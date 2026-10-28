@@ -27,12 +27,19 @@ MaterialNavigationBar _bar({int selected = 0}) => MaterialNavigationBar(
   onSelect: _select,
 );
 
-/// One share of a bar: the box that holds the destination's ink well.
+/// One share of a bar: the box that holds the destination's layers.
 Box _item(MaterialNavigationBar bar, int index) => bar.children[index] as Box;
 
-/// The ink well of one share of [bar].
+/// The layers of one share: the pill behind, the well over it.
+///
+/// The share is a box for the flex factor, then the destination's own box, then the
+/// stack that holds the two layers.
+StackNode _layers(MaterialNavigationBar bar, int index) =>
+    (_item(bar, index).children.single as Box).children.single as StackNode;
+
+/// The ink well of one share of [bar], which is the layer a finger presses.
 MaterialInkWell _well(MaterialNavigationBar bar, int index) =>
-    _item(bar, index).children.single as MaterialInkWell;
+    _layers(bar, index).children.last as MaterialInkWell;
 
 /// The box an ink well draws.
 Box _wellBox(MaterialInkWell well) {
@@ -55,13 +62,17 @@ Box _paddedBox(Box drawn) => drawn.children
 Box _content(MaterialNavigationBar bar, int index) =>
     _paddedBox(_wellBox(_well(bar, index))).children.single as Box;
 
-/// The slot above the label of one destination: the pill and its icon, layered.
-StackNode _slot(MaterialNavigationBar bar, int index) =>
-    _content(bar, index).children.first as StackNode;
+/// The slot above the label of one destination, which holds its icon.
+Box _iconSlot(MaterialNavigationBar bar, int index) =>
+    _content(bar, index).children.first as Box;
 
-/// The pill above the label of one destination.
-Box _pill(MaterialNavigationBar bar, int index) =>
-    _slot(bar, index).children.first as Box;
+/// The indicator pill of one destination, which is a layer behind the well.
+Box _pill(MaterialNavigationBar bar, int index) {
+  final PositionedNode layer =
+      _layers(bar, index).children.first as PositionedNode;
+
+  return (layer.child as Box).children.first as Box;
+}
 
 /// The colour a destination draws its label in.
 BoxColor? _labelColour(MaterialNavigationBar bar, int index) =>
@@ -136,18 +147,39 @@ void main() {
       }
     });
 
+    test('puts the pill behind the well, so tints and ink paint over it', () {
+      final MaterialNavigationBar bar = _bar(selected: 0);
+      final StackNode layers = _layers(bar, 0);
+
+      // The pill is the first layer and the well the last, so a hover tint or a drop
+      // paints across the pill and not around it — and the well covers the whole
+      // share, which is the square a finger aims at.
+      expect(layers.children.first, isA<PositionedNode>());
+      expect(layers.children.last, isA<MaterialInkWell>());
+
+      final Box well = _wellBox(_well(bar, 0));
+      expect(well.width, double.infinity);
+      expect(well.height, MaterialNavigationBar.barHeight);
+      expect(
+        well.semantics?.selected,
+        isTrue,
+        reason: 'the tint belongs to the destination that is chosen',
+      );
+    });
+
     test('draws the chosen icon in place of the resting one', () {
       final MaterialNavigationBar bar = _bar(selected: 1);
 
-      // The icon is a sibling above the pill, so the fade belongs to the pill and not
-      // to the picture the caller gave.
-      final PositionedNode icon = _slot(bar, 1).children.last as PositionedNode;
-      expect(icon.alignment, BoxAlignment.center);
-      expect((icon.child as TextNode).text, 'Map, chosen');
+      // The icon is in the slot above the label and outside the pill, so the fade
+      // belongs to the pill and not to the picture the caller gave.
       expect(
-        _slot(bar, 2).children,
-        hasLength(1),
-        reason: 'a destination without a picture keeps an empty pill',
+        (_iconSlot(bar, 1).children.single as TextNode).text,
+        'Map, chosen',
+      );
+      expect(
+        _iconSlot(bar, 2).children,
+        isEmpty,
+        reason: 'a destination without a picture keeps an empty slot',
       );
     });
 
@@ -159,13 +191,22 @@ void main() {
       for (int i = 0; i < bar.children.length; i++) {
         final Box pill = _pill(bar, i);
         expect(pill.opacity, i == 1 ? 1 : 0);
-        expect(pill.transform?.scale, i == 1 ? 1 : lessThan(1));
+        expect(pill.transform?.scaleX, i == 1 ? 1 : lessThan(1));
         expect(pill.transition, MaterialNavigationBar.indicatorTransition);
       }
+      // Flutter's two speeds: the fade is quick, the sideways stretch is slow.
       expect(
         MaterialNavigationBar.indicatorTransition.duration,
+        const Duration(milliseconds: 100),
+      );
+      expect(
+        MaterialNavigationBar.indicatorTransition
+            .timingOf(BoxProperty.transform)
+            .duration,
         const Duration(milliseconds: 500),
       );
+      // Sideways only: Material stretches the pill out of the icon at its own height.
+      expect(_pill(bar, 0).transform?.scaleY, 1);
     });
 
     test('colours the label by state, in the label role', () {

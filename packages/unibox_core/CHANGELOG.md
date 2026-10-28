@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- `BoxTransform` takes `scaleX` and `scaleY`, so a box can stretch on one axis and keep
+  its size on the other. They multiply `scale` rather than replacing it, and both targets
+  paint the result with the same matrix: Material's navigation indicator grows sideways
+  out of its icon at its own height, which one factor cannot say.
+
 ## 0.1.0
 
 - `LinkNode.onTap` answers the press instead of following the link: a renderer does one

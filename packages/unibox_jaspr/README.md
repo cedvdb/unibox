@@ -587,7 +587,7 @@ browser interpolates whenever a `:hover`, `:focus-visible`, `:active` or
 static export animates without JavaScript.
 
 `opacity` is the property of the same name and `transform` is CSS's own
-`translate(x, y) rotate(deg) scale(s)`, in that order, with no `transform-origin`:
+`translate(x, y) rotate(deg) scale(x, y)`, in that order, with no `transform-origin`:
 the browser centres a transform by default, which is where Flutter puts it too. Both
 are in the transitioned list, so a state that introduces a scale or a fade is
 interpolated by the browser — the lists match on both sides, which is what makes the

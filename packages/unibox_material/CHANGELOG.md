@@ -11,10 +11,13 @@
   `fill` and `border` put the surface on the well, under a layer of tints of its own, and
   `tapTargetHeight` adds room a finger can hit without painting it. A well with neither is
   the one box it has always been, so every other component is unchanged.
-- `MaterialNavigationBar`'s indicator arrives: the pill is drawn at every destination and
-  the chosen one fades in and grows out of its icon over `indicatorTransition` (500ms,
-  `easeInOut`). The model eases paint and not layout, so the pill does not travel between
-  destinations; the label still changes colour at once and the icon still swaps.
+- `MaterialNavigationBar`'s indicator arrives the way Flutter draws it: the pill is a layer
+  **behind** the ink well, stretched sideways out of the icon from 40% of its width over
+  500ms and faded over 100ms — `indicatorTransition`'s two parts — so a hover tints the
+  whole destination, a press inks over the pill, and a switch of destination never inserts
+  a node. `BoxTransform` grew `scaleX`/`scaleY` for that sideways stretch, which one factor
+  cannot say. The pill does not travel *along* the bar (that needs the width of its
+  neighbours) and the icon still swaps rather than cross-fading.
 
 - `MaterialNavigationBar`: Material 3's navigation bar — three to five destinations in
   one 80 pixel row on the new `surfaceContainer` role, an equal share each, the chosen

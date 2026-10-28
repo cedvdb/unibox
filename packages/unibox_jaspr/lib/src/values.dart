@@ -463,7 +463,8 @@ Map<String, String>? _lookDeclarations(core.BoxTransform? transform) {
         'translate(${_pixels(transform.offsetX)}, '
         '${_pixels(transform.offsetY)}) '
         'rotate(${_number(transform.rotation)}deg) '
-        'scale(${_number(transform.scale)})',
+        'scale(${_number(transform.scale * transform.scaleX)}, '
+        '${_number(transform.scale * transform.scaleY)})',
   };
 }
 
