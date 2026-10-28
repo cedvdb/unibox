@@ -29,9 +29,11 @@ export 'src/embed_node.dart'
     show JasprComponentEmbedBuilder, JasprComponentNode;
 export 'src/grid_node.dart' show JasprGrid;
 export 'src/image_node.dart' show JasprImage;
-export 'src/labels.dart' show nodeLabelAttribute;
+export 'src/labels.dart' show nodeKeyAttribute, nodeLabelAttribute;
 export 'src/link_node.dart' show JasprLink;
 export 'src/render.dart';
+export 'src/scroll_recorder.dart'
+    show JasprScrollRecorder, scrollRecorderScript;
 export 'src/stylesheet.dart' show JasprThemeScope, UniboxStylesheetScope;
 export 'src/stack_node.dart' show JasprPositioned, JasprStack;
 export 'src/stateful_component.dart' show JasprStateful, JasprStatefulNode;

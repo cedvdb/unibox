@@ -37,7 +37,7 @@ class JasprText extends StatelessComponent {
         children,
         classes: className,
         styles: className == null ? styles : null,
-        attributes: withNodeLabel(node),
+        attributes: withNodeAttributes(node),
       );
     }
 
@@ -49,7 +49,7 @@ class JasprText extends StatelessComponent {
       children: children,
       classes: className,
       styles: className == null ? styles : null,
-      attributes: withNodeLabel(node),
+      attributes: withNodeAttributes(node),
     );
   }
 

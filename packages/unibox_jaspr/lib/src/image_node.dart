@@ -47,7 +47,7 @@ class JasprImage extends StatelessComponent {
       alt: node.alt,
       width: _pixels(node.width),
       height: _pixels(node.height),
-      attributes: withNodeLabel(node, <String, String>{
+      attributes: withNodeAttributes(node, <String, String>{
         'srcset': ?node.resolvedSrcSet,
         'sizes': ?node.sizes,
         'loading': node.loading.name,

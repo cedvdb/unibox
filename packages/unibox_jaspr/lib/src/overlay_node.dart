@@ -122,7 +122,7 @@ class _JasprOverlayState extends State<JasprOverlay> {
           styles: sheet == null ? content : null,
         ),
       ],
-      attributes: withNodeLabel(component.node, const <String, String>{
+      attributes: withNodeAttributes(component.node, const <String, String>{
         'role': 'dialog',
         'aria-modal': 'true',
       }),

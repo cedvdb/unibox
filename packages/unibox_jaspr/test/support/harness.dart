@@ -71,6 +71,12 @@ String _cssText(TestRenderElement element) => element.children
     .map((TestRenderText child) => child.text)
     .join();
 
+/// The text inside the element matched by [finder].
+///
+/// A `<style>` and a `<script>` carry their body as text and not as children, so a
+/// test that reads one reads its text.
+String textOf(Finder finder) => _cssText(elementOf(finder));
+
 /// Every style rule the rendered component carries, in document order.
 ///
 /// The renderer emits a `<style>` element for the typography of the model and one

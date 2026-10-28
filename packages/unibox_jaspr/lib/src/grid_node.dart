@@ -43,10 +43,14 @@ class JasprGrid extends StatelessComponent {
         ],
       );
 
-      return div(children, classes: className, attributes: withNodeLabel(node));
+      return div(
+        children,
+        classes: className,
+        attributes: withNodeAttributes(node),
+      );
     }
 
-    return div(children, styles: styles, attributes: withNodeLabel(node));
+    return div(children, styles: styles, attributes: withNodeAttributes(node));
   }
 
   Map<String, String> _declarations() {

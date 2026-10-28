@@ -118,7 +118,11 @@ host that renders it.
     link: a press that is both a dialog and a page load is the flash a reader sees
     before the dialog they asked for.
 12. **Key a list.** Children of a list that can reorder take `key:` — the id of the
-    model they describe — or typed text follows the position instead of the row.
+    model they describe — or typed text follows the position instead of the row. The
+    same key is written on the element the node drew (`data-unibox-key`), so give it a
+    `String` or an `int` and keep it unique when something outside the tree has to find
+    that element again — a control that a page should be able to press on the app's
+    behalf, a box that scrolls.
 13. **Do not invent a parameter.** If it is not in the README tables or in
     `packages/unibox_core/lib/src/`, it does not exist. For anything the model cannot
     express, use an `EmbedNode` with one implementation per renderer, or ask.
@@ -173,7 +177,7 @@ host that renders it.
 | `ColorScheme.fromSeed(seedColor:, brightness:)` | `MaterialPalette.fromSeed(seed, isDark: true)`, whose roles are the ones that scheme answers |
 | `MediaQuery`, `LayoutBuilder` | host work: measure there and pass the answer in |
 | a third party widget | an `EmbedNode` that carries that `Widget` in `implementations` |
-| reading a rendered page in an inspector | every element carries `data-unibox-node="spot-card"`; name a node with `debugLabel`, never with `key` |
+| reading a rendered page in an inspector | every element carries `data-unibox-node="spot-card"`; a keyed node also carries `data-unibox-key="<key>"` when the key is a `String` or an `int`; name a node with `debugLabel`, never with `key` |
 
 ### From HTML and CSS
 

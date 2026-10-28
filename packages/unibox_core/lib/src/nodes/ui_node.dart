@@ -28,6 +28,16 @@ abstract class UINode {
   /// Keys must be unique among the children of one parent and stable across
   /// rebuilds: the id of the model the node describes is the usual choice.
   /// Flutter renders it as a `ValueKey`, Jaspr as a component `ValueKey`.
+  ///
+  /// A renderer may also write the key into the output it produces, so a host can
+  /// find the element a node drew again without counting its siblings — which is
+  /// how a page that was scrolled before it became an application is put back
+  /// where the reader left it. Only a `String` or an `int` survives that trip: any
+  /// other object's `toString()` is an instance hash, which says one thing to a
+  /// server and another to the browser it is sent to. A key that has to be found
+  /// again should therefore be unique in the document and not just among its
+  /// siblings, which is a fact about the tree rather than a rule this class can
+  /// enforce.
   final Object? key;
 
   /// The direct child nodes of this node in paint order.

@@ -19,6 +19,10 @@ Component buildSiteRoot() {
     // The page is built from material components, which name colour roles: the
     // theme answers them, once, for the whole page.
     theme: ExamplePalette.theme,
+    // No scroll recorder: this document is read, and the browser redraws it, but no
+    // Flutter binary ever boots over it — so there is no takeover to carry a scroll
+    // position into, and a page a crawler reads keeps its no-script property.
+    recordScroll: false,
     buildSitePage(
       frame: ({required String src, required String title}) =>
           IframeNode(src: src, title: title, resizable: true),

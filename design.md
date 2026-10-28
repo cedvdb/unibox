@@ -642,3 +642,29 @@ What that buys, stated as the invariants the feature has to keep:
 - A wrapper a renderer invents — a stack's cell — has no name, because no node drew
   it. That absence is meaningful: an element without the attribute is not part of the
   description.
+
+### 5.17 A key is identity, and a host may have to find it
+
+- `UINode.key` identifies a node among its siblings so a renderer keeps an element
+  attached to it. A web renderer also writes it out — `data-unibox-key="page"` — so a
+  host can find the element a node drew without counting siblings.
+- That is what a page needs in order to survive being replaced by an application: a
+  document that was scrolled, or a control that was pressed, before the runtime arrived
+  names what it was looking at, and the tree that takes over answers for it. The
+  identity already existed; writing it out is what makes it readable from outside the
+  tree.
+- Only a `String` or an `int` is written. Any other key's `toString()` is an instance
+  hash, so a server render and the browser it sends the markup to would name one node
+  two ways — a page that disagrees with itself, which is worse than one that says
+  nothing. Such a key stays a `ValueKey` and nothing more.
+- It is an attribute, never an `id`: an `id` is unique in a document while a key is
+  unique among the siblings of one node, so the same tree drawn twice on a page — a
+  card in a listing and the same card alone — is valid for a key and invalid for an
+  `id`; and an `id` is fragment-addressable and styleable, which is a look one target
+  applies and the other cannot draw.
+- A key that has to be found again should be unique in the document as well. That is a
+  fact about the tree a host builds, not a rule `validateTree` can check: only a
+  document knows how many trees it holds.
+- The key is not a semantic and not a look: no class, no rule, no element, nothing read
+  back, and two elements with the same look keep sharing one class while carrying
+  different keys — the same argument §5.16 makes for the name.

@@ -9,6 +9,7 @@ import 'image_node.dart';
 import 'keys.dart';
 import 'link_node.dart';
 import 'overlay_node.dart';
+import 'scroll_recorder.dart';
 import 'stack_node.dart';
 import 'stateful_node.dart';
 import 'stylesheet.dart';
@@ -50,7 +51,25 @@ import 'text_node.dart';
 /// of a wall of hashes. It changes nothing else — the same classes, the same
 /// rules, the same elements — and it is not a switch, because an attribute that
 /// carries no look has nothing to turn off.
-Component renderJaspr(core.UINode node, {core.UniboxTheme? theme}) {
+///
+/// A keyed node's element also carries its key (`data-unibox-key="listings"`), and
+/// the tree is preceded by [JasprScrollRecorder], which records the scroll offset of
+/// each of those elements. A page can be static HTML first and the Flutter
+/// application second, and the application paints into a canvas that cannot inherit
+/// the browser's scroll position; the record is how it starts where the reader left
+/// off. The recorder is a document element rather than a node, so it is placed here
+/// instead of in the tree, and `window.uniboxScroll.take()` is the whole contract
+/// the runtime of the next layer needs.
+///
+/// `recordScroll: false` is for a document that will never be taken over — a page
+/// served to a crawler and to a reader with no application behind it — which is the
+/// one case where a static page should carry no script of its own.
+Component renderJaspr(
+  core.UINode node, {
+  core.UniboxTheme? theme,
+  String? scriptNonce,
+  bool recordScroll = true,
+}) {
   _reportTreeIssues(node, theme);
 
   final UniboxStylesheet sheet = UniboxStylesheet();
@@ -61,6 +80,10 @@ Component renderJaspr(core.UINode node, {core.UniboxTheme? theme}) {
 
   return Component.fragment(<Component>[
     const JasprDefaultTypography(),
+    // Above the tree, so the listeners are older than the first scroll a reader can
+    // make. It is a document element, not a node: no node drew it, it carries no
+    // look, and the record survives the takeover because it lives on `window`.
+    if (recordScroll) JasprScrollRecorder(nonce: scriptNonce),
     if (theme == null) tree else JasprThemeScope(theme: theme, child: tree),
     // After the tree: every component has registered its class by the time this
     // is built. CSS applies wherever the element sits, so the `<style>` is one

@@ -73,7 +73,7 @@ class JasprTextInput extends StatelessComponent {
         disabled: !node.enabled,
         readonly: node.readOnly,
         autofocus: node.autofocus,
-        attributes: withNodeLabel(node, _attributes()),
+        attributes: withNodeAttributes(node, _attributes()),
         classes: className,
         styles: className == null ? styles : null,
         events: listeners,
@@ -84,7 +84,10 @@ class JasprTextInput extends StatelessComponent {
       type: _inputType(node),
       value: node.value,
       disabled: !node.enabled,
-      attributes: withNodeLabel(node, _attributes(includeBooleanFlags: true)),
+      attributes: withNodeAttributes(
+        node,
+        _attributes(includeBooleanFlags: true),
+      ),
 
       classes: className,
       styles: className == null ? styles : null,

@@ -50,7 +50,7 @@ class JasprLink extends StatelessComponent {
       <Component>[renderNode(node.child)],
       href: node.url,
       target: newTab ? Target.blank : null,
-      attributes: withNodeLabel(node, newTab ? _newTabAttributes : null),
+      attributes: withNodeAttributes(node, newTab ? _newTabAttributes : null),
 
       classes: className,
       styles: className == null ? _anchorStyles : null,

@@ -2,6 +2,30 @@
 
 ## Unreleased
 
+- `renderJaspr` precedes the tree with `JasprScrollRecorder`, which records where each
+  keyed element is scrolled to and hands the record to `window.uniboxScroll.take()`. A
+  page can be static HTML first and a Flutter application second, and the application
+  paints into a canvas that cannot inherit the browser's scroll position — so the record
+  is the only way a takeover starts where the reader left off, rather than at the top of
+  the list they had already scrolled through. It is a document element rather than a node
+  (no node drew it, and it has to outlive the elements the takeover replaces), it is
+  written raw because `<script>` is a raw text element, and it registers once however
+  many times a page carries it. `recordScroll: false` is for a document that will never
+  be taken over, which keeps the rule that a static page ships no script of its own;
+  `scriptNonce` is for a policy that refuses inline script, and `scrollRecorderScript` is
+  exported for a host that serves the same script as a file.
+
+- A node keyed with a `String` or an `int` writes that key on the element it drew, as
+  `data-unibox-key="page"`. It is the identity the model already used to keep an element
+  attached to its node, made readable from outside the tree, so a host can find that
+  element again without counting siblings — which is what a page has to do when it was
+  scrolled, or a control was pressed, before the runtime arrived and the tree took over.
+  Any other key stays a `ValueKey` and nothing more: its `toString()` is an instance
+  hash, so a server render and the browser it sends the markup to would name one node
+  two different ways. The attribute is not an `id` — a key is unique among the siblings
+  of one node while an `id` has to be unique in a document, and a host can style an
+  `id` — and it carries no look: no class, no rule, no element.
+
 - A box that paints and holds nothing takes no pointer, and a stack cell is a placement
   rather than a control: before, a decoration drawn over a control swallowed the press
   meant for it, so a button under a paint layer — or anywhere under a floating one — was

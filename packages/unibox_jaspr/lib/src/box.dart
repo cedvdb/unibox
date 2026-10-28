@@ -45,7 +45,10 @@ class JasprBox extends StatelessComponent {
     final List<Component> children = box.children
         .map(renderNode)
         .toList(growable: false);
-    final Map<String, String> attributes = withNodeLabel(box, _attributes());
+    final Map<String, String> attributes = withNodeAttributes(
+      box,
+      _attributes(),
+    );
 
     final Map<String, EventCallback>? events = _events();
     final core.BoxElement element =

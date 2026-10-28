@@ -32,16 +32,18 @@ void main() {
       JasprImage,
       JasprLink,
       JasprPositioned,
+      JasprScrollRecorder,
       JasprStack,
       JasprStateful,
       JasprText,
       JasprTextInput,
       renderJaspr,
+      scrollRecorderScript,
       component,
       noBuilder,
     ];
 
-    expect(exported, hasLength(14));
+    expect(exported, hasLength(16));
     expect(component, isA<Component>());
     expect(renderJaspr, isNotNull);
   });

@@ -801,6 +801,21 @@ literal a node states (`box`, `text`, `material-card`), never its type — a com
 build mangles class names, so a derived one reads `minified:-s`. Flutter has no DOM to
 write it in, which is the whole reason the two targets stay apart here.
 
+A keyed node's identity is written beside it, as `data-unibox-key="…"`, when the key is
+a `String` or an `int`. That is the one identity a page needs to find an element again
+after it stops being static: a document that a reader scrolled, or a control they
+pressed, before Flutter arrived can name what it was looking at, and the app that takes
+over can answer for it. It is not an `id` — a key is unique among the siblings of one
+node, an `id` has to be unique in the document, and a host can style an `id` — and any
+other key stays a `ValueKey` and nothing more, because an instance hash says one thing
+to the server and another to the browser.
+
+The Jaspr renderer also puts the recorder above the tree: it reads the offset of every
+keyed element and answers `window.uniboxScroll.take()`, which is what a Flutter host asks
+when it takes the page over, since the app paints into a canvas that cannot inherit the
+browser's scroll position. A document that will never be taken over says
+`recordScroll: false` and stays script-free.
+
 The example shows the first two in practice: a `StatefulWidget` and a
 `StatefulComponent` hold the same form state and pass it into the same tree.
 

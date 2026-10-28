@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- `UINode.key` documents that a renderer may write the key into its output, and that
+  only a `String` or an `int` survives that trip. Any other key keeps doing its job —
+  a reordered child stays attached to its node — but its `toString()` is an instance
+  hash, so a server render and the browser it sends the markup to would disagree about
+  the name of one node. A key that has to be found again should be unique in the
+  document and not only among its siblings; that is a fact about the tree a host builds,
+  and the class says so rather than pretending to enforce it.
+
 ## 0.1.0
 
 - `LinkNode.onTap` answers the press instead of following the link: a renderer does one

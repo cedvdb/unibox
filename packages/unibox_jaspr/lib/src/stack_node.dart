@@ -35,7 +35,7 @@ class JasprStack extends StatelessComponent {
       ],
       classes: className,
       styles: className == null ? styles : null,
-      attributes: withNodeLabel(node),
+      attributes: withNodeAttributes(node),
     );
   }
 
@@ -89,7 +89,7 @@ class JasprPositioned extends StatelessComponent {
       <Component>[child],
       classes: className,
       styles: className == null ? styles : null,
-      attributes: withNodeLabel(node),
+      attributes: withNodeAttributes(node),
     );
   }
 }

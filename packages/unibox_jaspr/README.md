@@ -241,6 +241,91 @@ no rule and no element, and nothing reads it back, so it cannot change what a pa
 looks like: two node types with the same look share one class and one rule while
 carrying different names.
 
+### A key a host can find again
+
+A node's `key` is the identity its renderer keeps an element attached to when a list
+is reordered. The renderer writes it out as well, so a host can find that element
+without counting siblings:
+
+```html
+<div class="unibox-box-1f3c9a7b" data-unibox-node="box" data-unibox-key="page">…</div>
+```
+
+| The element | `data-unibox-key` |
+| --- | --- |
+| drawn by a node keyed with a `String` or an `int` | that key |
+| drawn by an unkeyed node | absent |
+| drawn by a node keyed with anything else | absent: an instance hash is not a name |
+
+It is written only for a `String` or an `int`, because any other key's `toString()` is
+an instance hash — a value that says one thing to the server and another to the
+browser the markup is sent to. Such a key stays a `ValueKey` and nothing more, which
+is all a reordered list needs it for. Nothing is reported for it: keying a row with
+the object it describes is a legitimate spelling, and a warning would be noise.
+
+A key that a page has to find again should be unique in the document and not only
+among its siblings. That is a fact about the tree a host builds rather than something
+a renderer can enforce, so a reader that finds several elements for one key should
+distrust the answer instead of picking the first.
+
+The attribute is not an `id`. An `id` is unique in a **document** while a key is
+unique among the **siblings** of one node, so the same tree drawn twice on a page — a
+card in a listing and the same card alone — is valid for a key and invalid for an
+`id`; and an `id` is addressable by a fragment and styleable by `#name`, which is a
+look one target applies and the other cannot draw. It adds no class, no rule and no
+element, and both renderings agree on its value because it comes from the node rather
+than from the host.
+
+That is what a page needs in order to put itself back where the reader left it: a
+document that was scrolled, or a control that was pressed, before the runtime arrived
+can name what it was looking at, and the tree that takes over can answer for it.
+
+## A page that a runtime takes over
+
+A document can be two things in a row: static HTML a reader scrolls, and then the
+Flutter application that replaces it. The application paints into a canvas the size of
+the viewport, so the browser's own scroll position is not something it can inherit — the
+only scrollable thing left is a box in the tree. `renderJaspr` therefore precedes the
+tree with a recorder that reads the offset of every keyed element:
+
+```html
+<!-- What the page carries, above the tree. -->
+<script>(function () { … window.uniboxScroll = { take: … } })();</script>
+```
+
+| What | Where |
+| --- | --- |
+| the recorder | `JasprScrollRecorder`, placed by `renderJaspr` above the tree |
+| what it records | each element with a `data-unibox-key`, as `{key, dx, dy}` |
+| what the runtime reads | `window.uniboxScroll.take()`, which reads once more and clears |
+| the listeners | `scroll` (captured), `pointerdown`, `visibilitychange`, `pagehide` |
+
+It is a document element and not a node: no node drew it, it carries no look, and the
+record has to outlive the elements the takeover replaces — which is why it lives on
+`window` rather than in the tree. It is placed above the tree so its listeners are older
+than the first scroll a reader can make.
+
+`take()` reads the page again before answering, so the position is the one at the moment
+the runtime asks, however long the reader has left the page alone. Only the regions
+inside the tree are recorded: on a page served with `html, body { height: 100% }` the
+scrolling element *is* the page box, so the offset a timeline loses is the offset a
+`SingleChildScrollView` can start at.
+
+Two host facts live on `renderJaspr`:
+
+- `recordScroll: false` for a document that will never be taken over — a page a crawler
+  reads and a reader reads, with no application behind it. That is the one case where a
+  static page should carry no script of its own, and it is the only way this package
+  stops being script-free.
+- `scriptNonce` for a content security policy that refuses inline script. A host that
+  refuses `'unsafe-inline'` and a nonce alike serves `scrollRecorderScript` as a file of
+  its own instead; the string is exported for exactly that reason.
+
+The record is data, not a look, so it is not part of the conformance table: nothing about
+it can be compared between the two renderers. What the suite pins is the shape — one
+`<script>`, above the tree, raw, naming `data-unibox-key` from the one place that spells
+it — and the reading half is pinned on the Flutter side.
+
 ## Element mapping
 
 `BoxSemantics.element` decides the tag a box renders as. Everything the box

@@ -103,6 +103,97 @@ void main() {
     });
   });
 
+  group('a keyed node', () {
+    // The key is written out so a host can find an element again after the page
+    // has become an application: a recorded scroll position, a press that has to
+    // be replayed into the tree. It is the identity the model already had.
+    testComponents('is written on the element the node drew', (tester) async {
+      pumpNode(
+        tester,
+        const core.Box(
+          key: 'page',
+          children: <core.UINode>[core.TextNode('Hi', key: 'greeting')],
+        ),
+      );
+
+      expect(attributesOf(find.tag('div'))['data-unibox-key'], 'page');
+      expect(attributesOf(find.tag('span'))['data-unibox-key'], 'greeting');
+    });
+
+    testComponents('is written for a control and a field', (tester) async {
+      pumpNode(
+        tester,
+        const core.Box(
+          children: <core.UINode>[
+            core.LinkNode(
+              '/listings',
+              key: 'open-listings',
+              child: core.TextNode('Listings'),
+            ),
+            core.TextInputNode(key: 'email'),
+          ],
+        ),
+      );
+
+      // The elements a replay reaches for: a press lands on a control, and a
+      // field is found again to take the caret it had.
+      expect(attributesOf(find.tag('a'))['data-unibox-key'], 'open-listings');
+      expect(attributesOf(find.tag('input'))['data-unibox-key'], 'email');
+    });
+
+    testComponents('is written from an int, which is an id as often', (
+      tester,
+    ) async {
+      pumpNode(tester, const core.Box(key: 7));
+
+      expect(attributesOf(find.tag('div'))['data-unibox-key'], '7');
+    });
+
+    testComponents('is left off a node that has no key', (tester) async {
+      pumpNode(tester, const core.Box());
+
+      final Map<String, String> attributes = attributesOf(find.tag('div'));
+      expect(attributes['data-unibox-node'], 'box');
+      expect(attributes, isNot(contains('data-unibox-key')));
+    });
+
+    testComponents('is left off a key that a page could not answer', (
+      tester,
+    ) async {
+      // An object key is a legitimate way to keep a row attached to its model,
+      // and its `toString()` is an instance hash: a server render and the client
+      // that hydrates it would write two different names for one node.
+      pumpNode(tester, core.Box(key: Object()));
+
+      final Map<String, String> attributes = attributesOf(find.tag('div'));
+      expect(attributes['data-unibox-node'], 'box');
+      expect(attributes, isNot(contains('data-unibox-key')));
+    });
+
+    testComponents('reads the same value on every render', (tester) async {
+      // Which is what makes it usable across a handover: the markup a server
+      // wrote and the markup the runtime draws name one node the same way.
+      pumpNode(tester, const core.Box(key: 'page'));
+      final String? first = attributesOf(find.tag('div'))['data-unibox-key'];
+
+      pumpNode(tester, const core.Box(key: 'page'));
+
+      expect(attributesOf(find.tag('div'))['data-unibox-key'], first);
+      expect(first, 'page');
+    });
+
+    testComponents('adds no class and no rule', (tester) async {
+      pumpNode(tester, const core.Box());
+      final String? plainClass = classesOf(find.tag('div'));
+      final String plainCss = allCss();
+
+      pumpNode(tester, const core.Box(key: 'page'));
+
+      expect(classesOf(find.tag('div')), plainClass);
+      expect(allCss(), plainCss);
+    });
+  });
+
   group('a name is not a look', () {
     testComponents('leaves the class and the stylesheet to the styles', (
       tester,
