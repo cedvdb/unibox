@@ -1,10 +1,11 @@
 # Unibox
 
-> One immutable Dart description of a screen, rendered natively by Flutter and as HTML/CSS by Jaspr.
+> One immutable Dart description of a screen, drawn by Flutter and rendered as HTML a crawler can read.
 
-Unibox is a Dart 3.13 workspace of five packages. `packages/unibox_core` holds the
-node tree and the design tokens and has no dependencies at all; `packages/unibox_flutter`
-and `packages/unibox_jaspr` are two renderers of the same tree; `packages/unibox_testing`
+Unibox is a Dart 3.13 workspace of six packages. `packages/unibox_core` holds the
+node tree and the design tokens and has no dependencies at all; `packages/unibox_css`
+holds the CSS both web renderers share, `packages/unibox_html` writes a document from the
+tree, and `packages/unibox_flutter` draws it as widgets; `packages/unibox_testing`
 holds the tables of expected presentation that both renderer suites are checked
 against, so the two renderings cannot drift apart silently; and
 `packages/unibox_material` turns the Material 3 type scale into the same tokens and
@@ -44,9 +45,6 @@ assumes you have read the README's node sections.
 - [unibox_html](packages/unibox_html/README.md): the web renderer — a tree as a
   document a search engine can read, with no framework and no runtime. Pure Dart, no
   dependencies.
-- [unibox_jaspr](packages/unibox_jaspr/README.md): the Jaspr renderer
-  (`renderJaspr`, `node.toComponent()`), the CSS it emits, and the document work it
-  leaves to the host.
 - [unibox_testing](packages/unibox_testing/README.md): the presentation contract —
   `BoxAppearance` + `boxCases`, `TextAppearance` + `textCases`, `OverlayAppearance`
   + `overlayCases` — and the line between "the same" and "close enough". Test only.
@@ -76,7 +74,7 @@ assumes you have read the README's node sections.
   the enabled lints.
 - [packages/unibox_core/CHANGELOG.md](packages/unibox_core/CHANGELOG.md),
   [packages/unibox_flutter/CHANGELOG.md](packages/unibox_flutter/CHANGELOG.md),
-  [packages/unibox_jaspr/CHANGELOG.md](packages/unibox_jaspr/CHANGELOG.md): the
-  unreleased changes, which is where a new token is described for the user.
+  [packages/unibox_html/CHANGELOG.md](packages/unibox_html/CHANGELOG.md): the unreleased
+  changes, which is where a new token is described for the user.
 - [example/unibox_example_shared/lib/](example/unibox_example_shared/lib/): the
   example trees as plain Dart, the arrangement to copy for a real application.

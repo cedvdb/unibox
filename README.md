@@ -861,7 +861,7 @@ written inline.
 | --- | --- |
 | `packages/unibox_core` | The nodes, the style values and the validation. No dependencies outside the Dart SDK. |
 | `packages/unibox_flutter` | The Flutter renderer: `renderFlutter(node)` and `node.toWidget()`. |
-| `packages/unibox_jaspr` | The Jaspr renderer: `renderJaspr(node)` and `node.toComponent()`. |
+
 | `packages/unibox_testing` | The tables both renderers are tested against. Development only, not published. |
 | `packages/unibox_material` | The Material 3 type scale, the colour roles as a theme — the baseline scheme written down, or a palette grown from one seed colour — and the components built from them (card, list tile, button, chip, segmented button, ink well, text field, icon, check mark, navigation bar, dialog, bottom sheet). Optional: no renderer depends on it. |
 | `example/` | The example — a listings page and a sign-up dialog, one node tree — and the site: one page of three bands, with the example drawn by both renderers in the middle one. |
@@ -919,10 +919,9 @@ dart analyze                                     # static analysis everywhere
 (cd packages/unibox_core && dart test)
 (cd packages/unibox_testing && dart test)
 (cd packages/unibox_material && dart test)
-(cd packages/unibox_jaspr && dart test)
 (cd packages/unibox_flutter && flutter test)
 (cd example/unibox_example_shared && dart test)
-(cd example/unibox_example_jaspr && dart test)
+(cd example/unibox_example_site && dart test)
 (cd example/unibox_example_flutter && flutter test)
 ```
 
@@ -966,7 +965,6 @@ Where to read more:
   [core](packages/unibox_core/README.md),
   [material](packages/unibox_material/README.md),
   [flutter](packages/unibox_flutter/README.md),
-  [jaspr](packages/unibox_jaspr/README.md),
   [conformance](packages/unibox_testing/README.md).
 
 ## License

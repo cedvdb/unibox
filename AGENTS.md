@@ -36,7 +36,8 @@ guide is [`README.md`](README.md).
 | `packages/unibox_core/lib/src/enums.dart` | layout, alignment, overflow and typography enums | a value both targets can express is missing |
 | `packages/unibox_core/lib/src/validation.dart` | `validateTree` and `TreeIssue` | a construct becomes impossible to render faithfully |
 | `packages/unibox_flutter/lib/src/` | one file per node (`FlutterBox`, `FlutterText`, ...), `values.dart` (token → Flutter), `render.dart` (dispatch and the validation assert) | the Flutter target has to change |
-| `packages/unibox_jaspr/lib/src/` | the same for the web, plus `default_typography.dart` (the `:root` rule) | the web target has to change |
+| `packages/unibox_css/lib/src/` | the token-to-CSS mapping, the class hash and the state rules both web renderers share | a token's CSS changes |
+| `packages/unibox_html/lib/src/` | the string renderer: `plan.dart` (the element plan), `render.dart`, `document.dart`, `client/` | the web target has to change |
 | `packages/unibox_testing/lib/src/` | `BoxAppearance` + `boxCases`, `TextAppearance` + `textCases`, `OverlayAppearance` + `overlayCases` | a presentational token is added or changed |
 | `packages/unibox_material/lib/src/` | the Material 3 type scale: `MaterialTypography` (the fifteen roles as `const BoxTextStyle` values), `MaterialTypeRole`, the colour roles as `MaterialPalette` (`light`/`dark`, or grown from one seed by `fromSeed`, with `MaterialSchemeVariant` naming how the seed is spent), and the components built on the drawn nodes — `MaterialCard`, `MaterialListTile`, `MaterialButton`, `MaterialChip`, `MaterialSegmentedButton`, `MaterialNavigationBar`, `MaterialIcon` (`Box`), `MaterialInkWell` (a `StatefulNode`: its tints and the ink a press spreads) and `MaterialTextField` (a `StatefulNode`: the text, the focus and whether it has been touched, which is what lets it show its own error) and `MaterialDialog`, `MaterialBottomSheet` (`OverlayNode`) | a design-system role is added, a scale or a palette changes, or a component is added |
 | `packages/unibox_core/lib/src/state/` | `Store` and `StateStore`: the state a `StatefulNode` draws and the lifecycle a renderer calls | a store member, the publish rule or a lifecycle rule changes |
@@ -60,7 +61,7 @@ so the packages share one resolution.
 | Format check and analysis only | `tool/verify.sh --fast` |
 | Rewrite formatting, then verify | `tool/verify.sh --fix` |
 | Also build the API docs | `tool/verify.sh --docs` |
-| One suite, the fast loop | `(cd packages/unibox_jaspr && dart test)` |
+| One suite, the fast loop | `(cd packages/unibox_html && dart test)` |
 
 The eight suites, exactly as CI runs them:
 
@@ -68,10 +69,9 @@ The eight suites, exactly as CI runs them:
 (cd packages/unibox_core && dart test)
 (cd packages/unibox_testing && dart test)
 (cd packages/unibox_material && dart test)
-(cd packages/unibox_jaspr && dart test)
 (cd packages/unibox_flutter && flutter test)
 (cd example/unibox_example_shared && dart test)
-(cd example/unibox_example_jaspr && dart test)
+(cd example/unibox_example_site && dart test)
 (cd example/unibox_example_flutter && flutter test)
 ```
 
@@ -140,9 +140,9 @@ that lands on one target only fails the suites.
    token is a new value type), `lib/src/box.dart` (where the decoration, the
    transform or the sizing is built) and `test/support/appearance.dart` (how the
    appearance is read back for the contract).
-5. Jaspr: `packages/unibox_jaspr/lib/src/values.dart` and `lib/src/box.dart` — the
-   inline style, the four state rules (`:hover`, `:focus-visible`, `:active`,
-   `[aria-disabled="true"]`) and the `transition` property list — plus
+5. The web target: `packages/unibox_css/lib/src/` (the declarations, the four state rules
+   `:hover`, `:focus-visible`, `:active`, `[aria-disabled="true"]`, and the class hash) and
+   `packages/unibox_html/lib/src/` (the element plan, the emitter, the document) — plus
    `test/support/appearance.dart`.
 6. The contract: `packages/unibox_testing/lib/src/appearance.dart` (the field
    in `BoxAppearance` and in `differencesFrom`) and `lib/src/cases.dart` (one case
@@ -334,7 +334,7 @@ and two when each side is independently reviewable.
 | How do I use a node? | [`README.md`](README.md) — one section per node, with parameter tables |
 | Why is the model shaped this way? | [`design.md`](design.md) — defaults, precedence, parity, non-goals |
 | What does a token do on Flutter? | [`packages/unibox_flutter/README.md`](packages/unibox_flutter/README.md) |
-| What does a token do on the web? | [`packages/unibox_jaspr/README.md`](packages/unibox_jaspr/README.md) |
+| What does a token do on the web? | [`packages/unibox_html/README.md`](packages/unibox_html/README.md) |
 | What is the model's default? | [`packages/unibox_core/README.md`](packages/unibox_core/README.md) |
 | How does a node own state? | [`packages/unibox_core/README.md#state`](packages/unibox_core/README.md#state) |
 | Which Material type role should I use? | [`packages/unibox_material/README.md`](packages/unibox_material/README.md) |

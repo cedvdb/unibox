@@ -22,7 +22,7 @@ Widget widget = card.toWidget();
 Every node type also exports the widget it renders to — `FlutterBox`,
 `FlutterText`, `FlutterTextInput`, `FlutterLink`, `FlutterImage`, `FlutterStack`,
 `FlutterOverlay`, `FlutterStateful` — so a host or a test can address a rendered
-node without depending on its position in the tree. The Jaspr package exports the
+node without depending on its position in the tree. The the web renderer package exports the
 same shape under its own prefix, which is the rule: a renderer's classes are named
 with their target.
 
@@ -390,6 +390,6 @@ Widget tests build the widgets `renderFlutter` returns. `test/conformance_test.d
 runs the renderer against [`unibox_testing`](../unibox_testing) — the table
 of boxes both renderers are checked against — through
 `test/support/appearance.dart`, which reads the presentation of a box back out of
-the widget tree this renderer built. The Jaspr suite answers the same table from
+the widget tree this renderer built. The the web renderer suite answers the same table from
 the CSS it emits, so a token that stops rendering fails a test instead of only
 making the two targets drift apart.

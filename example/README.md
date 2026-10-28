@@ -15,10 +15,10 @@ catalogue the whole thing is built with.
 | --- | --- |
 | `unibox_example_shared` | The example as one node (`ExamplePageNode`, with `ExampleState` and `ExampleStore`) and the parts it is built from (`buildExamplePage`, `buildApartmentsPage`, `buildSignupDialog`); the site as one node (`buildSitePage`) and its three bands (`buildHeroSection`, `buildShowcaseSection`, `buildMaterialSection`); plus the palette. The listings are a `GridNode` of `MaterialCard`s, so the example also shows the design-system package. Pure Dart, no renderer. |
 | `unibox_example_flutter` | Flutter host: one file (`lib/main.dart`) — the surface and the link policy. |
-| `unibox_example_jaspr` | Jaspr host: the site's document, the example's document, the shipped font faces, the one `<iframe>` node the comparison needs, and the build script — no page trees, which live in the shared package. |
+| `unibox_example_site` | the document renderer host: the site's document, the example's document, the shipped font faces, the one `<iframe>` node the comparison needs, and the build script — no page trees, which live in the shared package. |
 
 Neither host holds state. The page owns it in `ExampleStore`; the host renders the
-node through `FlutterStateful` or `JasprStateful`, which creates the store, subscribes
+node through `FlutterStateful` or `the document rendererStateful`, which creates the store, subscribes
 to it and disposes it. What a host still supplies is what a node cannot know — the
 surface the tree is drawn on and how a link opens — which is why each one is a single
 small file.
@@ -33,7 +33,7 @@ and the renderer draws the view again. No host wires a callback, so the whole
 application moves between the two targets as one node.
 
 Flutter renders it with `FlutterStateful(node: ExamplePageNode())` inside its
-`MaterialApp`; Jaspr renders the same node through `JasprStateful` inside a
+`MaterialApp`; the document renderer renders the same node through `the document rendererStateful` inside a
 `Document`, which draws the first state on the server. The client build (Task 104)
 is what makes a browser subscribe to the same store; until then the export is the
 first frame, which is why a static document has to be told which state to start
@@ -167,7 +167,7 @@ Both apps render the same page, so they have to *show* the same page. That is
 pinned where a renderer lives, not here: `packages/unibox_testing` holds one
 table of boxes and the appearance each of them has to produce, and both renderer
 suites render that table and read the appearance back out of their own output —
-the Flutter suite from the widget tree, the Jaspr suite from the emitted CSS.
+the Flutter suite from the widget tree, the the document renderer suite from the emitted CSS.
 
 A renderer that drops a token, or starts wrapping a node in something that paints
 differently, therefore fails its own suite instead of making the two renderings drift
@@ -180,7 +180,7 @@ The rest of the parity lives in the hosts, because a host owns the surface a tre
 is drawn on:
 
 - The Flutter app inherits the platform font, the window size and a `Material`
-  theme from `MaterialApp`; the Jaspr document declares `html, body { height:
+  theme from `MaterialApp`; the the document renderer document declares `html, body { height:
   100%; margin: 0 }` so the page box has something to resolve its `100%` against,
   and asks CSS for the platform font with `font-family: system-ui, …`.
 - Fields and links carry no platform chrome on either side (no Material
@@ -200,7 +200,7 @@ the argument needs.
 | Band | What it says |
 | --- | --- |
 | the hero | the claim — *describe a screen once* — with the two ways in, and the claim drawn as one tree above two cards |
-| *the same tree, drawn twice* | the example in two frames: the Jaspr page on the left, the Flutter build on the right, each resizable |
+| *the same tree, drawn twice* | the example in two frames: the the document renderer page on the left, the Flutter build on the right, each resizable |
 | *Material 3, as values and nodes* | the catalogue: every component first, then the type scale and the colour roles those components name |
 
 The comparison comes before the catalogue on purpose: the claim is that the two
@@ -232,7 +232,7 @@ tool/site.sh --base=/unibox/ --url=https://cedvdb.github.io/unibox/
 | Path | What it is |
 | --- | --- |
 | `/` | The site: the claim, the comparison and the catalogue, as one page |
-| `/web/listings/` | The example, rendered by Jaspr — the left frame |
+| `/web/listings/` | The example, rendered by the document renderer — the left frame |
 | `/web/signup/` | The same page with the sign-up dialog over it |
 | `/main.client.js` | The browser runtime the three above load |
 | `/flutter/listings/`, `/flutter/signup/` | The same example, built by Flutter — the right frame |
@@ -318,7 +318,7 @@ cd example/unibox_example_flutter
 flutter test
 ```
 
-## Jaspr app
+## the document renderer app
 
 The host is four files: `lib/main.dart` holds `ExampleApp`, the same node in its
 server form, `lib/document.dart` puts it in a document (language, title, description,
@@ -328,7 +328,7 @@ roles resolve against. `bin/build_site.dart` writes the site page and the two st
 of the example:
 
 ```shell
-cd example/unibox_example_jaspr
+cd example/unibox_example_site
 dart run bin/build_site.dart --out=build/site
 open build/site/index.html
 ```
@@ -373,11 +373,11 @@ real url — which is the router work `TASK_PLAN.md` lists as deferred.
 The static export is a snapshot of the server render: the markup, the inline
 styles, the scoped hover rules and the media query are all there, but the `click`
 and `input` listeners become live only once the component runs on the client (the
-Jaspr client build). The shared state logic they call into is covered by the tests
+the document renderer client build). The shared state logic they call into is covered by the tests
 of `unibox_example_shared`.
 
 ```shell
-cd example/unibox_example_jaspr
+cd example/unibox_example_site
 dart test
 ```
 
