@@ -13,6 +13,7 @@ const List<MaterialNavigationDestination> _destinations =
       MaterialNavigationDestination(label: TextNode('Listings')),
       MaterialNavigationDestination(
         label: TextNode('Map'),
+        icon: TextNode('Map'),
         selectedIcon: TextNode('Map, chosen'),
       ),
       MaterialNavigationDestination(
@@ -38,19 +39,23 @@ Box _destination(MaterialNavigationBar bar, int index) =>
 StackNode _layers(MaterialNavigationBar bar, int index) =>
     _destination(bar, index).children.single as StackNode;
 
-/// The indicator's animated box: the pill fades and stretches here.
-Box _indicator(MaterialNavigationBar bar, int index) {
+/// The indicator's layer: the colour pill, the ink well and the icon, in that order.
+StackNode _indicator(MaterialNavigationBar bar, int index) {
   final PositionedNode layer =
       _layers(bar, index).children.first as PositionedNode;
 
-  return (layer.child as Box).children.first as Box;
+  return (layer.child as Box).children.first as StackNode;
 }
 
-/// The pill the indicator draws: its fill, its line and its clip.
-MaterialInkWell _well(MaterialNavigationBar bar, int index) =>
-    _indicator(bar, index).children.single as MaterialInkWell;
+/// The pill's colour, which is the layer that fades and stretches.
+Box _colour(MaterialNavigationBar bar, int index) =>
+    _indicator(bar, index).children.first as Box;
 
-/// The box the pill's well draws.
+/// The ink well over the colour: the layer that tints and ripples.
+MaterialInkWell _well(MaterialNavigationBar bar, int index) =>
+    _indicator(bar, index).children[1] as MaterialInkWell;
+
+/// The box the ink well draws, where its tints end up.
 Box _pill(MaterialNavigationBar bar, int index) {
   final MaterialInkStore store = MaterialInkStore();
   final Box box = _well(bar, index).viewFor(store.state, store) as Box;
@@ -59,21 +64,18 @@ Box _pill(MaterialNavigationBar bar, int index) {
   return box;
 }
 
-/// The 64 by 32 slot the icon is centred in, inside the pill.
-Box _iconSlot(MaterialNavigationBar bar, int index) =>
-    _content(bar, index).children.single as Box;
-
-/// The padded content box inside the pill's ink.
+/// The icon of one destination, which sits inside the pill and is always drawn.
 ///
-/// A filled pill is layered — the surface, then the tints over it — and an empty one is
-/// the single box it has always been, so both shapes are read here.
-Box _content(MaterialNavigationBar bar, int index) {
-  final UINode child = _pill(bar, index).children.single;
-  final StackNode stack = child is StackNode
-      ? child
-      : (child as Box).children.whereType<StackNode>().single;
+/// It is the well's content, so a press on the picture reaches the well that owns it.
+UINode? _icon(MaterialNavigationBar bar, int index) {
+  final StackNode stack = _pill(
+    bar,
+    index,
+  ).children.whereType<StackNode>().single;
+  final Box content = stack.children.whereType<Box>().last;
+  final Box slot = content.children.single as Box;
 
-  return stack.children.whereType<Box>().last;
+  return slot.children.isEmpty ? null : slot.children.single;
 }
 
 /// The label of one destination, which is a layer of its own above the ink.
@@ -139,7 +141,7 @@ void main() {
       final MaterialNavigationBar bar = _bar(selected: 1);
 
       for (int i = 0; i < bar.children.length; i++) {
-        final Box pill = _pill(bar, i);
+        final Box pill = _colour(bar, i);
 
         expect(pill.width, MaterialNavigationBar.indicatorWidth);
         expect(pill.height, MaterialNavigationBar.indicatorHeight);
@@ -163,7 +165,7 @@ void main() {
       expect(destination.backgroundColor, isNull);
       expect(destination.stateStyle(BoxState.hover), isNull);
       expect(
-        (_pill(bar, 0).children.single as Box).hoverStyle?.backgroundColor,
+        _pill(bar, 0).hoverStyle?.backgroundColor,
         const BoxColor.role(MaterialColorRole.hoverLayer),
       );
       expect(_pill(bar, 0).onTap, isNotNull);
@@ -174,25 +176,28 @@ void main() {
       );
     });
 
-    test('draws the chosen icon in place of the resting one', () {
-      final MaterialNavigationBar bar = _bar(selected: 1);
+    test('draws the icon in every state, and the chosen one in its place', () {
+      final MaterialNavigationBar chosen = _bar(selected: 1);
 
+      expect((_icon(chosen, 1) as TextNode).text, 'Map, chosen');
       expect(
-        (_iconSlot(bar, 1).children.single as TextNode).text,
-        'Map, chosen',
+        _icon(chosen, 0),
+        isNull,
+        reason: 'a destination without a picture draws no icon layer',
       );
-      expect(
-        _iconSlot(bar, 2).children,
-        isEmpty,
-        reason: 'a destination without a picture keeps an empty slot',
-      );
+
+      // The regression that mattered: the icon is a layer of its own, so fading the
+      // pill's colour cannot fade the picture with it.
+      final MaterialNavigationBar resting = _bar(selected: 2);
+      expect((_icon(resting, 1) as TextNode).text, 'Map');
+      expect(_colour(resting, 1).opacity, 0);
     });
 
     test('fades and stretches the pill instead of popping it in', () {
       final MaterialNavigationBar bar = _bar(selected: 1);
 
       for (int i = 0; i < bar.children.length; i++) {
-        final Box indicator = _indicator(bar, i);
+        final Box indicator = _colour(bar, i);
         expect(indicator.opacity, i == 1 ? 1 : 0);
         expect(indicator.transform?.scaleX, i == 1 ? 1 : lessThan(1));
         expect(
@@ -274,7 +279,7 @@ void main() {
         );
 
         expect(bar.backgroundColor, const BoxColor(0xFFFF0000));
-        expect(_pill(bar, 0).backgroundColor, const BoxColor(0xFF00FF00));
+        expect(_colour(bar, 0).backgroundColor, const BoxColor(0xFF00FF00));
       },
     );
 

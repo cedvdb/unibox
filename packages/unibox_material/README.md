@@ -727,17 +727,20 @@ eases and the icon is the caller's node.
 
 **The ink and the hover layer are the indicator's.** A destination is one control — a box
 over the whole share, which is what a finger presses and what a reader hears — and inside
-it the pill is a `MaterialInkWell` of its own, 64 by 32 with its fill, its tints and its
-ink. So a hover tints the pill and not the share around it, and a press shows ink across
-the pill over the colour it is settling to, which is the arrangement Flutter draws (its
-ink is confined by `_IndicatorInkWell.getRectCallback` to the indicator's rect).
+it the indicator is two layers: the **colour pill** (64 by 32, radius 16) and, over it, an
+ink well of the same size with the icon as its content. So a hover tints the pill and not
+the share around it, a press spreads ink across the pill over the colour it is settling
+to, and the icon is drawn in every state — the colour is the only thing that fades and
+stretches as a destination becomes the chosen one. That is the arrangement Flutter draws:
+its ink is confined by `_IndicatorInkWell.getRectCallback` to the indicator's rect, and its
+ripple is an ink feature above the indicator, under the icon.
 
 Two things keep the press single. The pill answers a press itself and its click stops
 there — the innermost control wins, which is Flutter's gesture arena — so `onSelect` is
 called once whichever layer the press landed on. And the label is a layer that takes no
-pointer, so a press on it reaches the destination under it. A press on the label
-therefore selects without ink, which is the one place this differs from Flutter: there
-the ripple starts anywhere in the destination, still drawn inside the indicator.
+pointer, so a press on it reaches the destination under it; that press selects without
+ink, which is the one place this differs from Flutter, where a ripple starts anywhere in
+destination and is still drawn inside the indicator.
 
 ## The dialog and the bottom sheet
 

@@ -312,17 +312,23 @@ final class MaterialNavigationBar extends Box {
     );
   }
 
-  /// The indicator: the pill, its fill, its tints and its ink.
+  /// The indicator: the colour pill, and the ink well with the icon in it.
   ///
-  /// It is a [MaterialInkWell] of its own, because the ink and the hover layer belong
-  /// to the indicator and not to the share: the well paints the fill under a layer of
-  /// tints, then the drops, then the icon, so a press shows ink across the pill and the
-  /// pill settles to its colour. Its semantics are hidden — the destination around it is
-  /// the control a reader hears — but its click is real: it answers a press itself and
-  /// stops there, so a press on the pill does not also reach the destination.
+  /// Two layers, in the order Material paints them. The **colour** is the pill's fill and
+  /// the only part that arrives — it fades in and stretches sideways out of the icon when
+  /// its destination becomes the chosen one. The **well** sits over the colour with the
+  /// icon as its content, so its hover layer is a full-size pill whatever state the fill
+  /// is in, a press spreads ink across the pill over the colour it is settling to, and the
+  /// icon is always drawn: an earlier shape faded the whole indicator, and an unselected
+  /// destination lost its picture with it.
   ///
-  /// The fade and the sideways stretch are on the box around it, so the ink and the
-  /// drag of a press are shaped by the same animation as the colour.
+  /// The icon is inside the well and not a layer above it because a press has to reach the
+  /// well: a text hit-tests as opaque, so a picture floating over the pill swallowed the
+  /// press and the ripple never started.
+  ///
+  /// The well is the pill's control: it answers a press itself and its click stops
+  /// there, so a press on the pill does not also reach the destination. A reader hears
+  /// the destination, not the pill, which is why the well's semantics are hidden.
   static UINode _indicator({
     required UINode? icon,
     required bool selected,
@@ -331,20 +337,26 @@ final class MaterialNavigationBar extends Box {
     required BoxColor ink,
     required BoxTransition? transition,
   }) {
-    return Box(
+    return StackNode(
       width: indicatorWidth,
       height: indicatorHeight,
-      opacity: selected ? 1 : 0,
-      // Sideways only: Material stretches the pill out of the icon at its own height.
-      transform: BoxTransform(scaleX: selected ? 1 : _indicatorRestScale),
-      transition: indicatorTransition,
       children: <UINode>[
+        Box(
+          width: indicatorWidth,
+          height: indicatorHeight,
+          borderRadius: indicatorHeight / 2,
+          backgroundColor: selected ? color : null,
+          opacity: selected ? 1 : 0,
+          // Sideways only: Material stretches the pill out of the icon at its own
+          // height.
+          transform: BoxTransform(scaleX: selected ? 1 : _indicatorRestScale),
+          transition: indicatorTransition,
+        ),
         MaterialInkWell(
           onTap: onTap,
           width: indicatorWidth,
           height: indicatorHeight,
           borderRadius: indicatorHeight / 2,
-          fill: selected ? color : null,
           ink: ink,
           padding: BoxSpacing.zero,
           transition: transition ?? MaterialInkWell.defaultTransition,

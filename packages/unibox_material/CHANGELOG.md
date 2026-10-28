@@ -20,9 +20,11 @@
 - `MaterialNavigationBar`'s indicator arrives the way Flutter draws it: stretched sideways
   out of the icon from 40% of its width over 500ms and faded over 100ms —
   `indicatorTransition`'s two parts — and it is the *only* thing that tints or inks. The
-  pill is a well of its own inside the destination's target, so a hover tints the pill and
-  a press leaves ink across it over the colour it settles to; the destination around it is
-  the control, and its own click stops at the pill. `BoxTransform` grew `scaleX`/`scaleY` for that sideways stretch, which one factor
+  pill is the colour, an ink well over it and the icon inside that well, all inside the
+  destination's target: a hover tints the pill, a press leaves ink across it over the
+  colour it settles to, and the icon is drawn whatever the state — fading the fill used to
+  fade the picture with it. The destination around it is the control, and a click on the
+  pill stops there. `BoxTransform` grew `scaleX`/`scaleY` for that sideways stretch, which one factor
   cannot say. The pill does not travel *along* the bar (that needs the width of its
   neighbours) and the icon still swaps rather than cross-fading. A destination announces
   `aria-current="page"` and no longer `aria-selected`: the latter is not valid on a
