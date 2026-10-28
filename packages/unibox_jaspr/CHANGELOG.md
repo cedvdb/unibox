@@ -10,6 +10,17 @@
 
 ## 0.1.0
 
+- A `LinkNode` with an `onTap` cancels the navigation: a plain click runs the handler and
+  the browser does not follow the `href` as well, so a page that opens a dialog from a link
+  no longer flashes a full page load on the way. A click with a modifier, a middle click
+  and a `newTab` link keep the browser's behaviour.
+
+- A `StackNode` writes `grid-template-rows: 100%`, so its cell is the stack rather than the
+  height of what sits in it: a list inside a stack that states a height scrolls in the
+  window instead of growing the document, and a control pinned to the bottom of the page
+  stays there while the page scrolls. A stack with no height of its own still sizes to its
+  content.
+
 - `PositionedNode.alignment` renders as `inset: 0` with a flex alignment, the twin of
   the other target's `Positioned.fill` and `Align`.
 - A box that states `flex` writes `min-width: 0` and `min-height: 0`: a flex item keeps

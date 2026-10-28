@@ -53,13 +53,22 @@ void main() {
   });
 
   group('StackNode', () {
-    testComponents('renders a relative grid', (tester) async {
+    testComponents('renders a relative grid whose cell is the stack', (
+      tester,
+    ) async {
       pumpNode(tester, const core.StackNode());
 
       expect(find.tag('div'), findsOneComponent);
+      // The one row is `100%` of the stack, not the height of what sits in it: a
+      // child that fills the stack is as tall as the stack, which is what a Flutter
+      // `Stack` hands a child it does not position. An `auto` row is as tall as its
+      // content instead, so a list inside a page would grow the document rather
+      // than scroll in the window. With no height stated, `100%` resolves to `auto`
+      // and a content-sized stack still sizes to its content.
       expect(stylesOf(find.tag('div')), <String, String>{
         'position': 'relative',
         'display': 'grid',
+        'grid-template-rows': '100%',
       });
     });
 

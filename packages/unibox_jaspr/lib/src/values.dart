@@ -329,10 +329,23 @@ Styles toImageStyles(core.ImageNode node) {
 /// cell. Layering children that way keeps the container sized to the largest
 /// child, which is what a Flutter `Stack` does, while still letting absolutely
 /// positioned children resolve their offsets against the stack itself.
+///
+/// The row is `100%` of the stack rather than the height of what sits in it. A
+/// Flutter stack hands its own constraints to a child that is not positioned, so a
+/// child that fills the stack is exactly as tall as the stack — a list with
+/// `overflow: auto` inside it scrolls. An `auto` grid row is at least as tall as
+/// its content and only ever grows, so the same cell would be 1953 pixels of
+/// listings inside a 727 pixel window, nothing would scroll, the document would
+/// grow instead and a control pinned to the bottom centre of the page would travel
+/// up the window as the page scrolled. `100%` resolves to `auto` when the stack has
+/// no height of its own, so a stack that is sized by its content keeps sizing it.
 Styles toStackStyles(core.StackNode node) {
   return Styles(
     position: Position.relative(),
     display: Display.grid,
+    gridTemplate: const GridTemplate(
+      rows: GridTracks(<GridTrack>[GridTrack(TrackSize(Unit.percent(100)))]),
+    ),
     width: toCssUnit(node.width),
     height: toCssUnit(node.height),
   );

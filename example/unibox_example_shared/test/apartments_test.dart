@@ -92,10 +92,21 @@ void main() {
         isTrue,
         reason: 'an alignment is not an offset',
       );
-      // The button is the narrow-surface one, lifted to the dialog's elevation.
-      final Box button = floating.child as Box;
+
+      // A threshold measures the box it is drawn in, so the cell holds a box that
+      // spans the page and centres the button — a button placed straight into the
+      // cell was drawn on a wide window as well, because there was no box for its
+      // `visibleUntil` to measure.
+      final Box row = floating.child as Box;
+      final Box button = row.children.single as Box;
+
+      expect(row.width, double.infinity);
+      // The box stacks its children, so centring the button across the page is its
+      // cross axis, not its main one.
+      expect(row.crossAlign, CrossAlign.center);
       expect(button.visibleUntil, 900);
       expect(button.shadow, MaterialElevation.level3);
+      expect(validateTree(page, theme: ExamplePalette.theme), isEmpty);
     });
 
     test('draws a filter as a chosen chip with a cross that clears it', () {

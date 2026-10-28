@@ -203,7 +203,17 @@ Box buildApartmentsPage({
           ),
           PositionedNode(
             alignment: BoxAlignment.bottomCenter,
-            child: _mapButton(onOpenMap),
+            // The cell holds one box, and the button sits inside it. A width
+            // threshold measures the box it is drawn in, and the page above this
+            // stack is a `<main>` landmark rather than a box, so a threshold placed
+            // straight into the cell had nothing to measure: the button was drawn on
+            // a wide window too, where the map already has a column of its own. This
+            // box spans the page and centres the button in it.
+            child: Box(
+              width: double.infinity,
+              crossAlign: CrossAlign.center,
+              children: <UINode>[_mapButton(onOpenMap)],
+            ),
           ),
         ],
       ),
