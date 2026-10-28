@@ -24,9 +24,13 @@
 ///
 /// The palette is a value the tree wears, not a scope anything looks up: a
 /// component takes `palette:` and reads its roles while the tree is built, so a
-/// theme change is a rebuild. Making the host's `ColorScheme` and the page's CSS
+/// theme change is a rebuild. A palette is either one of the specification's two
+/// baseline schemes (`MaterialPalette.light`, `.dark`) or one grown from a single
+/// brand colour with `MaterialPalette.fromSeed`, which runs Material's own
+/// colour algorithm. Making the host's `ColorScheme` and the page's CSS
 /// custom properties agree with it is the application's job, which is why this
-/// package depends on `unibox_core` alone and never imports Flutter or Jaspr.
+/// package depends on `unibox_core` and that algorithm alone and never imports
+/// Flutter or Jaspr.
 ///
 /// What the components leave to the platform is written down on each of them: the
 /// ripple, the floating label, the caret and selection colours, and Material's modal
@@ -44,6 +48,7 @@ export 'src/material_icon.dart';
 export 'src/material_ink_well.dart';
 export 'src/material_list_tile.dart';
 export 'src/material_palette.dart';
+export 'src/material_scheme_variant.dart';
 export 'src/material_segmented_button.dart';
 export 'src/material_text_field.dart';
 export 'src/material_type_role.dart';

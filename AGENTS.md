@@ -38,7 +38,7 @@ guide is [`README.md`](README.md).
 | `packages/unibox_flutter/lib/src/` | one file per node (`FlutterBox`, `FlutterText`, ...), `values.dart` (token → Flutter), `render.dart` (dispatch and the validation assert) | the Flutter target has to change |
 | `packages/unibox_jaspr/lib/src/` | the same for the web, plus `default_typography.dart` (the `:root` rule) | the web target has to change |
 | `packages/unibox_testing/lib/src/` | `BoxAppearance` + `boxCases`, `TextAppearance` + `textCases`, `OverlayAppearance` + `overlayCases` | a presentational token is added or changed |
-| `packages/unibox_material/lib/src/` | the Material 3 type scale: `MaterialTypography` (the fifteen roles as `const BoxTextStyle` values), `MaterialTypeRole`, the colour roles as `MaterialPalette` (`light`/`dark`), and the components built on the drawn nodes — `MaterialCard`, `MaterialListTile`, `MaterialButton`, `MaterialChip`, `MaterialSegmentedButton`, `MaterialIcon` (`Box`), `MaterialInkWell` (a `StatefulNode`: its tints and the ink a press spreads) and `MaterialTextField` (a `StatefulNode`: the text, the focus and whether it has been touched, which is what lets it show its own error) and `MaterialDialog`, `MaterialBottomSheet` (`OverlayNode`) | a design-system role is added, a scale or a palette changes, or a component is added |
+| `packages/unibox_material/lib/src/` | the Material 3 type scale: `MaterialTypography` (the fifteen roles as `const BoxTextStyle` values), `MaterialTypeRole`, the colour roles as `MaterialPalette` (`light`/`dark`, or grown from one seed by `fromSeed`, with `MaterialSchemeVariant` naming how the seed is spent), and the components built on the drawn nodes — `MaterialCard`, `MaterialListTile`, `MaterialButton`, `MaterialChip`, `MaterialSegmentedButton`, `MaterialIcon` (`Box`), `MaterialInkWell` (a `StatefulNode`: its tints and the ink a press spreads) and `MaterialTextField` (a `StatefulNode`: the text, the focus and whether it has been touched, which is what lets it show its own error) and `MaterialDialog`, `MaterialBottomSheet` (`OverlayNode`) | a design-system role is added, a scale or a palette changes, or a component is added |
 | `packages/unibox_core/lib/src/state/` | `Store` and `StateStore`: the state a `StatefulNode` draws and the lifecycle a renderer calls | a store member, the publish rule or a lifecycle rule changes |
 | `packages/*/test/support/` | the harnesses (`pumpNode`, `inNode`, `stylesOf`, ...) and `appearance.dart`, which reads the presentation back out of the output | a test needs a new fact |
 | `example/unibox_example_shared/` | the page as one `StatefulNode` (`ExamplePageNode`, `ExampleState`, `ExampleStore`) and the trees it is built from, plus the palette | the example content changes |
@@ -110,7 +110,8 @@ before a commit, and `dart analyze` is strict here (`strict-casts`,
 8. **A design system is a package of values, plus nodes built from nodes.**
    `unibox_material` holds the Material 3 type scale as `const` `BoxTextStyle`
    values and the components built from `Box` (`MaterialCard`,
-   `MaterialListTile`). It depends on `unibox_core` alone and adds no renderer code:
+   `MaterialListTile`). It depends on `unibox_core` and on Material's own colour
+   algorithm — pure Dart, no widget layer — and adds no renderer code:
    a look is a value, and a component is a node that extends the node already drawn
    for it, never a new node type.
 9. **State lives in a store, not in a node.** `StatefulNode` carries a factory

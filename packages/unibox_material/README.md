@@ -3,7 +3,9 @@
 Material Design 3 for Unibox: the type scale, the colour roles and the components
 built from them.
 
-This package is pure Dart: it depends on `unibox_core` and nothing else. It does
+This package is pure Dart: it depends on `unibox_core` for the tokens and on
+`material_color_utilities` for Material's colour algorithm — no Flutter, no
+`dart:ui`, no Material widget library. It does
 not import Flutter, `dart:ui` or Material, so the same scale is available to a
 Flutter app, a Jaspr page and a command line tool that only builds a tree.
 
@@ -198,6 +200,9 @@ renderJaspr(page, theme: MaterialPalette.lightTheme);
 renderFlutter(page, theme: MaterialPalette.lightTheme);
 ```
 
+A palette of your own is grown from a single colour — [A palette from one
+seed](#a-palette-from-one-seed) is that section.
+
 | Role | What Material paints with it |
 | --- | --- |
 | `primary`, `onPrimary`, `primaryContainer`, `onPrimaryContainer` | an accent and the text on it |
@@ -222,9 +227,66 @@ stylesheet of the host override any of them — a `prefers-color-scheme: dark` b
 enough. In Flutter they are resolved while the widget tree is built.
 
 **The one thing this package cannot do itself**: install the theme. It depends on
-`unibox_core` alone and never imports Flutter, so the two wirings that make the
-values reach a `ColorScheme` and a page's CSS are the application's — which is also
-what keeps the tree and any embedded Material widget in step.
+`unibox_core` and on Material's colour algorithm and never imports Flutter, so the
+two wirings that make the values reach a `ColorScheme` and a page's CSS are the
+application's — which is also what keeps the tree and any embedded Material widget
+in step.
+
+## A palette from one seed
+
+A brand is one colour, not twenty. `MaterialPalette.fromSeed` grows the whole
+palette from it, by the algorithm Material's own themes run:
+
+```dart
+const brand = BoxColor.rgb(0x2D, 0x6C, 0xF3);
+
+final light = MaterialPalette.fromSeed(brand);
+final dark = MaterialPalette.fromSeed(brand, isDark: true);
+
+renderJaspr(page, theme: light.theme);
+```
+
+| Parameter | Default | What it decides |
+| --- | --- | --- |
+| `isDark` | `false` | which of the two schemes to build: the light one, or the one whose accent is a light tone and whose surfaces are near black |
+| `variant` | `MaterialSchemeVariant.tonalSpot` | how the seed is spent, from a whisper to a shout |
+| `contrastLevel` | `0` | `0` is Material's own contrast, `1` the highest the algorithm offers, `-1` the lowest, and anything between is interpolated; out-of-range values are clamped |
+
+A palette is a pure function of those three: the same arguments give the same
+twenty-four roles, and the four state layers are still derived from the generated
+`onSurface`, so a tint belongs to the palette that made it.
+
+**What a seed keeps, and what it does not.** Material keeps the seed's hue and
+spends it on its own palettes, which means it *replaces the tone* — a palette needs
+all of them, from a white sheet to a near-black line — and, in the default variant,
+it lowers the chroma too. The example's `#2D6CF3` is a saturated blue; its
+`tonalSpot` accent is `#4A5C92`, a quiet one. That is Material You's whole
+temperament, and the variant is the dial:
+
+| Variant | What it does with the seed |
+| --- | --- |
+| `tonalSpot` | pastel tones from a low chroma palette: the Material You scheme, and Flutter's default |
+| `fidelity` | keeps the seed's own chroma, so the accent is the colour the brand chose |
+| `content` | almost `fidelity`, with a container that is the seed itself |
+| `vibrant` | the same hue at maximum chroma: `#0054D7` for the blue above |
+| `expressive` | a medium chroma, and a hue that deliberately leaves the seed's |
+| `neutral` | barely any chroma: greys with a hint of the seed |
+| `monochrome` | no chroma at all, so the surface tones carry the hierarchy |
+| `rainbow`, `fruitSalad` | playful schemes whose hues avoid the seed's |
+
+**It is not `MaterialPalette.light` for Material's own seed.** The two `const`
+palettes in the section above are the baseline scheme printed in the specification,
+drawn before the algorithm was refined; `fromSeed` runs today's algorithm. So
+`MaterialPalette.fromSeed(const BoxColor(0xFF6750A4))` is `#65558F` where the table
+says `#6750A4`, and its containers sit a tone or two away. That is the scheme
+Flutter's own `ColorScheme.fromSeed` builds from the same colour — both call this
+algorithm — which is the parity that matters: install that scheme on the
+`MaterialApp` and the tree and an embedded Material widget agree. Reaching for the
+specification's numbers instead is what `MaterialPalette.light` and `.dark` are for.
+
+**A seed is a colour, not a role.** `fromSeed` throws an `ArgumentError` for
+`BoxColor.role(...)`: a role is a colour a theme answers, and this is the call that
+builds the theme.
 
 ## The card
 
@@ -732,13 +794,17 @@ weight, checks that the table covers every role in order, and checks the two
 properties the package relies on: a role is complete enough to reset what it does
 not share, and it takes a theme colour without restating its geometry. For the
 card it checks the defaults, that every one can be replaced, and that the node is
-validated as the box it is. That a node extending `Box` renders on both targets is
-pinned by the renderer suites, which is what lets the card exist without either of
-them knowing its name.
+validated as the box it is. For the palette it checks the baseline schemes, that
+every role is answered in both, and that `fromSeed` grows the scheme the algorithm
+grows — every variant, both schemes and a contrast level either way — from one
+colour. That a node extending `Box` renders on both targets is pinned by the
+renderer suites, which is what lets the card exist without either of them knowing
+its name.
 
 ## Scope
 
-The type scale, the colour roles, and ten components. What is deliberately not here
+The type scale, the colour roles (written or grown from a seed), and ten
+components. What is deliberately not here
 is written on the class that lacks it, and it is all platform behaviour rather than a
 value the model could carry:
 
@@ -748,7 +814,7 @@ value the model could carry:
 | the floating label | an animation the model has no triggered timeline for |
 | the caret, the selection and the focus ring | the platform draws them for the input node |
 | modal entrance and exit transitions | the same missing timeline |
-| `ColorScheme`, CSS custom properties, dynamic colour | the two wirings an application owns, described in Task 96 of `TASK_PLAN.md` |
+| `ColorScheme` and CSS custom properties | the two wirings an application owns, described in Task 96 of `TASK_PLAN.md`. A palette *is* generated here (`MaterialPalette.fromSeed`), and installing it on the host stays the application's job |
 | the icon font and its subset | a host asset: declared in `fonts:` or with an `@font-face`, and subset by the Flutter build |
 | chips, menus, navigation | not built; each is a component, not a decision |
 

@@ -2,8 +2,16 @@ import 'dart:io';
 
 import 'package:test/test.dart';
 
-/// The only package `unibox_material` may depend on, besides the Dart SDK.
-const _allowedPackage = 'package:unibox_core/';
+/// The packages `unibox_material` may depend on, besides the Dart SDK.
+///
+/// `unibox_core` carries the tokens, and `material_color_utilities` carries
+/// Material's colour algorithm — the same one a Flutter `ColorScheme.fromSeed`
+/// runs, in pure Dart with no widget layer. A seed needs the algorithm itself, not
+/// a table of values copied out of another Material package.
+const _allowedPackages = <String>{
+  'package:unibox_core/',
+  'package:material_color_utilities/',
+};
 
 /// Libraries that would tie the tokens to one platform.
 const _forbiddenLibraries = <String>{'dart:ui', 'dart:html', 'dart:js_interop'};
@@ -14,7 +22,7 @@ final _directivePattern = RegExp(
 );
 
 void main() {
-  test('unibox_material depends on the Dart SDK and unibox_core only', () {
+  test('unibox_material depends on the SDK and the two packages', () {
     final libDirectory = Directory('lib');
     expect(
       libDirectory.existsSync(),
@@ -44,10 +52,10 @@ void main() {
         final isRelative = !uri.contains(':') && !uri.startsWith('package:');
         final isSdk =
             uri.startsWith('dart:') && !_forbiddenLibraries.contains(uri);
-        final isCore = uri.startsWith(_allowedPackage);
+        final isAllowed = _allowedPackages.any(uri.startsWith);
 
         expect(
-          isRelative || isSdk || isCore,
+          isRelative || isSdk || isAllowed,
           isTrue,
           reason: '${file.path} must not use "$uri".',
         );

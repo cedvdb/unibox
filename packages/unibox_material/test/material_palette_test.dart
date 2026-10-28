@@ -117,4 +117,191 @@ void main() {
       );
     });
   });
+
+  group('MaterialPalette.fromSeed', () {
+    // The example's accent, so the numbers a reader sees in the README are the
+    // numbers these tests hold.
+    const BoxColor brand = BoxColor(0xFF2D6CF3);
+
+    test('grows every role from one colour', () {
+      final MaterialPalette palette = MaterialPalette.fromSeed(brand);
+
+      expect(
+        palette.theme.colors.keys,
+        unorderedEquals(MaterialColorRole.values),
+        reason: 'a generated palette answers every role, like a written one',
+      );
+      // The state layers come out of the generated on-surface colour, so a
+      // generated palette tints its own surfaces rather than the baseline's.
+      expect(palette.hoverLayer.red, palette.onSurface.red);
+      expect(palette.pressedLayer.opacity, closeTo(0.10, 0.005));
+    });
+
+    test('keeps the hue of the seed', () {
+      // A palette keeps a hue and a chroma and replaces the tone: a blue seed
+      // never draws a red accent.
+      final MaterialPalette blue = MaterialPalette.fromSeed(
+        const BoxColor(0xFF2D6CF3),
+      );
+      final MaterialPalette red = MaterialPalette.fromSeed(
+        const BoxColor(0xFFB3261E),
+      );
+
+      expect(blue.primary.blue, greaterThan(blue.primary.red));
+      expect(red.primary.red, greaterThan(red.primary.blue));
+      expect(blue.primary, isNot(red.primary));
+    });
+
+    test('lowers a saturated seed to a tonal spot accent', () {
+      // tonalSpot is the Material You scheme, and it spends a saturated brand
+      // colour on a low chroma palette: #2D6CF3 is a saturated blue and the
+      // accent it becomes is a quiet one. A scheme that keeps the brand's own
+      // chroma is `MaterialSchemeVariant.fidelity`.
+      final MaterialPalette palette = MaterialPalette.fromSeed(brand);
+
+      expect(palette.primary, const BoxColor(0xFF4A5C92));
+      expect(palette.onPrimary, BoxColors.white);
+      expect(palette.onSurface, const BoxColor(0xFF1A1B21));
+      expect(palette.scrim, const BoxColor(0x52000000));
+    });
+
+    test('builds the scheme the algorithm builds from Material\'s own seed', () {
+      // These are the values a Flutter `ColorScheme.fromSeed` gives for
+      // #6750A4, because both call the same algorithm. They are a step away from
+      // `MaterialPalette.light`, which is the specification's written baseline:
+      // the parity that matters is between a tree and the host's theme, and that
+      // is this scheme.
+      final MaterialPalette light = MaterialPalette.fromSeed(
+        const BoxColor(0xFF6750A4),
+      );
+
+      expect(light.primary, const BoxColor(0xFF65558F));
+      expect(light.primaryContainer, const BoxColor(0xFFE9DDFF));
+      expect(light.onPrimaryContainer, const BoxColor(0xFF4D3D75));
+      expect(light.surface, const BoxColor(0xFFFDF7FF));
+      expect(light.outlineVariant, const BoxColor(0xFFCAC4CF));
+      expect(light.error, const BoxColor(0xFFBA1A1A));
+    });
+
+    test('builds a dark scheme from the seed, not from the light one', () {
+      final MaterialPalette dark = MaterialPalette.fromSeed(
+        brand,
+        isDark: true,
+      );
+
+      // The accent is a light tone of the seed's palette and the surface is near
+      // black: a dark scheme is not the light one with its roles swapped.
+      expect(dark.primary, const BoxColor(0xFFB3C5FF));
+      expect(dark.surface, const BoxColor(0xFF121318));
+      expect(dark.onSurface, const BoxColor(0xFFE3E2E9));
+      expect(dark.onSurface, isNot(MaterialPalette.fromSeed(brand).onSurface));
+    });
+
+    test('spends the seed the way the variant asks', () {
+      final MaterialPalette tonalSpot = MaterialPalette.fromSeed(brand);
+      final MaterialPalette vibrant = MaterialPalette.fromSeed(
+        brand,
+        variant: MaterialSchemeVariant.vibrant,
+      );
+      final MaterialPalette monochrome = MaterialPalette.fromSeed(
+        brand,
+        variant: MaterialSchemeVariant.monochrome,
+      );
+
+      // The same seed, a louder accent.
+      expect(vibrant.primary, const BoxColor(0xFF0054D7));
+      expect(vibrant.primary, isNot(tonalSpot.primary));
+      // A monochrome scheme has no hue left at all.
+      for (final BoxColor colour in <BoxColor>[
+        monochrome.primary,
+        monochrome.secondary,
+        monochrome.outline,
+      ]) {
+        expect(colour.red, colour.green);
+        expect(colour.green, colour.blue);
+      }
+    });
+
+    test('leaves no variant unable to answer a role', () {
+      // A variant is a different assignment of the same roles, so none of them
+      // may leave one unanswered or draw a text in its own background.
+      for (final MaterialSchemeVariant variant
+          in MaterialSchemeVariant.values) {
+        for (final bool isDark in <bool>[false, true]) {
+          final MaterialPalette palette = MaterialPalette.fromSeed(
+            brand,
+            variant: variant,
+            isDark: isDark,
+          );
+
+          expect(
+            palette.theme.colors.keys,
+            unorderedEquals(MaterialColorRole.values),
+            reason: '$variant is missing a role',
+          );
+          expect(palette.onPrimary, isNot(palette.primary), reason: '$variant');
+          expect(palette.onSurface, isNot(palette.surface), reason: '$variant');
+        }
+      }
+    });
+
+    test('trades colour for contrast when asked', () {
+      final MaterialPalette normal = MaterialPalette.fromSeed(brand);
+      final MaterialPalette high = MaterialPalette.fromSeed(
+        brand,
+        contrastLevel: 1,
+      );
+
+      // The most contrasted scheme draws its text in black on the light surface
+      // and its accent in a darker tone of the same hue.
+      expect(high.onSurface, BoxColors.black);
+      expect(high.onSurfaceVariant, BoxColors.black);
+      expect(high.primary, const BoxColor(0xFF14295C));
+      expect(high.primary, isNot(normal.primary));
+    });
+
+    test('clamps a contrast level that is out of range', () {
+      expect(
+        MaterialPalette.fromSeed(brand, contrastLevel: 4).primary,
+        MaterialPalette.fromSeed(brand, contrastLevel: 1).primary,
+      );
+      expect(
+        MaterialPalette.fromSeed(brand, contrastLevel: -9).primary,
+        MaterialPalette.fromSeed(brand, contrastLevel: -1).primary,
+      );
+    });
+
+    test('seeds a palette from a hue, not from an alpha', () {
+      // A brand colour is a hue and a chroma; its alpha is the page's business.
+      final MaterialPalette opaque = MaterialPalette.fromSeed(brand);
+      final MaterialPalette translucent = MaterialPalette.fromSeed(
+        const BoxColor(0x332D6CF3),
+      );
+
+      expect(translucent.theme.colors, opaque.theme.colors);
+    });
+
+    test('refuses a role as a seed', () {
+      // A role is a colour a theme answers, and this is the call that builds the
+      // theme: reading it here would throw a message about a missing theme.
+      expect(
+        () => MaterialPalette.fromSeed(
+          const BoxColor.role(MaterialColorRole.primary),
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('restyles a component like a written palette', () {
+      final MaterialPalette palette = MaterialPalette.fromSeed(brand);
+      final MaterialCard card = MaterialCard(
+        children: <UINode>[const TextNode('Order summary')],
+      );
+
+      expect(
+        palette.theme.resolve(card.backgroundColor!),
+        palette.surfaceContainerLow,
+      );
+    });
+  });
 }

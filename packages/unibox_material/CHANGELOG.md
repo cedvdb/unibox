@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- `MaterialPalette.fromSeed`: a whole palette from one brand colour — both schemes,
+  the twenty roles and the state layers — by the algorithm Material's own themes run
+  (`material_color_utilities`, the same one behind a Flutter `ColorScheme.fromSeed`,
+  so a generated palette and the host theme agree). `MaterialSchemeVariant` chooses
+  how the seed is spent (`tonalSpot`, the Material You default, through `fidelity`,
+  `vibrant`, `neutral` to `monochrome`, `rainbow` and `fruitSalad`), and
+  `contrastLevel` trades colour for legibility between `-1` and `1`.
+- `unibox_material` now depends on `material_color_utilities` as well as
+  `unibox_core`. Both are pure Dart: no Flutter, no `dart:ui`, no widget layer, and
+  the renderers still know nothing of this package.
+
 - `MaterialCheckMark` is Material's check without a font: the two strokes of the tick
   drawn as rotated bars, at the weight and the lengths of the glyph itself — a 2 pixel
   stroke, a 7.07 pixel short arm and a 14 pixel long one in its 24 pixel grid, with the

@@ -46,7 +46,8 @@ assumes you have read the README's node sections.
   + `overlayCases` — and the line between "the same" and "close enough". Test only.
 - [unibox_material](packages/unibox_material/README.md): the Material 3 type roles
   as `BoxTextStyle` values (`MaterialTypography`, `MaterialTypeRole`), the colour
-  roles as `MaterialPalette` (`light`/`dark`), and six components built on the nodes
+  roles as `MaterialPalette` (`light`/`dark`, or grown from one seed colour with
+  `fromSeed` and its `MaterialSchemeVariant`), and six components built on the nodes
   the renderers already draw — `MaterialCard`, `MaterialListTile`, `MaterialInkWell`,
   `MaterialTextField`, `MaterialDialog`, `MaterialBottomSheet` — optional and pure
   Dart, for a tree that wants Material on both targets.

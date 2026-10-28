@@ -28,7 +28,8 @@ What is not negotiable:
 8. **A design system is a package of values, plus nodes built from nodes.**
    `unibox_material` holds the Material 3 type scale as `const` tokens and
    `MaterialCard`, a `Box` with the card's defaults. It depends on `unibox_core`
-   alone and adds no renderer code: a look is a value, and a component is a node
+   and on Material's own colour algorithm — pure Dart, no widget layer — and adds
+   no renderer code: a look is a value, and a component is a node
    that extends the node already drawn for it, never a new node type.
 9. **State lives in a store, not in a node.** `StatefulNode` creates a `Store`
    (`StateStore` in the core is the ready-made one) and draws the tree of its state;

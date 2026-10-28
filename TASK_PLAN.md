@@ -192,6 +192,10 @@ logical pixels. `design.md` §5.15 holds the reasoning; these are the pieces.
 - [x] Task 116: Audit the Material components against the Material 3 specification and fix the gaps: card variants on the palette, list tile padding and palette colours, text field minimum height, focused outline, hover and disabled states, dialog content and action colours, a full-width bottom sheet with a drag handle and an upward shadow.
 - [x] Task 117: `unibox_material` — `MaterialIcon`: a glyph of an icon font in a square `Box`, by codepoint or by ligature name. A codepoint that comes from a const `IconData` is what the Flutter tree shaker can subset (10.7 MB became 3.6 kB in the check), a ligature name ships the whole font, and a web export serves whatever subset the host puts next to its `@font-face`; the README states the recipe and the Symbols codepoints.
 
+### Phase 27: A palette grown from a seed
+
+- [x] Task 131: `unibox_material` — `MaterialPalette.fromSeed(seed, {variant, isDark, contrastLevel})`, the whole palette from one brand colour, by Material's own algorithm (`material_color_utilities`, the pure Dart package Flutter's `ColorScheme.fromSeed` also runs, so a generated palette and the host theme agree). `MaterialSchemeVariant` names the nine ways a seed can be spent, `contrastLevel` (-1 to 1, clamped) trades colour for legibility, and the state layers keep deriving from the generated `onSurface`; a role is refused as a seed, and the seed's alpha is not a dial. The `const` `light`/`dark` stay, because they are the specification's baseline table, and the difference is documented where a reader meets it: the algorithm was refined after that table was drawn. The purity test now allows the two packages by name and still refuses `dart:ui` and the renderers.
+
 ## Decisions
 
 - **License:** MIT, at the root and in every package.

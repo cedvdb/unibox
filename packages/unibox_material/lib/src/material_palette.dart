@@ -1,4 +1,7 @@
+import 'package:material_color_utilities/material_color_utilities.dart';
 import 'package:unibox_core/unibox_core.dart';
+
+import 'material_scheme_variant.dart';
 
 /// The colour roles of the Material 3 specification.
 ///
@@ -101,7 +104,13 @@ enum MaterialColorRole {
 /// its platform theme — `ColorScheme` on a `MaterialApp`, CSS custom properties on
 /// the web — which is what keeps the tree and any embedded widget in step. The two
 /// wirings are the application's, not this package's: it depends on `unibox_core`
-/// alone and never imports Flutter.
+/// and on Material's own colour algorithms, and never imports Flutter.
+///
+/// **Where a palette comes from.** [MaterialPalette.light] and [MaterialPalette.dark]
+/// are the specification's baseline scheme, written down as `const` values. A
+/// palette of its own is grown from one colour by [MaterialPalette.fromSeed], which
+/// runs the algorithm a Material application runs, so a brand colour needs no table
+/// of twenty values and a dark scheme no second one.
 ///
 /// **What it is not.** It is not a theme layer, it is not a `Theme` widget and it
 /// resolves nothing at render time: the values are read when the tree is built, so
@@ -131,6 +140,99 @@ final class MaterialPalette {
     required this.onError,
     required this.scrim,
   });
+
+  /// Grows the whole palette from one colour.
+  ///
+  /// The seed is the brand colour: Material keeps its hue, replaces its tone
+  /// (a palette needs every one of them, from a white sheet to a near-black line)
+  /// and, in the default variant, spends a lower chroma than the seed may have.
+  /// A bright orange therefore becomes an orange accent on cream in the light
+  /// scheme and an orange accent on near black in the dark one, and the rest of
+  /// the roles follow from it.
+  ///
+  /// ```dart
+  /// final light = MaterialPalette.fromSeed(const BoxColor(0xFF2D6CF3));
+  /// final dark = MaterialPalette.fromSeed(
+  ///   const BoxColor(0xFF2D6CF3),
+  ///   isDark: true,
+  /// );
+  /// ```
+  ///
+  /// [variant] decides how the seed is spent — see [MaterialSchemeVariant], whose
+  /// default is the Material You scheme a Flutter application gets. [contrastLevel]
+  /// trades colour for legibility: `0` is Material's own contrast, `1` the highest
+  /// the algorithm offers, `-1` the lowest, and anything between is interpolated.
+  /// Both schemes are generated, not derived from each other, because a dark
+  /// scheme is not a light one with its tones reversed: its accent is a lighter
+  /// tone and its surfaces are near black.
+  ///
+  /// **It is not [light] for Material's own seed.** [MaterialPalette.light] is the
+  /// baseline scheme the specification prints, and the algorithm has been refined
+  /// since that table was drawn: generating from `#6750A4` gives the scheme the
+  /// current algorithm builds, which is the one Flutter's `ColorScheme.fromSeed`
+  /// builds from the same colour — a shade off the baseline's accent, a tone or
+  /// two off its containers. What both share is the relationship between a role
+  /// and the role it is read on, which is what a component relies on.
+  ///
+  /// Throws an [ArgumentError] when [seed] is a role: a role is a colour a theme
+  /// answers, and this is the call that builds the theme.
+  factory MaterialPalette.fromSeed(
+    BoxColor seed, {
+    MaterialSchemeVariant variant = MaterialSchemeVariant.tonalSpot,
+    bool isDark = false,
+    double contrastLevel = 0,
+  }) {
+    if (seed.isRole) {
+      throw ArgumentError.value(
+        seed,
+        'seed',
+        'A seed is a colour with channels of its own, not a role: this is the '
+            'call that builds the theme a role is resolved against.',
+      );
+    }
+
+    final DynamicScheme scheme = _schemeOf(
+      // The seed is spent for its hue and chroma, so its alpha is not one of the
+      // dials: a half transparent brand colour seeds the same palette as the
+      // opaque one.
+      source: Hct.fromInt(seed.value | 0xFF000000),
+      variant: variant,
+      isDark: isDark,
+      contrastLevel: contrastLevel.clamp(-1.0, 1.0).toDouble(),
+    );
+
+    BoxColor role(DynamicColor colour) => BoxColor(colour.getArgb(scheme));
+
+    return MaterialPalette(
+      primary: role(MaterialDynamicColors.primary),
+      onPrimary: role(MaterialDynamicColors.onPrimary),
+      primaryContainer: role(MaterialDynamicColors.primaryContainer),
+      onPrimaryContainer: role(MaterialDynamicColors.onPrimaryContainer),
+      secondary: role(MaterialDynamicColors.secondary),
+      onSecondary: role(MaterialDynamicColors.onSecondary),
+      secondaryContainer: role(MaterialDynamicColors.secondaryContainer),
+      onSecondaryContainer: role(MaterialDynamicColors.onSecondaryContainer),
+      surface: role(MaterialDynamicColors.surface),
+      onSurface: role(MaterialDynamicColors.onSurface),
+      onSurfaceVariant: role(MaterialDynamicColors.onSurfaceVariant),
+      surfaceContainerLowest: role(
+        MaterialDynamicColors.surfaceContainerLowest,
+      ),
+      surfaceContainerLow: role(MaterialDynamicColors.surfaceContainerLow),
+      surfaceContainerHigh: role(MaterialDynamicColors.surfaceContainerHigh),
+      surfaceContainerHighest: role(
+        MaterialDynamicColors.surfaceContainerHighest,
+      ),
+      outline: role(MaterialDynamicColors.outline),
+      outlineVariant: role(MaterialDynamicColors.outlineVariant),
+      error: role(MaterialDynamicColors.error),
+      onError: role(MaterialDynamicColors.onError),
+      // The scrim is the one role a seed does not reach: it is black at 32% in
+      // every scheme Material states, because it dims a page rather than
+      // painting one.
+      scrim: _scrim,
+    );
+  }
 
   /// The accent a primary action is painted with.
   final BoxColor primary;
@@ -271,7 +373,7 @@ final class MaterialPalette {
     outlineVariant: BoxColor(0xFFCAC4D0),
     error: BoxColor(0xFFB3261E),
     onError: BoxColor(0xFFFFFFFF),
-    scrim: BoxColor(0x52000000),
+    scrim: _scrim,
   );
 
   /// The resting palette of Material 3's baseline dark scheme.
@@ -295,7 +397,7 @@ final class MaterialPalette {
     outlineVariant: BoxColor(0xFF49454F),
     error: BoxColor(0xFFF2B8B5),
     onError: BoxColor(0xFF601410),
-    scrim: BoxColor(0x52000000),
+    scrim: _scrim,
   );
 
   /// [base] at [opacity], keeping its channels.
@@ -306,5 +408,72 @@ final class MaterialPalette {
       base.blue,
       (opacity * 0xFF).round(),
     );
+  }
+
+  /// The scrim of every scheme: black at 32%.
+  ///
+  /// A seed never reaches it, because a scrim does not paint a surface — it dims
+  /// whatever is behind a modal, so it is the same value in a light scheme, a
+  /// dark one and a generated one.
+  static const BoxColor _scrim = BoxColor(0x52000000);
+
+  /// The scheme Material's algorithm builds for [source].
+  ///
+  /// One case per [MaterialSchemeVariant], because each variant is a different
+  /// assignment of the same roles — different palettes, a rotated hue, a fixed
+  /// chroma — and picking the class is how the algorithm is chosen.
+  static DynamicScheme _schemeOf({
+    required Hct source,
+    required MaterialSchemeVariant variant,
+    required bool isDark,
+    required double contrastLevel,
+  }) {
+    return switch (variant) {
+      MaterialSchemeVariant.tonalSpot => SchemeTonalSpot(
+        sourceColorHct: source,
+        isDark: isDark,
+        contrastLevel: contrastLevel,
+      ),
+      MaterialSchemeVariant.fidelity => SchemeFidelity(
+        sourceColorHct: source,
+        isDark: isDark,
+        contrastLevel: contrastLevel,
+      ),
+      MaterialSchemeVariant.content => SchemeContent(
+        sourceColorHct: source,
+        isDark: isDark,
+        contrastLevel: contrastLevel,
+      ),
+      MaterialSchemeVariant.vibrant => SchemeVibrant(
+        sourceColorHct: source,
+        isDark: isDark,
+        contrastLevel: contrastLevel,
+      ),
+      MaterialSchemeVariant.expressive => SchemeExpressive(
+        sourceColorHct: source,
+        isDark: isDark,
+        contrastLevel: contrastLevel,
+      ),
+      MaterialSchemeVariant.neutral => SchemeNeutral(
+        sourceColorHct: source,
+        isDark: isDark,
+        contrastLevel: contrastLevel,
+      ),
+      MaterialSchemeVariant.monochrome => SchemeMonochrome(
+        sourceColorHct: source,
+        isDark: isDark,
+        contrastLevel: contrastLevel,
+      ),
+      MaterialSchemeVariant.rainbow => SchemeRainbow(
+        sourceColorHct: source,
+        isDark: isDark,
+        contrastLevel: contrastLevel,
+      ),
+      MaterialSchemeVariant.fruitSalad => SchemeFruitSalad(
+        sourceColorHct: source,
+        isDark: isDark,
+        contrastLevel: contrastLevel,
+      ),
+    };
   }
 }

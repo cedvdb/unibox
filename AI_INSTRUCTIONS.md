@@ -50,7 +50,9 @@ host that renders it.
   Never reach for the host's default.
 - `unibox_material` is optional: the fifteen Material type roles as `const`
   `BoxTextStyle` values, the colour roles as `MaterialPalette` (`light` and `dark`,
-  each a `const` set of `BoxColor`s), and eleven components built on nodes the
+  each a `const` set of `BoxColor`s — or a palette grown from one brand colour with
+  `MaterialPalette.fromSeed(seed, variant:, isDark:, contrastLevel:)`), and eleven
+  components built on nodes the
   renderers already draw — `MaterialCard`, `MaterialListTile`, `MaterialButton`,
   `MaterialChip`, `MaterialSegmentedButton` and `MaterialIcon` are `Box` subclasses, `MaterialInkWell`,
   `MaterialTextField` and `MaterialSpinner` are `StatefulNode`s (the ink a press
@@ -160,7 +162,8 @@ host that renders it.
 | `Icon` | `MaterialIcon.codePoint(Symbols.home.codePoint)`, or `MaterialIcon.ligature('home')` when the font is not tree-shaken anyway |
 | `ListTile` | `MaterialListTile` (from `unibox_material`) |
 | `Theme.of(context).textTheme.titleLarge` | `MaterialTypography.titleLarge` |
-| `Theme.of(context).colorScheme.primary` | `MaterialPalette.light.primary` (or `dark`), passed into the tree |
+| `Theme.of(context).colorScheme.primary` | `MaterialPalette.light.primary` (or `dark`), or `MaterialPalette.fromSeed(brand).primary`, passed into the tree |
+| `ColorScheme.fromSeed(seedColor:, brightness:)` | `MaterialPalette.fromSeed(seed, isDark: true)`, whose roles are the ones that scheme answers |
 | `MediaQuery`, `LayoutBuilder` | host work: measure there and pass the answer in |
 | a third party widget | an `EmbedNode` that carries that `Widget` in `implementations` |
 | reading a rendered page in an inspector | every element carries `data-unibox-node="spot-card"`; name a node with `debugLabel`, never with `key` |

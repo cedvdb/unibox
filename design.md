@@ -331,10 +331,10 @@ never inherited (CSS does not inherit them either).
 
 ### 5.9 Design systems are packages
 - A design system is a set of token values, not a mode of a renderer. It lives in
-  its own package, depends on `unibox_core` alone, and exports `const` values a
-  tree can use — so the renderers never learn that Material exists and a tree
-  typeset with Material's scale is drawn by the same code as one with hand
-  written values.
+  its own package, depends on `unibox_core` (and on nothing that draws), and
+  exports `const` values a tree can use — so the renderers never learn that
+  Material exists and a tree typeset with Material's scale is drawn by the same
+  code as one with hand written values.
 - `unibox_material` is the first one: the fifteen roles of the Material 3 type
   scale as `BoxTextStyle` values. Each role is a complete look (size, weight,
   tracking, line height), because a partial style would let the surrounding text
@@ -368,6 +368,15 @@ never inherited (CSS does not inherit them either).
   inheritance (`Box.textStyle`) and by `merge` at author time, so a
   `TextNode.styles` list would add a second, node local cascade — the CSS cascade
   §5.6 rules out.
+- A value can be computed. `MaterialPalette.fromSeed` grows the twenty-four colour
+  roles from one brand colour with Material's own algorithm
+  (`material_color_utilities`, pure Dart, Apache-2.0, no widget layer), and the
+  result is still a value: the tree reads it while it is built, no renderer
+  resolves anything at paint time, and the package gained a dependency rather than
+  a mode. It is the one dependency a value package may take — an algorithm that
+  answers with a colour, not a host that answers with a picture. The written
+  `MaterialPalette.light`/`.dark` stay, because they are the specification's
+  baseline scheme and because a `const` value composes into other `const` values.
 - `BoxStyle` and `BoxTextStyle` are `final` classes with structural equality and
   a `merge` that returns the base type, so a preset is always a value and never a
   subtype. A catalogue type (`TextStyles`, `BoxStyles`) would therefore be a

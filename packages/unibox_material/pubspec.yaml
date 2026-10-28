@@ -1,5 +1,5 @@
 name: unibox_material
-description: The Material Design 3 type scale and a card node for Unibox, usable by every renderer without depending on Flutter or Material.
+description: The Material Design 3 type scale, a palette generated from one seed colour, and the components built on them, usable by every renderer without depending on Flutter or Material.
 publish_to: none
 version: 0.1.0
 repository: https://github.com/cedvdb/unibox
@@ -16,6 +16,7 @@ environment:
   sdk: ^3.13.0
 
 dependencies:
+  material_color_utilities: ^0.13.0
   unibox_core: ^0.1.0
 
 dev_dependencies:
