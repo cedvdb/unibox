@@ -78,6 +78,28 @@ void main() {
       expect((scrollingBox(page).children.single as Box).padding, isNotNull);
     });
 
+    test(
+      'paints the search field on the example panel, not on a Material role',
+      () {
+        // The palette answers two vocabularies, and the web writes one custom property
+        // per role name. A field that asked for `MaterialColorRole.surface` was white on
+        // the page — the example's own role won the property — and Material's pink in
+        // the app, because Flutter resolved each name separately. The example's role is
+        // the one the field means, and it is the only one of the two in the theme's
+        // properties.
+        final Box field = flatten(buildApartmentsPage())
+            .whereType<Box>()
+            .firstWhere((Box box) => box.borderRadius == 26);
+
+        expect(field.backgroundColor, const BoxColor.role(ExampleColor.panel));
+        expect(
+          ExamplePalette.theme.resolve(field.backgroundColor!),
+          ExamplePalette.panel,
+          reason: 'the field is the example white on both targets',
+        );
+      },
+    );
+
     test('floats a pill at the bottom centre of the page', () {
       // The listing scrolls under the pill, so the two are siblings in a stack: the
       // scroll box and an aligned cell, which needs no measurement of a window.

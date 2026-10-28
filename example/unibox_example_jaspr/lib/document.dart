@@ -98,7 +98,7 @@ Document buildExampleDocument({
             styles: Styles(
               raw: <String, String>{
                 '--unibox-color-canvas': '#101216',
-                '--unibox-color-surface': '#1a1d24',
+                '--unibox-color-panel': '#1a1d24',
                 '--unibox-color-text': '#e9eaee',
                 '--unibox-color-muted': '#a2a8b4',
                 '--unibox-color-border': '#2c313a',

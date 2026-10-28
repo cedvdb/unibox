@@ -295,7 +295,7 @@ UINode _searchBar() {
     padding: const BoxSpacing.symmetric(horizontal: 18, vertical: 12),
     borderRadius: 26,
     border: const BoxBorder(color: BoxColor.role(MaterialColorRole.outline)),
-    backgroundColor: const BoxColor.role(MaterialColorRole.surface),
+    backgroundColor: const BoxColor.role(ExampleColor.panel),
     children: <UINode>[
       _magnifier(),
       Box(

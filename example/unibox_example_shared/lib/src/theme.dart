@@ -21,8 +21,8 @@ enum ExampleColor {
   /// The tint behind the navigation item that is open.
   accentSurface,
 
-  /// The background of the card and of the navigation bar.
-  surface,
+  /// The background of a raised panel: a card, the navigation bar, a field.
+  panel,
 
   /// The colour of the page behind the card.
   canvas,
@@ -58,7 +58,7 @@ abstract final class ExamplePalette {
       ExampleColor.accentHover: accentHover,
       ExampleColor.accentPressed: accentPressed,
       ExampleColor.accentSurface: accentSurface,
-      ExampleColor.surface: surface,
+      ExampleColor.panel: panel,
       ExampleColor.canvas: canvas,
       ExampleColor.text: text,
       ExampleColor.muted: muted,
@@ -78,8 +78,14 @@ abstract final class ExamplePalette {
   /// The tint behind the navigation item that is open.
   static const BoxColor accentSurface = BoxColor.rgb(0xE8, 0xEF, 0xFD);
 
-  /// The background of the card and of the navigation bar.
-  static const BoxColor surface = BoxColor.white;
+  /// The background of a raised panel: a card, the navigation bar, a field — and the
+  /// white that contrasts with [accent], which is why a button's label is drawn in it.
+  ///
+  /// It is not named `surface`, because `unibox_material` already has a role with that
+  /// name and both vocabularies share one `:root` block on the web: two roles writing
+  /// `--unibox-color-surface` would leave one of them silently unused there while
+  /// Flutter resolved both, which is exactly the divergence the roles exist to prevent.
+  static const BoxColor panel = BoxColor.white;
 
   /// The color of the page behind the card.
   static const BoxColor canvas = BoxColor.rgb(0xF3, 0xF4, 0xF6);
@@ -188,7 +194,7 @@ abstract final class ExampleType {
   static const BoxTextStyle button = BoxTextStyle(
     fontSize: 14,
     fontWeight: FontWeight.semiBold,
-    color: ExamplePalette.surface,
+    color: ExamplePalette.panel,
   );
 
   /// The link under the button.

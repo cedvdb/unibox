@@ -136,7 +136,7 @@ void main() {
           .whereType<Box>()
           .firstWhere((Box box) => box.width == 24);
 
-      expect(checkbox.backgroundColor, ExamplePalette.surface);
+      expect(checkbox.backgroundColor, ExamplePalette.panel);
       expect(checkbox.children, isEmpty);
     });
 

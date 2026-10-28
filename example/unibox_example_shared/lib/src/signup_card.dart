@@ -138,7 +138,7 @@ Box buildSignupCard({
     semantics: const BoxSemantics(element: BoxElement.article),
     textStyle: ExampleType.body,
     padding: const BoxSpacing.all(24),
-    backgroundColor: const BoxColor.role(ExampleColor.surface),
+    backgroundColor: const BoxColor.role(ExampleColor.panel),
     borderRadius: 16,
     border: const BoxBorder(color: ExamplePalette.border),
     // The dialog's own elevation, not a shadow written here: a surface that is raised
@@ -235,7 +235,7 @@ UINode _field(TextInputNode node, {String? error}) {
       Box(
         width: double.infinity,
         padding: const BoxSpacing.symmetric(horizontal: 12, vertical: 10),
-        backgroundColor: ExamplePalette.surface,
+        backgroundColor: ExamplePalette.panel,
         borderRadius: 10,
         border: BoxBorder(
           color: error == null ? ExamplePalette.border : ExamplePalette.danger,
@@ -288,7 +288,7 @@ UINode _avatarChip() {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: ExamplePalette.surface,
+    backgroundColor: ExamplePalette.panel,
     border: const BoxBorder(width: 4, color: ExamplePalette.accent),
     textStyle: const BoxTextStyle(
       fontSize: 20,
@@ -348,7 +348,7 @@ UINode _newsletterRow(SignupFormState state, TapCallback onToggle) {
         borderRadius: 6,
         backgroundColor: state.newsletter
             ? ExamplePalette.accent
-            : ExamplePalette.surface,
+            : ExamplePalette.panel,
         border: BoxBorder(
           width: 2,
           color: state.newsletter
@@ -361,7 +361,7 @@ UINode _newsletterRow(SignupFormState state, TapCallback onToggle) {
               '✓',
               fontSize: 12,
               fontWeight: FontWeight.bold,
-              color: ExamplePalette.surface,
+              color: ExamplePalette.panel,
             ),
         ],
       ),

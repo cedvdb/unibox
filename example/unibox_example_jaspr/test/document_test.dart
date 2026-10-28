@@ -30,7 +30,7 @@ void main() {
       // The tree names roles; the document says what they are worth, once.
       expect(html, contains('--unibox-color-canvas'));
       expect(html, contains('--unibox-color-accent'));
-      expect(html, contains('--unibox-color-surface'));
+      expect(html, contains('--unibox-color-panel'));
     });
 
     test('points the tree at those properties instead of a value', () {
@@ -45,6 +45,11 @@ void main() {
         RegExp(r'--unibox-color-canvas:\s*#101216').hasMatch(html),
         isTrue,
         reason: 'the dark canvas of the host is missing',
+      );
+      expect(
+        RegExp(r'--unibox-color-panel:\s*#1a1d24').hasMatch(html),
+        isTrue,
+        reason: 'the dark panel of the host is missing',
       );
     });
 

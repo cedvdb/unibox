@@ -123,7 +123,7 @@ UINode _navigationBar({
     crossAlign: CrossAlign.center,
     width: double.infinity,
     padding: const BoxSpacing.symmetric(horizontal: 24, vertical: 12),
-    backgroundColor: const BoxColor.role(ExampleColor.surface),
+    backgroundColor: const BoxColor.role(ExampleColor.panel),
     shadow: const BoxShadow(
       color: BoxColor(0x14000000),
       offsetY: 1,

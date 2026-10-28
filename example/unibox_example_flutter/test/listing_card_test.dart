@@ -28,7 +28,9 @@ void main() {
         textDirection: TextDirection.ltr,
         child: renderFlutter(
           buildApartmentsPage(),
-          theme: MaterialPalette.lightTheme,
+          // The page's own palette: it names the example's roles, and the Material
+          // ones its components name are lent by the same theme.
+          theme: ExamplePalette.theme,
         ),
       ),
     );

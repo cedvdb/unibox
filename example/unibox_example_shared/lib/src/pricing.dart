@@ -161,7 +161,7 @@ UINode _hero({required TapCallback onStart}) {
               MaterialInkWell(
                 onTap: onStart,
                 borderRadius: 10,
-                ink: ExamplePalette.surface,
+                ink: ExamplePalette.panel,
                 padding: const BoxSpacing.symmetric(
                   horizontal: 20,
                   vertical: 12,
@@ -211,7 +211,7 @@ UINode _bandCard(RentBand band) {
     gap: 12,
     padding: const BoxSpacing.all(20),
     borderRadius: 16,
-    backgroundColor: ExamplePalette.surface,
+    backgroundColor: ExamplePalette.panel,
     border: const BoxBorder(color: ExamplePalette.border),
     children: <UINode>[
       TextNode(band.name, style: ExampleType.navCurrent, headingLevel: 3),
