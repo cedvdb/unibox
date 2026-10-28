@@ -268,6 +268,15 @@ Stacks behave like CSS `overflow: visible` and do not clip their content. A
 `PositionedNode` rendered outside a `StackNode` renders its child without
 applying the offsets, because offsets are relative to the enclosing stack.
 
+**A box that holds only a layer.** A `Box` with one `StackNode` child keeps its own
+main and cross alignment for what the layer draws, which a browser gets for free:
+there the stack is the flex's single flow child, so the pair places the stack itself
+and its cell takes the size of its content. Flutter cannot hand a stack an unbounded
+main axis — an aligned `PositionedNode` inside it needs a bounded one — so the stack
+fills the box instead and the alignment becomes the stack's own, which is the same
+rectangle for every child that is not positioned. That is what centres a segmented
+button's label in its pill, and the cross of a chip's close target in it.
+
 ## Text input mapping
 
 | Unibox                      | Flutter                                              |

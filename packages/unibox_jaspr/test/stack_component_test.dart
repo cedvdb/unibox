@@ -52,6 +52,42 @@ void main() {
     });
   });
 
+  group('a box that holds only a layer', () {
+    testComponents('aligns the layer with its own pair, and lets it hug', (
+      tester,
+    ) async {
+      pumpNode(
+        tester,
+        const core.Box(
+          width: 200,
+          height: 100,
+          mainAlign: core.MainAlign.center,
+          crossAlign: core.CrossAlign.center,
+          children: <core.UINode>[
+            core.StackNode(
+              children: <core.UINode>[core.Box(width: 30, height: 20)],
+            ),
+          ],
+        ),
+      );
+
+      // The box, the layer, and the layer's one cell.
+      final Map<String, String> box = stylesOf(find.tag('div').first);
+      final Map<String, String> layer = stylesOf(find.tag('div').at(1));
+
+      // The box is the flex that places the layer, and the layer is a flow child
+      // that states no height, so it takes the height of its content and the pair
+      // centres it. Flutter draws the same place the other way round — a stack that
+      // fills the box and aligns its children — which is the same rectangle as long
+      // as both read the pair.
+      expect(box['display'], 'flex');
+      expect(box['justify-content'], 'center');
+      expect(box['align-items'], 'center');
+      expect(layer['display'], 'grid');
+      expect(layer.containsKey('height'), isFalse);
+    });
+  });
+
   group('StackNode', () {
     testComponents('renders a relative grid whose cell is the stack', (
       tester,

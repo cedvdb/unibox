@@ -8,19 +8,35 @@ import 'values.dart';
 /// Renders a [core.StackNode] as a Flutter [Stack].
 ///
 /// Children are painted in order, so the last child ends up on top. Children
-/// that are not [core.PositionedNode]s keep their natural size in the top start
-/// corner. Like CSS `overflow: visible`, the stack does not clip its content.
+/// that are not [core.PositionedNode]s keep their natural size in the corner
+/// [alignment] names, the top start one unless a box said otherwise. Like CSS
+/// `overflow: visible`, the stack does not clip its content.
 class FlutterStack extends StatelessWidget {
   /// Creates a renderer for [node].
-  const FlutterStack({required this.node, super.key});
+  ///
+  /// [alignment] is where the children that are not positioned sit, and it is the
+  /// alignment of the box around the stack: a box that holds only a layer keeps its
+  /// own main and cross alignment for what the layer draws, which is what a browser
+  /// does with a flex container whose one flow child is the layer. A stack that fills
+  /// the box and tops its children out would otherwise put a centred label at the top.
+  const FlutterStack({required this.node, this.alignment, super.key});
 
   /// The node being rendered.
   final core.StackNode node;
 
+  /// Where the non-positioned children of the stack sit, or `null` for the top
+  /// start corner.
+  final core.BoxAlignment? alignment;
+
   @override
   Widget build(BuildContext context) {
+    final core.BoxAlignment? alignment = this.alignment;
+
     Widget content = Stack(
       clipBehavior: Clip.none,
+      alignment: alignment == null
+          ? AlignmentDirectional.topStart
+          : toDirectionalAlignment(alignment),
       children: <Widget>[
         for (final core.UINode child in node.children) _child(child),
       ],

@@ -201,6 +201,67 @@ Alignment toAlignment(core.BoxAlignment alignment) => switch (alignment) {
   core.BoxAlignment.bottomEnd => Alignment.bottomRight,
 };
 
+/// The single alignment a box states with a main and a cross one.
+///
+/// A flex has two axes and a stack's cell has one corner, so the pair reads as one
+/// [core.BoxAlignment] once [direction] says which axis is which — the same reading
+/// the web renderer gets for free, where a flex aligns its one flow child.
+///
+/// The three distributing values exist for several children, and a box with one
+/// places it as near an edge as it can: `spaceBetween` starts, and `spaceAround` and
+/// `spaceEvenly` centre it. A `stretch` cannot be honoured by an alignment at all —
+/// a stack does not stretch a child — so the child starts, which is where it would
+/// sit without the token.
+core.BoxAlignment toBoxAlignment(
+  core.MainAlign mainAlign,
+  core.CrossAlign crossAlign,
+  core.Axis direction,
+) {
+  final int main = switch (mainAlign) {
+    core.MainAlign.start || core.MainAlign.spaceBetween => -1,
+    core.MainAlign.center ||
+    core.MainAlign.spaceAround ||
+    core.MainAlign.spaceEvenly => 0,
+    core.MainAlign.end => 1,
+  };
+  final int cross = switch (crossAlign) {
+    core.CrossAlign.start || core.CrossAlign.stretch => -1,
+    core.CrossAlign.center => 0,
+    core.CrossAlign.end => 1,
+  };
+  final (int x, int y) = direction == core.Axis.horizontal
+      ? (main, cross)
+      : (cross, main);
+
+  return switch ((x, y)) {
+    (-1, -1) => core.BoxAlignment.topStart,
+    (0, -1) => core.BoxAlignment.topCenter,
+    (1, -1) => core.BoxAlignment.topEnd,
+    (-1, 0) => core.BoxAlignment.centerStart,
+    (0, 0) => core.BoxAlignment.center,
+    (1, 0) => core.BoxAlignment.centerEnd,
+    (-1, 1) => core.BoxAlignment.bottomStart,
+    (0, 1) => core.BoxAlignment.bottomCenter,
+    _ => core.BoxAlignment.bottomEnd,
+  };
+}
+
+/// [alignment] as Flutter's own, written so that a start and an end follow the
+/// ambient text direction: a `MainAlign.start` is the leading edge on both, which is
+/// what a browser's `flex-start` means.
+AlignmentDirectional toDirectionalAlignment(core.BoxAlignment alignment) =>
+    switch (alignment) {
+      core.BoxAlignment.topStart => AlignmentDirectional.topStart,
+      core.BoxAlignment.topCenter => AlignmentDirectional.topCenter,
+      core.BoxAlignment.topEnd => AlignmentDirectional.topEnd,
+      core.BoxAlignment.centerStart => AlignmentDirectional.centerStart,
+      core.BoxAlignment.center => AlignmentDirectional.center,
+      core.BoxAlignment.centerEnd => AlignmentDirectional.centerEnd,
+      core.BoxAlignment.bottomStart => AlignmentDirectional.bottomStart,
+      core.BoxAlignment.bottomCenter => AlignmentDirectional.bottomCenter,
+      core.BoxAlignment.bottomEnd => AlignmentDirectional.bottomEnd,
+    };
+
 /// The four corners of [corners] as Flutter's own radius.
 BorderRadius toFlutterBorderRadius(core.BoxBorderRadius corners) =>
     BorderRadius.only(

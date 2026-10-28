@@ -2,6 +2,13 @@
 
 ## 0.1.0
 
+- A box whose only child is a `StackNode` now places what the layer draws by its own
+  `mainAlign` and `crossAlign`: the stack still fills the box, because an aligned
+  `PositionedNode` needs a bounded main axis, and the pair becomes the stack's own
+  alignment. Before, the pair was dropped, so a label the browser centres in its pill
+  — the one inside a segmented button's segment or a chip's close target — arrived at
+  the top in Flutter.
+
 - A `LinkNode` with an `onTap` calls the handler and not the enclosing
   `FlutterLinkScope`: one press, one answer, which is what the web renderer does by
   cancelling the navigation instead of loading the document as well. A link without an

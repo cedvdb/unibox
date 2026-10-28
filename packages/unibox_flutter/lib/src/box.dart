@@ -4,7 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
 
+import 'keys.dart';
 import 'render.dart';
+import 'stack_node.dart';
 import 'text_style_scope.dart';
 import 'theme_scope.dart';
 import 'values.dart';
@@ -340,13 +342,24 @@ class FlutterBoxState extends State<FlutterBox> {
     // stack cannot be laid out in one. It is the shape that clips a layer —
     // `Box(overflow: hidden, child: StackNode(...))` — and the web renderer already
     // draws it, since an absolutely positioned child of a flow-sized item lands
-    // where it was put. Alignment applies to flow children, so a box whose only
-    // child is a layer has none to align.
+    // where it was put.
+    //
+    // The pair is not lost with the flex: on the web the stack is the flex's one flow
+    // child, so the alignment places the stack itself — which hugs its content — and
+    // a stack that fills the box has to place its children instead. It is the same
+    // rectangle, and without it a segmented button's label sat at the top of its pill
+    // in Flutter while the browser centred it.
     if (box.children.length == 1 && box.children.single is core.StackNode) {
-      return _buildChild(
-        box.children.single,
-        direction,
-        availableWidth: availableWidth,
+      final core.StackNode stack = box.children.single as core.StackNode;
+
+      return FlutterStack(
+        node: stack,
+        alignment: toBoxAlignment(
+          style.mainAlign ?? core.MainAlign.start,
+          crossAlign,
+          direction,
+        ),
+        key: toFlutterKey(stack.key),
       );
     }
 
