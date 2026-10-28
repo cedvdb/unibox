@@ -19,9 +19,9 @@ import 'material_typography.dart';
 /// than a card: the same scrim, the same dismissal policy, the same title and
 /// action treatment, a lower surface tone and a wider bound.
 ///
-/// **What it is not.** Material squares the two corners that meet the screen edge;
-/// the model has one radius per box, so all four are rounded — the difference shows
-/// only where the sheet meets the edge of the screen.
+/// **Round at the top, square where it meets the screen.** Material rounds the two
+/// corners the sheet rises from and squares the two that meet the edge, which is
+/// what [BoxCorners] states.
 final class MaterialBottomSheet extends OverlayNode {
   /// Creates the sheet.
   MaterialBottomSheet({
@@ -39,7 +39,7 @@ final class MaterialBottomSheet extends OverlayNode {
            backgroundColor: const BoxColor.role(
              MaterialColorRole.surfaceContainerLow,
            ),
-           borderRadius: 28,
+           corners: const BoxCorners(topLeft: 28, topRight: 28),
            padding: const BoxSpacing.all(24),
            gap: 16,
            width: double.infinity,

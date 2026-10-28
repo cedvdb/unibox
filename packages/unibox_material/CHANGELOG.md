@@ -2,6 +2,10 @@
 
 ## 0.1.0
 
+- `MaterialTextField` and `MaterialBottomSheet` draw Material's shape: round at the
+  top, square where they meet the line or the edge, now that the model has a
+  corner token.
+
 The first release: Material 3 as a package of values, plus the components built
 from them. Every value here is a plain token of `unibox_core`, so neither renderer
 has to know this package exists.

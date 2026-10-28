@@ -41,11 +41,10 @@ import 'material_typography.dart';
 /// needs only a surface, a radius and a bottom line, and the line is a shadow with no
 /// blur because a border cannot be one-sided.
 ///
-/// **The radius is one number, and Material's is not.** A filled field rounds its top
-/// corners by 4 and leaves the bottom square, while `BoxStyle.borderRadius` is one
-/// radius for all four; a field here is rounded on every corner. Cutting two corners
-/// needs a corner token the model does not have yet, and it would have to land on both
-/// renderers and in the conformance table to be worth having.
+/// **Rounded at the top, square at the bottom.** Material's filled field is a shape
+/// cut to the lines it sits between: the two top corners are round and the two
+/// bottom ones are not, which is what [borderRadius] states through
+/// [BoxCorners].
 ///
 /// Every colour is a role, so a dark scheme is the host's theme rather than a
 /// parameter here (see [MaterialColorRole]).
@@ -79,7 +78,7 @@ final class MaterialTextField extends Box {
              backgroundColor: const BoxColor.role(
                MaterialColorRole.surfaceContainerHighest,
              ),
-             borderRadius: borderRadius,
+             corners: BoxCorners(topLeft: borderRadius, topRight: borderRadius),
              opacity: enabled ? null : 0.38,
              shadow: _line(focused: focused, invalid: invalid),
              textStyle: _valueStyle(),

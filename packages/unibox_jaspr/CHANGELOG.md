@@ -2,6 +2,9 @@
 
 ## 0.1.0
 
+- A `BoxCorners` becomes one `border-radius` with four values, in CSS's order, so a
+  box that rounds only two corners needs no wrapper and no clipped overlay.
+
 - Every element a node draws carries `data-unibox-node="<name>"`, so an inspector
   reads the tree instead of a wall of hashes. It is written always, with no flag: a
   name adds no class, no rule and no element, and two node types with the same look

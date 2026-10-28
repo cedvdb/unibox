@@ -399,6 +399,11 @@ Map<String, String>? _lookDeclarations(core.BoxTransform? transform) {
 }
 
 /// A length in logical pixels, as CSS writes it.
+/// The four corner radii as CSS reads them: top left, top right, bottom right,
+/// bottom left.
+String _cornersText(core.BoxCorners corners) =>
+    corners.radii.map(_pixels).join(' ');
+
 String _pixels(double value) => '${_number(value)}px';
 
 /// A number without a needless `.0`, which both CSS and a reader prefer.
@@ -578,6 +583,7 @@ Styles toBoxStyles(
   final double? opacity = style.opacity;
   final double? gap = style.gap;
   final double? borderRadius = style.borderRadius;
+  final core.BoxCorners? corners = style.corners;
   final int? flex = style.flex;
   final String? roleBackground = backgroundColor == null
       ? null
@@ -617,7 +623,9 @@ Styles toBoxStyles(
     backgroundColor: backgroundColor == null || roleBackground != null
         ? null
         : toCssColor(backgroundColor),
-    radius: borderRadius == null
+    // Corners the box names are four values in one declaration, which the typed
+    // radius cannot express; a single radius stays typed.
+    radius: corners != null || borderRadius == null
         ? null
         : BorderRadius.circular(Unit.pixels(borderRadius)),
     // A role is written as a custom property; `raw` is emitted after the typed
@@ -639,6 +647,7 @@ Styles toBoxStyles(
       ...?_lookDeclarations(transform),
       'background-color': ?roleBackground,
       'border-color': ?roleBorder,
+      if (corners != null) 'border-radius': _cornersText(corners),
       if (shadow != null && roleShadow != null)
         'box-shadow': _shadowText(shadow, roleShadow),
     },

@@ -126,6 +126,14 @@ const List<BoxCase> boxCases = <BoxCase>[
     expected: BoxAppearance(borderRadius: 8),
   ),
   BoxCase(
+    description: 'rounds only the corners it names',
+    box: core.Box(
+      corners: core.BoxCorners(topLeft: 8, topRight: 8),
+      children: _children,
+    ),
+    expected: BoxAppearance(corners: core.BoxCorners(topLeft: 8, topRight: 8)),
+  ),
+  BoxCase(
     description: 'draws the border of the box',
     box: core.Box(
       border: core.BoxBorder(width: 2, color: _line),

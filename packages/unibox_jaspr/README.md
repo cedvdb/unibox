@@ -37,6 +37,7 @@ rendering nothing.
 | `padding` / `margin`          | `padding` / `margin` shorthands                        |
 | `backgroundColor`             | `background-color`                                     |
 | `borderRadius`                | `border-radius`                                        |
+| `corners`                     | `border-radius` with the four values, in CSS's order   |
 | `border`                      | `border` (`none` when the width is zero)               |
 | `shadow`                      | `box-shadow`                                           |
 | `overflow`                    | `overflow` (`scroll` → `auto`)                         |
@@ -356,6 +357,7 @@ the page.
 | `width`/`height` | `width`/`height` (`double.infinity` → `100%`), and the same numbers as the element's `width`/`height` attributes |
 | `fit`            | `object-fit` (`cover`, `contain`, `fill`, `scale-down`) |
 | `borderRadius`   | `border-radius`                               |
+| `corners`        | `border-radius` with four values (`8px 8px 0px 0px`) |
 | `srcSet`         | `srcset`, one `url 200w` candidate per entry, narrowest first |
 | `sizes`          | `sizes`                                       |
 | `loading`        | `loading` (`eager`, `lazy`, `auto`)           |

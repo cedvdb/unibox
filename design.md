@@ -39,7 +39,9 @@ All nodes extend `abstract class UINode`.
    - **Flat layout props:** `direction`, `mainAlign`, `crossAlign`, `gap`, `flex`, `overflow`.
    - **Direction default:** an unset `direction` resolves to `Axis.vertical` (`BoxStyle.resolvedDirection`), so every box is a flex container on every target and `gap`, `mainAlign`, `crossAlign` and a child's `flex` never silently do nothing.
    - **Dimensions:** `width`, `height`, `minWidth`, `maxWidth`, `minHeight`, `maxHeight` (`double?`).
-   - **Visuals:** `padding`, `margin`, `backgroundColor`, `borderRadius` (`double?`), `border`, `shadow`.
+   - **Visuals:** `padding`, `margin`, `backgroundColor`, `borderRadius` (`double?`), `corners`
+     (`BoxCorners?` — the four radii, for a shape that is not round everywhere), `border`,
+     `shadow`.
    - **Actions:** `onTap`, `onLongPress`, `onHover`.
    - **Tokens/Overrides:** Optional `style: BoxStyle?` and `hoverStyle: BoxStyle?`.
    - `computedStyle`: Helper that overlays explicit flat parameters onto `style`.

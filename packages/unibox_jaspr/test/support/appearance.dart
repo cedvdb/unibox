@@ -30,7 +30,8 @@ BoxAppearance appearanceOf() {
     width: _dimensionOrNull(styles['width']),
     height: _dimensionOrNull(styles['height']),
     backgroundColor: _colorOrNull(styles['background-color']),
-    borderRadius: _pixelsOrNull(styles['border-radius']),
+    borderRadius: _uniformRadiusOf(styles['border-radius']),
+    corners: _cornersOf(styles['border-radius']),
     borderWidth: parsed?.width,
     borderColor: parsed?.color,
     transitionDuration: _transitionDurationOf(styles['transition']),
@@ -390,3 +391,50 @@ final RegExp _linePattern = RegExp(r'([\d.]+)px');
 
 /// A colour inside a `border` shorthand, which may be a hex value or a function.
 final RegExp _colorPattern = RegExp(r'#[0-9a-fA-F]{3,8}|rgba?\([^)]*\)');
+
+/// The one radius every corner shares, or `null` when they differ or are square.
+double? _uniformRadiusOf(String? value) {
+  final List<double>? radii = _radiiOf(value);
+
+  if (radii == null || radii.toSet().length != 1 || radii.first == 0) {
+    return null;
+  }
+
+  return radii.first;
+}
+
+/// The four corners, or `null` when the declaration gives every corner the same.
+core.BoxCorners? _cornersOf(String? value) {
+  final List<double>? radii = _radiiOf(value);
+
+  if (radii == null || radii.toSet().length == 1) {
+    return null;
+  }
+
+  return core.BoxCorners(
+    topLeft: radii[0],
+    topRight: radii[1],
+    bottomRight: radii[2],
+    bottomLeft: radii[3],
+  );
+}
+
+/// A `border-radius` declaration as four radii in CSS order.
+List<double>? _radiiOf(String? value) {
+  if (value == null || value.trim().isEmpty) {
+    return null;
+  }
+
+  final List<double> radii = <double>[
+    for (final String part in value.trim().split(RegExp(r'\s+')))
+      _pixelsOrNull(part) ?? 0,
+  ];
+
+  return switch (radii.length) {
+    0 => null,
+    1 => List<double>.filled(4, radii.first),
+    2 => <double>[radii[0], radii[1], radii[0], radii[1]],
+    3 => <double>[radii[0], radii[1], radii[2], radii[1]],
+    _ => radii.sublist(0, 4),
+  };
+}

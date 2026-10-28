@@ -37,6 +37,7 @@ final class BoxAppearance {
     this.height,
     this.backgroundColor,
     this.borderRadius,
+    this.corners,
     this.borderWidth,
     this.borderColor,
     this.transitionDuration,
@@ -76,6 +77,9 @@ final class BoxAppearance {
 
   /// The radius of the corners of the box, or `null` for square ones.
   final double? borderRadius;
+
+  /// The four corners, when the box is not round on all four.
+  final core.BoxCorners? corners;
 
   /// The thickness of the line drawn around the box, or `null` for no border.
   final double? borderWidth;
@@ -145,6 +149,7 @@ final class BoxAppearance {
     compare('height', height, expected.height);
     compare('backgroundColor', backgroundColor, expected.backgroundColor);
     compare('borderRadius', borderRadius ?? 0, expected.borderRadius ?? 0);
+    compare('corners', corners, expected.corners);
     compare('borderWidth', borderWidth ?? 0, expected.borderWidth ?? 0);
     compare(
       'transitionDuration',
@@ -179,6 +184,7 @@ final class BoxAppearance {
     height,
     backgroundColor,
     borderRadius ?? 0,
+    corners,
     borderWidth ?? 0,
     _hasBorder ? borderColor : null,
     transitionDuration,
@@ -200,6 +206,7 @@ final class BoxAppearance {
         'height: $height, '
         'backgroundColor: $backgroundColor, '
         'borderRadius: $borderRadius, '
+        'corners: $corners, '
         'borderWidth: $borderWidth, '
         'borderColor: $borderColor, '
         'transitionDuration: $transitionDuration, '
