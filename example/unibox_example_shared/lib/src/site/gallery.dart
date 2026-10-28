@@ -316,7 +316,10 @@ UINode _cards(MaterialPalette palette) {
         // without this their hover tint squares off the corners.
         overflow: Overflow.hidden,
         children: <UINode>[
+          // The gallery has no destination, so the press is the whole point: a
+          // tile that listens leaves ink where it was pressed.
           MaterialListTile(
+            onTap: () {},
             leading: TextNode(
               'AL',
               style: MaterialTypography.titleMedium,
@@ -332,6 +335,7 @@ UINode _cards(MaterialPalette palette) {
             ),
           ),
           MaterialListTile(
+            onTap: () {},
             title: const TextNode('Charles Babbage'),
             subtitle: const TextNode('charles@example.com'),
             trailing: TextNode(
