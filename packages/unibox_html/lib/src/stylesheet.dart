@@ -1,7 +1,5 @@
 import 'package:unibox_css/unibox_css.dart';
 
-import 'client/ink.dart';
-
 /// The rules one rendering needs, each one once.
 ///
 /// A look becomes a class the first time it is asked for, so six listings with one look
@@ -19,14 +17,6 @@ final class Stylesheet {
 
   /// The state rules, in the order their classes were asked for.
   final List<CssRule> _states = <CssRule>[];
-
-  /// Whether the tree marked a press the client script may paint.
-  bool get usesInk => _usesInk;
-
-  bool _usesInk = false;
-
-  /// Records that the tree marked a press, so the drop's own rule is written.
-  void markInk() => _usesInk = true;
 
   /// How many distinct looks the rendering has, which is its CSS cost.
   int get length => _rules.length;
@@ -72,10 +62,6 @@ final class Stylesheet {
   /// would otherwise be stuck in it after a tap.
   String get css {
     final StringBuffer buffer = StringBuffer();
-
-    if (_usesInk) {
-      buffer.writeln(inkDeclarations);
-    }
 
     for (final ({String className, CssDeclarations declarations}) rule
         in _rules) {

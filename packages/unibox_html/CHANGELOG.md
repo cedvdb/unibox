@@ -8,26 +8,23 @@
   never one assembled from data a reader supplied. An embed carrying a payload for another
   target is reported, not skipped.
 
-- The client code is a folder of one behaviour per file: `client/ink.dart` (the marker, the
-  declarations and the script that paints the drop) and `client/press.dart` (the record and
-  the script that keeps it), with `client/all.dart` combining them for a host that wants one
-  file. Each is its own block and adds its own member to `window.unibox`, so a page includes
-  the behaviour it wants and including two — or one twice — does nothing the second time.
-  The scroll recorder moves here when `unibox_jaspr` goes, so every line of client code ends
-  up in one place.
+- The client code is a folder: `client/press.dart` holds the record and the script that
+  keeps it, and `client/all.dart` is the name a host includes. The scroll recorder joins
+  them when `unibox_jaspr` goes, so every line of client code ends up in one place.
 
-- `uniboxClientScript`, the one behaviour a document has: it paints the ink where a press
-  landed and records the press, so the application that takes the page over can replay the
-  intent instead of losing it. It is one optional file — `data-unibox-ink` without it is
-  inert markup, which is how a page opts out of ink: it includes no script. The tree says
-  *where* a press may paint, the host says *whether* it does.
+- **Ink is withdrawn from the renderer.** A script that paints a drop, its marker and its
+  declarations were written and then removed: the marker came from "this box listens", so
+  a plain `Box(onTap: …)` would have shown ink on the web and nothing at all in Flutter —
+  a look one target draws and the other cannot, which is the one thing this package exists
+  to prevent. Ink belongs to the ink well, whose node paints it in Flutter because the tree
+  says so; the web gets it when `unibox_material` can declare it, and that needs a token
+  both renderers honour rather than a rule in a renderer.
 
-- The drop's own rule is written into the stylesheet once, and only when a press is marked,
-  so a page with nothing to press carries no animation it cannot use.
-
-- Overlay dismissal is **not** part of the script, deliberately: nothing can open an overlay
-  until a client renderer exists, so a dismissal path would be code nothing can reach. It
-  arrives with `unibox_dom`.
+- `uniboxClientScript`: a document has no state to change, so a press can only be
+  remembered. It records the press — the key of the element it landed on, and the position
+  inside that element, in the same pixels a Flutter renderer reports — and hands the record
+  to the application that takes the page over, once. One optional file, guarded so that
+  including it twice does nothing the second time.
 
 - The conformance suite, which is what makes this a renderer rather than a second design:
   every case in `unibox_testing` is rendered to a document, the presentation is read back

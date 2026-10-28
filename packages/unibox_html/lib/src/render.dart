@@ -1,7 +1,6 @@
 import 'package:unibox_core/unibox_core.dart' as core;
 import 'package:unibox_css/unibox_css.dart';
 
-import 'client/ink.dart';
 import 'embed_node.dart';
 import 'escape.dart';
 import 'plan.dart';
@@ -140,10 +139,6 @@ ElementPlan _planBox(core.Box box, Stylesheet sheet, PlanOptions options) {
     capturesPointer: capturesPointer,
     element: element,
   );
-  if (listens) {
-    sheet.markInk();
-  }
-
   final String className = sheet.classFor(
     'box',
     declarations,
@@ -153,13 +148,7 @@ ElementPlan _planBox(core.Box box, Stylesheet sheet, PlanOptions options) {
   return ElementPlan(
     tag: element.name,
     className: className,
-    attributes: <String, String>{
-      // Where a press may paint. The marker is inert without the client script, which is
-      // how a page opts out of ink: it includes no script.
-      if (listens) inkAttribute: '',
-      ...boxAttributes(box),
-      ...nodeAttributes(box),
-    },
+    attributes: <String, String>{...boxAttributes(box), ...nodeAttributes(box)},
     children: <ElementPlan>[
       for (final core.UINode child in box.children)
         planNode(child, sheet, options: options),

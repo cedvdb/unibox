@@ -1,4 +1,3 @@
-import 'ink.dart';
 import 'press.dart';
 
 /// Every behaviour a document has, as one file.
@@ -10,4 +9,4 @@ import 'press.dart';
 /// What is not here, deliberately: nothing that changes a state. Dismissing an overlay,
 /// fetching anything, re-rendering a subtree — those need a state to change, and that is
 /// the application's job or `unibox_dom`'s.
-const String uniboxClientScript = '$inkScript\n$pressScript';
+const String uniboxClientScript = pressScript;
