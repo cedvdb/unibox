@@ -47,13 +47,22 @@ UINode buildMaterialGallery() {
             _buttons(),
           ),
           _section(
-            'Chips and segments',
-            'A chip is one choice, a segmented button is a set of them in one pill. Both '
-                'carry a node in front of the label and both are a fill around the ink '
-                'well, so their tints stop at the shape they belong to. A chip with a '
-                'close is removed by pressing the cross; a segment moves the choice it '
-                'belongs to.',
-            _choices(),
+            'Chips',
+            'A filter chip is one choice: a 32 pixel pill, filled with '
+                'secondaryContainer when it is chosen and outlined when it is not, with '
+                'a node in front of the label. An input chip adds a close — onRemove '
+                'gives the cross a round 18 pixel target of its own, so a press on it '
+                'removes the chip instead of choosing it.',
+            _chips(),
+          ),
+          _section(
+            'Segmented buttons',
+            'Two to five choices in one 40 pixel pill at radius 20: a shared outline, a '
+                '1 pixel rule between the segments, equal shares, and the chosen one '
+                'filled with secondaryContainer and announced as selected. A chosen '
+                'segment carries no checkmark — that is a glyph from a font the '
+                'package does not ship, and MaterialSegment.icon is how one is given.',
+            _segments(),
           ),
           _section(
             'Text fields',
@@ -128,7 +137,13 @@ UINode _section(String title, String description, UINode content) {
       Box(
         gap: 4,
         children: <UINode>[
-          TextNode(title, style: MaterialTypography.titleLarge),
+          // A section title is an `h2`: the page has one `h1` and everything below it,
+          // which is the outline a crawler and a screen reader both read.
+          TextNode(
+            title,
+            style: MaterialTypography.titleLarge,
+            headingLevel: 2,
+          ),
           Box(
             width: double.infinity,
             maxWidth: 720,
@@ -293,16 +308,20 @@ UINode _buttons() {
 /// The chips show the three shapes Material gives one: a chosen chip with a check in
 /// front, a plain one, and an input chip whose cross removes it. The glyphs are drawn
 /// by `icons.dart`, because an icon font is an asset the example does not ship.
-UINode _choices() {
+/// The two kinds of chip: a filter, and one that can be closed.
+///
+/// Each group keeps its children at their natural size, so a chip never stretches
+/// into the space its grid track has: the tracks fold to one column on a phone.
+UINode _chips() {
   const BoxColor onSelected = BoxColor.role(
     MaterialColorRole.onSecondaryContainer,
   );
   const BoxColor onPlain = BoxColor.role(MaterialColorRole.onSurfaceVariant);
 
-  return Box(
-    direction: Axis.horizontal,
-    crossAlign: CrossAlign.center,
-    gap: 32,
+  return GridNode(
+    minItemWidth: 280,
+    maxColumns: 2,
+    gap: 24,
     children: <UINode>[
       Box(
         direction: Axis.horizontal,
@@ -326,9 +345,17 @@ UINode _choices() {
         ],
       ),
       RemovableChips(),
-      SegmentedDemo(),
-      ViewSwitchDemo(),
     ],
+  );
+}
+
+/// The segmented buttons: one that picks from a set, and one that switches a view.
+UINode _segments() {
+  return GridNode(
+    minItemWidth: 280,
+    maxColumns: 2,
+    gap: 24,
+    children: <UINode>[SegmentedDemo(), ViewSwitchDemo()],
   );
 }
 
