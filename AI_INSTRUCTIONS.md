@@ -50,11 +50,12 @@ host that renders it.
   Never reach for the host's default.
 - `unibox_material` is optional: the fifteen Material type roles as `const`
   `BoxTextStyle` values, the colour roles as `MaterialPalette` (`light` and `dark`,
-  each a `const` set of `BoxColor`s), and seven components built on nodes the
-  renderers already draw — `MaterialCard`, `MaterialListTile` and `MaterialIcon` are
-  `Box` subclasses, `MaterialInkWell` and `MaterialTextField` are `StatefulNode`s
-  (the ink a press spreads; the text, the focus and whether the field has been
-  touched), and `MaterialDialog` and `MaterialBottomSheet` are `OverlayNode`s. The palette is a value the tree wears —
+  each a `const` set of `BoxColor`s), and ten components built on nodes the
+  renderers already draw — `MaterialCard`, `MaterialListTile`, `MaterialButton`,
+  `MaterialChip`, `MaterialSegmentedButton` and `MaterialIcon` are `Box` subclasses, `MaterialInkWell`,
+  `MaterialTextField` and `MaterialSpinner` are `StatefulNode`s (the ink a press
+  spreads; the text, the focus and whether the field has been touched; the step a
+  ring turns), and `MaterialDialog` and `MaterialBottomSheet` are `OverlayNode`s. The palette is a value the tree wears —
   pass the roles into the builders; there is no `Theme` lookup at render time.
   Wiring the same roles into the platform (`ColorScheme`, CSS custom properties) is
   the application's job.
@@ -147,6 +148,8 @@ host that renders it.
 | `TextField` | `TextInputNode(value:, placeholder:, inputType:, onChanged:)`, or `MaterialTextField(label:, validator:, onChanged:)` for Material's frame, which validates itself once the field has been touched |
 | `showDialog`, `Dialog` | `MaterialDialog(title:, content:, actions:, onDismiss:)` — an `OverlayNode`, not a call |
 | `showModalBottomSheet` | `MaterialBottomSheet(title:, content:, actions:)` — the same overlay at the bottom |
+| `SegmentedButton`, a `ToggleButtons` row | `MaterialSegmentedButton(segments:, selected:, onSelect:)` — one pill of equal segments, the chosen one filled |
+| `Chip`, `FilterChip`, `ChoiceChip` | `MaterialChip(label:, selected:, leading:, onTap:)` — 32 pixels tall, an outline when unselected, the secondary container when chosen |
 | `InkWell`, `InkResponse` | `MaterialInkWell(onTap:, borderRadius:, ink:, child:)` — a state layer plus the ink a press spreads; it paints no surface, so the filled box goes around it |
 | `StatefulWidget` + `setState` around a tree | `StatefulNode` + a `StateStore` |
 | `GridView`, a `Wrap` of cards | `GridNode(minItemWidth:, maxColumns:, gap:)` — equal columns that follow the width, no breakpoint |

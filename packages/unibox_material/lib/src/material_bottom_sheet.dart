@@ -1,5 +1,6 @@
 import 'package:unibox_core/unibox_core.dart';
 
+import 'material_elevation.dart';
 import 'material_palette.dart';
 import 'material_typography.dart';
 
@@ -95,11 +96,7 @@ final class MaterialBottomSheet extends OverlayNode {
        );
 
   /// Elevation level one, cast upward: the sheet rises from the bottom edge.
-  static const BoxShadow _elevation = BoxShadow(
-    color: BoxColor.rgba(0, 0, 0, 0x26),
-    offsetY: -1,
-    blurRadius: 3,
-  );
+  static const BoxShadow _elevation = MaterialElevation.sheet;
 
   /// The name this node answers to in an inspector.
   ///

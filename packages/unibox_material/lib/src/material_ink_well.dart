@@ -201,6 +201,8 @@ final class MaterialInkWell
     BoxStyle? hoverStyle,
     BoxStyle? focusStyle,
     BoxStyle? pressedStyle,
+    MainAlign? mainAlign,
+    CrossAlign? crossAlign,
   }) : super(
          create: MaterialInkStore.new,
          view: (MaterialInkState state, MaterialInkStore store) => _inkWellView(
@@ -223,6 +225,8 @@ final class MaterialInkWell
            hoverStyle: hoverStyle,
            focusStyle: focusStyle,
            pressedStyle: pressedStyle,
+           mainAlign: mainAlign,
+           crossAlign: crossAlign,
          ),
        );
 
@@ -271,6 +275,8 @@ UINode _inkWellView(
   required BoxStyle? hoverStyle,
   required BoxStyle? focusStyle,
   required BoxStyle? pressedStyle,
+  required MainAlign? mainAlign,
+  required CrossAlign? crossAlign,
 }) {
   final bool pressable = enabled && (onTap != null || onLongPress != null);
 
@@ -288,6 +294,11 @@ UINode _inkWellView(
     flex: flex,
     borderRadius: borderRadius,
     overflow: Overflow.hidden,
+    // The stack fills the well across its cross axis, so a well given a size is
+    // filled rather than hugged: the tints belong to the whole region, not to the
+    // label inside it.
+    mainAlign: mainAlign,
+    crossAlign: crossAlign ?? CrossAlign.stretch,
     transition: transition,
     semantics:
         semantics ??

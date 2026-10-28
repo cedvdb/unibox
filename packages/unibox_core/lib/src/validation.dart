@@ -183,6 +183,23 @@ void _validate(
 }) {
   _validateRoles(node, theme, issues);
 
+  if (node is PositionedNode &&
+      node.alignment != null &&
+      (node.top != null ||
+          node.right != null ||
+          node.bottom != null ||
+          node.left != null)) {
+    issues.add(
+      TreeIssue(
+        node: node,
+        message:
+            'A PositionedNode is placed by an alignment or by offsets, not by both: '
+            'the child fills the stack when it is aligned, so an offset has nothing '
+            'left to move.',
+      ),
+    );
+  }
+
   if (node is PositionedNode && parent is! StackNode) {
     issues.add(
       TreeIssue(

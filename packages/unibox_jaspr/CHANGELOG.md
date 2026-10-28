@@ -2,6 +2,12 @@
 
 ## 0.1.0
 
+- `PositionedNode.alignment` renders as `inset: 0` with a flex alignment, the twin of
+  the other target's `Positioned.fill` and `Align`.
+- A box that states `flex` writes `min-width: 0` and `min-height: 0`: a flex item keeps
+  its content as an automatic minimum, which is why a page of 1953 pixels of listings
+  refused to shrink into a window while the same tree in Flutter filled it.
+
 - A `BoxBorderRadius` becomes one `border-radius` with four values, in CSS's order, so a
   box that rounds only two corners needs no wrapper and no clipped overlay.
 - Every element a node draws carries `data-unibox-node="<name>"`, so an inspector

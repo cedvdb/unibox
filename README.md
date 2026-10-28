@@ -184,6 +184,11 @@ platform does", so `gap` and the alignments work in every box. Nothing is inheri
 from a box to its children except typography: a box never pushes its padding, gap or
 alignment down.
 
+A child that fills the width needs a parent that offers one: `width: double.infinity`
+takes the space it is given, and a browser can only resolve `100%` against a parent
+that has a width — so inside a column that hugs its content, state
+`crossAlign: CrossAlign.stretch` on the column and the two targets agree.
+
 ### TextNode
 
 A run of text.
@@ -292,13 +297,20 @@ StackNode(
 | `StackNode.width`, `height` | `double?` | largest child | The box the stack occupies. |
 | `PositionedNode.child` | `UINode` | required | The node being placed. |
 | `PositionedNode.top`, `right`, `bottom`, `left` | `double?` | auto | Distances from the edges of the stack. At least one is needed to place it. |
+| `PositionedNode.alignment` | `BoxAlignment?` | none | Where in the stack the child sits, instead of at offsets: the child fills the stack and the alignment places it. This is how a control floats at the bottom centre of a surface at any window size. |
 
 **Worth knowing.** A stack does not clip: a child that sticks out is still drawn,
 which is what CSS does by default and what `Stack` does with `Clip.none`. A child
 that is not positioned keeps its own size in the top start corner instead of
 stretching to fill the stack, and a `PositionedNode` with no offset is drawn like a
 plain child. A `PositionedNode` outside a stack is reported by `validateTree`,
-because its offsets would be silently ignored.
+because its offsets would be silently ignored, and so is one that states an alignment
+and an offset together — the child fills the stack when it is aligned, so an offset
+would have nothing left to move.
+
+**A floating control** is an aligned child with a margin: it stays where the surface
+puts it while everything under it scrolls, and no window is measured to know where
+the bottom centre is.
 
 ### TextInputNode
 
@@ -597,8 +609,9 @@ A scale can be written by hand, as the example does, or taken ready made:
 [`unibox_material`](packages/unibox_material/README.md) holds the Material 3 type
 scale as `const BoxTextStyle` values (`MaterialTypography.titleLarge`,
 `MaterialTypography.bodyMedium`, ...), the colour roles as a `MaterialPalette` value,
-and eight components built from the same tokens: a card, a list tile, a button, an ink well, a
-text field, an icon, a dialog and a bottom sheet. It is optional and pure Dart, and the
+and ten components built from the same tokens: a card, a list tile, a button, a chip, a
+segmented button, an ink well, a text field, an icon, a progress ring and a bottom
+sheet. It is optional and pure Dart, and the
 renderers do not know it exists — a tree that uses it is drawn by the same two
 renderers as one that does not.
 

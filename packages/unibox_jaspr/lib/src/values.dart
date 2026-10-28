@@ -366,6 +366,50 @@ Styles toStackChildStyles() {
 ///
 /// The offsets are resolved against the nearest positioned ancestor, which is
 /// the stack the node belongs to.
+/// The CSS that fills the cell of a stack and places the child inside it.
+///
+/// `inset: 0` is what a Flutter `Positioned.fill` is, and the flex pair is the same
+/// alignment on the two axes — the row direction fixes which of them is horizontal,
+/// so a bottom-centred child is `justify-content: center` with `align-items: flex-end`,
+/// which is `Alignment.bottomCenter`.
+Styles toAlignedStyles(core.BoxAlignment alignment) {
+  final core.MainAlign horizontal = switch (alignment) {
+    core.BoxAlignment.topStart ||
+    core.BoxAlignment.centerStart ||
+    core.BoxAlignment.bottomStart => core.MainAlign.start,
+    core.BoxAlignment.topCenter ||
+    core.BoxAlignment.center ||
+    core.BoxAlignment.bottomCenter => core.MainAlign.center,
+    core.BoxAlignment.topEnd ||
+    core.BoxAlignment.centerEnd ||
+    core.BoxAlignment.bottomEnd => core.MainAlign.end,
+  };
+  final core.CrossAlign vertical = switch (alignment) {
+    core.BoxAlignment.topStart ||
+    core.BoxAlignment.topCenter ||
+    core.BoxAlignment.topEnd => core.CrossAlign.start,
+    core.BoxAlignment.centerStart ||
+    core.BoxAlignment.center ||
+    core.BoxAlignment.centerEnd => core.CrossAlign.center,
+    core.BoxAlignment.bottomStart ||
+    core.BoxAlignment.bottomCenter ||
+    core.BoxAlignment.bottomEnd => core.CrossAlign.end,
+  };
+
+  return Styles(
+    position: Position.absolute(
+      top: Unit.zero,
+      right: Unit.zero,
+      bottom: Unit.zero,
+      left: Unit.zero,
+    ),
+    display: Display.flex,
+    flexDirection: FlexDirection.row,
+    justifyContent: toCssJustifyContent(horizontal),
+    alignItems: toCssAlignItems(vertical),
+  );
+}
+
 Styles toPositionedStyles(core.PositionedNode node) {
   return Styles(
     position: Position.absolute(
@@ -645,6 +689,16 @@ Styles toBoxStyles(
     opacity: opacity,
     raw: <String, String>{
       ...?_lookDeclarations(transform),
+      // A flex item keeps its content as a floor unless it is told not to:
+      // `min-width: auto` (and `min-height: auto`) is the used value of a flex item,
+      // which is what makes a column of 1953 pixels of listings refuse to shrink into
+      // a thousand pixel window. Flutter's `Expanded` has no such floor — it hands the
+      // child a tight size — so a box that states `flex` states the floor away, and
+      // the two targets agree about how much room a share is.
+      if (flex != null) ...<String, String>{
+        'min-width': '0',
+        'min-height': '0',
+      },
       'background-color': ?roleBackground,
       'border-color': ?roleBorder,
       if (corners != null) 'border-radius': _cornersText(corners),

@@ -151,61 +151,36 @@ Box buildApartmentsPage({
     flex: 1,
     direction: Axis.vertical,
     width: double.infinity,
-    overflow: Overflow.scroll,
-    // The page is the `<main>` landmark; the scrolling box is the page itself.
+    // The page is the `<main>` landmark; the stack below it is what a floating
+    // control is placed against.
     semantics: const BoxSemantics(element: BoxElement.main),
     children: <UINode>[
-      Box(
-        direction: Axis.vertical,
+      StackNode(
         width: double.infinity,
-        padding: const BoxSpacing.all(20),
-        gap: 16,
-        textStyle: ExampleType.body,
+        height: double.infinity,
         children: <UINode>[
-          _heading(),
-          _searchBar(),
-          _filters(onOpenMap: onOpenMap),
+          // The list scrolls under the button rather than with it.
           Box(
-            direction: Axis.horizontal,
             width: double.infinity,
-            gap: 16,
-            crossAlign: CrossAlign.start,
+            height: double.infinity,
+            direction: Axis.vertical,
+            overflow: Overflow.scroll,
             children: <UINode>[
-              Box(
-                flex: 3,
-                direction: Axis.vertical,
-                gap: 12,
-                children: <UINode>[
-                  TextNode(
-                    '${exampleApartments.length} apartments in Brussels',
-                    style: ExampleType.muted,
-                  ),
-                  // The cards reflow on their own: one column when the column is
-                  // narrow, two once it can hold them, and the tracks share the
-                  // width. The count comes from the model's arithmetic on the web
-                  // as well as in Flutter, so neither target needs a breakpoint.
-                  GridNode(
-                    minItemWidth: 240,
-                    maxColumns: 2,
-                    gap: 12,
-                    children: <UINode>[
-                      for (final Apartment apartment in exampleApartments)
-                        _card(apartment),
-                    ],
-                  ),
-                ],
-              ),
-              Box(
-                flex: 2,
-                direction: Axis.vertical,
-                // The map is drawn beside the listings only on a wide surface.
-                visibleFrom: 900,
-                children: <UINode>[_map()],
+              _content(
+                mapOpen: mapOpen,
+                onOpenMap: onOpenMap,
+                onCloseMap: onCloseMap,
               ),
             ],
           ),
+          PositionedNode(
+            alignment: BoxAlignment.bottomCenter,
+            child: _mapButton(onOpenMap),
+          ),
         ],
       ),
+      // The opened map is an overlay over the whole page, so it sits beside the
+      // stack rather than inside the box that scrolls.
       if (mapOpen)
         OverlayNode(
           onDismiss: onCloseMap,
@@ -217,6 +192,65 @@ Box buildApartmentsPage({
             children: <UINode>[_map()],
           ),
         ),
+    ],
+  );
+}
+
+/// Everything the page holds, in the box that scrolls.
+Box _content({
+  required bool mapOpen,
+  required TapCallback? onOpenMap,
+  required TapCallback? onCloseMap,
+}) {
+  return Box(
+    direction: Axis.vertical,
+    width: double.infinity,
+    padding: const BoxSpacing.all(20),
+    gap: 16,
+    textStyle: ExampleType.body,
+    children: <UINode>[
+      _heading(),
+      _searchBar(),
+      _filters(onOpenMap: onOpenMap),
+      Box(
+        direction: Axis.horizontal,
+        width: double.infinity,
+        gap: 16,
+        crossAlign: CrossAlign.start,
+        children: <UINode>[
+          Box(
+            flex: 3,
+            direction: Axis.vertical,
+            gap: 12,
+            children: <UINode>[
+              TextNode(
+                '${exampleApartments.length} apartments in Brussels',
+                style: ExampleType.muted,
+              ),
+              // The cards reflow on their own: one column when the column is
+              // narrow, two once it can hold them, and the tracks share the
+              // width. The count comes from the model's arithmetic on the web
+              // as well as in Flutter, so neither target needs a breakpoint.
+              GridNode(
+                minItemWidth: 240,
+                maxColumns: 2,
+                gap: 12,
+                children: <UINode>[
+                  for (final Apartment apartment in exampleApartments)
+                    _card(apartment),
+                ],
+              ),
+            ],
+          ),
+          Box(
+            flex: 2,
+            direction: Axis.vertical,
+            // The map is drawn beside the listings only on a wide surface.
+            visibleFrom: 900,
+            children: <UINode>[_map()],
+          ),
+        ],
+      ),
     ],
   );
 }
@@ -321,36 +355,53 @@ UINode _filters({TapCallback? onOpenMap}) {
   );
 }
 
-/// One pill of the filter row.
-UINode _chip(String label, {bool selected = false, TapCallback? onTap}) {
-  return MaterialInkWell(
-    onTap: onTap ?? () {},
-    borderRadius: 999,
-    padding: const BoxSpacing.symmetric(horizontal: 14, vertical: 8),
-    child: Box(
-      borderRadius: 999,
-      backgroundColor: selected
-          ? const BoxColor.role(MaterialColorRole.primaryContainer)
-          : null,
-      border: selected
-          ? null
-          : const BoxBorder(
-              color: BoxColor.role(MaterialColorRole.outlineVariant),
-            ),
-      padding: const BoxSpacing.symmetric(horizontal: 14, vertical: 8),
-      children: <UINode>[
-        TextNode(
-          label,
+/// The floating Map button: the map's way in where it is not already beside the
+/// listing.
+///
+/// It is a `PositionedNode` with an alignment and a margin rather than offsets, so
+/// it stays at the bottom centre of the page whatever the window is — and only
+/// where the map has no column of its own.
+UINode _mapButton(TapCallback? onOpenMap) {
+  return Box(
+    visibleUntil: 900,
+    margin: const BoxSpacing.only(bottom: 24),
+    shadow: MaterialElevation.level3,
+    borderRadius: 16,
+    backgroundColor: const BoxColor.role(MaterialColorRole.primaryContainer),
+    children: <UINode>[
+      MaterialInkWell(
+        onTap: onOpenMap ?? () {},
+        borderRadius: 16,
+        ink: const BoxColor.role(MaterialColorRole.onPrimaryContainer),
+        padding: const BoxSpacing.symmetric(horizontal: 20, vertical: 14),
+        semantics: const BoxSemantics(
+          role: BoxRole.button,
+          label: 'Open the map',
+        ),
+        child: TextNode(
+          'Map',
           style: MaterialTypography.labelLarge.merge(
             BoxTextStyle(
-              color: selected
-                  ? const BoxColor.role(MaterialColorRole.onPrimaryContainer)
-                  : const BoxColor.role(MaterialColorRole.onSurfaceVariant),
+              color: const BoxColor.role(MaterialColorRole.onPrimaryContainer),
             ),
           ),
         ),
-      ],
-    ),
+      ),
+    ],
+  );
+}
+
+/// One pill of the filter row.
+///
+/// A `MaterialChip` and not a box with an ink well around it: the chip owns the room
+/// inside the pill, so the tint of a hover reaches exactly its edge. Composed by hand
+/// with a padding on the well *and* one on the box inside it, the tint extended past
+/// the pill by 14 pixels on every side.
+UINode _chip(String label, {bool selected = false, TapCallback? onTap}) {
+  return MaterialChip(
+    label: TextNode(label),
+    selected: selected,
+    onTap: onTap ?? () {},
   );
 }
 

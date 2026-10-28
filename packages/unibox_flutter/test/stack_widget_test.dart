@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
+import 'package:unibox_flutter/unibox_flutter.dart';
 
 import 'support/harness.dart';
 
@@ -258,6 +259,48 @@ void main() {
 
       expect(find.text('Loose'), findsOneWidget);
       expect(find.byType(Positioned), findsNothing);
+    });
+
+    testWidgets('puts an aligned child at the bottom centre of the stack', (
+      WidgetTester tester,
+    ) async {
+      await pumpNode(
+        tester,
+        const core.StackNode(
+          width: 300,
+          height: 200,
+          children: <core.UINode>[
+            core.Box(width: double.infinity, height: double.infinity),
+            core.PositionedNode(
+              alignment: core.BoxAlignment.bottomCenter,
+              child: core.Box(
+                width: 120,
+                height: 56,
+                margin: core.BoxSpacing.all(16),
+                children: <core.UINode>[core.TextNode('Open the map')],
+              ),
+            ),
+          ],
+        ),
+      );
+
+      final Rect stack = tester.getRect(find.byType(Stack));
+      final Rect button = tester.getRect(
+        find.ancestor(
+          of: find.text('Open the map'),
+          matching: find.byType(FlutterBox),
+        ),
+      );
+
+      // Centred across, against the bottom edge: the margin belongs to the box the
+      // test measures, so the edge it reaches is the stack's own.
+      expect(button.center.dx, moreOrLessEquals(stack.center.dx, epsilon: 0.5));
+      expect(button.bottom, moreOrLessEquals(stack.bottom, epsilon: 0.5));
+      expect(
+        button.top,
+        lessThan(stack.bottom),
+        reason: 'the child is at the bottom, not filling the stack',
+      );
     });
   });
 }

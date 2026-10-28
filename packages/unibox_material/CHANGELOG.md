@@ -2,6 +2,36 @@
 
 ## 0.1.0
 
+- `MaterialSegmentedButton`: Material 3's segmented button — two to five choices in one
+  40 pixel pill at radius 20, a 1 pixel outline around it and between its segments,
+  equal shares, the chosen one filled with `secondaryContainer` and announced as
+  selected. A chosen segment has no checkmark: that is a glyph from a font the package
+  does not ship, and `MaterialSegment.icon` is how one is given.
+- `MaterialInkWell` takes `mainAlign` and `crossAlign` and stretches its stack, so a
+  well given a size is filled rather than hugged: the tints belong to the whole region,
+  which a segmented button needs and a chip was already getting by having one child.
+
+- `MaterialChip`: a Material 3 filter chip — the small 8 pixel shape at 32 pixels tall,
+  a 1 pixel `outline` line and an `onSurfaceVariant` label when it is not chosen, a
+  `secondaryContainer` fill and an `onSecondaryContainer` label when it is, 16 pixels
+  of room in the well and a button role that says whether it is chosen. The room sits
+  in the ink well alone, so a hover tint reaches exactly the edge of the pill.
+- `secondary`, `onSecondary`, `secondaryContainer` and `onSecondaryContainer` join the
+  colour roles: the accent a chosen control wears, which a chip and a segmented button
+  fill with.
+
+- `MaterialElevation`: the five levels of Material 3 as the shadow each one casts,
+  plus the upward level a sheet throws. `MaterialCard.elevatedShadow`,
+  `MaterialDialog.elevation` and the bottom sheet's shadow are now this scale rather
+  than three near-copies, and a dialog's level is stated at the level's own value
+  (0 4px 8px at 15%) instead of a shadow of its own.
+
+- `MaterialCard` stretches the children it holds (`crossAlign: CrossAlign.stretch`,
+  still a parameter). A card's content spans the card, and a `width: double.infinity`
+  inside it means the same thing on both targets: a browser resolves `100%` against a
+  parent's width, so inside a column that hugged its content the rows of a card
+  stopped half way across it on the web while Flutter filled the width it was handed.
+
 - `MaterialTextField.initialValue` seeds the text of a field the form does not control,
   where `value` takes it over; the gallery's two fields are the same field in the
   label's two positions now, both validating.

@@ -201,6 +201,7 @@ renderFlutter(page, theme: MaterialPalette.lightTheme);
 | Role | What Material paints with it |
 | --- | --- |
 | `primary`, `onPrimary`, `primaryContainer`, `onPrimaryContainer` | an accent and the text on it |
+| `secondary`, `onSecondary`, `secondaryContainer`, `onSecondaryContainer` | the quieter accent a chosen control wears |
 | `surface`, `onSurface`, `onSurfaceVariant` | the page, its text, and its lower emphasis text |
 | `surfaceContainerLowest`, `surfaceContainerLow`, `surfaceContainerHigh`, `surfaceContainerHighest` | the tones a card, a dialog and a filled field sit at |
 | `outline`, `outlineVariant` | a line that frames a control, and one that only separates |
@@ -247,9 +248,9 @@ the conformance table already pins — the class is a combination, not a new tok
 | padding | `16` on every edge | the room Material gives card content |
 | background | `BoxColors.white` | the surface, until a colour scheme exists |
 | radius | `12` | the medium shape of Material 3 |
-| shadow | `MaterialCard.elevatedShadow` | elevation level one, one of its two layers |
+| shadow | `MaterialCard.elevatedShadow` — `MaterialElevation.level1` | elevation level one, one of its two layers |
 | typography | `MaterialTypography.bodyMedium` | inherited by the texts inside |
-| layout | a column (`Box`'s default) | a card stacks its content unless told otherwise |
+| layout | a column (`Box`'s default), with `crossAlign: stretch` | a card stacks its content and stretches it to the card, so a row of it spans the width |
 
 Every one is a parameter, so an application themes a card instead of forking it:
 
@@ -409,6 +410,42 @@ per frame instead of two, measured at 30 rules for one press against 58 before.
 `EmbedNode` remains the escape hatch when a host-side animation is what the effect
 needs.
 
+## The segmented button
+
+`MaterialSegmentedButton` is two to five choices in one divided pill.
+
+```dart
+MaterialSegmentedButton(
+  segments: const <MaterialSegment>[
+    MaterialSegment(label: TextNode('Day')),
+    MaterialSegment(label: TextNode('Week')),
+    MaterialSegment(label: TextNode('Month')),
+  ],
+  selected: 1,
+  onSelect: store.choose,
+)
+```
+
+| Token | Value |
+| --- | --- |
+| height, radius | 40, and 20: a full round |
+| container | a 1 pixel `outline` line, `overflow: hidden` so a chosen fill is cut to the rounded ends it reaches |
+| chosen | a `secondaryContainer` fill, an `onSecondaryContainer` label, and `selected` for a screen reader |
+| dividers | a 1 pixel box the colour of the outline between two segments |
+| width | equal shares: every segment is `flex: 1` |
+
+The container is one box and each segment is a box around a `MaterialInkWell`, so the
+tint and the ink cover the segment rather than its label, and the container's clip
+keeps them inside the pill. The well's content is centred and its stack stretches —
+that is what the well's `mainAlign` and `crossAlign` are for, and why a segment can
+say `width: double.infinity` and mean it on both targets.
+
+**What Material draws that this does not.** A chosen segment shows a check beside its
+label, which needs a glyph from a font the package does not ship: pass
+`MaterialSegment.icon` if the choice wants a picture, and the fill states the choice
+on its own. The container is also not a `radiogroup`, because `BoxSemantics` has no
+group role — every segment is a button that says whether it is the chosen one.
+
 ## The text field
 
 `MaterialTextField` is a field with a state of its own: it is a `StatefulNode`, so it
@@ -464,6 +501,32 @@ the lines it sits between, so the field names the two top corners through
 The caret, the selection, the IME and autofill are the platform's, because the input
 node delegates them — so a dark app renders the same field with
 `theme: MaterialPalette.darkTheme` *and* a matching `ColorScheme` to `MaterialApp`.
+
+## The chip
+
+`MaterialChip` is a filter chip: a label in a pill, chosen or not.
+
+```dart
+MaterialChip(label: const TextNode('Two rooms'), selected: true, onTap: filter)
+MaterialChip(label: const TextNode('Studio'), onTap: filter)
+```
+
+| Token | Value |
+| --- | --- |
+| height | 32: `labelLarge`'s 20 pixel line with six above and below |
+| radius | 8, the small shape of Material 3 |
+| unselected | no fill, a 1 pixel `outline` line, `onSurfaceVariant` label |
+| selected | `secondaryContainer` fill, no line, `onSecondaryContainer` label |
+| room | 16 either side, and 8 on the leading side when a node sits there |
+
+It is a [Box] around a `MaterialInkWell`, like `MaterialButton`, and the padding is
+**the well's alone**: one node carries the room inside the chip, so the tint of a
+hover reaches exactly the edge of the pill. Two paddings — one on the well and one on
+a box inside it — is what made a hand-built chip tint 14 pixels past itself. The well
+clips to the radius, so the ink of a press stays inside too.
+
+A chip is a control: it announces itself as a button when it can be pressed, and says
+whether it is chosen, which is a state a screen reader hears rather than a colour.
 
 ## The dialog and the bottom sheet
 
@@ -527,6 +590,27 @@ export has no shaker of its own: serve the subset the Flutter build wrote, or on
 from `pyftsubset`, with its `@font-face`, plus `font-display: block` and a preload so
 a glyph does not flash as text.
 
+## Elevation
+
+Material states five levels for a raised surface, and each is two shadow layers; a
+`BoxShadow` is one, so `MaterialElevation` holds the wide, soft layer of each — the
+one that reads as height — in one place:
+
+| Level | Shadow | Material gives it to |
+| --- | --- | --- |
+| `level1` | 0 1px 3px at 15% | a card, a sheet, a raised button |
+| `level2` | 0 2px 6px | a card under the pointer |
+| `level3` | 0 4px 8px | a dialog, a date picker, a floating action button |
+| `level4` | 0 6px 10px | a drawer as it opens |
+| `level5` | 0 8px 12px | the highest surface Material states |
+| `sheet` | 0 -1px 3px | level one, cast upwards: a sheet rises from the bottom edge |
+
+A component names the level it rests at rather than writing a shadow, which is what
+keeps `MaterialCard`, `MaterialDialog` and `MaterialBottomSheet` in step: an app that
+replaces one level replaces it on every surface that uses it. How a shadow is
+*blurred* is outside the parity contract — a browser and Skia rasterise it
+differently — so a level states the shape of the shadow, not a pixel promise.
+
 ## Fidelity
 
 What the components state against the Material 3 specification: a card in its three
@@ -581,7 +665,7 @@ them knowing its name.
 
 ## Scope
 
-The type scale, the colour roles, and eight components. What is deliberately not here
+The type scale, the colour roles, and ten components. What is deliberately not here
 is written on the class that lacks it, and it is all platform behaviour rather than a
 value the model could carry:
 

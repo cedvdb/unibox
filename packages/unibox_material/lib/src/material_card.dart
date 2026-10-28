@@ -1,5 +1,6 @@
 import 'package:unibox_core/unibox_core.dart';
 
+import 'material_elevation.dart';
 import 'material_palette.dart';
 import 'material_typography.dart';
 
@@ -46,13 +47,18 @@ final class MaterialCard extends Box {
   ///
   /// `padding`, `color`, `borderRadius`, `shadow`, `border` and `textStyle` are
   /// the card's own defaults; every one is a parameter so an application can
-  /// theme them without giving up the card.
+  /// theme them without giving up the card. So is `crossAlign`, and it stretches:
+  /// a card's content spans the card, which is what Material's own card does, and
+  /// what makes a `width: double.infinity` inside a card mean the same thing on
+  /// both targets — a percentage inside a box that hugs its own content resolves
+  /// to `auto` in CSS and fills in Flutter, which is how the example's rows came to
+  /// stop half way across the card on the web.
   const MaterialCard({
     super.key,
     super.children,
     super.direction,
     super.mainAlign,
-    super.crossAlign,
+    CrossAlign crossAlign = CrossAlign.stretch,
     super.gap,
     super.flex,
     super.overflow,
@@ -74,6 +80,7 @@ final class MaterialCard extends Box {
     double borderRadius = 12,
     BoxTextStyle textStyle = MaterialTypography.bodyMedium,
   }) : super(
+         crossAlign: crossAlign,
          padding: padding,
          backgroundColor: color,
          borderRadius: borderRadius,
@@ -116,7 +123,7 @@ final class MaterialCard extends Box {
          children: children,
          direction: direction,
          mainAlign: mainAlign,
-         crossAlign: crossAlign,
+         crossAlign: crossAlign ?? CrossAlign.stretch,
          gap: gap,
          flex: flex,
          overflow: overflow,
@@ -177,7 +184,7 @@ final class MaterialCard extends Box {
          children: children,
          direction: direction,
          mainAlign: mainAlign,
-         crossAlign: crossAlign,
+         crossAlign: crossAlign ?? CrossAlign.stretch,
          gap: gap,
          flex: flex,
          overflow: overflow,
@@ -239,7 +246,7 @@ final class MaterialCard extends Box {
          children: children,
          direction: direction,
          mainAlign: mainAlign,
-         crossAlign: crossAlign,
+         crossAlign: crossAlign ?? CrossAlign.stretch,
          gap: gap,
          flex: flex,
          overflow: overflow,
@@ -280,16 +287,12 @@ final class MaterialCard extends Box {
   /// The drop shadow of elevation level one, the level Material gives a resting
   /// card.
   ///
-  /// Material states that level as two layers (`0 1px 2px` at 30% and `0 1px 3px
-  /// 1px` at 15%); a [BoxShadow] is one shadow, so this is the second layer
-  /// alone, the one that reads as a soft lift. How a shadow is blurred is outside
-  /// the parity contract — a browser and Skia rasterise it differently — so the
-  /// value states the shape of the shadow rather than a pixel promise.
-  static const BoxShadow elevatedShadow = BoxShadow(
-    color: BoxColor.rgba(0, 0, 0, 0x26),
-    offsetY: 1,
-    blurRadius: 3,
-  );
+  /// It is [MaterialElevation.level1] under the name a card reads best: one scale,
+  /// so a card, a dialog and a sheet cannot drift into three different shadows. How
+  /// a shadow is blurred is outside the parity contract — a browser and Skia
+  /// rasterise it differently — so the value states the shape of the shadow rather
+  /// than a pixel promise.
+  static const BoxShadow elevatedShadow = MaterialElevation.level1;
 
   /// The name this node answers to in an inspector.
   ///

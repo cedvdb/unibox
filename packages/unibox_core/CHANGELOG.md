@@ -2,6 +2,12 @@
 
 ## 0.1.0
 
+- `BoxAlignment` and `PositionedNode.alignment`: a stack child can be placed by where
+  it sits — the nine positions of a cell — instead of by offsets, which is what a
+  floating control needs: the child fills the stack and the alignment puts it at the
+  bottom centre of any surface. `validateTree` reports an alignment and an offset on
+  one node, since the child fills the stack when it is aligned.
+
 - `BoxBorderRadius` and `BoxStyle.corners`: the radius of each corner, so a box can be
   round at the top and square at the bottom — Material's filled text field and its
   bottom sheet. `borderRadius` stays the one-radius shorthand; a box that sets both

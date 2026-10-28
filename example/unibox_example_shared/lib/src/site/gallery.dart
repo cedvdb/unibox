@@ -36,6 +36,13 @@ UINode buildMaterialGallery() {
         _buttons(),
       ),
       _section(
+        'Chips and segments',
+        'A chip is one choice, a segmented button is a set of them in one pill. Both '
+            'are a fill around the ink well, so their tints stop at the shape they '
+            'belong to; press a segment to move the choice.',
+        _choices(),
+      ),
+      _section(
         'Text fields',
         'The filled field: surfaceContainerHighest, a bottom line that thickens and '
             'turns primary on focus, the label on the line while it is empty and at '
@@ -90,6 +97,10 @@ UINode _section(String title, String description, UINode content) {
   return Box(
     width: double.infinity,
     gap: 16,
+    // The blocks of a section fill it: a tile, a field or a row of chips is as wide
+    // as the section, which is also what makes a `width: double.infinity` inside one
+    // mean the same thing in Flutter and in a browser.
+    crossAlign: CrossAlign.stretch,
     children: <UINode>[
       Box(
         gap: 4,
@@ -157,6 +168,10 @@ UINode _palette(MaterialPalette palette) {
     ('onPrimary', palette.onPrimary),
     ('primaryContainer', palette.primaryContainer),
     ('onPrimaryContainer', palette.onPrimaryContainer),
+    ('secondary', palette.secondary),
+    ('onSecondary', palette.onSecondary),
+    ('secondaryContainer', palette.secondaryContainer),
+    ('onSecondaryContainer', palette.onSecondaryContainer),
     ('surface', palette.surface),
     ('onSurface', palette.onSurface),
     ('onSurfaceVariant', palette.onSurfaceVariant),
@@ -248,6 +263,45 @@ UINode _buttons() {
       MaterialButton.outlined(label: const TextNode('Outlined'), onTap: () {}),
       MaterialButton.text(label: const TextNode('Text'), onTap: () {}),
     ],
+  );
+}
+
+/// The two controls that pick from a small set.
+UINode _choices() {
+  return Box(
+    direction: Axis.horizontal,
+    crossAlign: CrossAlign.center,
+    gap: 32,
+    children: <UINode>[
+      Box(
+        direction: Axis.horizontal,
+        crossAlign: CrossAlign.center,
+        gap: 8,
+        children: <UINode>[
+          MaterialChip(label: const TextNode('Two rooms'), selected: true),
+          MaterialChip(label: const TextNode('Studio')),
+          MaterialChip(label: const TextNode('Map')),
+        ],
+      ),
+      SegmentedDemo(),
+    ],
+  );
+}
+
+/// A segmented button that keeps the choice it was given.
+///
+/// The choice is the state: the view puts the segment the store says is chosen into
+/// the button, and a press asks for another one — the same shape as the dialog demo,
+/// and the reason a segmented button needs no state of its own.
+UINode _segmentedView(int chosen, SegmentedStore store) {
+  return MaterialSegmentedButton(
+    segments: const <MaterialSegment>[
+      MaterialSegment(label: TextNode('Day'), semanticsLabel: 'Per day'),
+      MaterialSegment(label: TextNode('Week'), semanticsLabel: 'Per week'),
+      MaterialSegment(label: TextNode('Month'), semanticsLabel: 'Per month'),
+    ],
+    selected: chosen,
+    onSelect: store.choose,
   );
 }
 
@@ -362,6 +416,21 @@ UINode _cards(MaterialPalette palette) {
       ),
     ],
   );
+}
+
+/// The choice of the segmented demo: which segment is on.
+final class SegmentedStore extends StateStore<int> {
+  /// Creates the demo with the first segment chosen.
+  SegmentedStore() : super(0);
+
+  /// Chooses the segment at [index].
+  void choose(int index) => state = index;
+}
+
+/// A segmented button that keeps what was pressed.
+final class SegmentedDemo extends StatefulNode<int, SegmentedStore> {
+  /// Creates the demo, with its first segment chosen.
+  SegmentedDemo() : super(create: SegmentedStore.new, view: _segmentedView);
 }
 
 /// The state of the dialog demo: open, or closed.

@@ -151,6 +151,14 @@ never inherited (CSS does not inherit them either).
   renderer, so the two can only ever agree on it.
 - A token that cannot take effect is either honoured or reported by
   `validateTree`; silently accepting it is not an option.
+- Filling a width needs a width to fill. `width: double.infinity` means "as wide as I
+  am offered": Flutter hands a child the incoming constraint, and a browser resolves
+  `100%` against its parent's width — which, for a column that hugs its content, is
+  `auto`, so the child hugs too. The two then disagree, and the example's listing rows
+  did: the price stopped half way across the card. The model's answer is the parent's
+  `crossAlign: CrossAlign.stretch`, which both targets honour (a flex `stretch`, a
+  `CrossAxisAlignment.stretch`), and a component that holds a row states it —
+  `MaterialCard` stretches what it holds for exactly this reason.
 - Platform chrome belongs to the tree. A node never keeps a decoration its
   platform adds by itself — no Material underline under a field, no user agent
   border, focus ring or padding around an input, no user agent underline under a
