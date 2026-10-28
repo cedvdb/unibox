@@ -225,6 +225,47 @@ and the build should say so.
   pages wins by a shared file. The document decides, and `tool/lighthouse.sh` measures the
   choice that was made.
 
+## Interactions a document cannot carry
+
+A list a reader can filter, sort and reorder is the case that keeps asking for client-side
+execution. It decomposes, and only the last part needs any:
+
+| Interaction | What it is | Needs |
+| --- | --- | --- |
+| filter, sort | a view of a list: a URL parameter the server renders | nothing: a `LinkNode` or a form |
+| the panel holding the filters | a dialog the shipped script opens and closes | the script already planned |
+| drag to reorder | instant feedback, then a request to persist | a host script, and the request |
+
+For a page that exists to be found, a filter belongs in the URL anyway: a filtered list is a
+link the reader can send and a crawler can read. And an order that is never sent anywhere
+did not happen, so reordering is a request whichever way it is written.
+
+### What lands now
+
+**The hook, not a vocabulary.** A node may state an action, and the renderer writes it as
+`data-unibox-action="list.reorder"`. The host implements it. The library defines the seam
+and never the meaning of the name: the moment it ships `sortByPrice` as a concept, the
+model has an interaction language and every member of it needs an implementation per
+renderer.
+
+### What stays out, and what would bring it back
+
+A compiled **DOM renderer** — `unibox_dom`, the same tree patched into the DOM with a
+store driving it — is possible precisely because `unibox_css` and `unibox_html` are pure
+and carry no dependency; a renderer written against a framework's value types could never
+have been compiled. It would reuse the CSS layer rather than duplicate it, at roughly 20 to
+30 kB gzipped, against a Flutter engine of about two megabytes.
+
+It is not built now for one reason: it makes **three** renderings that have to agree, and
+the conformance table would hold all three, structural details included — the wrapper a
+stack cell adds, the element a box chooses. That cost grows faster than the number of
+renderers, and it should be paid for by a page that cannot be built otherwise.
+
+It comes back the first time a real page needs an interaction that is neither a navigation
+nor something the application should own — and the criterion is concrete: the interaction
+cannot be expressed as a URL, cannot be a request, and is too frequent to boot an engine
+for.
+
 ## Acceptance
 
 - `tool/verify.sh --docs` green at every commit, with nine suites: core, testing,
@@ -252,7 +293,7 @@ and the build should say so.
 
 ## Out of scope
 
-- A Dart client runtime, hydration, or re-rendering a tree in a browser.
+- A Dart client runtime, hydration, or re-rendering a tree in a browser — see "Interactions a document cannot carry" for the criterion that would bring one back.
 - Translating Dart callbacks to JavaScript, at build time or at render time.
 - A JSON node schema so a non-Dart host can author trees.
 - Anything from the `Deferred` section of `TASK_PLAN.md` beyond the scroll handover
