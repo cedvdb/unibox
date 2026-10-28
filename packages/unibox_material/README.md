@@ -451,6 +451,14 @@ keeps them inside the pill. The well's content is centred and its stack stretche
 that is what the well's `mainAlign` and `crossAlign` are for, and why a segment can
 say `width: double.infinity` and mean it on both targets.
 
+**Give it a width when its parent stretches it.** A segment only takes a share when
+there is a width to divide: without one each hugs its label, which is right for a pill
+sitting in a row of its own, and wrong for one a column or a grid track stretches — the
+outline fills the cell while the segments stay at the left, so two thirds of the control
+is empty. `width: double.infinity` fills the space the parent gives and divides it
+equally, which is what Material's segmented button does; the example's gallery does
+exactly that, and its listings page passes a fixed 216.
+
 A chosen segment draws an 18 pixel check in place of its icon, which is what Material
 does, so a control of pictures still says which one is on. The check is a
 `MaterialCheckMark` — two rotated bars with Material's own weight, because an icon font

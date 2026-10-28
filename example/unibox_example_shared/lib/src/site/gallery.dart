@@ -58,10 +58,11 @@ UINode buildMaterialGallery() {
           _section(
             'Segmented buttons',
             'Two to five choices in one 40 pixel pill at radius 20: a shared outline, a '
-                '1 pixel rule between the segments, equal shares, and the chosen one '
-                'filled with secondaryContainer and announced as selected. A chosen '
-                'segment carries no checkmark — that is a glyph from a font the '
-                'package does not ship, and MaterialSegment.icon is how one is given.',
+                '1 pixel rule between the segments, an equal share of the width for '
+                'each, and the chosen one filled with secondaryContainer and announced '
+                'as selected. The chosen segment trades its icon for Material\'s check '
+                '— two bars, drawn from boxes because a font is a host asset — so a '
+                'control of pictures still says which one is on.',
             _segments(),
           ),
           _section(
@@ -327,6 +328,11 @@ UINode _chips() {
         direction: Axis.horizontal,
         crossAlign: CrossAlign.center,
         gap: 8,
+        // Four chips need more than the width one cell of this grid holds on a phone,
+        // and a chip is a control with a fixed size: the row scrolls rather than
+        // pushing the page sideways, which is what the listings page does with its
+        // cards and what `Overflow.scroll` means on both targets.
+        overflow: Overflow.scroll,
         children: <UINode>[
           MaterialChip(
             label: const TextNode('Two rooms'),
@@ -401,6 +407,9 @@ UINode _removableView(Set<String> chips, ChipsStore store) {
     direction: Axis.horizontal,
     crossAlign: CrossAlign.center,
     gap: 8,
+    // The same reason as the row of filter chips above: two pills and their crosses
+    // are wider than a phone's cell, so the row scrolls instead of widening the page.
+    overflow: Overflow.scroll,
     children: <UINode>[
       for (final String chip in chips)
         MaterialChip(
@@ -426,6 +435,10 @@ UINode _removableView(Set<String> chips, ChipsStore store) {
 /// and the reason a segmented button needs no state of its own.
 UINode _segmentedView(int chosen, SegmentedStore store) {
   return MaterialSegmentedButton(
+    // The width the grid cell gives it, divided three ways. Without one each segment
+    // hugs its label while the outline still takes the cell — a 40 pixel pill with
+    // two thirds of it empty, which is the one thing a segmented button never is.
+    width: double.infinity,
     segments: const <MaterialSegment>[
       MaterialSegment(label: TextNode('Day'), semanticsLabel: 'Per day'),
       MaterialSegment(label: TextNode('Week'), semanticsLabel: 'Per week'),
@@ -457,6 +470,9 @@ UINode _viewSwitchView(int chosen, ViewStore store) {
   const BoxColor onSurface = BoxColor.role(MaterialColorRole.onSurface);
 
   return MaterialSegmentedButton(
+    // The same width divided three ways, for the reason the day/week/month control
+    // states: a stretched pill whose segments hug is a pill with room to spare.
+    width: double.infinity,
     segments: <MaterialSegment>[
       MaterialSegment(
         label: const TextNode('List'),
