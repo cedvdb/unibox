@@ -98,7 +98,12 @@ class JasprStatefulState extends State<JasprStateful> {
   @override
   Component build(BuildContext context) {
     final core.Store<Object> store = _store ?? _node.createStore();
-    final Component tree = renderNode(_node.viewFor(store.state, store));
+    // The node is read again on every build: a parent that redraws hands this
+    // component a new node, whose view closes over the parent's new state. Only the
+    // store outlives a rebuild.
+    final Component tree = renderNode(
+      component.createNode().viewFor(store.state, store),
+    );
 
     if (!kIsWeb) {
       // A server render reads the first state and lets the store go: nothing

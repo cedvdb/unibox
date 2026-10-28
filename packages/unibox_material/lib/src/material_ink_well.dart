@@ -296,9 +296,14 @@ UINode _inkWellView(
     overflow: Overflow.hidden,
     // The stack fills the well across its cross axis, so a well given a size is
     // filled rather than hugged: the tints belong to the whole region, not to the
-    // label inside it.
+    // label inside it. A *full width* well stretches by default — a web flex column
+    // otherwise shrinks the stack to its content, and a row with a flexible part
+    // would not reach the edge of the well — while one with no width of its own is a
+    // chip in a row and has nothing to stretch to. A caller can always say.
     mainAlign: mainAlign,
-    crossAlign: crossAlign ?? CrossAlign.stretch,
+    crossAlign:
+        crossAlign ??
+        (width == double.infinity ? CrossAlign.stretch : CrossAlign.start),
     transition: transition,
     semantics:
         semantics ??
@@ -325,7 +330,15 @@ UINode _inkWellView(
         children: <UINode>[
           for (final MaterialInkDrop drop in state.drops) _dropView(drop, ink),
           // The content sizes the stack; a drop takes no room of its own.
-          Box(padding: padding, children: <UINode>[child]),
+          // The cell is a flex row on the web, which sizes its box to the content.
+          Box(
+            width: width == double.infinity ? double.infinity : null,
+            crossAlign: width == double.infinity
+                ? CrossAlign.stretch
+                : CrossAlign.start,
+            padding: padding,
+            children: <UINode>[child],
+          ),
         ],
       ),
     ],

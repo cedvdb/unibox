@@ -48,7 +48,10 @@
 - `MaterialTextField.initialValue` seeds the text of a field the form does not control,
   where `value` takes it over; the gallery's two fields are the same field in the
   label's two positions now, both validating.
-
+- A full-width `MaterialInkWell` (and so a `MaterialListTile`) fills its row on the web: a
+  trailing part sits at the edge instead of beside the text.
+- `MaterialTextField` stretches across the width it is given, so a web page draws it
+  as wide as the Flutter one instead of as wide as its label.
 - `MaterialTextField` and `MaterialBottomSheet` draw Material's shape: round at the
   top, square where they meet the line or the edge, now that the model has a
   corner token.

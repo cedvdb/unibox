@@ -121,6 +121,34 @@ void main() {
       expect(well.backgroundColor, isNull);
     });
 
+    test('fills a full-width well with its content, so a flexible part reaches the edge', () {
+      final Box well = _view(
+        MaterialInkWell(
+          onTap: _tap,
+          width: double.infinity,
+          child: const TextNode('Ada'),
+        ),
+        MaterialInkStore(),
+      );
+
+      // A web flex column and a flex cell both shrink a start-aligned child to its
+      // content, so each level has to stretch.
+      expect(well.crossAlign, CrossAlign.stretch);
+      expect(_content(well).width, double.infinity);
+      expect(_content(well).crossAlign, CrossAlign.stretch);
+    });
+
+    test('keeps a well that has no width sized to its content', () {
+      final Box well = _view(
+        MaterialInkWell(onTap: _tap, child: const TextNode('Ada')),
+        MaterialInkStore(),
+      );
+
+      // Stretching a well in an unbounded row would ask for an infinite width.
+      expect(well.crossAlign, isNot(CrossAlign.stretch));
+      expect(_content(well).crossAlign, isNot(CrossAlign.stretch));
+    });
+
     test('eases the tint over Material\'s short fade', () {
       final Box well = _view(
         MaterialInkWell(onTap: _tap, child: const TextNode('Ada')),

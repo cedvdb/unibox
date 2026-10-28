@@ -265,9 +265,11 @@ UINode _fieldView(
   return Box(
     width: field.width,
     gap: 4,
+    crossAlign: CrossAlign.stretch,
     children: <UINode>[
       Box(
         minHeight: 56,
+        crossAlign: CrossAlign.stretch,
         backgroundColor: const BoxColor.role(
           MaterialColorRole.surfaceContainerHighest,
         ),
