@@ -23,4 +23,5 @@ dependencies:
 dev_dependencies:
   lints: ^6.1.0
   test: ^1.25.8
+  unibox_material: ^0.1.0
   unibox_testing: ^0.1.0
