@@ -302,13 +302,15 @@ UINode _fields(MaterialPalette palette) {
       Box(
         width: 320,
         children: <UINode>[
+          // The field owns its own state: type in it and the error appears and
+          // goes away as the address becomes one.
           MaterialTextField(
             width: double.infinity,
             label: 'Email',
             placeholder: 'you@example.com',
-            value: 'ada@',
-            invalid: true,
-            message: 'Enter a complete address.',
+            helper: 'We only use it for the receipt.',
+            validator: (String value) =>
+                value.contains('@') ? null : 'Enter an address with an @',
           ),
         ],
       ),

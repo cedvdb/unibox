@@ -122,6 +122,11 @@ Box buildSignupCard({
   required TapCallback onDismiss,
 }) {
   final UINode? status = _status(state);
+  // The two rules the form states, in one place: the field looks wrong and the
+  // message under it says why, and both follow a keystroke because both are read
+  // from the state the store just replaced.
+  final bool noName = state.isDirty && state.name.trim().isEmpty;
+  final bool noEmail = state.isDirty && !state.email.contains('@');
 
   return Box(
     direction: Axis.vertical,
@@ -146,26 +151,32 @@ Box buildSignupCard({
       _heading(),
       _field(
         TextInputNode(
+          // A key per field, so the input keeps its state when a message row appears
+          // above or below it.
+          key: 'name',
           value: state.name,
           placeholder: 'Ada Lovelace',
           required: true,
           // The tree does not validate: the host does, and rebuilds with the flag.
-          invalid: state.isDirty && state.name.trim().isEmpty,
+          invalid: noName,
           description: 'The name we should greet you by.',
           onChanged: onNameChanged,
           onSubmitted: (_) => onSubmit(),
         ),
+        error: noName ? 'A name is required.' : null,
       ),
       _field(
         TextInputNode(
+          key: 'email',
           value: state.email,
           placeholder: 'ada@example.com',
           required: true,
-          invalid: state.isDirty && !state.email.contains('@'),
+          invalid: noEmail,
           description: 'We only use it to send the release notes.',
           onChanged: onEmailChanged,
           onSubmitted: (_) => onSubmit(),
         ),
+        error: noEmail ? 'Enter an address with an @.' : null,
       ),
       _newsletterRow(state, onNewsletterToggled),
       _footer(state, onSubmit),
@@ -203,20 +214,49 @@ UINode _closeRow(TapCallback onDismiss) {
   );
 }
 
-/// A text field of the form.
+/// A text field of the form, with the message under it when it is wrong.
 ///
 /// The node only says what the field is for, so the box around it says what the
 /// field looks like: both renderers keep the platform field free of its own
 /// chrome — no Material underline, no browser border and padding — which makes
 /// this box the only thing that draws a field, on either target.
-UINode _field(TextInputNode node) {
+///
+/// [error] is the host's answer about the value, and drawing it here is what makes
+/// an invalid field *look* invalid: the border and the message turn to
+/// [ExamplePalette.danger] the moment the state says so, and the row appears and
+/// disappears with it, so a keystroke that fixes the address takes the message away.
+UINode _field(TextInputNode node, {String? error}) {
+  // The wrapper is always there, with the message row as its second child or not
+  // at all: a tree whose shape changed when an error appeared would replace the
+  // input and lose the caret with it.
   return Box(
     width: double.infinity,
-    padding: const BoxSpacing.symmetric(horizontal: 12, vertical: 10),
-    backgroundColor: ExamplePalette.surface,
-    borderRadius: 10,
-    border: const BoxBorder(color: ExamplePalette.border),
-    children: <UINode>[node],
+    gap: 4,
+    children: <UINode>[
+      Box(
+        width: double.infinity,
+        padding: const BoxSpacing.symmetric(horizontal: 12, vertical: 10),
+        backgroundColor: ExamplePalette.surface,
+        borderRadius: 10,
+        border: BoxBorder(
+          color: error == null ? ExamplePalette.border : ExamplePalette.danger,
+        ),
+        children: <UINode>[node],
+      ),
+      if (error != null)
+        Box(
+          padding: const BoxSpacing.only(left: 2),
+          children: <UINode>[
+            TextNode(
+              error,
+              style: const BoxTextStyle(
+                fontSize: 12,
+                color: ExamplePalette.danger,
+              ),
+            ),
+          ],
+        ),
+    ],
   );
 }
 

@@ -93,6 +93,9 @@ abstract final class ExamplePalette {
   /// The color of borders, and of the button while it is not ready.
   static const BoxColor border = BoxColor.rgb(0xE5, 0xE7, 0xEB);
 
+  /// The color of a field that is wrong, and of the message under it.
+  static const BoxColor danger = BoxColor.rgb(0xB4, 0x1D, 0x1D);
+
   /// The color of the confirmation message.
   static const BoxColor success = BoxColor.rgb(0x15, 0x80, 0x3D);
 

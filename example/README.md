@@ -53,6 +53,13 @@ exit. The web renderer draws a fixed layer with `role="dialog"` and
 104), so the static export is a snapshot of the layer rather than an interactive
 modal.
 
+The fields are the form's, not the platform's: a `TextInputNode` in a box, with the
+message under it drawn from the same state. Typing an address without an `@` turns that
+box's border and the message red, and finishing the address takes both away, because
+`buildSignupCard` reads `SignupFormState` and the store has already replaced it. The two
+fields carry a key each, so an input keeps its state — and its caret — while a message
+row comes and goes above or below it.
+
 That is what the two documents are: `build/site/web/listings/index.html` is the
 listings, and `build/site/web/signup/index.html` is the same page with the dialog over
 it, written by `dart run bin/build_site.dart` (`tool/site.sh` puts the Flutter build
