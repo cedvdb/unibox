@@ -20,6 +20,13 @@
   noreferrer"` in a new tab, and no browser underline). A node outside that set throws
   rather than shipping a page with a piece missing.
 
+- A `GridNode` is a grid that counts its tracks from the width it is given, and a
+  `StackNode` puts every child in a cell of its own: the cell is the renderer's, not a
+  node's, so it carries no `data-unibox-node` — an element without the attribute is not
+  part of the description. A child placed by offsets is placed, one placed by an alignment
+  fills its cell, and a `PositionedNode` with no stack to be placed in throws, as
+  `validateTree` reports it.
+
 - `toHtml()` writes one `<style>` in front of the fragment: the typography of the model,
   the colours of the theme, then every class the tree wears, once each.
 

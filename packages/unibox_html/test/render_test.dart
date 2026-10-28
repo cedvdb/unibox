@@ -201,12 +201,92 @@ void main() {
     });
   });
 
+  group('a grid', () {
+    test('counts its tracks from the width it is given', () {
+      final String html = toHtml(
+        const core.GridNode(
+          minItemWidth: 200,
+          children: <core.UINode>[core.TextNode('One')],
+        ),
+      );
+
+      expect(html, contains('display:grid'));
+      expect(
+        html,
+        contains('repeat(auto-fill, minmax(min(100%, 200px), 1fr))'),
+      );
+      expect(html, contains('>One</span>'));
+    });
+  });
+
+  group('a stack', () {
+    core.UINode stackOf(List<core.UINode> children) =>
+        core.StackNode(children: children);
+
+    test('puts every child in a cell, and the cell is not a node', () {
+      final String html = toHtml(
+        stackOf(<core.UINode>[const core.TextNode('Over')]),
+      );
+
+      expect(html, contains('grid-template-rows:100%'));
+      // The wrapper is the renderer's: no node drew it, so it carries no name.
+      final Iterable<RegExpMatch> named = RegExp(
+        r'data-unibox-node="([a-z-]+)"',
+      ).allMatches(html);
+
+      expect(named.map((RegExpMatch match) => match[1]), <String>[
+        'stack',
+        'text',
+      ]);
+    });
+
+    test('places a positioned child by its offsets', () {
+      final String html = toHtml(
+        stackOf(<core.UINode>[
+          core.PositionedNode(
+            top: 8,
+            left: 16,
+            child: const core.TextNode('Pin'),
+          ),
+        ]),
+      );
+
+      expect(html, contains('position:absolute'));
+      expect(html, contains('top:8px'));
+    });
+
+    test('fills a cell for a child placed by an alignment', () {
+      final String html = toHtml(
+        stackOf(<core.UINode>[
+          core.PositionedNode(
+            alignment: core.BoxAlignment.bottomCenter,
+            child: const core.TextNode('Float'),
+          ),
+        ]),
+      );
+
+      expect(html, contains('inset:0'));
+      expect(html, contains('justify-content:center'));
+    });
+
+    test('reports a positioned node that has no stack to be placed in', () {
+      // `validateTree` reports it too; a renderer should not quietly draw it at its
+      // natural position.
+      expect(
+        () => toHtml(
+          const core.PositionedNode(top: 1, child: core.TextNode('Lost')),
+        ),
+        throwsA(isA<UnsupportedError>()),
+      );
+    });
+  });
+
   group('a node this renderer cannot draw', () {
     test('is reported instead of skipped', () {
       // A tree built for another target fails loudly rather than shipping a page with a
       // piece missing.
       expect(
-        () => toHtml(const core.StackNode()),
+        () => toHtml(const core.TextInputNode()),
         throwsA(isA<UnsupportedError>()),
       );
     });

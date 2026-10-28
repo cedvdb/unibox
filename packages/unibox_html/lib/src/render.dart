@@ -45,6 +45,8 @@ ElementPlan planNode(core.UINode node, Stylesheet sheet) => switch (node) {
   final core.TextNode text => _planText(text, sheet),
   final core.ImageNode image => _planImage(image, sheet),
   final core.LinkNode link => _planLink(link, sheet),
+  final core.GridNode grid => _planGrid(grid, sheet),
+  final core.StackNode stack => _planStack(stack, sheet),
   _ => throw UnsupportedError(
     'No HTML renderer for ${node.runtimeType} yet: this target draws $supportedNodes.',
   ),
@@ -251,5 +253,59 @@ ElementPlan _planLink(core.LinkNode node, Stylesheet sheet) {
       ...nodeAttributes(node),
     },
     children: <ElementPlan>[planNode(node.child, sheet)],
+  );
+}
+
+ElementPlan _planGrid(core.GridNode node, Stylesheet sheet) {
+  final String className = sheet.classFor('grid', gridDeclarations(node));
+
+  return ElementPlan(
+    tag: 'div',
+    className: className,
+    attributes: nodeAttributes(node),
+    children: <ElementPlan>[
+      for (final core.UINode child in node.children) planNode(child, sheet),
+    ],
+  );
+}
+
+/// A stack, with every child in a cell of its own.
+///
+/// The wrapper is the renderer's, not a node's: it takes the whole cell and lays its
+/// child out inside it, which is what a Flutter stack does with a child that is not
+/// positioned. It carries no `data-unibox-node`, because no node drew it — and that
+/// absence is meaningful: an element without the attribute is not part of the
+/// description.
+ElementPlan _planStack(core.StackNode node, Stylesheet sheet) {
+  final String className = sheet.classFor('stack', stackDeclarations(node));
+
+  return ElementPlan(
+    tag: 'div',
+    className: className,
+    attributes: nodeAttributes(node),
+    children: <ElementPlan>[
+      for (final core.UINode child in node.children)
+        _planStackCell(child, sheet),
+    ],
+  );
+}
+
+ElementPlan _planStackCell(core.UINode child, Stylesheet sheet) {
+  final core.UINode content = child is core.PositionedNode
+      ? child.child
+      : child;
+  final CssDeclarations declarations = switch (child) {
+    final core.PositionedNode node when node.isAligned => alignedDeclarations(
+      node.alignment!,
+    ),
+    final core.PositionedNode node when !node.isUnpositioned =>
+      positionedDeclarations(node),
+    _ => stackCellDeclarations(),
+  };
+
+  return ElementPlan(
+    tag: 'div',
+    className: sheet.classFor('stack-child', declarations),
+    children: <ElementPlan>[planNode(content, sheet)],
   );
 }
