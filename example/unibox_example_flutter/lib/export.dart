@@ -31,7 +31,7 @@ void exportTo(Directory output) {
         ExamplePageNode(signupOpen: page == ExamplePage.signup),
         title: _titleOf(page),
         description: _descriptionOf(page),
-        canonical: '${_site}/web/${_routeOf(page)}/',
+        canonical: '$_site/web/${_routeOf(page)}/',
         theme: ExamplePalette.theme,
         // A document has no click, so the one that exists to *show* the dialog says so.
         showOverlays: page == ExamplePage.signup,

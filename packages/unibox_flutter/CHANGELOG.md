@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- `UniboxScrollScope` and `scrollOffsetsFromPage()`: a box that scrolls opens where a reader
+  left it. The document records the offset of each region it rendered, a browser reads the
+  record through one call, and the offset becomes the controller's *initial* position — so a
+  region is in place at the first layout rather than after a correction, and a rebuild never
+  moves the reader back. A record for another key is ignored and a box with no key starts at
+  the top: moving whichever region happens to scroll is how the wrong list jumps.
+
+- `scrollOffsetsFromPage()` is chosen by a conditional export rather than a runtime check, so
+  the JavaScript never reaches an iOS or Android build, and every read is defensive: an
+  exception in the boot path is a blank screen where a wrong offset is only a jump.
+
 ## 0.1.0
 
 - A box whose only child is a `StackNode` now places what the layer draws by its own

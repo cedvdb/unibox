@@ -26,6 +26,7 @@ export 'src/image_node.dart' show FlutterImage;
 export 'src/link_node.dart'
     show FlutterLinkOpener, FlutterLink, FlutterLinkScope;
 export 'src/overlay_node.dart' show FlutterOverlay;
+export 'src/page_scroll.dart' show scrollOffsetsFromPage;
 export 'src/render.dart';
 export 'src/scroll_scope.dart' show UniboxScrollScope;
 export 'src/stack_node.dart' show FlutterStack;
