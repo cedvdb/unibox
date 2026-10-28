@@ -33,15 +33,26 @@ UINode buildHeroSection({required ShowcaseFrame frame}) {
     vertical: 88,
     child: Box(
       width: double.infinity,
-      gap: 52,
+      gap: 44,
       children: <UINode>[_claim(palette), _comparison(palette, frame)],
     ),
   );
 }
 
-/// The claim, the two ways in, and the one line of proof under them.
+/// The measure the band's copy is set to.
+///
+/// One measure, and every text block in the band ends on it: the claim at 57 pixels
+/// breaks where a line is worth reading, the paragraph under it ends where the headline
+/// does, and the comparison's heading is the same column rather than a second layout.
+/// Without it the band is four blocks with four right edges, which reads as two
+/// sections that were stapled together.
+const double _copyMeasure = 640;
+
+/// The claim, on the one measure the rest of the band's copy shares.
 UINode _claim(MaterialPalette palette) {
   return Box(
+    width: double.infinity,
+    maxWidth: _copyMeasure,
     gap: 24,
     children: <UINode>[
       Box(
@@ -67,17 +78,12 @@ UINode _claim(MaterialPalette palette) {
         style: MaterialTypography.displayLarge,
         headingLevel: 1,
       ),
-      Box(
-        maxWidth: 560,
-        children: <UINode>[
-          TextNode(
-            'The page a search engine reads and the screen in your app, from one '
-            'Dart tree — so there is no second design to keep in step.',
-            style: MaterialTypography.titleMedium.copyWith(
-              color: palette.onSurfaceVariant,
-            ),
-          ),
-        ],
+      TextNode(
+        'The page a search engine reads and the screen in your app, from one '
+        'Dart tree — so there is no second design to keep in step.',
+        style: MaterialTypography.titleMedium.copyWith(
+          color: palette.onSurfaceVariant,
+        ),
       ),
     ],
   );
@@ -92,13 +98,16 @@ UINode _claim(MaterialPalette palette) {
 UINode _comparison(MaterialPalette palette, ShowcaseFrame frame) {
   return Box(
     width: double.infinity,
-    gap: 24,
+    gap: 20,
     children: <UINode>[
-      siteHeading(
-        title: 'The same tree, drawn twice',
-        lead:
-            'Left, the page Jaspr serves; right, the same node tree built by '
-            'Flutter. Drag a frame narrower and both answer the same breakpoint.',
+      // A label for the frames, not a second title: the band makes one claim, and this
+      // says what is drawn under it. It stays an `h2` so the page keeps its outline and
+      // a crawler keeps its heading — it is set small because the next heading down the
+      // page is a real section.
+      TextNode(
+        'The same tree, drawn twice',
+        style: MaterialTypography.titleMedium,
+        headingLevel: 2,
       ),
       GridNode(
         minItemWidth: 380,
@@ -119,15 +128,26 @@ UINode _comparison(MaterialPalette palette, ShowcaseFrame frame) {
           ),
         ],
       ),
-      // The one line of small print the claim used to carry, where it is read last:
-      // under the evidence rather than between the claim and it. There is no link
-      // here either — the example is shown in the frames and nowhere else.
-      TextNode(
-        'Pure Dart · the core has no dependencies · both renderers measured '
-        'against one table',
-        style: MaterialTypography.labelSmall.copyWith(
-          color: palette.onSurfaceVariant,
-        ),
+      // Two footnotes, read after the evidence: how to use the frames, and what the
+      // page is made of. There is no link here — the example is shown in the frames and
+      // nowhere else.
+      Box(
+        gap: 6,
+        children: <UINode>[
+          TextNode(
+            'Drag a frame narrower: both answer the same breakpoint.',
+            style: MaterialTypography.labelSmall.copyWith(
+              color: palette.onSurfaceVariant,
+            ),
+          ),
+          TextNode(
+            'Pure Dart · the core has no dependencies · both renderers measured '
+            'against one table',
+            style: MaterialTypography.labelSmall.copyWith(
+              color: palette.onSurfaceVariant,
+            ),
+          ),
+        ],
       ),
     ],
   );

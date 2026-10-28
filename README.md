@@ -103,7 +103,7 @@ python3 tool/seo_report.py build/site
 
 | Document | Words | `h1` | `h2` | Links | Fields | Bytes |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Jaspr `/` | 447 | 1 | 2 | 4 | 2 | 121 706 |
+| Jaspr `/` | 433 | 1 | 2 | 4 | 2 | 121 733 |
 | Jaspr `/web/listings/` | 132 | 1 | 0 | 1 | 0 | 60 510 |
 | Jaspr `/web/signup/` | 149 | 1 | 1 | 3 | 2 | 70 216 |
 | **Flutter `/flutter/listings/`** | **4** | **0** | **0** | **0** | **0** | **772** |
@@ -111,7 +111,7 @@ python3 tool/seo_report.py build/site
 The last row is the point. The Flutter build of the screen in the picture is a document
 with a `<title>` and a canvas host: four words, no heading, no link, nothing to index.
 `/web/listings/` is that same screen as a tree, and it is the same Dart. The first row is
-this site as one page — 447 words of text, an `h1`, an `h2` for the comparison and one for
+this site as one page — 433 words of text, an `h1`, an `h2` for the comparison and one for
 the catalogue, every component written as markup.
 
 - [How it works](#how-it-works)
