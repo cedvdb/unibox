@@ -170,8 +170,9 @@ tool/site.sh --base=/unibox/ --url=https://cedvdb.github.io/unibox/
 | `/showcase/` | The example drawn by both renderers, side by side in two frames |
 | `/web/listings/` | The example's listings, rendered by Jaspr |
 | `/web/signup/` | The same page with the sign-up dialog over it |
+| `/web/pricing/` | The marketing page: what it costs, and the questions people ask |
 | `/main.client.js` | The browser runtime the two above load |
-| `/flutter/listings/`, `/flutter/signup/` | The same two pages, rendered by Flutter |
+| `/flutter/listings/`, `/flutter/signup/`, `/flutter/pricing/` | The same pages, rendered by Flutter |
 
 The pages link with paths relative to their own depth and the documents carry **no
 `<base>` element**, so the same build works at `/` and at `/unibox/`: a base href of

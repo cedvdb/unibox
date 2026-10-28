@@ -6,7 +6,8 @@ import 'package:unibox_flutter/unibox_flutter.dart';
 /// `assets/fonts` of the site.
 const String fontFamily = 'UniboxText';
 
-void main() => runApp(ExampleApp(signupOpen: signupOpenFromUrl()));
+void main() =>
+    runApp(ExampleApp(signupOpen: signupOpenFromUrl(), page: pageFromUrl()));
 
 /// Whether the sign-up dialog starts open, read from the path the page is served at.
 ///
@@ -15,6 +16,11 @@ void main() => runApp(ExampleApp(signupOpen: signupOpenFromUrl()));
 /// app reads which one it was served as. Any other path, and every build that is not
 /// a static export, starts with the dialog closed.
 bool signupOpenFromUrl() => Uri.base.pathSegments.contains('signup');
+
+/// The page the app starts on, which is whichever document it was served as.
+ExamplePage pageFromUrl() => Uri.base.pathSegments.contains('pricing')
+    ? ExamplePage.pricing
+    : ExamplePage.apartments;
 
 /// The Flutter host of the shared page.
 ///
@@ -28,10 +34,17 @@ class ExampleApp extends StatelessWidget {
   ///
   /// [signupOpen] is for the static site, where a document starts in the state the
   /// destination names instead of waiting for a click.
-  const ExampleApp({super.key, this.signupOpen = false});
+  const ExampleApp({
+    super.key,
+    this.signupOpen = false,
+    this.page = ExamplePage.apartments,
+  });
 
   /// Whether the sign-up dialog is open on the first frame.
   final bool signupOpen;
+
+  /// The page below the bar on the first frame.
+  final ExamplePage page;
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +60,7 @@ class ExampleApp extends StatelessWidget {
           // The theme answers the colour roles the page names; the component
           // installs it, so the host states it once and cannot forget a scope.
           child: FlutterStateful(
-            node: ExamplePageNode(signupOpen: signupOpen),
+            node: ExamplePageNode(signupOpen: signupOpen, initialPage: page),
             theme: ExamplePalette.theme,
           ),
         ),

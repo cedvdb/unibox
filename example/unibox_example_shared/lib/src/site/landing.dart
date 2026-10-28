@@ -146,8 +146,8 @@ UINode _why(MaterialPalette palette) {
             color: palette.onSurfaceVariant,
           ),
           TextNode(
-            'The difference is measurable. A crawler reads 130 words, a single h1 and '
-            'two links on the listings page of this site. The Flutter build of the '
+            'The difference is measurable. A crawler reads 131 words, a single h1 and '
+            'three links on the listings page of this site. The Flutter build of the '
             'same screen is 4 words and a canvas: a title, and nothing to index.',
             style: MaterialTypography.bodyLarge,
             color: palette.onSurface,
@@ -165,8 +165,7 @@ UINode _why(MaterialPalette palette) {
       ),
       GridNode(
         minItemWidth: 320,
-        // Three cards, three tracks: a fourth would stay empty and squeeze them.
-        maxColumns: 3,
+        maxColumns: 4,
         gap: 24,
         children: <UINode>[
           _choice(
@@ -184,6 +183,13 @@ UINode _why(MaterialPalette palette) {
                 'tree into the same page: the dialog opens, the form validates, the '
                 'ink spreads.',
             href: 'web/signup/',
+          ),
+          _choice(
+            title: 'A page that has to rank',
+            body:
+                'A pricing page written once as a tree: the words, the headings and '
+                'the answers a search engine reads, and the same screen in the app.',
+            href: 'web/pricing/',
           ),
           _choice(
             title: 'The app, from that tree',

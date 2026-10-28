@@ -15,9 +15,42 @@ Box navItem(UINode page, String label) => flatten(page)
 void main() {
   group('ExamplePage', () {
     test('names the destinations of the example', () {
-      expect(ExamplePage.values, hasLength(2));
+      expect(ExamplePage.values, hasLength(3));
       expect(ExamplePage.signup.label, 'Sign up');
       expect(ExamplePage.apartments.label, 'Apartments');
+      expect(ExamplePage.pricing.label, 'Pricing');
+    });
+  });
+
+  group('buildPricingPage', () {
+    test('is a marketing page a crawler can read', () {
+      final UINode page = buildPricingPage(
+        onStart: () {},
+        onNavigate: (ExamplePage page) {},
+      );
+      final List<String> headings = _headings(page);
+
+      // One h1, and a heading per section: that is the outline a search engine and
+      // a screen reader both build the page from.
+      expect(
+        headings.where((String text) => text.startsWith('1|')),
+        hasLength(1),
+      );
+      expect(headings, contains('2|What it costs'));
+      expect(headings, contains('2|Questions'));
+      expect(validateTree(page, theme: ExamplePalette.theme), isEmpty);
+    });
+
+    test('says what each plan costs and what is asked', () {
+      final UINode page = buildPricingPage(
+        onStart: () {},
+        onNavigate: (ExamplePage page) {},
+      );
+      final List<String> texts = _texts(page);
+
+      expect(texts, containsAll(<String>['Solo', 'Studio', 'Agency']));
+      expect(texts, contains('€12'));
+      expect(texts, contains('What does a search engine see?'));
     });
   });
 
@@ -114,4 +147,37 @@ void main() {
       expect(host.dismissals, 1);
     });
   });
+}
+
+/// The texts of a tree, in reading order.
+List<String> _texts(UINode root) => <String>[
+  for (final UINode node in _flatten(root))
+    if (node is TextNode) node.text,
+];
+
+/// The headings of a tree as `level|text`, which is the outline of the page.
+List<String> _headings(UINode root) => <String>[
+  for (final UINode node in _flatten(root))
+    if (node is TextNode && node.headingLevel != null)
+      '${node.headingLevel}|${node.text}',
+];
+
+/// Every node of a tree, depth first.
+Iterable<UINode> _flatten(UINode root) sync* {
+  yield root;
+  if (root is Box) {
+    for (final UINode child in root.children) {
+      yield* _flatten(child);
+    }
+  } else if (root is GridNode) {
+    for (final UINode child in root.children) {
+      yield* _flatten(child);
+    }
+  } else if (root is StackNode) {
+    for (final UINode child in root.children) {
+      yield* _flatten(child);
+    }
+  } else if (root is LinkNode) {
+    yield* _flatten(root.child);
+  }
 }

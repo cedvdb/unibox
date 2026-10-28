@@ -14,6 +14,7 @@ final class ExampleState {
     this.form = const SignupFormState(),
     this.signupOpen = false,
     this.mapOpen = false,
+    this.page = ExamplePage.apartments,
   });
 
   /// The values of the sign-up form.
@@ -28,23 +29,30 @@ final class ExampleState {
   /// beside the listings, and the toggle that opens it is not drawn at all.
   final bool mapOpen;
 
+  /// The page below the bar.
+  ///
+  /// The sign-up form is not a page: it is a dialog over whichever page this is,
+  /// which is why [current] is derived and this is stored.
+  final ExamplePage page;
+
   /// The destination the bar highlights.
   ///
   /// The sign-up form is not a page, so it is the current destination while its
-  /// dialog is open, and the listings are current otherwise.
-  ExamplePage get current =>
-      signupOpen ? ExamplePage.signup : ExamplePage.apartments;
+  /// dialog is open, and [page] is current otherwise.
+  ExamplePage get current => signupOpen ? ExamplePage.signup : page;
 
   /// Returns a copy of this state with the given fields replaced.
   ExampleState copyWith({
     SignupFormState? form,
     bool? signupOpen,
     bool? mapOpen,
+    ExamplePage? page,
   }) {
     return ExampleState(
       form: form ?? this.form,
       signupOpen: signupOpen ?? this.signupOpen,
       mapOpen: mapOpen ?? this.mapOpen,
+      page: page ?? this.page,
     );
   }
 
@@ -62,7 +70,8 @@ final class ExampleState {
 
   @override
   String toString() =>
-      'ExampleState(form: $form, signupOpen: $signupOpen, mapOpen: $mapOpen)';
+      'ExampleState(form: $form, signupOpen: $signupOpen, mapOpen: $mapOpen, '
+      'page: $page)';
 }
 
 /// The store of `ExamplePageNode`: every interaction of the page as one
@@ -81,7 +90,8 @@ final class ExampleStore extends StateStore<ExampleState> {
   ExampleStore({
     SignupFormState initial = const SignupFormState(),
     bool openSignup = false,
-  }) : super(ExampleState(form: initial, signupOpen: openSignup));
+    ExamplePage page = ExamplePage.apartments,
+  }) : super(ExampleState(form: initial, signupOpen: openSignup, page: page));
 
   /// Replaces the name and clears a previous confirmation.
   void setName(String name) =>
@@ -98,6 +108,10 @@ final class ExampleStore extends StateStore<ExampleState> {
   /// Confirms the form, when the entered values allow it.
   void submit() => _setForm(submitSignupForm(state.form));
 
+  /// Opens the sign-up dialog over the page it is on, which is what a call to
+  /// action on the pricing page does.
+  void openSignup() => state = state.copyWith(signupOpen: true);
+
   /// Closes the sign-up dialog.
   void closeSignup() => state = state.copyWith(signupOpen: false);
 
@@ -109,10 +123,14 @@ final class ExampleStore extends StateStore<ExampleState> {
 
   /// Follows a destination of the bar.
   ///
-  /// The sign-up form is a dialog and the listings are the page, so a destination
-  /// decides what is open rather than which page is drawn.
-  void navigate(ExamplePage page) =>
-      state = state.copyWith(signupOpen: page == ExamplePage.signup);
+  /// The sign-up form is a dialog rather than a page, so choosing it opens the
+  /// dialog over whatever page is drawn; every other destination is a page, and
+  /// choosing one closes the dialog first.
+  void navigate(ExamplePage destination) {
+    state = destination == ExamplePage.signup
+        ? state.copyWith(signupOpen: true)
+        : state.copyWith(page: destination, signupOpen: false);
+  }
 
   void _setForm(SignupFormState form) => state = state.copyWith(form: form);
 }

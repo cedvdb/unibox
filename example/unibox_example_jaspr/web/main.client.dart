@@ -18,8 +18,17 @@ import 'package:unibox_example_shared/unibox_example_shared.dart';
 void main() {
   final String path = Uri.base.path;
 
-  if (path.endsWith('/web/listings/') || path.endsWith('/web/signup/')) {
-    runApp(buildExampleRoot(openSignup: path.endsWith('/signup/')));
+  if (path.endsWith('/web/listings/') ||
+      path.endsWith('/web/signup/') ||
+      path.endsWith('/web/pricing/')) {
+    runApp(
+      buildExampleRoot(
+        openSignup: path.endsWith('/signup/'),
+        initialPage: path.endsWith('/pricing/')
+            ? ExamplePage.pricing
+            : ExamplePage.apartments,
+      ),
+    );
     return;
   }
 

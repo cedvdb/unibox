@@ -86,11 +86,11 @@ void main() {
             )
             .toList();
 
-        // Two navigation items, the four filters of the listings, the floating map
-        // button, the opt-in row and the barrier that dismisses the sign-up dialog.
-        // The submit button is disabled until the form is complete, and a disabled
-        // box listens to nothing.
-        expect(clickable, hasLength(10));
+        // The destinations of the bar, the four filters of the listings, the
+        // floating map button, the opt-in row, the dialog's barrier and its close
+        // control. The submit button is disabled until the form is complete, and a
+        // disabled box listens to nothing.
+        expect(clickable, hasLength(11));
 
         // The bar's sign-up trigger is a button too, and it comes first; the
         // submit button is the last one in the tree.
@@ -120,7 +120,7 @@ void main() {
           .toList();
 
       // The same set, and now the submit button as well.
-      expect(clickable, hasLength(11));
+      expect(clickable, hasLength(12));
 
       final TestRenderElement button = elementsOf(find.tag('div')).lastWhere(
         (TestRenderElement element) => element.attributes?['role'] == 'button',

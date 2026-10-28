@@ -86,7 +86,7 @@ cp -R example/unibox_example_flutter/build/web/. "$site/flutter/"
 # A static host has no rewrite rule, so a Flutter route is a real file. The build's
 # absolute base href is what lets the copied document resolve its assets from a
 # deeper path.
-for route in listings signup; do
+for route in listings signup pricing; do
   mkdir -p "$site/flutter/$route"
   cp "$site/flutter/index.html" "$site/flutter/$route/index.html"
 done
@@ -110,6 +110,7 @@ if [[ -n "$url" ]]; then
   <url><loc>${url}showcase/</loc></url>
   <url><loc>${url}web/listings/</loc></url>
   <url><loc>${url}web/signup/</loc></url>
+  <url><loc>${url}web/pricing/</loc></url>
 </urlset>
 SITEMAP
   printf 'Sitemap: %ssitemap.xml\n' "$url" >>"$site/robots.txt"

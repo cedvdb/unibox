@@ -3,6 +3,7 @@ import 'package:unibox_core/unibox_core.dart';
 import 'apartments.dart';
 import 'page.dart';
 import 'page_state.dart';
+import 'pricing.dart';
 import 'signup_card.dart';
 
 /// The example as one node: the bar, the listings and the sign-up dialog, drawn
@@ -22,11 +23,16 @@ final class ExamplePageNode extends StatefulNode<ExampleState, ExampleStore> {
   factory ExamplePageNode({
     SignupFormState initialForm = const SignupFormState(),
     bool signupOpen = false,
+    ExamplePage initialPage = ExamplePage.apartments,
     Object? key,
   }) {
     return ExamplePageNode._(
       key: key,
-      create: () => ExampleStore(initial: initialForm, openSignup: signupOpen),
+      create: () => ExampleStore(
+        initial: initialForm,
+        openSignup: signupOpen,
+        page: initialPage,
+      ),
       view: (ExampleState state, ExampleStore store) =>
           exampleView(state: state, store: store),
     );
@@ -43,11 +49,19 @@ UINode exampleView({required ExampleState state, required ExampleStore store}) {
   return buildExamplePage(
     current: state.current,
     onNavigate: store.navigate,
-    page: buildApartmentsPage(
-      mapOpen: state.mapOpen,
-      onOpenMap: store.openMap,
-      onCloseMap: store.closeMap,
-    ),
+    page: switch (state.page) {
+      // The pricing page is the marketing shape this library exists for: written
+      // once, exported as HTML and CSS, and the same tree in the app.
+      ExamplePage.pricing => buildPricingPage(
+        onStart: store.openSignup,
+        onNavigate: store.navigate,
+      ),
+      ExamplePage.apartments || ExamplePage.signup => buildApartmentsPage(
+        mapOpen: state.mapOpen,
+        onOpenMap: store.openMap,
+        onCloseMap: store.closeMap,
+      ),
+    },
     dialog: state.signupOpen
         ? buildSignupDialog(
             state: state.form,

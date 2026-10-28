@@ -15,7 +15,14 @@ enum ExamplePage {
   signup('Sign up'),
 
   /// The list of apartments.
-  apartments('Apartments');
+  apartments('Apartments'),
+
+  /// The page a customer lands on: what it costs, and why.
+  ///
+  /// It is here because it is the kind of page this library exists for. A pricing
+  /// page has to be found, so it is written once as a tree and served as HTML and
+  /// CSS; the same tree is the screen in the app.
+  pricing('Pricing');
 
   const ExamplePage(this.label);
 
@@ -37,6 +44,9 @@ abstract final class ExampleRoutes {
 
   /// The document that shows the sign-up dialog open over the listings.
   static const String signup = '../signup/';
+
+  /// The document that shows what the product costs.
+  static const String pricing = '../pricing/';
 }
 
 /// The frame every page is drawn in: the canvas, the navigation bar, [page] and,
@@ -85,6 +95,11 @@ UINode _navigationBar({
   required ExamplePage current,
   required void Function(ExamplePage page) onNavigate,
 }) {
+  // The brand keeps its width and the destinations take the rest, so the bar can
+  // never be wider than the page: the items are a grid inside that remainder, and a
+  // grid folds its columns when the room runs out instead of overflowing. A plain
+  // row of three destinations overflowed by 68 pixels on a small surface, which is
+  // what the suite caught when the bar gained one.
   return Box(
     direction: Axis.horizontal,
     mainAlign: MainAlign.spaceBetween,
@@ -103,16 +118,27 @@ UINode _navigationBar({
     children: <UINode>[
       const TextNode('Unibox', style: ExampleType.brand),
       Box(
-        direction: Axis.horizontal,
-        crossAlign: CrossAlign.center,
-        gap: 4,
+        flex: 1,
+        // A column, not a row: a grid inside a row is unbounded again, and an
+        // unbounded grid is one column of whatever each item happens to be.
+        crossAlign: CrossAlign.end,
         children: <UINode>[
-          for (final ExamplePage page in ExamplePage.values)
-            _navigationItem(
-              page,
-              current: page == current,
-              onTap: () => onNavigate(page),
-            ),
+          GridNode(
+            // Wide enough for the longest label ('Apartments', 119 with its
+            // padding): a track narrower than a row's smallest text overflows it,
+            // which is what 84 did by 38 pixels.
+            minItemWidth: 120,
+            maxColumns: 3,
+            gap: 4,
+            children: <UINode>[
+              for (final ExamplePage page in ExamplePage.values)
+                _navigationItem(
+                  page,
+                  current: page == current,
+                  onTap: () => onNavigate(page),
+                ),
+            ],
+          ),
         ],
       ),
     ],
@@ -133,7 +159,13 @@ UINode _navigationItem(
   required TapCallback onTap,
 }) {
   return LinkNode(
-    page == ExamplePage.signup ? ExampleRoutes.signup : ExampleRoutes.listings,
+    // The href is the document of the destination, not of the page being drawn:
+    // without it, adding a destination linked its item to the listings.
+    switch (page) {
+      ExamplePage.signup => ExampleRoutes.signup,
+      ExamplePage.pricing => ExampleRoutes.pricing,
+      ExamplePage.apartments => ExampleRoutes.listings,
+    },
     child: Box(
       onTap: onTap,
       direction: Axis.horizontal,

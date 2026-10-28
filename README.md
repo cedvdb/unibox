@@ -56,13 +56,15 @@ python3 tool/seo_report.py build/site
 
 | Document | Words | `h1` | `h2` | Links | Fields | Bytes |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Jaspr `/web/listings/` | 130 | 1 | 0 | 2 | 0 | 35 910 |
-| Jaspr `/web/signup/` | 147 | 1 | 1 | 4 | 2 | 45 072 |
-| Jaspr `/` | 417 | 1 | 2 | 8 | 0 | 16 940 |
+| Jaspr `/web/pricing/` | 331 | 1 | 2 | 5 | 0 | 19 957 |
+| Jaspr `/web/listings/` | 131 | 1 | 0 | 3 | 0 | 36 593 |
+| Jaspr `/web/signup/` | 148 | 1 | 1 | 5 | 2 | 45 755 |
+| Jaspr `/` | 491 | 1 | 2 | 9 | 0 | 18 224 |
 | Jaspr `/material/` | 454 | 1 | 0 | 3 | 2 | 50 260 |
 | **Flutter `/flutter/listings/`** | **4** | **0** | **0** | **0** | **0** | **772** |
 
-The last row is the point. The Flutter build of the same screen is a document with a
+`/web/pricing/` is the shape a marketing page takes: a hero, three plans and the
+questions people ask, all of it text. The last row is the point. The Flutter build of the same screen is a document with a
 `<title>` and a canvas host: four words, no heading, no link, nothing to index. The
 tree's version of that screen is the row above it, and it is the same Dart.
 
