@@ -109,3 +109,20 @@ jobs:
           unibox_flutter
           unibox_jaspr
           PACKAGES
+
+  performance:
+    name: Performance budget
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - name: Resolve the workspace
+        run: flutter pub get
+      # Lighthouse starts a browser and takes a few minutes, which is why it is a job of its
+      # own rather than a step in the fast loop. A page outside its budget fails the build.
+      - name: Measure the exported pages
+        run: tool/lighthouse.sh

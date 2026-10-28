@@ -223,13 +223,28 @@ than an assumption.
 - `tool/` measures the handover: the exported page is served, driven, and timed from the
   first byte to the first Flutter frame, with the number recorded beside the export.
 
-### The gate
+### The gate: measured, not predicted
 
 `tool/lighthouse.sh` runs Lighthouse against the exported pages in CI with a budget, not a
-printout: performance ≥ 95 on a mobile profile, LCP ≤ 2.0 s, CLS ≤ 0.02, and no
-blocking time before the application is asked for. A page that misses the budget fails the
-build the way a test fails, because a performance claim that is not gated is a claim
-nobody checks.
+printout: performance ≥ 95 on a mobile profile, LCP ≤ 2.0 s, CLS ≤ 0.02, TBT ≤ 50 ms. A
+page that misses the budget fails the build the way a test fails.
+
+Measured on the example's export, median of three runs:
+
+| Page | Performance | LCP | CLS | TBT |
+| --- | --- | --- | --- | --- |
+| `listings/` | 100 | 0.90 s | 0.00 | 0 ms |
+| `signup/` | 100 | 1.05 s | 0.00 | 0 ms |
+
+Three runs and a median, because the first version of this gate failed a build at random: one
+run of the *same* page spread from 72 to 100 with LCP at 5 s, entirely from Chrome instances
+contending. And each run gets its own browser profile, because Chrome on macOS attaches to a
+running instance and the next measurement then waits for a browser that is already busy.
+
+The second number — boot to first interactive frame — still needs a built application beside
+the export and is the next thing to wire; the export does not ship the Flutter bundle, so a
+run today measures the document and stops, which is exactly the trap this section warns
+about.
 
 A second number is gated beside it, because Lighthouse measures the load and not the page:
 **boot to first interactive frame**, taken by driving the exported page in a headless
