@@ -17,7 +17,7 @@ enum ExamplePage {
   /// The list of apartments.
   apartments('Apartments'),
 
-  /// The page a customer lands on: what it costs, and why.
+  /// The page a customer lands on: what a home costs, and what the rent covers.
   ///
   /// It is here because it is the kind of page this library exists for. A pricing
   /// page has to be found, so it is written once as a tree and served as HTML and
@@ -148,11 +148,12 @@ UINode _navigationBar({
 /// One item of the navigation: a link around a label, highlighted while its
 /// destination is open.
 ///
-/// The link is what makes the item work without a client runtime: a static page
-/// follows `signup/` and lands on the document that draws the dialog open, while
-/// Flutter calls the box's `onTap` and opens the overlay instead. The box keeps its
-/// own role and `aria-current`, because on Flutter it is the focusable control; the
-/// anchor is what a browser announces.
+/// The link is the control. Its `href` is what makes the item work without a client
+/// runtime — a static page follows it and lands on the document the destination
+/// names — and its `onTap` is what happens instead once there is one: the store
+/// switches the page and the browser does not load the document as well. The box
+/// inside keeps its own role and `aria-current`, because the label is what a reader
+/// and a screen reader see; the anchor is what is pressed.
 UINode _navigationItem(
   ExamplePage page, {
   required bool current,
@@ -166,8 +167,8 @@ UINode _navigationItem(
       ExamplePage.pricing => ExampleRoutes.pricing,
       ExamplePage.apartments => ExampleRoutes.listings,
     },
+    onTap: onTap,
     child: Box(
-      onTap: onTap,
       direction: Axis.horizontal,
       mainAlign: MainAlign.center,
       padding: const BoxSpacing.symmetric(horizontal: 12, vertical: 6),

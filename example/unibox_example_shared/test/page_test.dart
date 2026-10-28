@@ -4,13 +4,22 @@ import 'package:unibox_example_shared/unibox_example_shared.dart';
 
 import 'support/tree.dart';
 
+/// The link of the navigation item labelled [label].
+///
+/// The link is the control: its `href` is the document a page without a runtime goes
+/// to, and its `onTap` is what the store hears once there is one. The box inside is
+/// how the label looks, so the tests that care about appearance ask for that.
+LinkNode navLink(UINode page, String label) => flatten(page)
+    .whereType<LinkNode>()
+    .firstWhere(
+      (LinkNode link) => link.onTap != null && textsIn(link).contains(label),
+    );
+
 /// The box of the navigation item labelled [label].
 ///
 /// An item that changes the page is a link and the one that opens the sign-up
 /// dialog is a button, so the role is not part of the search: the tap is.
-Box navItem(UINode page, String label) => flatten(page)
-    .whereType<Box>()
-    .firstWhere((Box box) => box.onTap != null && textsIn(box).contains(label));
+Box navItem(UINode page, String label) => navLink(page, label).child as Box;
 
 void main() {
   group('ExamplePage', () {
@@ -41,16 +50,19 @@ void main() {
       expect(validateTree(page, theme: ExamplePalette.theme), isEmpty);
     });
 
-    test('says what each plan costs and what is asked', () {
+    test('says what a home costs and what people ask', () {
       final UINode page = buildPricingPage(
         onStart: () {},
         onNavigate: (ExamplePage page) {},
       );
       final List<String> texts = _texts(page);
 
-      expect(texts, containsAll(<String>['Solo', 'Studio', 'Agency']));
-      expect(texts, contains('€12'));
-      expect(texts, contains('What does a search engine see?'));
+      // The page sells the homes, not the library: a visitor reads what a studio
+      // costs and what the rent covers, and the questions are the ones a tenant
+      // asks before a visit.
+      expect(texts, containsAll(<String>['Studio', 'Two rooms', 'Loft']));
+      expect(texts, contains('€1,180'));
+      expect(texts, contains('What is in the rent?'));
     });
   });
 
@@ -87,13 +99,23 @@ void main() {
       final RecordingHost host = RecordingHost();
       final Box page = host.frame();
 
-      navItem(page, 'Apartments').onTap!();
-      navItem(page, 'Sign up').onTap!();
+      navLink(page, 'Apartments').onTap!();
+      navLink(page, 'Sign up').onTap!();
 
       expect(host.navigations, <ExamplePage>[
         ExamplePage.apartments,
         ExamplePage.signup,
       ]);
+    });
+
+    test('keeps a document for every destination on its link', () {
+      // The href is what a page without the client runtime follows, so it names the
+      // document of the destination rather than the page being drawn.
+      final Box page = RecordingHost().frame();
+
+      expect(navLink(page, 'Apartments').url, ExampleRoutes.listings);
+      expect(navLink(page, 'Sign up').url, ExampleRoutes.signup);
+      expect(navLink(page, 'Pricing').url, ExampleRoutes.pricing);
     });
 
     test('marks the open page and not the others', () {

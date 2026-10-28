@@ -83,6 +83,19 @@ void main() {
       expect(find.text('Looks good - press Create account.'), findsOneWidget);
     });
 
+    testWidgets('shows the pricing page when its item is chosen', (
+      tester,
+    ) async {
+      await pumpApp(tester);
+
+      await openPage(tester, 'Pricing');
+
+      // The destination is page state, not a document: the bar asks the store for
+      // it and the app draws the page it names.
+      expect(find.text('What it costs'), findsOneWidget);
+      expect(find.textContaining('old town'), findsNothing);
+    });
+
     testWidgets('starts on the pricing page when the route says so', (
       tester,
     ) async {
@@ -91,7 +104,7 @@ void main() {
       // The route is the page: the same document the web export writes, drawn by
       // the app instead of by the server.
       expect(find.text('What it costs'), findsOneWidget);
-      expect(find.text('Solo'), findsOneWidget);
+      expect(find.text('Two rooms'), findsOneWidget);
       // `Apartments` is also a destination in the bar, so the check is that the
       // listings content is gone rather than that the word is.
       expect(find.textContaining('old town'), findsNothing);

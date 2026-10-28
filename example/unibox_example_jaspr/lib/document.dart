@@ -155,7 +155,7 @@ String _descriptionOf(ExamplePage page) {
       'Six apartments with a map beside the listings on a wide screen and the '
           'listings alone on a narrow one, from the same node tree.',
     ExamplePage.pricing =>
-      'What it costs to describe a screen once: the plans, and the questions '
-          'people ask before they start.',
+      'What renting costs in Brussels: three price bands with the charges in '
+          'them, and the questions people ask before a visit.',
   };
 }

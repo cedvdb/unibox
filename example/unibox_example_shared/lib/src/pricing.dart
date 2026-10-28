@@ -4,10 +4,11 @@ import 'package:unibox_material/unibox_material.dart';
 import 'page.dart';
 import 'theme.dart';
 
-/// A plan on the pricing page: what it costs and what it is for.
-final class Plan {
-  /// Creates a plan.
-  const Plan({
+/// One band of the price page: what a home of this size costs, and what the rent
+/// pays for.
+final class RentBand {
+  /// Creates a band.
+  const RentBand({
     required this.name,
     required this.price,
     required this.cadence,
@@ -15,7 +16,7 @@ final class Plan {
     required this.includes,
   });
 
-  /// The name of the plan.
+  /// The name of the band, which is the shape of the home.
   final String name;
 
   /// The price a visitor reads first.
@@ -24,78 +25,77 @@ final class Plan {
   /// What the price is per.
   final String cadence;
 
-  /// One line about who the plan is for.
+  /// One line about who the home is for.
   final String pitch;
 
-  /// What it includes, one line each.
+  /// What the rent includes, one line each.
   final List<String> includes;
 }
 
-/// The three plans, written once and drawn by both renderers.
-const List<Plan> _plans = <Plan>[
-  Plan(
-    name: 'Solo',
-    price: '€0',
-    cadence: 'forever',
-    pitch: 'One screen that has to rank, for a side project.',
-    includes: <String>[
-      'One page described as a tree',
-      'Static HTML and CSS export',
-      'Flutter and web renderers',
-    ],
-  ),
-  Plan(
+/// The three bands, written once and drawn by both renderers.
+const List<RentBand> _bands = <RentBand>[
+  RentBand(
     name: 'Studio',
-    price: '€12',
+    price: '€780',
     cadence: 'per month',
-    pitch: 'A team shipping marketing pages beside an app.',
+    pitch: 'One room with a kitchen corner, for one person.',
     includes: <String>[
-      'Every page is a tree',
-      'The Material 3 package',
-      'Conformance checks in CI',
-      'One design, both targets',
+      'Water, heating and the upkeep of the building',
+      'A bike store in the courtyard',
+      'A visit inside two days',
     ],
   ),
-  Plan(
-    name: 'Agency',
-    price: '€39',
+  RentBand(
+    name: 'Two rooms',
+    price: '€1,180',
     cadence: 'per month',
-    pitch: 'Agencies that hand a client pages a crawler can read.',
+    pitch: 'A bedroom and a living room, for a couple or a flatmate.',
     includes: <String>[
-      'Everything in Studio',
-      'A second design system',
-      'Static export per route',
+      'Everything the studio includes',
+      'A cellar of your own',
+      'A kitchen with a window',
+    ],
+  ),
+  RentBand(
+    name: 'Loft',
+    price: '€1,650',
+    cadence: 'per month',
+    pitch: 'The top floor of the building, with the roof terrace.',
+    includes: <String>[
+      'Everything two rooms includes',
+      'The terrace, shared with the neighbour below',
+      'A parking space under the building',
     ],
   ),
 ];
 
-/// The questions a visitor asks before they buy, and their answers.
+/// The questions a visitor asks before a visit, and their answers.
 const List<(String, String)> _questions = <(String, String)>[
   (
-    'What does a search engine see?',
-    'The page as HTML and CSS, with the words, the headings and the links in it — '
-        'not a canvas waiting for JavaScript. Run tool/seo_report.py on a build to '
-        'see exactly what it reads.',
+    'What is in the rent?',
+    'Water, heating and the upkeep of the building. Electricity, internet and '
+        'your own contents are not, and the lease lists both sides; the figure on '
+        'this page is the one that leaves your account every month.',
   ),
   (
-    'Do I have to write the app this way?',
-    'No. The screens that have to be found are trees; everything else stays the '
-        'Flutter you already write.',
+    'What does the deposit cover?',
+    'Two months of rent, held in a blocked account and returned within a month of '
+        'the keys coming back, less whatever the check-out report names.',
   ),
   (
-    'What happens when the page has to react?',
-    'The same document loads a client bundle that redraws the same tree into it: a '
-        'dialog opens, a field validates. Without the bundle the page is still the '
-        'page.',
+    'How long does an application take?',
+    'A visit, then a file with your identity and three payslips. The answer comes '
+        'within five working days, and the homes go in the order the files are '
+        'complete.',
   ),
   (
-    'Does it work on a phone?',
-    'The tree says how it folds — a grid gives up columns as the window narrows — '
-        'and every page of this site fits a 375 pixel viewport.',
+    'Can I bring a pet?',
+    'Cats and small dogs are welcome. Say so at the visit, because the lease names '
+        'the animals that live in the flat.',
   ),
 ];
 
-/// A pricing page: what it costs, why it exists, and what people ask.
+/// The price page: what a home costs, what the rent covers, and what people ask.
 ///
 /// It is the shape the library is meant for. Every section is a node tree, so the
 /// page is served as HTML and CSS that a crawler reads, and the same tree is the
@@ -123,7 +123,7 @@ UINode buildPricingPage({
     gap: 48,
     children: <UINode>[
       _hero(onStart: onStart),
-      _plansSection(),
+      _bandsSection(),
       _questionsSection(),
       _footer(onNavigate: onNavigate),
     ],
@@ -138,15 +138,14 @@ UINode _hero({required TapCallback onStart}) {
     gap: 16,
     children: <UINode>[
       TextNode(
-        'A page that has to be found, written once.',
+        'Rent in Brussels without the runaround.',
         style: ExampleType.title,
         headingLevel: 1,
       ),
       TextNode(
-        'Unibox describes a screen as one tree of nodes. It is exported as HTML and '
-        'CSS for the crawlers and the readers without scripts, it becomes the app '
-        'screen in Flutter, and the same document turns interactive where it has '
-        'to be.',
+        'Six apartments, visited and measured before they are listed. The rent on '
+        'the card is the rent on the lease, the map shows the street rather than '
+        'the postcode, and an application is a form instead of a phone call.',
         style: ExampleType.body,
         color: ExamplePalette.muted,
       ),
@@ -167,7 +166,7 @@ UINode _hero({required TapCallback onStart}) {
                   horizontal: 20,
                   vertical: 12,
                 ),
-                child: const TextNode('Start free'),
+                child: const TextNode('Create an account'),
               ),
             ],
           ),
@@ -188,8 +187,8 @@ UINode _hero({required TapCallback onStart}) {
   );
 }
 
-/// The three plans, side by side until the window cannot hold them.
-UINode _plansSection() {
+/// The three bands, side by side until the window cannot hold them.
+UINode _bandsSection() {
   return Box(
     width: double.infinity,
     gap: 16,
@@ -199,14 +198,14 @@ UINode _plansSection() {
         minItemWidth: 260,
         maxColumns: 3,
         gap: 16,
-        children: <UINode>[for (final Plan plan in _plans) _planCard(plan)],
+        children: <UINode>[for (final RentBand band in _bands) _bandCard(band)],
       ),
     ],
   );
 }
 
-/// One plan: its price, who it is for, and what it includes.
-UINode _planCard(Plan plan) {
+/// One band: its rent, who the home is for, and what the rent includes.
+UINode _bandCard(RentBand band) {
   return Box(
     width: double.infinity,
     gap: 12,
@@ -215,21 +214,21 @@ UINode _planCard(Plan plan) {
     backgroundColor: ExamplePalette.surface,
     border: const BoxBorder(color: ExamplePalette.border),
     children: <UINode>[
-      TextNode(plan.name, style: ExampleType.navCurrent, headingLevel: 3),
+      TextNode(band.name, style: ExampleType.navCurrent, headingLevel: 3),
+      // The price over what it is per, rather than beside it: a row of two texts
+      // is as wide as the two of them, and a card a third of a phone is narrower.
       Box(
-        direction: Axis.horizontal,
-        crossAlign: CrossAlign.center,
-        gap: 6,
+        gap: 2,
         children: <UINode>[
-          TextNode(plan.price, style: ExampleType.title),
-          TextNode(plan.cadence, style: ExampleType.muted),
+          TextNode(band.price, style: ExampleType.title),
+          TextNode(band.cadence, style: ExampleType.muted),
         ],
       ),
-      TextNode(plan.pitch, style: ExampleType.body),
+      TextNode(band.pitch, style: ExampleType.body),
       Box(
         gap: 6,
         children: <UINode>[
-          for (final String line in plan.includes)
+          for (final String line in band.includes)
             TextNode('- $line', style: ExampleType.muted),
         ],
       ),
@@ -287,8 +286,10 @@ UINode _footer({required void Function(ExamplePage page) onNavigate}) {
       ),
       LinkNode(
         ExampleRoutes.listings,
+        // The tree switches the page, so the browser does not load the document as
+        // well: the href is for a reader without the runtime.
+        onTap: () => onNavigate(ExamplePage.apartments),
         child: Box(
-          onTap: () => onNavigate(ExamplePage.apartments),
           children: <UINode>[
             const TextNode('Go to the listings', style: ExampleType.nav),
           ],
