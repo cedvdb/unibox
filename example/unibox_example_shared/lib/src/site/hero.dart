@@ -79,40 +79,6 @@ UINode _claim(MaterialPalette palette) {
           ),
         ],
       ),
-      // A grid rather than a row: two buttons of this length do not fit a phone
-      // side by side, and a grid stacks them instead of overflowing.
-      GridNode(
-        minItemWidth: 180,
-        maxColumns: 2,
-        gap: 12,
-        children: <UINode>[
-          _natural(
-            LinkNode(
-              'web/listings/',
-              child: MaterialButton.filled(
-                label: const TextNode('Open the example'),
-                onTap: () {},
-              ),
-            ),
-          ),
-          _natural(
-            LinkNode(
-              'flutter/listings/',
-              child: MaterialButton.outlined(
-                label: const TextNode('The Flutter build'),
-                onTap: () {},
-              ),
-            ),
-          ),
-        ],
-      ),
-      TextNode(
-        'Pure Dart · the core has no dependencies · both renderers measured '
-        'against one table',
-        style: MaterialTypography.labelSmall.copyWith(
-          color: palette.onSurfaceVariant,
-        ),
-      ),
     ],
   );
 }
@@ -153,11 +119,24 @@ UINode _comparison(MaterialPalette palette, ShowcaseFrame frame) {
           ),
         ],
       ),
+      // The one line of small print the claim used to carry, where it is read last:
+      // under the evidence rather than between the claim and it. There is no link
+      // here either — the example is shown in the frames and nowhere else.
+      TextNode(
+        'Pure Dart · the core has no dependencies · both renderers measured '
+        'against one table',
+        style: MaterialTypography.labelSmall.copyWith(
+          color: palette.onSurfaceVariant,
+        ),
+      ),
     ],
   );
 }
 
-/// One half of the comparison: a caption, a way to open it alone, and the frame.
+/// One half of the comparison: a caption and the frame.
+///
+/// There is no link beside the caption: the frame is the only way the example is
+/// reached from this page, and the page it draws is not a destination of its own.
 UINode _panel({
   required String title,
   required String src,
@@ -168,34 +147,11 @@ UINode _panel({
     width: double.infinity,
     gap: 10,
     children: <UINode>[
-      Box(
-        direction: Axis.horizontal,
-        mainAlign: MainAlign.spaceBetween,
-        crossAlign: CrossAlign.center,
-        width: double.infinity,
-        children: <UINode>[
-          TextNode(
-            title,
-            style: MaterialTypography.labelLarge.copyWith(
-              color: palette.onSurfaceVariant,
-            ),
-          ),
-          LinkNode(
-            src,
-            child: Box(
-              padding: const BoxSpacing.symmetric(horizontal: 8, vertical: 4),
-              borderRadius: 8,
-              children: <UINode>[
-                TextNode(
-                  'Open',
-                  style: MaterialTypography.labelLarge.copyWith(
-                    color: palette.primary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+      TextNode(
+        title,
+        style: MaterialTypography.labelLarge.copyWith(
+          color: palette.onSurfaceVariant,
+        ),
       ),
       // A frame needs a height of its own: it is a window, not a paragraph, and an
       // iframe with no height is a sliver.
@@ -211,14 +167,3 @@ UINode _panel({
     ],
   );
 }
-
-/// Keeps [child] at its own size inside a grid track.
-///
-/// A track is as wide as its column and a box inside one fills that width, which
-/// turns a pill into a banner; a row lays the control out at its natural size on
-/// both targets and leaves the rest of the track empty.
-UINode _natural(UINode child) => Box(
-  direction: Axis.horizontal,
-  crossAlign: CrossAlign.center,
-  children: <UINode>[child],
-);

@@ -82,31 +82,31 @@ void main() {
       );
     });
 
-    test('offers the example and the source', () {
-      final UINode page = buildSitePage(frame: _frame);
-      final List<String> links = <String>[
-        for (final UINode node in _flatten(page))
-          if (node is LinkNode) node.url,
-      ];
+    test(
+      'offers the source, and shows the example instead of linking to it',
+      () {
+        final UINode page = buildSitePage(frame: _frame);
+        final List<LinkNode> links = <LinkNode>[
+          for (final UINode node in _flatten(page))
+            if (node is LinkNode) node,
+        ];
 
-      expect(
-        links,
-        containsAll(<String>[
-          'web/listings/',
-          'flutter/listings/',
-          repositoryUrl,
-          '$repositoryUrl#readme',
-        ]),
-      );
+        expect(
+          links.map((LinkNode link) => link.url),
+          containsAll(<String>[repositoryUrl, '$repositoryUrl#readme']),
+        );
 
-      // The header names the source and nothing else: the example is the hero's call
-      // to action, and the two frames below it are the example itself.
-      final List<String> texts = <String>[
-        for (final UINode node in _flatten(page))
-          if (node is TextNode) node.text,
-      ];
-      expect(texts, isNot(contains('The example')));
-    });
+        // Nothing on this page opens the example: it is drawn in the two frames and
+        // that is the only way it is seen from here.
+        expect(
+          links.where(
+            (LinkNode link) =>
+                link.url.startsWith('web/') || link.url.startsWith('flutter/'),
+          ),
+          isEmpty,
+        );
+      },
+    );
 
     test('leads with the components, then the scale, then the palette', () {
       final List<String> blocks = _headings(buildSitePage(frame: _frame))
@@ -161,11 +161,12 @@ void main() {
       ];
 
       expect(texts, contains('Describe a screen once.'));
-      expect(texts, contains('Open the example'));
-      expect(texts, contains('The Flutter build'));
       // The claim is drawn as well as written: both renderings are on the page.
       expect(texts, contains('Jaspr — HTML and CSS'));
       expect(texts, contains('Flutter — the same tree'));
+      // Neither rendering is a call to action: the page has no way into the example.
+      expect(texts, isNot(contains('Open the example')));
+      expect(texts, isNot(contains('The Flutter build')));
     });
 
     test('names each rendering once, and shows it rather than a picture of it', () {

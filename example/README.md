@@ -199,7 +199,7 @@ the argument needs.
 
 | Band | What it says |
 | --- | --- |
-| the hero | the claim — *describe a screen once* — the two ways in, and, in the same band, the claim answered: the example in two frames, the Jaspr page on the left, the Flutter build on the right, each resizable |
+| the hero | the claim — *describe a screen once* — and, in the same band, the claim answered: the example in two frames, the Jaspr page on the left, the Flutter build on the right, each resizable |
 | *Material 3, as values and nodes* | the catalogue: every component first, then the type scale and the colour roles those components name |
 
 The frames are the claim's evidence, so they sit in the band that makes it: a reader
@@ -363,10 +363,11 @@ The document also arrives with what a search engine reads before any script runs
 attributes as markup, and a `robots.txt` next to it. A sitemap would need the address
 the page is served from, so `tool/site.sh --url=…` writes one when it is given it.
 
-The page's links are real: the header, the hero and the footer are `LinkNode`s and the
-frames are `<iframe>`s, so a crawler follows all of them without JavaScript. Inside the
-frame the example carries one more: its bar is a `<nav>` whose destination is an
-`<a href>` naming the document that draws it. The sign-up control is not a link — it
+The page's links are real: the header and the footer are `LinkNode`s and the frames are
+`<iframe>`s, so a crawler follows all of them without JavaScript. Nothing links to the
+example itself — it is drawn in the frames, and it is not a destination of this page.
+Inside the frame the example carries one more: its bar is a `<nav>` whose destination is
+an `<a href>` naming the document that draws it. The sign-up control is not a link — it
 opens a dialog over the page — so a crawler sees the two documents of the example and
 one link between them. A page that has to be found makes sense as a `LinkNode` with a
 real url — which is the router work `TASK_PLAN.md` lists as deferred.
