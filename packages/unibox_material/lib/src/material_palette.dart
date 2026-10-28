@@ -49,6 +49,9 @@ enum MaterialColorRole {
   /// The surface of a resting card, which sits just above the page.
   surfaceContainerLow,
 
+  /// The surface of a container that spans the page: a navigation bar, a menu.
+  surfaceContainer,
+
   /// The surface of a dialog or a menu.
   surfaceContainerHigh,
 
@@ -132,6 +135,7 @@ final class MaterialPalette {
     required this.onSurfaceVariant,
     required this.surfaceContainerLowest,
     required this.surfaceContainerLow,
+    required this.surfaceContainer,
     required this.surfaceContainerHigh,
     required this.surfaceContainerHighest,
     required this.outline,
@@ -219,6 +223,7 @@ final class MaterialPalette {
         MaterialDynamicColors.surfaceContainerLowest,
       ),
       surfaceContainerLow: role(MaterialDynamicColors.surfaceContainerLow),
+      surfaceContainer: role(MaterialDynamicColors.surfaceContainer),
       surfaceContainerHigh: role(MaterialDynamicColors.surfaceContainerHigh),
       surfaceContainerHighest: role(
         MaterialDynamicColors.surfaceContainerHighest,
@@ -272,6 +277,10 @@ final class MaterialPalette {
 
   /// The surface of a resting card, which sits just above the page.
   final BoxColor surfaceContainerLow;
+
+  /// The surface of a container that spans the page, such as a navigation bar:
+  /// a tone above a resting card and below a dialog.
+  final BoxColor surfaceContainer;
 
   /// The surface of a dialog or a menu: above a card, below the highest tone.
   final BoxColor surfaceContainerHigh;
@@ -332,6 +341,7 @@ final class MaterialPalette {
       MaterialColorRole.onSurfaceVariant: onSurfaceVariant,
       MaterialColorRole.surfaceContainerLowest: surfaceContainerLowest,
       MaterialColorRole.surfaceContainerLow: surfaceContainerLow,
+      MaterialColorRole.surfaceContainer: surfaceContainer,
       MaterialColorRole.surfaceContainerHigh: surfaceContainerHigh,
       MaterialColorRole.surfaceContainerHighest: surfaceContainerHighest,
       MaterialColorRole.outline: outline,
@@ -367,6 +377,7 @@ final class MaterialPalette {
     onSurfaceVariant: BoxColor(0xFF49454F),
     surfaceContainerLowest: BoxColor(0xFFFFFFFF),
     surfaceContainerLow: BoxColor(0xFFF7F2FA),
+    surfaceContainer: BoxColor(0xFFF3EDF7),
     surfaceContainerHigh: BoxColor(0xFFECE6F0),
     surfaceContainerHighest: BoxColor(0xFFE6E0E9),
     outline: BoxColor(0xFF79747E),
@@ -391,6 +402,7 @@ final class MaterialPalette {
     onSurfaceVariant: BoxColor(0xFFCAC4D0),
     surfaceContainerLowest: BoxColor(0xFF0F0D13),
     surfaceContainerLow: BoxColor(0xFF1D1B20),
+    surfaceContainer: BoxColor(0xFF211F26),
     surfaceContainerHigh: BoxColor(0xFF2B2930),
     surfaceContainerHighest: BoxColor(0xFF36343B),
     outline: BoxColor(0xFF938F99),

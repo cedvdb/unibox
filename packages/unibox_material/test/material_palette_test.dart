@@ -12,6 +12,7 @@ void main() {
       expect(palette.onSurface, const BoxColor(0xFF1D1B20));
       expect(palette.onSurfaceVariant, const BoxColor(0xFF49454F));
       expect(palette.surfaceContainerLowest, BoxColors.white);
+      expect(palette.surfaceContainer, const BoxColor(0xFFF3EDF7));
       expect(palette.outlineVariant, const BoxColor(0xFFCAC4D0));
       expect(palette.error, const BoxColor(0xFFB3261E));
     });

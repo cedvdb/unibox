@@ -92,6 +92,38 @@ void main() {
     }
   });
 
+  test('the navigation bar moves the page it is on', () {
+    final NavigationDemo demo = NavigationDemo();
+    final NavigationStore store = demo.create();
+
+    MaterialNavigationBar barOf(UINode page) =>
+        _flatten(page).whereType<MaterialNavigationBar>().single;
+
+    final MaterialNavigationBar first = barOf(demo.viewFor(store.state, store));
+
+    expect(first.children, hasLength(3));
+    expect(
+      first.semantics?.element,
+      BoxElement.nav,
+      reason: 'the bar is the navigation landmark of the page',
+    );
+    expect(_currentOf(first, 0), BoxCurrent.page);
+    expect(_currentOf(first, 1), isNull);
+
+    store.choose(2);
+
+    final MaterialNavigationBar chosen = barOf(
+      demo.viewFor(store.state, store),
+    );
+
+    expect(_currentOf(chosen, 0), isNull);
+    expect(
+      _currentOf(chosen, 2),
+      BoxCurrent.page,
+      reason: 'the destination the store chose is the page being read',
+    );
+  });
+
   test('the dialog demo opens a dialog of its own, and closes it', () {
     final DialogDemo demo = DialogDemo();
     final DialogDemoStore store = demo.create();
@@ -148,6 +180,18 @@ Iterable<UINode> _children(UINode node) sync* {
   }
 
   yield* node.children;
+}
+
+/// The `current` a destination of [bar] announces, read from the box its ink well
+/// draws.
+BoxCurrent? _currentOf(MaterialNavigationBar bar, int index) {
+  final Box item = bar.children[index] as Box;
+  final MaterialInkWell well = item.children.single as MaterialInkWell;
+  final MaterialInkStore store = well.create();
+  final UINode view = well.viewFor(store.state, store);
+  store.dispose();
+
+  return (view as Box).semantics?.current;
 }
 
 /// Every text under [node], which is how a page assertion reads.

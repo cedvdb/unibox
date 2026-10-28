@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- `MaterialNavigationBar`: Material 3's navigation bar — three to five destinations in
+  one 80 pixel row on the new `surfaceContainer` role, an equal share each, the chosen
+  destination's icon on a 64 by 32 `secondaryContainer` pill at radius 16 and its label
+  in `onSurface` `labelMedium` (the rest in `onSurfaceVariant`). Every destination is a
+  `MaterialInkWell`, so a press inks the whole share, and it announces itself as a
+  button that is the current page. `MaterialNavigationDestination` carries the label,
+  two optional glyphs and a screen-reader label; `activeIconColor` and
+  `inactiveIconColor` are the roles to draw them in, because a picture keeps its own
+  colour on both targets.
+- `surfaceContainer` joins the colour roles: the tone Material paints a navigation bar
+  on, one step above a resting card. `MaterialColorRole.surfaceContainer` and
+  `MaterialPalette.surfaceContainer` are the role and its value, in both schemes.
+
 - `MaterialPalette.fromSeed`: a whole palette from one brand colour — both schemes,
   the twenty roles and the state layers — by the algorithm Material's own themes run
   (`material_color_utilities`, the same one behind a Flutter `ColorScheme.fromSeed`,

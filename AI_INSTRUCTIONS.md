@@ -51,10 +51,11 @@ host that renders it.
 - `unibox_material` is optional: the fifteen Material type roles as `const`
   `BoxTextStyle` values, the colour roles as `MaterialPalette` (`light` and `dark`,
   each a `const` set of `BoxColor`s — or a palette grown from one brand colour with
-  `MaterialPalette.fromSeed(seed, variant:, isDark:, contrastLevel:)`), and eleven
+  `MaterialPalette.fromSeed(seed, variant:, isDark:, contrastLevel:)`), and twelve
   components built on nodes the
   renderers already draw — `MaterialCard`, `MaterialListTile`, `MaterialButton`,
-  `MaterialChip`, `MaterialSegmentedButton` and `MaterialIcon` are `Box` subclasses, `MaterialInkWell`,
+  `MaterialChip`, `MaterialSegmentedButton`, `MaterialNavigationBar` and `MaterialIcon`
+  are `Box` subclasses, `MaterialInkWell`,
   `MaterialTextField` and `MaterialSpinner` are `StatefulNode`s (the ink a press
   spreads; the text, the focus and whether the field has been touched; the step a
   ring turns), `MaterialCheckMark` is a `StackNode` (Material's tick, drawn, so a
@@ -159,6 +160,7 @@ host that renders it.
 | `showDialog`, `Dialog` | `MaterialDialog(title:, content:, actions:, onDismiss:)` — an `OverlayNode`, not a call |
 | `showModalBottomSheet` | `MaterialBottomSheet(title:, content:, actions:)` — the same overlay at the bottom |
 | `SegmentedButton`, a `ToggleButtons` row | `MaterialSegmentedButton(segments:, selected:, onSelect:)` — one pill of equal segments, the chosen one filled |
+| `NavigationBar`, `BottomNavigationBar` | `MaterialNavigationBar(destinations:, selected:, onSelect:)` — one 80 pixel row of equal shares, the chosen destination on a `secondaryContainer` pill; where it sits is the tree's business, so being at the bottom is the last row of a column or a `PositionedNode` |
 | `Chip`, `FilterChip`, `ChoiceChip` | `MaterialChip(label:, selected:, leading:, onTap:)` — 32 pixels tall, an outline when unselected, the secondary container when chosen |
 | `Icon(Icons.check)`, under a chosen chip or segment | `MaterialCheckMark(color:, size:)` — Material's tick drawn from two bars, no font asset needed |
 | `InkWell`, `InkResponse` | `MaterialInkWell(onTap:, borderRadius:, ink:, child:)` — a state layer plus the ink a press spreads; it paints no surface, so the filled box goes around it |

@@ -40,21 +40,19 @@ void main() {
       expect(_textsIn(scrollers.last), contains('Garden'));
     });
 
-    test(
-      'draws the chosen segment with Material’s check, in place of its icon',
-      () {
-        final List<UINode> nodes = _nodesOf(buildMaterialGallery());
+    test('draws the chosen segment with Material’s check, in place of its icon', () {
+      final List<UINode> nodes = _nodesOf(buildMaterialGallery());
 
-        // The chosen chip and the chosen segment of each of the two buttons: three
-        // marks, and no text glyph standing in for one.
-        expect(nodes.whereType<MaterialCheckMark>(), hasLength(3));
-        // A segment that is not chosen still draws its own icon.
-        expect(
-          _textsIn(buildMaterialGallery()),
-          containsAll(<String>['Grid', 'Map']),
-        );
-      },
-    );
+      // The chosen chip, the chosen segment of each of the two buttons, and the
+      // picture of the bar's third destination: four marks, and no text glyph
+      // standing in for one.
+      expect(nodes.whereType<MaterialCheckMark>(), hasLength(4));
+      // A segment that is not chosen still draws its own icon.
+      expect(
+        _textsIn(buildMaterialGallery()),
+        containsAll(<String>['Grid', 'Map']),
+      );
+    });
   });
 }
 

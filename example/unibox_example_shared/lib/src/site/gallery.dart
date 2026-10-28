@@ -84,6 +84,13 @@ UINode buildMaterialGallery() {
             _cards(palette),
           ),
           _section(
+            'Navigation bar',
+            'A navigation bar is one row of equal shares on the navigation surface: the '
+                'chosen destination sits on a secondary container pill, the rest are '
+                'quiet, and every destination inks where the press landed. Press one.',
+            NavigationDemo(),
+          ),
+          _section(
             'Dialog',
             'A dialog is an OverlayNode rather than a call: it is in the tree only while '
                 'the state says it is open, it covers the page behind a barrier and leaves '
@@ -624,6 +631,59 @@ final class SegmentedStore extends StateStore<int> {
 final class SegmentedDemo extends StatefulNode<int, SegmentedStore> {
   /// Creates the demo, with its first segment chosen.
   SegmentedDemo() : super(create: SegmentedStore.new, view: _segmentedView);
+}
+
+/// The choice of the navigation demo: which destination is the page.
+final class NavigationStore extends StateStore<int> {
+  /// Creates the demo with the first destination chosen.
+  NavigationStore() : super(0);
+
+  /// Goes to the destination at [index].
+  void choose(int index) => state = index;
+}
+
+/// A navigation bar that keeps the destination it was given.
+///
+/// The choice is the state, exactly as it is for the segmented button: the view
+/// puts the destination the store says is current into the bar, and a press asks
+/// for another one. Nothing about the bar changes — only the index.
+final class NavigationDemo extends StatefulNode<int, NavigationStore> {
+  /// Creates the demo, with its first destination chosen.
+  NavigationDemo() : super(create: NavigationStore.new, view: _navigationView);
+}
+
+/// The bar, with a picture per destination in the colour its state needs.
+UINode _navigationView(int chosen, NavigationStore store) {
+  return MaterialNavigationBar(
+    destinations: <MaterialNavigationDestination>[
+      MaterialNavigationDestination(
+        label: const TextNode('Listings'),
+        icon: glyphList(MaterialNavigationBar.inactiveIconColor, size: 20),
+        selectedIcon: glyphList(
+          MaterialNavigationBar.activeIconColor,
+          size: 20,
+        ),
+      ),
+      MaterialNavigationDestination(
+        label: const TextNode('Map'),
+        icon: glyphPin(MaterialNavigationBar.inactiveIconColor, size: 20),
+        selectedIcon: glyphPin(MaterialNavigationBar.activeIconColor, size: 20),
+      ),
+      MaterialNavigationDestination(
+        label: const TextNode('Saved'),
+        icon: MaterialCheckMark(
+          color: MaterialNavigationBar.inactiveIconColor,
+          size: 20,
+        ),
+        selectedIcon: MaterialCheckMark(
+          color: MaterialNavigationBar.activeIconColor,
+          size: 20,
+        ),
+      ),
+    ],
+    selected: chosen,
+    onSelect: store.choose,
+  );
 }
 
 /// The state of the dialog demo: open, or closed.

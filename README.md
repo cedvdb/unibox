@@ -688,10 +688,10 @@ A scale can be written by hand, as the example does, or taken ready made:
 scale as `const BoxTextStyle` values (`MaterialTypography.titleLarge`,
 `MaterialTypography.bodyMedium`, ...), the colour roles as a `MaterialPalette` value —
 written down for the baseline scheme, or grown from one brand colour with
-`MaterialPalette.fromSeed` — and ten components built from the same tokens: a card,
-a list tile, a button, a chip, a
-segmented button, an ink well, a text field, an icon, a progress ring and a bottom
-sheet. It is optional and pure Dart, and the
+`MaterialPalette.fromSeed` — and twelve components built from the same tokens: a card,
+a list tile, a button, a chip, a segmented button, an ink well, a text field, an icon,
+a progress ring, a navigation bar, a dialog and a bottom sheet. It is optional and pure
+Dart, and the
 renderers do not know it exists — a tree that uses it is drawn by the same two
 renderers as one that does not.
 
@@ -848,7 +848,7 @@ written inline.
 | `packages/unibox_flutter` | The Flutter renderer: `renderFlutter(node)` and `node.toWidget()`. |
 | `packages/unibox_jaspr` | The Jaspr renderer: `renderJaspr(node)` and `node.toComponent()`. |
 | `packages/unibox_testing` | The tables both renderers are tested against. Development only, not published. |
-| `packages/unibox_material` | The Material 3 type scale, the colour roles as a theme — the baseline scheme written down, or a palette grown from one seed colour — and the components built from them (card, list tile, button, ink well, text field, dialog, bottom sheet). Optional: no renderer depends on it. |
+| `packages/unibox_material` | The Material 3 type scale, the colour roles as a theme — the baseline scheme written down, or a palette grown from one seed colour — and the components built from them (card, list tile, button, chip, segmented button, ink well, text field, icon, progress ring, navigation bar, dialog, bottom sheet). Optional: no renderer depends on it. |
 | `example/` | Two pages, one form and one navigation bar shared by a Flutter app and a static site. |
 
 Dependencies point one way: both renderers depend on `unibox_core`, never the other
