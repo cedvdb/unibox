@@ -16,9 +16,18 @@ void main() {
 
   MaterialNavigationBar bar() => MaterialNavigationBar(
     destinations: const <MaterialNavigationDestination>[
-      MaterialNavigationDestination(label: TextNode('Listings')),
-      MaterialNavigationDestination(label: TextNode('Map')),
-      MaterialNavigationDestination(label: TextNode('Saved')),
+      MaterialNavigationDestination(
+        label: TextNode('Listings'),
+        icon: TextNode('L'),
+      ),
+      MaterialNavigationDestination(
+        label: TextNode('Map'),
+        icon: TextNode('M'),
+      ),
+      MaterialNavigationDestination(
+        label: TextNode('Saved'),
+        icon: TextNode('S'),
+      ),
     ],
     selected: 0,
     onSelect: (int index) => pressed = index,
@@ -77,25 +86,33 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('leaves ink from the destination a press landed on', (
+  testWidgets('inks a press on the indicator, not one on the label', (
     WidgetTester tester,
   ) async {
     await pumpBar(tester);
 
-    // The pill of each destination is a positioned layer, and so is a drop of ink: one
-    // press adds exactly one more, which is how this suite can see the ripple at all.
     final int before = tester.widgetList(find.byType(Positioned)).length;
 
-    await tester.tapAt(tester.getCenter(find.text('Map')));
+    // A press on the label is the destination's: it selects, and paints no ink, because
+    // the ink and the hover layer belong to the indicator — which is where Material
+    // draws both.
+    await tester.tap(find.text('Map'));
+    await tester.pump();
+
+    expect(pressed, 1);
+    expect(tester.widgetList(find.byType(Positioned)).length, before);
+
+    // A press on the indicator leaves a drop, and the drop fades by itself.
+    await tester.tap(find.text('M'));
     await tester.pump();
 
     expect(
       tester.widgetList(find.byType(Positioned)).length,
       before + 1,
-      reason: 'the press starts a drop of ink',
+      reason: 'the press starts a drop of ink inside the pill',
     );
+    expect(pressed, 1, reason: 'the pill selects its own destination, once');
 
-    // The drop fades on its own and takes itself away again.
     await tester.pump(materialInkDuration + const Duration(milliseconds: 100));
     await tester.pump();
 

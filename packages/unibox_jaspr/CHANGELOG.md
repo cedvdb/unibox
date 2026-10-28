@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- A handled `click` stops propagating, which is what Flutter's gesture arena already does:
+  the innermost control wins and the boxes around it hear nothing. Without it a pressable
+  pill inside a pressable destination — or a chip inside a tappable card — ran both
+  handlers on the page and only one in the app.
+
 - A box whose semantics state `pressed` writes `aria-pressed`, which is the state a
   browser honours on a `button`. A toggle button — a filter chip, a segment of a
   segmented button — used to write `aria-selected` instead, and a browser ignores that

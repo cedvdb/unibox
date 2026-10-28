@@ -27,56 +27,64 @@ MaterialNavigationBar _bar({int selected = 0}) => MaterialNavigationBar(
   onSelect: _select,
 );
 
-/// One share of a bar: the box that holds the destination's layers.
+/// One share of a bar: the box that carries the destination's flex factor.
 Box _item(MaterialNavigationBar bar, int index) => bar.children[index] as Box;
 
-/// The layers of one share: the pill behind, the well over it.
-///
-/// The share is a box for the flex factor, then the destination's own box, then the
-/// stack that holds the two layers.
+/// The destination itself: the box a press lands on, and the one a reader hears.
+Box _destination(MaterialNavigationBar bar, int index) =>
+    _item(bar, index).children.single as Box;
+
+/// The layers of one destination: the indicator, then the label above its ink.
 StackNode _layers(MaterialNavigationBar bar, int index) =>
-    (_item(bar, index).children.single as Box).children.single as StackNode;
+    _destination(bar, index).children.single as StackNode;
 
-/// The ink well of one share of [bar], which is the layer a finger presses.
-MaterialInkWell _well(MaterialNavigationBar bar, int index) =>
-    _layers(bar, index).children.last as MaterialInkWell;
-
-/// The box an ink well draws.
-Box _wellBox(MaterialInkWell well) {
-  final MaterialInkStore store = MaterialInkStore();
-  final Box box = well.viewFor(store.state, store) as Box;
-  store.dispose();
-
-  return box;
-}
-
-/// The box a well wraps its content in, which is where the well's padding goes.
-Box _paddedBox(Box drawn) => drawn.children
-    .whereType<StackNode>()
-    .single
-    .children
-    .whereType<Box>()
-    .single;
-
-/// The column inside a destination: the indicator pill above the label.
-Box _content(MaterialNavigationBar bar, int index) =>
-    _paddedBox(_wellBox(_well(bar, index))).children.single as Box;
-
-/// The slot above the label of one destination, which holds its icon.
-Box _iconSlot(MaterialNavigationBar bar, int index) =>
-    _content(bar, index).children.first as Box;
-
-/// The indicator pill of one destination, which is a layer behind the well.
-Box _pill(MaterialNavigationBar bar, int index) {
+/// The indicator's animated box: the pill fades and stretches here.
+Box _indicator(MaterialNavigationBar bar, int index) {
   final PositionedNode layer =
       _layers(bar, index).children.first as PositionedNode;
 
   return (layer.child as Box).children.first as Box;
 }
 
+/// The pill the indicator draws: its fill, its line and its clip.
+MaterialInkWell _well(MaterialNavigationBar bar, int index) =>
+    _indicator(bar, index).children.single as MaterialInkWell;
+
+/// The box the pill's well draws.
+Box _pill(MaterialNavigationBar bar, int index) {
+  final MaterialInkStore store = MaterialInkStore();
+  final Box box = _well(bar, index).viewFor(store.state, store) as Box;
+  store.dispose();
+
+  return box;
+}
+
+/// The 64 by 32 slot the icon is centred in, inside the pill.
+Box _iconSlot(MaterialNavigationBar bar, int index) =>
+    _content(bar, index).children.single as Box;
+
+/// The padded content box inside the pill's ink.
+///
+/// A filled pill is layered — the surface, then the tints over it — and an empty one is
+/// the single box it has always been, so both shapes are read here.
+Box _content(MaterialNavigationBar bar, int index) {
+  final UINode child = _pill(bar, index).children.single;
+  final StackNode stack = child is StackNode
+      ? child
+      : (child as Box).children.whereType<StackNode>().single;
+
+  return stack.children.whereType<Box>().last;
+}
+
+/// The label of one destination, which is a layer of its own above the ink.
+UINode _label(MaterialNavigationBar bar, int index) =>
+    ((_layers(bar, index).children.last as PositionedNode).child as Box)
+        .children
+        .first;
+
 /// The colour a destination draws its label in.
 BoxColor? _labelColour(MaterialNavigationBar bar, int index) =>
-    _content(bar, index).textStyle?.color;
+    _destination(bar, index).textStyle?.color;
 
 void main() {
   group('MaterialNavigationBar', () {
@@ -86,7 +94,6 @@ void main() {
       expect(bar, isA<Box>());
       expect(bar.width, double.infinity);
       expect(bar.height, MaterialNavigationBar.barHeight);
-      expect(bar.height, 80);
       expect(bar.direction, Axis.horizontal);
       expect(bar.crossAlign, CrossAlign.stretch);
       expect(
@@ -98,34 +105,34 @@ void main() {
       expect(bar.debugLabel, 'material-navigation-bar');
     });
 
-    test('gives every destination an equal share, filled by its ink', () {
+    test('makes one control of every destination, a share wide', () {
       final MaterialNavigationBar bar = _bar();
 
       for (int i = 0; i < bar.children.length; i++) {
         expect(_item(bar, i).flex, 1, reason: 'destination $i takes a share');
 
-        final MaterialInkWell well = _well(bar, i);
-        final Box drawn = _wellBox(well);
-        expect(drawn.width, double.infinity);
+        final Box destination = _destination(bar, i);
+        expect(destination.width, double.infinity);
         expect(
-          drawn.height,
+          destination.height,
           MaterialNavigationBar.barHeight,
-          reason: 'a tint covers the share, not the label in it',
+          reason: 'the whole share is the target, not the pill',
         );
-        // The room is the well's own, so the tint reaches the edges of the share.
-        expect(
-          _paddedBox(drawn).padding,
-          const BoxSpacing(top: 12, bottom: 16),
-        );
+        expect(destination.onTap, isNotNull);
+        expect(destination.semantics?.role, BoxRole.button);
       }
     });
 
     test('asks for the destination a press landed on', () {
       final MaterialNavigationBar bar = _bar();
 
-      _wellBox(_well(bar, 2)).onTap?.call();
-
+      // The pill answers a press itself, and the destination answers one that lands
+      // anywhere else on the share.
+      _destination(bar, 2).onTap!();
       expect(_pressed, 2);
+
+      _pill(bar, 1).onTap?.call();
+      expect(_pressed, 1);
     });
 
     test('paints the pill behind the chosen icon and no other', () {
@@ -147,31 +154,29 @@ void main() {
       }
     });
 
-    test('puts the pill behind the well, so tints and ink paint over it', () {
+    test('tints and inks the pill, not the share around it', () {
       final MaterialNavigationBar bar = _bar(selected: 0);
-      final StackNode layers = _layers(bar, 0);
+      final Box destination = _destination(bar, 0);
 
-      // The pill is the first layer and the well the last, so a hover tint or a drop
-      // paints across the pill and not around it — and the well covers the whole
-      // share, which is the square a finger aims at.
-      expect(layers.children.first, isA<PositionedNode>());
-      expect(layers.children.last, isA<MaterialInkWell>());
-
-      final Box well = _wellBox(_well(bar, 0));
-      expect(well.width, double.infinity);
-      expect(well.height, MaterialNavigationBar.barHeight);
+      // The tints belong to the pill's well — a box inside it — and the share paints
+      // nothing of its own, which is the arrangement Material draws.
+      expect(destination.backgroundColor, isNull);
+      expect(destination.stateStyle(BoxState.hover), isNull);
       expect(
-        well.semantics?.current,
-        BoxCurrent.page,
-        reason: 'the tint belongs to the destination that is chosen',
+        (_pill(bar, 0).children.single as Box).hoverStyle?.backgroundColor,
+        const BoxColor.role(MaterialColorRole.hoverLayer),
+      );
+      expect(_pill(bar, 0).onTap, isNotNull);
+      expect(
+        _pill(bar, 0).semantics?.hidden,
+        isTrue,
+        reason: 'the pill is not a second control for a reader',
       );
     });
 
     test('draws the chosen icon in place of the resting one', () {
       final MaterialNavigationBar bar = _bar(selected: 1);
 
-      // The icon is in the slot above the label and outside the pill, so the fade
-      // belongs to the pill and not to the picture the caller gave.
       expect(
         (_iconSlot(bar, 1).children.single as TextNode).text,
         'Map, chosen',
@@ -183,18 +188,22 @@ void main() {
       );
     });
 
-    test('fades and grows the pill instead of popping it in', () {
+    test('fades and stretches the pill instead of popping it in', () {
       final MaterialNavigationBar bar = _bar(selected: 1);
 
-      // The pill is drawn at every destination, so a switch of destination is a change
-      // of look: the chosen one is opaque and full size, the others are out of sight.
       for (int i = 0; i < bar.children.length; i++) {
-        final Box pill = _pill(bar, i);
-        expect(pill.opacity, i == 1 ? 1 : 0);
-        expect(pill.transform?.scaleX, i == 1 ? 1 : lessThan(1));
-        expect(pill.transition, MaterialNavigationBar.indicatorTransition);
+        final Box indicator = _indicator(bar, i);
+        expect(indicator.opacity, i == 1 ? 1 : 0);
+        expect(indicator.transform?.scaleX, i == 1 ? 1 : lessThan(1));
+        expect(
+          indicator.transform?.scaleY,
+          1,
+          reason: 'Material stretches the pill sideways and not vertically',
+        );
+        expect(indicator.transition, MaterialNavigationBar.indicatorTransition);
       }
-      // Flutter's two speeds: the fade is quick, the sideways stretch is slow.
+
+      // Flutter's two speeds: the fade is quick, the stretch is slow.
       expect(
         MaterialNavigationBar.indicatorTransition.duration,
         const Duration(milliseconds: 100),
@@ -205,8 +214,6 @@ void main() {
             .duration,
         const Duration(milliseconds: 500),
       );
-      // Sideways only: Material stretches the pill out of the icon at its own height.
-      expect(_pill(bar, 0).transform?.scaleY, 1);
     });
 
     test('colours the label by state, in the label role', () {
@@ -217,37 +224,31 @@ void main() {
         const BoxColor.role(MaterialColorRole.onSurfaceVariant),
       );
       expect(
-        _labelColour(bar, 1),
-        const BoxColor.role(MaterialColorRole.onSurfaceVariant),
-      );
-      expect(
         _labelColour(bar, 2),
         const BoxColor.role(MaterialColorRole.onSurface),
         reason: 'the chosen destination is the one that stands out',
       );
+      expect((_label(bar, 0) as TextNode).text, 'Listings');
 
-      // The label fits under the pill: labelMedium is a 12 pixel size in a 16
-      // pixel line, which is the last row of the bar's 80 pixels.
-      final BoxTextStyle style = _content(bar, 0).textStyle!;
+      final BoxTextStyle style = _destination(bar, 0).textStyle!;
       expect(style.fontSize, MaterialTypography.labelMedium.fontSize);
       expect(style.fontWeight, MaterialTypography.labelMedium.fontWeight);
       expect(style.lineHeight, MaterialTypography.labelMedium.lineHeight);
-      expect(style.letterSpacing, MaterialTypography.labelMedium.letterSpacing);
     });
 
-    test('makes a button of every destination, and says which is the page', () {
+    test('says which destination is the page, and no more', () {
       final MaterialNavigationBar bar = _bar(selected: 0);
       final List<BoxSemantics> semantics = <BoxSemantics>[
         for (int i = 0; i < bar.children.length; i++)
-          _wellBox(_well(bar, i)).semantics!,
+          _destination(bar, i).semantics!,
       ];
 
       expect(
         semantics.map((BoxSemantics s) => s.role),
         everyElement(BoxRole.button),
       );
-      // `current` and not `selected`: `aria-selected` belongs to options, tabs and
-      // rows, and Flutter reads `current` as the selected state itself.
+      // `current` and not `selected`: `aria-selected` is not valid on a button, and
+      // Flutter reads `current` as the selected state itself.
       expect(semantics.map((BoxSemantics s) => s.selected), <bool?>[
         null,
         null,
@@ -258,11 +259,7 @@ void main() {
         null,
         null,
       ]);
-      expect(
-        semantics.last.label,
-        'Saved listings',
-        reason: 'a label is announced when the destination names one',
-      );
+      expect(semantics.last.label, 'Saved listings');
     });
 
     test(

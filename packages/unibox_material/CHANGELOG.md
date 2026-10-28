@@ -17,11 +17,12 @@
   `fill` and `border` put the surface on the well, under a layer of tints of its own, and
   `tapTargetHeight` adds room a finger can hit without painting it. A well with neither is
   the one box it has always been, so every other component is unchanged.
-- `MaterialNavigationBar`'s indicator arrives the way Flutter draws it: the pill is a layer
-  **behind** the ink well, stretched sideways out of the icon from 40% of its width over
-  500ms and faded over 100ms — `indicatorTransition`'s two parts — so a hover tints the
-  whole destination, a press inks over the pill, and a switch of destination never inserts
-  a node. `BoxTransform` grew `scaleX`/`scaleY` for that sideways stretch, which one factor
+- `MaterialNavigationBar`'s indicator arrives the way Flutter draws it: stretched sideways
+  out of the icon from 40% of its width over 500ms and faded over 100ms —
+  `indicatorTransition`'s two parts — and it is the *only* thing that tints or inks. The
+  pill is a well of its own inside the destination's target, so a hover tints the pill and
+  a press leaves ink across it over the colour it settles to; the destination around it is
+  the control, and its own click stops at the pill. `BoxTransform` grew `scaleX`/`scaleY` for that sideways stretch, which one factor
   cannot say. The pill does not travel *along* the bar (that needs the width of its
   neighbours) and the icon still swaps rather than cross-fading. A destination announces
   `aria-current="page"` and no longer `aria-selected`: the latter is not valid on a

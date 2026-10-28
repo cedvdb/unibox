@@ -221,13 +221,19 @@ final class MaterialNavigationBar extends Box {
   /// The space between the indicator pill and the label.
   static const double _labelGap = 4;
 
-  /// One destination: the pill, the icon and the label, under a well over the whole
-  /// share.
+  /// One destination: a target the whole share presses, an indicator that is the only
+  /// thing which tints and inks, and a label above the ink.
   ///
-  /// The pill is a layer *behind* the well and not a node inside it, which is what
-  /// makes a hover tint the whole destination — the square a finger aims at — and a
-  /// press lay its ink over the pill instead of behind it. Material paints its
-  /// indicator on the Material under the splash for the same reason.
+  /// This is the arrangement Material draws, read from Flutter: the destination is one
+  /// control, the ink and the hover layer are the **indicator's** — a 64 by 32 pill, not
+  /// the share — and the ripple is painted over the pill's fill rather than behind it.
+  /// The pill is a [MaterialInkWell] of its own for that reason, with its own `fill` so
+  /// the tints sit above the colour instead of replacing it.
+  ///
+  /// Two things keep the press single. The pill's click stops there, which is what
+  /// Flutter's gesture arena does — the innermost control wins — so `onSelect` is called
+  /// once whichever layer the press landed on. And the label is a layer that takes no
+  /// pointer, so a press on it reaches the target under it.
   static UINode _destination({
     required MaterialNavigationDestination destination,
     required bool selected,
@@ -252,13 +258,23 @@ final class MaterialNavigationBar extends Box {
     return Box(
       width: double.infinity,
       height: barHeight,
+      // The whole share is the control, and the one thing a reader hears.
+      onTap: onTap,
+      textStyle: style,
+      semantics: BoxSemantics(
+        role: BoxRole.button,
+        label: destination.semanticsLabel,
+        // The chosen destination is the page being read — `aria-current="page"` on the
+        // web, the selected state of a set in Flutter.
+        current: selected ? BoxCurrent.page : null,
+      ),
       children: <UINode>[
         StackNode(
           width: double.infinity,
           height: barHeight,
           children: <UINode>[
-            // The indicator, centred on the share and as far from the top as the
-            // icon is, because that is the slot the icon sits in.
+            // The indicator, centred on the share and as far from the top as the icon
+            // is: the slot the icon sits in.
             PositionedNode(
               left: 0,
               right: 0,
@@ -267,48 +283,27 @@ final class MaterialNavigationBar extends Box {
                 direction: Axis.horizontal,
                 mainAlign: MainAlign.center,
                 children: <UINode>[
-                  _indicator(selected: selected, color: indicatorColor),
+                  _indicator(
+                    icon: icon,
+                    selected: selected,
+                    color: indicatorColor,
+                    onTap: onTap,
+                    ink: ink ?? foreground,
+                    transition: transition,
+                  ),
                 ],
               ),
             ),
-            MaterialInkWell(
-              onTap: onTap,
-              width: double.infinity,
-              // A definite height, not `double.infinity`: a box that fills its share
-              // vertically cannot say so in Flutter, where a flex hands its children
-              // an unbounded main axis. The bar states the height, and the share
-              // inherits it.
-              height: barHeight,
-              padding: _itemPadding,
-              ink: ink ?? foreground,
-              transition: transition ?? MaterialInkWell.defaultTransition,
-              semantics: BoxSemantics(
-                role: BoxRole.button,
-                label: destination.semanticsLabel,
-                // The chosen destination is the page being read, which is the one
-                // thing a nav item has to say — `aria-current="page"` on the web,
-                // which is the only valid way to say it on a button (`aria-selected`
-                // belongs to options, tabs and rows), and the selected state of a set
-                // in Flutter, which is what a phone reader announces for it.
-                current: selected ? BoxCurrent.page : null,
-              ),
+            // The label, under the indicator and above its ink. A layer takes no
+            // pointer, so a press here is the target's.
+            PositionedNode(
+              left: 0,
+              right: 0,
+              top: _itemPadding.top + indicatorHeight + _labelGap,
               child: Box(
-                width: double.infinity,
-                gap: _labelGap,
-                crossAlign: CrossAlign.center,
-                textStyle: style,
-                children: <UINode>[
-                  // The slot the icon sits in, held open with or without a picture so
-                  // a destination without one still lines up with the ones beside it.
-                  Box(
-                    width: indicatorWidth,
-                    height: indicatorHeight,
-                    mainAlign: MainAlign.center,
-                    crossAlign: CrossAlign.center,
-                    children: <UINode>[?icon],
-                  ),
-                  Box(children: <UINode>[destination.label]),
-                ],
+                direction: Axis.horizontal,
+                mainAlign: MainAlign.center,
+                children: <UINode>[destination.label],
               ),
             ),
           ],
@@ -317,22 +312,52 @@ final class MaterialNavigationBar extends Box {
     );
   }
 
-  /// The pill behind a destination's icon, filled only while it is chosen.
+  /// The indicator: the pill, its fill, its tints and its ink.
   ///
-  /// It is in the tree at every destination and only its look changes, so a switch of
-  /// destination is the pill fading in and stretching out of the icon rather than a
-  /// node appearing. Material stretches it **sideways only**, at its own height, which
-  /// is why the transform has two axes; the fade is quicker than the stretch, so the
-  /// colour arrives before the shape has finished travelling.
-  static UINode _indicator({required bool selected, required BoxColor color}) {
+  /// It is a [MaterialInkWell] of its own, because the ink and the hover layer belong
+  /// to the indicator and not to the share: the well paints the fill under a layer of
+  /// tints, then the drops, then the icon, so a press shows ink across the pill and the
+  /// pill settles to its colour. Its semantics are hidden — the destination around it is
+  /// the control a reader hears — but its click is real: it answers a press itself and
+  /// stops there, so a press on the pill does not also reach the destination.
+  ///
+  /// The fade and the sideways stretch are on the box around it, so the ink and the
+  /// drag of a press are shaped by the same animation as the colour.
+  static UINode _indicator({
+    required UINode? icon,
+    required bool selected,
+    required BoxColor color,
+    required TapCallback onTap,
+    required BoxColor ink,
+    required BoxTransition? transition,
+  }) {
     return Box(
       width: indicatorWidth,
       height: indicatorHeight,
-      borderRadius: indicatorHeight / 2,
-      backgroundColor: selected ? color : null,
       opacity: selected ? 1 : 0,
+      // Sideways only: Material stretches the pill out of the icon at its own height.
       transform: BoxTransform(scaleX: selected ? 1 : _indicatorRestScale),
       transition: indicatorTransition,
+      children: <UINode>[
+        MaterialInkWell(
+          onTap: onTap,
+          width: indicatorWidth,
+          height: indicatorHeight,
+          borderRadius: indicatorHeight / 2,
+          fill: selected ? color : null,
+          ink: ink,
+          padding: BoxSpacing.zero,
+          transition: transition ?? MaterialInkWell.defaultTransition,
+          semantics: const BoxSemantics(hidden: true),
+          child: Box(
+            width: indicatorWidth,
+            height: indicatorHeight,
+            mainAlign: MainAlign.center,
+            crossAlign: CrossAlign.center,
+            children: <UINode>[?icon],
+          ),
+        ),
+      ],
     );
   }
 

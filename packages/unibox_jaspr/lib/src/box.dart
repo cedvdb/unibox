@@ -452,6 +452,17 @@ Map<String, EventCallback> _buildEvents(core.Box box) {
         longPressed = false;
         return;
       }
+      // A handled press does not bubble, which is what Flutter's gesture arena
+      // already does: the innermost control wins, and the boxes around it hear
+      // nothing. Without it a click reached every listener up the tree, so a
+      // destination inside a pressable row — or a chip inside a tappable card —
+      // fired both handlers on the web and only one in the app.
+      //
+      // Only in a browser: the test harness runs these handlers on the VM, where
+      // the DOM is a stand-in and stopping propagation is an unsupported call.
+      if (kIsWeb) {
+        (event as web.MouseEvent).stopPropagation();
+      }
       onTap();
     };
   }

@@ -725,10 +725,19 @@ where Flutter flips a differently shaped curve. The label changes colour at once
 icon swaps rather than cross-fading, because a text colour is not a paint a transition
 eases and the icon is the caller's node.
 
-**The pill is a layer behind the well.** A destination is a stack of the indicator and the
-ink well over it, so a hover tints the whole square a finger aims at — not only the pill —
-and a press lays its ink over the pill instead of behind it. That is the order Material
-paints in: its indicator is ink on the `Material`, and a splash is a later ink feature.
+**The ink and the hover layer are the indicator's.** A destination is one control — a box
+over the whole share, which is what a finger presses and what a reader hears — and inside
+it the pill is a `MaterialInkWell` of its own, 64 by 32 with its fill, its tints and its
+ink. So a hover tints the pill and not the share around it, and a press shows ink across
+the pill over the colour it is settling to, which is the arrangement Flutter draws (its
+ink is confined by `_IndicatorInkWell.getRectCallback` to the indicator's rect).
+
+Two things keep the press single. The pill answers a press itself and its click stops
+there — the innermost control wins, which is Flutter's gesture arena — so `onSelect` is
+called once whichever layer the press landed on. And the label is a layer that takes no
+pointer, so a press on it reaches the destination under it. A press on the label
+therefore selects without ink, which is the one place this differs from Flutter: there
+the ripple starts anywhere in the destination, still drawn inside the indicator.
 
 ## The dialog and the bottom sheet
 

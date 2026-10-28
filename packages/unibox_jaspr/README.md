@@ -219,6 +219,13 @@ JavaScript for it. A tappable box also gets `cursor: pointer`. Long presses map
 to pointer listeners with a 500 ms threshold and suppress the follow-up `click`,
 mirroring Flutter.
 
+A handled `click` **stops there**. Flutter's gesture arena gives a press to the
+innermost control and the boxes around it hear nothing; a web click used to reach
+every listener up the tree, so a pressable pill inside a pressable destination — or
+a chip inside a tappable card — ran both handlers on the page and one in the app.
+The listener calls `stopPropagation` in a browser, which is also what keeps
+`MaterialNavigationBar` selection single while its indicator answers the press itself.
+
 ## Developer labels
 
 An element's `class` is a hash of its declarations — `unibox-box-1f3c9a7b` — which is
