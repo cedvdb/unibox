@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- `HtmlEmbed`, the door for markup the model does not describe: a web component, a
+  `<video>`, a chart from another package. It is written verbatim rather than escaped,
+  which is the point of the node and the whole risk of it — a `String` this target trusts,
+  never one assembled from data a reader supplied. An embed carrying a payload for another
+  target is reported, not skipped.
+
 - `uniboxClientScript`, the one behaviour a document has: it paints the ink where a press
   landed and records the press, so the application that takes the page over can replay the
   intent instead of losing it. It is one optional file — `data-unibox-ink` without it is

@@ -19,7 +19,16 @@ final class ElementPlan {
     this.className,
     this.text,
     this.children = const <ElementPlan>[],
-  });
+  }) : raw = null;
+
+  /// An element whose content is markup the host wrote.
+  const ElementPlan.raw({
+    required this.tag,
+    required String this.raw,
+    this.attributes = const <String, String>{},
+    this.className,
+  }) : text = null,
+       children = const <ElementPlan>[];
 
   /// The tag: `div`, `span`, `h1`, `a`, `img`, `input`.
   final String tag;
@@ -30,6 +39,9 @@ final class ElementPlan {
   /// The class the element wears, or `null` when its look is the browser's.
   final String? className;
 
+  /// Markup written verbatim, for an embed.
+  final String? raw;
+
   /// The text inside the element, for the elements that hold text and nothing else.
   ///
   /// Unescaped: escaping belongs to whoever writes the markup, so a DOM renderer sets it
@@ -38,6 +50,13 @@ final class ElementPlan {
 
   /// The elements inside this one, in paint order.
   final List<ElementPlan> children;
+
+  /// Markup written as it is, with nothing escaped.
+  ///
+  /// Only [EmbedNode] produces it: an embed is the host saying "this is markup I trust",
+  /// for a web component, a `<video>` or a chart that the model does not describe. Every
+  /// other string a node carries is escaped, and this is the one field where escaping is
+  /// the caller's responsibility — which is why it has no public constructor.
 
   /// This element as HTML.
   ///
@@ -61,6 +80,10 @@ final class ElementPlan {
     }
 
     buffer.write('>');
+
+    if (raw != null) {
+      buffer.write(raw);
+    }
 
     if (text != null) {
       buffer.write(escapeText(text!));

@@ -2,6 +2,7 @@ import 'package:unibox_core/unibox_core.dart' as core;
 import 'package:unibox_css/unibox_css.dart';
 
 import 'client_script.dart';
+import 'embed_node.dart';
 import 'escape.dart';
 import 'plan.dart';
 import 'stylesheet.dart';
@@ -79,6 +80,7 @@ ElementPlan planNode(
   final core.StackNode stack => _planStack(stack, sheet, options),
   final core.TextInputNode field => _planTextInput(field, sheet),
   final core.OverlayNode overlay => _planOverlay(overlay, sheet, options),
+  final core.EmbedNode embed => _planEmbed(embed, options),
   final core.StatefulNode<Object, core.Store<Object>> stateful => _planStateful(
     stateful,
     sheet,
@@ -554,4 +556,26 @@ ElementPlan _planStateful(
   final core.Store<Object> store = node.createStore();
 
   return planNode(node.viewFor(store.state, store), sheet);
+}
+
+/// An embed, written into the page as the markup it carries.
+///
+/// Only an [HtmlEmbed] is drawn: a node carrying a payload for another target is reported
+/// rather than skipped, because a page with a piece missing is worse than a failure. The
+/// markup is written verbatim — see the node for why that is the point and the risk.
+ElementPlan _planEmbed(core.EmbedNode embed, PlanOptions options) {
+  for (final Object implementation in embed.implementations) {
+    if (implementation is String) {
+      return ElementPlan.raw(
+        tag: 'div',
+        raw: implementation,
+        attributes: nodeAttributes(embed),
+      );
+    }
+  }
+
+  throw UnsupportedError(
+    'No HTML renderer for ${embed.runtimeType}: this target draws an HtmlEmbed, and the '
+    'node carries ${embed.implementations.map((Object it) => it.runtimeType).join(', ')}.',
+  );
 }

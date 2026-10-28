@@ -25,6 +25,7 @@ library;
 
 export 'src/client_script.dart';
 export 'src/document.dart';
+export 'src/embed_node.dart';
 export 'src/escape.dart';
 export 'src/plan.dart';
 export 'src/render.dart';
