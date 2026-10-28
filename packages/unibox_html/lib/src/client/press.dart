@@ -5,11 +5,13 @@
 /// pressing a control and nothing happening twice.
 library;
 
+import 'keys.dart';
+
 /// The attribute a recorded press is keyed by.
 ///
 /// The same one the renderer writes on every element a keyed node drew, so the application
 /// finds the element it is being told about.
-const String pressKeyAttribute = 'data-unibox-key';
+const String pressKeyAttribute = nodeKeyAttribute;
 
 /// How many presses a page keeps.
 ///

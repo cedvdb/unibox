@@ -54,8 +54,28 @@ void main() {
     });
 
     test('is what a host gets when it asks for the page behaviour', () {
-      expect(uniboxClientScript, pressScript);
+      // Both blocks, so one file covers a page that records presses and scroll offsets.
+      expect(uniboxClientScript, contains(pressScript));
+      expect(uniboxClientScript, contains(scrollScript));
     });
+
+    test('records where a region was scrolled to, and reads it once', () {
+      // A scroll event does not bubble, but it runs through the capture phase, so one
+      // listener on the document sees every region's scroll.
+      expect(scrollScript, contains("addEventListener('scroll'"));
+      expect(scrollScript, contains('capture: true'));
+      expect(scrollScript, contains('scrollTop'));
+      expect(scrollScript, contains('scrollLeft'));
+      expect(scrollScript, contains('unibox.takeScroll = function'));
+    });
+
+    test(
+      'reads the offsets at the moment it is asked, not the last scroll',
+      () {
+        // A reader who scrolled and then stopped must still hand over the right position.
+        expect(scrollScript, contains('snapshot();'));
+      },
+    );
 
     test('is valid JavaScript', () {
       // The one thing a Dart suite can check about it, and the one that would otherwise
