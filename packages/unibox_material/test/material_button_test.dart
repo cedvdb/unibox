@@ -4,9 +4,12 @@ import 'package:unibox_material/unibox_material.dart';
 
 void _tap() {}
 
+/// The fill: the box inside the row that keeps the button at its natural size.
+Box _fill(MaterialButton button) => button.children.single as Box;
+
 /// The surface the button's ink well draws for its resting state.
 Box _surface(MaterialButton button) {
-  final MaterialInkWell well = button.children.single as MaterialInkWell;
+  final MaterialInkWell well = _fill(button).children.single as MaterialInkWell;
   final Store<Object> store = well.createStore() as Store<Object>;
 
   return well.viewFor(store.state, store) as Box;
@@ -30,9 +33,27 @@ void main() {
       final button = MaterialButton(label: const TextNode('Save'));
 
       expect(button, isA<Box>());
-      expect(button.borderRadius, 20);
-      expect(button.children.single, isA<MaterialInkWell>());
+      expect(_fill(button).borderRadius, 20);
+      expect(_fill(button).children.single, isA<MaterialInkWell>());
       expect(button.label, isA<TextNode>());
+    });
+
+    test('keeps its fill as wide as the label, not as wide as the parent', () {
+      final button = MaterialButton.filled(label: const TextNode('Save'));
+
+      // A parent that stretches its children — a card's column, a grid track —
+      // stretches the row, and the row is invisible. The fill inside it has no width
+      // of its own, so it takes the size the label asks for and the ink well inside
+      // it can never be wider than the button.
+      expect(button.direction, Axis.horizontal);
+      expect(button.width, isNull);
+      expect(_fill(button).width, isNull);
+
+      // A width pins the fill instead, which is how a full-width button is asked for.
+      expect(
+        _fill(MaterialButton(label: const TextNode('Save'), width: 240)).width,
+        240,
+      );
     });
 
     test(
@@ -41,10 +62,10 @@ void main() {
         final button = MaterialButton.filled(label: const TextNode('Save'));
 
         expect(
-          button.backgroundColor,
+          _fill(button).backgroundColor,
           const BoxColor.role(MaterialColorRole.primary),
         );
-        expect(button.border, isNull);
+        expect(_fill(button).border, isNull);
         expect(
           _labelBox(button).textStyle?.color,
           const BoxColor.role(MaterialColorRole.onPrimary),
@@ -56,7 +77,7 @@ void main() {
       final button = MaterialButton.tonal(label: const TextNode('Later'));
 
       expect(
-        button.backgroundColor,
+        _fill(button).backgroundColor,
         const BoxColor.role(MaterialColorRole.primaryContainer),
       );
       expect(
@@ -68,9 +89,9 @@ void main() {
     test('outlines a button with no fill', () {
       final button = MaterialButton.outlined(label: const TextNode('Cancel'));
 
-      expect(button.backgroundColor, isNull);
+      expect(_fill(button).backgroundColor, isNull);
       expect(
-        button.border?.color,
+        _fill(button).border?.color,
         const BoxColor.role(MaterialColorRole.outline),
       );
       expect(
@@ -82,8 +103,8 @@ void main() {
     test('draws a text button with neither fill nor line', () {
       final button = MaterialButton.text(label: const TextNode('Learn more'));
 
-      expect(button.backgroundColor, isNull);
-      expect(button.border, isNull);
+      expect(_fill(button).backgroundColor, isNull);
+      expect(_fill(button).border, isNull);
       expect(
         _labelBox(button).textStyle?.color,
         const BoxColor.role(MaterialColorRole.primary),
@@ -162,7 +183,7 @@ void main() {
         padding: const BoxSpacing.all(4),
       );
 
-      expect(button.borderRadius, 8);
+      expect(_fill(button).borderRadius, 8);
       expect(_surface(button).borderRadius, 8);
     });
 

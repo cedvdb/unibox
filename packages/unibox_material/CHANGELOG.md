@@ -2,6 +2,14 @@
 
 ## 0.1.0
 
+- `MaterialButton` keeps its fill — and the ink well inside it — the size of its label,
+  so a parent that stretches its children (a card's column, a grid track) no longer
+  paints a hover tint as a band wider than the button. `width:` pins the fill when a
+  full-width button is what is wanted.
+- `MaterialListTile`'s row fills the width the tile was given, which is what the
+  trailing node needed to sit at the far edge instead of against the subtitle. The
+  README has claimed the row fills since the tile was written; now the row does.
+
 - `MaterialChip` takes `leading` and `trailing` nodes, and `onRemove` makes it an input
   chip: the trailing node is wrapped in a round 18 pixel target of its own, so a press
   on the cross removes the chip rather than choosing it. `MaterialSegment` grew the same

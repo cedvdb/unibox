@@ -39,6 +39,32 @@ void main() {
       expect(tile.row.children, hasLength(1));
     });
 
+    test('takes the width it is given, and puts the trailing node at the end', () {
+      final tile = MaterialListTile(
+        leading: const TextNode('AL'),
+        title: const TextNode('Ada Lovelace'),
+        subtitle: const TextNode('ada@example.com'),
+        trailing: const TextNode('2m'),
+        onTap: _tap,
+      );
+
+      // The tile fills, the well fills the tile, and the row fills the well: a row
+      // that sized itself to its content left the trailing node against the subtitle
+      // instead of at the far edge of the surface it belongs to.
+      expect(tile.width, double.infinity);
+      expect(_surface(tile).width, double.infinity);
+      expect(tile.row.width, double.infinity);
+      // And the text column takes what the leading and trailing nodes leave, so
+      // there is a gap for the trailing node to be pushed across.
+      expect(
+        tile.row.children
+            .whereType<Box>()
+            .map((Box box) => box.flex)
+            .whereType<int>(),
+        contains(1),
+      );
+    });
+
     test('sizes itself to the one line and two line heights of Material', () {
       final oneLine = MaterialListTile(title: const TextNode('Ada'));
       final twoLine = MaterialListTile(

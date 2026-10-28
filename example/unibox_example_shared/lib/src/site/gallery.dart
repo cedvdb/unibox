@@ -280,36 +280,13 @@ UINode _buttons() {
     maxColumns: 4,
     gap: 16,
     children: <UINode>[
-      _natural(
-        MaterialButton.filled(label: const TextNode('Filled'), onTap: () {}),
-      ),
-      _natural(
-        MaterialButton.tonal(label: const TextNode('Tonal'), onTap: () {}),
-      ),
-      _natural(
-        MaterialButton.outlined(
-          label: const TextNode('Outlined'),
-          onTap: () {},
-        ),
-      ),
-      _natural(
-        MaterialButton.text(label: const TextNode('Text'), onTap: () {}),
-      ),
+      MaterialButton.filled(label: const TextNode('Filled'), onTap: () {}),
+      MaterialButton.tonal(label: const TextNode('Tonal'), onTap: () {}),
+      MaterialButton.outlined(label: const TextNode('Outlined'), onTap: () {}),
+      MaterialButton.text(label: const TextNode('Text'), onTap: () {}),
     ],
   );
 }
-
-/// Keeps [child] at its own size inside a grid track.
-///
-/// A track is as wide as its column and a box inside one fills that width, which
-/// turned every button on this page into a banner with its hover tint stretched
-/// across it. A row lays the control out at its natural size and leaves the rest of
-/// the track empty.
-UINode _natural(UINode child) => Box(
-  direction: Axis.horizontal,
-  crossAlign: CrossAlign.center,
-  children: <UINode>[child],
-);
 
 /// The two controls that pick from a small set.
 ///
@@ -622,23 +599,11 @@ UINode _dialogView(bool open, DialogDemoStore store) {
     maxColumns: 3,
     gap: 24,
     children: <UINode>[
-      Box(
-        backgroundColor: palette.primary,
-        borderRadius: 20,
-        children: <UINode>[
-          MaterialInkWell(
-            onTap: store.open,
-            borderRadius: 20,
-            ink: palette.onPrimary,
-            padding: const BoxSpacing.symmetric(horizontal: 20, vertical: 10),
-            child: TextNode(
-              'Delete listing',
-              style: MaterialTypography.labelLarge.copyWith(
-                color: palette.onPrimary,
-              ),
-            ),
-          ),
-        ],
+      // The component, not a hand-rolled copy of it: a button already knows how to
+      // keep its fill and its ink the size of its label.
+      MaterialButton.filled(
+        label: const TextNode('Delete listing'),
+        onTap: store.open,
       ),
       Box(
         width: double.infinity,

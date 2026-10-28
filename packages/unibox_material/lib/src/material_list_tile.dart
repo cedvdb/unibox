@@ -82,6 +82,11 @@ final class MaterialListTile extends Box {
     BoxStyle? pressedStyle,
   }) {
     final Box row = Box(
+      // The row claims the width the tile was given, and the text column takes what
+      // the leading and trailing nodes leave. Without the first the row shrinks to
+      // its content and the trailing node sits against the subtitle instead of the
+      // far edge; without the second it never has the room to push it there.
+      width: double.infinity,
       direction: Axis.horizontal,
       crossAlign: CrossAlign.center,
       gap: gap,

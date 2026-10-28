@@ -347,6 +347,13 @@ Every colour is a role, so a dark theme restyles all four with no parameter. It 
 well over it, so a tint cannot wash the colour out — which is also why it needs no
 renderer work: neither target knows the class.
 
+**It is as wide as its label, not as wide as its parent.** A button is laid out inside a
+row, so a parent that stretches its children — a card's column, a grid track — stretches
+something invisible, and the fill and the well inside it keep the size the label asks
+for. That is what keeps a hover tint the width of the button: a fill that stretched while
+its ink did not was a band with a pill at one end. Pass `width:` when a full-width button
+is what is wanted, and the fill takes exactly that.
+
 Shape and states are Material's: a radius of 20 (a full round on a 40 pixel height —
 `labelLarge`'s 20 pixel line plus ten above and below), 20 by 10 of room on the three
 filled shapes and 12 by 8 on the text one, and the button role whenever the button can
