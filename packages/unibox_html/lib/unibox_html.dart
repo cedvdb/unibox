@@ -23,7 +23,10 @@
 /// application's, once it takes the page over.
 library;
 
-export 'src/client_script.dart';
+export 'src/client/all.dart' show uniboxClientScript;
+export 'src/client/ink.dart' show inkAttribute, inkDeclarations, inkScript;
+export 'src/client/press.dart'
+    show pressKeyAttribute, pressRecordLimit, pressScript;
 export 'src/document.dart';
 export 'src/embed_node.dart';
 export 'src/escape.dart';

@@ -52,21 +52,46 @@ void main() {
     test('names the attributes the renderer writes', () {
       // Pinned from Dart because no Dart suite can run the script: a name that drifts
       // here is a marker nothing reads.
-      expect(uniboxClientScript, contains("'data-unibox-ink'"));
-      expect(uniboxClientScript, contains("'data-unibox-key'"));
-      expect(uniboxClientScript, contains('window.unibox'));
-      expect(uniboxClientScript, contains('takePressed'));
+      expect(inkScript, contains("'$inkAttribute'"));
+      expect(pressScript, contains("'$pressKeyAttribute'"));
+    });
+
+    test('is a behaviour per file, each adding its own member', () {
+      // So a host includes the one it wants, and including two — or one twice — does
+      // nothing the second time.
+      expect(inkScript, contains('unibox.ink = true'));
+      expect(pressScript, contains('unibox.takePressed'));
+      expect(inkScript, contains('if (unibox.ink) { return; }'));
+      expect(pressScript, contains('if (unibox.takePressed) { return; }'));
     });
 
     test('listens once for the whole page, in the capture phase', () {
       // So a control added later works without being registered, and a press is caught
       // whatever it landed on.
-      expect(uniboxClientScript, contains("addEventListener('pointerdown'"));
-      expect(uniboxClientScript, contains('capture: true'));
-      expect(uniboxClientScript, contains('passive: true'));
+      for (final String script in <String>[inkScript, pressScript]) {
+        expect(script, contains("addEventListener('pointerdown'"));
+        expect(script, contains('capture: true'));
+        expect(script, contains('passive: true'));
+      }
     });
 
-    test('is valid JavaScript', () {
+    test('records a press in the pixels of the element it landed on', () {
+      // The same coordinates a Flutter renderer reports, so a replay needs no conversion.
+      expect(pressScript, contains('getBoundingClientRect'));
+      expect(pressScript, contains('clientX - box.left'));
+      expect(pressScript, contains('clientY - box.top'));
+    });
+
+    test('takes the record once, so nothing is replayed twice', () {
+      expect(pressScript, contains('pressed = [];'));
+    });
+
+    test('is what a host gets when it asks for all of it', () {
+      expect(uniboxClientScript, contains(inkScript));
+      expect(uniboxClientScript, contains(pressScript));
+    });
+
+    test('is valid JavaScript, alone and together', () {
       // The one thing a Dart suite can check about it, and the one that would otherwise
       // reach a reader: a syntax error is an empty page with a console message.
       final String? node = _nodePath();
@@ -77,16 +102,29 @@ void main() {
         return;
       }
 
-      final Directory directory = Directory.systemTemp.createTempSync('unibox');
-      addTearDown(() => directory.deleteSync(recursive: true));
-      final File file = File('${directory.path}/unibox.js')
-        ..writeAsStringSync(uniboxClientScript);
-      final ProcessResult result = Process.runSync(node, <String>[
-        '--check',
-        file.path,
-      ]);
+      for (final ({String name, String script}) fragment
+          in <({String name, String script})>[
+            (name: 'ink', script: inkScript),
+            (name: 'press', script: pressScript),
+            (name: 'all', script: uniboxClientScript),
+          ]) {
+        final Directory directory = Directory.systemTemp.createTempSync(
+          'unibox',
+        );
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final File file = File('${directory.path}/${fragment.name}.js')
+          ..writeAsStringSync(fragment.script);
+        final ProcessResult result = Process.runSync(node, <String>[
+          '--check',
+          file.path,
+        ]);
 
-      expect(result.exitCode, 0, reason: '${result.stderr}');
+        expect(
+          result.exitCode,
+          0,
+          reason: '${fragment.name}: ${result.stderr}',
+        );
+      }
     });
   });
 }

@@ -1,7 +1,7 @@
 import 'package:unibox_core/unibox_core.dart' as core;
 import 'package:unibox_css/unibox_css.dart';
 
-import 'client_script.dart';
+import 'client/ink.dart';
 import 'embed_node.dart';
 import 'escape.dart';
 import 'plan.dart';

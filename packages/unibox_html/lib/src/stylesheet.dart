@@ -1,6 +1,6 @@
 import 'package:unibox_css/unibox_css.dart';
 
-import 'client_script.dart';
+import 'client/ink.dart';
 
 /// The rules one rendering needs, each one once.
 ///

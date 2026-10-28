@@ -8,6 +8,14 @@
   never one assembled from data a reader supplied. An embed carrying a payload for another
   target is reported, not skipped.
 
+- The client code is a folder of one behaviour per file: `client/ink.dart` (the marker, the
+  declarations and the script that paints the drop) and `client/press.dart` (the record and
+  the script that keeps it), with `client/all.dart` combining them for a host that wants one
+  file. Each is its own block and adds its own member to `window.unibox`, so a page includes
+  the behaviour it wants and including two — or one twice — does nothing the second time.
+  The scroll recorder moves here when `unibox_jaspr` goes, so every line of client code ends
+  up in one place.
+
 - `uniboxClientScript`, the one behaviour a document has: it paints the ink where a press
   landed and records the press, so the application that takes the page over can replay the
   intent instead of losing it. It is one optional file — `data-unibox-ink` without it is
