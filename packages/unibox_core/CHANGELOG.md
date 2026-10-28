@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `BoxScrollOffset`: where one scrolling region was scrolled to, before a tree drew it. A page
+  records the offset of each region it rendered, keyed by the key that region's node carried,
+  and the application that takes the page over starts there instead of at the top. It is a
+  value with no host in it, which is why the model can hold it and both sides can speak it.
+
 - `UINode.key` documents that a renderer may write the key into its output, and that
   only a `String` or an `int` survives that trip. Any other key keeps doing its job —
   a reordered child stays attached to its node — but its `toString()` is an instance

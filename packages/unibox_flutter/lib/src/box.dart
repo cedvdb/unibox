@@ -8,6 +8,7 @@ import 'keys.dart';
 import 'render.dart';
 import 'stack_node.dart';
 import 'text_style_scope.dart';
+import 'scroll_scope.dart';
 import 'theme_scope.dart';
 import 'values.dart';
 
@@ -40,6 +41,69 @@ class FlutterBoxState extends State<FlutterBox> {
   bool _focused = false;
   bool _pressed = false;
 
+  /// The controller of a box that scrolls, or `null` for one that does not.
+  ///
+  /// It is created with the offset the page recorded, so the region is at the position the
+  /// reader left it *at the first layout*: applying it afterwards would show the top of the
+  /// list and then correct it.
+  ScrollController? _scroll;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _useRecordedScroll();
+  }
+
+  @override
+  void didUpdateWidget(FlutterBox oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // A different box in this position is a different region, and its position is its own.
+    if (oldWidget.box.key != widget.box.key) {
+      _useRecordedScroll();
+    }
+  }
+
+  @override
+  void dispose() {
+    _scroll?.dispose();
+    super.dispose();
+  }
+
+  /// Creates the controller of a scrolling box, at the offset the page recorded for it.
+  ///
+  /// The scope is read here and not in `initState`, because an inherited widget is not
+  /// available there. Once created, the controller belongs to the reader: a rebuild does
+  /// not move them back to where the page said.
+  void _useRecordedScroll() {
+    final bool scrolls =
+        widget.box.computedStyle.overflow == core.Overflow.scroll;
+
+    if (!scrolls) {
+      _scroll?.dispose();
+      _scroll = null;
+
+      return;
+    }
+
+    if (_scroll != null) {
+      return;
+    }
+
+    final core.BoxScrollOffset? offset = UniboxScrollScope.offsetOf(
+      context,
+      widget.box.key,
+    );
+    final bool vertical =
+        toAxis(widget.box.computedStyle.resolvedDirection) == Axis.vertical;
+
+    _scroll = ScrollController(
+      initialScrollOffset: offset == null
+          ? 0
+          : (vertical ? offset.dy : offset.dx),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final core.Box box = widget.box;
@@ -62,6 +126,7 @@ class FlutterBoxState extends State<FlutterBox> {
     if (style.overflow == core.Overflow.scroll) {
       content = SingleChildScrollView(
         scrollDirection: toAxis(style.resolvedDirection),
+        controller: _scroll,
         child: content,
       );
     }

@@ -32,6 +32,7 @@ export 'src/nodes/stateful_node.dart';
 export 'src/nodes/text_input_node.dart';
 export 'src/nodes/text_node.dart';
 export 'src/nodes/ui_node.dart';
+export 'src/state/box_scroll_offset.dart';
 export 'src/state/state_store.dart';
 export 'src/state/store.dart';
 export 'src/tokens/box_border.dart';
