@@ -234,7 +234,7 @@ which is the answer `columnsFor` gives and the one that needs no surface.
 | Unibox   | Flutter                                        |
 | -------- | ---------------------------------------------- |
 | `child`  | the rendered child                             |
-| `onTap`  | `GestureDetector.onTap`                        |
+| `onTap`  | `GestureDetector.onTap`, which answers the press |
 | `url`    | followed through `FlutterLinkScope`             |
 | `newTab` | web only, ignored by the Flutter renderer      |
 
@@ -249,9 +249,11 @@ FlutterLinkScope(
 ```
 
 Links render as a click-cursor region that is exposed to screen readers as a
-link. Without a scope, tapping a link only calls its own `onTap`, and a link
-with neither a scope nor an `onTap` is reported as a host configuration error in
-debug builds instead of silently doing nothing.
+link. A node with an `onTap` is handled by the tree and the scope is not asked: one
+press, one answer, and the web renderer says the same thing by cancelling the
+navigation rather than loading the document too. A link with neither a scope nor an
+`onTap` is reported as a host configuration error in debug builds instead of silently
+doing nothing.
 
 ## Stack mapping
 

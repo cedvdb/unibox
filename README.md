@@ -81,7 +81,7 @@ python3 tool/seo_report.py build/site
 | Jaspr `/material/` | 601 | 1 | 8 | 3 | 2 | 91 151 |
 | **Flutter `/flutter/listings/`** | **4** | **0** | **0** | **0** | **0** | **772** |
 
-`/web/pricing/` is the shape a marketing page takes: a hero, three plans and the
+`/web/pricing/` is the shape a marketing page takes: a hero, three price bands and the
 questions people ask, all of it text. The last row is the point. The Flutter build of the same screen is a document with a
 `<title>` and a canvas host: four words, no heading, no link, nothing to index. The
 tree's version of that screen is the row above it, and it is the same Dart.
@@ -338,14 +338,15 @@ LinkNode('https://unibox.dev', child: TextNode('Read the docs'));
 | `url` | `String` | required | The destination. |
 | `child` | `UINode` | required | What is drawn inside the link; exactly one node. |
 | `newTab` | `bool` | `false` | Opens elsewhere. The web renderer adds `target="_blank"` with `rel="noopener noreferrer"`. |
-| `onTap` | `TapCallback?` | none | Runs alongside the navigation, e.g. to track the click. |
+| `onTap` | `TapCallback?` | none | Answers the press. The tree handles it and the link is not followed: on the web a plain click cancels the navigation, and Flutter calls the handler instead of the enclosing opener. Leave it unset for a link that is a destination. |
 
 **Worth knowing.** In Flutter there is no browser, so the host decides what
 following a link means: wrap the tree in `FlutterLinkScope(open: (url) => ...)` and
-every link calls it. A link with neither a scope nor an `onTap` is reported in debug
-builds, because tapping it would do nothing. The browser's own link styling —
-underline and blue — is turned off, so a link looks exactly like the text the tree
-describes.
+every link calls it — unless the node has an `onTap`, which answers the press itself,
+the same way the web renderer cancels the navigation rather than doing both. A link
+with neither a scope nor an `onTap` is reported in debug builds, because tapping it
+would do nothing. The browser's own link styling — underline and blue — is turned
+off, so a link looks exactly like the text the tree describes.
 
 ### StackNode and PositionedNode
 

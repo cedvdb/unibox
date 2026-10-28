@@ -2,6 +2,11 @@
 
 ## 0.1.0
 
+- A `LinkNode` with an `onTap` calls the handler and not the enclosing
+  `FlutterLinkScope`: one press, one answer, which is what the web renderer does by
+  cancelling the navigation instead of loading the document as well. A link without an
+  `onTap` still opens through the scope.
+
 - The clip of a box is applied inside its decoration, so a card with `overflow: hidden`
   keeps the shadow it casts: CSS cuts an element's content to its radius and never its
   own `box-shadow`, and a `ClipRRect` around a `DecoratedBox` was swallowing it.

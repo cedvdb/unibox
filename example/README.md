@@ -170,7 +170,7 @@ tool/site.sh --base=/unibox/ --url=https://cedvdb.github.io/unibox/
 | `/showcase/` | The example drawn by both renderers, side by side in two frames |
 | `/web/listings/` | The example's listings, rendered by Jaspr |
 | `/web/signup/` | The same page with the sign-up dialog over it |
-| `/web/pricing/` | The marketing page: what it costs, and the questions people ask |
+| `/web/pricing/` | The price page: what a home costs, and the questions people ask |
 | `/main.client.js` | The browser runtime the two above load |
 | `/flutter/listings/`, `/flutter/signup/`, `/flutter/pricing/` | The same pages, rendered by Flutter |
 
@@ -260,8 +260,12 @@ open build/site/web/listings/index.html
 There is one file per destination because being open is state, and a static
 export cannot keep state — open the document you want. `web/listings/index.html` is
 the listings; `web/signup/index.html` is the same page with the dialog already open.
-The navigation is a real link for the same reason: a click follows it to the document
-that draws the state, because a page has no client runtime to open a dialog with.
+Every destination of the bar is a real link as well, for the same two reasons: a
+crawler follows the `href`, and a copy of the page with no client runtime follows it
+too, landing on the document that draws the state it names. Where the runtime is
+there, the same press is answered by the tree instead — the dialog opens in place and
+the document is not loaded as well, so a visitor sees one page rather than a flash of
+the next one.
 The whole site, with both renderings and the Flutter build beside them, is
 `tool/site.sh` (see [the static site](#the-static-site)).
 
@@ -277,11 +281,10 @@ Each page also arrives with what a search engine reads before any script runs:
 a `robots.txt` next to the two documents. A sitemap would need the address the
 pages are served from, so it is left to the deployment.
 
-What cannot be crawled is the navigation between the two files: the bar opens the
-dialog and switches the page in host state (`onTap`), and a box with
-`BoxRole.link` has no `href`, so a crawler sees two documents and no link between
-them. A page that has
-to be found makes sense as a `LinkNode` with a real url — which is the router work
+What a crawler sees is the documents and the links between them: the bar is a `<nav>`
+of real `<a href>`s, and each one names the document that draws the state it asks for.
+What it cannot see is the client answering a press in place — the tree switches the
+page without touching the address bar, and moving the address is routing, which
 `TASK_PLAN.md` lists as deferred.
 
 The static export is a snapshot of the server render: the markup, the inline

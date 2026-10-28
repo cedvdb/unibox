@@ -2,6 +2,11 @@
 
 ## 0.1.0
 
+- `LinkNode.onTap` answers the press instead of following the link: a renderer does one
+  thing with a press, so a page whose runtime opens a dialog from a link does not also
+  load the document that link names. The `href` stays on the anchor, which is what a
+  page without the runtime, a new tab, a context menu and a crawler read.
+
 - `BoxAlignment` and `PositionedNode.alignment`: a stack child can be placed by where
   it sits — the nine positions of a cell — instead of by offsets, which is what a
   floating control needs: the child fills the stack and the alignment puts it at the

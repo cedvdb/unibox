@@ -136,3 +136,36 @@ Two things were found while wiring it, both worth recording:
    work only because it also changes `signupOpen`; opening the map from the floating button,
    choosing a filter and picking a layout were silent on both targets. Every field is compared
    now, and `test/page_node_test.dart` publishes one change per field to hold it there.
+
+## Follow-up: the price page, the floating button and the press
+
+Three more reported against the example after the round above, with the same shape: what
+it was, what the measurement said, and where the fix belongs.
+
+- **The price page sold the library.** *Done.* It was a subscription page for Unibox: three
+  plans, a €12 tier and questions about search engines. It is the apartment site's own price
+  page now — a studio at €780, a loft at €1,650, what the rent includes, and what a tenant
+  asks before a visit — with the hero, the three cards and the questions unchanged, because
+  that shape is what the page demonstrates. The price sits over its cadence rather than
+  beside it: a row of two texts is as wide as the two of them, and the example's own test
+  font made that row overflow a card.
+
+- **The map button travelled with the page.** *Done.* Two causes, one measurement each. The
+  web cell of a stack was as tall as its content, so 1953 pixels of listings sat in a 727
+  pixel window with nothing scrolling: the document grew to 2045 and the button, pinned to
+  the bottom of the stack, went up the window as the page scrolled. A stack writes
+  `grid-template-rows: 100%` now, which is what a Flutter stack does by handing its own
+  constraints to a child it does not position. And the button carried its width threshold
+  straight inside a `PositionedNode`, where `validateTree` warns that nothing measures it —
+  so it was drawn on a wide window as well, beside the map column it duplicates. The cell
+  holds a box now, and the button is hidden from 900 pixels, measured in Chromium at 420 by
+  820 and at 1180 by 900.
+
+- **A press on Sign up navigated *and* opened the dialog.** *Done.* The anchor carried a
+  `click` listener that ran the handler and then let the browser follow the `href`, so the
+  runtime opened the dialog and the document was loaded over it — the flash on the first
+  press. A link whose node carries an `onTap` is handled by the tree: the click is cancelled,
+  the `href` stays for the reader without the runtime, and Flutter answers the same way
+  instead of calling its opener as well. A modifier click, a middle click and a `newTab` link
+  stay the browser's. Checked in Chromium: the address stays on `/web/listings/` while the
+  dialog opens and while `Pricing` switches the page.

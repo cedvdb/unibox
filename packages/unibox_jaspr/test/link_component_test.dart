@@ -105,7 +105,28 @@ void main() {
       await tester.click(find.tag('a'));
 
       expect(taps, 1);
+      // The href stays on the anchor: it is what a page without the client runtime
+      // follows, and what a context menu and a crawler read.
       expect(attributesOf(find.tag('a'))['href'], 'https://example.com');
+    });
+
+    testComponents('answers the press itself instead of the link', (
+      tester,
+    ) async {
+      // A node with an `onTap` hands the press to the tree, so the listener is what
+      // cancels the navigation. Cancelling is a DOM call and `package:web` cannot run
+      // one on the VM, so what the suite can check is that the listener the browser
+      // will call is there at all; the built site is where the page is measured.
+      pumpNode(
+        tester,
+        core.LinkNode(
+          '/listings/',
+          onTap: () {},
+          child: const core.TextNode('Listings'),
+        ),
+      );
+
+      expect(elementOf(find.tag('a')).events?.keys, <String>['click']);
     });
 
     testComponents('keeps a link without callbacks free of listeners', (

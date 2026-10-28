@@ -423,15 +423,25 @@ A `LinkNode` becomes a real `<a>` element, so the link keeps working without
 JavaScript: middle clicks, the context menu, prefetching and crawlers all behave
 like they do on any other website.
 
-| Unibox   | Jaspr / CSS                                          |
-| -------- | ---------------------------------------------------- |
-| `url`    | `href`                                               |
-| `newTab` | `target="_blank"` plus `rel="noopener noreferrer"`   |
-| `onTap`  | `click` listener that runs alongside the navigation  |
+| Unibox   | Jaspr / CSS                                                     |
+| -------- | --------------------------------------------------------------- |
+| `url`    | `href`                                                          |
+| `newTab` | `target="_blank"` plus `rel="noopener noreferrer"`              |
+| `onTap`  | `click` listener that cancels the navigation and runs the handler |
 
 `onTap` is attached as a plain `click` listener rather than the component's
-`onClick`, because `onClick` calls `preventDefault()` and would stop the browser
-from following the link. A link without `onTap` renders no listeners at all.
+`onClick`, because that listener decides what happens to the navigation as well: a
+link whose node names a handler is handled by the tree, so a plain click is
+cancelled and the browser does not load the document the anchor names as well. A page
+that works without the client runtime is unaffected — nothing there can cancel
+anything, so the anchor is followed — and the `href` stays on the element, which is
+what a context menu, a new tab and a crawler read. A link without `onTap` renders no
+listeners at all.
+
+Two presses stay the browser's: a `newTab` link, whose destination is the point, and
+a click with a modifier or a button other than the primary one, which asks for a tab,
+a window or a download. The handler runs for the first and not for the second, so a
+tracked outbound link still reports and a middle click does not open a dialog.
 
 The anchor also declares `color: inherit` and `text-decoration: none`, which
 turns off the two things a browser adds to a link on its own. A link is not a
@@ -452,10 +462,17 @@ a `Stack` with `Clip.none` in Flutter.
 
 | Unibox                     | Jaspr / CSS                                          |
 | -------------------------- | ---------------------------------------------------- |
-| `StackNode`                | `position: relative` plus `display: grid`            |
+| `StackNode`                | `position: relative`, `display: grid`, `grid-template-rows: 100%` |
 | `StackNode.width`/`height` | `width`/`height` (`double.infinity` → `100%`)        |
 | plain child                | `grid-area: 1 / 1` cell wrapper, content at the start |
 | `PositionedNode`           | `position: absolute` plus `top`/`right`/`bottom`/`left` |
+
+The one row is `100%` of the stack rather than the height of what sits in it. A
+Flutter stack hands its own constraints to a child it does not position, so a child
+that fills the stack is exactly as tall as the stack and a list inside it scrolls; an
+`auto` grid row is at least as tall as its content and only ever grows, so the same
+cell would push the document taller instead. When the stack states no height of its
+own, `100%` resolves to `auto` and the stack still sizes to its content.
 
 Each child is wrapped in a cell `<div>`: the overlap is a property of the
 container, and the rendered child already carries its own inline styles.

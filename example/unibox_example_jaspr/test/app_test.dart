@@ -74,34 +74,50 @@ void main() {
       );
     });
 
-    testComponents(
-      'registers a click listener on the navigation and the opt-in',
-      (tester) async {
-        tester.pumpComponent(signupApp());
+    testComponents('registers a click listener on the controls of the page', (
+      tester,
+    ) async {
+      tester.pumpComponent(signupApp());
 
-        final List<TestRenderElement> clickable = elementsOf(find.tag('div'))
-            .where(
-              (TestRenderElement element) =>
-                  element.events?.containsKey('click') ?? false,
-            )
-            .toList();
+      final List<TestRenderElement> clickable = elementsOf(find.tag('div'))
+          .where(
+            (TestRenderElement element) =>
+                element.events?.containsKey('click') ?? false,
+          )
+          .toList();
 
-        // The destinations of the bar, the four filters of the listings, the
-        // floating map button, the opt-in row, the dialog's barrier and its close
-        // control. The submit button is disabled until the form is complete, and a
-        // disabled box listens to nothing.
-        expect(clickable, hasLength(14));
+      // The four filters and the cross of the removable one, the two segments of the
+      // layout switch, the floating map button, the opt-in row and the dialog's
+      // barrier; the submit button is disabled until the form is complete, and a
+      // disabled box listens to nothing. The destinations of the bar are anchors and
+      // the dialog's close control is one too, so neither is counted here.
+      expect(clickable, hasLength(10));
 
-        // The bar's sign-up trigger is a button too, and it comes first; the
-        // submit button is the last one in the tree.
-        final TestRenderElement button = elementsOf(find.tag('div')).lastWhere(
-          (TestRenderElement element) =>
-              element.attributes?['role'] == 'button',
-        );
-        expect(button.attributes?['aria-disabled'], 'true');
-        expect(button.attributes?.containsKey('tabindex'), isFalse);
-      },
-    );
+      // A destination is an anchor instead, because the `href` is what a page
+      // without the client runtime follows: the three items of the bar and the way
+      // out of the dialog carry the press, and the docs link opens a new tab and
+      // needs no listener of its own.
+      final List<TestRenderElement> links = elementsOf(find.tag('a'))
+          .where(
+            (TestRenderElement element) =>
+                element.events?.containsKey('click') ?? false,
+          )
+          .toList();
+
+      expect(links, hasLength(4));
+      expect(
+        links.map((TestRenderElement link) => link.attributes?['href']),
+        <String?>['../signup/', '../listings/', '../pricing/', '../listings/'],
+      );
+
+      // The bar's sign-up trigger is a button too, and it comes first; the
+      // submit button is the last one in the tree.
+      final TestRenderElement button = elementsOf(find.tag('div')).lastWhere(
+        (TestRenderElement element) => element.attributes?['role'] == 'button',
+      );
+      expect(button.attributes?['aria-disabled'], 'true');
+      expect(button.attributes?.containsKey('tabindex'), isFalse);
+    });
 
     testComponents('enables the button once the form is complete', (
       tester,
@@ -120,7 +136,7 @@ void main() {
           .toList();
 
       // The same set, and now the submit button as well.
-      expect(clickable, hasLength(15));
+      expect(clickable, hasLength(11));
 
       final TestRenderElement button = elementsOf(find.tag('div')).lastWhere(
         (TestRenderElement element) => element.attributes?['role'] == 'button',
@@ -167,12 +183,20 @@ void main() {
       // The item and the heading of the page behind the dialog.
       expect(find.text('Apartments'), findsNComponents(2));
 
+      // The item is a box with the role and the tab stop, wrapped in the anchor that
+      // carries the href and answers the press.
       final TestRenderElement item = elementsOf(find.tag('div')).firstWhere(
         (TestRenderElement element) => element.attributes?['role'] == 'link',
       );
 
       expect(item.attributes?['tabindex'], '0');
-      expect(item.events?.keys, contains('click'));
+
+      final TestRenderElement link = elementsOf(find.tag('a')).firstWhere(
+        (TestRenderElement element) =>
+            element.events?.containsKey('click') ?? false,
+      );
+
+      expect(link.attributes?['href'], '../signup/');
     });
   });
 

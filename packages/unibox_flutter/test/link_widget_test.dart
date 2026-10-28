@@ -58,7 +58,9 @@ void main() {
       expect(opened, <String>['https://unibox.dev/guide']);
     });
 
-    testWidgets('calls onTap before opening the destination', (tester) async {
+    testWidgets('lets onTap answer the press instead of the opener', (
+      tester,
+    ) async {
       final List<String> events = <String>[];
 
       await pumpNode(
@@ -75,7 +77,10 @@ void main() {
       );
       await tester.tap(find.text('Docs'));
 
-      expect(events, <String>['onTap', 'open:https://unibox.dev']);
+      // A node that names a handler is handled by the tree: the opener stands for
+      // "follow the link", and on the web the same rule cancels the navigation, so a
+      // dialog the tree opens is not replaced by a page load. One press, one answer.
+      expect(events, <String>['onTap']);
     });
 
     testWidgets('reports a link that can neither open nor call back', (

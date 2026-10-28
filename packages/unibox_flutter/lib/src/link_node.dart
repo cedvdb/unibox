@@ -42,6 +42,11 @@ class FlutterLinkScope extends InheritedWidget {
 }
 
 /// Renders a [core.LinkNode] as a tappable region around its child.
+///
+/// A press is answered once. A node that carries an [core.LinkNode.onTap] names the
+/// handler for it, so that handler runs and the opener is not called: on the web the
+/// same rule cancels the navigation, and a dialog the tree opens is not replaced by
+/// a page load. A node without one is what the enclosing [FlutterLinkScope] is for.
 class FlutterLink extends StatelessWidget {
   /// Creates a renderer for [node].
   const FlutterLink({required this.node, super.key});
@@ -68,8 +73,13 @@ class FlutterLink extends StatelessWidget {
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () {
-            node.onTap?.call();
-            open?.call(node.url);
+            final core.TapCallback? onTap = node.onTap;
+
+            if (onTap != null) {
+              onTap();
+            } else {
+              open?.call(node.url);
+            }
           },
           child: renderNode(node.child),
         ),

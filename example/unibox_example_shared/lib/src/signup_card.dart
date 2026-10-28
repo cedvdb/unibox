@@ -186,9 +186,9 @@ Box buildSignupCard({
 
 /// The way out for a reader on a static page: a link back to the listings.
 ///
-/// A page cannot dismiss a dialog with a tap unless the client runtime is there, so
-/// the control is an anchor that goes back to the document the dialog covers, and
-/// Flutter turns the same tap into the dismissal the barrier calls.
+/// The link goes to the document the dialog covers, so a page without a runtime still
+/// has a way out; with one, the same press dismisses the dialog in place and the
+/// document is not loaded as well.
 UINode _closeRow(TapCallback onDismiss) {
   return Box(
     direction: Axis.horizontal,
@@ -196,8 +196,8 @@ UINode _closeRow(TapCallback onDismiss) {
     children: <UINode>[
       LinkNode(
         ExampleRoutes.listings,
+        onTap: onDismiss,
         child: Box(
-          onTap: onDismiss,
           padding: const BoxSpacing.symmetric(horizontal: 12, vertical: 6),
           borderRadius: 8,
           semantics: const BoxSemantics(role: BoxRole.button, label: 'Close'),

@@ -24,7 +24,17 @@ class LinkNode extends UINode {
   /// Whether the destination should open in a new tab on the web.
   final bool newTab;
 
-  /// Called when the link is tapped, in addition to following [url].
+  /// Called when the link is pressed, instead of following [url].
+  ///
+  /// A link with this callback is handled by the tree: on the web a plain click is
+  /// cancelled before the browser follows [url], so a page whose runtime answers the
+  /// press does not also load the document the link names, and on Flutter the
+  /// enclosing opener is not called. [url] stays on the anchor either way, which is
+  /// what keeps the link working on a page without the runtime, in a new tab, in a
+  /// context menu and for a crawler.
+  ///
+  /// Leave it unset for a link that is a destination rather than a press: a static
+  /// page with no runtime has no other way to reach what it points at.
   final TapCallback? onTap;
 
   @override

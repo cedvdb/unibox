@@ -188,13 +188,15 @@ void main() {
 
     test('offers a way back to the listings', () {
       // A static page cannot dismiss a dialog with a tap, so the way out is a link
-      // to the document the dialog covers.
+      // to the document the dialog covers; the dismissal rides on the same link for
+      // a page that has the runtime.
       final LinkNode close = flatten(RecordingHost().card())
           .whereType<LinkNode>()
           .firstWhere((LinkNode node) => !node.newTab);
 
       expect(close.url, ExampleRoutes.listings);
       expect(textsIn(close), <String>['Close']);
+      expect(close.onTap, isNotNull);
     });
 
     test('layers the avatar chip over the banner', () {
