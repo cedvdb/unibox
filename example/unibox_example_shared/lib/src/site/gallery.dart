@@ -331,16 +331,27 @@ UINode _chips() {
           MaterialChip(
             label: const TextNode('Two rooms'),
             selected: true,
-            leading: glyphCheck(onSelected, size: 12),
+            onTap: () {},
+            // Material's chip glyph is 18, and the check is drawn rather than set:
+            // a font is a host asset and this package ships none.
+            leading: glyphCheck(onSelected, size: MaterialChip.iconSize),
           ),
           MaterialChip(
             label: const TextNode('Studio'),
-            leading: glyphGrid(onPlain),
+            onTap: () {},
+            leading: glyphGrid(onPlain, size: MaterialChip.iconSize),
           ),
           MaterialChip(
             label: const TextNode('Map'),
             onTap: () {},
-            leading: glyphList(onPlain),
+            leading: glyphList(onPlain, size: MaterialChip.iconSize),
+          ),
+          // A chip that cannot be pressed fades rather than shouting: the last state
+          // Material gives one.
+          MaterialChip(
+            label: const TextNode('Sold'),
+            enabled: false,
+            leading: glyphList(onPlain, size: MaterialChip.iconSize),
           ),
         ],
       ),

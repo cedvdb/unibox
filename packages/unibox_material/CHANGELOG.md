@@ -2,6 +2,12 @@
 
 ## 0.1.0
 
+- `MaterialChip` follows Material 3's chip metrics rather than approximating them:
+  `controlHeight` states the 32 the pill is, whatever glyph it carries (a leading node
+  used to be able to make one chip taller than its neighbours); the padding is taken
+  per side, 16 where the label reaches the edge and 8 where an `iconSize` = 18 node
+  sits; and a disabled chip is drawn at 38% with no ink instead of looking pressable.
+
 - `MaterialButton` keeps its fill — and the ink well inside it — the size of its label,
   so a parent that stretches its children (a card's column, a grid track) no longer
   paints a hover tint as a band wider than the button. `width:` pins the fill when a

@@ -52,15 +52,26 @@ final class MaterialChip extends Box {
          backgroundColor: selected ? _selectedFill : null,
          border: selected ? null : _outline,
          borderRadius: radius,
+         // Material's 32: `labelLarge`'s 20 pixel line with six above and below, held
+         // even when a leading or trailing glyph is taller than the line it sits on.
+         minHeight: controlHeight,
+         // A disabled chip fades rather than changing role: Material draws the label at
+         // 38% and the line at 12%, and one opacity is what this model can say without
+         // an alpha role per token.
+         opacity: enabled ? null : 0.38,
          children: <UINode>[
            MaterialInkWell(
              onTap: onTap,
              enabled: enabled,
              borderRadius: radius,
              ink: ink ?? _inkOf(selected),
-             padding: BoxSpacing.symmetric(
-               horizontal: leading == null ? 16 : 8,
-               vertical: 6,
+             // Material pads only the side a node sits on: 16 where the label meets
+             // the edge, 8 where an 18 pixel glyph does, 8 between them.
+             padding: BoxSpacing.only(
+               left: leading == null ? 16 : _nodeInset,
+               right: (trailing == null && onRemove == null) ? 16 : _nodeInset,
+               top: 6,
+               bottom: 6,
              ),
              transition: transition ?? MaterialInkWell.defaultTransition,
              semantics: onTap == null
@@ -86,6 +97,19 @@ final class MaterialChip extends Box {
 
   /// The corner radius Material gives a chip.
   static const double radius = 8;
+
+  /// The height Material gives a chip, whatever it carries.
+  static const double controlHeight = 32;
+
+  /// How far a node inside a chip sits from the edge of the pill, and from the label.
+  ///
+  /// Material's chip spec: an icon is 18 logical pixels, 8 from the edge and 8 from
+  /// the label, so a chip with a node pads by this on that side and by 16 on the side
+  /// where the label reaches the edge.
+  static const double _nodeInset = 8;
+
+  /// The size Material gives the node inside a chip.
+  static const double iconSize = 18;
 
   /// The fill of a chosen chip.
   static const BoxColor _selectedFill = BoxColor.role(

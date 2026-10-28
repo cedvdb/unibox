@@ -520,11 +520,14 @@ MaterialChip(label: const TextNode('Studio'), onTap: filter)
 
 | Token | Value |
 | --- | --- |
-| height | 32: `labelLarge`'s 20 pixel line with six above and below |
+| height | `controlHeight` = 32, stated rather than left to the line, so an 18 pixel glyph does not make one chip taller than another |
 | radius | 8, the small shape of Material 3 |
 | unselected | no fill, a 1 pixel `outline` line, `onSurfaceVariant` label |
 | selected | `secondaryContainer` fill, no line, `onSecondaryContainer` label |
-| room | 16 either side, and 8 on the leading side when a node sits there |
+| room | 16 on a side the label reaches, 8 on a side a node sits (`iconSize` = 18), 8 between them — Material pads the side, not the chip |
+| label | `labelLarge`, `onSurfaceVariant` or `onSecondaryContainer` |
+| hover, focus, press | `hoverLayer`, `focusLayer`, `pressedLayer` over the pill |
+| disabled | the pill at 38%, with no ink: Material draws the label at 38% and the line at 12%, and one opacity is what this model can say without an alpha role per token |
 | leading, trailing | a node before and after the label — a check, a folder, a cross |
 | onRemove | an 18 pixel round target inside the pill: a press on it removes the chip, not the choice |
 

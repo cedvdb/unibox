@@ -92,16 +92,61 @@ void main() {
       },
     );
 
-    test('narrows the leading side when it carries a node', () {
-      final MaterialChip chip = MaterialChip(
+    test('pads only the side that carries a node', () {
+      // Material's chip pads 16 where the label reaches the edge and 8 where an 18
+      // pixel glyph does, so the padding is the side's, not the chip's.
+      final MaterialChip plain = MaterialChip(label: const TextNode('Garden'));
+      final MaterialChip leading = MaterialChip(
         label: const TextNode('Garden'),
-        leading: const TextNode('✓'),
+        leading: const TextNode('check-18'),
+      );
+      final MaterialChip trailing = MaterialChip(
+        label: const TextNode('Garden'),
+        trailing: const TextNode('x'),
+      );
+      final MaterialChip removable = MaterialChip(
+        label: const TextNode('Garden'),
+        trailing: const TextNode('x'),
+        onRemove: _tap,
       );
 
       expect(
-        _content(chip).padding,
-        const BoxSpacing.symmetric(horizontal: 8, vertical: 6),
+        _content(plain).padding,
+        const BoxSpacing.only(left: 16, right: 16, top: 6, bottom: 6),
       );
+      expect(
+        _content(leading).padding,
+        const BoxSpacing.only(left: 8, right: 16, top: 6, bottom: 6),
+      );
+      expect(
+        _content(trailing).padding,
+        const BoxSpacing.only(left: 16, right: 8, top: 6, bottom: 6),
+      );
+      expect(
+        _content(removable).padding,
+        const BoxSpacing.only(left: 16, right: 8, top: 6, bottom: 6),
+      );
+    });
+
+    test('is 32 tall whatever it carries, and fades when disabled', () {
+      final MaterialChip plain = MaterialChip(label: const TextNode('Garden'));
+      final MaterialChip withGlyph = MaterialChip(
+        label: const TextNode('Garden'),
+        leading: const TextNode('check-18'),
+      );
+
+      // The height and the fade belong to the chip itself: the well inside it has no
+      // size of its own and takes the room the pill gives it.
+      expect(plain.minHeight, MaterialChip.controlHeight);
+      expect(withGlyph.minHeight, MaterialChip.controlHeight);
+      expect(plain.opacity, isNull);
+      expect(
+        MaterialChip(label: const TextNode('Garden'), enabled: false).opacity,
+        0.38,
+      );
+      // The node Material puts inside a chip is 18, which is what the padding and the
+      // close target are measured against.
+      expect(MaterialChip.iconSize, 18);
     });
 
     test('is a button that says whether it is chosen', () {
