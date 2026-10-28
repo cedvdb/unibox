@@ -11,7 +11,7 @@ void main() {
     test('is written in pixels, without a needless decimal', () {
       expect(cssPixels(8), '8px');
       expect(cssPixels(8.5), '8.5px');
-      expect(cssPixels(0), '0px');
+      expect(cssPixels(0), '0');
     });
 
     test('expands an infinite dimension to the space available', () {
@@ -42,7 +42,7 @@ void main() {
 
     test('states a zero rather than dropping the declaration', () {
       // A reset that cancels what a user agent applies has to be written down.
-      expect(cssSpacing(core.BoxSpacing.zero), '0px');
+      expect(cssSpacing(core.BoxSpacing.zero), '0');
     });
   });
 
@@ -169,7 +169,7 @@ void main() {
       expect(
         defaultTypographyDeclarations().text,
         'color:#000000;font-family:system-ui;font-size:16px;'
-        'font-weight:400;letter-spacing:0px;line-height:1.5',
+        'font-weight:400;letter-spacing:0;line-height:1.5',
       );
     });
   });
@@ -236,7 +236,7 @@ void main() {
         cssBorder(
           const core.BoxBorder(width: 2, color: core.BoxColor(0xFF112233)),
         ),
-        'solid #112233 2px',
+        '2px solid #112233',
       );
       expect(
         cssBoxShadow(
@@ -259,7 +259,7 @@ void main() {
             bottomLeft: 0,
           ),
         ),
-        '8px 8px 0px 0px',
+        '8px 8px 0 0',
       );
     });
   });

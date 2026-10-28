@@ -195,6 +195,8 @@ CssDeclarations boxDeclarations(
 
 /// The padding a user agent puts around [element], cancelled as zero.
 ///
+/// A zero, the same way every other zero length is written here.
+///
 /// Guarded by the caller against the box declaring its own padding.
 String? userAgentPadding(core.BoxElement element) =>
     element == core.BoxElement.ul || element == core.BoxElement.ol ? '0' : null;

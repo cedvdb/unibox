@@ -5,13 +5,19 @@ import 'package:unibox_css/unibox_css.dart' as css;
 import 'package:unibox_jaspr/src/stylesheet.dart';
 import 'package:unibox_jaspr/src/values.dart';
 
-/// Holds the two CSS mappings to one text while both exist.
+/// Holds the two CSS mappings to one meaning while both exist.
 ///
 /// `unibox_css` is taking over the token-to-CSS work, family by family, and this
 /// package keeps its Jaspr-typed mapping until it is removed. A family that has been
-/// ported is proved here: the declarations Jaspr writes for a value and the text
-/// `unibox_css` produces for the same value have to be identical, because a class
-/// name is a hash of that text and two spellings of one look would name it twice.
+/// ported is proved here: the declarations Jaspr writes and the text `unibox_css`
+/// produces have to say the same thing.
+///
+/// The comparison goes through [inOurSpelling], because the two mappings are allowed to
+/// disagree about how they write it. Nothing is released, so `unibox_css` picks the
+/// spelling a stylesheet author would — `0` rather than `0px`, the width before the
+/// style in a `border` — while Jaspr writes whichever constructor the old mapping
+/// happened to reach for. Those are the only allowed differences, and they are all
+/// listed in [_reorderings] and [_zeros].
 ///
 /// The file disappears with the package.
 void main() {
@@ -20,7 +26,9 @@ void main() {
       const core.BoxColor color = core.BoxColor(0xFF112233);
 
       expect(
-        declarationsOf(Styles(backgroundColor: toCssColor(color))),
+        inOurSpelling(
+          declarationsOf(Styles(backgroundColor: toCssColor(color))),
+        ),
         'background-color:${css.cssColor(color)}',
       );
     });
@@ -29,7 +37,9 @@ void main() {
       const core.BoxColor color = core.BoxColor.rgba(17, 34, 51, 128);
 
       expect(
-        declarationsOf(Styles(backgroundColor: toCssColor(color))),
+        inOurSpelling(
+          declarationsOf(Styles(backgroundColor: toCssColor(color))),
+        ),
         'background-color:${css.cssColor(color)}',
       );
     });
@@ -47,7 +57,7 @@ void main() {
         final String expected = css.cssLength(value) ?? '';
 
         expect(
-          declarationsOf(Styles(width: toCssUnit(value))),
+          inOurSpelling(declarationsOf(Styles(width: toCssUnit(value)))),
           expected.isEmpty ? '' : 'width:$expected',
         );
       });
@@ -65,7 +75,7 @@ void main() {
     for (final core.BoxSpacing spacing in spacings) {
       test('as $spacing', () {
         expect(
-          declarationsOf(Styles(padding: toCssSpacing(spacing))),
+          inOurSpelling(declarationsOf(Styles(padding: toCssSpacing(spacing)))),
           'padding:${css.cssSpacing(spacing)}',
         );
       });
@@ -75,7 +85,9 @@ void main() {
     test('for every axis', () {
       for (final core.Axis axis in core.Axis.values) {
         expect(
-          declarationsOf(Styles(flexDirection: toCssFlexDirection(axis))),
+          inOurSpelling(
+            declarationsOf(Styles(flexDirection: toCssFlexDirection(axis))),
+          ),
           'flex-direction:${css.cssFlexDirection(axis)}',
         );
       }
@@ -84,7 +96,9 @@ void main() {
     test('for every main alignment', () {
       for (final core.MainAlign align in core.MainAlign.values) {
         expect(
-          declarationsOf(Styles(justifyContent: toCssJustifyContent(align))),
+          inOurSpelling(
+            declarationsOf(Styles(justifyContent: toCssJustifyContent(align))),
+          ),
           'justify-content:${css.cssJustifyContent(align)}',
         );
       }
@@ -93,7 +107,9 @@ void main() {
     test('for every cross alignment', () {
       for (final core.CrossAlign align in core.CrossAlign.values) {
         expect(
-          declarationsOf(Styles(alignItems: toCssAlignItems(align))),
+          inOurSpelling(
+            declarationsOf(Styles(alignItems: toCssAlignItems(align))),
+          ),
           'align-items:${css.cssAlignItems(align)}',
         );
       }
@@ -102,7 +118,9 @@ void main() {
     test('for every overflow', () {
       for (final core.Overflow overflow in core.Overflow.values) {
         expect(
-          declarationsOf(Styles(overflow: toCssOverflow(overflow))),
+          inOurSpelling(
+            declarationsOf(Styles(overflow: toCssOverflow(overflow))),
+          ),
           'overflow:${css.cssOverflow(overflow)}',
         );
       }
@@ -111,14 +129,18 @@ void main() {
     test('for every weight and every text alignment', () {
       for (final core.FontWeight weight in core.FontWeight.values) {
         expect(
-          declarationsOf(Styles(fontWeight: toCssFontWeight(weight))),
+          inOurSpelling(
+            declarationsOf(Styles(fontWeight: toCssFontWeight(weight))),
+          ),
           'font-weight:${css.cssFontWeight(weight)}',
         );
       }
 
       for (final core.TextAlign align in core.TextAlign.values) {
         expect(
-          declarationsOf(Styles(textAlign: toCssTextAlign(align))),
+          inOurSpelling(
+            declarationsOf(Styles(textAlign: toCssTextAlign(align))),
+          ),
           'text-align:${css.cssTextAlign(align)}',
         );
       }
@@ -147,7 +169,7 @@ void main() {
     for (final core.BoxTextStyle style in styles) {
       test('as $style', () {
         expect(
-          declarationsOf(toTypographyStyles(style)!),
+          inOurSpelling(declarationsOf(toTypographyStyles(style)!)),
           css.typographyDeclarations(style)!.text,
         );
       });
@@ -156,7 +178,7 @@ void main() {
     test('when it is the defaults of the model', () {
       // The `:root` rule both renderers start a document from.
       expect(
-        declarationsOf(defaultTypographyStyles()),
+        inOurSpelling(declarationsOf(defaultTypographyStyles())),
         css.defaultTypographyDeclarations().text,
       );
     });
@@ -170,8 +192,8 @@ void main() {
         offsetX: 8,
         offsetY: 4,
       );
-      final String text = declarationsOf(
-        toBoxStyles(const core.BoxStyle(transform: transform)),
+      final String text = inOurSpelling(
+        declarationsOf(toBoxStyles(const core.BoxStyle(transform: transform))),
       );
 
       expect(text, contains('transform:${css.cssTransform(transform)}'));
@@ -182,8 +204,10 @@ void main() {
         duration: Duration(milliseconds: 150),
         curve: core.BoxCurve.easeOut,
       );
-      final String text = declarationsOf(
-        toBoxStyles(const core.BoxStyle(transition: transition)),
+      final String text = inOurSpelling(
+        declarationsOf(
+          toBoxStyles(const core.BoxStyle(transition: transition)),
+        ),
       );
 
       expect(text, contains('transition:${css.cssTransition(transition)}'));
@@ -226,11 +250,13 @@ void main() {
           test('as $style, declaredOnly: $declaredOnly, on $element', () {
             // Not "contains": the whole text, because a class name is a hash of it.
             expect(
-              declarationsOf(
-                toBoxStyles(
-                  style,
-                  declaredOnly: declaredOnly,
-                  element: element,
+              inOurSpelling(
+                declarationsOf(
+                  toBoxStyles(
+                    style,
+                    declaredOnly: declaredOnly,
+                    element: element,
+                  ),
                 ),
               ),
               css
@@ -255,7 +281,7 @@ void main() {
       );
 
       expect(
-        declarationsOf(Styles(border: toCssBorder(border))),
+        inOurSpelling(declarationsOf(Styles(border: toCssBorder(border)))),
         'border:${css.cssBorder(border)}',
       );
     });
@@ -270,7 +296,7 @@ void main() {
       );
 
       expect(
-        declarationsOf(Styles(shadow: toCssBoxShadow(shadow))),
+        inOurSpelling(declarationsOf(Styles(shadow: toCssBoxShadow(shadow)))),
         'box-shadow:${css.cssBoxShadow(shadow)}',
       );
     });
@@ -279,3 +305,54 @@ void main() {
 
 /// A role a design system would name; any enum does.
 enum _Role { primary }
+
+/// The declarations of [jaspr] — Jaspr's output — written the way `unibox_css` writes
+/// them, so the two can be compared for meaning rather than for bytes.
+String inOurSpelling(String jaspr) =>
+    jaspr.split(';').map(_declarationInOurSpelling).join(';');
+
+String _declarationInOurSpelling(String declaration) {
+  final int colon = declaration.indexOf(':');
+
+  if (colon == -1) {
+    return declaration;
+  }
+
+  final String property = declaration.substring(0, colon);
+  String value = declaration.substring(colon + 1).replaceAll(_zeros, '0');
+
+  final List<String> reordered =
+      _reorderings[property]?.call(value) ?? <String>[];
+
+  if (reordered.isNotEmpty) {
+    value = reordered.join(' ');
+  }
+
+  return '$property:$value';
+}
+
+/// Every `0px` that stands on its own, which this library writes `0`.
+final RegExp _zeros = RegExp(r'\b0px\b');
+
+/// The properties whose three tokens are stated in a different order.
+final Map<String, List<String> Function(String)> _reorderings =
+    <String, List<String> Function(String)>{
+      // A border is written `width style colour`, the way a stylesheet is written by
+      // hand; Jaspr states it `style colour width`.
+      'border': (String value) => <String>[...value.split(' ')]
+        ..sort(
+          (String a, String b) => _borderOrder(a).compareTo(_borderOrder(b)),
+        ),
+    };
+
+int _borderOrder(String token) {
+  if (token.endsWith('px')) {
+    return 0;
+  }
+
+  if (token.startsWith('#')) {
+    return 2;
+  }
+
+  return 1;
+}

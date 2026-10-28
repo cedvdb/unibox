@@ -11,7 +11,11 @@ String cssNumber(double value) =>
     value == value.roundToDouble() ? '${value.toInt()}' : '$value';
 
 /// [value] in logical pixels, as CSS writes a length.
-String cssPixels(double value) => '${cssNumber(value)}px';
+///
+/// A zero is written `0` rather than `0px`: CSS accepts either, and the short one is
+/// what an author writes. It is one rule for every length here, so a padding, a gap
+/// and a radius cannot spell the same nothing two ways.
+String cssPixels(double value) => value == 0 ? '0' : '${cssNumber(value)}px';
 
 /// A model dimension as CSS writes it.
 ///
@@ -157,10 +161,10 @@ String cssTextAlign(core.TextAlign align) => switch (align) {
 
 /// A model [core.BoxBorder] as CSS writes a `border`.
 ///
-/// CSS states the style first, then the colour, then the width, which is the order
-/// the declaration is written in here.
+/// Width, style, colour: the order a stylesheet is written in by hand, and the one a
+/// reader scanning the output expects. CSS accepts the three in any order.
 String cssBorder(core.BoxBorder border) =>
-    'solid ${cssColor(border.color)} ${cssPixels(border.width)}';
+    '${cssPixels(border.width)} solid ${cssColor(border.color)}';
 
 /// A model [core.BoxShadow] as CSS writes one shadow.
 ///
