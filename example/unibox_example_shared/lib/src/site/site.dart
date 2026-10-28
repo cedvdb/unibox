@@ -22,8 +22,11 @@ const String repositoryUrl = 'https://github.com/cedvdb/unibox';
 /// with two live renderings of one tree; the catalogue shows the design system both
 /// sides are drawn with. A reader who stops after the frames has still seen the claim
 /// answered.
-UINode buildSitePage({required ShowcaseFrame frame}) {
-  final MaterialPalette palette = ExamplePalette.material;
+UINode buildSitePage({
+  required ShowcaseFrame frame,
+  ExampleSeed seed = ExampleSeed.blue,
+}) {
+  final MaterialPalette palette = ExamplePalette.materialFor(seed);
 
   return Box(
     direction: Axis.vertical,
@@ -41,8 +44,8 @@ UINode buildSitePage({required ShowcaseFrame frame}) {
         width: double.infinity,
         semantics: const BoxSemantics(element: BoxElement.main),
         children: <UINode>[
-          buildHeroSection(frame: frame),
-          buildMaterialSection(),
+          buildHeroSection(frame: frame, seed: seed),
+          buildMaterialSection(seed: seed),
         ],
       ),
       _footer(palette),

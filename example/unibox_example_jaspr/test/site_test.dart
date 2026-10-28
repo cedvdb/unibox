@@ -20,16 +20,23 @@ void main() {
   test('the site is one valid page that frames the example twice', () {
     final UINode page = sitePage();
 
-    expect(validateTree(page, theme: MaterialPalette.lightTheme), isEmpty);
+    // The catalogue carries the palette picker, so the page names the example's
+    // roles as well as Material's and is drawn with the theme that answers both.
+    expect(
+      validateTree(page, theme: ExamplePalette.themeFor(ExampleSeed.blue)),
+      isEmpty,
+    );
 
     final List<IframeNode> frames = _flatten(page)
         .whereType<IframeNode>()
         .toList();
 
     expect(frames, hasLength(2));
+    // Each frame is a document of its own, so the palette travels in its address:
+    // the page around it is drawn in the seed the catalogue picked.
     expect(frames.map((IframeNode node) => node.src), <String>[
-      'web/listings/',
-      'flutter/listings/',
+      'web/listings/?seed=blue',
+      'flutter/listings/?seed=blue',
     ], reason: 'the comparison shows the Jaspr page and the Flutter build');
     expect(frames.map((IframeNode node) => node.title), <String>[
       'Jaspr — HTML and CSS',

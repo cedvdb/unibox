@@ -24,4 +24,5 @@ export 'src/site/gallery.dart';
 export 'src/site/hero.dart';
 export 'src/site/section.dart';
 export 'src/site/site.dart';
+export 'src/seed_picker.dart';
 export 'src/theme.dart';

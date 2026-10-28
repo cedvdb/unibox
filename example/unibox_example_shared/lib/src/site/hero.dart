@@ -25,8 +25,11 @@ typedef ShowcaseFrame = UINode Function({
 /// The copy above the frames is set large and the room around it is wide, because that
 /// is what makes a page of plain boxes read as a modern one — scale and space, not a
 /// second set of colours.
-UINode buildHeroSection({required ShowcaseFrame frame}) {
-  final MaterialPalette palette = ExamplePalette.material;
+UINode buildHeroSection({
+  required ShowcaseFrame frame,
+  ExampleSeed seed = ExampleSeed.blue,
+}) {
+  final MaterialPalette palette = ExamplePalette.materialFor(seed);
 
   return siteBand(
     background: palette.surface,
@@ -34,7 +37,7 @@ UINode buildHeroSection({required ShowcaseFrame frame}) {
     child: Box(
       width: double.infinity,
       gap: 44,
-      children: <UINode>[_claim(palette), _comparison(palette, frame)],
+      children: <UINode>[_claim(palette), _comparison(palette, frame, seed)],
     ),
   );
 }
@@ -95,7 +98,11 @@ UINode _claim(MaterialPalette palette) {
 /// window and both answer the same breakpoint, on the same node tree. The heading and
 /// the captions are boxes and texts like everything else here; the frames are the one
 /// thing the model cannot describe, so they arrive through [ShowcaseFrame].
-UINode _comparison(MaterialPalette palette, ShowcaseFrame frame) {
+UINode _comparison(
+  MaterialPalette palette,
+  ShowcaseFrame frame,
+  ExampleSeed seed,
+) {
   return Box(
     width: double.infinity,
     gap: 20,
@@ -116,13 +123,13 @@ UINode _comparison(MaterialPalette palette, ShowcaseFrame frame) {
         children: <UINode>[
           _panel(
             title: 'Jaspr — HTML and CSS',
-            src: 'web/listings/',
+            src: 'web/listings/?seed=${seed.name}',
             palette: palette,
             frame: frame,
           ),
           _panel(
             title: 'Flutter — the same tree',
-            src: 'flutter/listings/',
+            src: 'flutter/listings/?seed=${seed.name}',
             palette: palette,
             frame: frame,
           ),

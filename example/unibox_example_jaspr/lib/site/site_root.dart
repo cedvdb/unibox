@@ -14,12 +14,13 @@ import 'iframe_node.dart';
 /// The two frames of the comparison are the one thing a node tree cannot describe, so
 /// this is where the host supplies them: an `<iframe>` per panel, resizable, which is
 /// what lets a reader narrow one and watch the page inside reflow.
-Component buildSiteRoot() {
+Component buildSiteRoot({ExampleSeed seed = ExampleSeed.blue}) {
   return renderJaspr(
     // The page is built from material components, which name colour roles: the
     // theme answers them, once, for the whole page.
-    theme: ExamplePalette.themeFor(ExampleSeed.blue),
+    theme: ExamplePalette.themeFor(seed),
     buildSitePage(
+      seed: seed,
       frame: ({required String src, required String title}) =>
           IframeNode(src: src, title: title, resizable: true),
     ),

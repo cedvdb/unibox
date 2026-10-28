@@ -44,8 +44,8 @@ void main() {
 
     test('frames the same screen in both renderings', () {
       expect(RegExp('<iframe').allMatches(html), hasLength(2));
-      expect(html, contains('src="web/listings/"'));
-      expect(html, contains('src="flutter/listings/"'));
+      expect(html, contains('src="web/listings/?seed=blue"'));
+      expect(html, contains('src="flutter/listings/?seed=blue"'));
       expect(html, contains('title="Jaspr — HTML and CSS"'));
       expect(html, contains('title="Flutter — the same tree"'));
     });

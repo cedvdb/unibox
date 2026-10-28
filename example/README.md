@@ -79,14 +79,25 @@ every colour of the page is read out of the palette Material grows from it
 the card, the page, the text, the muted text and the border. A tree holds no colour of
 its own: it names roles, and the theme the host installs answers them.
 
-That is what makes the row above the navigation bar possible. It offers six seeds,
-and each swatch is a link to *this page* with `?seed=<name>` in the address — the
-address is the whole mechanism, and both hosts answer it their own way:
+That is what makes the picker possible. It is one builder — `seedPicker` — used
+twice, because the two places teach different halves of the same thing:
+
+- **Above the example's navigation bar**: choosing a seed redraws the page you are
+  on, so the interesting part is how quickly it happens. Each swatch is a link to
+  *this page* with `?seed=<name>`, and the host answers the address its own way.
+- **In the Material catalogue**: the page that documents the design system picks the
+  seed the design system is documented in, and every specimen, swatch and hex under
+  the picker follows it.
 
 | Host | What `?seed=rose` means |
 | --- | --- |
 | Flutter | its link policy reads the address, installs the rose palette and redraws. Nothing loads, and the page keeps its store: the dialog stays open, the filter stays chosen |
 | Jaspr | the browser follows the link, `main.client.js` reads the address and renders the root with that palette, because a static document was rendered before the reader clicked |
+
+The catalogue's own page carries the seed one step further: each showcase frame is a
+document of its own, so the seed travels into its address too
+(`web/listings/?seed=rose`). A reseed therefore reaches the frames with the page
+around them, and one page is never two palettes.
 
 Three things are worth knowing about the result:
 
@@ -106,10 +117,11 @@ Three things are worth knowing about the result:
   green from that. It is the same green under all six brand seeds, because a
   confirmation is a convention and not a brand.
 
-What the picker does not do is restyle the pages that surround the example. The site's
-own catalogue is written by the build with the default seed, so a page and the frame
-embedded in it are never two palettes of one page; on the web the picker changes the
-example's documents, which are the ones a reader opens.
+The one thing the picker cannot do is change a page that was written before the
+reader clicked and is never redrawn: without the client runtime, a document keeps the
+palette the build rendered it with, which is the default seed. Everything else — the
+store that survives a reseed in Flutter, the frames that follow the page, the hexes
+in the catalogue — is the address doing its job.
 
 ## One font, one set of weights
 

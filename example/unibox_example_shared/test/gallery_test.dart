@@ -55,6 +55,31 @@ void main() {
         );
       },
     );
+
+    test('offers the palettes it documents, marked with the one in force', () {
+      // The catalogue is where a palette is explained, so it is where a reader can
+      // change it: the picker above the specimens is the same node the example page
+      // carries, and every swatch and hex below it is read from the seed it names.
+      final UINode section = buildMaterialSection(seed: ExampleSeed.rose);
+      final List<LinkNode> swatches = _nodesOf(section)
+          .whereType<LinkNode>()
+          .where((LinkNode link) => link.url.startsWith('?seed='))
+          .toList();
+
+      expect(swatches, hasLength(ExampleSeed.values.length));
+      final Box rose =
+          swatches.firstWhere((LinkNode link) => link.url == '?seed=rose').child
+              as Box;
+      final Box blue =
+          swatches.firstWhere((LinkNode link) => link.url == '?seed=blue').child
+              as Box;
+
+      expect(rose.border?.width, 2, reason: 'the palette in force is ringed');
+      expect(blue.border?.width, 1);
+      expect(rose.backgroundColor, ExampleSeed.rose.accent);
+      // And the specimens below are drawn with it, because they name its roles.
+      expect(_nodesOf(section).whereType<MaterialCard>().isEmpty, isFalse);
+    });
   });
 }
 

@@ -32,5 +32,9 @@ void main() {
     return;
   }
 
-  runApp(buildSiteRoot());
+  // The catalogue documents the palette, so it is drawn in the one the address
+  // asks for: a swatch in it is a link to this page with `?seed=<name>`.
+  runApp(
+    buildSiteRoot(seed: ExampleSeed.fromName(Uri.base.queryParameters['seed'])),
+  );
 }

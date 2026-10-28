@@ -2,6 +2,7 @@ import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_material/unibox_material.dart';
 
 import '../icons.dart';
+import '../seed_picker.dart';
 import '../theme.dart';
 import 'section.dart';
 
@@ -15,8 +16,8 @@ import 'section.dart';
 /// It is a band of the page rather than a page of its own: the heading names what
 /// the catalogue is, and each block under it is an `h3`, so the page still has one
 /// `h1` and two `h2`s above it.
-UINode buildMaterialSection() {
-  final MaterialPalette palette = ExamplePalette.material;
+UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.blue}) {
+  final MaterialPalette palette = ExamplePalette.materialFor(seed);
 
   return siteBand(
     background: palette.surface,
@@ -24,7 +25,12 @@ UINode buildMaterialSection() {
       width: double.infinity,
       gap: 48,
       children: <UINode>[
+        // The catalogue is the one place a reader can change the design system it
+        // documents: every swatch, every specimen and every hex below follows the
+        // seed, because all of them are read out of the palette it grew.
+        seedPicker(current: seed),
         siteHeading(
+          palette,
           title: 'Material 3, as values and nodes',
           lead:
               'Every component, then the type scale and the colour roles it is '
@@ -33,43 +39,55 @@ UINode buildMaterialSection() {
         // Components first: they are what a page is built from, and the scale and the
         // palette are what those components name.
         _section(
+          palette,
           'Buttons',
           _buttons(),
           note: 'Four shapes around one ink well: press one.',
         ),
-        _section('Chips', _chips(), note: 'A choice, and one with a cross.'),
         _section(
+          palette,
+          'Chips',
+          _chips(),
+          note: 'A choice, and one with a cross.',
+        ),
+        _section(
+          palette,
           'Segments',
           _segments(),
           note: 'A set of choices in one pill.',
         ),
         _section(
+          palette,
           'Text fields',
           _fields(palette),
           note: 'The filled field, with its own focus, label and error.',
         ),
         _section(
+          palette,
           'Cards and tiles',
           _cards(palette),
           note: 'A surface, and a row that says who it is.',
         ),
         _section(
+          palette,
           'Navigation bar',
           NavigationDemo(),
           note: 'Three destinations; the chosen one sits on a pill.',
         ),
         _section(
+          palette,
           'Dialog',
-          DialogDemo(),
+          DialogDemo(seed: seed),
           note: 'An OverlayNode: in the tree only while it is open.',
         ),
         // Then the values. The samples are the argument: fifteen lines of text and a
         // wall of swatches need a name, not a paragraph.
-        _section('Type scale', _typeScale()),
-        _section('Colour roles', _palette(palette)),
+        _section(palette, 'Type scale', _typeScale(palette)),
+        _section(palette, 'Colour roles', _palette(palette)),
         // The third value a box can name: its outline. A ring is one path with two
         // circles and the even-odd rule, and the label in its hole is an ordinary child.
         _section(
+          palette,
           'Shapes',
           _shapes(palette),
           note:
@@ -87,9 +105,12 @@ UINode buildMaterialSection() {
 /// The line is optional and short on purpose. A catalogue is read by looking at the
 /// samples, so a block says what it is and stops; the READMEs are where the long
 /// explanation lives.
-UINode _section(String title, UINode content, {String? note}) {
-  final MaterialPalette palette = ExamplePalette.material;
-
+UINode _section(
+  MaterialPalette palette,
+  String title,
+  UINode content, {
+  String? note,
+}) {
   return Box(
     width: double.infinity,
     gap: 16,
@@ -126,9 +147,7 @@ UINode _section(String title, UINode content, {String? note}) {
 }
 
 /// One row per type role: the role's name and a line of text typeset with it.
-UINode _typeScale() {
-  final MaterialPalette palette = ExamplePalette.material;
-
+UINode _typeScale(MaterialPalette palette) {
   return Box(
     gap: 12,
     children: <UINode>[
@@ -751,13 +770,19 @@ final class DialogDemoStore extends StateStore<bool> {
 /// whole mechanism a dialog needs — the node carries the barrier and the dismissal.
 final class DialogDemo extends StatefulNode<bool, DialogDemoStore> {
   /// Creates the demo, with its dialog closed.
-  DialogDemo() : super(create: DialogDemoStore.new, view: _dialogView);
+  DialogDemo({this.seed = ExampleSeed.blue})
+    : super(
+        create: DialogDemoStore.new,
+        view: (bool open, DialogDemoStore store) =>
+            _dialogView(open, store, ExamplePalette.materialFor(seed)),
+      );
+
+  /// The seed the demo is drawn with, which its own tree reads when it is built.
+  final ExampleSeed seed;
 }
 
 /// The button, the dialog when it is open, and what the section says about it.
-UINode _dialogView(bool open, DialogDemoStore store) {
-  final MaterialPalette palette = ExamplePalette.material;
-
+UINode _dialogView(bool open, DialogDemoStore store, MaterialPalette palette) {
   // A grid, so the button and the note beside it stack on a narrow window instead
   // of pushing the page sideways.
   return GridNode(

@@ -1,7 +1,6 @@
 import 'package:test/test.dart';
 import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_example_shared/unibox_example_shared.dart';
-import 'package:unibox_material/unibox_material.dart';
 
 /// A frame that draws nothing: the page is readable without a host.
 UINode _frame({required String src, required String title}) =>
@@ -64,7 +63,12 @@ void main() {
           '3|Dialog',
         ]),
       );
-      expect(validateTree(page, theme: MaterialPalette.lightTheme), isEmpty);
+      // The catalogue carries the palette picker, so the page names the example's
+      // roles as well as Material's: one theme, both vocabularies.
+      expect(
+        validateTree(page, theme: ExamplePalette.themeFor(ExampleSeed.blue)),
+        isEmpty,
+      );
     });
 
     test('frames the same screen in both renderings', () {
@@ -75,10 +79,30 @@ void main() {
       ];
 
       // The stub frame keys itself with its source, so the page names the two
-      // documents the comparison shows: the Jaspr rendering and the Flutter build.
+      // documents the comparison shows: the Jaspr rendering and the Flutter build —
+      // each told which palette to draw, because a frame is a document of its own.
       expect(
         frames,
-        containsAll(<Object?>['web/listings/', 'flutter/listings/']),
+        containsAll(<Object?>[
+          'web/listings/?seed=blue',
+          'flutter/listings/?seed=blue',
+        ]),
+      );
+    });
+
+    test('draws the frames in the palette the catalogue picked', () {
+      final UINode page = buildSitePage(frame: _frame, seed: ExampleSeed.rose);
+      final List<Object?> sources = <Object?>[
+        for (final UINode node in _flatten(page))
+          if (node.key != null) node.key,
+      ];
+
+      expect(
+        sources,
+        containsAll(<Object?>[
+          'web/listings/?seed=rose',
+          'flutter/listings/?seed=rose',
+        ]),
       );
     });
 
