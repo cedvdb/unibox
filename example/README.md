@@ -254,6 +254,16 @@ crawler that reads the same document either way. What reacts is the state — a 
 on the barrier closes the dialog, the form edits its store — and a document without
 JavaScript still shows the state it was exported in.
 
+Which page it draws is the path it is on, read the way the export writes it:
+`web/listings/`, `web/listings` and `web/listings/index.html` name one destination,
+and a site served from a subdirectory prefixes all three with its base path.
+`examplePageForPath` therefore matches the destination as a segment, the rule the
+Flutter host applies to `Uri.base.pathSegments`. Suffixing the whole path once named
+no destination for the `index.html` form, and the runtime drew the *front page* over
+the listing the host had served — which looked like a different scroll model rather
+than a different page, because a document scrolls and takes its bar with it while an
+app keeps the bar and scrolls the list under it.
+
 The deployment is `.github/workflows/pages.yml` — verify, build, publish. It needs
 one setting a workflow cannot make: Settings → Pages → Source: **GitHub Actions**.
 Until that is on, the job still verifies the workspace and builds the site, keeps it

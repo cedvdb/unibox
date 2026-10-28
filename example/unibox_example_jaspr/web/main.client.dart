@@ -17,16 +17,15 @@ import 'package:unibox_example_shared/unibox_example_shared.dart';
 /// entrypoint is host code and nothing else.
 void main() {
   final String path = Uri.base.path;
+  final ExamplePage? example = examplePageForPath(path);
 
-  if (path.endsWith('/web/listings/') ||
-      path.endsWith('/web/signup/') ||
-      path.endsWith('/web/pricing/')) {
+  if (example != null) {
+    // The page the path names decides both the tree and the state the document starts
+    // in, the way the exported document itself was written.
     runApp(
       buildExampleRoot(
-        openSignup: path.endsWith('/signup/'),
-        initialPage: path.endsWith('/pricing/')
-            ? ExamplePage.pricing
-            : ExamplePage.apartments,
+        openSignup: example == ExamplePage.signup,
+        initialPage: example,
       ),
     );
     return;

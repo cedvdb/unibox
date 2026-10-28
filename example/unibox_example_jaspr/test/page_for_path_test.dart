@@ -23,4 +23,49 @@ void main() {
       expect(sitePageForPath('/unibox/'), isNull);
     });
   });
+
+  group('examplePageForPath', () {
+    test('finds the page a document was exported for', () {
+      expect(examplePageForPath('/web/listings/'), ExamplePage.apartments);
+      expect(examplePageForPath('/web/pricing/'), ExamplePage.pricing);
+      expect(examplePageForPath('/web/signup/'), ExamplePage.signup);
+    });
+
+    test('finds it whether or not the host keeps the trailing slash', () {
+      expect(examplePageForPath('/web/listings'), ExamplePage.apartments);
+      expect(examplePageForPath('/unibox/web/signup/'), ExamplePage.signup);
+    });
+
+    test('finds it when the browser names the document itself', () {
+      // The runtime answered `null` here and drew the site's front page over the
+      // listing the host had served. A document scrolls and takes its bar with it,
+      // while the app keeps the bar and scrolls the list under it, so the same URL
+      // looked like two different scroll models rather than two different pages.
+      expect(
+        examplePageForPath('/web/listings/index.html'),
+        ExamplePage.apartments,
+      );
+      expect(
+        examplePageForPath('/unibox/web/pricing/index.html'),
+        ExamplePage.pricing,
+      );
+      expect(
+        examplePageForPath('/unibox/web/signup/index.html'),
+        ExamplePage.signup,
+      );
+    });
+
+    test('leaves the site pages to the site', () {
+      expect(examplePageForPath('/'), isNull);
+      expect(examplePageForPath('/material/'), isNull);
+      expect(examplePageForPath('/unibox/showcase/index.html'), isNull);
+    });
+
+    test('does not read a destination out of a directory beside it', () {
+      expect(examplePageForPath('/listings/'), isNull);
+      expect(examplePageForPath('/listings/index.html'), isNull);
+      expect(examplePageForPath('/webx/listings/'), isNull);
+      expect(examplePageForPath('/web/other/'), isNull);
+    });
+  });
 }
