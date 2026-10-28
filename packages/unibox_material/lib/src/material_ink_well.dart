@@ -286,6 +286,9 @@ UINode _inkWellView(
     width: width,
     height: height,
     flex: flex,
+    // A web flex column shrinks the stack to its content, so a row with a flexible
+    // part would not reach the edge of a full-width well.
+    crossAlign: CrossAlign.stretch,
     borderRadius: borderRadius,
     overflow: Overflow.hidden,
     transition: transition,
@@ -314,7 +317,13 @@ UINode _inkWellView(
         children: <UINode>[
           for (final MaterialInkDrop drop in state.drops) _dropView(drop, ink),
           // The content sizes the stack; a drop takes no room of its own.
-          Box(padding: padding, children: <UINode>[child]),
+          // The cell is a flex row on the web, which sizes its box to the content.
+          Box(
+            width: width == double.infinity ? double.infinity : null,
+            crossAlign: CrossAlign.stretch,
+            padding: padding,
+            children: <UINode>[child],
+          ),
         ],
       ),
     ],
