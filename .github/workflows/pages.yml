@@ -45,6 +45,11 @@ jobs:
       - name: Build the pages
         run: tool/site.sh --base=/unibox/ --url="$SITE_URL"
 
+      # The site is only worth publishing if the takeover page really becomes the application:
+      # a document that serves and never boots passes every other check here.
+      - name: Check that the document boots
+        run: tool/boot_check.sh build/site
+
       # A workflow cannot enable Pages with the repository token: `configure-pages`
       # needs an administrator to have turned it on first. Detect that instead of
       # failing, so the build keeps its value and the run link explains the next step.

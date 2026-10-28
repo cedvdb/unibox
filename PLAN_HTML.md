@@ -253,6 +253,11 @@ anything else, is defined inside it. `assetBase` is the directory and not the `a
 because Flutter appends `assets/` itself — the first attempt asked for
 `/flutter/assets/assets/FontManifest.json`.
 
+**In the deploy.** `tool/boot_check.sh` writes a probe document beside the takeover pages, boots
+it in headless Chrome and fails the workflow unless Flutter painted into it. It is the only
+check here that asks a browser what happened, and the only one that would have caught the fault
+above: a document that serves and never boots passes every other check in the repository.
+
 **Checked, not assumed.** Serve the built site and dump the DOM after the scripts have run:
 
 ```shell

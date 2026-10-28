@@ -21,78 +21,31 @@ primitives, and a test suite holds both to the same expected result.
 
 ## Why this exists
 
-A search engine, a link preview and a reader whose JavaScript failed all see the same
-thing in a Flutter screen: nothing. Flutter draws into a canvas, so there is no text to
-index. The usual fix is to write that page again as HTML — and then keep two designs in
-step, which drift the week after they are written.
+A search engine, a link preview and a reader whose JavaScript failed all see the same thing in
+a Flutter screen: nothing. Flutter draws into a canvas, so there is no text to index. The usual
+fix is to write that page again as HTML, and then keep two designs in step — which drift the
+week after they are written.
 
-Unibox removes the second design. You write the screen once, as a tree, and then choose
-how to serve it. There are two strategies.
+Unibox removes the second design: the screen is written once, as a tree, and the tree is both
+the page and the app.
 
-### Strategy 1: the Flutter app takes over
+## How a page is served
 
-The server renders the screen from the tree as a **read-only page** — HTML and CSS, all
-the text and links in it, which is what a crawler reads and what a visitor sees before
-anything loads. The Flutter app then takes the page over and draws the same screen from
-the same tree. The visitor gets one screen, not two versions of it: the markup and the
-app come from the same description, so they cannot disagree.
+`unibox_html` renders the tree to HTML and CSS, and a server or a build step writes it as a
+document. That document is what a crawler reads and what a reader sees before anything runs.
+The Flutter application then takes it over and draws the same tree as widgets.
 
-The handover is a repaint, because Flutter can only draw into a canvas — expect a brief
-flash. That is a fine trade when the page really is the app and the visitor is about to
-use it.
+Two things cross the handover, so a reader does not start again:
 
-### Strategy 2: the server writes a document
+- **The scroll.** A box the tree keyed writes that key on its element (`data-unibox-key`); the
+  page records where each one was scrolled to; and the scroll view that carries the same key
+  starts at that offset, as its initial position, before the first frame.
+- **The presses.** The page records what was pressed, on which element and where, and answers
+  `window.unibox.takePressed()`. Replaying that record into the application's callbacks is the
+  application's to do — it is the one part that needs to know what a press means.
 
-The same tree is rendered to HTML and CSS by `unibox_html` — one function, no framework,
-no runtime — so what a crawler reads is what a reader gets, and the page arrives as a
-document rather than as a canvas. The application that takes it over is prefetched while
-the reader reads and boots at the first sign of them: a pointer that moves, a press, a
-key. Someone who only reads never pays for it.
-
-That is what this site does: the page at `/` is one tree per band rendered to a document,
-and `/web/listings/` is the example in the left frame — the document in front of the
-application, which is `/flutter/listings/` built by Flutter.
-
-### What stays Flutter
-
-Only the pages that have to be found need either strategy. The rest of an application
-stays ordinary Flutter, screen for screen: a settings screen or an internal tool gains
-nothing from being indexable, and nothing here asks it to change.
-
-A page that has to work on a phone is written to fold rather than to a fixed width:
-`GridNode` drops columns as the window narrows, and every page of this site fits a
-375-pixel screen.
-
-### What a crawler sees
-
-The same screen, built twice by `tool/site.sh`. `tool/seo_report.py` counts what a
-search engine reads, so the numbers can be re-run rather than taken on trust:
-
-```shell
-tool/site.sh
-python3 tool/seo_report.py build/site
-```
-
-| Document | Words | `h1` | `h2` | Links | Fields | Bytes |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| HTML `/` | 492 | 1 | 2 | 9 | 2 | 129 767 |
-| HTML `/web/listings/` | 132 | 1 | 0 | 1 | 0 | 60 510 |
-| HTML `/web/signup/` | 149 | 1 | 1 | 3 | 2 | 70 216 |
-| **Flutter `/flutter/listings/`** | **4** | **0** | **0** | **0** | **0** | **772** |
-
-The first row is the whole site as one page: the claim, the comparison and the
-catalogue, 492 words of text with one `h1`, an `h2` per band and every component
-written as markup. The last row is the point. The Flutter build of the same screen is
-a document with a `<title>` and a canvas host: four words, no heading, no link,
-nothing to index. `/web/listings/` is that screen as a tree, and it is the same Dart.
-
-**The boundary.** Only the screens that must be found are trees. The rest of an
-application stays ordinary Flutter, screen for screen — a settings page or an internal
-tool gains nothing from being indexable, and nothing here asks it to change.
-
-A breakpoint is the host's, so a page that has to work on a phone says so with the
-layout it already has: `GridNode` folds its columns as the window narrows, and the site
-this README describes is built that way — every page of it fits a 375 pixel viewport.
+The application is prefetched while the reader reads and boots at the first sign of them — a
+pointer that moves, a press, a key — so a reader who only reads never downloads it.
 
 <p align="center">
   <img src="docs/hero.svg" alt="One immutable Dart node tree on the left, a fork into two panels showing the same card drawn by Flutter's widget tree and rendered as HTML and CSS." width="900">
@@ -103,6 +56,7 @@ window is, what happens when the user taps, and what the surrounding document is
 called. Those belong to the host — see [what the host owns](#what-the-host-owns).
 
 - [Why this exists](#why-this-exists)
+- [How a page is served](#how-a-page-is-served)
 - [Quick start](#quick-start)
 - [The nodes](#the-nodes)
 - [Colours](#colours)
@@ -837,6 +791,24 @@ Three mechanisms, all of them tested:
    node outside a stack, a link inside a link, a scrolling box that also distributes
    its children, a list item outside a list, an embed with nothing to draw, and a
    transition that changes nothing.
+
+The same tree, built twice by `tool/site.sh` and counted by `tool/seo_report.py`, so the numbers
+can be re-run rather than taken on trust:
+
+```shell
+python3 tool/seo_report.py build/site
+```
+
+| Document | Words | `h1` | `h2` | Links | Fields | Bytes |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| HTML `/` | 492 | 1 | 2 | 9 | 2 | 129 767 |
+| HTML `/web/listings/` | 132 | 1 | 0 | 1 | 0 | 60 510 |
+| HTML `/web/signup/` | 149 | 1 | 1 | 3 | 2 | 70 216 |
+| **Flutter `/flutter/listings/`** | **4** | **0** | **0** | **0** | **0** | **772** |
+
+The last row is the reason for the package: the Flutter build of that screen is a document
+with a `<title>` and a canvas host, four words and nothing to index. The rows above it are the
+same screen as a tree.
 
 What is *not* promised is the pixels: glyph shapes, hinting and line breaking belong
 to the text engine, and a browser is not Skia. What is promised is the layout, the
