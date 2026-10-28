@@ -35,10 +35,8 @@ UINode buildShowcaseSection({required ShowcaseFrame frame}) {
         siteHeading(
           title: 'The same tree, drawn twice',
           lead:
-              'Left, the page Jaspr serves: HTML and CSS, every word and link in '
-              'the document a crawler reads. Right, exactly the same node tree '
-              'built by Flutter. Drag a frame narrower and both answer the same '
-              'breakpoint, because neither one decides its own layout.',
+              'Left, the page Jaspr serves; right, the same node tree built by '
+              'Flutter. Drag a frame narrower and both answer the same breakpoint.',
         ),
         GridNode(
           minItemWidth: 380,

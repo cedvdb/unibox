@@ -96,6 +96,26 @@ void main() {
       );
     });
 
+    test('leads with the components, then the scale, then the palette', () {
+      final List<String> blocks = _headings(buildSitePage(frame: _frame))
+          .where((String heading) => heading.startsWith('3|'))
+          .map((String heading) => heading.substring(2))
+          .toList();
+
+      // The order is the request, not an accident: a page is built out of
+      // components, and the scale and the palette are what those components name.
+      expect(blocks, <String>[
+        'Buttons',
+        'Chips and segments',
+        'Text fields',
+        'Cards and tiles',
+        'Navigation bar',
+        'Dialog',
+        'Type scale',
+        'Colour roles',
+      ]);
+    });
+
     test('describes the page as a document', () {
       final UINode page = buildSitePage(frame: _frame);
       final List<BoxElement> landmarks = <BoxElement>[
