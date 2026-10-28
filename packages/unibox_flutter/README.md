@@ -39,7 +39,7 @@ with their target.
 | `width`, `height`                   | `SizedBox`                                          |
 | `minWidth`, `maxWidth`, ...         | `ConstrainedBox`                                    |
 | `backgroundColor`, `borderRadius`, `border`, `shadow` | `DecoratedBox` with a `BoxDecoration` |
-| `overflow: Overflow.hidden`         | `ClipRect`                                          |
+| `overflow: Overflow.hidden`         | `ClipRect`, inside the decoration so the shadow survives |
 | `PositionedNode.alignment`          | `Positioned.fill` around an `Align`                 |
 | `overflow: Overflow.scroll`         | `SingleChildScrollView`                             |
 | `onTap` / `onLongPress`             | `GestureDetector`                                   |

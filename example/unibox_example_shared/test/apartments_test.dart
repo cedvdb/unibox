@@ -37,7 +37,7 @@ void main() {
   ///
   /// The page is a stack now — the list scrolls under a floating button — so the box
   /// that scrolls is reached through whatever wraps it rather than at a fixed depth.
-  Box _scrolling(UINode page) {
+  Box scrollingBox(UINode page) {
     UINode node = page;
 
     while (node is! Box || node.overflow != Overflow.scroll) {
@@ -50,7 +50,7 @@ void main() {
   group('buildApartmentsPage', () {
     test('scrolls instead of growing the page', () {
       final Box page = buildApartmentsPage();
-      final Box scrolling = _scrolling(page);
+      final Box scrolling = scrollingBox(page);
 
       expect(scrolling.overflow, Overflow.scroll);
       expect(page.flex, 1);
@@ -66,8 +66,8 @@ void main() {
       final Box page = buildApartmentsPage();
 
       expect(page.padding, isNull);
-      expect(_scrolling(page).children.single, isA<Box>());
-      expect((_scrolling(page).children.single as Box).padding, isNotNull);
+      expect(scrollingBox(page).children.single, isA<Box>());
+      expect((scrollingBox(page).children.single as Box).padding, isNotNull);
     });
 
     test('floats the map button at the bottom centre of the page', () {

@@ -518,6 +518,8 @@ MaterialChip(label: const TextNode('Studio'), onTap: filter)
 | unselected | no fill, a 1 pixel `outline` line, `onSurfaceVariant` label |
 | selected | `secondaryContainer` fill, no line, `onSecondaryContainer` label |
 | room | 16 either side, and 8 on the leading side when a node sits there |
+| leading, trailing | a node before and after the label — a check, a folder, a cross |
+| onRemove | an 18 pixel round target inside the pill: a press on it removes the chip, not the choice |
 
 It is a [Box] around a `MaterialInkWell`, like `MaterialButton`, and the padding is
 **the well's alone**: one node carries the room inside the chip, so the tint of a
@@ -527,6 +529,13 @@ clips to the radius, so the ink of a press stays inside too.
 
 A chip is a control: it announces itself as a button when it can be pressed, and says
 whether it is chosen, which is a state a screen reader hears rather than a colour.
+
+`leading` and `trailing` take a node each, and `onRemove` turns the chip into an input
+chip: the trailing node is wrapped in a round well of its own, so a press on the cross
+removes the chip instead of choosing it. The glyph is the caller's — a check, a folder
+and a cross all come from a font, and a font is a host asset this package does not
+ship. `MaterialIcon` is the way in when an application has one; the example draws its
+four glyphs from boxes instead.
 
 ## The dialog and the bottom sheet
 

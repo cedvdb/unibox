@@ -27,6 +27,13 @@ import 'material_typography.dart';
 /// A chip is a control, so it announces itself as a button when it can be pressed,
 /// and says whether it is chosen: `selected` is the pressed state a screen reader
 /// hears, not a colour.
+///
+/// **What it can carry.** [leading] is a node before the label — where Material puts a
+/// check on a chosen filter chip — and `trailing` is one after it. [onRemove] adds the
+/// close of an input chip: a round 18 pixel target of its own inside the pill, so a
+/// press on the cross removes the chip instead of choosing it, and the cross itself is
+/// [trailing] — a glyph the application draws or writes, because a font is a host
+/// asset.
 final class MaterialChip extends Box {
   /// Creates a chip around [label].
   MaterialChip({
@@ -34,6 +41,8 @@ final class MaterialChip extends Box {
     bool selected = false,
     UINode? leading,
     TapCallback? onTap,
+    UINode? trailing,
+    TapCallback? onRemove,
     bool enabled = true,
     BoxColor? ink,
     super.margin,
@@ -61,6 +70,15 @@ final class MaterialChip extends Box {
                label: label,
                leading: leading,
                selected: selected,
+               trailing: onRemove == null ? trailing : null,
+               remove: onRemove == null
+                   ? null
+                   : _removeAffordance(
+                       glyph: trailing,
+                       onRemove: onRemove,
+                       enabled: enabled,
+                       selected: selected,
+                     ),
              ),
            ),
          ],
@@ -86,14 +104,18 @@ final class MaterialChip extends Box {
   static UINode _content({
     required UINode label,
     required UINode? leading,
+    required UINode? remove,
+    required UINode? trailing,
     required bool selected,
   }) {
     final BoxTextStyle style = MaterialTypography.labelLarge.merge(
       BoxTextStyle(color: _inkOf(selected)),
     );
+    final UINode text = Box(textStyle: style, children: <UINode>[label]);
+    final UINode? after = remove ?? trailing;
 
-    if (leading == null) {
-      return Box(textStyle: style, children: <UINode>[label]);
+    if (leading == null && after == null) {
+      return text;
     }
 
     return Box(
@@ -101,7 +123,37 @@ final class MaterialChip extends Box {
       crossAlign: CrossAlign.center,
       gap: 8,
       textStyle: style,
-      children: <UINode>[leading, label],
+      children: <UINode>[?leading, label, ?after],
+    );
+  }
+
+  /// The close of an input chip: [glyph] in a round well of its own.
+  ///
+  /// Its own well matters twice. It is a second target — a press on the cross removes
+  /// the chip and must not also press it — and it gets the state layer of a control
+  /// rather than the label's. The glyph is the caller's: a font is a host asset, and
+  /// this package ships none, so a cross is drawn or given as text by the application.
+  static UINode _removeAffordance({
+    required UINode? glyph,
+    required TapCallback onRemove,
+    required bool enabled,
+    required bool selected,
+  }) {
+    return MaterialInkWell(
+      onTap: onRemove,
+      enabled: enabled,
+      borderRadius: 9,
+      ink: _inkOf(selected),
+      width: 18,
+      height: 18,
+      mainAlign: MainAlign.center,
+      semantics: const BoxSemantics(role: BoxRole.button, label: 'Remove'),
+      child: Box(
+        mainAlign: MainAlign.center,
+        crossAlign: CrossAlign.center,
+        width: double.infinity,
+        children: <UINode>[?glyph],
+      ),
     );
   }
 

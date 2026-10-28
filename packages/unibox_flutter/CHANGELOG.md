@@ -2,6 +2,10 @@
 
 ## 0.1.0
 
+- The clip of a box is applied inside its decoration, so a card with `overflow: hidden`
+  keeps the shadow it casts: CSS cuts an element's content to its radius and never its
+  own `box-shadow`, and a `ClipRRect` around a `DecoratedBox` was swallowing it.
+
 - `PositionedNode.alignment` renders as `Positioned.fill` around an `Align`, so an
   aligned child fills the stack and sits where the alignment says.
 

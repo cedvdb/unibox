@@ -8,7 +8,16 @@ void _tap() {}
 MaterialInkWell _well(MaterialChip chip) =>
     chip.children.single as MaterialInkWell;
 
-/// The box the well draws: its tints, its role and its ink live there.
+/// The box a well draws.
+Box _boxOf(MaterialInkWell well) {
+  final MaterialInkStore store = MaterialInkStore();
+  final Box box = well.viewFor(store.state, store) as Box;
+  store.dispose();
+
+  return box;
+}
+
+/// The chip's own well, drawn.
 Box _box(MaterialChip chip) {
   final MaterialInkStore store = MaterialInkStore();
   final Box box = _well(chip).viewFor(store.state, store) as Box;
@@ -125,6 +134,43 @@ void main() {
         ),
         const BoxColor.role(MaterialColorRole.onSecondaryContainer),
       );
+    });
+
+    test('puts a node in front of the label when it is given one', () {
+      final MaterialChip chip = MaterialChip(
+        label: const TextNode('Two rooms'),
+        leading: const TextNode('check'),
+        trailing: const TextNode('after'),
+      );
+      final Box row = _content(chip).children.single as Box;
+
+      expect(row.direction, Axis.horizontal);
+      expect(
+        row.children.map((UINode node) => (node as TextNode).text).toList(),
+        <String>['check', 'Two rooms', 'after'],
+      );
+    });
+
+    test('gives a removable chip a close target of its own', () {
+      final MaterialChip chip = MaterialChip(
+        label: const TextNode('Garden'),
+        trailing: const TextNode('x'),
+        onRemove: _tap,
+        onTap: _tap,
+      );
+      final Box row = _content(chip).children.single as Box;
+      final MaterialInkWell close = row.children.last as MaterialInkWell;
+
+      expect(
+        close,
+        isNot(same(_well(chip))),
+        reason: 'the cross is a second target, not the chip itself',
+      );
+      expect(_boxOf(close).width, 18);
+      expect(_boxOf(close).semantics?.role, BoxRole.button);
+      expect(_boxOf(close).semantics?.label, 'Remove');
+      // The chip itself still says it can be pressed and whether it is chosen.
+      expect(_box(chip).semantics?.role, BoxRole.button);
     });
 
     test('draws a tree the model can validate', () {
