@@ -540,6 +540,12 @@ clips to the radius, so the ink of a press stays inside too.
 A chip is a control: it announces itself as a button when it can be pressed, and says
 whether it is chosen, which is a state a screen reader hears rather than a colour.
 
+**What stays approximate.** Material gives a 32 pixel chip a 48 pixel touch target by
+padding the shape invisibly, and this model has no invisible padding — a chip's target
+is the chip. A chosen filter chip also shows a check mark in Material; here the check
+is `leading`, because it is a glyph and a glyph comes from a font. The example draws one
+from boxes, which is what makes the selected chip on this site look like Material's.
+
 `leading` and `trailing` take a node each, and `onRemove` turns the chip into an input
 chip: the trailing node is wrapped in a round well of its own, so a press on the cross
 removes the chip instead of choosing it. The glyph is the caller's — a check, a folder
