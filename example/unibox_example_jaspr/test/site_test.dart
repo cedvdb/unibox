@@ -10,12 +10,19 @@ import 'package:unibox_material/unibox_material.dart';
 /// the site is built with the library it documents, and a page that no renderer can
 /// honour would be an embarrassing demonstration.
 void main() {
-  test('the front page says what the library is and offers both ways in', () {
+  test('the front page sells one thing and points at three places', () {
     final UINode landing = buildLanding();
 
     expect(validateTree(landing, theme: MaterialPalette.lightTheme), isEmpty);
     expect(_texts(landing), contains('Describe a screen once.'));
-    expect(_links(landing), containsAll(<String>['material/', 'showcase/']));
+    // The bar carries the catalogue and the comparison. The page itself offers the
+    // three places its claim points at — a page it serves, the same screen in
+    // Flutter, and the page a crawler reads — and otherwise asks for nothing.
+    expect(_links(landing), <String>[
+      'web/pricing/',
+      'flutter/listings/',
+      'web/listings/',
+    ]);
   });
 
   test('the gallery is a valid tree that shows the Material package', () {

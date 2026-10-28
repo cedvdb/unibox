@@ -77,8 +77,8 @@ python3 tool/seo_report.py build/site
 | Jaspr `/web/pricing/` | 331 | 1 | 2 | 5 | 0 | 20 247 |
 | Jaspr `/web/listings/` | 132 | 1 | 0 | 3 | 0 | 42 309 |
 | Jaspr `/web/signup/` | 149 | 1 | 1 | 5 | 2 | 51 469 |
-| Jaspr `/` | 439 | 1 | 2 | 7 | 0 | 17 360 |
-| Jaspr `/material/` | 513 | 1 | 0 | 3 | 2 | 63 879 |
+| Jaspr `/` | 182 | 1 | 4 | 6 | 0 | 17 109 |
+| Jaspr `/material/` | 513 | 1 | 0 | 3 | 2 | 65 450 |
 | **Flutter `/flutter/listings/`** | **4** | **0** | **0** | **0** | **0** | **772** |
 
 `/web/pricing/` is the shape a marketing page takes: a hero, three plans and the

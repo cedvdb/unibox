@@ -10,59 +10,70 @@ import 'package:unibox_material/unibox_material.dart';
 UINode buildMaterialGallery() {
   const MaterialPalette palette = MaterialPalette.light;
 
+  // A measure, not the window: the gallery is a catalogue, and a paragraph or a row of
+  // buttons stretched across a 27 inch screen is unreadable however well it renders.
+  // The column is centred in whatever width the page is given, and fills a phone.
   return Box(
     width: double.infinity,
-    padding: const BoxSpacing.symmetric(horizontal: 32, vertical: 32),
-    gap: 48,
+    direction: Axis.horizontal,
+    mainAlign: MainAlign.center,
     children: <UINode>[
-      _header(palette),
-      _section(
-        'Type scale',
-        'The fifteen roles as const BoxTextStyle values. A box passes one down; a '
-            'text names the one it wants.',
-        _typeScale(),
-      ),
-      _section(
-        'Colour roles',
-        'MaterialPalette.light and .dark: the roles as const BoxColor values, read '
-            'when the tree is built rather than looked up at render time.',
-        _palette(palette),
-      ),
-      _section(
-        'Buttons',
-        'A MaterialButton is a fill around the ink well, so the hover, focus and '
-            'press tints paint over the colour rather than replacing it, and a press '
-            'spreads ink from where it landed. Hold one down to see both.',
-        _buttons(),
-      ),
-      _section(
-        'Chips and segments',
-        'A chip is one choice, a segmented button is a set of them in one pill. Both '
-            'are a fill around the ink well, so their tints stop at the shape they '
-            'belong to; press a segment to move the choice.',
-        _choices(),
-      ),
-      _section(
-        'Text fields',
-        'The filled field: surfaceContainerHighest, a bottom line that thickens and '
-            'turns primary on focus, the label on the line while it is empty and at '
-            'the top of the fill once it is not. Type in either field: the state is '
-            "the field's, so a half finished address says so, and finishing it stops.",
-        _fields(palette),
-      ),
-      _section(
-        'Cards and tiles',
-        'A card is a box with the Material surface, radius and elevation; a list tile '
-            'is a box with a leading, a title, an optional supporting text and a '
-            'trailing node.',
-        _cards(palette),
-      ),
-      _section(
-        'Dialog',
-        'A dialog is an OverlayNode rather than a call: it is in the tree only while '
-            'the state says it is open, it covers the page behind a barrier and leaves '
-            'on Escape or a press on the barrier. Press the button.',
-        DialogDemo(),
+      Box(
+        width: double.infinity,
+        maxWidth: 960,
+        padding: const BoxSpacing.symmetric(horizontal: 32, vertical: 32),
+        gap: 48,
+        children: <UINode>[
+          _header(palette),
+          _section(
+            'Type scale',
+            'The fifteen roles as const BoxTextStyle values. A box passes one down; a '
+                'text names the one it wants.',
+            _typeScale(),
+          ),
+          _section(
+            'Colour roles',
+            'MaterialPalette.light and .dark: the roles as const BoxColor values, read '
+                'when the tree is built rather than looked up at render time.',
+            _palette(palette),
+          ),
+          _section(
+            'Buttons',
+            'A MaterialButton is a fill around the ink well, so the hover, focus and '
+                'press tints paint over the colour rather than replacing it, and a press '
+                'spreads ink from where it landed. Hold one down to see both.',
+            _buttons(),
+          ),
+          _section(
+            'Chips and segments',
+            'A chip is one choice, a segmented button is a set of them in one pill. Both '
+                'are a fill around the ink well, so their tints stop at the shape they '
+                'belong to; press a segment to move the choice.',
+            _choices(),
+          ),
+          _section(
+            'Text fields',
+            'The filled field: surfaceContainerHighest, a bottom line that thickens and '
+                'turns primary on focus, the label on the line while it is empty and at '
+                'the top of the fill once it is not. Type in either field: the state is '
+                "the field's, so a half finished address says so, and finishing it stops.",
+            _fields(palette),
+          ),
+          _section(
+            'Cards and tiles',
+            'A card is a box with the Material surface, radius and elevation; a list tile '
+                'is a box with a leading, a title, an optional supporting text and a '
+                'trailing node.',
+            _cards(palette),
+          ),
+          _section(
+            'Dialog',
+            'A dialog is an OverlayNode rather than a call: it is in the tree only while '
+                'the state says it is open, it covers the page behind a barrier and leaves '
+                'on Escape or a press on the barrier. Press the button.',
+            DialogDemo(),
+          ),
+        ],
       ),
     ],
   );
@@ -262,15 +273,39 @@ String _hex(BoxColor color) {
 UINode _buttons() {
   return GridNode(
     minItemWidth: 150,
+    maxColumns: 4,
     gap: 16,
     children: <UINode>[
-      MaterialButton.filled(label: const TextNode('Filled'), onTap: () {}),
-      MaterialButton.tonal(label: const TextNode('Tonal'), onTap: () {}),
-      MaterialButton.outlined(label: const TextNode('Outlined'), onTap: () {}),
-      MaterialButton.text(label: const TextNode('Text'), onTap: () {}),
+      _natural(
+        MaterialButton.filled(label: const TextNode('Filled'), onTap: () {}),
+      ),
+      _natural(
+        MaterialButton.tonal(label: const TextNode('Tonal'), onTap: () {}),
+      ),
+      _natural(
+        MaterialButton.outlined(
+          label: const TextNode('Outlined'),
+          onTap: () {},
+        ),
+      ),
+      _natural(
+        MaterialButton.text(label: const TextNode('Text'), onTap: () {}),
+      ),
     ],
   );
 }
+
+/// Keeps [child] at its own size inside a grid track.
+///
+/// A track is as wide as its column and a box inside one fills that width, which
+/// turned every button on this page into a banner with its hover tint stretched
+/// across it. A row lays the control out at its natural size and leaves the rest of
+/// the track empty.
+UINode _natural(UINode child) => Box(
+  direction: Axis.horizontal,
+  crossAlign: CrossAlign.center,
+  children: <UINode>[child],
+);
 
 /// The two controls that pick from a small set.
 UINode _choices() {
