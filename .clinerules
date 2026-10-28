@@ -7,7 +7,7 @@ parity fix. Read it before editing; [llms.txt](llms.txt) indexes the rest.
 What is not negotiable:
 
 1. **`packages/unibox_core` is pure Dart.** It never imports `dart:ui`, Flutter or
-   Jaspr and takes no package dependencies. The AST, the tokens and the defaults
+   a web framework and takes no package dependencies. The AST, the tokens and the defaults
    live there; the renderers live next door.
 2. **A change lands on both targets.** `packages/unibox_testing` is the one
    place where the expected appearance of a token is written down, and both
@@ -40,4 +40,4 @@ What is not negotiable:
     alignment) and sits in the tree where the state says it belongs; no view has an
     overlay slot, and an overlay is never drawn in the flow of its parent.
 
-When implementing `unibox_jaspr`, refer to Jaspr's official docs: https://jaspr.site/llms.txt
+The web renderer is `unibox_html`: a document first, and an application over it second.

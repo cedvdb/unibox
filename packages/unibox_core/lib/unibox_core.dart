@@ -1,7 +1,7 @@
 /// Pure Dart layout primitives shared by every Unibox renderer.
 ///
 /// This library is intentionally free of platform dependencies: it never
-/// imports `dart:ui`, Flutter or Jaspr, so it can be consumed from command line
+/// imports `dart:ui`, Flutter or a web framework, so it can be consumed from command line
 /// tools, servers and both UI targets alike.
 ///
 /// The public API is composed of:

@@ -1,7 +1,7 @@
 /// Base class of every node in the Unibox tree.
 ///
 /// Nodes are immutable descriptions of a piece of UI. Renderers translate them
-/// to Flutter widgets or to Jaspr components.
+/// to Flutter widgets or to HTML.
 ///
 /// Custom nodes may extend this class, renderers will report nodes they do not
 /// support.
@@ -27,7 +27,7 @@ abstract class UINode {
   ///
   /// Keys must be unique among the children of one parent and stable across
   /// rebuilds: the id of the model the node describes is the usual choice.
-  /// Flutter renders it as a `ValueKey`, Jaspr as a component `ValueKey`.
+  /// Flutter renders it as a `ValueKey`, and the web renderer writes it as an attribute.
   ///
   /// A renderer may also write the key into the output it produces, so a host can
   /// find the element a node drew again without counting its siblings — which is

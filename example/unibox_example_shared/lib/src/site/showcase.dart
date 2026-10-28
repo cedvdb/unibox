@@ -37,7 +37,7 @@ UINode buildShowcaseSection({required ShowcaseFrame frame}) {
         siteHeading(
           title: 'The same tree, drawn twice',
           lead:
-              'Left, the page Jaspr serves; right, the same node tree built by '
+              'Left, the document the tree renders to; right, the same node tree built by '
               'Flutter. Drag a frame narrower and both answer the same breakpoint.',
         ),
         GridNode(
@@ -46,7 +46,7 @@ UINode buildShowcaseSection({required ShowcaseFrame frame}) {
           gap: 20,
           children: <UINode>[
             _panel(
-              title: 'Jaspr — HTML and CSS',
+              title: 'HTML and CSS — the document',
               src: 'web/listings/',
               palette: palette,
               frame: frame,

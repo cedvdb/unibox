@@ -3,7 +3,7 @@
 Platform agnostic Unibox AST, style tokens and layout types.
 
 This package has zero external dependencies: it never imports `dart:ui`,
-Flutter or the web renderer. Renderers live in `unibox_flutter` and `unibox_jaspr`.
+Flutter or the web renderer. Renderers live in `unibox_flutter`, `unibox_css` and `unibox_html`.
 
 ## Nodes and tokens
 
@@ -266,7 +266,7 @@ Widget view() => const core.Box(direction: core.Axis.vertical).toWidget();
 Better still, keep the tree in a library of its own: a package that imports
 `unibox_core` but no renderer never sees both APIs, needs neither a prefix nor
 `hide`, and is where a shared Flutter/web tree belongs anyway. `unibox_flutter`
-and `unibox_jaspr` never re-export this package, so importing a renderer is
+and `unibox_html` never re-export this package, so importing a renderer is
 always safe.
 
 ## Validation

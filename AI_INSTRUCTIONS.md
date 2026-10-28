@@ -22,7 +22,7 @@ A prompt that works:
 Read AI_INSTRUCTIONS.md and README.md from the Unibox repository before writing any
 code. Build <the component> as a Unibox node tree in a file that imports only
 package:unibox_core, plus package:unibox_material when it uses the Material roles.
-Do not use Flutter, Jaspr or HTML widgets. Return the tree, and separately the small
+Do not use Flutter or HTML widgets. Return the tree, and separately the small
 host that renders it.
 ```
 
@@ -31,8 +31,8 @@ host that renders it.
 - A screen is an immutable Dart tree of nodes: `Box`, `TextNode`, `ImageNode`,
   `LinkNode`, `StackNode` + `PositionedNode`, `TextInputNode`, `StatefulNode`,
   `OverlayNode`, `GridNode`, `EmbedNode`.
-- One tree, two renderers: `renderFlutter(tree)` or `tree.toWidget()` in a Flutter
-  app, `renderJaspr(tree)` or `tree.toComponent()` in a Jaspr one.
+- One tree, two renderings: `renderFlutter(tree)` or `tree.toWidget()` in a Flutter app,
+  and `toDocument(tree)` or `toHtml(tree)` in `unibox_html` for a page a crawler reads.
 - A node describes *what* is on screen, never which framework draws it. There is no
   `Text`, `Row`, `Column`, `Container`, `Colors`, `EdgeInsets`, `TextStyle` or
   `BoxFit` in the tree.
@@ -69,7 +69,7 @@ host that renders it.
 
 1. **Import the tree with a prefix.** `Axis`, `TextAlign`, `FontWeight`,
    `TextOverflow`, `BoxBorder` and `BoxShadow` also exist in Flutter. In any file
-   that imports Flutter or Jaspr:
+   that imports Flutter:
 
    ```dart
    import 'package:flutter/material.dart';
@@ -379,9 +379,9 @@ MaterialApp(
 );
 ```
 
-The Jaspr host is the same shape: subclass `JasprStateful`, return the node from
-`createNode()`, and let the document own the `html`/`body` height and the font. Both
-hosts of the example are one small file each, and
+The web host is smaller still: `toDocument(tree, title: …)` writes the page, and the host
+only states the document's own facts — the title, the head, the font it ships. Both hosts of
+the example are one small file each, and
 [`example/unibox_example_shared/lib/src/page_node.dart`](example/unibox_example_shared/lib/src/page_node.dart)
 is the long form of the node above.
 
@@ -394,7 +394,7 @@ the tree could have kept: that is the drift the model exists to prevent.
 
 - The file that holds the tree imports `package:unibox_core/unibox_core.dart` — and
   `package:unibox_material/unibox_material.dart` when it uses the Material roles or
-  components — and nothing else. No Flutter, no Jaspr, no `dart:ui`.
+  components — and nothing else. No Flutter, no web framework, no `dart:ui`.
 - `dart analyze` is clean, and `core.validateTree(tree)` reports no errors. It
   catches a positioned node outside a stack, a link inside a link, a scrolling box
   that also distributes its children, a transition that changes nothing, and a
@@ -428,6 +428,6 @@ the tree could have kept: that is the drift the model exists to prevent.
 | What the tree leaves to the host | [`#what-the-host-owns`](README.md#what-the-host-owns) |
 | The model's defaults, and why | [`packages/unibox_core/README.md`](packages/unibox_core/README.md) |
 | Complete trees to copy | [`example/unibox_example_shared/lib/src/`](example/unibox_example_shared/lib/src/) |
-| What a token becomes on each target | [`packages/unibox_flutter/README.md`](packages/unibox_flutter/README.md), [`packages/unibox_jaspr/README.md`](packages/unibox_jaspr/README.md) |
+| What a token becomes on each target | [`packages/unibox_flutter/README.md`](packages/unibox_flutter/README.md), [`packages/unibox_html/README.md`](packages/unibox_html/README.md) |
 
 

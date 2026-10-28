@@ -44,7 +44,7 @@ for (final TextCase textCase in textCases) {
 ```
 
 `unibox_flutter` reads the appearance out of the widgets its renderer built,
-`unibox_jaspr` out of the CSS it emitted. Neither reads the node tree, so a
+`unibox_html` out of the CSS it emitted. Neither reads the node tree, so a
 renderer that drops a token fails its own suite instead of drifting away from
 the other one — and because both are checked against the same entry, the answer
 cannot be relaxed for one target without failing the other.

@@ -7,7 +7,7 @@ both renderers.
 
 In short:
 
-- `packages/unibox_core` is pure Dart: no `dart:ui`, no Flutter, no Jaspr, no
+- `packages/unibox_core` is pure Dart: no `dart:ui`, no Flutter, no web framework, no
   package dependencies.
 - Every presentational change lands on both targets, pinned by a case in
   `packages/unibox_testing`. Neither renderer may fall back to its host's

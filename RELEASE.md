@@ -1,7 +1,7 @@
 # Releasing Unibox
 
 Five packages live in this workspace. Four are meant for pub.dev — `unibox_core`,
-`unibox_flutter`, `unibox_jaspr` and `unibox_material` — and `unibox_testing`
+`unibox_flutter`, `unibox_html` and `unibox_material` — and `unibox_testing`
 stays development only, because it is the test contract and nothing an application
 needs.
 
@@ -21,24 +21,24 @@ dart analyze
 (cd packages/unibox_core && dart test)
 (cd packages/unibox_testing && dart test)
 (cd packages/unibox_material && dart test)
-(cd packages/unibox_jaspr && dart test)
+(cd packages/unibox_html && dart test)
 (cd packages/unibox_flutter && flutter test)
 (cd example/unibox_example_shared && dart test)
-(cd example/unibox_example_jaspr && dart test)
+(cd example/unibox_example_site && dart test)
 (cd example/unibox_example_flutter && flutter test)
 (cd packages/unibox_core && dart doc --output=/tmp/doc-core)
 (cd packages/unibox_material && dart doc --output=/tmp/doc-material)
 (cd packages/unibox_flutter && dart doc --output=/tmp/doc-flutter)
-(cd packages/unibox_jaspr && dart doc --output=/tmp/doc-jaspr)
+(cd packages/unibox_html && dart doc --output=/tmp/doc-html)
 ```
 
 ## The steps
 
 1. **Pick the version.** The four packages move together: `unibox_flutter`,
-   `unibox_jaspr` and `unibox_material` depend on `unibox_core`, and their `^0.1.0`
+   `unibox_html` and `unibox_material` depend on `unibox_core`, and their `^0.1.0`
    constraints have to admit the new number.
 2. **Bump `version:`** in `packages/unibox_core/pubspec.yaml`,
-   `packages/unibox_flutter/pubspec.yaml`, `packages/unibox_jaspr/pubspec.yaml` and
+   `packages/unibox_flutter/pubspec.yaml`, `packages/unibox_html/pubspec.yaml` and
    `packages/unibox_material/pubspec.yaml`, and the matching `unibox_core: ^x.y.z`
    constraints in the three dependants.
 3. **Check the changelogs.** Each one describes the package as it stands under a
@@ -53,7 +53,7 @@ dart analyze
    ```shell
    (cd packages/unibox_core && dart pub publish --dry-run)
    (cd packages/unibox_flutter && dart pub publish --dry-run)
-   (cd packages/unibox_jaspr && dart pub publish --dry-run)
+   (cd packages/unibox_html && dart pub publish --dry-run)
    (cd packages/unibox_material && dart pub publish --dry-run)
    ```
 

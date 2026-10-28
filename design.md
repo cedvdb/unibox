@@ -1,12 +1,13 @@
 # Unibox Design Blueprint
 
 ## 1. Intent & Architecture
-Unibox provides pure Dart layout primitives that compile natively to both Flutter Widgets and Jaspr (HTML/CSS) Components.
+Unibox provides pure Dart layout primitives that draw natively as Flutter widgets and render as HTML and CSS a crawler can read.
 
 - **Workspace:** Dart 3.13+ workspace in `packages/`:
-  - `packages/unibox_core`: Pure Dart AST & tokens. Zero dependencies (no Flutter, no Jaspr, no `dart:ui`).
+  - `packages/unibox_core`: Pure Dart AST & tokens. Zero dependencies (no Flutter, no web framework, no `dart:ui`).
+  - `packages/unibox_css`: Depends on `unibox_core` only. The token-to-CSS mapping and the class hash both web renderers share.
+  - `packages/unibox_html`: Depends on `unibox_core` + `unibox_css`. Writes a fragment or a document.
   - `packages/unibox_flutter`: Depends on `unibox_core` + Flutter SDK.
-  - `packages/unibox_jaspr`: Depends on `unibox_core` + `jaspr: ^0.24.0`.
   - `packages/unibox_material`: Optional design-system tokens and one component (the Material 3 type scale and `MaterialCard`). Depends on `unibox_core` only; no renderer depends on it.
 - **Engineering Agency:** You have permission to diverge, adjust signatures, or simplify types where it makes sense, as long as the packages remain decoupled and work seamlessly across both platforms.
 
@@ -66,13 +67,12 @@ All nodes extend `abstract class UINode`.
 - `StackNode` / `PositionedNode` map to Flutter `Stack` and `Positioned`.
 - `TextInputNode` renders managed `TextField`.
 
-### Jaspr (`unibox_jaspr`)
-- Provide `node.toComponent()` and `renderJaspr(UINode)`.
-- Refer to `https://jaspr.site/llms.txt` for Jaspr 0.24 syntax.
-- `Box` renders a `<div>` with `boxSizing: BoxSizing.borderBox`.
+### The web (`unibox_html`)
+- Provide `toHtml(UINode)` for a fragment and `toDocument(UINode, title: …)` for a page.
+- `Box` renders a `<div>` with `box-sizing: border-box`.
 - Map layout to CSS flexbox (`display: flex`, `gap`, etc.); a box without a
   direction is a flex column.
-- `width == double.infinity` maps to `100.percent`.
+- `width == double.infinity` maps to `100%`.
 - `LinkNode` outputs a native `<a>` tag with `href` and `target`.
 - `StackNode` renders `<div style="position: relative">`.
 - `PositionedNode` renders `<div style="position: absolute">`.
@@ -93,8 +93,7 @@ breaking change even when it compiles.
   is better off uniform. `Box` has no Flutter counterpart and stays unsuffixed.
 - Tokens are prefixed with `Box` (`BoxColor`, `BoxSpacing`, `BoxBorder`,
   `BoxShadow`, `BoxStyle`), enums are unprefixed (`Axis`, `MainAlign`, ...).
-- Renderer side classes are prefixed with their target (`FlutterBox`, `FlutterText`,
-  `JasprBox`, `JasprText`, ...). The platform is the *package's* job, so the class
+- Renderer side classes are prefixed with their target (`FlutterBox`, `FlutterText`, ...). The platform is the *package's* job, so the class
   says which one it belongs to and the model keeps one vocabulary: a `Box` is a
   `Box` in the tree, and each target names the thing that draws it. Both packages
   export the same shape — the entry point, the extension, the embed node and one
@@ -104,8 +103,7 @@ breaking change even when it compiles.
   renderer package exports only those names and **never** re-exports
   The rule covers classes and typedefs alike: `FlutterWidgetNode` and
   `FlutterWidgetEmbedBuilder` are the Flutter-side names for the embed that
-  carries a `Widget`, `JasprComponentNode` and `JasprComponentEmbedBuilder` the
-  web ones, `FlutterLinkOpener` the signature a host implements to follow a
+  carries a `Widget`, `HtmlEmbed` the web one, `FlutterLinkOpener` the signature a host implements to follow a
   link. Only functions are exempt, because they already name their target
   (`renderFlutter`) or extend a core type (`toWidget`).
   `unibox_core`, so a host file can import it next to `flutter/material.dart`;
@@ -197,7 +195,7 @@ never inherited (CSS does not inherit them either).
   (`system-ui` in CSS, the engine default in Flutter).
 - The surface a tree is drawn on is host business: a `100%` box needs a root with
   a height, and a font needs a host that has one. An application declares both in
-  its own idiom (`MaterialApp`, a Jaspr `Document`) and the renderer stays out of
+  its own idiom (`MaterialApp`, or the head `toDocument` writes) and the renderer stays out of
   it.
 - The *size* of that surface is host business too, which is why a breakpoint is
   not a token. A box cannot ask how wide the window is, so a page that has to
@@ -415,12 +413,10 @@ never inherited (CSS does not inherit them either).
   with one difference: its children come from a view the renderer builds at render
   time, so `validateTree` sees an empty child list and a renderer validates each
   view in debug builds.
-- The web renderer draws the state the store starts with: it creates the store,
-  reads its state, renders the tree and never calls `onMount`. Its runtime,
-  `JasprStateful`, is the mirror of the Flutter widget with the two paths split by
-  `kIsWeb`: the same class drives the store in a browser and only reads it on the
-  server. Interactivity still waits for the client build, and the node is constructed
-  in the browser because its behaviour is Dart closures, which no markup can carry. A
+- The web renderer draws the state the store starts with: it creates the store, reads its
+  state, renders the tree and never calls `onMount`. A document has no runtime, so a press
+  cannot change it — that is the application's job once it takes the page over, and the node
+  is constructed there because its behaviour is Dart closures, which no markup can carry. A
   first state of "loading" therefore renders a page that loads, and a store that
   starts with the server's data renders the page as it should look.
 - The vocabulary is the model's: a node, a store, a state and a view. There are no
@@ -474,7 +470,7 @@ so "the colour this role is worth" is a map lookup on an identity, and
 `validateTree(root, theme: theme)` reports a role the theme does not define.
 
 The theme is an **argument**, not a scope a node looks up: `renderFlutter(node,
-theme:)` resolves each role while it builds the widget tree, `renderJaspr(node,
+theme:)` resolves each role while it builds the widget tree, `toDocument(node,
 theme:)` writes the theme once in `:root` and points the rules at
 `var(--unibox-color-…)`. Two pages rendered in one process can carry different
 themes, a tree stays `const`, and the whole palette is emitted on the web whether or

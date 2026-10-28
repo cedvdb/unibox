@@ -36,7 +36,7 @@ assumes you have read the README's node sections.
 ## Packages
 
 - [unibox_core](packages/unibox_core/README.md): the model — nodes, tokens,
-  defaults, validation. Pure Dart; never imports `dart:ui`, Flutter or Jaspr.
+  defaults, validation. Pure Dart; never imports `dart:ui`, Flutter or a web framework.
 - [unibox_flutter](packages/unibox_flutter/README.md): the Flutter renderer
   (`renderFlutter`, `node.toWidget()`), node by node, with what differs from the web.
 - [unibox_css](packages/unibox_css/README.md): the CSS two web renderers share,

@@ -212,6 +212,26 @@ logical pixels. `design.md` §5.15 holds the reasoning; these are the pieces.
 - [x] Task 137: The catalogue reads components first — buttons, chips, segments, fields, cards and tiles, the navigation bar, the dialog — then the type scale, then the colour roles, because a page is built out of components and the scale and the palette are what those components name. Its prose is cut to a title and one line: the long explanation stays in the READMEs, and the hero and the comparison lose a sentence each. A test pins the order of the blocks.
 - [x] Task 138: The two gaps a Flutter widget would have closed, closed in the model instead. `MaterialInkWell` learned `fill`/`border` — the surface it tints, painted by the well with a layer of tints above it, because a box paints one background and a role has no channels until a theme resolves it — and `tapTargetHeight`, a region taller than the shape with the shape centred in it, which is Flutter's padded tap target and Material's 48 over a 32 pixel chip. `MaterialChip` uses both: it paints 32 and takes 48, and its tints stay on the pill. `MaterialNavigationBar`'s indicator now arrives: the pill is drawn at every destination and the chosen one fades in and grows out of its icon over 500ms `easeInOut`, which is paint the model can ease — a slide would need the width of its neighbours, so it stays out, as does a cross-fading icon, which is the caller's node.
 
+### Phase 30: The web is a document
+
+- [x] Task 139: **The Jaspr renderer is gone.** The web target is a document, and it took three
+  packages to say so: `unibox_css` holds the token-to-CSS mapping, the class hash and the four
+  state rules; `unibox_html` writes a fragment (`toHtml`) or a page (`toDocument`) with no
+  framework and no runtime; and `unibox_jaspr` — 3,161 lines of renderer and 3,972 of tests —
+  was deleted. Jaspr was a second implementation of the same job, with its own CSS mapping and a
+  client runtime the project does not want: a page that reacts needs a state to change, and that
+  is the application's job once it takes the page over. Its 249 tests split three ways: the
+  presentational ones became `unibox_testing` conformance cases the HTML renderer is held to, the
+  structural ones a renderer suite of its own, and the 65 that described a browser runtime —
+  hydration, the JavaScrip interop, pointer listeners — went with the runtime they tested.
+
+- [x] Task 140: `example/unibox_example_jaspr` became `example/unibox_example_site`: the same
+  trees, written as documents by `toDocument` instead of components by `renderComponent`. The
+  frames of the comparison became an `HtmlEmbed`, the fonts a head block, and the browser runtime
+  the two recorders — where a region was scrolled, what was pressed — which is what lets an
+  application pick a page up mid-read. The duplicate export in the Flutter host is gone: one host
+  writes documents, the other builds the application.
+
 ## Decisions
 
 - **License:** MIT, at the root and in every package.

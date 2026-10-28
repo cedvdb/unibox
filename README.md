@@ -41,17 +41,17 @@ The handover is a repaint, because Flutter can only draw into a canvas — expec
 flash. That is a fine trade when the page really is the app and the visitor is about to
 use it.
 
-### Strategy 2: Jaspr serves the page
+### Strategy 2: the server writes a document
 
-The same tree is exported as HTML and CSS and made interactive by one small bundle
-redrawn from that tree — a press, a field, a dialog. **No Flutter on that page at all**,
-so a phone downloads a page and a script instead of an application. The document a
-crawler reads and the document a visitor uses are one and the same.
+The same tree is rendered to HTML and CSS by `unibox_html` — one function, no framework,
+no runtime — so what a crawler reads is what a reader gets, and the page arrives as a
+document rather than as a canvas. The application that takes it over is prefetched while
+the reader reads and boots at the first sign of them: a pointer that moves, a press, a
+key. Someone who only reads never pays for it.
 
-That is what this site does: the page at `/` is strategy 2 — one tree per band, exported
-as HTML and CSS, made interactive by one small bundle — and `/web/listings/` is the
-example in the left frame, the same strategy. `/flutter/listings/` is the same tree
-built by Flutter and served as its own route.
+That is what this site does: the page at `/` is one tree per band rendered to a document,
+and `/web/listings/` is the example in the left frame — the document in front of the
+application, which is `/flutter/listings/` built by Flutter.
 
 ### What stays Flutter
 
@@ -75,9 +75,9 @@ python3 tool/seo_report.py build/site
 
 | Document | Words | `h1` | `h2` | Links | Fields | Bytes |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Jaspr `/` | 492 | 1 | 2 | 9 | 2 | 129 767 |
-| Jaspr `/web/listings/` | 132 | 1 | 0 | 1 | 0 | 60 510 |
-| Jaspr `/web/signup/` | 149 | 1 | 1 | 3 | 2 | 70 216 |
+| HTML `/` | 492 | 1 | 2 | 9 | 2 | 129 767 |
+| HTML `/web/listings/` | 132 | 1 | 0 | 1 | 0 | 60 510 |
+| HTML `/web/signup/` | 149 | 1 | 1 | 3 | 2 | 70 216 |
 | **Flutter `/flutter/listings/`** | **4** | **0** | **0** | **0** | **0** | **772** |
 
 The first row is the whole site as one page: the claim, the comparison and the
@@ -95,7 +95,7 @@ layout it already has: `GridNode` folds its columns as the window narrows, and t
 this README describes is built that way — every page of it fits a 375 pixel viewport.
 
 <p align="center">
-  <img src="docs/hero.svg" alt="One immutable Dart node tree on the left, a fork into two panels showing the same card drawn by Flutter's widget tree and by Jaspr as HTML and CSS." width="900">
+  <img src="docs/hero.svg" alt="One immutable Dart node tree on the left, a fork into two panels showing the same card drawn by Flutter's widget tree and rendered as HTML and CSS." width="900">
 </p>
 
 What the description does *not* contain is what only a host can know: how big the
@@ -123,8 +123,10 @@ release is cut), so point your pubspec at the checkout:
 dependencies:
   unibox_core:
     path: ../unibox/packages/unibox_core
-  unibox_flutter:            # or unibox_jaspr
+  unibox_flutter:
     path: ../unibox/packages/unibox_flutter
+  unibox_html:               # the web: a document a crawler can read
+    path: ../unibox/packages/unibox_html
   unibox_material:           # optional: the Material 3 type scale
     path: ../unibox/packages/unibox_material
 ```
@@ -133,8 +135,8 @@ dependencies:
 // Flutter
 runApp(MaterialApp(home: renderFlutter(tree)));
 
-// Jaspr, rendered on the server
-Document(title: 'My page', body: renderJaspr(tree));
+// the web: a page a crawler reads, and the app takes over
+final String page = toDocument(tree, title: 'My page');
 ```
 
 Keep the tree in a package of its own that imports `unibox_core` and neither
@@ -464,11 +466,10 @@ Flutter, on a server and in a browser. `onMount` is where an initial request
 starts, which is also why a server render can draw the first state without running
 it.
 
-Both renderers have a runtime for it — `FlutterStateful` and `JasprStateful`, the
-same class under each target's name, and Jaspr splits the two paths on `kIsWeb`. On the web a server
-render draws **the state the store starts with** without calling `onMount`, so a
-page that loads is a page that says it is loading; reacting to a click needs a
-client build, which is the next step (`TASK_PLAN.md`, Phase 22).
+`FlutterStateful` is the runtime: it creates the store, subscribes to it and disposes it. A
+document has none — `unibox_html` creates the store only to read it, draws **the state it
+starts with** and never calls `onMount`, so a page that loads is a page that says it is
+loading. Reacting to a press is the application's job once it takes the page over.
 
 ### GridNode
 
@@ -564,8 +565,8 @@ final class InkRipple extends EmbedNode {
 | `implementations` | `List<Object>` | required | The payloads, one per renderer. A renderer accepts a `Widget`/`Component`, or a builder of one that wraps the child. |
 | `child` | `UINode?` | none | The content the implementations wrap, for effects. |
 
-Two conveniences cover the single-implementation case: `FlutterWidgetNode(widget)`
-in `unibox_flutter` and `JasprComponentNode(component)` in `unibox_jaspr`.
+Two conveniences cover the single-implementation case: `FlutterWidgetNode(widget)` in
+`unibox_flutter` and `HtmlEmbed(markup)` in `unibox_html`.
 
 **Worth knowing.** The payloads are platform values, so the node is usually
 declared where both types are visible, or it takes its half through a parameter its
@@ -633,7 +634,7 @@ const theme = UniboxTheme(
 const Box(backgroundColor: BoxColor.role(AppColor.primary));
 
 renderFlutter(page, theme: theme);   // resolves each role while building
-renderJaspr(page, theme: theme);     // writes :root and points the rules at it
+toDocument(page, theme: theme);      // writes :root and points the rules at it
 ```
 
 | | What it buys |
@@ -790,11 +791,11 @@ to the host that draws it.
 | --- | --- |
 | **State**: the values of a form, which page is open, what a tap does | Nodes are immutable and hold no values. A callback is a `void Function()` the host implements, and the host re-renders with new nodes. |
 | **The surface**: window size, safe areas, scroll position | A description does not know how large the window is. A responsive page takes the answer as a parameter, and each host produces it its own way. |
-| **The document**: title, language, description, canonical url, structured data | Those describe a page, not a region of one. The Flutter host gives them to its `MaterialApp`, the Jaspr host to its `Document`. |
+| **The document**: title, language, description, canonical url, structured data | Those describe a page, not a region of one. The Flutter host gives them to its `MaterialApp`, the web host to `toDocument`. |
 | **The fonts** | A font file is an asset of the application, and it has to be the same file on both sides. |
 | **Effects with no common description** | That is what [`EmbedNode`](#embednode) is for. |
 
-The one thing a host does not choose is the name on each element: the Jaspr renderer
+The one thing a host does not choose is the name on each element: the web renderer
 always writes `data-unibox-node="…"` on the elements a node drew, because a name
 carries no look and an inspector without it reads a page of hashes. The name is a
 literal a node states (`box`, `text`, `material-card`), never its type — a compiled
@@ -810,7 +811,7 @@ node, an `id` has to be unique in the document, and a host can style an `id` —
 other key stays a `ValueKey` and nothing more, because an instance hash says one thing
 to the server and another to the browser.
 
-The Jaspr renderer also puts the recorder above the tree: it reads the offset of every
+The web renderer also puts the recorder above the tree: it reads the offset of every
 keyed element and answers `window.uniboxScroll.take()`, which is what a Flutter host asks
 when it takes the page over, since the app paints into a canvas that cannot inherit the
 browser's scroll position. A document that will never be taken over says
@@ -829,7 +830,7 @@ Three mechanisms, all of them tested:
    same tree starts looking like two different products.
 2. **One table of expected results.** `unibox_testing` lists boxes and texts with
    the appearance each one must have. The Flutter suite reads that appearance back out
-   of the widget tree it built, the Jaspr suite out of the CSS it emitted, and both
+   of the widget tree it built, the HTML suite out of the CSS it emitted, and both
    compare it with the same entry — so a value one renderer stops drawing fails its
    own test.
 3. **Trees no renderer can draw are reported.** `validateTree` catches a positioned
@@ -897,7 +898,7 @@ complete component — and it is written to be pasted into the context:
 Read AI_INSTRUCTIONS.md and README.md from the Unibox repository before writing any
 code. Build <the component> as a Unibox node tree in a file that imports only
 package:unibox_core, plus package:unibox_material when it uses the Material roles.
-Do not use Flutter, Jaspr or HTML widgets. Return the tree, and separately the small
+Do not use Flutter or HTML widgets. Return the tree, and separately the small
 host that renders it.
 ```
 
@@ -925,7 +926,7 @@ dart analyze                                     # static analysis everywhere
 (cd example/unibox_example_flutter && flutter test)
 ```
 
-`tool/verify.sh` runs the format check, the analysis and all eight suites in that
+`tool/verify.sh` runs the format check, the analysis and all six suites in that
 order, which is the command to reach for before a commit; `--fast` stops after the
 analysis, `--fix` formats the tree first and `--docs` adds the API docs of every
 package.
@@ -941,8 +942,8 @@ Pages on every push to `main`, which needs one setting first: Settings → Pages
 Source: **GitHub Actions** (see
 [`example/README.md`](example/README.md#the-static-site)).
 
-The workspace targets Dart `^3.13.0` and pins Jaspr to the `0.24` line. Continuous
-integration runs the format check, `dart analyze`, the eight test suites and
+The workspace targets Dart `^3.13.0`. Continuous
+integration runs the format check, `dart analyze`, the six test suites and
 `dart doc` for each package on every push (see
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)).
 

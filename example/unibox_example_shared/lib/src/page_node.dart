@@ -9,7 +9,7 @@ import 'signup_card.dart';
 /// from [ExampleState].
 ///
 /// This is the whole application. A host renders it through the stateful renderer
-/// of its target (`FlutterStateful` and `JasprStateful`) and supplies only what a
+/// of its target (`FlutterStateful` for the app) and supplies only what a
 /// node cannot know — the surface and how a link opens — which is why each host of
 /// the example is one small file.
 final class ExamplePageNode extends StatefulNode<ExampleState, ExampleStore> {

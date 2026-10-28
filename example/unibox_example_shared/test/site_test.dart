@@ -71,7 +71,7 @@ void main() {
       ];
 
       // The stub frame keys itself with its source, so the page names the two
-      // documents the comparison shows: the Jaspr rendering and the Flutter build.
+      // documents the comparison shows: the HTML rendering and the Flutter build.
       expect(
         frames,
         containsAll(<Object?>['web/listings/', 'flutter/listings/']),
@@ -152,7 +152,7 @@ void main() {
       expect(texts, contains('Open the example'));
       expect(texts, contains('The Flutter build'));
       // The claim is drawn as well as written: one tree, two renderings of a card.
-      expect(texts, contains('Jaspr — HTML and CSS'));
+      expect(texts, contains('HTML and CSS — the document'));
       expect(texts, contains('Flutter — the same tree'));
     });
   });

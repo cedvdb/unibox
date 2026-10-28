@@ -137,7 +137,7 @@ UINode _renderingPair(MaterialPalette palette) {
           ),
         ],
       ),
-      _rendering('Jaspr — HTML and CSS', palette),
+      _rendering('HTML and CSS — the document', palette),
       _rendering('Flutter — the same tree', palette),
     ],
   );

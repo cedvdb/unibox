@@ -13,7 +13,7 @@ import 'harness.dart';
 /// The facts are read from the widget tree the renderer built — the flex it
 /// created, the padding it applied, the decoration it painted — and never from
 /// the node tree, so they describe what this target *did* with the node. The
-/// Jaspr suite reads the same facts out of the CSS its renderer emitted, and both
+/// HTML suite reads the same facts out of the CSS its renderer emitted, and both
 /// compare them with the table in `unibox_testing`.
 ///
 /// The rendered root node has to be a [core.Box]; a suite that renders anything
@@ -83,7 +83,7 @@ BoxAppearance appearanceOf(WidgetTester tester) {
 /// The facts are read from the `Text` widget the renderer built — the `TextStyle`
 /// it declared, the alignment, the line limit and the truncation it asked for —
 /// and never from the node tree. That is what makes the answer comparable with the
-/// CSS the Jaspr renderer emitted: only what this target *said* about the node is
+/// CSS the web renderer emitted: only what this target *said* about the node is
 /// compared, not what a font engine made of it.
 ///
 /// `Text.style` holds the tokens the renderer declared and nothing else, so a
@@ -106,7 +106,7 @@ TextAppearance textAppearanceOf(WidgetTester tester) {
 /// The style is resolved the way Flutter resolves it before painting: the
 /// inherited style of the closest `DefaultTextStyle` — which `renderFlutter`
 /// installs from the model — with the tokens the node declared laid over it. The
-/// Jaspr suite resolves the same pair from its `:root` rule and the declarations
+/// HTML suite resolves the same pair from its `:root` rule and the declarations
 /// of the span.
 TextAppearance resolvedTextAppearanceOf(WidgetTester tester) {
   final Element element = inNode(find.byType(Text)).evaluate().first;

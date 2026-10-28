@@ -27,7 +27,7 @@
 
 - The client code is a folder: `client/press.dart` holds the record and the script that
   keeps it, and `client/all.dart` is the name a host includes. The scroll recorder joins
-  them when `unibox_jaspr` goes, so every line of client code ends up in one place.
+  the recorder, so every line of client code lives in one place.
 
 - ~~An ink script, its marker and its declarations~~ were withdrawn: ink is the ink well's,
   and a renderer painting one for every box that listens draws a look Flutter cannot.

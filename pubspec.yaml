@@ -1,5 +1,5 @@
 name: unibox
-description: Pure Dart layout primitives that compile natively to Flutter widgets and Jaspr components.
+description: Pure Dart layout primitives that draw as Flutter widgets and render as HTML a crawler can read.
 publish_to: none
 version: 0.1.0
 

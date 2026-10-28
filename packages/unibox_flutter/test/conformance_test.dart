@@ -10,7 +10,7 @@ import 'support/harness.dart';
 /// Every case in [boxCases] is rendered and the appearance is read back out of
 /// the widget tree this renderer built, so a box that loses a token fails here
 /// instead of only looking different from the page the web renderer draws. The
-/// Jaspr suite walks the same table, which is what makes the two answers
+/// HTML suite walks the same table, which is what makes the two answers
 /// comparable.
 ///
 /// The same is done for [textCases]: the `TextStyle` this renderer declared is

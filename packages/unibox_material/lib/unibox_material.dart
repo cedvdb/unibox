@@ -30,7 +30,7 @@
 /// colour algorithm. Making the host's `ColorScheme` and the page's CSS
 /// custom properties agree with it is the application's job, which is why this
 /// package depends on `unibox_core` and that algorithm alone and never imports
-/// Flutter or Jaspr.
+/// Flutter or a web framework.
 ///
 /// What the components leave to the platform is written down on each of them: the
 /// ripple, the floating label, the caret and selection colours, and Material's modal

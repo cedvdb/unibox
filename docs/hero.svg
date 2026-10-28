@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-labelledby="title desc">
   <title id="title">Unibox: one node tree, two renderers</title>
-  <desc id="desc">On the left, one immutable Dart node tree. A fork leads to two panels: the same card drawn by Flutter's widget tree, and by Jaspr as HTML and CSS. The two cards are identical, because one table of expected appearance holds both renderers to the same answer.</desc>
+  <desc id="desc">On the left, one immutable Dart node tree. A fork leads to two panels: the same card drawn by Flutter's widget tree, and by Unibox's own HTML renderer. The two cards are identical, because one table of expected appearance holds both renderers to the same answer.</desc>
 
   <style>
     text { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
@@ -67,9 +67,9 @@
   <rect x="768" y="294" width="104" height="32" rx="16" fill="#6750A4"/>
   <text class="button" x="820" y="315" text-anchor="middle">Confirm</text>
 
-  <!-- Jaspr panel -->
+  <!-- HTML panel -->
   <rect x="580" y="400" width="556" height="180" rx="18" fill="#F7F2FA" stroke="#CAC4D0"/>
-  <text class="renderer" x="604" y="432">Jaspr</text>
+  <text class="renderer" x="604" y="432">HTML</text>
   <text class="call" x="604" y="452">tree.toComponent() → HTML + CSS</text>
 
   <g filter="url(#cardShadow)">

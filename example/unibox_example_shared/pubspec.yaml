@@ -1,5 +1,5 @@
 name: unibox_example_shared
-description: The node tree of the Unibox example, shared by the Flutter and the Jaspr app.
+description: The node tree of the Unibox example, shared by the Flutter app and the site.
 publish_to: none
 version: 0.1.0
 resolution: workspace

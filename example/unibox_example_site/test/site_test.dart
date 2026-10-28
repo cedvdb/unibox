@@ -32,7 +32,7 @@ void main() {
 
       expect('<iframe'.allMatches(html), hasLength(2));
       expect(html, contains('title="Flutter — the same tree"'));
-      expect(html, contains('title="Jaspr — HTML and CSS"'));
+      expect(html, contains('title="HTML and CSS — the document"'));
     });
 
     test('lets a reader drag a frame narrower', () {

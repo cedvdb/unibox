@@ -7,7 +7,7 @@ This package is pure Dart: it depends on `unibox_core` for the tokens and on
 `material_color_utilities` for Material's colour algorithm — no Flutter, no
 `dart:ui`, no Material widget library. It does
 not import Flutter, `dart:ui` or Material, so the same scale is available to a
-Flutter app, a Jaspr page and a command line tool that only builds a tree.
+Flutter app, a web page and a command line tool that only builds a tree.
 
 ## Why a package
 
@@ -196,7 +196,7 @@ the vocabulary the components name, and a palette turns it into a theme:
 Box(backgroundColor: const BoxColor.role(MaterialColorRole.surfaceContainerLow))
 
 // what the application says, once, when it renders
-renderJaspr(page, theme: MaterialPalette.lightTheme);
+toDocument(page, theme: MaterialPalette.lightTheme);
 renderFlutter(page, theme: MaterialPalette.lightTheme);
 ```
 
@@ -243,7 +243,7 @@ const brand = BoxColor.rgb(0x2D, 0x6C, 0xF3);
 final light = MaterialPalette.fromSeed(brand);
 final dark = MaterialPalette.fromSeed(brand, isDark: true);
 
-renderJaspr(page, theme: light.theme);
+toDocument(page, theme: light.theme);
 ```
 
 | Parameter | Default | What it decides |

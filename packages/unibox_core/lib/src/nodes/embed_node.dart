@@ -32,7 +32,7 @@ import 'ui_node.dart';
 ///   @override
 ///   List<Object> get implementations => const <Object>[
 ///     MaterialInk(), // draws a Flutter Widget around the child
-///     CssInk(), // draws a Jaspr Component around the child
+///     HtmlInk(), // draws a wrapper around the child, on the web
 ///   ];
 /// }
 /// ```

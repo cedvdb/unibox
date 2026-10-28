@@ -12,7 +12,7 @@ The reason it exists is search. A screen drawn in Flutter is a canvas, which a s
 engine, a link preview and a reader without JavaScript all see as nothing, and writing
 the page a second time is how a team ends up with two designs that drift. A tree is
 served one of two ways — the server renders it read-only and the Flutter app takes the
-page over, or Jaspr serves it as a page with no Flutter on it at all. Only the screens
+page over, or the page is a document with no Flutter on it at all. Only the screens
 that have to be found need either; the rest of an application stays ordinary Flutter.
 
 ## Read in this order
@@ -43,7 +43,7 @@ guide is [`README.md`](README.md).
 | `packages/unibox_core/lib/src/state/` | `Store` and `StateStore`: the state a `StatefulNode` draws and the lifecycle a renderer calls | a store member, the publish rule or a lifecycle rule changes |
 | `packages/*/test/support/` | the harnesses (`pumpNode`, `inNode`, `stylesOf`, ...) and `appearance.dart`, which reads the presentation back out of the output | a test needs a new fact |
 | `example/unibox_example_shared/` | the example as one `StatefulNode` (`ExamplePageNode`, `ExampleState`, `ExampleStore`) and the trees it is built from, the site as one page (`buildSitePage`) with a band per section (`buildHeroSection`, `buildShowcaseSection`, `buildMaterialSection`), plus the palette grown from one seed | the example or the site content changes |
-| `example/unibox_example_flutter/`, `example/unibox_example_jaspr/` | hosts: the surface and the link policy, never layout or state | the surface or a link changes |
+| `example/unibox_example_flutter/`, `example/unibox_example_site/` | hosts: the surface, the link policy, and the documents — never layout or state | the surface, a link or a document changes |
 | `README.md`, `design.md`, package READMEs | the user guide, the reasoning, the per-target mapping tables | public API or behaviour changes |
 | `AI_INSTRUCTIONS.md` | the consumer-facing counterpart: rules and a translation table for an assistant writing application code | a parameter is renamed or a default changes |
 | `TASK_PLAN.md` | what was built, why, and what was deliberately deferred | rarely: record a decision, not a task |
@@ -63,7 +63,7 @@ so the packages share one resolution.
 | Also build the API docs | `tool/verify.sh --docs` |
 | One suite, the fast loop | `(cd packages/unibox_html && dart test)` |
 
-The eight suites, exactly as CI runs them:
+The six suites, exactly as CI runs them:
 
 ```shell
 (cd packages/unibox_core && dart test)
@@ -82,7 +82,7 @@ before a commit, and `dart analyze` is strict here (`strict-casts`,
 
 ## The rules that are not negotiable
 
-1. **`unibox_core` stays pure Dart.** No `dart:ui`, no Flutter, no Jaspr, and no
+1. **`unibox_core` stays pure Dart.** No `dart:ui`, no Flutter, no web framework, and no
    package dependencies at all. `packages/unibox_core/test/purity_test.dart`
    enforces it, and it is the reason a third renderer stays possible.
 2. **Defaults belong to the model.** When a token is unset, the answer is written
@@ -169,9 +169,10 @@ that lands on one target only fails the suites.
    section of `packages/unibox_core/README.md` move together.
 4. Flutter: `lib/src/values.dart` (`toTextStyle`) and the widget that consumes it
    (`text_node.dart`, plus `text_input_node.dart` when a field adopts it).
-5. Jaspr: `lib/src/values.dart` (`toTypographyStyles`) and the emitter
-   (`text_node.dart`, `text_input_node.dart`, and `default_typography.dart` for
-   the `:root` rule).
+5. The web: `packages/unibox_css/lib/src/values.dart` (`typographyDeclarations`,
+   `defaultTypographyDeclarations`) and the emitter in
+   `packages/unibox_html/lib/src/` (`textDeclarations`, and the `:root` block
+   `sheetWithRoot` writes).
 6. The contract: `packages/unibox_testing/lib/src/text_appearance.dart` and
    `lib/src/text_cases.dart`, including `defaultTextAppearance` when the default
    is what changed. `textAppearanceOf` in both `test/support/appearance.dart`
@@ -183,7 +184,7 @@ that lands on one target only fails the suites.
 1. `packages/unibox_core/lib/src/nodes/<name>_node.dart`: a `const` immutable
    class extending `UINode`, a doc comment on the class and on every member, and
    an export in `lib/unibox_core.dart`. Add the `Node` suffix only when the bare
-   name collides with a Flutter, Jaspr or HTML name — `Text`, `Image`, `Stack`,
+   name collides with a Flutter or HTML name — `Text`, `Image`, `Stack`,
    `Positioned` and `Link` do, `Box` does not. Both `test/naming_test.dart` files
    enforce the import half of that rule.
 2. `packages/unibox_core/lib/src/validation.dart` when the node only makes sense
@@ -193,10 +194,10 @@ that lands on one target only fails the suites.
    in `lib/unibox_flutter.dart`, the case in the `renderNode` switch of
    `lib/src/render.dart`, a `<name>_widget_test.dart`, and the new export listed
    in `test/naming_test.dart`.
-4. Jaspr: the same four files on the web side, ending in
-   `<name>_component_test.dart`. The `renderNode` switch has a `_ =>` fallback
-   that throws `UnsupportedError`, so a forgotten case is a runtime failure rather
-   than a compile error.
+4. The web: a `_plan<Name>` in `packages/unibox_html/lib/src/render.dart`, the case in
+   its `planNode` switch — whose `_ =>` fallback throws `UnsupportedError`, so a
+   forgotten case is a runtime failure rather than a compile error — and a test in
+   `packages/unibox_html/test/`. Its declarations go in `packages/unibox_css/lib/src/`.
 5. The contract, only when the node carries presentational tokens the tables cover
    (boxes and texts). A node with no token — a link, an embed — is pinned by the
    renderer suites instead, which is honest: there is no appearance to compare.
@@ -241,10 +242,10 @@ cannot catch.
 3. Flutter: `lib/src/stateful_node.dart` renders it once for every node; the suite
    needs a test in `test/stateful_node_test.dart` (a publish, a dispose) rather
    than a renderer per component.
-4. Jaspr: `lib/src/stateful_component.dart` holds the runtime, split on `kIsWeb`;
-   the server path draws the state the store starts with and never calls `onMount`,
-   and `test/stateful_node_test.dart` pins both. Reacting in a browser waits for the
-   client build.
+4. The web: `_planStateful` in `packages/unibox_html/lib/src/render.dart` creates the
+   store, draws the state it starts with and never calls `onMount` — a document is a
+   snapshot — and `test/render_test.dart` pins it. A page that reacts needs the
+   application to take it over, or `unibox_dom` when it exists.
 5. Docs: the state section of `README.md` and the core README, plus the changelogs.
 
 ### G. An overlay
@@ -253,8 +254,9 @@ cannot catch.
    policy, and `validation.dart` when a new combination can do nothing.
 2. Flutter: `lib/src/overlay_node.dart` presents it through an `OverlayPortal` on
    the root overlay; the suite needs a test in `test/overlay_widget_test.dart`.
-3. Jaspr: `lib/src/overlay_node.dart` draws a fixed layer; it is never drawn in
-   the flow of its parent.
+3. The web: `_planOverlay` in `packages/unibox_html/lib/src/render.dart` writes a fixed
+   layer that is never drawn in the flow of its parent, and hides it unless the page
+   was rendered to show it (`showOverlays`).
 4. The contract: `OverlayAppearance` and `overlayCases` in `unibox_testing`, read
    back from each renderer's output.
 5. Docs: the node section of `README.md`, the core and renderer READMEs, and the
@@ -302,7 +304,7 @@ test(conformance): hold both renderers to the transform and the opacity
 docs: describe the style bags and the parts of a transition
 ```
 
-The scope is the package that owns the change (`core`, `flutter`, `jaspr`,
+The scope is the package that owns the change (`core`, `css`, `html`, `flutter`,
 `conformance`, `example`), or none for docs and the plan. The subject is a
 lowercase phrase about what changed for the user, without a full stop. A change
 that touches both renderers is one commit when both sides are the same decision,
