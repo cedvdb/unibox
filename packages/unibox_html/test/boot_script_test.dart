@@ -11,7 +11,9 @@ void main() {
 
       // A pointer, a touch, a key or a focus is the reader asking for the application.
       for (final String intent in <String>[
+        'pointermove',
         'pointerover',
+        'pointerdown',
         'touchstart',
         'keydown',
         'focusin',
@@ -22,6 +24,35 @@ void main() {
       expect(script, contains('capture: true'));
       expect(script, contains('passive: true'));
       expect(script, contains('once: true'));
+    });
+
+    test('starts as soon as the pointer moves, not when it presses', () {
+      // The press spends the engine's start-up inside the reader's first interaction; the
+      // movement before it does not.
+      final String script = bootScript('a.js');
+
+      expect(script, contains("'pointermove'"));
+      expect(script, contains("'pointerdown'"));
+    });
+
+    test(
+      'can leave a passing pointer alone, for a page that is a document',
+      () {
+        final String script = bootScript('a.js', onMove: false);
+
+        expect(script, isNot(contains("'pointermove'")));
+        expect(script, contains("'pointerdown'"));
+      },
+    );
+
+    test('remembers an intent that arrives before the page has loaded', () {
+      // An engine that starts while the document is still arriving competes with the largest
+      // paint; the intent is honoured at the load instead of being lost or acted on early.
+      final String script = bootScript('a.js');
+
+      expect(script, contains("document.readyState === 'complete'"));
+      expect(script, contains('wanted = true;'));
+      expect(script, contains('if (wanted) { boot(); }'));
     });
 
     test('boots once, however often it is asked', () {

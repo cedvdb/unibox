@@ -8,11 +8,14 @@
   never one assembled from data a reader supplied. An embed carrying a payload for another
   target is reported, not skipped.
 
-- `bootScript(src, whenIdle: …)`: the handover, as one script. It loads the application on
-  intent — a pointer, a touch, a key, a focus — and, for a page that exists for its
-  application, when the browser is idle after the load. The url it is given is escaped both
-  as a JavaScript string and for a raw text element, because a parameter that becomes markup
-  is an injection.
+- `bootScript(src, whenIdle: …, onMove: …)`: the handover, as one script, with one rule —
+  the application starts as early as it can and never earlier than the first paint. A pointer
+  that **moves** across the page is intent: it arrives long before the press it leads to, so
+  the engine is already starting while the reader moves towards the control. A press, a touch,
+  a key or a focus starts it too. An intent that arrives while the document is still loading
+  is remembered and honoured at the load, so a two megabyte engine never competes with the
+  largest paint. For a document that happens to offer an application, `onMove: false` says only
+  a deliberate gesture counts.
 
 - `toDocument(prefetch: …)`: the bundle is fetched at a low priority while the reader reads,
   so a boot that waits for intent is never a boot on a cold cache. Deferring the execution

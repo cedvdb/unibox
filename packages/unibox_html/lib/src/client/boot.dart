@@ -1,35 +1,46 @@
 /// The script that boots the application, and when it does.
 ///
 /// A page can be two things in a row: a document a crawler reads, and the application that
-/// takes it over. This is the handover: the document is on screen, the bundle is already
-/// downloaded, and the boot waits for a moment when paying for it is what the reader wants.
+/// takes it over. This is the handover, and the rule it follows is short: **the application
+/// starts as early as it can, and never earlier than the first paint.**
 ///
-/// **Defer the execution, not the download.** The document prefetches the bundle (`prefetch`
-/// on `toDocument`), so its bytes arrive while the reader reads. What waits is the boot. A
-/// deferred boot with a cold cache is the worst of both worlds: a good score and a
-/// two-second dead click.
+/// **The download starts at once.** The document prefetches the bundle (`prefetch` on
+/// `toDocument`), so its bytes arrive while the reader reads. Deferring the download as well
+/// is how a page gets a good score and a two-second dead click.
 ///
-/// **When to boot is a property of the page.** A content page waits for intent — a pointer,
-/// a touch, a key, a focus — and otherwise boots when the browser is idle after the load, so
-/// a reader who only reads never pays for the application. An application entry, whose reader
-/// came for the application and will always need it, boots when idle regardless: making them
-/// press something first is slower, not faster. That is [whenIdle].
+/// **The boot starts at the first sign of a reader.** A pointer moving across the page is
+/// already a reader who may press something, and it happens long before the press — so an
+/// engine that starts then is warm by the time they get there. A press, a touch, a key or a
+/// focus starts it too. That is [onMove], and it is on by default because waiting for the
+/// press itself spends the engine's start-up inside the reader's first interaction.
+///
+/// **But never before the load.** An intent that arrives while the document is still arriving
+/// is *remembered*, not acted on: a two megabyte engine parsing itself competes with the
+/// largest paint. After the load, intent boots immediately.
+///
+/// **When nothing touches the page at all**, [whenIdle] decides: an application entry boots
+/// when the browser is idle, a content page waits to be asked. That is the one choice only the
+/// host can make, because only it knows which of the two it published.
 library;
 
 /// The script that loads [src] and boots the application.
 ///
-/// [src] is a url relative to the document, and it is escaped both as a JavaScript string
-/// and for a raw text element: a value containing `</script>` closes the element otherwise,
-/// which is how a parameter becomes an injection.
+/// [src] is a url relative to the document, and it is escaped both as a JavaScript string and
+/// for a raw text element: a value containing `</script>` closes the element otherwise, which
+/// is how a parameter becomes an injection.
 ///
-/// [whenIdle] says whether a page no one touches still boots once the browser is idle. It is
-/// the difference between a content page and an application entry, and it is a parameter
-/// rather than a rule because only the host knows which one it published.
-String bootScript(String src, {bool whenIdle = true}) => _bootTemplate
-    .replaceAll('%IDLE%', whenIdle ? _bootWhenIdle : _chooseTheApplication)
-    .replaceAll('%SRC%', _jsString(src));
+/// [whenIdle] says whether a page nothing touches still boots once the browser is idle.
+///
+/// [onMove] says whether a pointer moving across the page is enough to start the application.
+/// It is the difference between an application's front door and a document that happens to
+/// offer one: a reader flicking the mouse across an article has not asked for an engine.
+String bootScript(String src, {bool whenIdle = true, bool onMove = true}) =>
+    _bootTemplate
+        .replaceAll('%INTENT%', onMove ? _bootOnMove : _bootOnPress)
+        .replaceAll('%IDLE%', whenIdle ? _bootWhenIdle : _chooseTheApplication)
+        .replaceAll('%SRC%', _jsString(src));
 
-/// The template, with the two parts a host chooses as placeholders.
+/// The template, with the three parts a host chooses as placeholders.
 ///
 /// Substituted rather than interpolated, so no JavaScript in it can be read as Dart.
 const String _bootTemplate = '''
@@ -37,6 +48,8 @@ const String _bootTemplate = '''
   'use strict';
   var source = '%SRC%';
   var booted = false;
+  var wanted = false;
+  var loaded = document.readyState === 'complete';
   var unibox = window.unibox = window.unibox || {};
 
   // One boot however often it is asked for: a press during the download and the load event
@@ -51,26 +64,66 @@ const String _bootTemplate = '''
     document.body.appendChild(element);
   }
 
-  unibox.boot = boot;
-
-  // Intent, captured, so it is caught wherever it lands and whatever added it.
-  var intent = ['pointerover', 'touchstart', 'keydown', 'focusin'];
-
-  for (var i = 0; i < intent.length; i++) {
-    window.addEventListener(intent[i], boot, {
-      capture: true,
-      once: true,
-      passive: true
-    });
+  // Intent before the load is remembered, not acted on: an engine that starts while the
+  // document is still arriving competes with the largest paint.
+  function want() {
+    wanted = true;
+    if (loaded) { boot(); }
   }
+
+  unibox.boot = boot;
+%INTENT%
+
+  window.addEventListener('load', function () {
+    loaded = true;
+    unibox.loaded = true;
+    if (wanted) { boot(); }
+  });
 %IDLE%
 })();
 ''';
 
+/// Intent: a pointer that moves, arrives, presses, touches, keys or focuses.
+///
+/// A pointer that moves is the earliest honest sign that a reader is here to do something
+/// rather than to read, and it arrives long before the press it leads to.
+const String _bootOnMove = '''
+  // Intent, captured, so it is caught wherever it lands and whatever added it.
+  var intent = [
+    'pointermove',
+    'pointerover',
+    'pointerdown',
+    'touchstart',
+    'keydown',
+    'focusin'
+  ];
+
+  for (var i = 0; i < intent.length; i++) {
+    window.addEventListener(intent[i], want, {
+      capture: true,
+      once: true,
+      passive: true
+    });
+  }''';
+
+/// Intent, for a document that stays a document: a gesture, not a passing pointer.
+const String _bootOnPress = '''
+  // Only a gesture that means "do something": a press, a touch, a key or a focus. A pointer
+  // crossing the page is a reader reading.
+  var intent = ['pointerdown', 'touchstart', 'keydown', 'focusin'];
+
+  for (var i = 0; i < intent.length; i++) {
+    window.addEventListener(intent[i], want, {
+      capture: true,
+      once: true,
+      passive: true
+    });
+  }''';
+
 /// A page that boots when the browser is idle, whether or not it was touched.
 const String _bootWhenIdle = '''
-  // A reader who never touches the page still gets the application: after the load, when
-  // the browser has nothing better to do, so the boot never competes with the first paint.
+  // A reader who never touches the page still gets the application: after the load, when the
+  // browser has nothing better to do.
   window.addEventListener('load', function () {
     var idle = window.requestIdleCallback ||
       function (run) { return setTimeout(run, 200); };
