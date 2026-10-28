@@ -291,8 +291,9 @@ MaterialListTile(
 );
 ```
 
-It is a `Box` too — a row — so neither renderer has to know the name, and every
-token is a combination of ones the conformance table already pins:
+It is a `Box` around a `MaterialInkWell` — a row wrapped in the ink — so neither
+renderer has to know the name, and every token is a combination of ones the
+conformance table already pins:
 
 | Token | Value | Why |
 | --- | --- | --- |
@@ -302,18 +303,24 @@ token is a combination of ones the conformance table already pins:
 | minHeight | `56` / `72`, or `48` / `64` when `dense` | Material's one line and two line heights |
 | title | `MaterialTypography.bodyLarge` | Material's title role |
 | subtitle | `MaterialListTile.subtitleTextStyle` | `bodyMedium` in `onSurfaceVariant` |
-| hover, press | black at 8% and 12% | Material's state layers, spelled as translucent colours |
+| hover, focus, press | `hoverLayer`, `focusLayer`, `pressedLayer` | the roles Material's state layers are, resolved by the host's theme |
+| ink | `MaterialInkWell.defaultInk`, from where the press landed | a press inks the tile the way it inks every other Material surface |
 | role | `BoxRole.button` when it can be tapped | a tappable tile is a control, and the role is what makes it focusable |
 
 A subtitle sits in its own box inside the text column, because typography is the
 one thing this model inherits: the column states `bodyLarge` for the title and the
 inner box states the subtitle style for the line under it.
 
-The three things a colour scheme would fill in are constants for now —
-`subtitleColor`, and the two state tints — and the tile says so, along with what it
-is not: no ink of its own, no tonal surface, no `titleTextStyle` overrides beyond the
-two style parameters. A `MaterialInkWell` around its content is the ink, and a `Box`
-around it remains the escape hatch.
+`MaterialListTile.row` is the row itself — the parts, the padding, the gap and the
+minimum height — and the tile around it only fills the width, paints the surface and
+inks it. A test or a reader inspects the row; the ink belongs to the well.
+
+**A tile in a rounded container needs the container to clip.** Its tint is a
+background on its own box, so it paints square over a rounded corner unless the
+container declares `overflow: Overflow.hidden` — which is what a Material container
+does for its children — or the tile is given a `borderRadius` of its own. Two tiles
+stacked in one container want the former, because only the outer corners are round.
+The gallery in the example does exactly that.
 
 ## The ink well
 

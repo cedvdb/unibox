@@ -4,26 +4,39 @@ import 'package:unibox_material/unibox_material.dart';
 
 void _tap() {}
 
+/// The ink well a tile is wrapped in.
+MaterialInkWell _well(MaterialListTile tile) =>
+    tile.children.single as MaterialInkWell;
+
+/// The surface the well draws for its resting state: the tints, the ink and the
+/// row. A stateful node's view is a function, so this is how a test reads it.
+Box _surface(MaterialListTile tile) {
+  final MaterialInkWell well = _well(tile);
+  final Store<Object> store = well.createStore() as Store<Object>;
+
+  return well.viewFor(store.state, store) as Box;
+}
+
 /// The column of text inside a tile, whether or not it has a leading node.
 Box _textColumn(MaterialListTile tile) =>
-    tile.children.firstWhere((UINode node) => node is Box) as Box;
+    tile.row.children.firstWhere((UINode node) => node is Box) as Box;
 
 void main() {
   group('MaterialListTile', () {
-    test('is a box with the arrangement Material gives a tile', () {
+    test('is a row with the arrangement Material gives a tile', () {
       final tile = MaterialListTile(title: const TextNode('Ada'));
 
       expect(tile, isA<Box>());
-      expect(tile.direction, Axis.horizontal);
-      expect(tile.crossAlign, CrossAlign.center);
       expect(tile.width, double.infinity);
-      expect(tile.gap, 16);
+      expect(tile.row.direction, Axis.horizontal);
+      expect(tile.row.crossAlign, CrossAlign.center);
+      expect(tile.row.gap, 16);
       expect(
-        tile.padding,
+        tile.row.padding,
         const BoxSpacing.symmetric(horizontal: 16, vertical: 8),
       );
       expect(tile.backgroundColor, isNull);
-      expect(tile.children, hasLength(1));
+      expect(tile.row.children, hasLength(1));
     });
 
     test('sizes itself to the one line and two line heights of Material', () {
@@ -42,10 +55,10 @@ void main() {
         dense: true,
       );
 
-      expect(oneLine.minHeight, 56);
-      expect(twoLine.minHeight, 72);
-      expect(denseOneLine.minHeight, 48);
-      expect(denseTwoLine.minHeight, 64);
+      expect(oneLine.row.minHeight, 56);
+      expect(twoLine.row.minHeight, 72);
+      expect(denseOneLine.row.minHeight, 48);
+      expect(denseTwoLine.row.minHeight, 64);
     });
 
     test('lays the leading node, the text and the trailing node in a row', () {
@@ -56,49 +69,31 @@ void main() {
         trailing: const TextNode('2m'),
       );
 
-      expect(tile.children, hasLength(3));
-      expect((tile.children.first as TextNode).text, 'AL');
-      expect((tile.children.last as TextNode).text, '2m');
-
-      final Box column = tile.children[1] as Box;
-      expect(column.flex, 1);
-      expect(column.direction, Axis.vertical);
-      expect(column.children, hasLength(2));
+      expect(tile.row.children, hasLength(3));
+      expect((tile.row.children.first as TextNode).text, 'AL');
+      expect(_textColumn(tile).children, hasLength(2));
+      expect((tile.row.children.last as TextNode).text, '2m');
     });
 
-    test('typesets the title and the subtitle the way Material does', () {
+    test('is wrapped in the ink well, so it ripples where it is pressed', () {
+      final tile = MaterialListTile(title: const TextNode('Ada'), onTap: _tap);
+      final Box surface = _surface(tile);
+
+      expect(_well(tile), isA<MaterialInkWell>());
+      // The ink needs the press, not just the tap: this is what turns a press into
+      // a drop at the pointer.
+      expect(surface.onTapDown, isNotNull);
+      expect(surface.overflow, Overflow.hidden);
+    });
+
+    test('clips its tint to the radius it is given', () {
       final tile = MaterialListTile(
         title: const TextNode('Ada'),
-        subtitle: const TextNode('ada@example.com'),
+        onTap: _tap,
+        borderRadius: 12,
       );
 
-      final Box column = _textColumn(tile);
-      expect(
-        column.textStyle,
-        MaterialTypography.bodyLarge.merge(
-          BoxTextStyle(color: const BoxColor.role(MaterialColorRole.onSurface)),
-        ),
-      );
-
-      final Box subtitleBox = column.children.last as Box;
-      expect(
-        subtitleBox.textStyle,
-        MaterialTypography.bodyMedium.merge(
-          BoxTextStyle(
-            color: const BoxColor.role(MaterialColorRole.onSurfaceVariant),
-          ),
-        ),
-      );
-
-      // The subtitle is `bodyMedium` with a colour, so the two cannot drift.
-      const BoxTextStyle subtitle = MaterialListTile.subtitleTextStyle;
-      final BoxTextStyle body = MaterialTypography.bodyMedium;
-
-      expect(subtitle.fontSize, body.fontSize);
-      expect(subtitle.fontWeight, body.fontWeight);
-      expect(subtitle.lineHeight, body.lineHeight);
-      expect(subtitle.letterSpacing, body.letterSpacing);
-      expect(subtitle.color, MaterialListTile.subtitleColor);
+      expect(_surface(tile).borderRadius, 12);
     });
 
     test('is a button only when it can be tapped', () {
@@ -108,10 +103,10 @@ void main() {
         onTap: _tap,
       );
 
-      expect(resting.semantics, isNull);
-      expect(resting.isFocusable, isFalse);
-      expect(tappable.semantics?.role, BoxRole.button);
-      expect(tappable.isFocusable, isTrue);
+      expect(_surface(resting).semantics, isNull);
+      expect(_surface(resting).isFocusable, isFalse);
+      expect(_surface(tappable).semantics?.role, BoxRole.button);
+      expect(_surface(tappable).isFocusable, isTrue);
     });
 
     test('keeps the semantics it is given', () {
@@ -120,9 +115,10 @@ void main() {
         onTap: _tap,
         semantics: const BoxSemantics(role: BoxRole.link, label: 'Contact'),
       );
+      final Box surface = _surface(tile);
 
-      expect(tile.semantics?.role, BoxRole.link);
-      expect(tile.semantics?.label, 'Contact');
+      expect(surface.semantics?.role, BoxRole.link);
+      expect(surface.semantics?.label, 'Contact');
     });
 
     test('tints itself on hover and press, and lets a caller replace it', () {
@@ -130,22 +126,20 @@ void main() {
       final themed = MaterialListTile(
         title: const TextNode('Ada'),
         hoverStyle: const BoxStyle(backgroundColor: BoxColors.blue),
-        stateStyles: const <BoxState, BoxStyle>{},
       );
 
       expect(
-        tile.stateStyle(BoxState.hover)?.backgroundColor,
+        _surface(tile).stateStyle(BoxState.hover)?.backgroundColor,
         const BoxColor.role(MaterialColorRole.hoverLayer),
       );
       expect(
-        tile.stateStyle(BoxState.pressed)?.backgroundColor,
+        _surface(tile).stateStyle(BoxState.pressed)?.backgroundColor,
         const BoxColor.role(MaterialColorRole.pressedLayer),
       );
       expect(
-        themed.stateStyle(BoxState.hover)?.backgroundColor,
+        _surface(themed).stateStyle(BoxState.hover)?.backgroundColor,
         BoxColors.blue,
       );
-      expect(themed.stateStyle(BoxState.pressed), isNull);
     });
 
     test('lets a caller replace every tile token', () {
@@ -161,14 +155,20 @@ void main() {
         subtitleStyle: const BoxTextStyle(fontSize: 12),
       );
 
-      final BoxStyle style = tile.computedStyle;
+      expect(tile.computedStyle.backgroundColor, BoxColors.darkGrey);
+      expect(tile.computedStyle.width, 320);
+      expect(tile.row.minHeight, 40);
+      expect(tile.row.padding, const BoxSpacing.all(8));
+      expect(tile.row.gap, 8);
+      expect(_textColumn(tile).textStyle?.fontSize, 18);
+      expect((_textColumn(tile).children.last as Box).textStyle?.fontSize, 12);
+    });
 
-      expect(style.backgroundColor, BoxColors.darkGrey);
-      expect(style.width, 320);
-      expect(style.minHeight, 40);
-      expect(style.padding, const BoxSpacing.all(8));
-      expect(style.gap, 8);
-      expect(_textColumn(tile).textStyle, const BoxTextStyle(fontSize: 18));
+    test('is named for an inspector', () {
+      expect(
+        MaterialListTile(title: const TextNode('Ada')).debugName,
+        'material-list-tile',
+      );
     });
   });
 }

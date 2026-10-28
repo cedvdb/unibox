@@ -343,6 +343,9 @@ UINode _cards(MaterialPalette palette) {
         flex: 1,
         borderRadius: 12,
         border: BoxBorder(color: palette.outlineVariant),
+        // The rows are flush with the rounded edge, so the container clips them:
+        // without this their hover tint squares off the corners.
+        overflow: Overflow.hidden,
         children: <UINode>[
           MaterialListTile(
             leading: TextNode(
