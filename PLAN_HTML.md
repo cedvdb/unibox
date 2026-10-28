@@ -282,6 +282,34 @@ background from the user agent, so adopting it means another reset in `unibox_cs
 something runs JavaScript. So the overlay stays a `<div role="dialog">` in a document, and
 becomes a `<dialog>` in phase 6, when the reset pays for something.
 
+### A script in the tree: refused for the right reason
+
+An earlier answer refused a node that carries JavaScript because it would be an injection
+vector. That reasoning does not survive contact with the code: `HtmlEmbed` writes markup
+verbatim and `DocumentScript.inline` writes a script body, so a host can already put any
+code it likes in a page. A node is not a new class of risk — it is the same door in a
+different place.
+
+The real objections are mechanical:
+
+- **a document is emitted once, a node once per instance.** Ten ink wells would ship ten
+  copies of the same script unless the renderer collects and dedupes them — at which point
+  the node is not carrying a script, it is carrying a *request*;
+- **one file can be cached and hashed for a policy.** Per-instance inline scripts cannot be
+  hashed by content, and force `unsafe-inline` or a nonce on every one of them;
+- **a script means nothing on Flutter**, so a tree carrying one stops rendering on both
+  targets without a no-op payload — which weakens the one claim the library makes.
+
+So the seam is **request and collection**, not script in tree: a node asks for a behaviour,
+and the document writes it once. That is what `data-unibox-ink` plus the host's single file
+already does, with the request *derived* from the tree (a box that listens) rather than
+declared. Declaring it becomes worth the field when a design system needs a behaviour the
+renderer cannot derive — and then the vocabulary is the library's own closed set, unlike
+`action:`, which would have carried application code.
+
+`HtmlEmbed` and `DocumentScript` stay as the trusted, page-level door for code that is the
+host's own.
+
 ## Interactions a document cannot carry
 
 A list a reader can filter, sort and reorder is the case that keeps asking for client-side
