@@ -51,9 +51,10 @@ host that renders it.
 - `unibox_material` is optional: the fifteen Material type roles as `const`
   `BoxTextStyle` values, the colour roles as `MaterialPalette` (`light` and `dark`,
   each a `const` set of `BoxColor`s), and seven components built on nodes the
-  renderers already draw — `MaterialCard`, `MaterialListTile`, `MaterialInkWell`,
-  `MaterialTextField` and `MaterialIcon` are `Box` subclasses, `MaterialDialog` and
-  `MaterialBottomSheet` are `OverlayNode`s. The palette is a value the tree wears —
+  renderers already draw — `MaterialCard`, `MaterialListTile` and `MaterialIcon` are
+  `Box` subclasses, `MaterialInkWell` and `MaterialTextField` are `StatefulNode`s
+  (the ink a press spreads; the text, the focus and whether the field has been
+  touched), and `MaterialDialog` and `MaterialBottomSheet` are `OverlayNode`s. The palette is a value the tree wears —
   pass the roles into the builders; there is no `Theme` lookup at render time.
   Wiring the same roles into the platform (`ColorScheme`, CSS custom properties) is
   the application's job.
@@ -143,7 +144,7 @@ host that renders it.
 | `SingleChildScrollView` | `Box(overflow: Overflow.scroll)` |
 | `Stack` + `Positioned` | `StackNode` + `PositionedNode` |
 | `Semantics(button: true, label:)` | `semantics: BoxSemantics(role: BoxRole.button, label: …)` |
-| `TextField` | `TextInputNode(value:, placeholder:, inputType:, onChanged:)`, or `MaterialTextField` for Material's frame and states |
+| `TextField` | `TextInputNode(value:, placeholder:, inputType:, onChanged:)`, or `MaterialTextField(label:, validator:, onChanged:)` for Material's frame, which validates itself once the field has been touched |
 | `showDialog`, `Dialog` | `MaterialDialog(title:, content:, actions:, onDismiss:)` — an `OverlayNode`, not a call |
 | `showModalBottomSheet` | `MaterialBottomSheet(title:, content:, actions:)` — the same overlay at the bottom |
 | `InkWell`, `InkResponse` | `MaterialInkWell(onTap:, borderRadius:, ink:, child:)` — a state layer plus the ink a press spreads; it paints no surface, so the filled box goes around it |

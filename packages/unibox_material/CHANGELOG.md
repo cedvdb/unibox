@@ -18,6 +18,11 @@ has to know this package exists.
 - `MaterialCard.filled`, `.outlined` and `.elevated` take the card's whole parameter list,
   as `Card.filled` and `Card.outlined` do in Flutter, and let the surface, the line
   and the shadow they start from be replaced.
+- `MaterialTextField` is a `StatefulNode`: `MaterialFieldStore` holds the text, the
+  focus and whether the user has touched the field, so it draws its own focus line,
+  floating label and error, and a `validator` is asked as the address is typed. `value`
+  and `error` still let a form control the text and show a message of its own. This
+  replaces `focused:`, `invalid:` and `message:`, which the host had to keep for it.
 - `MaterialTextField` has Material 3's two label states: empty and unfocused, the
   label is the line inside the field at body size in the quieter colour and the hint
   waits behind it; with a value or focus, the label shrinks to the top of the fill and

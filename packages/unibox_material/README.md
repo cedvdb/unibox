@@ -371,26 +371,38 @@ needs.
 
 ## The text field
 
-`MaterialTextField` is a filled `Box` with a `TextInputNode` inside it and a message
-below.
+`MaterialTextField` is a field with a state of its own: it is a `StatefulNode`, so it
+knows the text, whether it has focus, and whether the user has touched it, and it
+draws its own focus line, its own floating label and its own error.
 
 ```dart
 MaterialTextField(
   label: 'Email',
-  value: state.email,
+  inputType: InputType.email,
+  helper: 'We only use it for the receipt.',
+  validator: (String value) =>
+      value.contains('@') ? null : 'Enter an address with an @',
   onChanged: store.setEmail,
-  onFocusChanged: store.setEmailFocus,
-  invalid: state.emailInvalid,
-  message: state.emailInvalid ? 'Enter an address with an @' : null,
 )
 ```
+
+The field holds what only it can know. What the value is *worth* — the request it
+starts, the button it enables — is the form's store, reached through `onChanged`, and
+`value` and `error` let a form control the text and show a message of its own ("that
+address is taken"), because both outrank the field's state.
+
+`validator` is asked once the field has been touched, which is a keystroke or leaving
+it. Answering `null` means nothing is wrong: the line and the label stay in the resting
+colour and `helper` is the quiet message under the field. Answering a message turns the
+line, the label and the row under the field into `error`, so an address becomes valid
+and invalid as it is typed, with no flag passing through the host.
 
 | State | Line |
 | --- | --- |
 | resting | `onSurfaceVariant`, one pixel |
 | hover | `onSurface`, one pixel |
-| `focused: true` | `primary`, two pixels |
-| `invalid: true` | `error`, and the label and message with it; two pixels when focused |
+| focused | `primary`, two pixels |
+| touched, and the validator answered | `error`, two pixels while focused, and the label and message with it |
 
 The line is a shadow with no blur, because `BoxBorder` draws all four sides and a
 filled field has none, and the value's padding lives on the input so a press anywhere
@@ -400,20 +412,17 @@ in the fill focuses the field.
 line inside the field: body size, `onSurfaceVariant`, drawn as the input's own hint so
 that the caret and the label are one piece of text and the field is 56 pixels tall.
 Once the field holds a value or takes focus, the label shrinks to `bodySmall` at the top
-of the fill — `primary` while focused, `error` while invalid — and the value takes the
-row below it, which keeps the same 56 pixels. Material animates the move and the model
-has no triggered timeline for a layout change, so this one steps.
+of the fill and the value takes the row below it, which keeps the same 56 pixels.
+Material animates the move and the model has no triggered timeline for a layout change,
+so this one steps.
 
-**The radius is one number.** Material rounds the top two corners of a filled field and
-leaves the bottom two square; `BoxStyle.borderRadius` is one radius for all four, so a
-field here is rounded on every corner. A corner token would have to land on both
-renderers and in the conformance table before it is worth having, and until then this
-is the difference the README states rather than hides.
+**Rounded at the top, square at the bottom.** Material's filled field is a shape cut to
+the lines it sits between, so the field names the two top corners through
+`BoxBorderRadius` and leaves the bottom two alone.
 
 The caret, the selection, the IME and autofill are the platform's, because the input
 node delegates them — so a dark app renders the same field with
 `theme: MaterialPalette.darkTheme` *and* a matching `ColorScheme` to `MaterialApp`.
-`focused` is the host's: it is the value `onFocusChanged` last reported.
 
 ## The dialog and the bottom sheet
 

@@ -2,21 +2,48 @@ import 'package:test/test.dart';
 import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_material/unibox_material.dart';
 
-/// The painted field: the surface the label and the input sit on.
-Box fillOf(MaterialTextField field) => field.children.whereType<Box>().first;
+/// The tree [field] draws, after the user typed [typed] and focused or left it.
+Box treeOf(MaterialTextField field, {String? typed, bool focused = false}) {
+  // `create` is the typed factory; `createStore` is the erased spelling a
+  // renderer needs.
+  final MaterialFieldStore store = field.create();
+  if (typed != null) {
+    store.setValue(typed);
+  }
+  if (focused) {
+    store.setFocused(true);
+  }
+  return field.view(store.state, store) as Box;
+}
 
-TextInputNode inputOf(MaterialTextField field) =>
-    fillOf(field).children.whereType<TextInputNode>().single;
+/// The painted field: the surface the label and the input sit on.
+Box fillOf(Box tree) => tree.children.whereType<Box>().first;
+
+/// The control inside the fill.
+TextInputNode inputOf(Box tree) =>
+    fillOf(tree).children.whereType<TextInputNode>().single;
+
+/// The line under the field, when it draws one.
+String? messageOf(Box tree) {
+  final List<Box> boxes = tree.children.whereType<Box>().toList();
+  if (boxes.length < 2) {
+    return null;
+  }
+
+  return (boxes.last.children.single as TextNode).text;
+}
 
 void main() {
   group('MaterialTextField', () {
-    test('fills the surface and keeps the label inside it', () {
-      final field = MaterialTextField(
-        label: 'Email',
-        value: 'ada@example.com',
-        message: 'We only use it for the receipt.',
+    test('fills the surface and puts the label above the value', () {
+      final Box tree = treeOf(
+        MaterialTextField(
+          label: 'Email',
+          value: 'ada@example.com',
+          helper: 'We only use it for the receipt.',
+        ),
       );
-      final Box fill = fillOf(field);
+      final Box fill = fillOf(tree);
 
       expect(
         fill.backgroundColor,
@@ -31,11 +58,13 @@ void main() {
 
       expect((label.children.single as TextNode).text, 'Email');
       expect(label.padding?.left, 16);
-      expect(field.children.last, isA<Box>());
+      expect(messageOf(tree), 'We only use it for the receipt.');
     });
 
     test('puts the padding on the input, so the whole field is tappable', () {
-      final TextInputNode input = inputOf(MaterialTextField(label: 'Email'));
+      final TextInputNode input = inputOf(
+        treeOf(MaterialTextField(label: 'Email')),
+      );
 
       // Sixteen above and below a line of body text is Material's 56 pixels with
       // the label resting on that line.
@@ -44,86 +73,178 @@ void main() {
       expect(input.padding?.top, 16);
       expect(input.padding?.bottom, 16);
       // The padding is inside the control; the box around it has none.
-      expect(fillOf(MaterialTextField()).padding, isNull);
+      expect(fillOf(treeOf(MaterialTextField())).padding, isNull);
     });
 
-    test('moves the label to the top of the fill once there is a value', () {
-      final MaterialTextField resting = MaterialTextField(label: 'Email');
-      final MaterialTextField filled = MaterialTextField(
-        label: 'Email',
-        value: 'ada@',
-      );
+    test(
+      'moves the label up as the user types, because the field has the state',
+      () {
+        final MaterialTextField field = MaterialTextField(label: 'Email');
+        final Box resting = treeOf(field);
+        final Box typing = treeOf(field, typed: 'ada@');
 
-      // At rest the label is the line itself, so it is the input's hint and nothing
-      // is drawn above it.
-      expect(inputOf(resting).placeholder, 'Email');
-      expect(fillOf(resting).children.first, isA<TextInputNode>());
+        // At rest the label is the line itself, so it is the input's hint and nothing
+        // is drawn above it.
+        expect(inputOf(resting).placeholder, 'Email');
+        expect(fillOf(resting).children.first, isA<TextInputNode>());
 
-      // With a value it is a small label at the top, and the input takes the row
-      // under it.
-      expect(fillOf(filled).children.first, isA<Box>());
-      expect(inputOf(filled).placeholder, isNull);
-      expect(inputOf(filled).padding?.top, 0);
-      expect(inputOf(filled).padding?.bottom, 8);
-    });
+        // One keystroke later the label is a small line at the top of the fill, and
+        // the value takes the row under it — no host flag involved.
+        expect(fillOf(typing).children.first, isA<Box>());
+        expect(inputOf(typing).placeholder, isNull);
+        expect(inputOf(typing).padding?.top, 0);
+        expect(inputOf(typing).padding?.bottom, 8);
+      },
+    );
 
-    test('keeps the input and its state', () {
+    test('keeps what the input is for', () {
       final TextInputNode input = inputOf(
-        MaterialTextField(
-          placeholder: 'you@example.com',
-          required: true,
-          invalid: true,
-          description: 'Used for the receipt',
+        treeOf(
+          MaterialTextField(
+            placeholder: 'you@example.com',
+            required: true,
+            description: 'Used for the receipt',
+          ),
         ),
       );
 
       // No label to rest on the line, so the placeholder is the hint.
       expect(input.placeholder, 'you@example.com');
       expect(input.required, isTrue);
-      expect(input.invalid, isTrue);
       expect(input.description, 'Used for the receipt');
     });
 
-    test('draws the bottom line from roles, one colour per state', () {
-      BoxColor lineOf(MaterialTextField field) => fillOf(field).shadow!.color;
+    test('waits for the user to touch the field before it complains', () {
+      final MaterialTextField field = MaterialTextField(
+        label: 'Email',
+        helper: 'We only use it for the receipt.',
+        validator: (String value) =>
+            value.contains('@') ? null : 'Enter an address with an @',
+      );
+
+      // Untouched, the field says nothing about the empty value.
+      final Box fresh = treeOf(field);
+      expect(inputOf(fresh).invalid, isFalse);
+      expect(messageOf(fresh), 'We only use it for the receipt.');
+
+      // A keystroke that leaves it wrong turns the line, the label and the message
+      // into the error state.
+      final Box wrong = treeOf(field, typed: 'ada');
+      expect(inputOf(wrong).invalid, isTrue);
+      expect(messageOf(wrong), 'Enter an address with an @');
+      expect(
+        fillOf(wrong).shadow?.color,
+        const BoxColor.role(MaterialColorRole.error),
+      );
+
+      // Fixing it takes the error away and gives the helper back.
+      final Box right = treeOf(field, typed: 'ada@example.com');
+      expect(inputOf(right).invalid, isFalse);
+      expect(messageOf(right), 'We only use it for the receipt.');
+    });
+
+    test('lets the form overrule the value and the message', () {
+      final Box tree = treeOf(
+        MaterialTextField(
+          label: 'Email',
+          value: 'ada@example.com',
+          error: 'That address is already registered',
+          validator: (String value) => 'the validator is not consulted',
+        ),
+        typed: 'ignored',
+      );
+
+      expect(inputOf(tree).value, 'ada@example.com');
+      expect(inputOf(tree).invalid, isTrue);
+      expect(messageOf(tree), 'That address is already registered');
+    });
+
+    test('draws the bottom line from roles, one colour per operation', () {
+      final MaterialTextField field = MaterialTextField(
+        validator: (String value) => value.isEmpty ? 'Required' : null,
+      );
 
       expect(
-        lineOf(MaterialTextField()),
+        fillOf(treeOf(field)).shadow?.color,
         const BoxColor.role(MaterialColorRole.onSurfaceVariant),
       );
       expect(
-        lineOf(MaterialTextField(focused: true)),
+        fillOf(treeOf(field, focused: true)).shadow?.color,
         const BoxColor.role(MaterialColorRole.primary),
       );
       expect(
-        lineOf(MaterialTextField(invalid: true)),
+        fillOf(treeOf(field, typed: '')).shadow?.color,
         const BoxColor.role(MaterialColorRole.error),
       );
       expect(
-        lineOf(MaterialTextField(invalid: true, focused: true)),
+        fillOf(treeOf(field, typed: '', focused: true)).shadow?.color,
         const BoxColor.role(MaterialColorRole.error),
       );
       // Focused, the line is two pixels: the offset is what thickens it.
-      expect(fillOf(MaterialTextField()).shadow?.offsetY, 1);
-      expect(fillOf(MaterialTextField(focused: true)).shadow?.offsetY, 2);
-      expect(fillOf(MaterialTextField()).shadow?.blurRadius, 0);
+      expect(fillOf(treeOf(field)).shadow?.offsetY, 1);
+      expect(fillOf(treeOf(field, focused: true)).shadow?.offsetY, 2);
+      expect(fillOf(treeOf(field)).shadow?.blurRadius, 0);
     });
 
     test('typesets the value with the body role, in the on-surface colour', () {
-      final BoxTextStyle? style = fillOf(MaterialTextField()).textStyle;
+      final BoxTextStyle? style = fillOf(treeOf(MaterialTextField())).textStyle;
 
       expect(style?.color, const BoxColor.role(MaterialColorRole.onSurface));
       expect(style?.fontSize, MaterialTypography.bodyLarge.fontSize);
     });
 
     test('fades out when disabled, and lifts the line under the pointer', () {
-      expect(fillOf(MaterialTextField()).opacity, isNull);
-      expect(fillOf(MaterialTextField(enabled: false)).opacity, 0.38);
+      expect(fillOf(treeOf(MaterialTextField())).opacity, isNull);
+      expect(fillOf(treeOf(MaterialTextField(enabled: false))).opacity, 0.38);
       expect(
-        fillOf(MaterialTextField()).hoverStyle?.shadow?.color,
+        fillOf(treeOf(MaterialTextField())).hoverStyle?.shadow?.color,
         const BoxColor.role(MaterialColorRole.onSurface),
       );
-      expect(fillOf(MaterialTextField(focused: true)).hoverStyle, isNull);
+      expect(
+        fillOf(treeOf(MaterialTextField(), focused: true)).hoverStyle,
+        isNull,
+      );
+    });
+  });
+
+  group('MaterialFieldStore', () {
+    test('publishes a keystroke and remembers that it happened', () {
+      final MaterialFieldStore store = MaterialFieldStore();
+      var notifications = 0;
+      store.addListener(() => notifications++);
+
+      store.setValue('a');
+      store.setValue('ad');
+
+      expect(store.state.value, 'ad');
+      expect(store.state.touched, isTrue);
+      expect(notifications, 2);
+    });
+
+    test('counts leaving the field as having looked at it', () {
+      final MaterialFieldStore store = MaterialFieldStore();
+
+      store.setFocused(true);
+      expect(store.state.touched, isFalse);
+
+      store.setFocused(false);
+      expect(store.state.focused, isFalse);
+      expect(store.state.touched, isTrue);
+    });
+
+    test('says nothing when the state would not change', () {
+      final MaterialFieldStore store = MaterialFieldStore(value: 'ada');
+      var notifications = 0;
+      store.addListener(() => notifications++);
+
+      // The first keystroke is a change even though the text is the same: it is the
+      // one that records that the user has typed at all.
+      store.setValue('ada');
+      expect(notifications, 1);
+
+      // The second changes nothing, so nobody is told.
+      store.setValue('ada');
+      expect(notifications, 1);
     });
   });
 }
