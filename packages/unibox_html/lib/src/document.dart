@@ -86,6 +86,7 @@ String toDocument(
   String? description,
   String? canonical,
   Map<String, String> meta = const <String, String>{},
+  List<String> head = const <String>[],
   List<DocumentScript> scripts = const <DocumentScript>[],
   List<String> prefetch = const <String>[],
   core.UniboxTheme? theme,
@@ -96,44 +97,44 @@ String toDocument(
     theme: theme,
     showOverlays: showOverlays,
   );
-  final StringBuffer head = StringBuffer();
+  final StringBuffer buffer = StringBuffer();
 
   // First, always: a browser that has to guess the encoding may reparse the document.
-  head.write('<meta charset="utf-8">');
-  head.write(
+  buffer.write('<meta charset="utf-8">');
+  buffer.write(
     '<meta name="viewport" content="width=device-width, initial-scale=1">',
   );
 
   if (title != null) {
-    head.write('<title>${escapeText(title)}</title>');
+    buffer.write('<title>${escapeText(title)}</title>');
   }
 
   if (description != null) {
-    head.write(
+    buffer.write(
       '<meta name="description" content="${escapeAttribute(description)}">',
     );
   }
 
   if (canonical != null) {
-    head.write('<link rel="canonical" href="${safeUrl(canonical)}">');
+    buffer.write('<link rel="canonical" href="${safeUrl(canonical)}">');
   }
 
   // What a link preview shows, which is the other half of being found.
   if (title != null) {
-    head.write(
+    buffer.write(
       '<meta property="og:title" content="${escapeAttribute(title)}">',
     );
   }
 
   if (description != null) {
-    head.write(
+    buffer.write(
       '<meta property="og:description" '
       'content="${escapeAttribute(description)}">',
     );
   }
 
   for (final MapEntry<String, String> entry in meta.entries) {
-    head.write(
+    buffer.write(
       '<meta name="${escapeAttribute(entry.key)}" '
       'content="${escapeAttribute(entry.value)}">',
     );
@@ -143,18 +144,25 @@ String toDocument(
   // never a boot on a cold cache. The download is not what the reader pays for; the
   // execution is.
   for (final String url in prefetch) {
-    head.write('<link rel="prefetch" href="${safeUrl(url)}" as="script">');
+    buffer.write('<link rel="prefetch" href="${safeUrl(url)}" as="script">');
   }
 
-  head.write('<style>${rendered.css}</style>');
+  buffer.write('<style>${rendered.css}</style>');
+
+  // Markup the host owns and the model does not describe: the `@font-face` rules of the
+  // asset it ships, a dark-mode block, a structured-data script. Written verbatim, so it is
+  // the host's own text and never assembled from data a reader supplied.
+  for (final String markup in head) {
+    buffer.write(markup);
+  }
 
   for (final DocumentScript script in scripts) {
-    head.write(script.write());
+    buffer.write(script.write());
   }
 
   return '<!DOCTYPE html>'
       '<html lang="${escapeAttribute(lang)}">'
-      '<head>${head.toString()}</head>'
+      '<head>${buffer.toString()}</head>'
       '<body>${rendered.plan.write()}</body>'
       '</html>';
 }

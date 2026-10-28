@@ -15,6 +15,11 @@
   browser is the fallback. An intent that arrives before the load is remembered and honoured
   at the load.
 
+- `toDocument(head: …)`: markup the host owns and the model does not describe — the
+  `@font-face` rules of the asset it ships, a dark-mode block, a structured-data script. It is
+  written verbatim and placed before the tree, so a font face arrives before the text that
+  uses it, and it is the host's own text rather than anything assembled from data.
+
 - `toDocument(prefetch: …)`: the bundle is fetched at a low priority while the reader reads,
   so a boot that waits for intent is never a boot on a cold cache. Deferring the execution
   is the point; deferring the download as well is how a page gets a good score and a

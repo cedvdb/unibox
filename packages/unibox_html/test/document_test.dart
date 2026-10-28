@@ -87,6 +87,24 @@ void main() {
       expect(style, lessThan(body));
     });
 
+    test('carries markup the host owns and the model does not describe', () {
+      // The `@font-face` rules of the asset it ships, a dark-mode block, structured data:
+      // written verbatim, which is why a host passes text and never reader data.
+      final String html = toDocument(
+        const core.TextNode('Hi'),
+        head: <String>[
+          '<style>@font-face{font-family:UniboxText;src:url(a.ttf)}</style>',
+        ],
+      );
+
+      expect(html, contains('@font-face{'));
+      expect(
+        html.indexOf('@font-face'),
+        lessThan(html.indexOf('<body>')),
+        reason: 'a font face has to arrive before the text that uses it',
+      );
+    });
+
     test('carries the scripts the host needs, deferred', () {
       final String html = toDocument(
         const core.TextNode('Hi'),
