@@ -2,6 +2,7 @@
 
 ## 0.1.0
 
+- A text input resolves a colour role in its `placeholderStyle` against the theme, like the colour of any other text; it threw before.
 - A `TextInputNode.placeholderStyle` becomes the field's `hintStyle`, so the hint of an
   empty field is drawn in the typography the tree asked for instead of the host's.
 
