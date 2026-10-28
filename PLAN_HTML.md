@@ -77,7 +77,16 @@ not Dart — compiled to JavaScript.
 8. **An embed carries a payload per target.** `HtmlEmbed(String)` is the mirror of
    `JasprComponentNode`, and a tree with no implementation for this target is reported
    rather than silently skipped.
-9. **Nothing is released, so nothing is owed compatibility.** A rename, a deletion or a
+9. **One element plan, shared by every renderer that writes HTML.** Which element a node
+   becomes, which attributes it carries, in what order, and which wrappers a renderer
+   invents — decided once, in phase 2, before either renderer exists. A string renderer and
+   a DOM renderer that disagreed about structure could never adopt each other's output, and
+   a client renderer that has to repaint is one that flickers.
+10. **A node's behaviour is a Dart callback, never a string.** `Box(onTap: store.reorder)` is
+   the only spelling. An `action: 'list.reorder'` attribute would be a second, untyped way
+   to say it, and it exists only when nothing can run a closure on the client — which
+   `unibox_dom` changes.
+11. **Nothing is released, so nothing is owed compatibility.** A rename, a deletion or a
    spelling change is one commit with a changelog line, not a deprecation period:
    `design.md` §5.7 describes a promise that has not started. `unibox_jaspr` therefore
    goes outright rather than through a forwarding member, `toComponent()` goes with it,
@@ -127,8 +136,14 @@ that no longer exists (interaction, stateful, overlay, hydration). Update
 new section: a document has no behaviour on the web — `AI_INSTRUCTIONS.md`, the
 CHANGELOGs and `TASK_PLAN.md`.
 
-**6. Cleanup.** Delete the cross-check tests and their temporary dependency on the
-removed package.
+**6. `unibox_dom`, the compiled client renderer.** The same tree into DOM nodes, with the
+same declarations from `unibox_css` and the same element plan as the string renderer, so it
+adopts the page the server wrote instead of repainting it. Client only — `package:web` and
+`dart:js_interop` — compiled by the host with `dart compile js`. Born with a fourth
+conformance suite, because a renderer that is not held to the table is a third design.
+
+**7. Cleanup.** Delete the cross-check tests and their temporary dependency on the removed
+package.
 
 ## Spellings to settle when Jaspr is gone
 
@@ -240,31 +255,63 @@ For a page that exists to be found, a filter belongs in the URL anyway: a filter
 link the reader can send and a crawler can read. And an order that is never sent anywhere
 did not happen, so reordering is a request whichever way it is written.
 
-### What lands now
+### A callback is the API; a string would be a second, worse one
 
-**The hook, not a vocabulary.** A node may state an action, and the renderer writes it as
-`data-unibox-action="list.reorder"`. The host implements it. The library defines the seam
-and never the meaning of the name: the moment it ships `sortByPrice` as a concept, the
-model has an interaction language and every member of it needs an implementation per
-renderer.
+An earlier draft of this plan shipped `data-unibox-action="list.reorder"` on a node, with
+the host implementing the name in JavaScript. That is refused: the string exists only
+because a string renderer cannot carry a closure, it is untyped where the tree is typed,
+and it puts the behaviour of a node somewhere the node cannot see.
 
-### What stays out, and what would bring it back
+So a node states what it does the way it always has — `Box(onTap: store.reorder)` — and the
+question becomes whether anything can run that closure in a browser.
 
-A compiled **DOM renderer** — `unibox_dom`, the same tree patched into the DOM with a
-store driving it — is possible precisely because `unibox_css` and `unibox_html` are pure
-and carry no dependency; a renderer written against a framework's value types could never
-have been compiled. It would reuse the CSS layer rather than duplicate it, at roughly 20 to
-30 kB gzipped, against a Flutter engine of about two megabytes.
+### The client is compiled, not stringly
 
-It is not built now for one reason: it makes **three** renderings that have to agree, and
-the conformance table would hold all three, structural details included — the wrapper a
-stack cell adds, the element a box chooses. That cost grows faster than the number of
-renderers, and it should be paid for by a page that cannot be built otherwise.
+A second renderer, `unibox_dom`, renders the same tree into DOM nodes on the client and is
+compiled to JavaScript with `dart compile js`, the way the Jaspr example ships
+`main.client.js` today. Callbacks work because they are Dart closures in the same program
+as the store; no attribute protocol exists and none is needed.
 
-It comes back the first time a real page needs an interaction that is neither a navigation
-nor something the application should own — and the criterion is concrete: the interaction
-cannot be expressed as a URL, cannot be a request, and is too frequent to boot an engine
-for.
+What it is:
+
+- a fourth renderer, client only: `package:web` and `dart:js_interop` are its dependencies,
+  and nothing else;
+- the same declarations from `unibox_css`, so a class name is the same string on the server
+  and in the browser — which is what lets it adopt the server's DOM instead of repainting;
+- a re-render at the boundary of each `StatefulNode`, with keyed children reconciled by
+  `key`, which is the same contract the other two renderers already keep;
+- ~20 to 30 kB gzipped, against a Flutter engine of about two megabytes.
+
+What it costs, honestly:
+
+- **DOM patching is the hardest bug surface in this project.** Jaspr spent years on
+  hydration and its retake/finalize logic; a second implementation means owning that
+  class of bug again — focus, selection, scroll inside a patched subtree, an element
+  reused for a different node.
+- **A fourth conformance suite**, and the table now holds Flutter, HTML and DOM to one
+  appearance, down to the wrapper a stack cell adds.
+- **A build entry per application**, since a client renderer only runs compiled.
+- **Three ways for a page to be interactive** — nothing, the document runtime, or
+  Flutter — which is one choice more than a reader of the docs can hold without help.
+
+### The constraint that makes it cheap: one structure, decided once
+
+The string renderer and the DOM renderer must produce the *same elements* — same tag, same
+attributes, same class, same order, same renderer-invented wrappers. That is what makes
+adoption possible (the client takes the server's nodes; it does not repaint them) and what
+keeps the two mappings from becoming two designs.
+
+So the decision of which element a node renders to, and in what order a node's attributes
+are written, belongs in one place shared by both renderers, and it is taken in phase 2 —
+before either renderer exists — rather than discovered twice.
+
+### Order of work
+
+`unibox_dom` is not built in this change. The HTML document and the handover prove the
+reason the library exists first; a client renderer is then an addition to a working story
+rather than a bet placed before it. It is phase 6, and the phases before it are its
+design: the CSS layer it will share, the element plan it will follow, and the conformance
+table it will join.
 
 ## Acceptance
 
@@ -293,7 +340,8 @@ for.
 
 ## Out of scope
 
-- A Dart client runtime, hydration, or re-rendering a tree in a browser — see "Interactions a document cannot carry" for the criterion that would bring one back.
+- A client runtime in this change. `unibox_dom` is phase 6 and is specified above; nothing
+  before it may depend on it.
 - Translating Dart callbacks to JavaScript, at build time or at render time.
 - A JSON node schema so a non-Dart host can author trees.
 - Anything from the `Deferred` section of `TASK_PLAN.md` beyond the scroll handover
