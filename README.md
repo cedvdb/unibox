@@ -21,28 +21,46 @@ primitives, and a test suite holds both to the same expected result.
 
 ## Why this exists
 
-**A screen drawn in Flutter is a canvas.** Inside an app that is exactly what you
-want. For a page that has to be found it is the worst possible thing: a search engine,
-a link preview and a reader whose JavaScript failed all receive an empty document. The
-usual answer is to write that page a second time as HTML — and then keep two designs in
+A search engine, a link preview and a reader whose JavaScript failed all see the same
+thing in a Flutter screen: nothing. Flutter draws into a canvas, so there is no text to
+index. The usual fix is to write that page again as HTML — and then keep two designs in
 step, which drift the week after they are written.
 
-Unibox is the one description those two can share. A page that has to rank is written
-once as a tree; it is exported as **HTML and CSS**, which is what a crawler reads, and
-the same tree draws the app's version of that screen. Nothing is designed twice, so
-nothing can disagree.
+Unibox removes the second design. You write the screen once, as a tree, and then choose
+how to serve it. There are two strategies.
 
-| Shape | What it is | In this repository |
-| --- | --- | --- |
-| **Indexable, static** | Server-rendered HTML and CSS with no JavaScript in it | `build/site/web/listings/index.html` |
-| **Indexable, live** | The same document plus one client bundle that redraws the same tree into it | `build/site/web/signup/index.html` |
-| **The app** | The same screen, compiled by Flutter, beside the page | `build/site/flutter/listings/` |
+### Strategy 1: the Flutter app takes over
 
-**The line that matters.** The takeover a server-rendered document can get is the *web*
-one: the Jaspr renderer redraws the same tree into the same page, so a press, a field or
-a dialog works without a second design. Flutter cannot do that — it draws to a canvas,
-so adopting server-rendered HTML would mean repainting it, which is the shift this is
-meant to avoid. The Flutter build is the app beside the page, not on top of it.
+The server renders the screen from the tree as a **read-only page** — HTML and CSS, all
+the text and links in it, which is what a crawler reads and what a visitor sees before
+anything loads. The Flutter app then takes the page over and draws the same screen from
+the same tree. The visitor gets one screen, not two versions of it: the markup and the
+app come from the same description, so they cannot disagree.
+
+The handover is a repaint, because Flutter can only draw into a canvas — expect a brief
+flash. That is a fine trade when the page really is the app and the visitor is about to
+use it.
+
+### Strategy 2: Jaspr serves the page
+
+The same tree is exported as HTML and CSS and made interactive by one small bundle
+redrawn from that tree — a press, a field, a dialog. **No Flutter on that page at all**,
+so a phone downloads a page and a script instead of an application. The document a
+crawler reads and the document a visitor uses are one and the same.
+
+That is what this site does: `/web/pricing/`, `/web/listings/` and `/web/signup/` are
+strategy 2. `/flutter/listings/` is the same tree built by Flutter and served as its own
+route.
+
+### What stays Flutter
+
+Only the pages that have to be found need either strategy. The rest of an application
+stays ordinary Flutter, screen for screen: a settings screen or an internal tool gains
+nothing from being indexable, and nothing here asks it to change.
+
+A page that has to work on a phone is written to fold rather than to a fixed width:
+`GridNode` drops columns as the window narrows, and every page of this site fits a
+375-pixel screen.
 
 ### What a crawler sees
 
@@ -59,7 +77,7 @@ python3 tool/seo_report.py build/site
 | Jaspr `/web/pricing/` | 331 | 1 | 2 | 5 | 0 | 20 247 |
 | Jaspr `/web/listings/` | 132 | 1 | 0 | 3 | 0 | 42 309 |
 | Jaspr `/web/signup/` | 149 | 1 | 1 | 5 | 2 | 51 469 |
-| Jaspr `/` | 491 | 1 | 2 | 9 | 0 | 18 422 |
+| Jaspr `/` | 439 | 1 | 2 | 7 | 0 | 17 360 |
 | Jaspr `/material/` | 513 | 1 | 0 | 3 | 2 | 63 879 |
 | **Flutter `/flutter/listings/`** | **4** | **0** | **0** | **0** | **0** | **772** |
 

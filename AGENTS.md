@@ -8,6 +8,13 @@ Flutter widgets in an application and as HTML/CSS in a browser. The value of the
 project is that the two renderings agree, so most of what follows is about keeping
 them in step.
 
+The reason it exists is search. A screen drawn in Flutter is a canvas, which a search
+engine, a link preview and a reader without JavaScript all see as nothing, and writing
+the page a second time is how a team ends up with two designs that drift. A tree is
+served one of two ways — the server renders it read-only and the Flutter app takes the
+page over, or Jaspr serves it as a page with no Flutter on it at all. Only the screens
+that have to be found need either; the rest of an application stays ordinary Flutter.
+
 ## Read in this order
 
 1. This file.

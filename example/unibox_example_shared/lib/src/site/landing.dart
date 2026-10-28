@@ -116,12 +116,13 @@ UINode buildLanding() {
   );
 }
 
-/// Why the library exists, and the two shapes a page it describes can be served in.
+/// Why the library exists, and the two ways to serve a page written this way.
 ///
 /// This is the argument the repository is built on, so it is written on the page
 /// rather than left to a `README` a visitor never opens: a search engine, a link
-/// preview and a reader without JavaScript all see the same document, and the screen
-/// in the app is not a second design of it.
+/// preview and a reader without JavaScript all see the same empty document in a
+/// Flutter screen, and writing that page again is how a team ends up with two designs
+/// that drift. The two strategies are the choice that removes the second design.
 UINode _why(MaterialPalette palette) {
   return Box(
     gap: 16,
@@ -136,70 +137,107 @@ UINode _why(MaterialPalette palette) {
         gap: 16,
         children: <UINode>[
           TextNode(
-            'A screen drawn in Flutter is a canvas. It is the right thing inside an '
-            'app and the wrong thing for a page that has to be found: a search '
-            'engine, a link preview and a reader without JavaScript all get an empty '
-            'document. Writing that page a second time as HTML gets the page indexed '
-            'and gives the team two designs to keep in step, which drift the week '
-            'after they are written.',
+            'A search engine, a link preview and a reader without JavaScript all get '
+            'the same thing from a Flutter screen: nothing. Flutter draws into a '
+            'canvas, so there is no text to index. Writing the page again as HTML '
+            'fixes that and leaves a team with two designs to keep in step.',
             style: MaterialTypography.bodyLarge,
             color: palette.onSurfaceVariant,
           ),
           TextNode(
-            'The difference is measurable. A crawler reads 132 words, a single h1 and '
-            'three links on the listings page of this site. The Flutter build of the '
-            'same screen is 4 words and a canvas: a title, and nothing to index.',
+            'Unibox removes the second design. The screen is written once as a tree, '
+            'and you choose how to serve it.',
             style: MaterialTypography.bodyLarge,
             color: palette.onSurface,
-          ),
-          TextNode(
-            'Unibox is the one description those two can share. A page that has to '
-            'rank is written once as a tree; the export writes it as HTML and CSS, and '
-            'the same tree draws the app\'s version of that screen. Nothing is designed '
-            'twice, so nothing can disagree — and everything else in the application '
-            'stays ordinary Flutter, screen for screen.',
-            style: MaterialTypography.bodyLarge,
-            color: palette.onSurfaceVariant,
           ),
         ],
       ),
       GridNode(
         minItemWidth: 320,
-        maxColumns: 4,
+        maxColumns: 2,
         gap: 24,
         children: <UINode>[
-          _choice(
-            title: 'Indexable, and static',
+          _strategy(
+            title: 'Strategy 1: the Flutter app takes over',
             body:
-                'Server-rendered HTML and CSS with no JavaScript in it: what a '
-                'crawler reads and what a reader without scripts keeps. The '
-                'listings below are one.',
-            href: 'web/listings/',
-          ),
-          _choice(
-            title: 'Indexable, and live',
-            body:
-                'The same document plus one client bundle, which redraws the same '
-                'tree into the same page: the dialog opens, the form validates, the '
-                'ink spreads.',
-            href: 'web/signup/',
-          ),
-          _choice(
-            title: 'A page that has to rank',
-            body:
-                'A pricing page written once as a tree: the words, the headings and '
-                'the answers a search engine reads, and the same screen in the app.',
-            href: 'web/pricing/',
-          ),
-          _choice(
-            title: 'The app, from that tree',
-            body:
-                'The same screen compiled by Flutter. It is the app beside the page '
-                'rather than a takeover of it: Flutter draws to a canvas, so it '
-                'cannot adopt server-rendered HTML without repainting it.',
+                'The server renders the screen as a read-only page — the text, the '
+                'headings and the links are in the HTML. Flutter then takes the page '
+                'over and draws the same screen from the same tree, so a visitor gets '
+                'one screen rather than two versions of it. The handover is a '
+                'repaint, so expect a brief flash.',
+            link: 'Flutter, drawing that tree',
             href: 'flutter/listings/',
           ),
+          _strategy(
+            title: 'Strategy 2: Jaspr serves the page',
+            body:
+                'The same tree is exported as HTML and CSS and made interactive by '
+                'one small bundle. No Flutter on that page at all: a phone downloads '
+                'a page and a script instead of an application, and what the crawler '
+                'reads and what the visitor uses are the same document.',
+            link: 'The pricing page, served this way',
+            href: 'web/pricing/',
+          ),
         ],
+      ),
+      Box(
+        maxWidth: 760,
+        gap: 12,
+        children: <UINode>[
+          TextNode(
+            'The difference is measurable: a crawler reads 132 words, a single h1 and '
+            'three links on the listings page of this site, and 4 words in the Flutter '
+            'build of the same screen.',
+            style: MaterialTypography.bodyLarge,
+            color: palette.onSurfaceVariant,
+          ),
+          TextNode(
+            'Only the pages that have to be found need either strategy. Everything '
+            'else stays ordinary Flutter, screen for screen.',
+            style: MaterialTypography.bodyLarge,
+            color: palette.onSurfaceVariant,
+          ),
+        ],
+      ),
+    ],
+  );
+}
+
+/// One of the two ways to serve a page: a heading, what it means, and a link to a
+/// page served that way.
+UINode _strategy({
+  required String title,
+  required String body,
+  required String link,
+  required String href,
+}) {
+  return Box(
+    gap: 8,
+    padding: const BoxSpacing.all(20),
+    borderRadius: 12,
+    border: const BoxBorder(
+      color: BoxColor.role(MaterialColorRole.outlineVariant),
+    ),
+    children: <UINode>[
+      TextNode(title, style: MaterialTypography.titleLarge, headingLevel: 3),
+      TextNode(
+        body,
+        style: MaterialTypography.bodyMedium.copyWith(
+          color: const BoxColor.role(MaterialColorRole.onSurfaceVariant),
+        ),
+      ),
+      LinkNode(
+        href,
+        child: Box(
+          children: <UINode>[
+            TextNode(
+              link,
+              style: MaterialTypography.labelLarge.copyWith(
+                color: const BoxColor.role(MaterialColorRole.primary),
+              ),
+            ),
+          ],
+        ),
       ),
     ],
   );
