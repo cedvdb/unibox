@@ -47,6 +47,7 @@ ElementPlan planNode(core.UINode node, Stylesheet sheet) => switch (node) {
   final core.LinkNode link => _planLink(link, sheet),
   final core.GridNode grid => _planGrid(grid, sheet),
   final core.StackNode stack => _planStack(stack, sheet),
+  final core.TextInputNode field => _planTextInput(field, sheet),
   _ => throw UnsupportedError(
     'No HTML renderer for ${node.runtimeType} yet: this target draws $supportedNodes.',
   ),
@@ -89,7 +90,7 @@ ElementPlan _planBox(core.Box box, Stylesheet sheet) {
   final String className = sheet.classFor(
     'box',
     declarations,
-    (String name) => stateRules(box, name),
+    states: (String name) => stateRules(box, name),
   );
 
   return ElementPlan(
@@ -308,4 +309,106 @@ ElementPlan _planStackCell(core.UINode child, Stylesheet sheet) {
     className: sheet.classFor('stack-child', declarations),
     children: <ElementPlan>[planNode(content, sheet)],
   );
+}
+
+/// A field, as an `<input>` or a `<textarea>`.
+///
+/// A field is a replaced element, so most of what makes it look like the tree is done in
+/// `textInputDeclarations`; what is left is the element and its attributes, and the hint,
+/// which is a `::placeholder` rule of its own.
+///
+/// The hint is part of the class key and not only of the rule: two fields that differ only
+/// in the colour of their hint would otherwise share a class, and the first hint colour
+/// would win for both.
+ElementPlan _planTextInput(core.TextInputNode node, Stylesheet sheet) {
+  final CssDeclarations declarations = textInputDeclarations(
+    padding: node.padding,
+  );
+  final core.BoxTextStyle? hintStyle = node.placeholderStyle;
+  final CssDeclarations? hint = hintStyle == null
+      ? null
+      : typographyDeclarations(hintStyle);
+  final String className = sheet.classFor(
+    'field',
+    declarations,
+    key: hint == null
+        ? null
+        : '${declarations.text}|::placeholder:${hint.text}',
+    states: hint == null
+        ? null
+        : (String name) => <CssRule>[
+            CssRule(selector: '.$name::placeholder', declarations: hint),
+          ],
+  );
+
+  final Map<String, String> attributes = <String, String>{
+    if (node.placeholder != null) 'placeholder': node.placeholder!,
+    if (!node.enabled) 'disabled': '',
+    if (node.readOnly) 'readonly': '',
+    if (node.autofocus) 'autofocus': '',
+    if (node.required) 'aria-required': 'true',
+    if (node.invalid) 'aria-invalid': 'true',
+    // A description needs no element to point at: the attribute carries the text
+    // itself, which is also what the Flutter side hands to `Semantics.hint`.
+    if (node.description != null) 'aria-description': node.description!,
+    if (node.semanticsLabel != null) 'aria-label': node.semanticsLabel!,
+    ...?autofillAttributeOf(node),
+    ...nodeAttributes(node),
+  };
+
+  if (node.multiline) {
+    return ElementPlan(
+      tag: 'textarea',
+      className: className,
+      // A browser starts a text area at two rows and a Flutter field at one line, so the
+      // row count is written rather than left to the user agent.
+      attributes: <String, String>{
+        'rows': '${node.maxLines ?? 1}',
+        ...attributes,
+      },
+      text: node.value,
+    );
+  }
+
+  return ElementPlan(
+    tag: 'input',
+    className: className,
+    attributes: <String, String>{
+      'type': inputTypeOf(node),
+      if (node.value != null) 'value': node.value!,
+      ...attributes,
+    },
+  );
+}
+
+/// The `type` of the `<input>` for [node].
+///
+/// The type drives the on-screen keyboard of a touch device and the validation hints of a
+/// browser, so an address on a phone offers the right keys with no host code.
+String inputTypeOf(core.TextInputNode node) {
+  if (node.obscureText) {
+    return 'password';
+  }
+
+  return switch (node.inputType) {
+    core.InputType.text => 'text',
+    core.InputType.email => 'email',
+    core.InputType.number => 'number',
+    core.InputType.phone => 'tel',
+    core.InputType.url => 'url',
+  };
+}
+
+/// The `autocomplete` hint of the field, which is what lets a password manager offer the
+/// right entry.
+///
+/// Only for the types that have one: `text` and `number` say nothing a browser could act
+/// on, and an empty attribute would.
+Map<String, String>? autofillAttributeOf(core.TextInputNode node) {
+  return switch (node.inputType) {
+    core.InputType.text || core.InputType.number => null,
+    core.InputType.email => <String, String>{'autocomplete': 'email'},
+    core.InputType.phone => <String, String>{'autocomplete': 'tel'},
+    core.InputType.url => <String, String>{'autocomplete': 'url'},
+  };
 }

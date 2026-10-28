@@ -27,6 +27,13 @@
   fills its cell, and a `PositionedNode` with no stack to be placed in throws, as
   `validateTree` reports it.
 
+- A `TextInputNode` is the `<input>` or `<textarea>` a browser already knows: the type that
+  gives a phone the right keyboard (`email`, `tel`, `url`, `number`, `password`), the
+  `autocomplete` hint a password manager reads, `aria-required`/`aria-invalid`/`
+  `aria-description`, and a row count for a text area instead of the user agent's two. Its
+  hint is a `::placeholder` rule of its own and part of the class key, or two fields that
+  differ only in their hint would share a class.
+
 - `toHtml()` writes one `<style>` in front of the fragment: the typography of the model,
   the colours of the theme, then every class the tree wears, once each.
 

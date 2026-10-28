@@ -281,12 +281,96 @@ void main() {
     });
   });
 
+  group('a text input', () {
+    test('is an input of the type the node states', () {
+      expect(
+        toHtml(const core.TextInputNode(inputType: core.InputType.email)),
+        contains('type="email"'),
+      );
+      expect(
+        toHtml(const core.TextInputNode(inputType: core.InputType.phone)),
+        contains('type="tel"'),
+      );
+    });
+
+    test('hides what is typed when it is a password', () {
+      expect(
+        toHtml(const core.TextInputNode(obscureText: true)),
+        contains('type="password"'),
+      );
+    });
+
+    test('hands a password manager the kind of entry it is', () {
+      expect(
+        toHtml(const core.TextInputNode(inputType: core.InputType.email)),
+        contains('autocomplete="email"'),
+      );
+      // A plain text field says nothing a browser could act on.
+      expect(
+        toHtml(const core.TextInputNode()),
+        isNot(contains('autocomplete')),
+      );
+    });
+
+    test('is a text area of the rows it states when it is multiline', () {
+      final String html = toHtml(
+        const core.TextInputNode(
+          multiline: true,
+          maxLines: 4,
+          value: 'Two bedrooms',
+        ),
+      );
+
+      expect(html, contains('<textarea'));
+      expect(html, contains('rows="4"'));
+      expect(html, contains('>Two bedrooms</textarea>'));
+    });
+
+    test('announces what a field is required to say', () {
+      final String html = toHtml(
+        const core.TextInputNode(
+          required: true,
+          invalid: true,
+          semanticsLabel: 'Email',
+          description: 'We never share it',
+        ),
+      );
+
+      expect(html, contains('aria-required="true"'));
+      expect(html, contains('aria-invalid="true"'));
+      expect(html, contains('aria-label="Email"'));
+      expect(html, contains('aria-description="We never share it"'));
+    });
+
+    test('writes the hint as a rule of its own', () {
+      // `::placeholder` is not a declaration the field carries, so it is a rule beside
+      // its class — and it is part of the class key, or two fields that differ only in
+      // their hint would share a class.
+      final String html = toHtml(
+        const core.TextInputNode(
+          placeholder: 'you@example.com',
+          placeholderStyle: core.BoxTextStyle(color: core.BoxColor(0xFF999999)),
+        ),
+      );
+
+      expect(html, contains('placeholder="you@example.com"'));
+      expect(html, contains('::placeholder{color:#999999}'));
+    });
+
+    test('is disabled the way everything else is', () {
+      expect(
+        toHtml(const core.TextInputNode(enabled: false)),
+        contains('disabled'),
+      );
+    });
+  });
+
   group('a node this renderer cannot draw', () {
     test('is reported instead of skipped', () {
       // A tree built for another target fails loudly rather than shipping a page with a
       // piece missing.
       expect(
-        () => toHtml(const core.TextInputNode()),
+        () => toHtml(const core.OverlayNode(child: core.TextNode('Hi'))),
         throwsA(isA<UnsupportedError>()),
       );
     });

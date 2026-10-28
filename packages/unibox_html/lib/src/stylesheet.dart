@@ -26,12 +26,17 @@ final class Stylesheet {
   /// [kind] only names the class (`unibox-box-…`, `unibox-text-…`) so the output says
   /// what an element is; the deduplication is the declarations'. [states] is asked once
   /// per class, so a state rule is written once however many elements wear the look.
+  ///
+  /// [key] overrides what is hashed, for an element whose class carries more than its own
+  /// declarations — a field whose `::placeholder` rule differs from another field's must
+  /// not share its class, or the first hint colour would win for both.
   String classFor(
     String kind,
-    CssDeclarations declarations, [
+    CssDeclarations declarations, {
     List<CssRule> Function(String className)? states,
-  ]) {
-    final String className = classNameFor(kind, declarations.text);
+    String? key,
+  }) {
+    final String className = classNameFor(kind, key ?? declarations.text);
     final bool known = _rules.any(
       (({String className, CssDeclarations declarations}) rule) =>
           rule.className == className,
