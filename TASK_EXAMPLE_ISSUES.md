@@ -57,7 +57,14 @@ the design system it leans on is `packages/unibox_material`.
   chip: label, optional leading icon, selected state, 32 pixel height, radius 8) so the
   example states a chip instead of composing one.
 
-- [ ] **4. There is no segmented button.**
+- [x] **4. There is no segmented button.** *Done.*
+
+  `MaterialSegmentedButton`: 40 pixels tall at radius 20, a 1 pixel outline around and
+  between the segments, equal shares, the chosen one filled with `secondaryContainer`
+  and announced as selected. It also needed `MaterialInkWell` to place its content and
+  stretch its stack, because a segment is filled by its tint and not hugged by it. The
+  gallery has a stateful demo, and pressing a segment moves the choice — checked in
+  Chromium before and after the press.
 
   Add `MaterialSegmentedButton` to `unibox_material`, respecting M3: a set of segments
   in one outlined container, the selected one filled, dividers between them, a 40 pixel

@@ -2,6 +2,15 @@
 
 ## 0.1.0
 
+- `MaterialSegmentedButton`: Material 3's segmented button — two to five choices in one
+  40 pixel pill at radius 20, a 1 pixel outline around it and between its segments,
+  equal shares, the chosen one filled with `secondaryContainer` and announced as
+  selected. A chosen segment has no checkmark: that is a glyph from a font the package
+  does not ship, and `MaterialSegment.icon` is how one is given.
+- `MaterialInkWell` takes `mainAlign` and `crossAlign` and stretches its stack, so a
+  well given a size is filled rather than hugged: the tints belong to the whole region,
+  which a segmented button needs and a chip was already getting by having one child.
+
 - `MaterialChip`: a Material 3 filter chip — the small 8 pixel shape at 32 pixels tall,
   a 1 pixel `outline` line and an `onSurfaceVariant` label when it is not chosen, a
   `secondaryContainer` fill and an `onSecondaryContainer` label when it is, 16 pixels

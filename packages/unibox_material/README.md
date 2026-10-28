@@ -410,6 +410,42 @@ per frame instead of two, measured at 30 rules for one press against 58 before.
 `EmbedNode` remains the escape hatch when a host-side animation is what the effect
 needs.
 
+## The segmented button
+
+`MaterialSegmentedButton` is two to five choices in one divided pill.
+
+```dart
+MaterialSegmentedButton(
+  segments: const <MaterialSegment>[
+    MaterialSegment(label: TextNode('Day')),
+    MaterialSegment(label: TextNode('Week')),
+    MaterialSegment(label: TextNode('Month')),
+  ],
+  selected: 1,
+  onSelect: store.choose,
+)
+```
+
+| Token | Value |
+| --- | --- |
+| height, radius | 40, and 20: a full round |
+| container | a 1 pixel `outline` line, `overflow: hidden` so a chosen fill is cut to the rounded ends it reaches |
+| chosen | a `secondaryContainer` fill, an `onSecondaryContainer` label, and `selected` for a screen reader |
+| dividers | a 1 pixel box the colour of the outline between two segments |
+| width | equal shares: every segment is `flex: 1` |
+
+The container is one box and each segment is a box around a `MaterialInkWell`, so the
+tint and the ink cover the segment rather than its label, and the container's clip
+keeps them inside the pill. The well's content is centred and its stack stretches —
+that is what the well's `mainAlign` and `crossAlign` are for, and why a segment can
+say `width: double.infinity` and mean it on both targets.
+
+**What Material draws that this does not.** A chosen segment shows a check beside its
+label, which needs a glyph from a font the package does not ship: pass
+`MaterialSegment.icon` if the choice wants a picture, and the fill states the choice
+on its own. The container is also not a `radiogroup`, because `BoxSemantics` has no
+group role — every segment is a button that says whether it is the chosen one.
+
 ## The text field
 
 `MaterialTextField` is a field with a state of its own: it is a `StatefulNode`, so it
@@ -629,7 +665,7 @@ them knowing its name.
 
 ## Scope
 
-The type scale, the colour roles, and nine components. What is deliberately not here
+The type scale, the colour roles, and ten components. What is deliberately not here
 is written on the class that lacks it, and it is all platform behaviour rather than a
 value the model could carry:
 
