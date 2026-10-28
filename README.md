@@ -223,6 +223,7 @@ Box(
 | `borderRadius` | `double?` | square | Corner radius in logical pixels, the same on all four. |
 | `corners` | `BoxBorderRadius?` | square | The radius of each corner, for a box that is not round on all four — a filled text field rounds its top and leaves the bottom square. Takes precedence over `borderRadius`. |
 | `shadow` | `BoxShadow?` | none | Drop shadow: colour, offset, blur, spread. |
+| `shape` | `BoxShape?` | the rectangle | The outline the box is painted in, instead of its rectangle: a path in a view box, stretched to the box. The background fills it, the `border` is drawn along it, and the children are clipped to it when the box also says `overflow: Overflow.hidden`. See [shapes](#shapes). |
 | `opacity` | `double?` | solid | `0` (invisible) to `1` (solid). The box keeps its room either way. |
 | `transform` | `BoxTransform?` | none | Moves, turns or scales the box about its centre (`scale`, `rotation` in degrees, `offsetX`, `offsetY`). It paints differently without taking different room, so text inside never reflows. |
 | `transition` | `BoxTransition?` | none | How long a change of the paint, the opacity or the transform takes, and how it eases. See [motion](#motion). |
@@ -277,6 +278,49 @@ A child that fills the width needs a parent that offers one: `width: double.infi
 takes the space it is given, and a browser can only resolve `100%` against a parent
 that has a width — so inside a column that hugs its content, state
 `crossAlign: CrossAlign.stretch` on the column and the two targets agree.
+
+#### Shapes
+
+A box can be painted in an outline that is not a rectangle. The outline is a
+`BoxShape`: a path in a **view box**, so the same value draws the same silhouette at
+40 pixels and at 400.
+
+```dart
+const BoxShape hexagon = BoxShape(
+  viewBoxWidth: 100,
+  viewBoxHeight: 100,
+  commands: <BoxPathCommand>[
+    BoxPathMoveTo(50, 0),
+    BoxPathLineTo(93, 25),
+    BoxPathLineTo(93, 75),
+    BoxPathLineTo(50, 100),
+    BoxPathLineTo(7, 75),
+    BoxPathLineTo(7, 25),
+    BoxPathClose(),
+  ],
+);
+
+Box(width: 40, height: 40, shape: hexagon, backgroundColor: BoxColor.white)
+```
+
+The commands are the ones SVG's `d` attribute has — `M`, `L`, `C`, `Q`, `A` and `Z`
+— and every renderer has a method for each, so neither parses what the other wrote.
+`BoxShape.circle` is the one value the model ships; everything else is composed.
+
+Four things follow from a shape:
+
+- **The fill is the shape.** `backgroundColor` fills the path rather than the
+  rectangle, and `border` is a stroke along the same path.
+- **`fillRule` decides what is inside.** `BoxFillRule.evenOdd` punches a hole: two
+  circles become a ring, which is how a progress ring is drawn without a stroke
+  token of its own.
+- **Layout does not change.** Children are laid out in the same rectangle as before,
+  which is what puts a label inside the hole of a ring; `overflow: Overflow.hidden`
+  is what clips them to the outline.
+- **A shape paints; it does not cast.** It has no shadow (put the shadow on the box
+  around it) and it does not ease (there are no numbers to interpolate between two
+  outlines). `validateTree` reports a shaped box that also names a shadow or a
+  corner radius, because a box has one outline.
 
 ### TextNode
 

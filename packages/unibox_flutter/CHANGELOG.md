@@ -37,6 +37,10 @@
   aligned child fills the stack and sits where the alignment says.
 
 - A text input resolves a colour role in its `placeholderStyle` against the theme, like the colour of any other text; it threw before.
+
+- A shaped box is drawn with a `CustomPaint` over `pathOf(shape, size)`: the fill is
+  the path, the border is a stroke along it, and `overflow: hidden` clips through a
+  `ClipPath`. `pathOf` is exported for a host that draws a shape itself.
 - A `BoxBorderRadius` becomes `BorderRadius.only`, so a box that rounds only two corners
   draws the same shape it does on the web.
 

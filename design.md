@@ -647,3 +647,36 @@ What that buys, stated as the invariants the feature has to keep:
 - A wrapper a renderer invents — a stack's cell — has no name, because no node drew
   it. That absence is meaningful: an element without the attribute is not part of the
   description.
+
+### 5.17 A shape is a path in a view box
+
+- A box is a rectangle, and every design system eventually asks for something else: a
+  ring, a badge, a triangle, a gauge. The answer is one token, `BoxStyle.shape`, whose
+  value is a `BoxShape` — a path and the view box it was authored in.
+- **A view box and not the box's own numbers.** The outline is written in the
+  coordinates it was authored in — a 100 by 100 grid, or whatever an SVG said — and
+  each renderer stretches it to the box. One value then draws the same silhouette at 40
+  pixels and at 400, and a shape copied out of a drawing tool needs no arithmetic.
+- **A command list and not an SVG `d` string.** `dart:ui` has no path parser, so a
+  string would put a parser in the Flutter renderer. With the model owning the six
+  commands SVG's `d` has, every renderer maps them to its own primitive — `Path` in
+  Flutter, the `d` attribute on the web — and neither parses what the other wrote.
+- **The shape is the box's outline, not an effect over it.** The background fills the
+  path, the border is a stroke along the path, and `overflow: hidden` clips the children
+  to it. A box still has exactly one outline, which is why `validateTree` reports a
+  shape next to a corner radius.
+- **`fillRule` is part of the value.** `BoxFillRule.evenOdd` makes a subpath inside
+  another punch a hole, so a ring is two circles and no stroke token: the effect that
+  motivated shapes in the first place needs no second primitive.
+- **Layout does not know.** A shape paints differently and lays out identically: the
+  children stay in the same rectangle, which is what puts a label in the hole of a ring
+  and why a shape cannot be used to place anything.
+- **What it is not.** It does not cast a shadow, it cannot be interpolated (two
+  outlines have no numbers between them), and two outlines cannot be combined. Each of
+  those is a `validateTree` report or an `EmbedNode`, never a silent approximation.
+- Canvas is the wrong layer for this and stays the escape hatch: a painter has no
+  implementation on the server — `dart:ui` does not exist on the VM — so a page drawn by
+  one is invisible to a crawler and impossible to render without the client bundle. A
+  path is a value: it can be compared, cached as a class, rendered on the server and
+  held to the same numbers by both targets.
+

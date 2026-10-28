@@ -22,6 +22,7 @@ Flutter or Jaspr. Renderers live in `unibox_flutter` and `unibox_jaspr`.
 | `StateStore`      | the ready made `Store`: one state value and its listeners     |
 | `BoxColor`, `BoxColors`, `BoxSpacing`, `BoxBorder`, `BoxShadow` | visual tokens            |
 | `BoxAlignment`    | where a child sits in a stack cell: nine positions                        |
+| `BoxShape`, `BoxPathCommand`, `BoxFillRule` | an outline a box is painted in            |
 | `BoxStyle`        | a bundle of every layout and visual token                     |
 | `BoxTextStyle`    | a bundle of typography tokens                                 |
 
@@ -55,6 +56,7 @@ and the difference would show:
 | `ImageNode.fit` | `ImageFit.scaleDown` (`ImageNode.resolvedFit`), i.e. `BoxFit.scaleDown` and `object-fit: scale-down` |
 | `TextInputNode` chrome | none on either target: no border, padding, background, focus ring or resize grip, and the typography of the tree |
 | `StackNode` clipping | none, and a child that is not positioned keeps its own size |
+| `Box.shape` | the rectangle: a box paints its border box, and a corner radius rounds it |
 | `LinkNode` styling | the typography of its box: no link colour, no underline |
 
 What is left to the host, because only the host can answer it: the font family (a

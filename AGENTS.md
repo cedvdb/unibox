@@ -32,7 +32,7 @@ guide is [`README.md`](README.md).
 | Path | What it holds | Touch it when |
 | --- | --- | --- |
 | `packages/unibox_core/lib/src/nodes/` | `UINode` and the eleven nodes: `Box`, `TextNode`, `ImageNode`, `LinkNode`, `StackNode`, `PositionedNode`, `TextInputNode`, `StatefulNode`, `OverlayNode`, `GridNode`, `EmbedNode` | a node gains or loses a parameter |
-| `packages/unibox_core/lib/src/tokens/` | `BoxStyle`, `BoxTextStyle`, `BoxColor`, `BoxColors`, `BoxSpacing`, `BoxBorder`, `BoxShadow`, `BoxTransform`, `BoxTransition`, `BoxSemantics` | a design token is added or its meaning changes |
+| `packages/unibox_core/lib/src/tokens/` | `BoxStyle`, `BoxTextStyle`, `BoxColor`, `BoxColors`, `BoxSpacing`, `BoxBorder`, `BoxBorderRadius`, `BoxShadow`, `BoxShape` (a path in a view box), `BoxTransform`, `BoxTransition`, `BoxSemantics` | a design token is added or its meaning changes |
 | `packages/unibox_core/lib/src/enums.dart` | layout, alignment, overflow and typography enums | a value both targets can express is missing |
 | `packages/unibox_core/lib/src/validation.dart` | `validateTree` and `TreeIssue` | a construct becomes impossible to render faithfully |
 | `packages/unibox_flutter/lib/src/` | one file per node (`FlutterBox`, `FlutterText`, ...), `values.dart` (token → Flutter), `render.dart` (dispatch and the validation assert) | the Flutter target has to change |

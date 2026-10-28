@@ -151,6 +151,7 @@ host that renders it.
 | `Transform.scale`, `Transform.rotate` | `transform: BoxTransform(scale:, rotation:, offsetX:, offsetY:)` |
 | `AnimatedContainer` | `transition: BoxTransition(...)` plus a `BoxState` style |
 | `ClipRRect` | `overflow: Overflow.hidden` with `borderRadius` |
+| `ClipPath`, `ShapeBorder`, `clip-path` | `Box(shape: BoxShape(...))` — a path in a view box, which the fill, the border and (with `overflow: Overflow.hidden`) the clip all follow; `BoxFillRule.evenOdd` makes a ring |
 | `BorderRadius.vertical(top:)`, `BorderRadius.only(...)` | `corners: BoxBorderRadius(topLeft:, topRight:)` — a box that is not round on all four |
 | `SingleChildScrollView` | `Box(overflow: Overflow.scroll)` |
 | `Stack` + `Positioned` | `StackNode` + `PositionedNode` |

@@ -35,6 +35,11 @@
 - A `JasprStatefulNode` draws the node its parent hands it on every redraw and keeps
   only the store, so a nested node whose look depends on the parent's state (a
   selected chip inside an ink well) no longer keeps its first look.
+
+- A shaped box paints an `<svg>` layer with one `<path>` written from the same
+  commands Flutter turns into a `Path`. The fill and the stroke are custom properties
+  the box's rule sets, so a state rule can paint a shape and a transition can ease
+  it; `overflow: hidden` clips through a `clip-path` in bounding box units.
 - A `BoxBorderRadius` becomes one `border-radius` with four values, in CSS's order, so a
   box that rounds only two corners needs no wrapper and no clipped overlay.
 - Every element a node draws carries `data-unibox-node="<name>"`, so an inspector

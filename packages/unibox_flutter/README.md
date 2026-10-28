@@ -41,9 +41,19 @@ with their target.
 | `backgroundColor`, `borderRadius`, `border`, `shadow` | `DecoratedBox` with a `BoxDecoration` |
 | `overflow: Overflow.hidden`         | `ClipRect`, inside the decoration so the shadow survives |
 | `PositionedNode.alignment`          | `Positioned.fill` around an `Align`                 |
+| `shape`                            | `CustomPaint` with a `Path`: the fill, then the border as a stroke along it |
+| `shape` + `overflow: Overflow.hidden` | `ClipPath` to the same path                       |
 | `overflow: Overflow.scroll`         | `SingleChildScrollView`                             |
 | `onTap` / `onLongPress`             | `GestureDetector`                                   |
 | `onHover` / `hoverStyle`            | `MouseRegion` and the hovered token set             |
+
+A `shape` is painted through a `CustomPaint` and built with `pathOf(shape, size)`:
+the commands become a `Path`, so the same value draws the same silhouette at any
+size, and the stroke is centred on the outline (half of it therefore lies outside a
+box whose outline touches its edge, as it does in the browser). `ClipPath` clips the
+pointer as well as the paint, so a shaped box that also says `overflow:
+Overflow.hidden` answers only inside its outline — a browser answers for the whole
+rectangle, which is one of the differences hit testing already had.
 
 `width`/`height: double.infinity` expands to fill the available space. Inside a
 flex parent the expanding child is wrapped in an `Expanded` (using `flex`, or

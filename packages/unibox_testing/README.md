@@ -76,6 +76,15 @@ What stays approximate on purpose, and is therefore outside the contract
 altogether: the font face, line breaking, shadow blur, placeholder and focus
 colours, and hit testing.
 
+The geometry of a `BoxShape` is not in the table either, for a different reason: it
+is exact on both targets, but it is *not a fact one rendering can read back and the
+other state*. Flutter paints a `Path` and the web writes a `d` attribute, so there
+is no third thing to compare them against — they are the same description, not two
+measurements of one look. Each renderer suite pins it instead: `pathOf` against the
+bounds and the containment of a known shape, the `d` against the commands. A
+difference there shows up as a changed path, which is a louder failure than a
+drifted colour.
+
 One combination inside the model has no exact counterpart, which is why it is not
 in the table: `maxLines` with `TextOverflow.clip`. Flutter cuts the text off after
 the last line; a `-webkit-line-clamp` box always ends it with an ellipsis, and

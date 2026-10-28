@@ -39,6 +39,19 @@ rendering nothing.
 | `borderRadius`                | `border-radius`                                        |
 | `corners`                     | `border-radius` with the four values, in CSS's order   |
 | `PositionedNode.alignment`    | `inset: 0` with a `justify-content`/`align-items` pair  |
+| `shape`                       | an `<svg viewBox>` child with one `<path>`: `fill`, `stroke` and `stroke-width` read three custom properties the box sets |
+| `shape` + `overflow: hidden`  | `clip-path: url(#…)`, whose `clipPath` is written in bounding box units so it scales |
+
+The paint of a shape is an `<svg>` and nothing else: the fill and the border are the
+path's own `fill` and `stroke`, and the box's rule only hands them over as
+`--unibox-shape-fill`, `--unibox-shape-stroke` and `--unibox-shape-stroke-width` —
+which is what makes a state rule able to paint a shaped box, and what lets a
+`transition` ease the change.
+
+What a shape does not change is the pointer: a browser does not hit-test a
+`clip-path` (nor a `border-radius`), so a shaped box answers for its whole
+rectangle. That is the limit a rounded box already had, and it is why hit testing is
+outside the conformance contract.
 | `border`                      | `border` (`none` when the width is zero)               |
 | `shadow`                      | `box-shadow`                                           |
 | `overflow`                    | `overflow` (`scroll` → `auto`)                         |
