@@ -92,4 +92,10 @@ class ImageNode extends UINode {
       for (final int width in widths) '${srcSet[width]} ${width}w',
     ].join(', ');
   }
+
+  /// The name this node answers to in an inspector.
+  ///
+  /// A literal, not the type name: a compiled build mangles the latter.
+  @override
+  String? get debugLabel => 'image';
 }

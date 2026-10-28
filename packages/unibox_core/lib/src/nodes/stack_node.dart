@@ -21,4 +21,10 @@ class StackNode extends UINode {
 
   /// The height of the stack in logical pixels, or `double.infinity`.
   final double? height;
+
+  /// The name this node answers to in an inspector.
+  ///
+  /// A literal, not the type name: a compiled build mangles the latter.
+  @override
+  String? get debugLabel => 'stack';
 }

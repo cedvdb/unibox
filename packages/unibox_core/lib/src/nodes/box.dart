@@ -366,4 +366,10 @@ class Box extends UINode {
   /// serve no pointer cursor, no hover and no press for it.
   bool get isInteractive =>
       enabled && (onTap != null || onTapDown != null || onLongPress != null);
+
+  /// The name this node answers to in an inspector.
+  ///
+  /// A literal, not the type name: a compiled build mangles the latter.
+  @override
+  String? get debugLabel => 'box';
 }

@@ -205,4 +205,10 @@ final class MaterialListTile extends Box {
   /// promise a keyboard entry point that does not exist.
   static BoxSemantics? _roleFor(TapCallback? onTap) =>
       onTap == null ? null : const BoxSemantics(role: BoxRole.button);
+
+  /// The name this node answers to in an inspector.
+  ///
+  /// A literal, not the type name: a compiled build mangles the latter.
+  @override
+  String? get debugLabel => 'material-list-tile';
 }

@@ -107,4 +107,10 @@ final class MaterialIcon extends Box {
 
   /// The family the Material Symbols font is declared under.
   static const String defaultFontFamily = 'Material Symbols Outlined';
+
+  /// The name this node answers to in an inspector.
+  ///
+  /// A literal, not the type name: a compiled build mangles the latter.
+  @override
+  String? get debugLabel => 'material-icon';
 }

@@ -77,6 +77,12 @@ final class MaterialDialog extends OverlayNode {
   static BoxTextStyle _titleStyle() => MaterialTypography.headlineSmall.merge(
     BoxTextStyle(color: const BoxColor.role(MaterialColorRole.onSurface)),
   );
+
+  /// The name this node answers to in an inspector.
+  ///
+  /// A literal, not the type name: a compiled build mangles the latter.
+  @override
+  String? get debugLabel => 'material-dialog';
 }
 
 /// The actions of a dialog or a sheet: a row packed against its end.

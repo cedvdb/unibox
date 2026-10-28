@@ -35,56 +35,21 @@ abstract class UINode {
   /// Leaf nodes return an empty list.
   List<UINode> get children => const <UINode>[];
 
-  /// The name a developer should read for this node, or `null` to derive one
-  /// from the type.
+  /// The name this node answers to, or `null` when it names nothing.
   ///
   /// A renderer may write [debugName] on the element it draws, so an element in
-  /// a browser's inspector says which node produced it. It is a development
-  /// aid and nothing else: it is never styled, never part of a class name, never
-  /// read by a layout, and absent unless the host asks for it.
+  /// a browser's inspector says which node produced it. It is a development aid
+  /// and nothing else: it is never styled, never part of a class name, never read by
+  /// a layout, and it carries no look to turn off.
   ///
-  /// Override it when the type name is not the name to show — a subclass whose
-  /// own name is a detail of a package, or when a build minifies type names.
+  /// A name is a **literal**, never the type's: a compiled build mangles class
+  /// names, so a name derived from `runtimeType` reads `minified:-s` in a browser and
+  /// is unfit to ship. Every node of `unibox_core` and of `unibox_material` states
+  /// one, and a node of your own names itself by overriding this — one line, and the
+  /// only spelling that survives every build. A subclass that says nothing inherits
+  /// the name of the node it extends, so a design system names its components.
   String? get debugLabel => null;
 
-  /// The name that identifies this node to a developer: [debugLabel], else the
-  /// kebab-cased type without its `Node` suffix.
-  ///
-  /// `TextNode` reads `text`, `GridNode` reads `grid`, `MaterialCard` reads
-  /// `material-card`, a private class loses its underscore and a generic type
-  /// keeps only its own name.
-  ///
-  /// A derived name is read from the runtime type, so it is only meaningful in
-  /// an unobfuscated build; [debugLabel] is the stable spelling.
-  String get debugName => debugLabel ?? _kebabCase(runtimeType.toString());
-}
-
-/// [name] in kebab case, without generics, a leading underscore or a `Node`
-/// suffix.
-///
-/// Written as a loop rather than a look-behind pattern: this package is compiled
-/// to JavaScript, where a look-behind is a syntax error on the browsers that do
-/// not have it.
-String _kebabCase(String name) {
-  final String bare = name.split('<').first.replaceFirst(RegExp('^_+'), '');
-  final StringBuffer buffer = StringBuffer();
-
-  for (var index = 0; index < bare.length; index++) {
-    final String character = bare[index];
-    final bool isUpper =
-        character.toUpperCase() == character &&
-        character.toLowerCase() != character;
-
-    if (isUpper && index > 0) {
-      buffer.write('-');
-    }
-    buffer.write(character.toLowerCase());
-  }
-
-  final String kebab = buffer.toString();
-  const String suffix = '-node';
-
-  return kebab.endsWith(suffix) && kebab.length > suffix.length
-      ? kebab.substring(0, kebab.length - suffix.length)
-      : kebab;
+  /// The name a developer reads for this node: [debugLabel], else `node`.
+  String get debugName => debugLabel ?? 'node';
 }

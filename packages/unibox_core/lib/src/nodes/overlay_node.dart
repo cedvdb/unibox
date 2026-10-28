@@ -79,4 +79,10 @@ class OverlayNode extends UINode {
 
   @override
   List<UINode> get children => <UINode>[child];
+
+  /// The name this node answers to in an inspector.
+  ///
+  /// A literal, not the type name: a compiled build mangles the latter.
+  @override
+  String? get debugLabel => 'overlay';
 }

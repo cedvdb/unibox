@@ -121,4 +121,10 @@ class TextInputNode extends UINode {
 
   /// Called when the field gains or loses focus.
   final FocusChangedCallback? onFocusChanged;
+
+  /// The name this node answers to in an inspector.
+  ///
+  /// A literal, not the type name: a compiled build mangles the latter.
+  @override
+  String? get debugLabel => 'text-input';
 }

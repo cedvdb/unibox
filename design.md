@@ -609,11 +609,11 @@ What that buys, stated as the invariants the feature has to keep:
 - A label is never part of the presentation: no class, no class key, no rule, no
   element, no layout. Two node types with the same look share one class and one rule
   while carrying different names, which the suite pins.
-- The name is `UINode.debugLabel` when a node gives one, else the type in kebab case
-  without its `Node` suffix: `TextNode` reads `text`, `MaterialCard` reads
-  `material-card`. A derived name is read from the runtime type, so a minified build
-  may rename it; a package that wants a spelling it can rely on overrides
-  `debugLabel`, and the design-system packages already read well without it.
+- The name is a **literal** a node states in `UINode.debugLabel`, never its type: a
+  compiled build mangles class names, so a derived name reads `minified:-s` in a
+  browser — measured in a `dart compile js -O2` build, which is why every node of
+  `unibox_core` and `unibox_material` states one and why a subclass that says nothing
+  inherits the name of the node it extends.
 - What it is not: a semantic. A screen reader hears the element, its `role` and its
   `aria-*`; nothing reads the label back, and nothing may start to.
 - A wrapper a renderer invents — a stack's cell — has no name, because no node drew

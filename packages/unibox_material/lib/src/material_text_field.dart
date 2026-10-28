@@ -246,4 +246,10 @@ final class MaterialTextField extends Box {
   static BoxTextStyle _valueStyle() => MaterialTypography.bodyLarge.merge(
     BoxTextStyle(color: const BoxColor.role(MaterialColorRole.onSurface)),
   );
+
+  /// The name this node answers to in an inspector.
+  ///
+  /// A literal, not the type name: a compiled build mangles the latter.
+  @override
+  String? get debugLabel => 'material-text-field';
 }

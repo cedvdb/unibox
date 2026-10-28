@@ -32,6 +32,9 @@ has to know this package exists.
   a 56 pixel minimum height, 2 pixel focused outline, primary focused label, hover
   outline and disabled opacity; dialog content in `onSurfaceVariant` and `primary`
   `labelLarge` actions; a full-width bottom sheet with a drag handle and a rising shadow.
+- Every component states its name (`material-card`, `material-list-tile`,
+  `material-text-field`, `material-icon`, `material-dialog`, `material-bottom-sheet`),
+  so an inspector reads the component rather than the box it extends.
 - `MaterialTypography`: the fifteen roles of the Material 3 type scale as `const`
   `BoxTextStyle` values, with `MaterialTypeRole` to name one in a table or a test and
   `MaterialTypography.of` to look one up.

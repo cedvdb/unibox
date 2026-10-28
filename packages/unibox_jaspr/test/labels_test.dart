@@ -3,13 +3,14 @@ import 'package:unibox_core/unibox_core.dart' as core;
 
 import 'support/harness.dart';
 
-/// A node a package would ship: the name an inspector reads is the type's.
+/// A node a package would ship without naming itself: an inspector reads the name of
+/// the node it extends, because a type name does not survive a compiled build.
 final class PromoCard extends core.Box {
   const PromoCard({super.children});
 }
 
-/// A node that names itself, which is what a package does when the type name is
-/// not the name a developer should read.
+/// A node that names itself, which is what a package does so an inspector reads
+/// `sale-banner` rather than `box`.
 final class SaleBanner extends core.Box {
   const SaleBanner({super.children});
 
@@ -92,7 +93,7 @@ void main() {
     testComponents('is named after the type of a node', (tester) async {
       pumpNode(tester, const PromoCard());
 
-      expect(attributesOf(find.tag('div'))['data-unibox-node'], 'promo-card');
+      expect(attributesOf(find.tag('div'))['data-unibox-node'], 'box');
     });
 
     testComponents('reads the name a node gives itself', (tester) async {
@@ -116,7 +117,7 @@ void main() {
       // element is, and the class says what it looks like.
       expect(classesOf(find.tag('div')), plainClass);
       expect(allCss(), plainCss);
-      expect(attributesOf(find.tag('div'))['data-unibox-node'], 'promo-card');
+      expect(attributesOf(find.tag('div'))['data-unibox-node'], 'box');
     });
   });
 }

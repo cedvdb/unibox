@@ -7,6 +7,10 @@
   bottom sheet. `borderRadius` stays the one-radius shorthand; a box that sets both
   is reported by `validateTree`, and a negative radius is reported too.
 
+- A node's name is a **literal**: every node of this package states one, a subclass
+  that states nothing inherits the name of the node it extends, and the type is never
+  consulted. `runtimeType` is mangled by a compiled build, and a page that shipped
+  `data-unibox-node="minified:-s"` was worse than one that says nothing.
 - `UINode.debugLabel` and `UINode.debugName`: the name a renderer can write on the
   element it drew, and the rule that derives one from the type. `Box` reads `box`,
   `TextNode` reads `text`, a `MaterialCard` reads `material-card`. It is a development

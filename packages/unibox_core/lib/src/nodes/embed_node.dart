@@ -58,4 +58,10 @@ abstract class EmbedNode extends UINode {
   @override
   List<UINode> get children =>
       child == null ? const <UINode>[] : <UINode>[child!];
+
+  /// The name this node answers to in an inspector.
+  ///
+  /// A literal, not the type name: a compiled build mangles the latter.
+  @override
+  String? get debugLabel => 'embed';
 }

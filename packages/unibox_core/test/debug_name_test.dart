@@ -26,7 +26,7 @@ final class _Hidden extends Box {
 
 void main() {
   group('the name of a node', () {
-    test('is its type in kebab case', () {
+    test('is the literal the node states', () {
       expect(const Box().debugName, 'box');
       expect(const TextNode('Hi').debugName, 'text');
       expect(const GridNode(minItemWidth: 200).debugName, 'grid');
@@ -37,13 +37,26 @@ void main() {
       expect(const OverlayNode(child: Box()).debugName, 'overlay');
     });
 
-    test('is the type of a subclass, so a design system is named', () {
-      expect(const PromoCard().debugName, 'promo-card');
+    test('is inherited by a subclass that names nothing', () {
+      // The type is deliberately not consulted: a compiled build mangles it, and a
+      // name that reads `minified:-s` in production is worse than none. So a
+      // subclass reads the name of the node it extends until it states its own —
+      // one override, and the only spelling that survives every build.
+      expect(const PromoCard().debugName, 'box');
+      expect(const Wrapper<int>().debugName, 'box');
+      expect(const _Hidden().debugName, 'box');
     });
 
-    test('drops generics and a leading underscore', () {
-      expect(const Wrapper<int>().debugName, 'wrapper');
-      expect(const _Hidden().debugName, 'hidden');
+    test('never depends on a runtime type', () {
+      // Whatever a build does to class names, a name is either the literal a node
+      // states or `node` — which is what keeps `minified:…` out of a page.
+      for (final UINode node in <UINode>[
+        const Box(),
+        const PromoCard(),
+        const SaleBanner(),
+      ]) {
+        expect(node.debugName, isNot(contains('minified')));
+      }
     });
 
     test('is the label a node gives itself', () {

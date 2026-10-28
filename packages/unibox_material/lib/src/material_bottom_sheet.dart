@@ -100,4 +100,10 @@ final class MaterialBottomSheet extends OverlayNode {
     offsetY: -1,
     blurRadius: 3,
   );
+
+  /// The name this node answers to in an inspector.
+  ///
+  /// A literal, not the type name: a compiled build mangles the latter.
+  @override
+  String? get debugLabel => 'material-bottom-sheet';
 }

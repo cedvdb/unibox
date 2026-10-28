@@ -101,4 +101,10 @@ final class GridNode extends UINode {
 
     return (width - (columns - 1) * gap) / columns;
   }
+
+  /// The name this node answers to in an inspector.
+  ///
+  /// A literal, not the type name: a compiled build mangles the latter.
+  @override
+  String? get debugLabel => 'grid';
 }

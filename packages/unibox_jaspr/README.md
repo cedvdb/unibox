@@ -221,12 +221,13 @@ of that node:
 | drawn by a node | the name of that node |
 | a wrapper the renderer invents — a stack's cell wrapper | absent: no node drew it |
 
-The value is `UINode.debugName`: `debugLabel` when a node names itself, else the type
-in kebab case without its `Node` suffix. `Box` reads `box`, `TextNode` reads `text`,
-`LinkNode` reads `link`, `GridNode` reads `grid`, `MaterialCard` reads
-`material-card`, and a private class loses its underscore. A derived name is read
-from the runtime type, so it is only meaningful in an unobfuscated build; override
-`debugLabel` for a spelling that survives one.
+The value is `UINode.debugName`, which is a **literal** the node states in
+`debugLabel`: `Box` reads `box`, `TextNode` reads `text`, `LinkNode` reads `link`,
+`GridNode` reads `grid`, `MaterialCard` reads `material-card`. The type is never
+consulted — a compiled build mangles class names, and a page that shipped
+`data-unibox-node="minified:-s"` would be worse than one that says nothing — so a
+node of your own names itself with one override, and a subclass that says nothing
+inherits the name of the node it extends.
 
 It is written always, with no flag to turn it off. An attribute that carries no look
 has nothing a switch could protect, and because there is no switch, a server render

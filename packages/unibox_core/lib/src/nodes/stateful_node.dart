@@ -69,4 +69,10 @@ class StatefulNode<S extends Object, C extends Store<S>> extends UINode {
 
   @override
   List<UINode> get children => const <UINode>[];
+
+  /// The name this node answers to in an inspector.
+  ///
+  /// A literal, not the type name: a compiled build mangles the latter.
+  @override
+  String? get debugLabel => 'stateful';
 }
