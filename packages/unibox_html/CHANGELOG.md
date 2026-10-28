@@ -15,11 +15,6 @@
   browser is the fallback. An intent that arrives before the load is remembered and honoured
   at the load.
 
-- There is no "only on a press" policy, deliberately: a page that must never boot unbidden
-  ships no boot script, because the script is optional by design and the recorders are a
-  separate file. And an interaction that must work without the application is a link or a
-  form, not a press that waits for an engine.
-
 - `toDocument(prefetch: …)`: the bundle is fetched at a low priority while the reader reads,
   so a boot that waits for intent is never a boot on a cold cache. Deferring the execution
   is the point; deferring the download as well is how a page gets a good score and a
@@ -29,14 +24,8 @@
   keeps it, and `client/all.dart` is the name a host includes. The scroll recorder joins
   them when `unibox_jaspr` goes, so every line of client code ends up in one place.
 
-- **Ink is withdrawn from the renderer.** A script that paints a drop, its marker and its
-  declarations were written and then removed: the marker came from "this box listens", so
-  a plain `Box(onTap: …)` would have shown ink on the web and nothing at all in Flutter —
-  a look one target draws and the other cannot, which is the one thing this package exists
-  to prevent. Ink belongs to the ink well, whose node paints it in Flutter because the tree
-  says so; the web gets it when `unibox_material` can declare it, and that needs a token
-  both renderers honour rather than a rule in a renderer.
-
+- ~~An ink script, its marker and its declarations~~ were withdrawn: ink is the ink well's,
+  and a renderer painting one for every box that listens draws a look Flutter cannot.
 - `uniboxClientScript`: a document has no state to change, so a press can only be
   remembered. It records the press — the key of the element it landed on, and the position
   inside that element, in the same pixels a Flutter renderer reports — and hands the record
