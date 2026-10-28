@@ -6,9 +6,9 @@
 /// same node renders as Flutter widgets in `unibox_example_flutter` and as HTML/CSS
 /// in `unibox_example_jaspr`.
 ///
-/// The site itself is one page — [buildSitePage] — of three bands: the claim, the
-/// comparison, and the Material catalogue. Its sections are node trees too, so the
-/// site is drawn with the library it documents.
+/// The site itself is one page — [buildSitePage] — of two bands: the claim, answered in
+/// the same band by the same tree drawn twice, and the Material catalogue. Its sections
+/// are node trees too, so the site is drawn with the library it documents.
 ///
 /// The host is what a node cannot be: a surface and the way a link opens. Each host
 /// of the example is one small file for exactly that reason.
@@ -23,6 +23,5 @@ export 'src/signup_card.dart';
 export 'src/site/gallery.dart';
 export 'src/site/hero.dart';
 export 'src/site/section.dart';
-export 'src/site/showcase.dart';
 export 'src/site/site.dart';
 export 'src/theme.dart';

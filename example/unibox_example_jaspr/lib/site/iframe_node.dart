@@ -36,7 +36,13 @@ final class IframeNode extends EmbedNode {
     iframe(
       const <Component>[],
       src: src,
-      attributes: <String, String>{'title': title},
+      attributes: <String, String>{
+        'title': title,
+        // A frame is a whole second document — the Flutter one is an application — so
+        // it is fetched when a reader gets near it, not when the page opens. A phone
+        // that never scrolls past the claim never pays for either of them.
+        'loading': 'lazy',
+      },
       styles: Styles(
         raw: <String, String>{
           'border': '0',

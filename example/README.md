@@ -13,7 +13,7 @@ catalogue the whole thing is built with.
 
 | Package | Role |
 | --- | --- |
-| `unibox_example_shared` | The example as one node (`ExamplePageNode`, with `ExampleState` and `ExampleStore`) and the parts it is built from (`buildExamplePage`, `buildApartmentsPage`, `buildSignupDialog`); the site as one node (`buildSitePage`) and its three bands (`buildHeroSection`, `buildShowcaseSection`, `buildMaterialSection`); plus the palette. The listings are a `GridNode` of `MaterialCard`s, so the example also shows the design-system package. Pure Dart, no renderer. |
+| `unibox_example_shared` | The example as one node (`ExamplePageNode`, with `ExampleState` and `ExampleStore`) and the parts it is built from (`buildExamplePage`, `buildApartmentsPage`, `buildSignupDialog`); the site as one node (`buildSitePage`) and its two bands (`buildHeroSection` — the claim and the comparison under it — and `buildMaterialSection`); plus the palette. The listings are a `GridNode` of `MaterialCard`s, so the example also shows the design-system package. Pure Dart, no renderer. |
 | `unibox_example_flutter` | Flutter host: one file (`lib/main.dart`) — the surface and the link policy. |
 | `unibox_example_jaspr` | Jaspr host: the site's document, the example's document, the shipped font faces, the one `<iframe>` node the comparison needs, and the build script — no page trees, which live in the shared package. |
 
@@ -194,25 +194,26 @@ recognisably the same page.
 
 ## The site is one page
 
-`buildSitePage` is the whole site: a header, three bands and a footer, in the order
+`buildSitePage` is the whole site: a header, two bands and a footer, in the order
 the argument needs.
 
 | Band | What it says |
 | --- | --- |
-| the hero | the claim — *describe a screen once* — with the two ways in, and the claim drawn as one tree above two cards |
-| *the same tree, drawn twice* | the example in two frames: the Jaspr page on the left, the Flutter build on the right, each resizable |
+| the hero | the claim — *describe a screen once* — the two ways in, and, in the same band, the claim answered: the example in two frames, the Jaspr page on the left, the Flutter build on the right, each resizable |
 | *Material 3, as values and nodes* | the catalogue: every component first, then the type scale and the colour roles those components name |
 
-The comparison comes before the catalogue on purpose: the claim is that the two
-renderings agree, so a reader should meet the evidence before the design system the
-evidence is drawn with. Every band is a node tree — the frames are the only thing the
+The frames are the claim's evidence, so they sit in the band that makes it: a reader
+scrolls from the sentence to the two renderings it is about, and meets each rendering's
+name once. The catalogue comes after, because the design system is how the evidence is
+drawn, not what it says. Every band is a node tree — the frames are the only thing the
 model cannot describe, and they arrive through `ShowcaseFrame`/`EmbedNode`.
 
-There is one `h1` (the claim), an `h2` per band and an `h3` per block of the
-catalogue, so the outline a crawler and a screen reader build the page from is the
-outline a reader sees. The header and the footer are landmarks, the links are real
-`LinkNode`s, and the page needs no route: a reader scrolls from the claim to the
-evidence, which is a thing a static document can do without a click.
+There is one `h1` (the claim), an `h2` for each section after it — the comparison and
+then the catalogue — and an `h3` per block of the catalogue, so the outline a crawler and
+a screen reader build the page from is the outline a reader sees. The header and the
+footer are landmarks, the links are real `LinkNode`s, and the page needs no route: a
+reader scrolls from the claim to the evidence, which is a thing a static document can do
+without a click.
 
 The example itself is not a page of the site any more. Its two documents —
 `build/site/web/listings/index.html` and `build/site/web/signup/index.html` — exist
@@ -231,7 +232,7 @@ tool/site.sh --base=/unibox/ --url=https://cedvdb.github.io/unibox/
 
 | Path | What it is |
 | --- | --- |
-| `/` | The site: the claim, the comparison and the catalogue, as one page |
+| `/` | The site: the claim and its comparison, then the catalogue, as one page |
 | `/web/listings/` | The example, rendered by Jaspr — the left frame |
 | `/web/signup/` | The same page with the sign-up dialog over it |
 | `/main.client.js` | The browser runtime the three above load |

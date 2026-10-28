@@ -5,29 +5,42 @@ import '../theme.dart';
 
 import 'section.dart';
 
-/// The first band: what the library is, what it buys, and the claim drawn once.
+/// A frame of the comparison: the node that draws [src], which the host supplies.
 ///
-/// It is a sales page, so it does one thing: say what the library is for, show the
-/// claim rather than describe it, and offer the two places to look. The copy is set
-/// large and the room around it is wide, because that is what makes a page of plain
-/// boxes read as a modern one — scale and space, not a second set of colours.
-UINode buildHeroSection() {
+/// A frame is an `EmbedNode` — an `<iframe>` on the web — which is the one thing this
+/// tree cannot describe, so it arrives as a builder instead of as an import.
+typedef ShowcaseFrame = UINode Function({
+  required String src,
+  required String title,
+});
+
+/// The first band: what the library is, what it buys, and the claim drawn twice.
+///
+/// The claim and its evidence share one band because, split in two, they said the same
+/// thing twice: the claim ended in a picture of two cards captioned *Jaspr* and
+/// *Flutter*, and the band under it drew those same two cards for real, under the same
+/// two captions. A reader now meets the claim and the rendering that settles it in one
+/// scroll, and each of the two names is on the page once.
+///
+/// The copy above the frames is set large and the room around it is wide, because that
+/// is what makes a page of plain boxes read as a modern one — scale and space, not a
+/// second set of colours.
+UINode buildHeroSection({required ShowcaseFrame frame}) {
   final MaterialPalette palette = ExamplePalette.material;
 
   return siteBand(
     background: palette.surface,
     vertical: 88,
-    child: GridNode(
-      minItemWidth: 400,
-      maxColumns: 2,
-      gap: 56,
-      children: <UINode>[_sell(palette), _renderingPair(palette)],
+    child: Box(
+      width: double.infinity,
+      gap: 52,
+      children: <UINode>[_claim(palette), _comparison(palette, frame)],
     ),
   );
 }
 
 /// The claim, the two ways in, and the one line of proof under them.
-UINode _sell(MaterialPalette palette) {
+UINode _claim(MaterialPalette palette) {
   return Box(
     gap: 24,
     children: <UINode>[
@@ -104,79 +117,96 @@ UINode _sell(MaterialPalette palette) {
   );
 }
 
-/// The claim as a picture: one tree, and two cards drawn from it.
+/// The claim settled: the same node tree in two frames, side by side.
 ///
-/// The two cards are the same nodes twice — the words differ only in the caption —
-/// because that is the whole pitch, and a diagram that said it in more shapes would
-/// be a second thing to keep in step with the first.
-UINode _renderingPair(MaterialPalette palette) {
+/// Two frames rather than two links, because the point is the comparison: resize the
+/// window and both answer the same breakpoint, on the same node tree. The heading and
+/// the captions are boxes and texts like everything else here; the frames are the one
+/// thing the model cannot describe, so they arrive through [ShowcaseFrame].
+UINode _comparison(MaterialPalette palette, ShowcaseFrame frame) {
   return Box(
-    backgroundColor: palette.surfaceContainerLow,
-    borderRadius: 28,
-    padding: const BoxSpacing.all(20),
-    gap: 14,
+    width: double.infinity,
+    gap: 24,
+    children: <UINode>[
+      siteHeading(
+        title: 'The same tree, drawn twice',
+        lead:
+            'Left, the page Jaspr serves; right, the same node tree built by '
+            'Flutter. Drag a frame narrower and both answer the same breakpoint.',
+      ),
+      GridNode(
+        minItemWidth: 380,
+        maxColumns: 2,
+        gap: 20,
+        children: <UINode>[
+          _panel(
+            title: 'Jaspr — HTML and CSS',
+            src: 'web/listings/',
+            palette: palette,
+            frame: frame,
+          ),
+          _panel(
+            title: 'Flutter — the same tree',
+            src: 'flutter/listings/',
+            palette: palette,
+            frame: frame,
+          ),
+        ],
+      ),
+    ],
+  );
+}
+
+/// One half of the comparison: a caption, a way to open it alone, and the frame.
+UINode _panel({
+  required String title,
+  required String src,
+  required MaterialPalette palette,
+  required ShowcaseFrame frame,
+}) {
+  return Box(
+    width: double.infinity,
+    gap: 10,
     children: <UINode>[
       Box(
         direction: Axis.horizontal,
         mainAlign: MainAlign.spaceBetween,
         crossAlign: CrossAlign.center,
+        width: double.infinity,
         children: <UINode>[
-          TextNode('One tree', style: MaterialTypography.labelLarge),
-          Box(
-            padding: const BoxSpacing.symmetric(horizontal: 8, vertical: 2),
-            borderRadius: 8,
-            backgroundColor: palette.secondaryContainer,
-            children: <UINode>[
-              TextNode(
-                'Dart',
-                style: MaterialTypography.labelSmall.copyWith(
-                  color: palette.onSecondaryContainer,
+          TextNode(
+            title,
+            style: MaterialTypography.labelLarge.copyWith(
+              color: palette.onSurfaceVariant,
+            ),
+          ),
+          LinkNode(
+            src,
+            child: Box(
+              padding: const BoxSpacing.symmetric(horizontal: 8, vertical: 4),
+              borderRadius: 8,
+              children: <UINode>[
+                TextNode(
+                  'Open',
+                  style: MaterialTypography.labelLarge.copyWith(
+                    color: palette.primary,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
-      _rendering('Jaspr — HTML and CSS', palette),
-      _rendering('Flutter — the same tree', palette),
-    ],
-  );
-}
-
-/// One rendering of the card: a caption, a picture, and a line of listing.
-UINode _rendering(String caption, MaterialPalette palette) {
-  return Box(
-    // The width the panel gives it, so the picture below has something definite to
-    // fill: a box that hugs its content inside a column that hugs its content is a
-    // percentage width with no answer on the web.
-    width: double.infinity,
-    backgroundColor: palette.surfaceContainerLowest,
-    borderRadius: 18,
-    border: BoxBorder(color: palette.outlineVariant),
-    padding: const BoxSpacing.all(14),
-    gap: 8,
-    children: <UINode>[
-      TextNode(
-        caption,
-        style: MaterialTypography.labelMedium.copyWith(
-          color: palette.onSurfaceVariant,
-        ),
-      ),
-      // The photo of the card, as a block: the example's cards show a real image,
-      // and a hero that fetched one would be a network request before a word was
-      // read.
+      // A frame needs a height of its own: it is a window, not a paragraph, and an
+      // iframe with no height is a sliver.
       Box(
         width: double.infinity,
-        height: 56,
-        borderRadius: 12,
-        backgroundColor: palette.surfaceContainerHigh,
-      ),
-      TextNode('Sunny flat, 62 m²', style: MaterialTypography.titleSmall),
-      TextNode(
-        '€1 850 a month · 2 rooms',
-        style: MaterialTypography.bodySmall.copyWith(
-          color: palette.onSurfaceVariant,
-        ),
+        height: 560,
+        borderRadius: 18,
+        overflow: Overflow.hidden,
+        border: BoxBorder(color: palette.outlineVariant),
+        backgroundColor: palette.surface,
+        children: <UINode>[frame(src: src, title: title)],
       ),
     ],
   );

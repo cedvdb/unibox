@@ -6,23 +6,22 @@ import '../theme.dart';
 import 'gallery.dart';
 import 'hero.dart';
 import 'section.dart';
-import 'showcase.dart';
 
 /// The repository, which the header and the footer point at.
 const String repositoryUrl = 'https://github.com/cedvdb/unibox';
 
-/// The site as one page: the claim, the same screen drawn twice, and the values and
-/// nodes the whole thing is built from.
+/// The site as one page: the claim and the same screen drawn twice, then the values
+/// and nodes the whole thing is built from.
 ///
 /// It used to be three documents with a bar between them, and one page is the honest
-/// shape: a reader scrolls the claim and its evidence, and the evidence *is* the
-/// page. There is also nothing left to route — a single page has no destination a
-/// click could take a reader to, so a static document loses nothing it had.
+/// shape: a reader scrolls the claim and its evidence, and the evidence *is* the page.
+/// There is also nothing left to route — a single page has no destination a click could
+/// take a reader to, so a static document loses nothing it had.
 ///
-/// The order is the argument. The hero makes the claim and shows it as a picture; the
-/// comparison proves it with two live renderings of one tree; the catalogue shows the
-/// design system both sides are drawn with. A reader who stops after the comparison
-/// has still seen the claim settled.
+/// The order is the argument. The hero makes the claim and settles it in the same band,
+/// with two live renderings of one tree; the catalogue shows the design system both
+/// sides are drawn with. A reader who stops after the frames has still seen the claim
+/// answered.
 UINode buildSitePage({required ShowcaseFrame frame}) {
   final MaterialPalette palette = ExamplePalette.material;
 
@@ -42,8 +41,7 @@ UINode buildSitePage({required ShowcaseFrame frame}) {
         width: double.infinity,
         semantics: const BoxSemantics(element: BoxElement.main),
         children: <UINode>[
-          buildHeroSection(),
-          buildShowcaseSection(frame: frame),
+          buildHeroSection(frame: frame),
           buildMaterialSection(),
         ],
       ),
@@ -52,10 +50,10 @@ UINode buildSitePage({required ShowcaseFrame frame}) {
   );
 }
 
-/// The band above the page: the name of the site and the two places to go from it.
+/// The band above the page: the name of the site and the one place to go from it.
 ///
-/// It is a `header` landmark and its links are `LinkNode`s, so the page keeps its
-/// outline and a reader without JavaScript can still follow them. The hairline is a
+/// It is a `header` landmark and its link is a `LinkNode`, so the page keeps its
+/// outline and a reader without JavaScript can still follow it. The hairline is a
 /// shadow with no blur, because a `BoxBorder` draws on all four sides.
 UINode _header(MaterialPalette palette) {
   return Box(
@@ -81,7 +79,9 @@ UINode _header(MaterialPalette palette) {
               crossAlign: CrossAlign.center,
               gap: 8,
               children: <UINode>[
-                _siteLink('The example', 'web/listings/', palette),
+                // The source is the one thing a reader of this page may want next: the
+                // example is already a call to action in the hero, and the two frames
+                // that show it are one scroll away.
                 _siteLink('GitHub', repositoryUrl, palette, newTab: true),
               ],
             ),

@@ -7,6 +7,10 @@ import 'package:unibox_material/unibox_material.dart';
 UINode _frame({required String src, required String title}) =>
     Box(key: src, children: <UINode>[TextNode(title)]);
 
+/// A frame that draws nothing and says nothing, so the only words read back are the
+/// page's own.
+UINode _emptyFrame({required String src, required String title}) => const Box();
+
 /// Every node of [root], depth first.
 ///
 /// A `StatefulNode` has no children of its own — it draws the tree of a store — so
@@ -94,6 +98,14 @@ void main() {
           '$repositoryUrl#readme',
         ]),
       );
+
+      // The header names the source and nothing else: the example is the hero's call
+      // to action, and the two frames below it are the example itself.
+      final List<String> texts = <String>[
+        for (final UINode node in _flatten(page))
+          if (node is TextNode) node.text,
+      ];
+      expect(texts, isNot(contains('The example')));
     });
 
     test('leads with the components, then the scale, then the palette', () {
@@ -151,9 +163,30 @@ void main() {
       expect(texts, contains('Describe a screen once.'));
       expect(texts, contains('Open the example'));
       expect(texts, contains('The Flutter build'));
-      // The claim is drawn as well as written: one tree, two renderings of a card.
+      // The claim is drawn as well as written: both renderings are on the page.
       expect(texts, contains('Jaspr — HTML and CSS'));
       expect(texts, contains('Flutter — the same tree'));
+    });
+
+    test('names each rendering once, and shows it rather than a picture of it', () {
+      final List<String> texts = <String>[
+        for (final UINode node in _flatten(buildSitePage(frame: _emptyFrame)))
+          if (node is TextNode) node.text,
+      ];
+
+      // The claim used to end in two stub cards captioned with the same two names, and
+      // the band below it framed the real thing under those names again — the page told
+      // a reader the point twice, once as a diagram and once for real. The frames are
+      // the claim's answer, in the claim's band, so each name is written once.
+      expect(
+        texts.where((String text) => text == 'Jaspr — HTML and CSS'),
+        hasLength(1),
+      );
+      expect(
+        texts.where((String text) => text == 'Flutter — the same tree'),
+        hasLength(1),
+      );
+      expect(texts, isNot(contains('Sunny flat, 62 m²')));
     });
   });
 }
