@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `MaterialChip`'s close target centres the cross it holds, so the ring a hover or a
+  focus draws around it sits on the cross rather than four pixels to its left: the well
+  is a column, and without a cross alignment its node hugged the start of the target.
+
 - `MaterialSegmentedButton` takes a `width`, and the segments share it equally. Without
   one each segment hugs its label: a `flex` in an unbounded row is a layout error in
   Flutter, so equal shares need a bound to divide.

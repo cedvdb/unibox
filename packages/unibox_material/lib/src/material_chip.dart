@@ -157,6 +157,10 @@ final class MaterialChip extends Box {
   /// the chip and must not also press it — and it gets the state layer of a control
   /// rather than the label's. The glyph is the caller's: a font is a host asset, and
   /// this package ships none, so a cross is drawn or given as text by the application.
+  ///
+  /// The glyph is centred on **both** axes, which a well has to say: it is a column, and
+  /// a cross without `crossAlign` was pinned to the start of the target, so the ring a
+  /// hover drew around it sat four pixels off the cross it belongs to.
   static UINode _removeAffordance({
     required UINode? glyph,
     required TapCallback onRemove,
@@ -171,6 +175,7 @@ final class MaterialChip extends Box {
       width: 18,
       height: 18,
       mainAlign: MainAlign.center,
+      crossAlign: CrossAlign.center,
       semantics: const BoxSemantics(role: BoxRole.button, label: 'Remove'),
       child: Box(
         mainAlign: MainAlign.center,

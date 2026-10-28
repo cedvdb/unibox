@@ -212,6 +212,11 @@ void main() {
         reason: 'the cross is a second target, not the chip itself',
       );
       expect(_boxOf(close).width, 18);
+      // The cross sits in the middle of the target, not against its edge: a well is a
+      // column, so a cross without a cross alignment hugs the start, and the ring a
+      // hover draws around it lands four pixels off the cross it belongs to.
+      expect(_boxOf(close).mainAlign, MainAlign.center);
+      expect(_boxOf(close).crossAlign, CrossAlign.center);
       expect(_boxOf(close).semantics?.role, BoxRole.button);
       expect(_boxOf(close).semantics?.label, 'Remove');
       // The chip itself still says it can be pressed and whether it is chosen.
