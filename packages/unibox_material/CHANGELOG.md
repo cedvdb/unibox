@@ -2,6 +2,8 @@
 
 ## 0.1.0
 
+- A full-width `MaterialInkWell` (and so a `MaterialListTile`) fills its row on the web: a
+  trailing part sits at the edge instead of beside the text.
 - `MaterialTextField` stretches across the width it is given, so a web page draws it
   as wide as the Flutter one instead of as wide as its label.
 - `MaterialTextField` and `MaterialBottomSheet` draw Material's shape: round at the
