@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
+import 'package:unibox_flutter/unibox_flutter.dart';
 
 import 'support/harness.dart';
 
@@ -90,6 +91,37 @@ void main() {
             .every((Visibility v) => v.maintainState),
         isTrue,
       );
+    });
+  });
+
+  group('a hidden box in a flex row', () {
+    testWidgets('does not keep the share of the width its flex asks for', (
+      tester,
+    ) async {
+      await pumpAtWidth(
+        tester,
+        const core.Box(
+          width: double.infinity,
+          direction: core.Axis.horizontal,
+          children: <core.UINode>[
+            core.Box(flex: 1, children: <core.UINode>[core.TextNode('list')]),
+            core.Box(
+              flex: 4,
+              visibleFrom: 900,
+              children: <core.UINode>[core.TextNode('map')],
+            ),
+          ],
+        ),
+        850,
+      );
+
+      // The map is not drawn, so the list's box has the whole width — which is what
+      // `display: none` does to a flex item on the web.
+      final Finder listBox = find
+          .ancestor(of: find.text('list'), matching: find.byType(FlutterBox))
+          .first;
+
+      expect(tester.getSize(listBox).width, greaterThan(700));
     });
   });
 }

@@ -178,7 +178,7 @@ void main() {
 
         expect(tester.takeException(), isNull);
         expect(find.text('Via Bellavista 12'), findsOneWidget);
-        expect(find.text('€1850 / month'), findsOneWidget);
+        expect(find.text('€1850'), findsOneWidget);
 
         final Rect card = tester.getRect(
           find

@@ -19,8 +19,13 @@ Component buildSiteRoot(SitePage page) {
     theme: MaterialPalette.lightTheme,
     buildSitePage(
       page,
-      frame: ({required String src, required String title}) =>
-          IframeNode(src: src, title: title),
+      frame: ({required String src, required String title}) => IframeNode(
+        src: src,
+        title: title,
+        // A reader drags either frame narrower to watch the page inside reflow,
+        // which is the comparison the showcase exists for.
+        resizable: true,
+      ),
     ),
   );
 }

@@ -580,6 +580,12 @@ The rule that keeps it honest is therefore measurable: **exactly one map is pain
 every width**, which the example's tests assert, and the unpainted copy is documented
 rather than assumed away.
 
+One rule fell out of using it: a hidden box **releases what it claimed** — a
+`flex` factor included — because `display: none` removes a flex item from the layout
+rather than leaving a gap. The Flutter renderer keeps the subtree alive in a
+zero-sized box so its state survives the width change, which is the closest a widget
+tree gets to the DOM that stays.
+
 What that buys, stated as the invariants the feature has to keep:
 
 - the markup is identical at every width, so a hydrated page cannot disagree with

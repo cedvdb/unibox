@@ -10,14 +10,17 @@ void main() {
     test('summarises itself for the card', () {
       const Apartment apartment = Apartment(
         name: 'Via Bellavista 12',
+        district: 'Saint-Gilles',
         rooms: 3,
         area: 84,
         rent: 1850,
-        tint: BoxColor.black,
+        photo: 'https://example.com/a.jpg',
+        tags: 'Bright, quiet street',
       );
 
       expect(apartment.summary, '3 rooms · 84 m²');
-      expect(apartment.priceLine, '€1850 / month');
+      expect(apartment.priceLine, '€1850');
+      expect(apartment.locationLine, 'Saint-Gilles · Brussels');
     });
 
     test('gives every listing in the example its own name', () {
@@ -64,13 +67,19 @@ void main() {
     });
 
     test('lays the cards out as a reflowing grid of Material cards', () {
+      // The cards are the grid with the most children: the filters are a grid too,
+      // because a row of pills has to wrap on a narrow surface.
       final GridNode grid = flatten(buildApartmentsPage())
           .whereType<GridNode>()
-          .single;
+          .reduce(
+            (GridNode a, GridNode b) =>
+                a.children.length >= b.children.length ? a : b,
+          );
 
-      expect(grid.minItemWidth, 280);
-      expect(grid.maxColumns, 3);
-      expect(grid.gap, 16);
+      // Two columns beside the map, one when the column cannot hold two.
+      expect(grid.minItemWidth, 240);
+      expect(grid.maxColumns, 2);
+      expect(grid.gap, 12);
       expect(grid.children, hasLength(exampleApartments.length));
       expect(
         grid.children.whereType<MaterialCard>(),

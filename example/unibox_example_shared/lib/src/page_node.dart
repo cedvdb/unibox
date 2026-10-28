@@ -43,7 +43,11 @@ UINode exampleView({required ExampleState state, required ExampleStore store}) {
   return buildExamplePage(
     current: state.current,
     onNavigate: store.navigate,
-    page: buildApartmentsPage(),
+    page: buildApartmentsPage(
+      mapOpen: state.mapOpen,
+      onOpenMap: store.openMap,
+      onCloseMap: store.closeMap,
+    ),
     dialog: state.signupOpen
         ? buildSignupDialog(
             state: state.form,

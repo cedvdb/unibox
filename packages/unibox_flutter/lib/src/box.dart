@@ -377,6 +377,20 @@ class FlutterBoxState extends State<FlutterBox> {
     }
 
     final core.BoxStyle childStyle = node.computedStyle;
+
+    // A box this width does not draw takes no room, including the share its `flex`
+    // would claim: `display: none` removes a flex item in CSS, so the Flutter side
+    // must not reserve the space it is not using.
+    if (!childStyle.isShownAt(availableWidth ?? double.infinity)) {
+      // Kept alive and out of the layout: the zero box is what stops an `Offstage`
+      // child in a row from being measured against an unbounded main axis, where a
+      // `width: double.infinity` inside it would become an invalid constraint.
+      return Visibility(
+        visible: false,
+        maintainState: true,
+        child: SizedBox(width: 0, height: 0, child: child),
+      );
+    }
     final double? mainSize = direction == core.Axis.horizontal
         ? childStyle.width
         : childStyle.height;

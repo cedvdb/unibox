@@ -13,6 +13,7 @@ final class ExampleState {
   const ExampleState({
     this.form = const SignupFormState(),
     this.signupOpen = false,
+    this.mapOpen = false,
   });
 
   /// The values of the sign-up form.
@@ -20,6 +21,12 @@ final class ExampleState {
 
   /// Whether the sign-up dialog is open.
   final bool signupOpen;
+
+  /// Whether the map is open as a view of its own.
+  ///
+  /// It only matters on a narrow surface: from 900 logical pixels the map is drawn
+  /// beside the listings, and the toggle that opens it is not drawn at all.
+  final bool mapOpen;
 
   /// The destination the bar highlights.
   ///
@@ -29,10 +36,15 @@ final class ExampleState {
       signupOpen ? ExamplePage.signup : ExamplePage.apartments;
 
   /// Returns a copy of this state with the given fields replaced.
-  ExampleState copyWith({SignupFormState? form, bool? signupOpen}) {
+  ExampleState copyWith({
+    SignupFormState? form,
+    bool? signupOpen,
+    bool? mapOpen,
+  }) {
     return ExampleState(
       form: form ?? this.form,
       signupOpen: signupOpen ?? this.signupOpen,
+      mapOpen: mapOpen ?? this.mapOpen,
     );
   }
 
@@ -46,10 +58,11 @@ final class ExampleState {
   /// Two states with equal values hash alike, which is what lets the store skip
   /// a rebuild that would draw the same tree again.
   @override
-  int get hashCode => Object.hash(form, signupOpen);
+  int get hashCode => Object.hash(form, signupOpen, mapOpen);
 
   @override
-  String toString() => 'ExampleState(form: $form, signupOpen: $signupOpen)';
+  String toString() =>
+      'ExampleState(form: $form, signupOpen: $signupOpen, mapOpen: $mapOpen)';
 }
 
 /// The store of `ExamplePageNode`: every interaction of the page as one
@@ -87,6 +100,12 @@ final class ExampleStore extends StateStore<ExampleState> {
 
   /// Closes the sign-up dialog.
   void closeSignup() => state = state.copyWith(signupOpen: false);
+
+  /// Opens the map as a view of its own, which is what a narrow surface offers.
+  void openMap() => state = state.copyWith(mapOpen: true);
+
+  /// Closes the map view.
+  void closeMap() => state = state.copyWith(mapOpen: false);
 
   /// Follows a destination of the bar.
   ///

@@ -86,11 +86,11 @@ void main() {
             )
             .toList();
 
-        // Two navigation items, the dialog's close control and the opt-in row; the
-        // submit button is disabled until the form is complete.
-        // Two navigation items, the opt-in row and the barrier that dismisses
-        // the sign-up dialog; the button is disabled until the form is complete.
-        expect(clickable, hasLength(5));
+        // Two navigation items, the four filters of the listings, the opt-in row
+        // and the barrier that dismisses the sign-up dialog. The submit button is
+        // disabled until the form is complete, and a disabled box listens to
+        // nothing.
+        expect(clickable, hasLength(9));
 
         // The bar's sign-up trigger is a button too, and it comes first; the
         // submit button is the last one in the tree.
@@ -119,7 +119,8 @@ void main() {
           )
           .toList();
 
-      expect(clickable, hasLength(6));
+      // The same set, and now the submit button as well.
+      expect(clickable, hasLength(10));
 
       final TestRenderElement button = elementsOf(find.tag('div')).lastWhere(
         (TestRenderElement element) => element.attributes?['role'] == 'button',
@@ -183,7 +184,7 @@ void main() {
       expect(find.text('Apartments'), findsNComponents(2));
       expect(find.text('Via Bellavista 12'), findsOneComponent);
       expect(find.text('3 rooms · 84 m²'), findsOneComponent);
-      expect(find.text('€1850 / month'), findsOneComponent);
+      expect(find.text('€1850'), findsComponents);
       expect(find.text('Join Unibox'), findsNothing);
     });
 

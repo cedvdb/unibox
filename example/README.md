@@ -88,13 +88,28 @@ point at files the example ships.
 
 ## The listings page
 
-The cards are a `GridNode`: at least 280 pixels each, three columns at most, a 16
-pixel gutter. The page therefore reflows from one column to two to three as its
-width grows — from the width of the grid, not of the window, so it works the same
-in a padded column or beside a sidebar, and the server render, the hydrated page
-and Flutter all count the same columns. Each card is a `MaterialCard` with a
-photo box and Material's type roles, so the example uses the design system as
-well as the model.
+A search bar, a row of filters, a grid of listings and — on a wide surface — a map
+beside them. It is the shape a real listing page has, drawn from the model:
+
+| Part | What draws it |
+| --- | --- |
+| the search bar | a rounded `Box` with a border, and a magnifier of two boxes and a 45° transform — no icon font, no asset |
+| the filters | pills of `MaterialInkWell`, one of them selected; `With a garden` is `visibleFrom: 900` and `Map` is `visibleUntil: 900` |
+| the cards | a `GridNode` of 240 pixel minimum, two columns at most, so the grid reflows from one column to two as its own width grows — not the window's |
+| each card | a `MaterialCard` with a Pexels photo (`ImageNode`, `ImageFit.cover`), the name, the district, two words about the flat, the summary and the rent |
+| the map | drawn from nodes: a surface, four parks, three rotated roads, the district names and three price pins placed with `PositionedNode` |
+| the map view on a phone | the map column is `visibleFrom: 900`, so below it the `Map` pill opens an `OverlayNode` with the same map — state, not structure |
+
+The map is drawn rather than embedded on purpose: a real map is a third-party embed
+with a key and a script, and this one shows the shape of a map without either. It is
+also the one place the example uses `visibleFrom`/`visibleUntil`, the token a width
+needs — `design.md` §5.15 records why a width is measured on the box and not on the
+window.
+
+**Why the map toggle is a pill and not a floating button.** A floating button has to
+stay put while the page scrolls, and that is `position: fixed`; the model has no such
+token, and an overlay would put a barrier over the page. So the toggle sits with the
+filters on a narrow surface, which is the honest limit rather than a hidden one.
 
 The page scrolls, not the document. `Overflow.scroll` on the box below the
 navigation is a `SingleChildScrollView` in Flutter and `overflow: auto` in CSS,
@@ -102,6 +117,10 @@ so the bar stays put and the listings move under it. The padding of the page sit
 on a box *inside* the scrolling one, because Flutter puts the padding of a
 scrolling box around its viewport while CSS puts it inside the scrollport; one
 level in, both renderers scroll the same content.
+
+The two frames of the showcase are draggable: each is an `<iframe>` with CSS
+`resize: horizontal`, so a reader narrows one and watches the page inside reflow —
+the comparison the page exists for. The drag is host chrome, not a token.
 
 ## Keeping the two renderings alike
 
