@@ -27,7 +27,7 @@ typedef ShowcaseFrame = UINode Function({
 /// second set of colours.
 UINode buildHeroSection({
   required ShowcaseFrame frame,
-  ExampleSeed seed = ExampleSeed.blue,
+  ExampleSeed seed = ExampleSeed.defaultSeed,
 }) {
   final MaterialPalette palette = ExamplePalette.materialFor(seed);
 

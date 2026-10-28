@@ -18,7 +18,7 @@ class ExampleApp extends JasprStateful {
   const ExampleApp({
     this.initialForm = const SignupFormState(),
     this.openSignup = false,
-    this.seed = ExampleSeed.blue,
+    this.seed = ExampleSeed.defaultSeed,
     super.key,
   });
 
@@ -50,7 +50,7 @@ class ExampleApp extends JasprStateful {
 /// unanswered the moment the runtime took over.
 Component buildExampleRoot({
   bool openSignup = false,
-  ExampleSeed seed = ExampleSeed.blue,
+  ExampleSeed seed = ExampleSeed.defaultSeed,
 }) {
   return JasprThemeScope(
     theme: ExamplePalette.themeFor(seed),

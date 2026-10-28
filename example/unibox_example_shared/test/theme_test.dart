@@ -142,7 +142,7 @@ void main() {
       expect(
         ExamplePalette.themeFor(ExampleSeed.blue)
             .resolve(const BoxColor.role(MaterialColorRole.surface)),
-        ExamplePalette.material.surface,
+        ExamplePalette.materialFor(ExampleSeed.blue).surface,
         reason: 'a Material component keeps the colour its palette states',
       );
     });

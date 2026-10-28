@@ -49,11 +49,15 @@ enum ExampleColor {
 /// The seeds the example can be drawn with.
 ///
 /// One colour each: Material's algorithm grows the rest of the palette from it, so
-/// the accent, the cards, the page and the muted text all change together. [blue] is
-/// the seed the example is branded with unless the address asks for another one
-/// (`?seed=green`), and the order of this enum is the order the picker draws them in.
+/// the accent, the cards, the page and the muted text all change together.
+/// [defaultSeed] is the one the example is branded with unless the address asks for
+/// another (`?seed=blue`), and the order of this enum is the order the picker draws
+/// them in, so the seed in force at `/` is the first of the row.
 enum ExampleSeed {
-  /// The blue the example has always been branded with.
+  /// The pink the example is branded with: a warm accent on a near-white page.
+  rose('Rose', BoxColor.rgb(0xB3, 0x26, 0x5E)),
+
+  /// A blue: the colour the example was branded with before it could be picked.
   blue('Blue', BoxColor.rgb(0x2D, 0x6C, 0xF3)),
 
   /// A violet, close to Material's own baseline seed.
@@ -66,14 +70,14 @@ enum ExampleSeed {
   green('Green', BoxColor.rgb(0x2E, 0x7D, 0x32)),
 
   /// An amber, the warmest of the six.
-  amber('Amber', BoxColor.rgb(0xA8, 0x60, 0x00)),
-
-  /// A rose, for a page whose accent is a warning as much as an invitation.
-  rose('Rose', BoxColor.rgb(0xB3, 0x26, 0x5E));
+  amber('Amber', BoxColor.rgb(0xA8, 0x60, 0x00));
 
   const ExampleSeed(this.label, this.color);
 
-  /// The name of the seed in the picker.
+  /// The seed the example is branded with, which is what an address without one gets.
+  static const ExampleSeed defaultSeed = rose;
+
+  /// The name of the seed, which is what a screen reader reads out.
   final String label;
 
   /// The colour the palette is grown from.
@@ -86,7 +90,7 @@ enum ExampleSeed {
   /// colour the page will not use.
   BoxColor get accent => ExamplePalette.materialFor(this).primary;
 
-  /// The seed [name] names, or [blue] when the address names none of them.
+  /// The seed [name] names, or [defaultSeed] when the address names none of them.
   ///
   /// An address is written by hand as often as by the picker, so a name the example
   /// does not know falls back to the one it is branded with instead of failing.
@@ -96,7 +100,7 @@ enum ExampleSeed {
         return seed;
       }
     }
-    return blue;
+    return defaultSeed;
   }
 }
 
@@ -145,14 +149,6 @@ abstract final class ExamplePalette {
 
   /// The palette [seed] grows.
   static MaterialPalette materialFor(ExampleSeed seed) => _material[seed]!;
-
-  /// The default seed's palette, which is what the site's catalogue is drawn with.
-  ///
-  /// The catalogue is written by the build and shows the palette the example is
-  /// branded with; the picker reseeds the example page itself — the documents the
-  /// showcase embeds — so the page inside a frame and the page around it are never
-  /// two palettes of one page.
-  static final MaterialPalette material = materialFor(ExampleSeed.blue);
 
   /// The values of [ExampleColor] for [seed], as the theme a host installs.
   ///

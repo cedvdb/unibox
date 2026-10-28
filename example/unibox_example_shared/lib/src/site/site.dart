@@ -24,7 +24,7 @@ const String repositoryUrl = 'https://github.com/cedvdb/unibox';
 /// answered.
 UINode buildSitePage({
   required ShowcaseFrame frame,
-  ExampleSeed seed = ExampleSeed.blue,
+  ExampleSeed seed = ExampleSeed.defaultSeed,
 }) {
   final MaterialPalette palette = ExamplePalette.materialFor(seed);
 

@@ -4,6 +4,10 @@ import 'theme.dart';
 
 /// The row of palettes the page can be drawn with.
 ///
+/// Six dots and nothing else: the row is a control, not a caption, and each swatch
+/// carries the name of the palette it selects, so a reader who cannot see the colour
+/// is told which one it is and which one is in force.
+///
 /// The example page puts it above its navigation bar and the catalogue puts it above
 /// its specimens: one builder, so the two cannot drift into two different pickers.
 ///
@@ -17,7 +21,7 @@ import 'theme.dart';
 /// The swatch is painted with the accent its seed *grows*, not with the seed itself.
 /// A tonal spot palette spends a saturated colour on a low chroma one, so a picker
 /// showing the seed would promise a blue and deliver a slate.
-UINode seedPicker({required ExampleSeed current, String label = 'Palette'}) {
+UINode seedPicker({required ExampleSeed current}) {
   return Box(
     direction: Axis.horizontal,
     mainAlign: MainAlign.center,
@@ -28,7 +32,6 @@ UINode seedPicker({required ExampleSeed current, String label = 'Palette'}) {
     backgroundColor: const BoxColor.role(ExampleColor.panel),
     textStyle: ExampleType.muted,
     children: <UINode>[
-      TextNode(label),
       for (final ExampleSeed seed in ExampleSeed.values)
         LinkNode(
           '?seed=${seed.name}',

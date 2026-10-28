@@ -16,7 +16,7 @@ import 'section.dart';
 /// It is a band of the page rather than a page of its own: the heading names what
 /// the catalogue is, and each block under it is an `h3`, so the page still has one
 /// `h1` and two `h2`s above it.
-UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.blue}) {
+UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
   final MaterialPalette palette = ExamplePalette.materialFor(seed);
 
   return siteBand(
@@ -770,7 +770,7 @@ final class DialogDemoStore extends StateStore<bool> {
 /// whole mechanism a dialog needs — the node carries the barrier and the dismissal.
 final class DialogDemo extends StatefulNode<bool, DialogDemoStore> {
   /// Creates the demo, with its dialog closed.
-  DialogDemo({this.seed = ExampleSeed.blue})
+  DialogDemo({this.seed = ExampleSeed.defaultSeed})
     : super(
         create: DialogDemoStore.new,
         view: (bool open, DialogDemoStore store) =>

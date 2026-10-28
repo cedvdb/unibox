@@ -84,8 +84,8 @@ void main() {
       expect(
         frames,
         containsAll(<Object?>[
-          'web/listings/?seed=blue',
-          'flutter/listings/?seed=blue',
+          'web/listings/?seed=rose',
+          'flutter/listings/?seed=rose',
         ]),
       );
     });

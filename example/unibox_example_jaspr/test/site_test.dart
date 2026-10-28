@@ -35,8 +35,8 @@ void main() {
     // Each frame is a document of its own, so the palette travels in its address:
     // the page around it is drawn in the seed the catalogue picked.
     expect(frames.map((IframeNode node) => node.src), <String>[
-      'web/listings/?seed=blue',
-      'flutter/listings/?seed=blue',
+      'web/listings/?seed=rose',
+      'flutter/listings/?seed=rose',
     ], reason: 'the comparison shows the Jaspr page and the Flutter build');
     expect(frames.map((IframeNode node) => node.title), <String>[
       'Jaspr — HTML and CSS',

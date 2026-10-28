@@ -45,7 +45,7 @@ class ExampleApp extends StatefulWidget {
   const ExampleApp({
     super.key,
     this.signupOpen = false,
-    this.seed = ExampleSeed.blue,
+    this.seed = ExampleSeed.defaultSeed,
   });
 
   /// Whether the sign-up dialog is open on the first frame.

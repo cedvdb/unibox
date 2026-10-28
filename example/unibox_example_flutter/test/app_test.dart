@@ -34,18 +34,18 @@ void main() {
       core.UniboxTheme installed() =>
           tester.widget<UniboxThemeScope>(find.byType(UniboxThemeScope)).theme;
 
-      expect(installed(), ExamplePalette.themeFor(ExampleSeed.blue));
+      expect(installed(), ExamplePalette.themeFor(ExampleSeed.defaultSeed));
 
       // The swatch is a link to this page with `?seed=<name>`: the host answers the
       // address with another theme instead of loading anything, so the page keeps
       // its store — the dialog, the filter and the fields stay where they were.
-      await tester.tap(find.bySemanticsLabel('Rose palette'));
+      await tester.tap(find.bySemanticsLabel('Blue palette'));
       await tester.pump();
 
-      expect(installed(), ExamplePalette.themeFor(ExampleSeed.rose));
+      expect(installed(), ExamplePalette.themeFor(ExampleSeed.blue));
       expect(
         installed().resolve(const core.BoxColor.role(ExampleColor.accent)),
-        ExamplePalette.materialFor(ExampleSeed.rose).primary,
+        ExamplePalette.materialFor(ExampleSeed.blue).primary,
       );
       // Nothing navigated: the page is still the one the reader was on.
       expect(find.text('Via Bellavista 12'), findsOneWidget);
