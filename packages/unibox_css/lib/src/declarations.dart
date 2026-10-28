@@ -112,3 +112,27 @@ final class CssDeclarations {
   @override
   String toString() => _entries.isEmpty ? 'CssDeclarations()' : text;
 }
+
+/// A stable eight character hash of [value] (FNV-1a).
+///
+/// Tiny, deterministic and dependency free, so a class name is the same on a server and
+/// in a browser without any coordination — and the same in two renderers that agree on
+/// the declarations.
+String fnv1a(String value) {
+  var hash = 0x811C9DC5;
+
+  for (final int codeUnit in value.codeUnits) {
+    hash = ((hash ^ codeUnit) * 0x01000193) & 0xFFFFFFFF;
+  }
+
+  return hash.toRadixString(16).padLeft(8, '0');
+}
+
+/// The class a look wears: `unibox-box-1f3c9a7b`.
+///
+/// [kind] only names the class, so an inspector says what an element is; the
+/// deduplication is the declarations', so six listings with one look cost one rule. The
+/// hash covers the kind as well, so a box and a text that happened to declare the same
+/// thing still get a class of their own.
+String classNameFor(String kind, String declarations) =>
+    'unibox-$kind-${fnv1a('$kind|$declarations')}';

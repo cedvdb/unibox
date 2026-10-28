@@ -215,3 +215,37 @@ CssDeclarations alignedDeclarations(core.BoxAlignment alignment) {
     ..add('align-items', cssAlignItems(vertical))
     ..add('pointer-events', 'none');
 }
+
+/// The declarations of a single line text input or a text area.
+///
+/// An input is a replaced element: the browser gives it an intrinsic width, its own
+/// padding, border, font and colour. Stretching it over the width it is given with
+/// `box-sizing: border-box` reproduces the layout a Flutter `TextField` gets from the
+/// column it lives in; `font: inherit` makes the field adopt the typography of the
+/// enclosing box, including the line height that sizes it; and `color: inherit` keeps
+/// the text the same colour as the text around it.
+///
+/// Everything else is stripped to nothing — the border, the padding, the background,
+/// the focus ring — because the Flutter renderer also draws a field without Material's
+/// decoration: the box around a field draws the border and the padding on both targets,
+/// so a field does not look like a browser widget on one and a Material widget on the
+/// other.
+///
+/// The cost is that a focused field shows its caret and no frame of its own, because the
+/// tree cannot draw one: a box raises its `focus` state by being focused itself, and a
+/// browser only matches `:focus-visible` on the focused element. The same cue on both
+/// targets is worth more than a browser frame on one.
+CssDeclarations textInputDeclarations({core.BoxSpacing? padding}) {
+  return CssDeclarations()
+    ..add('box-sizing', 'border-box')
+    ..add('width', '100%')
+    ..add('font', 'inherit')
+    ..add('color', 'inherit')
+    ..add('border', 'none')
+    ..add('padding', padding == null ? '0' : cssSpacing(padding))
+    ..add('background-color', 'transparent')
+    ..add('outline', 'none')
+    // A text area comes with a resize grip that Flutter has no counterpart for.
+    // `resize` is ignored by an `<input>`, so this only ever reaches a textarea.
+    ..add('resize', 'none');
+}

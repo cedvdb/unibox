@@ -26,6 +26,8 @@ renderer that consumes it.
 | a colour that names a role | `cssRoleReference(...)` → `var(--unibox-color-primary)` |
 | an image fit | `cssObjectFit(...)` → `cover`, `contain`, `fill`, `scale-down` |
 | a set of declarations | `CssDeclarations` — an ordered list, and its canonical `text` |
+| a state, a theme | `stateRules(box, className)`, `themeDeclarations(theme)` — rules as values, `CssRule` |
+| a text input | `textInputDeclarations({padding})` |
 | a stack, its cell | `stackDeclarations`, `stackCellDeclarations` |
 | a placed child | `positionedDeclarations`, `alignedDeclarations` |
 | a text, an image, a grid | `textDeclarations`, `imageDeclarations`, `gridDeclarations` |
@@ -37,9 +39,10 @@ renderer that consumes it.
 twice — a fallback — and because `text` is the text a class name is hashed from, which
 has to be the same however the renderer built it.
 
-## What is still to come
+## The class a look wears
 
-The package grows node by node: the text input, then the four state rules (`:hover`, `:focus-visible`, `:active`,
-`[aria-disabled="true"]`). Until a family is here, the renderer that needs it is not
-finished either — which is on purpose: half a mapping is how two renderings start to
-differ.
+`fnv1a` hashes a set of declarations into the eight characters of a class name, so two
+boxes with the same look share one rule and six listings cost one class. The stylesheet
+that collects those rules is `unibox_html`'s job, not this package's: a rule is a value
+here (`CssRule`), and writing it into a `<style>` block or into a stylesheet is a
+renderer's decision.

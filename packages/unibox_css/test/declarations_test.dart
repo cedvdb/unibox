@@ -48,4 +48,34 @@ void main() {
       expect(declarations.isNotEmpty, isTrue);
     });
   });
+
+  group('the class a look wears', () {
+    test('is the same for the same declarations, whatever built them', () {
+      // Which is what lets a server render, a browser and a second renderer agree on
+      // one rule instead of three that look alike.
+      final CssDeclarations one = CssDeclarations()
+        ..add('display', 'flex')
+        ..add('width', '8px');
+      final CssDeclarations other = CssDeclarations()
+        ..add('width', '8px')
+        ..add('display', 'flex');
+
+      expect(classNameFor('box', one.text), classNameFor('box', other.text));
+    });
+
+    test('names the kind, and differs between two kinds with one look', () {
+      expect(classNameFor('box', 'display:flex'), startsWith('unibox-box-'));
+      expect(classNameFor('text', 'display:flex'), startsWith('unibox-text-'));
+      expect(
+        classNameFor('box', 'display:flex'),
+        isNot(classNameFor('text', 'display:flex')),
+      );
+    });
+
+    test('hashes to eight lowercase hexadecimal characters', () {
+      expect(fnv1a('x'), matches(RegExp(r'^[0-9a-f]{8}$')));
+      expect(fnv1a('x'), fnv1a('x'));
+      expect(fnv1a('x'), isNot(fnv1a('y')));
+    });
+  });
 }

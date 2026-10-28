@@ -314,3 +314,21 @@ String cssCurve(core.BoxCurve curve) => switch (curve) {
   core.BoxCurve.easeOut => 'ease-out',
   core.BoxCurve.easeInOut => 'ease-in-out',
 };
+
+/// The colours of a theme, as the `:root` block a document starts from.
+///
+/// A theme answers the roles a tree names, once, and every rule that names a role is
+/// written as `var(--unibox-color-primary)`. Writing them here is what lets a host
+/// stylesheet or a dark-mode block outrank the tree without touching it.
+///
+/// A theme whose roles clash is the theme's problem to report, not this function's:
+/// `UniboxTheme.clashes` names the two roles that would claim one property.
+CssDeclarations themeDeclarations(core.UniboxTheme theme) {
+  final CssDeclarations declarations = CssDeclarations();
+
+  for (final MapEntry<String, core.BoxColor> entry in theme.variables.entries) {
+    declarations.add(entry.key, cssColorOrRole(entry.value));
+  }
+
+  return declarations;
+}

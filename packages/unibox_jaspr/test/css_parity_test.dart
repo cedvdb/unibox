@@ -325,6 +325,58 @@ void main() {
     });
   });
 
+  group('a text input and a state rule are spelled the same way', () {
+    test('as a field', () {
+      for (final core.BoxSpacing? padding in <core.BoxSpacing?>[
+        null,
+        core.BoxSpacing.all(12),
+        core.BoxSpacing(top: 4, right: 8, bottom: 4, left: 8),
+      ]) {
+        expect(
+          inOurSpelling(declarationsOf(toTextInputStyles(padding: padding))),
+          css.textInputDeclarations(padding: padding).text,
+        );
+      }
+    });
+
+    test('as the states of a box', () {
+      final core.Box box = core.Box(
+        hoverStyle: core.BoxStyle(backgroundColor: core.BoxColor.white),
+        stateStyles: <core.BoxState, core.BoxStyle>{
+          core.BoxState.focus: core.BoxStyle(opacity: 0.8),
+          core.BoxState.pressed: core.BoxStyle(opacity: 0.6),
+          core.BoxState.disabled: core.BoxStyle(opacity: 0.4),
+        },
+      );
+
+      for (final core.BoxState state in core.BoxState.values) {
+        final core.BoxStyle? style = box.stateStyle(state);
+
+        expect(
+          inOurSpelling(
+            declarationsOf(toBoxStyles(style!, declaredOnly: true)),
+          ),
+          css
+              .stateRules(box, 'a')
+              .singleWhere(
+                (css.CssRule rule) =>
+                    rule.selector.endsWith(css.cssStateSelector(state)),
+              )
+              .declarations
+              .text,
+        );
+      }
+    });
+  });
+
+  group('a class name is the same in both mappings', () {
+    test('for a look', () {
+      const String declarations = 'display:flex;width:8px';
+
+      expect(fnv1a(declarations), css.fnv1a(declarations));
+    });
+  });
+
   group('a border and a shadow are spelled the same way', () {
     test('as a border', () {
       const core.BoxBorder border = core.BoxBorder(
@@ -372,6 +424,13 @@ String _declarationInOurSpelling(String declaration) {
 
   final String property = declaration.substring(0, colon);
   String value = declaration.substring(colon + 1).replaceAll(_zeros, '0');
+
+  // A uniform four-value spacing is written once here.
+  final List<String> parts = value.split(' ');
+
+  if (parts.length == 4 && parts.toSet().length == 1) {
+    value = parts.first;
+  }
 
   final List<String> reordered =
       _reorderings[property]?.call(value) ?? <String>[];

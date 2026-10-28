@@ -10,6 +10,21 @@
   role), a dimension (`8px`, `100%` for `double.infinity`), a padding or a margin in
   CSS's four-value order, and an image fit.
 
+- A text input draws no frame of its own: `font: inherit` and `color: inherit` make it
+  adopt the typography and the colour of the box around it, and the border, padding,
+  background and focus ring are stripped, because the box around a field draws the frame
+  on both targets. The cost is stated in the code: a focused field shows its caret and
+  nothing else, on both targets, which is worth more than a browser frame on one.
+
+- A state is a rule with a selector: `:hover` under `@media (hover: hover)` so a touch
+  screen cannot get stuck in a hovered look, `:focus-visible` so a pointer press paints no
+  ring, `:active`, and `[aria-disabled="true"]` so the visual state and the announced one
+  cannot disagree. Each declares only what its state states.
+
+- A theme is written as custom properties in one `:root` block, and `CssRule` carries a
+  selector, its declarations and an optional media condition, so a string renderer and a
+  DOM renderer write the same rules two ways from one value.
+
 - A stack is a relative grid whose single row is the height of the stack rather than of
   its content, so a list inside it scrolls instead of growing the document; each child
   gets a cell it cannot escape; a child placed by offsets or by an alignment takes no
