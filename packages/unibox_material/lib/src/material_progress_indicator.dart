@@ -20,7 +20,7 @@ import 'material_palette.dart';
 /// fraction of its parent, which the model cannot state. The indeterminate motion
 /// is each platform's own, so the arc will not grow and shrink identically on both.
 final class MaterialProgressIndicator extends ProgressNode {
-  /// Creates the indicator in [palette].
+  /// Creates the indicator, in the `primary` role.
   const MaterialProgressIndicator({
     super.key,
     super.value,
