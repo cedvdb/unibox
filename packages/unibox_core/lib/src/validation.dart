@@ -197,6 +197,31 @@ void _validate(
 
   if (node is Box) {
     final BoxStyle style = node.computedStyle;
+
+    if (style.borderRadius != null && style.corners != null) {
+      issues.add(
+        TreeIssue(
+          node: node,
+          message:
+              'A box declares both borderRadius and corners, and a box has one '
+              'shape: keep corners when the four differ.',
+        ),
+      );
+    }
+
+    for (final double radius in style.corners?.radii ?? const <double>[]) {
+      if (radius >= 0) continue;
+
+      issues.add(
+        TreeIssue(
+          node: node,
+          message:
+              'A corner radius of $radius cannot be drawn: a corner is round by a '
+              'length that is zero or more.',
+        ),
+      );
+    }
+
     final double? from = style.visibleFrom;
     final double? until = style.visibleUntil;
 

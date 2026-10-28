@@ -2,6 +2,11 @@
 
 ## 0.1.0
 
+- `BoxCorners` and `BoxStyle.corners`: the radius of each corner, so a box can be
+  round at the top and square at the bottom — Material's filled text field and its
+  bottom sheet. `borderRadius` stays the one-radius shorthand; a box that sets both
+  is reported by `validateTree`, and a negative radius is reported too.
+
 - `UINode.debugLabel` and `UINode.debugName`: the name a renderer can write on the
   element it drew, and the rule that derives one from the type. `Box` reads `box`,
   `TextNode` reads `text`, a `MaterialCard` reads `material-card`. It is a development
