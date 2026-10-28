@@ -104,3 +104,37 @@ the design system it leans on is `packages/unibox_material`.
   button shows a label-only control and an icon-led view switcher, where a picture is what
   a segment is for. The glyphs are drawn from boxes in `example/unibox_example_shared`
   (`icons.dart`), because an icon font is an asset the example does not ship.
+
+## Follow-up: the controls in the page itself
+
+The chips and the segmented button were in the gallery only, so the page a reader lands on
+still showed plain pills and no way to change the layout. They are now the page's own
+controls:
+
+- **The filter row is one row with the layout switch.** A chosen filter shows a check in
+  front and a cross after it that clears it, which is Material's filter chip; `Map` carries a
+  pin, because it opens a view rather than choosing a filter. Beside them, a List/Grid
+  segmented button picks how the listings are drawn — `GridNode(maxColumns:)`, so the layout
+  is a value in the tree and not a second tree. The filter and the layout are
+  `ExampleState.filter` and `ExampleState.view`: the page's store, like the form.
+- **The switch leaves before the chips squeeze.** It is 216 pixels and the chips come first,
+  so it is drawn from 560 pixels of row and hidden below that — the same token the two chips
+  a narrow surface cannot hold already used.
+
+Two things were found while wiring it, both worth recording:
+
+1. **A decoration took the press on the web.** The ink a well spreads and a panel a stack
+   paints are drawn over the control and, being ordinary elements, were the topmost thing a
+   press met — so a chip, a segment or the floating Map button under them answered nothing,
+   on the web alone. Flutter hit-tests a picture and finds nothing to press, so this was a
+   real divergence: a box that paints and holds nothing now takes no pointer, and a stack
+   cell is a placement rather than a control. `toBoxStyles` states the rule and
+   `test/box_component_test.dart` pins both halves of it.
+2. **A press on a control inside the page still does not reach the page's store.** With the
+   decoration out of the way the press lands on the content (a `click` is delivered to the
+   label), and a chip or a segmented button built on its own reports its `onTap` and its
+   `onSelect` — but the same control inside `ExamplePageNode` leaves `ExampleState`
+   unchanged. The page's other listener, the navigation, publishes and redraws, so the store
+   is wired; what is not yet understood is the press inside a stateful node, and it is the
+   next thing to look at. It is not covered by a test, because the tree walk cannot see into
+   a `StatefulNode`'s view: a well is a node and its children belong to its state.

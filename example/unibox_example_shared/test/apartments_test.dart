@@ -33,6 +33,14 @@ void main() {
     });
   });
 
+  /// Every node under [root], depth first.
+  Iterable<UINode> everyNode(UINode root) sync* {
+    yield root;
+    for (final UINode child in root.children) {
+      yield* everyNode(child);
+    }
+  }
+
   /// The box that scrolls the listings, wherever the page keeps it.
   ///
   /// The page is a stack now — the list scrolls under a floating button — so the box
@@ -88,6 +96,46 @@ void main() {
       final Box button = floating.child as Box;
       expect(button.visibleUntil, 900);
       expect(button.shadow, MaterialElevation.level3);
+    });
+
+    test('draws a filter as a chosen chip with a cross that clears it', () {
+      final Box page = buildApartmentsPage();
+      final List<MaterialChip> chips = <MaterialChip>[
+        for (final UINode node in everyNode(page))
+          if (node is MaterialChip) node,
+      ];
+
+      final MaterialChip chosen = chips.firstWhere(
+        (MaterialChip chip) => chip.children.isNotEmpty && chip.border == null,
+      );
+
+      expect(
+        (chosen.children.single as MaterialInkWell),
+        isA<MaterialInkWell>(),
+        reason: 'a chip is a fill around a well',
+      );
+      expect(
+        chosen.backgroundColor,
+        const BoxColor.role(MaterialColorRole.secondaryContainer),
+      );
+      expect(
+        chips.where((MaterialChip chip) => chip.border != null),
+        isNotEmpty,
+        reason: 'the filters that are not chosen are outlined',
+      );
+    });
+
+    test('gives the listings one column or a grid, as the switch says', () {
+      int columnsOf(ListingsView view) {
+        final GridNode grid = everyNode(buildApartmentsPage(view: view))
+            .whereType<GridNode>()
+            .firstWhere((GridNode node) => node.children.length > 3);
+
+        return grid.maxColumns ?? 0;
+      }
+
+      expect(columnsOf(ListingsView.list), 1);
+      expect(columnsOf(ListingsView.grid), 2);
     });
 
     test('lists every apartment of the example', () {

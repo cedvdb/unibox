@@ -1,6 +1,7 @@
 import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_material/unibox_material.dart';
 
+import 'icons.dart';
 import 'theme.dart';
 
 /// A listing on the apartments page.
@@ -126,6 +127,25 @@ const List<Apartment> exampleApartments = <Apartment>[
   ),
 ];
 
+/// How a page of listings is drawn.
+///
+/// Two values and not a breakpoint: the segmented button above the listings picks one,
+/// and the grid it feeds answers for the width on its own — one column is what a grid
+/// with `maxColumns: 1` is, at any width.
+/// The filter a listing row starts with.
+///
+/// It is here and not in the page state so that the page can be built on its own — the
+/// state points at this value rather than the other way round.
+const String defaultListingFilter = 'Two rooms';
+
+enum ListingsView {
+  /// One column: a row per listing.
+  list,
+
+  /// A reflowing grid, one or two across.
+  grid,
+}
+
 /// The apartments page: a search bar, the filters, the listings and the map.
 ///
 /// The page scrolls, the frame does not. The scrolling box is the page itself
@@ -146,6 +166,10 @@ Box buildApartmentsPage({
   bool mapOpen = false,
   TapCallback? onOpenMap,
   TapCallback? onCloseMap,
+  String? filter = defaultListingFilter,
+  ListingsView view = ListingsView.grid,
+  void Function(String? filter)? onFilter,
+  void Function(ListingsView view)? onView,
 }) {
   return Box(
     flex: 1,
@@ -170,6 +194,10 @@ Box buildApartmentsPage({
                 mapOpen: mapOpen,
                 onOpenMap: onOpenMap,
                 onCloseMap: onCloseMap,
+                filter: filter,
+                view: view,
+                onFilter: onFilter,
+                onView: onView,
               ),
             ],
           ),
@@ -201,6 +229,10 @@ Box _content({
   required bool mapOpen,
   required TapCallback? onOpenMap,
   required TapCallback? onCloseMap,
+  required String? filter,
+  required ListingsView view,
+  required void Function(String? filter)? onFilter,
+  required void Function(ListingsView view)? onView,
 }) {
   return Box(
     direction: Axis.vertical,
@@ -211,7 +243,13 @@ Box _content({
     children: <UINode>[
       _heading(),
       _searchBar(),
-      _filters(onOpenMap: onOpenMap),
+      _filters(
+        filter: filter,
+        onFilter: onFilter,
+        onOpenMap: onOpenMap,
+        view: view,
+        onView: onView,
+      ),
       Box(
         direction: Axis.horizontal,
         width: double.infinity,
@@ -223,17 +261,14 @@ Box _content({
             direction: Axis.vertical,
             gap: 12,
             children: <UINode>[
-              TextNode(
-                '${exampleApartments.length} apartments in Brussels',
-                style: ExampleType.muted,
-              ),
+              _resultLine(),
               // The cards reflow on their own: one column when the column is
               // narrow, two once it can hold them, and the tracks share the
               // width. The count comes from the model's arithmetic on the web
               // as well as in Flutter, so neither target needs a breakpoint.
               GridNode(
                 minItemWidth: 240,
-                maxColumns: 2,
+                maxColumns: view == ListingsView.list ? 1 : 2,
                 gap: 12,
                 children: <UINode>[
                   for (final Apartment apartment in exampleApartments)
@@ -329,27 +364,77 @@ UINode _magnifier() {
   );
 }
 
-/// The filters: two shapes of home, and the map on a surface too narrow for it.
-UINode _filters({TapCallback? onOpenMap}) {
-  // A row of pills, with the two that a narrow surface cannot hold hidden by the
-  // same width token the map uses: a flex row does not wrap, and hiding is the
-  // model say a `display: none` that both targets honour.
+/// The filters, and how the listings are drawn beside them.
+///
+/// One row and not two: the chips and the layout switch are the same decision — what the
+/// page shows and how it shows it — and a row that spans the page is also the box the
+/// width tokens are measured against, so the switch and the two chips a narrow surface
+/// cannot hold disappear at the same threshold they always did.
+UINode _filters({
+  required String? filter,
+  required void Function(String? filter)? onFilter,
+  required TapCallback? onOpenMap,
+  required ListingsView view,
+  required void Function(ListingsView view)? onView,
+}) {
   return Box(
     direction: Axis.horizontal,
     crossAlign: CrossAlign.center,
-    gap: 8,
-    // The row is the box the two width tokens below are measured against, so it
-    // has to span the page: a row that hugs its content answers with its own
-    // width, and the pills would flip on the wrong side of the threshold.
+    mainAlign: MainAlign.spaceBetween,
+    gap: 12,
     width: double.infinity,
     children: <UINode>[
-      _chip('Two rooms', selected: true),
-      _chip('Studio'),
-      Box(visibleFrom: 900, children: <UINode>[_chip('With a garden')]),
       Box(
-        // The toggle to the map view, where the map is not already beside it.
-        visibleUntil: 900,
-        children: <UINode>[_chip('Map', onTap: onOpenMap)],
+        flex: 1,
+        direction: Axis.horizontal,
+        crossAlign: CrossAlign.center,
+        gap: 8,
+        children: <UINode>[
+          _filterChip('Two rooms', filter: filter, onFilter: onFilter),
+          _filterChip('Studio', filter: filter, onFilter: onFilter),
+          Box(
+            visibleFrom: 900,
+            children: <UINode>[
+              _filterChip('With a garden', filter: filter, onFilter: onFilter),
+            ],
+          ),
+          Box(
+            // The toggle to the map view, where the map is not already beside it.
+            visibleUntil: 900,
+            children: <UINode>[_mapChip(onOpenMap)],
+          ),
+        ],
+      ),
+      Box(
+        // Below this the row is the chips' and the switch leaves rather than squeeze
+        // them: a segmented button has a width, and a width it cannot have is a control
+        // that looks broken.
+        visibleFrom: 560,
+        children: <UINode>[
+          MaterialSegmentedButton(
+            width: 216,
+            segments: <MaterialSegment>[
+              MaterialSegment(
+                label: const TextNode('List'),
+                icon: glyphList(
+                  const BoxColor.role(MaterialColorRole.onSurfaceVariant),
+                ),
+                semanticsLabel: 'As a list',
+              ),
+              MaterialSegment(
+                label: const TextNode('Grid'),
+                icon: glyphGrid(
+                  const BoxColor.role(MaterialColorRole.onSurfaceVariant),
+                ),
+                semanticsLabel: 'As a grid',
+              ),
+            ],
+            selected: view == ListingsView.list ? 0 : 1,
+            onSelect: (int index) => onView?.call(
+              index == 0 ? ListingsView.list : ListingsView.grid,
+            ),
+          ),
+        ],
       ),
     ],
   );
@@ -391,17 +476,47 @@ UINode _mapButton(TapCallback? onOpenMap) {
   );
 }
 
-/// One pill of the filter row.
+/// The line above the listings: how many there are.
+UINode _resultLine() {
+  return TextNode(
+    '${exampleApartments.length} apartments in Brussels',
+    style: ExampleType.muted,
+  );
+}
+
+/// One filter: chosen, it shows a check in front and a cross that clears it.
 ///
-/// A `MaterialChip` and not a box with an ink well around it: the chip owns the room
-/// inside the pill, so the tint of a hover reaches exactly its edge. Composed by hand
-/// with a padding on the well *and* one on the box inside it, the tint extended past
-/// the pill by 14 pixels on every side.
-UINode _chip(String label, {bool selected = false, TapCallback? onTap}) {
+/// That is Material's filter chip: the check says what is on, the cross says it can be
+/// turned off, and both are drawn glyphs rather than a font this example does not ship.
+UINode _filterChip(
+  String label, {
+  required String? filter,
+  required void Function(String? filter)? onFilter,
+}) {
+  final bool selected = filter == label;
+  const BoxColor onSelected = BoxColor.role(
+    MaterialColorRole.onSecondaryContainer,
+  );
+
   return MaterialChip(
     label: TextNode(label),
     selected: selected,
-    onTap: onTap ?? () {},
+    leading: selected ? glyphCheck(onSelected, size: 12) : null,
+    trailing: selected ? glyphClose(onSelected) : null,
+    onRemove: selected ? () => onFilter?.call(null) : null,
+    onTap: () => onFilter?.call(selected ? null : label),
+  );
+}
+
+/// The toggle to the map, where the map has no column of its own.
+///
+/// A chip with a pin in front: it opens a view rather than choosing a filter, which is
+/// why it carries no `selected` and no cross.
+UINode _mapChip(TapCallback? onOpenMap) {
+  return MaterialChip(
+    label: const TextNode('Map'),
+    leading: glyphPin(const BoxColor.role(MaterialColorRole.onSurfaceVariant)),
+    onTap: onOpenMap ?? () {},
   );
 }
 

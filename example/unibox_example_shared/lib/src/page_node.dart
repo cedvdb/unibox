@@ -60,6 +60,10 @@ UINode exampleView({required ExampleState state, required ExampleStore store}) {
         mapOpen: state.mapOpen,
         onOpenMap: store.openMap,
         onCloseMap: store.closeMap,
+        filter: state.filter,
+        view: state.view,
+        onFilter: store.chooseFilter,
+        onView: store.showListings,
       ),
     },
     dialog: state.signupOpen

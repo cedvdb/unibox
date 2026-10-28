@@ -8,6 +8,9 @@ const Map<String, String> _cellStyles = <String, String>{
   'display': 'flex',
   'align-items': 'start',
   'justify-content': 'start',
+  // A cell is a placement and not a control: it takes no press, so the control it
+  // holds — or the cell underneath it — does.
+  'pointer-events': 'none',
   'grid-area': '1 / 1',
 };
 

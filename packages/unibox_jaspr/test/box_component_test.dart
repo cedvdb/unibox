@@ -19,7 +19,37 @@ void main() {
         'flex-direction': 'column',
         'justify-content': 'start',
         'align-items': 'start',
+        // Nothing to press, so nothing takes the press: see the rule below.
+        'pointer-events': 'none',
       });
+    });
+
+    testComponents('lets a press through a painted leaf, and takes it when it '
+        'listens', (tester) async {
+      // The browser aims a press at the topmost element; Flutter hit-tests a picture
+      // and finds nothing to press. A decoration drawn over a control — the ink a
+      // well spreads, a panel a stack paints behind a pin — must therefore not be the
+      // target, or the control beneath it is dead on the web alone.
+      pumpNode(
+        tester,
+        core.Box(
+          children: <core.UINode>[
+            const core.Box(backgroundColor: core.BoxColor(0xFF000000)),
+            core.Box(
+              backgroundColor: const core.BoxColor(0xFF000000),
+              onTap: () {},
+              children: const <core.UINode>[core.Box()],
+            ),
+          ],
+        ),
+      );
+
+      final Finder divs = find.tag('div');
+      final Map<String, String> leaf = stylesOf(divs.at(1));
+      final Map<String, String> listening = stylesOf(divs.at(2));
+
+      expect(leaf['pointer-events'], 'none');
+      expect(listening['pointer-events'], 'auto');
     });
 
     testComponents('omits styles for unset tokens', (tester) async {

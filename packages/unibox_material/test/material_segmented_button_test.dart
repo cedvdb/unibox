@@ -35,20 +35,27 @@ void main() {
       expect((button.children[1] as Box).width, 1);
     });
 
-    test('gives every segment an equal share', () {
-      final MaterialSegmentedButton button = MaterialSegmentedButton(
-        segments: _segments,
-        selected: 0,
-        onSelect: _select,
-      );
+    test('shares a width equally, and lets a segment hug without one', () {
+      MaterialSegmentedButton button({double? width}) =>
+          MaterialSegmentedButton(
+            segments: _segments,
+            selected: 0,
+            onSelect: _select,
+            width: width,
+          );
 
       for (final UINode child in <UINode>[
-        button.children.first,
-        button.children[2],
-        button.children.last,
+        button(width: 300).children.first,
+        button(width: 300).children[2],
+        button(width: 300).children.last,
       ]) {
         expect((child as Box).flex, 1);
       }
+
+      // Without a width there is nothing to divide, and a `flex` in an unbounded row
+      // is a layout error in Flutter: every segment hugs its label instead.
+      expect((button().children.first as Box).flex, isNull);
+      expect(button().width, isNull);
     });
 
     test('fills the chosen segment with the secondary container', () {

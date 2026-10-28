@@ -1,5 +1,6 @@
 import 'package:unibox_core/unibox_core.dart';
 
+import 'apartments.dart';
 import 'page.dart';
 import 'signup_card.dart';
 
@@ -15,13 +16,24 @@ final class ExampleState {
     this.signupOpen = false,
     this.mapOpen = false,
     this.page = ExamplePage.apartments,
+    this.filter = defaultFilter,
+    this.view = ListingsView.grid,
   });
+
+  /// The filter the listings start with, and the one a cleared row goes back to.
+  static const String defaultFilter = defaultListingFilter;
 
   /// The values of the sign-up form.
   final SignupFormState form;
 
   /// Whether the sign-up dialog is open.
   final bool signupOpen;
+
+  /// The filter the listing chips have chosen, or `null` for no filter.
+  final String? filter;
+
+  /// How the listings are drawn: one column, or a grid.
+  final ListingsView view;
 
   /// Whether the map is open as a view of its own.
   ///
@@ -47,14 +59,22 @@ final class ExampleState {
     bool? signupOpen,
     bool? mapOpen,
     ExamplePage? page,
+    Object? filter = _unchanged,
+    ListingsView? view,
   }) {
     return ExampleState(
       form: form ?? this.form,
       signupOpen: signupOpen ?? this.signupOpen,
       mapOpen: mapOpen ?? this.mapOpen,
       page: page ?? this.page,
+      // A filter is cleared by passing `null`, which is a value and not "unchanged".
+      filter: identical(filter, _unchanged) ? this.filter : filter as String?,
+      view: view ?? this.view,
     );
   }
+
+  /// The marker that tells [copyWith] "leave this token alone".
+  static const Object _unchanged = Object();
 
   @override
   bool operator ==(Object other) {
@@ -114,6 +134,12 @@ final class ExampleStore extends StateStore<ExampleState> {
 
   /// Closes the sign-up dialog.
   void closeSignup() => state = state.copyWith(signupOpen: false);
+
+  /// Chooses the filter of the listing chips, or clears it with `null`.
+  void chooseFilter(String? filter) => state = state.copyWith(filter: filter);
+
+  /// Draws the listings in the layout [view] names.
+  void showListings(ListingsView view) => state = state.copyWith(view: view);
 
   /// Opens the map as a view of its own, which is what a narrow surface offers.
   void openMap() => state = state.copyWith(mapOpen: true);

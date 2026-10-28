@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- A box that paints and holds nothing takes no pointer, and a stack cell is a placement
+  rather than a control: before, a decoration drawn over a control swallowed the press
+  meant for it, so a button under a paint layer — or anywhere under a floating one — was
+  dead on the web alone. A box with a listener keeps the pointer, and so does one with
+  anything inside it, because its text is selectable and its links are links.
+
 ## 0.1.0
 
 - `PositionedNode.alignment` renders as `inset: 0` with a flex alignment, the twin of

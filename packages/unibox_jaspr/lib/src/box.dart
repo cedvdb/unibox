@@ -51,9 +51,18 @@ class JasprBox extends StatelessComponent {
     final core.BoxElement element =
         box.semantics?.element ?? core.BoxElement.div;
     final core.BoxStyle style = box.computedStyle;
+    // A painted leaf takes no press: it has nothing to press, and letting it be the
+    // target would put a decoration in front of the control it was drawn for. See
+    // [toBoxStyles].
+    final bool capturesPointer =
+        box.children.isNotEmpty ||
+        events != null ||
+        box.stateStyle(core.BoxState.hover) != null ||
+        box.stateStyle(core.BoxState.pressed) != null;
     Styles restingStyles = toBoxStyles(
       style,
       interactive: box.isInteractive,
+      capturesPointer: capturesPointer,
       element: element,
     );
     // Mobile first: a box that only appears above a threshold starts hidden and the

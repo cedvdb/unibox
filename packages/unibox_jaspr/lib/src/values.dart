@@ -358,6 +358,9 @@ Styles toStackChildStyles() {
     display: Display.flex,
     alignItems: AlignItems.start,
     justifyContent: JustifyContent.start,
+    // A placement, not a control: what the cell holds takes the press, and a cell
+    // that holds nothing painted lets it through to the cell underneath.
+    pointerEvents: PointerEvents.none,
     raw: const <String, String>{'grid-area': '1 / 1'},
   );
 }
@@ -407,6 +410,12 @@ Styles toAlignedStyles(core.BoxAlignment alignment) {
     flexDirection: FlexDirection.row,
     justifyContent: toCssJustifyContent(horizontal),
     alignItems: toCssAlignItems(vertical),
+    // The box fills the stack to place its child in a corner, and the whole of that
+    // area would otherwise be the topmost thing a press meets: a button floating over
+    // a page would make the page under it unclickable. `Positioned.fill` and `Align`
+    // hit-test the child alone, so the layer takes no pointer and the child restores
+    // it when it listens.
+    pointerEvents: PointerEvents.none,
   );
 }
 
@@ -418,6 +427,9 @@ Styles toPositionedStyles(core.PositionedNode node) {
       bottom: toCssUnit(node.bottom),
       left: toCssUnit(node.left),
     ),
+    // A wrapper is a placement, never a control: it takes no pointer, and the child
+    // inside it takes one when it has something to press. See [toAlignedStyles].
+    pointerEvents: PointerEvents.none,
   );
 }
 
@@ -593,7 +605,8 @@ String _cssSpacingShorthand(core.BoxSpacing spacing) {
 /// every box is a flex container, and a box without a direction is a column,
 /// which is the `Column` the same node renders to in Flutter.
 ///
-/// [interactive] adds a pointer cursor for boxes that react to input.
+/// [interactive] adds a pointer cursor for boxes that react to input, and
+/// [capturesPointer] says whether the element may be the target of a press at all.
 ///
 /// [declaredOnly] turns the filled in flex layout off, so only the tokens the
 /// style actually sets are emitted. That is what a state rule needs: a `:hover`
@@ -605,6 +618,7 @@ String _cssSpacingShorthand(core.BoxSpacing spacing) {
 Styles toBoxStyles(
   core.BoxStyle style, {
   bool interactive = false,
+  bool capturesPointer = true,
   bool declaredOnly = false,
   core.BoxElement element = core.BoxElement.div,
 }) {
@@ -706,6 +720,13 @@ Styles toBoxStyles(
         'box-shadow': _shadowText(shadow, roleShadow),
     },
     cursor: interactive ? Cursor.pointer : null,
+    // The browser aims a press at the topmost element, and Flutter hit-tests a
+    // picture and finds nothing to press. So a box that paints and holds nothing — the
+    // ink a well spreads over its content, a panel a stack draws behind a pin — takes no
+    // pointer, and the press reaches the control it was meant for. A box with anything
+    // inside it keeps the pointer, because its text is selectable and its links are
+    // links.
+    pointerEvents: capturesPointer ? PointerEvents.auto : PointerEvents.none,
   );
 
   final Styles? typography = toTypographyStyles(

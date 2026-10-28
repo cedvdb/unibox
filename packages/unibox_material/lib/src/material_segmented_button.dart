@@ -59,6 +59,9 @@ final class MaterialSegmentedButton extends Box {
     required void Function(int index) onSelect,
     bool enabled = true,
     bool showSelectedIcon = true,
+    // A width shares the segments equally; without one each hugs its label, because a
+    // `flex` in an unbounded row is a layout error in Flutter.
+    super.width,
     super.margin,
     BoxTransition? transition,
     super.key,
@@ -81,6 +84,7 @@ final class MaterialSegmentedButton extends Box {
                selected: i == selected,
                enabled: enabled,
                showSelectedIcon: showSelectedIcon,
+               equal: width != null,
                transition: transition,
                onTap: () => onSelect(i),
              ),
@@ -111,6 +115,7 @@ final class MaterialSegmentedButton extends Box {
     required bool selected,
     required bool enabled,
     required bool showSelectedIcon,
+    required bool equal,
     required BoxTransition? transition,
     required TapCallback onTap,
   }) {
@@ -123,17 +128,21 @@ final class MaterialSegmentedButton extends Box {
         : segment.icon;
 
     return Box(
-      // Equal shares: Material gives every segment the same width, so the control
-      // reads as a scale rather than as three buttons of different weight.
-      flex: 1,
+      // Equal shares when the button was given a width: Material gives every segment
+      // the same share, so the control reads as a scale rather than as buttons of
+      // different weight. Without a width there is nothing to divide — and a `flex` in
+      // an unbounded row is a layout error in Flutter — so a segment hugs its label.
+      flex: equal ? 1 : null,
       backgroundColor: selected ? _selectedFill : null,
       children: <UINode>[
         MaterialInkWell(
           onTap: onTap,
           enabled: enabled,
           ink: foreground,
+          // A height, not an infinity: the segment is already 40 pixels tall, and an
+          // infinite height inside a column is a constraint Flutter refuses.
           width: double.infinity,
-          height: double.infinity,
+          height: controlHeight,
           mainAlign: MainAlign.center,
           transition: transition ?? MaterialInkWell.defaultTransition,
           semantics: BoxSemantics(

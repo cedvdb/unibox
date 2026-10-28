@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- `MaterialSegmentedButton` takes a `width`, and the segments share it equally. Without
+  one each segment hugs its label: a `flex` in an unbounded row is a layout error in
+  Flutter, so equal shares need a bound to divide.
+
 ## 0.1.0
 
 - `MaterialSegmentedButton` draws the check of the chosen segment, in place of its
