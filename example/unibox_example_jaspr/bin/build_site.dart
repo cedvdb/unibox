@@ -13,7 +13,7 @@ import 'package:unibox_example_shared/unibox_example_shared.dart';
 /// ```
 ///
 /// The site is four kinds of document. The **front page** says what the library is
-/// and offers the two ways in; the **gallery** is a node tree of the Material
+/// and sends a reader to the comparison; the **gallery** is a node tree of the Material
 /// package; the **showcase** is a node tree with two frames in it; and the example
 /// is the app itself: `/web/` is the listings and `/web/signup/` is the same page
 /// with the sign-up dialog open, because being open is state and a document cannot

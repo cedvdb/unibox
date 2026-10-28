@@ -74,11 +74,11 @@ python3 tool/seo_report.py build/site
 
 | Document | Words | `h1` | `h2` | Links | Fields | Bytes |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Jaspr `/web/pricing/` | 331 | 1 | 2 | 5 | 0 | 20 245 |
-| Jaspr `/web/listings/` | 132 | 1 | 0 | 3 | 0 | 42 305 |
-| Jaspr `/web/signup/` | 149 | 1 | 1 | 5 | 2 | 51 465 |
-| Jaspr `/` | 182 | 1 | 4 | 6 | 0 | 17 533 |
-| Jaspr `/material/` | 600 | 1 | 8 | 3 | 2 | 86 210 |
+| Jaspr `/web/pricing/` | 331 | 1 | 2 | 5 | 0 | 21 084 |
+| Jaspr `/web/listings/` | 134 | 1 | 0 | 3 | 0 | 60 951 |
+| Jaspr `/web/signup/` | 151 | 1 | 1 | 5 | 2 | 70 685 |
+| Jaspr `/` | 168 | 1 | 4 | 4 | 0 | 15 440 |
+| Jaspr `/material/` | 601 | 1 | 8 | 3 | 2 | 91 151 |
 | **Flutter `/flutter/listings/`** | **4** | **0** | **0** | **0** | **0** | **772** |
 
 `/web/pricing/` is the shape a marketing page takes: a hero, three plans and the

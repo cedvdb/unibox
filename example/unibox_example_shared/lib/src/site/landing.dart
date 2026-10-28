@@ -1,11 +1,14 @@
 import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_material/unibox_material.dart';
 
-/// The front page: one promise, three lines about how it is kept, and the numbers.
+import 'site_page.dart';
+
+/// The front page: one claim, three lines about how it is kept, and the numbers.
 ///
-/// It is a sales page, so it does one thing: say what the library is for, show the
-/// evidence, and offer the two places to look. The catalogue and the comparison live
-/// in the bar, where a reader who wants them will go looking.
+/// It says what the library is for, shows the evidence, and sends a reader to the one
+/// place where the claim can be checked — the showcase, where both renderers draw the
+/// same tree side by side. The catalogue lives in the bar, where a reader who wants it
+/// will go looking.
 UINode buildLanding() {
   const MaterialPalette palette = MaterialPalette.light;
 
@@ -29,7 +32,7 @@ UINode buildLanding() {
   );
 }
 
-/// The claim, the two things to click, and the figure.
+/// The claim, the one place to check it, and the figure.
 UINode _hero(MaterialPalette palette) {
   return GridNode(
     minItemWidth: 380,
@@ -52,26 +55,12 @@ UINode _hero(MaterialPalette palette) {
               color: palette.onSurfaceVariant,
             ),
           ),
-          Box(
-            direction: Axis.horizontal,
-            crossAlign: CrossAlign.center,
-            gap: 12,
-            children: <UINode>[
-              LinkNode(
-                'web/pricing/',
-                child: MaterialButton.filled(
-                  label: const TextNode('See a page it serves'),
-                  onTap: () {},
-                ),
-              ),
-              LinkNode(
-                'flutter/listings/',
-                child: MaterialButton.text(
-                  label: const TextNode('The same screen in Flutter'),
-                  onTap: () {},
-                ),
-              ),
-            ],
+          LinkNode(
+            SitePage.showcase.hrefFrom(SitePage.home),
+            child: MaterialButton.filled(
+              label: const TextNode('Compare both renderings'),
+              onTap: () {},
+            ),
           ),
         ],
       ),
@@ -88,7 +77,7 @@ UINode _hero(MaterialPalette palette) {
             height: 260,
           ),
           TextNode(
-            'This page is drawn with the library it is selling.',
+            'This page is drawn with the library it documents.',
             style: MaterialTypography.labelSmall.copyWith(
               color: palette.onSurfaceVariant,
             ),
@@ -161,23 +150,10 @@ UINode _evidence(MaterialPalette palette) {
         headingLevel: 2,
       ),
       TextNode(
-        'A crawler reads 132 words, a single h1 and three links on the listings page '
+        'A crawler reads 134 words, a single h1 and three links on the listings page '
         'of this site. The Flutter build of the same screen is 4 words and a canvas.',
         style: MaterialTypography.bodyLarge.copyWith(
           color: palette.onSurfaceVariant,
-        ),
-      ),
-      LinkNode(
-        'web/listings/',
-        child: Box(
-          children: <UINode>[
-            TextNode(
-              'Open the page a crawler reads',
-              style: MaterialTypography.labelLarge.copyWith(
-                color: palette.primary,
-              ),
-            ),
-          ],
         ),
       ),
     ],

@@ -16,19 +16,16 @@ import 'package:unibox_material/unibox_material.dart';
 void main() {
   setUpAll(Jaspr.initializeApp);
 
-  test('the front page sells one thing and points at three places', () {
+  test('the front page states one claim and points at the comparison', () {
     final UINode landing = buildLanding();
 
     expect(validateTree(landing, theme: MaterialPalette.lightTheme), isEmpty);
     expect(_texts(landing), contains('Describe a screen once.'));
+    expect(_texts(landing), contains('Compare both renderings'));
     // The bar carries the catalogue and the comparison. The page itself offers the
-    // three places its claim points at — a page it serves, the same screen in
-    // Flutter, and the page a crawler reads — and otherwise asks for nothing.
-    expect(_links(landing), <String>[
-      'web/pricing/',
-      'flutter/listings/',
-      'web/listings/',
-    ]);
+    // one place where its claim can be checked — the showcase — and otherwise asks
+    // for nothing.
+    expect(_links(landing), <String>['showcase/']);
   });
 
   test('a page names the build it was rendered from', () async {

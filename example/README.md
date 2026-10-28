@@ -165,7 +165,7 @@ tool/site.sh --base=/unibox/ --url=https://cedvdb.github.io/unibox/
 
 | Path | What it is |
 | --- | --- |
-| `/` | What the library is, and the two ways in |
+| `/` | What the library is, and the comparison |
 | `/material/` | The Material library: the type scale, the colour roles and the components |
 | `/showcase/` | The example drawn by both renderers, side by side in two frames |
 | `/web/listings/` | The example's listings, rendered by Jaspr |
