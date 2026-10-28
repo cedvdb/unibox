@@ -1,0 +1,23 @@
+name: unibox_css
+description: Turns Unibox design tokens into the CSS declarations, the class hash and the rules that two web renderers share.
+publish_to: none
+version: 0.1.0
+repository: https://github.com/cedvdb/unibox
+homepage: https://github.com/cedvdb/unibox
+issue_tracker: https://github.com/cedvdb/unibox/issues
+topics:
+  - layout
+  - ui
+  - web
+  - css
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  unibox_core: ^0.1.0
+
+dev_dependencies:
+  lints: ^6.1.0
+  test: ^1.25.8

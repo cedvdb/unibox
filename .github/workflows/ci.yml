@@ -53,6 +53,9 @@ jobs:
       - name: unibox_material
         working-directory: packages/unibox_material
         run: dart test
+      - name: unibox_css
+        working-directory: packages/unibox_css
+        run: dart test
       - name: unibox_jaspr
         working-directory: packages/unibox_jaspr
         run: dart test
@@ -98,6 +101,7 @@ jobs:
           unibox_core
           unibox_testing
           unibox_material
+          unibox_css
           unibox_flutter
           unibox_jaspr
           PACKAGES

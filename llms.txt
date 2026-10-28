@@ -38,6 +38,9 @@ assumes you have read the README's node sections.
   defaults, validation. Pure Dart; never imports `dart:ui`, Flutter or Jaspr.
 - [unibox_flutter](packages/unibox_flutter/README.md): the Flutter renderer
   (`renderFlutter`, `node.toWidget()`), node by node, with what differs from the web.
+- [unibox_css](packages/unibox_css/README.md): the CSS two web renderers share,
+  a token as a declaration, and the canonical text a class name is hashed from.
+  Pure Dart, no dependencies.
 - [unibox_jaspr](packages/unibox_jaspr/README.md): the Jaspr renderer
   (`renderJaspr`, `node.toComponent()`), the CSS it emits, and the document work it
   leaves to the host.
@@ -54,7 +57,7 @@ assumes you have read the README's node sections.
 
 ## Working on the repository
 
-- [tool/verify.sh](tool/verify.sh): format check, analysis and the eight test
+- [tool/verify.sh](tool/verify.sh): format check, analysis and the test
   suites, the way CI runs them. `--fast` skips the suites, `--docs` adds `dart doc`.
 - [.github/workflows/ci.yml](.github/workflows/ci.yml): what continuous integration
   actually runs, including the docs job that fails on a `dart doc` warning.
