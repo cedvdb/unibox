@@ -19,9 +19,10 @@ bool signupOpenFromUrl() => Uri.base.pathSegments.contains('signup');
 /// The Flutter host of the shared page.
 ///
 /// The page is one node — [ExamplePageNode] — so this file is only what a node
-/// cannot know: the surface the tree is drawn on, and what following a link
-/// means. [FlutterStateful] creates the page's store, subscribes to it and
-/// disposes it, so the host holds no state of its own.
+/// cannot know: the surface the tree is drawn on, the theme its colour roles name,
+/// and what following a link means. [FlutterStateful] creates the page's store,
+/// subscribes to it, disposes it and installs the theme, so the host holds no state
+/// and no scope of its own.
 class ExampleApp extends StatelessWidget {
   /// Creates the example application.
   ///
@@ -43,11 +44,11 @@ class ExampleApp extends StatelessWidget {
       home: Scaffold(
         body: FlutterLinkScope(
           open: (String url) => debugPrint('Following $url'),
-          child: UniboxThemeScope(
+          // The theme answers the colour roles the page names; the component
+          // installs it, so the host states it once and cannot forget a scope.
+          child: FlutterStateful(
+            node: ExamplePageNode(signupOpen: signupOpen),
             theme: ExamplePalette.theme,
-            child: FlutterStateful(
-              node: ExamplePageNode(signupOpen: signupOpen),
-            ),
           ),
         ),
       ),

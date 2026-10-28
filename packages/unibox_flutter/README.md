@@ -207,8 +207,10 @@ anything up at paint time:
 | a literal `BoxColor` | itself, theme or no theme |
 | a role and no theme | the tree is rejected by validation, naming the role |
 
-The theme travels down in `UniboxThemeScope`, which a host installing its own root —
-a `FlutterStateful`, say — can wrap around its tree instead. An overlay is the one
+The theme travels down in `UniboxThemeScope`. A host that roots its application in a
+`FlutterStateful` passes it to that component (`FlutterStateful(node: …, theme: …)`)
+instead of wrapping a scope itself; a host that renders part of a tree with another
+theme still wraps `UniboxThemeScope` around it. An overlay is the one
 place it has to be handed over by hand: its content lives on the root overlay, which
 is outside the tree the page was rendered in, so `FlutterOverlay` reads the scope and
 passes it on.

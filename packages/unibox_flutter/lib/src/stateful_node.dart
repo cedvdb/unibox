@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
 
 import 'render.dart';
+import 'theme_scope.dart';
 
 /// Renders a [core.StatefulNode]: one store and the tree of its state.
 ///
@@ -11,14 +12,22 @@ import 'render.dart';
 /// again.
 ///
 /// The view is rendered in place, so it inherits the typography and the layout
-/// of the boxes around it. A view draws one tree; an overlay is not part of the
-/// model yet.
+/// of the boxes around it. A view draws one tree, and an overlay it returns is
+/// presented on the root overlay.
 class FlutterStateful extends StatefulWidget {
   /// Creates a renderer for [node].
-  const FlutterStateful({required this.node, super.key});
+  ///
+  /// [theme] answers the colour roles the tree names, the way it does for
+  /// `renderFlutter`: a host that roots its application in a stateful node writes it
+  /// once here instead of remembering a scope around it — which is also the scope an
+  /// overlay reads when it hands the theme on.
+  const FlutterStateful({required this.node, this.theme, super.key});
 
   /// The node being rendered.
   final core.StatefulNode<Object, core.Store<Object>> node;
+
+  /// The values the roles of the tree stand for, or `null` when the tree names none.
+  final core.UniboxTheme? theme;
 
   @override
   State<FlutterStateful> createState() => FlutterStatefulState();
@@ -51,6 +60,9 @@ class FlutterStatefulState extends State<FlutterStateful> {
 
   @override
   Widget build(BuildContext context) {
-    return renderNode(widget.node.viewFor(_store.state, _store));
+    final Widget tree = renderNode(widget.node.viewFor(_store.state, _store));
+    final core.UniboxTheme? theme = widget.theme;
+
+    return theme == null ? tree : UniboxThemeScope(theme: theme, child: tree);
   }
 }

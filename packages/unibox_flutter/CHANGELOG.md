@@ -32,6 +32,8 @@ The first release of the Flutter renderer: one node tree becomes a widget tree.
 - Typography is inherited through `DefaultTextStyle`, and the renderer installs
   `BoxTextStyle.defaults` around the tree so an undeclared text is typeset the same
   way the web renderer typesets it.
+- `FlutterStateful` takes the same `theme:` as `renderFlutter`, so a host whose root
+  is a stateful node states the theme once instead of remembering a scope around it.
 - `renderFlutter` takes a `UniboxTheme` and resolves every colour role while it
   builds the widget tree, through a `UniboxThemeScope` that a host installing its own
   root can use directly. An overlay hands the theme to its content explicitly, since

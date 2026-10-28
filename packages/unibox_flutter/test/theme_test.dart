@@ -22,6 +22,40 @@ BoxDecoration decorationOf(WidgetTester tester) =>
         as BoxDecoration;
 
 void main() {
+  group('a stateful root', () {
+    testWidgets('answers the roles of the theme it is given', (tester) async {
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: FlutterStateful(node: _RolePage(), theme: theme),
+        ),
+      );
+
+      final DecoratedBox painted = tester.widget<DecoratedBox>(
+        find.byType(DecoratedBox),
+      );
+
+      expect(
+        (painted.decoration as BoxDecoration).color,
+        const Color(0xFF6750A4),
+      );
+    });
+
+    testWidgets('reports a role it cannot answer', (tester) async {
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: FlutterStateful(node: _RolePage()),
+        ),
+      );
+
+      final Object? error = tester.takeException();
+
+      expect(error, isA<StateError>());
+      expect('$error', contains('AppColor.primary'));
+    });
+  });
+
   group('a colour role', () {
     testWidgets('is resolved to the value the theme gives it', (tester) async {
       await pumpNode(
@@ -136,4 +170,22 @@ void main() {
 
     expect(field.decoration?.hintStyle?.color, const Color(0xFF6750A4));
   });
+}
+
+/// The store a [_RolePage] draws from: it holds nothing, the page is one look.
+final class _Store extends core.StateStore<Object> {
+  _Store() : super(const Object());
+}
+
+/// A page that names one colour role, so a theme is required to draw it.
+final class _RolePage extends core.StatefulNode<Object, core.Store<Object>> {
+  _RolePage()
+    : super(
+        create: () => _Store(),
+        view: (Object state, core.Store<Object> store) => const core.Box(
+          width: 40,
+          height: 40,
+          backgroundColor: core.BoxColor.role(AppColor.primary),
+        ),
+      );
 }
