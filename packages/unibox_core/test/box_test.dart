@@ -244,6 +244,10 @@ void main() {
       );
     });
 
+    test('a scroll listener does not make a box interactive', () {
+      expect(const Box(onScroll: _scrolled).isInteractive, isFalse);
+    });
+
     test('drops interactions while disabled', () {
       expect(const Box(onTap: _noop, enabled: false).isInteractive, isFalse);
       expect(
@@ -315,3 +319,5 @@ void main() {
 
 /// A callback that does nothing.
 void _noop() {}
+
+void _scrolled(double offset) {}

@@ -64,6 +64,20 @@ class FlutterBoxState extends State<FlutterBox> {
         scrollDirection: toAxis(style.resolvedDirection),
         child: content,
       );
+      final core.ScrollCallback? onScroll = box.onScroll;
+      if (onScroll != null) {
+        content = NotificationListener<ScrollUpdateNotification>(
+          // A scrollable nested in the content notifies this listener too, at a
+          // greater depth; only this box's own viewport is reported.
+          onNotification: (ScrollUpdateNotification notification) {
+            if (notification.depth == 0) {
+              onScroll(notification.metrics.pixels);
+            }
+            return false;
+          },
+          child: content,
+        );
+      }
     }
 
     final core.BoxSpacing? padding = style.padding;

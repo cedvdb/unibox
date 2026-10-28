@@ -352,6 +352,27 @@ void main() {
       );
     });
 
+    testWidgets('reports how far a scrolling box has scrolled', (tester) async {
+      final List<double> offsets = <double>[];
+
+      await pumpNode(
+        tester,
+        core.Box(
+          width: 100,
+          height: 100,
+          overflow: core.Overflow.scroll,
+          onScroll: offsets.add,
+          children: const <core.UINode>[core.Box(height: 400)],
+        ),
+      );
+
+      await tester.drag(find.byKey(nodeKey), const Offset(0, -60));
+      await tester.pump();
+
+      expect(offsets, isNotEmpty);
+      expect(offsets.last, 60);
+    });
+
     testWidgets('fires onLongPress when long pressed', (tester) async {
       var presses = 0;
 

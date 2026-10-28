@@ -394,13 +394,28 @@ Map<String, EventCallback> _buildEvents(core.Box box) {
   final core.TapDownCallback? onTapDown = box.onTapDown;
   final core.HoverCallback? onHover = box.onHover;
   final core.LongPressCallback? onLongPress = box.onLongPress;
+  final core.ScrollCallback? onScroll =
+      box.computedStyle.overflow == core.Overflow.scroll ? box.onScroll : null;
   final Map<String, EventCallback> events = <String, EventCallback>{};
 
   if (onTap == null &&
       onTapDown == null &&
       onHover == null &&
-      onLongPress == null) {
+      onLongPress == null &&
+      onScroll == null) {
     return events;
+  }
+
+  // `scroll` does not bubble, so a nested scrollable never reaches this listener.
+  if (onScroll != null) {
+    final bool horizontal =
+        box.computedStyle.resolvedDirection == core.Axis.horizontal;
+    events['scroll'] = (web.Event event) {
+      final web.Element element = event.target! as web.Element;
+      onScroll(
+        (horizontal ? element.scrollLeft : element.scrollTop).toDouble(),
+      );
+    };
   }
 
   // The press is reported in the frame Flutter calls `localPosition`; see

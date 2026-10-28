@@ -77,6 +77,7 @@ class Box extends UINode {
     this.onTapDown,
     this.onLongPress,
     this.onHover,
+    this.onScroll,
   });
 
   /// The child nodes laid out by this box.
@@ -270,6 +271,14 @@ class Box extends UINode {
 
   /// Called when the pointer enters or leaves the box.
   final HoverCallback? onHover;
+
+  /// Called as the box scrolls, with how far its content has moved.
+  ///
+  /// Only a box that scrolls ([overflow] of [Overflow.scroll]) reports it, and only
+  /// for its own scrolling: a scrollable nested inside it reports to its own box.
+  /// It is how a screen makes something follow the scroll, such as a hero that
+  /// shrinks as the list under it moves.
+  final ScrollCallback? onScroll;
 
   /// The flat parameters of this box as a style overlay.
   BoxStyle get _flatStyle => BoxStyle(

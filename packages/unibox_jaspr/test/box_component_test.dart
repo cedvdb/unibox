@@ -473,6 +473,22 @@ void main() {
       );
     });
 
+    testComponents('listens to the scroll of a scrolling box only', (
+      tester,
+    ) async {
+      pumpNode(
+        tester,
+        core.Box(overflow: core.Overflow.scroll, onScroll: (double _) {}),
+      );
+      expect(
+        elementsOf(find.tag('div')).first.events?.keys,
+        contains('scroll'),
+      );
+
+      pumpNode(tester, core.Box(onScroll: (double _) {}));
+      expect(elementsOf(find.tag('div')).first.events, isNull);
+    });
+
     testComponents('adds no listener to a box that does not ask', (
       tester,
     ) async {
