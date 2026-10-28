@@ -259,3 +259,43 @@ CssDeclarations textInputDeclarations({core.BoxSpacing? padding}) {
 CssDeclarations linkDeclarations() => CssDeclarations()
   ..add('color', 'inherit')
   ..add('text-decoration', 'none');
+
+/// The declarations of the layer an overlay draws its content in.
+///
+/// `position: fixed` takes it out of the flow wherever it sits in the document, which is
+/// what the model requires: an overlay is never drawn in the flow of its parent, and the
+/// element says so rather than the tree.
+///
+/// The layer is a flex container that centres what it holds, so the alignment is a pair of
+/// keywords rather than a measurement of the window.
+CssDeclarations overlayDeclarations(core.OverlayAlignment alignment) {
+  final String vertical = switch (alignment) {
+    core.OverlayAlignment.center => 'center',
+    core.OverlayAlignment.top => 'start',
+    core.OverlayAlignment.bottom => 'end',
+  };
+
+  return CssDeclarations()
+    ..add('position', 'fixed')
+    ..add('inset', '0')
+    ..add('display', 'flex')
+    ..add('align-items', vertical)
+    ..add('justify-content', 'center');
+}
+
+/// The declarations of the scrim behind an overlay.
+///
+/// Absolute inside the fixed layer, so it covers the page and not the content: a press
+/// that reaches it never reaches a handler behind it.
+CssDeclarations overlayBarrierDeclarations(core.BoxColor color) =>
+    CssDeclarations()
+      ..add('position', 'absolute')
+      ..add('inset', '0')
+      ..add('background-color', cssColorOrRole(color));
+
+/// The declarations of an overlay's content.
+///
+/// Positioned, so it paints above the scrim: a static sibling would sit under it and be
+/// dimmed with the page behind it, which is not what a modal looks like.
+CssDeclarations overlayContentDeclarations() =>
+    CssDeclarations()..add('position', 'relative');

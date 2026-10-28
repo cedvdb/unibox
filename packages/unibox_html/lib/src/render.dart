@@ -48,6 +48,11 @@ ElementPlan planNode(core.UINode node, Stylesheet sheet) => switch (node) {
   final core.GridNode grid => _planGrid(grid, sheet),
   final core.StackNode stack => _planStack(stack, sheet),
   final core.TextInputNode field => _planTextInput(field, sheet),
+  final core.OverlayNode overlay => _planOverlay(overlay, sheet),
+  final core.StatefulNode<Object, core.Store<Object>> stateful => _planStateful(
+    stateful,
+    sheet,
+  ),
   _ => throw UnsupportedError(
     'No HTML renderer for ${node.runtimeType} yet: this target draws $supportedNodes.',
   ),
@@ -411,4 +416,59 @@ Map<String, String>? autofillAttributeOf(core.TextInputNode node) {
     core.InputType.phone => <String, String>{'autocomplete': 'tel'},
     core.InputType.url => <String, String>{'autocomplete': 'url'},
   };
+}
+
+/// An overlay, drawn open.
+///
+/// A document is a snapshot of a state, and the state of an overlay is a node inside the
+/// tree: it is drawn where the tree put it and taken out of the flow by
+/// `position: fixed`, never by a second slot on a parent. Its layer carries the dialog
+/// semantics, its scrim covers the page, and its content paints above the scrim.
+ElementPlan _planOverlay(core.OverlayNode node, Stylesheet sheet) {
+  final String layer = sheet.classFor(
+    'overlay',
+    overlayDeclarations(node.alignment),
+  );
+  final String barrier = sheet.classFor(
+    'overlay-barrier',
+    overlayBarrierDeclarations(node.barrierColor),
+  );
+  final String content = sheet.classFor(
+    'overlay-content',
+    overlayContentDeclarations(),
+  );
+
+  return ElementPlan(
+    tag: 'div',
+    className: layer,
+    attributes: <String, String>{
+      'role': 'dialog',
+      'aria-modal': 'true',
+      ...nodeAttributes(node),
+    },
+    children: <ElementPlan>[
+      ElementPlan(tag: 'div', className: barrier),
+      ElementPlan(
+        tag: 'div',
+        className: content,
+        children: <ElementPlan>[planNode(node.child, sheet)],
+      ),
+    ],
+  );
+}
+
+/// A stateful node, drawn as the state its store starts in.
+///
+/// The store is created only to be read: `onMount` is not called and no listener is
+/// added, which is what the store's own contract asks for, so a server render never
+/// starts the work an application would — a request, a timer, a subscription. The tree
+/// is a function of the state, so this is exactly the state a reader arriving for the
+/// first time sees.
+ElementPlan _planStateful(
+  core.StatefulNode<Object, core.Store<Object>> node,
+  Stylesheet sheet,
+) {
+  final core.Store<Object> store = node.createStore();
+
+  return planNode(node.viewFor(store.state, store), sheet);
 }

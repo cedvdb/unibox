@@ -365,12 +365,72 @@ void main() {
     });
   });
 
+  group('an overlay', () {
+    test('is a fixed layer with a dialog over a scrim', () {
+      final String html = toHtml(
+        const core.OverlayNode(child: core.TextNode('Sign up')),
+      );
+
+      expect(html, contains('position:fixed'));
+      expect(html, contains('role="dialog"'));
+      expect(html, contains('aria-modal="true"'));
+      expect(html, contains('>Sign up</span>'));
+    });
+
+    test('is drawn open, which is what a document is', () {
+      // A static document has nothing to click, so the only state it can be in is the
+      // one it was rendered from.
+      expect(
+        toHtml(const core.OverlayNode(child: core.TextNode('Hello'))),
+        contains('Hello'),
+      );
+    });
+
+    test('is never in the flow of its parent', () {
+      // Taken out of the flow by the element, not by a second slot on a parent.
+      expect(
+        toHtml(const core.OverlayNode(child: core.TextNode('Hi'))),
+        contains('inset:0'),
+      );
+    });
+
+    test('scrims the page with the colour the node states', () {
+      expect(
+        toHtml(
+          const core.OverlayNode(
+            barrierColor: core.BoxColor(0xFF112233),
+            child: core.TextNode('Hi'),
+          ),
+        ),
+        contains('background-color:#112233'),
+      );
+    });
+  });
+
+  group('a stateful node', () {
+    test('draws the state its store starts in', () {
+      final String html = toHtml(_CounterNode());
+
+      expect(html, contains('0'));
+    });
+
+    test('does not start the work an application would', () {
+      // The store's contract: a server render reads the state without calling
+      // `onMount`, so a request or a timer the application starts never runs here.
+      _CountingStore.mounts = 0;
+
+      toHtml(_CounterNode());
+
+      expect(_CountingStore.mounts, 0);
+    });
+  });
+
   group('a node this renderer cannot draw', () {
     test('is reported instead of skipped', () {
       // A tree built for another target fails loudly rather than shipping a page with a
       // piece missing.
       expect(
-        () => toHtml(const core.OverlayNode(child: core.TextNode('Hi'))),
+        () => toHtml(const _UnembeddableNode()),
         throwsA(isA<UnsupportedError>()),
       );
     });
@@ -385,6 +445,32 @@ void main() {
       expect(html, contains('font-size:16px'));
     });
   });
+}
+
+/// A node this renderer has no branch for.
+final class _UnembeddableNode extends core.UINode {
+  const _UnembeddableNode();
+}
+
+/// A page with one store and no interactivity beyond a count.
+final class _CounterNode extends core.StatefulNode<int, _CountingStore> {
+  _CounterNode() : super(create: _CountingStore.new, view: _counterView);
+}
+
+core.UINode _counterView(int state, _CountingStore store) =>
+    core.TextNode('$state');
+
+/// A store that records whether a renderer started it.
+final class _CountingStore extends core.StateStore<int> {
+  _CountingStore() : super(0);
+
+  static int mounts = 0;
+
+  @override
+  void onMount() {
+    mounts++;
+    super.onMount();
+  }
 }
 
 /// A callback a box can carry; a document writes no listener for it.

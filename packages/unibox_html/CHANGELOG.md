@@ -34,6 +34,16 @@
   hint is a `::placeholder` rule of its own and part of the class key, or two fields that
   differ only in their hint would share a class.
 
+- An `OverlayNode` is drawn open, because that is the state the document was rendered from:
+  a fixed layer carrying the dialog semantics, a scrim that covers the page, and content
+  positioned above the scrim. It is taken out of the flow by the element and never by a
+  second slot on a parent, so an overlay sits where the tree put it.
+
+- A `StatefulNode` is drawn as the state its store starts in. The store is created only to
+  be read: `onMount` is not called and no listener is added, which is what the store's own
+  contract asks for, so a server render never starts the request or the timer an
+  application would.
+
 - `toHtml()` writes one `<style>` in front of the fragment: the typography of the model,
   the colours of the theme, then every class the tree wears, once each.
 
