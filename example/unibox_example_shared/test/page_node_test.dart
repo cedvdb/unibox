@@ -14,19 +14,20 @@ void main() {
 
       expect(store.state.form.name, 'Ada');
       expect(store.state.signupOpen, isTrue);
-      expect(store.state.current, ExamplePage.signup);
     });
 
-    test('follows the bar: the form is open, the listings are current', () {
+    test('follows the bar: the form opens over the page it was opened on', () {
       final ExampleStore store = ExampleStore();
 
       store.navigate(ExamplePage.signup);
       expect(store.state.signupOpen, isTrue);
-      expect(store.state.current, ExamplePage.signup);
+      // An account is a dialog, not a destination: the listings stay the page, and
+      // the bar goes on highlighting them under the form.
+      expect(store.state.page, ExamplePage.apartments);
 
       store.navigate(ExamplePage.apartments);
       expect(store.state.signupOpen, isFalse);
-      expect(store.state.current, ExamplePage.apartments);
+      expect(store.state.page, ExamplePage.apartments);
     });
 
     test('publishes every field it carries, not only the form', () {

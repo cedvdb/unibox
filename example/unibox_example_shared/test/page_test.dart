@@ -16,10 +16,21 @@ LinkNode navLink(UINode page, String label) => flatten(page)
     );
 
 /// The box of the navigation item labelled [label].
-///
-/// An item that changes the page is a link and the one that opens the sign-up
-/// dialog is a button, so the role is not part of the search: the tap is.
 Box navItem(UINode page, String label) => navLink(page, label).child as Box;
+
+/// The control that opens the sign-up dialog.
+///
+/// It is a box with the button role, not a link: an account is an action over the page
+/// and not a place to go, and a link here navigated as well as opening the dialog.
+Box signUpButton(UINode page) => flatten(page).whereType<Box>().firstWhere(
+  (Box box) => box.onTap != null && textsIn(box).contains('Sign up'),
+);
+
+/// The box the web renders as a `<nav>`: the navigation landmark of the bar.
+Box navLandmark(UINode page) =>
+    flatten(page)
+        .whereType<Box>()
+        .firstWhere((Box box) => box.semantics?.element == BoxElement.nav);
 
 void main() {
   group('ExamplePage', () {
@@ -88,11 +99,33 @@ void main() {
       expect(children.last, same(content));
     });
 
-    test('offers one item per destination', () {
+    test('offers one link per destination, and the form as a button', () {
       final Box page = RecordingHost().frame();
 
-      expect(navItem(page, 'Sign up'), isA<Box>());
       expect(navItem(page, 'Apartments'), isA<Box>());
+      expect(navItem(page, 'Pricing'), isA<Box>());
+
+      // The sign-up form is not a destination: it is a box with the button role, and
+      // no link in the bar points at a document for it.
+      final Box trigger = signUpButton(page);
+
+      expect(trigger.semantics?.role, BoxRole.button);
+      expect(
+        flatten(page).whereType<LinkNode>().map((LinkNode link) => link.url),
+        isNot(contains('../signup/')),
+      );
+    });
+
+    test('keeps the sign-up button out of the navigation landmark', () {
+      // A `<nav>` is the page's list of places to go. A control that opens a dialog
+      // is not one of them, and a reader who is told "navigation, Sign up, link" is
+      // being told the wrong thing about it.
+      final Box page = RecordingHost().frame();
+      final Box landmark = navLandmark(page);
+
+      expect(textsIn(landmark), containsAll(<String>['Unibox', 'Apartments']));
+      expect(textsIn(landmark), isNot(contains('Sign up')));
+      expect(flatten(landmark), isNot(contains(signUpButton(page))));
     });
 
     test('reports the destination an item asks for', () {
@@ -100,7 +133,7 @@ void main() {
       final Box page = host.frame();
 
       navLink(page, 'Apartments').onTap!();
-      navLink(page, 'Sign up').onTap!();
+      signUpButton(page).onTap!();
 
       expect(host.navigations, <ExamplePage>[
         ExamplePage.apartments,
@@ -114,15 +147,18 @@ void main() {
       final Box page = RecordingHost().frame();
 
       expect(navLink(page, 'Apartments').url, ExampleRoutes.listings);
-      expect(navLink(page, 'Sign up').url, ExampleRoutes.signup);
       expect(navLink(page, 'Pricing').url, ExampleRoutes.pricing);
+      expect(ExamplePage.destinations.keys, <ExamplePage>[
+        ExamplePage.apartments,
+        ExamplePage.pricing,
+      ], reason: 'the sign-up form is an action, not a destination of the bar');
     });
 
     test('marks the open page and not the others', () {
       final Box page = RecordingHost().frame(current: ExamplePage.apartments);
 
       final Box open = navItem(page, 'Apartments');
-      final Box other = navItem(page, 'Sign up');
+      final Box other = navItem(page, 'Pricing');
 
       expect(open.backgroundColor, ExamplePalette.accentSurface);
       expect(open.textStyle?.color, ExamplePalette.accent);
@@ -143,7 +179,7 @@ void main() {
     test('opens the sign-up form as a dialog, not a page', () {
       final Box page = RecordingHost().frame();
 
-      final Box trigger = navItem(page, 'Sign up');
+      final Box trigger = signUpButton(page);
 
       expect(trigger.semantics?.role, BoxRole.button);
       // A dialog is not a document, so the trigger never claims to be current.

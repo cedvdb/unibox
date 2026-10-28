@@ -36,14 +36,18 @@ void main() {
           .map((TestRenderElement element) => element.attributes?['href'])
           .toList();
 
-      // The navigation is a real anchor, so a static page follows it: the sign-up
-      // item lands on the document that draws the dialog open, the other one on
-      // the listings, and the dialog's close control goes back to the listings.
-      expect(hrefs, containsAll(<String>['../signup/', '../listings/']));
-      expect(
-        hrefs.where((String? href) => href == '../listings/'),
-        hasLength(2),
-      );
+      // A destination is a real anchor, so a page without the client runtime still goes
+      // somewhere: the two items of the bar name the document that draws them, the
+      // dialog's close control goes back to the listings, and the docs link is external.
+      // Nothing links to `../signup/`: an account is a button over the page, not a
+      // place to go.
+      expect(hrefs, <String?>[
+        '../listings/',
+        '../pricing/',
+        '../listings/',
+        'https://unibox.dev',
+      ]);
+      expect(hrefs, isNot(contains('../signup/')));
     });
 
     testComponents('fills the viewport', (tester) async {
@@ -87,16 +91,18 @@ void main() {
           .toList();
 
       // The four filters and the cross of the removable one, the two segments of the
-      // layout switch, the floating map button, the opt-in row and the dialog's
-      // barrier; the submit button is disabled until the form is complete, and a
-      // disabled box listens to nothing. The destinations of the bar are anchors and
-      // the dialog's close control is one too, so neither is counted here.
-      expect(clickable, hasLength(10));
+      // layout switch, the floating map button, the opt-in row, the dialog's barrier
+      // and the sign-up button of the bar; the submit button is disabled until the
+      // form is complete, and a disabled box listens to nothing. The destinations of
+      // the bar are anchors and the close control is one too, so they are not counted
+      // here.
+      expect(clickable, hasLength(11));
 
       // A destination is an anchor instead, because the `href` is what a page
-      // without the client runtime follows: the three items of the bar and the way
-      // out of the dialog carry the press, and the docs link opens a new tab and
-      // needs no listener of its own.
+      // without the client runtime follows: the two items of the bar and the way out
+      // of the dialog carry the press, and the docs link opens a new tab and needs no
+      // listener of its own. The sign-up control is a button of the bar, counted with
+      // the boxes above.
       final List<TestRenderElement> links = elementsOf(find.tag('a'))
           .where(
             (TestRenderElement element) =>
@@ -104,10 +110,10 @@ void main() {
           )
           .toList();
 
-      expect(links, hasLength(4));
+      expect(links, hasLength(3));
       expect(
         links.map((TestRenderElement link) => link.attributes?['href']),
-        <String?>['../signup/', '../listings/', '../pricing/', '../listings/'],
+        <String?>['../listings/', '../pricing/', '../listings/'],
       );
 
       // The bar's sign-up trigger is a button too, and it comes first; the
@@ -136,7 +142,7 @@ void main() {
           .toList();
 
       // The same set, and now the submit button as well.
-      expect(clickable, hasLength(11));
+      expect(clickable, hasLength(12));
 
       final TestRenderElement button = elementsOf(find.tag('div')).lastWhere(
         (TestRenderElement element) => element.attributes?['role'] == 'button',
@@ -176,15 +182,17 @@ void main() {
       expect(find.text('Looks good - press Create account.'), findsNothing);
     });
 
-    testComponents('offers a navigation item per page', (tester) async {
+    testComponents('offers the pages as navigation and the form as a button', (
+      tester,
+    ) async {
       tester.pumpComponent(signupApp());
 
       expect(find.text('Sign up'), findsOneComponent);
       // The item and the heading of the page behind the dialog.
       expect(find.text('Apartments'), findsNComponents(2));
 
-      // The item is a box with the role and the tab stop, wrapped in the anchor that
-      // carries the href and answers the press.
+      // A destination is a box with the link role and a tab stop, wrapped in the
+      // anchor that carries the href and answers the press.
       final TestRenderElement item = elementsOf(find.tag('div')).firstWhere(
         (TestRenderElement element) => element.attributes?['role'] == 'link',
       );
@@ -196,7 +204,17 @@ void main() {
             element.events?.containsKey('click') ?? false,
       );
 
-      expect(link.attributes?['href'], '../signup/');
+      expect(link.attributes?['href'], '../listings/');
+
+      // The sign-up control is a button in the bar rather than a page in it, so it is
+      // a box that answers a press and carries no `href` for a crawler to follow.
+      final TestRenderElement signup = elementsOf(find.tag('div')).firstWhere(
+        (TestRenderElement element) =>
+            element.attributes?['role'] == 'button' &&
+            (element.events?.containsKey('click') ?? false),
+      );
+
+      expect(signup.attributes?['href'], isNull);
     });
   });
 

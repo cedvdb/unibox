@@ -41,17 +41,12 @@ final class ExampleState {
   /// beside the listings, and the toggle that opens it is not drawn at all.
   final bool mapOpen;
 
-  /// The page below the bar.
+  /// The page below the bar, which is the destination the bar highlights.
   ///
-  /// The sign-up form is not a page: it is a dialog over whichever page this is,
-  /// which is why [current] is derived and this is stored.
+  /// The sign-up form is not a page: it is a dialog over whichever page this is, so it
+  /// is never the value here — opening it changes [signupOpen] and leaves the page
+  /// underneath highlighted, which is what the reader is still looking at.
   final ExamplePage page;
-
-  /// The destination the bar highlights.
-  ///
-  /// The sign-up form is not a page, so it is the current destination while its
-  /// dialog is open, and [page] is current otherwise.
-  ExamplePage get current => signupOpen ? ExamplePage.signup : page;
 
   /// Returns a copy of this state with the given fields replaced.
   ExampleState copyWith({

@@ -260,16 +260,22 @@ open build/site/web/listings/index.html
 There is one file per destination because being open is state, and a static
 export cannot keep state — open the document you want. `web/listings/index.html` is
 the listings; `web/signup/index.html` is the same page with the dialog already open.
-Every destination of the bar is a real link as well, for the same two reasons: a
-crawler follows the `href`, and a copy of the page with no client runtime follows it
-too, landing on the document that draws the state it names. Where the runtime is
-there, the same press is answered by the tree instead — the dialog opens in place and
-the document is not loaded as well, so a visitor sees one page rather than a flash of
-the next one.
+The two destinations of the bar are real links, for the same two reasons: a crawler
+follows the `href`, and a copy of the page with no client runtime follows it too,
+landing on the document that draws the state it names. Where the runtime is there, the
+same press is answered by the tree instead — the page switches in place and the
+document is not loaded as well, so a visitor sees one page rather than a flash of the
+next one.
+The sign-up control in the bar is the exception, because an account is not a place to
+go: it is a box with the button role and no `href`, it opens the form over whatever
+page is being read, and nothing in the markup links to `web/signup/` — that document is
+there for a reader who arrives at its address.
 The whole site, with both renderings and the Flutter build beside them, is
 `tool/site.sh` (see [the static site](#the-static-site)).
 
-Each page is a document before it is a picture: the bar is a `<nav>`, the page box
+Each page is a document before it is a picture: the bar is a `<nav>` around the name
+and the two destinations — with the sign-up button beside it rather than inside, since
+a landmark is a list of places to go — the page box
 is a `<main>`, the card an `<article>`, the listings a `<ul>` of `<li>`s, the page
 title an `<h1>`, and the confirmation a live region. None of
 that changed a pixel, which is what the semantics tokens are for; open the export

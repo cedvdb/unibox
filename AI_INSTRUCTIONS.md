@@ -111,9 +111,15 @@ host that renders it.
 10. **Give an interactive box semantics.** A box with `onTap` and no `semantics` is
     not announced as a button and is not keyboard reachable. Add
     `semantics: BoxSemantics(role: BoxRole.button, label: '…')`.
-11. **Key a list.** Children of a list that can reorder take `key:` — the id of the
+11. **A link is a destination; a button is an action.** `LinkNode` is for a place a
+    reader can go — its `url` is a real `href`, which is what a page without a client
+    runtime follows and what a crawler reads. A control that opens a dialog or changes
+    something in place is a `Box(onTap: …)` with the button role, and it carries no
+    link: a press that is both a dialog and a page load is the flash a reader sees
+    before the dialog they asked for.
+12. **Key a list.** Children of a list that can reorder take `key:` — the id of the
     model they describe — or typed text follows the position instead of the row.
-12. **Do not invent a parameter.** If it is not in the README tables or in
+13. **Do not invent a parameter.** If it is not in the README tables or in
     `packages/unibox_core/lib/src/`, it does not exist. For anything the model cannot
     express, use an `EmbedNode` with one implementation per renderer, or ask.
 

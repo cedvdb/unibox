@@ -47,7 +47,7 @@ final class ExamplePageNode extends StatefulNode<ExampleState, ExampleStore> {
 /// simply absent, so the renderer sees an ordinary page and no overlay at all.
 UINode exampleView({required ExampleState state, required ExampleStore store}) {
   return buildExamplePage(
-    current: state.current,
+    current: state.page,
     onNavigate: store.navigate,
     page: switch (state.page) {
       // The pricing page is the marketing shape this library exists for: written

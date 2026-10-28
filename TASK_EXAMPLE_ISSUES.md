@@ -169,3 +169,16 @@ it was, what the measurement said, and where the fix belongs.
   instead of calling its opener as well. A modifier click, a middle click and a `newTab` link
   stay the browser's. Checked in Chromium: the address stays on `/web/listings/` while the
   dialog opens and while `Pricing` switches the page.
+
+- **Sign up was a navigation item.** *Done.* The bar offered three destinations and the
+  third was an account: an `<a href="../signup/">` inside the `<nav>` landmark, with a
+  button role on the box inside it. So a screen reader announced the landmark as three
+  links and the control as a link, a crawler read `/web/signup/` as a page of the site,
+  and every press had a document to load — which is where the flash came from. The bar is
+  a `<nav>` around the name and the two pages now, and `Sign up` is a box with the button
+  role beside it: `ExamplePage.destinations` holds what the bar draws as links, the button
+  carries no `href`, and `ExamplePage.signup` stays a value of the state because the form
+  is still page state and still an exported document. Measured in Chromium: the `<nav>`
+  reads `Unibox Apartments Pricing`, the button is a `div[role=button]` outside it, the
+  bar fits 375 pixels without overflowing, and a press opens the dialog with the address
+  left on `/web/listings/`.
