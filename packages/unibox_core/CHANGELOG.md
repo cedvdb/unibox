@@ -2,6 +2,10 @@
 
 ## 0.1.0
 
+- `UINode.debugLabel` and `UINode.debugName`: the name a renderer can write on the
+  element it drew, and the rule that derives one from the type. `Box` reads `box`,
+  `TextNode` reads `text`, a `MaterialCard` reads `material-card`. It is a development
+  aid: nothing in the model reads it, and it is never part of a look.
 - `TextInputNode.placeholderStyle` gives the hint its own typography, so a field can
   paint it quieter than the value without restyling the whole control. It is a token
   of the node rather than of the box around it because both targets hand the hint to
