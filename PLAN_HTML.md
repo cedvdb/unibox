@@ -176,9 +176,22 @@ than an assumption.
 
 ### What the example must prove (phase 4)
 
-- The bootstrap never runs at parse time. It starts on intent — `pointerover`,
-  `touchstart`, `keydown`, or a focus inside the first viewport — and otherwise on idle,
-  so a reader who only reads never pays for the application.
+- **Defer the download? No. Defer the execution.** The bundle is prefetched at parse time
+  as a low-priority `rel=prefetch`, so its bytes arrive while the reader is reading. What
+  waits is the boot, not the network. A deferred boot with a cold cache is the worst of
+  both worlds: a good score and a two-second dead click.
+- **When to boot is a property of the page, not a global rule.** A content page and an
+  application entry have opposite answers, and choosing one for both is how a project
+  ends up optimising a number instead of a page:
+
+  | The page is | Boots | Why |
+  | --- | --- | --- |
+  | content — an article, a listing, a landing page | on intent (`pointerover`, `touchstart`, `keydown`, focus), else on `load` + idle | the reader came to read; the application is a bonus, and its bytes are already warm |
+  | an application entry — sign in, a dashboard, a booking | after first paint, on `load` + idle, never on first intent alone | the reader came for the application; making them wait for a click to start a boot they will always need is slower, not faster |
+
+  `JasprScrollRecorder` and the boot contract are indifferent to which one a page chooses,
+  which is why the choice is a parameter of the exported document rather than a rule in
+  the renderer.
 - The ink plays on the press that starts the boot, so the first interaction of a reader
   who did want the app is acknowledged rather than dead.
 - The document preloads the faces the application draws with, and the fallback carries a
@@ -189,17 +202,25 @@ than an assumption.
 ### The gate
 
 `tool/lighthouse.sh` runs Lighthouse against the exported pages in CI with a budget, not a
-printout: performance ≥ 95 on a mobile profile, LCP ≤ 2.0 s, CLS ≤ 0.02, and total
-blocking time of zero before the application boots. A page that misses the budget fails
-the build the way a test fails, because a performance claim that is not gated is a claim
+printout: performance ≥ 95 on a mobile profile, LCP ≤ 2.0 s, CLS ≤ 0.02, and no
+blocking time before the application is asked for. A page that misses the budget fails the
+build the way a test fails, because a performance claim that is not gated is a claim
 nobody checks.
+
+A second number is gated beside it, because Lighthouse measures the load and not the page:
+**boot to first interactive frame**, taken by driving the exported page in a headless
+browser — on a content page from the first pointer press, on an application entry from
+`load`. That is the cost the reader pays, and it is the one a good document score is able
+to hide. A page that scores 100 and takes two seconds to answer its first click has failed,
+and the build should say so.
 
 ### The two tensions worth naming
 
-- **Deferring the boot costs the first interaction.** A reader who presses a control that
-  needs the application waits for it. Pre-warming on hover and focus hides most of that,
-  and a control that could be a link or a form should be one — which is the same advice
-  the model already gives: a destination is a `LinkNode`, an action is the application.
+- **A deferred boot costs the first interaction, and an eager one costs the first paint.**
+  Both are real, so neither is the default everywhere: the page decides, and the two
+  numbers in the gate — the document's and the boot's — keep either choice honest. A
+  control that could be a link or a form should still be one, which is the advice the model
+  already gives: a destination is a `LinkNode`, an action is the application.
 - **Inline CSS trades caching for a round trip.** One document wins by inlining; a site of
   pages wins by a shared file. The document decides, and `tool/lighthouse.sh` measures the
   choice that was made.
