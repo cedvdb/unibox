@@ -184,6 +184,7 @@ logical pixels. `design.md` §5.15 holds the reasoning; these are the pieces.
 - [ ] Task 127: `unibox_testing` — `BoxAppearance.visibleFrom`/`visibleUntil`, read back from the CSS of the web renderer and from the widget tree of the Flutter one, in the "every token at once" case.
 - [ ] Task 128: Example — the map returns to the listings page as the wide-only column, the grid takes `maxColumns: 2` beside it, and below 900 a floating button opens the map as an `OverlayNode` (state, not width). Four widths are checked in both renderings, and the DOM is compared between the widths to prove it is identical.
 - [x] Task 129: `unibox_material` — `MaterialInkWell` returns as a state layer, now that the palette names the three layers: hover, focus and press as roles, a 100ms fade, the button role when it can be tapped, and no surface of its own, so the filled box goes around it. The gallery uses it for its buttons and its Dialog section is a `DialogDemo` `StatefulNode` whose button opens a real `MaterialDialog` — which needed two browser fixes: `JasprStylesheet` keeps the sheet in `<style id="unibox-styles">` in the head and appends a look a redrawn subtree registers (before, a dialog opened by a store arrived with no `position: fixed` layer), and the overlay hears `Escape` on the document. `sitePageForPath` also answers a page whose document is linked as `index.html`, which the runtime used to render as the home page.
+- [x] Task 130: `unibox_material` — `MaterialInkWell` ripples. The ink is state: a `MaterialInkStore` adds a drop where the pointer landed, a timer advances it every frame, and the view draws one circle per drop (12% of `onSurface`, 280 pixels at its widest, gone after 450ms) under the content. The well became a `StatefulNode` over the box it already drew, and it clips its own content to its radius, so no renderer learned a new trick and the ripple needed no fill rule. The example's `RippleButton` and its `RippleStore` are gone — the design system has the component — and the gallery's buttons and dialog actions name the ink that contrasts with their fill.
 
 ### Phase 24: Material fidelity
 - [x] Task 116: Audit the Material components against the Material 3 specification and fix the gaps: card variants on the palette, list tile padding and palette colours, text field minimum height, focused outline, hover and disabled states, dialog content and action colours, a full-width bottom sheet with a drag handle and an upward shadow.
@@ -300,12 +301,12 @@ Deliberately out of scope for this pass, with the reason they were left:
   `BoxTransition` eases any look on its own timeline, `transform` and `opacity`
   paint without moving the box, and a rounded box clips to its radius — so a colour
   can settle and a scale follow it. What is left is a timeline with several stops,
-  and a ripple is the only thing that asks for it: a ripple is intrinsically
-  platform specific (Material's ink layer against a CSS animation), which is exactly
-  what `EmbedNode` exists for — one node, both implementations, reviewed together.
-  Building an animation engine before the first release, for an effect an embed
-  already covers, would be the wrong order; revisit with a real screen that needs
-  it.
+  and the ripple that once asked for it is drawn as state instead (Task 130): a store
+  and a timer, one box per drop, which both renderers already know how to draw. A
+  host-side animation is what `EmbedNode` is for — one node, both implementations,
+  reviewed together — so building an animation engine before the first release, for
+  an effect state and an embed already cover, would be the wrong order; revisit with
+  a real screen that needs it.
 - `onDoubleTap` / `onSecondaryTap`: not part of the pointer, keyboard and touch
   intersection the state model is built on.
 - Generating `BoxStyle` code: 18 fields is still hand manageable; revisit above
@@ -318,9 +319,9 @@ Deliberately out of scope for this pass, with the reason they were left:
   for the client build (Task 104). **Deferred**; the numbers are recorded in `design.md` §5.13.
 - A child that fills a `PositionedNode` whose four edges are set. Flutter hands it tight
   constraints, so it fills; the web positions a flex container whose child keeps its
-  content height, so the example's ripple ink painted a zero-height layer and the
-  button looked empty. It needs a fill rule in the model (or a cross-axis alignment
-  that reaches the child) before the rippled button returns to the Material page.
+  content height, so a filling ink layer would paint at zero height. **Still open**, and
+  no longer in the way: `MaterialInkWell` clips its own content and lets every box in
+  the ink carry its size, so the ripple does not need the rule.
 - An icon subset for the web export. Flutter's `--tree-shake-icons` is a build feature of
   the Flutter target; a Jaspr export serves whatever font the host puts beside its
   `@font-face`. The subset has to be produced once — the Flutter build already writes it,

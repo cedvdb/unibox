@@ -5,9 +5,12 @@
 - `MaterialTextField` and `MaterialBottomSheet` draw Material's shape: round at the
   top, square where they meet the line or the edge, now that the model has a
   corner token.
-- `MaterialInkWell` is the state layer of a tappable region: a `Box` with Material's
-  hover, focus and press tints as roles, a 100ms fade and the button role when it can
-  be tapped. It paints no surface of its own, so the filled box goes around it.
+- `MaterialInkWell` is a tappable region: Material's hover, focus and press tints as
+  roles, a 100ms fade, a button role when it can be tapped, and **the ink a press
+  spreads** — a 12% drop that starts where the pointer landed, grows to 280 pixels and
+  fades over 450ms. The ripple is state rather than a renderer feature, so both targets
+  draw it out of nodes they already draw; a page with no client runtime shows the
+  resting well. It paints no surface of its own, so the filled box goes around it.
 - The first release: Material 3 as a package of values, plus the components built
 from them. Every value here is a plain token of `unibox_core`, so neither renderer
 has to know this package exists.
@@ -59,5 +62,5 @@ them: a dark application renders the same tree with `theme: MaterialPalette.dark
 The components no longer take a `palette:` argument, because a role is the indirection
 that argument used to provide.
 
-What the components leave to the platform is written on each of them: the ripple, the
-floating label, the caret and selection colours, and Material's modal transitions.
+What the components leave to the platform is written on each of them: the floating
+label, the caret and selection colours, and Material's modal transitions.

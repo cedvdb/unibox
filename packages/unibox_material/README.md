@@ -271,10 +271,10 @@ expose is a style bag: its own tokens are flat parameters, so a bag would lose t
 them. A `Box` around it is the escape hatch, and it is the box this class builds.
 
 **What it is not.** Material takes a card's surface from a colour scheme
-(`surfaceContainerLow`), its three official variants differ by tone, and a press
-ripples. None of those exist in the model yet: the surface is white, the variant
-is the elevated one, and a press is `stateStyles`. A colour scheme is the next
-decision, not a silent default.
+(`surfaceContainerLow`), and its three official variants differ by tone: the surface
+here is `surfaceContainerLow` and the variant is the elevated one, so a card is a
+value rather than a lookup. A press is `stateStyles` and paints no ink; a
+`MaterialInkWell` inside the card is the ripple.
 
 ## The list tile
 
@@ -311,13 +311,14 @@ inner box states the subtitle style for the line under it.
 
 The three things a colour scheme would fill in are constants for now —
 `subtitleColor`, and the two state tints — and the tile says so, along with what it
-is not: no ripple, no tonal surface, no `titleTextStyle` overrides beyond the two
-style parameters. A `Box` around it remains the escape hatch.
+is not: no ink of its own, no tonal surface, no `titleTextStyle` overrides beyond the
+two style parameters. A `MaterialInkWell` around its content is the ink, and a `Box`
+around it remains the escape hatch.
 
 ## The ink well
 
-`MaterialInkWell` is the state layer of a tappable region: a `Box` that paints the
-three tints of the palette over the surface it sits on.
+`MaterialInkWell` is a tappable region: the three state layers of the palette, and
+the ink a press spreads from where it landed.
 
 ```dart
 Box(
@@ -327,6 +328,7 @@ Box(
     MaterialInkWell(
       onTap: store.save,
       borderRadius: 20,
+      ink: palette.onPrimary,
       padding: const BoxSpacing.symmetric(horizontal: 20, vertical: 10),
       child: TextNode(
         'Save',
@@ -341,17 +343,31 @@ Box(
 | --- | --- |
 | hover, focus, press | `hoverLayer`, `focusLayer`, `pressedLayer` |
 | transition | 100ms, so a tint eases instead of flashing |
+| ink | `onSurface`, 12% where the press landed, 280 pixels wide at the end, gone after 450ms |
 | role | `BoxRole.button` when it can be tapped |
 
-It paints **no surface of its own**: the tint has to sit above the fill it belongs
-to, so the filled box goes around the ink well. Wrapped the other way round the
-fill would hide the state layer, which is the mistake the class exists to spare
-you. A `MaterialCard`, a `MaterialListTile` and the gallery's buttons are the same
-pattern in the package.
+The ripple is **state, not a renderer feature**. A press adds a drop to a
+`MaterialInkStore`, a timer advances it every frame, and the view draws one box per
+drop — a circle centred on the press, growing as it fades. Both targets therefore
+draw the ink out of nodes they already draw, which is why the conformance table
+needs no case for it: there is no second implementation to hold in step. A page
+rendered without a client runtime subscribes to nothing, so it shows the resting
+well, and a region that cannot be pressed listens to no pointer at all.
 
-What it is not is a ripple: the splash starts at the pointer and grows over a
-timeline of its own, and the model has no triggered animation, so a press is a
-tint. `EmbedNode` is the escape hatch when the effect matters.
+It paints **no surface of its own**: the tints and the ink have to sit above the
+fill they belong to, so the filled box goes around the ink well. Wrapped the other
+way round the fill would hide both. The well clips its own content to
+`borderRadius`, which is what keeps a drop inside a rounded button, and `ink` is the
+one colour that is not a role — the ink has to contrast with the fill around the
+well, which the well cannot see.
+
+What it is not is a timeline the host owns: the ink is a state machine and a timer,
+so a press costs a rebuild of one subtree per frame for 450ms. On the web that is
+visible in the sheet — a frame's circle is a look of its own — and it is why a drop
+moves by `transform` rather than by the offsets of the node that holds it: one rule
+per frame instead of two, measured at 30 rules for one press against 58 before.
+`EmbedNode` remains the escape hatch when a host-side animation is what the effect
+needs.
 
 ## The text field
 
@@ -472,8 +488,9 @@ label, an `onSurface` hover outline and 38% opacity when disabled; a dialog whos
 content is `bodyMedium` in `onSurfaceVariant` over `labelLarge` actions in `primary`;
 and a bottom sheet that fills the width up to 640 pixels, with a drag handle and a
 shadow that rises. Still approximate: the sheet rounds all four corners, the handle
-is not draggable, shadows are one layer where Material has two, and every ripple is a
-tint.
+is not draggable, shadows are one layer where Material has two, and the ink is one
+circle that grows and fades where Material draws a splash with a fading highlight
+and a second ripple when the press is released.
 
 ## Line heights
 
@@ -520,7 +537,7 @@ value the model could carry:
 
 | Left out | Why |
 | --- | --- |
-| the ripple | a splash starts at the pointer and grows over its own timeline; a press here is a tint |
+| the splash's second stage | Material fades a highlight under the press and adds a ripple on release; here one drop grows and fades |
 | the floating label | an animation the model has no triggered timeline for |
 | the caret, the selection and the focus ring | the platform draws them for the input node |
 | modal entrance and exit transitions | the same missing timeline |

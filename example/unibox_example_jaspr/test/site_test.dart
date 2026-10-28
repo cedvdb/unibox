@@ -76,13 +76,31 @@ void main() {
   });
 }
 
+/// The children of [node], which for a `StatefulNode` are the tree it draws for the
+/// state a fresh store starts in.
+///
+/// A component that owns state — the dialog demo, a `MaterialInkWell` — keeps its
+/// tree in a view rather than in `children`, and the view is what a server renders.
+/// Reading the page in a test means drawing the same tree.
+Iterable<UINode> _children(UINode node) sync* {
+  if (node is StatefulNode<Object, Store<Object>>) {
+    final Store<Object> store = node.createStore();
+    final UINode view = node.viewFor(store.state, store);
+    store.dispose();
+    yield view;
+    return;
+  }
+
+  yield* node.children;
+}
+
 /// Every text under [node], which is how a page assertion reads.
 Iterable<String> _texts(UINode node) sync* {
   if (node is TextNode) {
     yield node.text;
   }
 
-  for (final UINode child in node.children) {
+  for (final UINode child in _children(node)) {
     yield* _texts(child);
   }
 }
@@ -93,7 +111,7 @@ Iterable<String> _links(UINode node) sync* {
     yield node.url;
   }
 
-  for (final UINode child in node.children) {
+  for (final UINode child in _children(node)) {
     yield* _links(child);
   }
 }
@@ -104,15 +122,16 @@ Iterable<EmbedNode> _embeds(UINode node) sync* {
     yield node;
   }
 
-  for (final UINode child in node.children) {
+  for (final UINode child in _children(node)) {
     yield* _embeds(child);
   }
 }
 
-/// Every node of [root], depth first.
+/// Every node of [root], depth first, with the view of a `StatefulNode` in place of
+/// the node itself.
 Iterable<UINode> _flatten(UINode root) sync* {
   yield root;
-  for (final UINode child in root.children) {
+  for (final UINode child in _children(root)) {
     yield* _flatten(child);
   }
 }

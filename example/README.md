@@ -153,9 +153,10 @@ The pages link with paths relative to their own depth and the documents carry **
 
 The gallery and the showcase are node trees as well, so the site is built with the
 library it documents. The gallery's dialog is the exception that proves the rule:
-the button is a `MaterialInkWell` over a filled box, and the `MaterialDialog` is in
-the tree only while the demo's store says it is open — the runtime is what makes the
-press do anything, and a document without JavaScript shows the button and no dialog.
+the button is a `MaterialInkWell` over a filled box — so a press leaves ink where it
+landed — and the `MaterialDialog` is in the tree only while the demo's store says it
+is open. The runtime is what makes the press do anything, and a document without
+JavaScript shows the button, no ink and no dialog.
 
 The one thing the model cannot describe is an `<iframe>`, and that is what `EmbedNode` is for: the showcase's two frames are the only non-node
 content on the site, and the page around them is boxes and text.

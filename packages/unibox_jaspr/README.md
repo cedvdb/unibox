@@ -137,6 +137,12 @@ appended to the element already in the page rather than waiting for a second ful
 render. Those are the only two shapes — a sheet that is text in a response, and a
 sheet that is an element in a document.
 
+The consequence to know about is cost: a class is keyed by its declarations, so a
+component that redraws every frame — a ripple — registers a look per frame and the
+sheet grows as it runs. That is why `MaterialInkWell` moves its ink by `transform`
+and keeps the node that positions it at a constant offset: one new rule a frame
+rather than two, and a server page pays nothing at all.
+
 ### Roles and the theme
 
 A colour role is written as a custom property, and the theme is written once, in

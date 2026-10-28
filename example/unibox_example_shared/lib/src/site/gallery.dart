@@ -31,7 +31,8 @@ UINode buildMaterialGallery() {
       _section(
         'Buttons',
         'A button is a box with a state layer: the hover, focus and press tints are '
-            'the ink well, painted over the fill so the colour stays.',
+            'the ink well, painted over the fill so the colour stays, and a press '
+            'spreads ink from where it landed. Hold one down to see both.',
         _buttons(palette),
       ),
       _section(
@@ -215,8 +216,10 @@ UINode _swatch(String name, BoxColor color, MaterialPalette palette) {
 
 /// A Material button: a filled surface with a [MaterialInkWell] over it.
 ///
-/// The tint has to sit *above* the fill, so the fill is the box around the ink
-/// well; the other way round the background would hide the state layer.
+/// The tint and the ink have to sit *above* the fill, so the fill is the box around
+/// the ink well; the other way round the background would hide both. The ink is the
+/// label's colour, because that is the one value here that is known to contrast
+/// with the fill.
 UINode _button(
   String label,
   BoxColor background,
@@ -233,6 +236,7 @@ UINode _button(
       MaterialInkWell(
         onTap: () {},
         borderRadius: 20,
+        ink: foreground,
         padding: const BoxSpacing.symmetric(horizontal: 20, vertical: 10),
         child: TextNode(
           label,
@@ -407,6 +411,7 @@ UINode _dialogView(bool open, DialogDemoStore store) {
           MaterialInkWell(
             onTap: store.open,
             borderRadius: 20,
+            ink: palette.onPrimary,
             padding: const BoxSpacing.symmetric(horizontal: 20, vertical: 10),
             child: TextNode(
               'Delete listing',
@@ -422,8 +427,8 @@ UINode _dialogView(bool open, DialogDemoStore store) {
         children: <UINode>[
           TextNode(
             'Title, content and actions, on the surface a dialog is raised by. The '
-            'button is a MaterialInkWell over a filled box; the dialog is in the '
-            'tree only while it is open.',
+            'button is a MaterialInkWell over a filled box, so a press leaves ink; '
+            'the dialog is in the tree only while it is open.',
             style: MaterialTypography.labelSmall.copyWith(
               color: palette.onSurfaceVariant,
             ),
@@ -452,6 +457,7 @@ UINode _dialogAction(String label, TapCallback onTap, MaterialPalette palette) {
       MaterialInkWell(
         onTap: onTap,
         borderRadius: 20,
+        ink: palette.primary,
         padding: const BoxSpacing.symmetric(horizontal: 12, vertical: 8),
         child: TextNode(
           label,
