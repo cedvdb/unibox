@@ -19,6 +19,39 @@ One description, two renderers. Layout, spacing, colours, typography and the
 accessibility tree are written once; each target draws them with its own
 primitives, and a test suite holds both to the same expected result.
 
+## Why this exists
+
+**A screen drawn in Flutter is a canvas.** Inside an app that is exactly what you
+want. For a page that has to be found it is the worst possible thing: a search engine,
+a link preview and a reader whose JavaScript failed all receive an empty document. The
+usual answer is to write that page a second time as HTML — and then keep two designs in
+step, which drift the week after they are written.
+
+Unibox is the one description those two can share. A page that has to rank is written
+once as a tree; it is exported as **HTML and CSS**, which is what a crawler reads, and
+the same tree draws the app's version of that screen. Nothing is designed twice, so
+nothing can disagree.
+
+| Shape | What it is | In this repository |
+| --- | --- | --- |
+| **Indexable, static** | Server-rendered HTML and CSS with no JavaScript in it | `build/site/web/listings/index.html` |
+| **Indexable, live** | The same document plus one client bundle that redraws the same tree into it | `build/site/web/signup/index.html` |
+| **The app** | The same screen, compiled by Flutter, beside the page | `build/site/flutter/listings/` |
+
+**The line that matters.** The takeover a server-rendered document can get is the *web*
+one: the Jaspr renderer redraws the same tree into the same page, so a press, a field or
+a dialog works without a second design. Flutter cannot do that — it draws to a canvas,
+so adopting server-rendered HTML would mean repainting it, which is the shift this is
+meant to avoid. The Flutter build is the app beside the page, not on top of it.
+
+**The boundary.** Only the screens that must be found are trees. The rest of an
+application stays ordinary Flutter, screen for screen — a settings page or an internal
+tool gains nothing from being indexable, and nothing here asks it to change.
+
+A breakpoint is the host's, so a page that has to work on a phone says so with the
+layout it already has: `GridNode` folds its columns as the window narrows, and the site
+this README describes is built that way — every page of it fits a 375 pixel viewport.
+
 <p align="center">
   <img src="docs/hero.svg" alt="One immutable Dart node tree on the left, a fork into two panels showing the same card drawn by Flutter's widget tree and by Jaspr as HTML and CSS." width="900">
 </p>
@@ -27,6 +60,7 @@ What the description does *not* contain is what only a host can know: how big th
 window is, what happens when the user taps, and what the surrounding document is
 called. Those belong to the host — see [what the host owns](#what-the-host-owns).
 
+- [Why this exists](#why-this-exists)
 - [Quick start](#quick-start)
 - [The nodes](#the-nodes)
 - [Colours](#colours)
