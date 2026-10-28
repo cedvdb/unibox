@@ -486,7 +486,7 @@ a `Stack` with `Clip.none` in Flutter.
 | -------------------------- | ---------------------------------------------------- |
 | `StackNode`                | `position: relative`, `display: grid`, `grid-template-rows: 100%` |
 | `StackNode.width`/`height` | `width`/`height` (`double.infinity` → `100%`)        |
-| plain child                | `grid-area: 1 / 1` cell wrapper, content at the start |
+| plain child                | `grid-area: 1 / 1` cell wrapper with `position: relative`, content at the start |
 | `PositionedNode`           | `position: absolute` plus `top`/`right`/`bottom`/`left` |
 
 The one row is `100%` of the stack rather than the height of what sits in it. A
@@ -497,7 +497,13 @@ cell would push the document taller instead. When the stack states no height of 
 own, `100%` resolves to `auto` and the stack still sizes to its content.
 
 Each child is wrapped in a cell `<div>`: the overlap is a property of the
-container, and the rendered child already carries its own inline styles.
+container, and the rendered child already carries its own inline styles. A plain
+child's cell is `position: relative` on purpose — a *static* box is painted below
+every absolutely positioned sibling whatever the source order, while a Flutter
+`Stack` paints its children in the order they are written. Without it a layer
+written first, like an ink drop or a navigation indicator, sat on top of the
+content written after it: the ink painted over the label it was meant to be read
+through, and a nav bar's hover and ripple were hidden under its pill.
 
 The cell wrapper fills the grid area and lays its child out at the start of
 both axes, which is what a `Stack` does with a child that is not positioned: the

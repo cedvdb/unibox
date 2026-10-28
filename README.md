@@ -103,9 +103,9 @@ python3 tool/seo_report.py build/site
 
 | Document | Words | `h1` | `h2` | Links | Fields | Bytes |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Jaspr `/` | 433 | 1 | 2 | 4 | 2 | 123 819 |
-| Jaspr `/web/listings/` | 132 | 1 | 0 | 1 | 0 | 60 540 |
-| Jaspr `/web/signup/` | 149 | 1 | 1 | 3 | 2 | 70 252 |
+| Jaspr `/` | 464 | 1 | 2 | 4 | 2 | 130 743 |
+| Jaspr `/web/listings/` | 132 | 1 | 0 | 1 | 0 | 60 563 |
+| Jaspr `/web/signup/` | 149 | 1 | 1 | 3 | 2 | 70 275 |
 | **Flutter `/flutter/listings/`** | **4** | **0** | **0** | **0** | **0** | **772** |
 
 The last row is the point. The Flutter build of the screen in the picture is a document

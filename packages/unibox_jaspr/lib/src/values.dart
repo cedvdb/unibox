@@ -370,6 +370,12 @@ Styles toStackStyles(core.StackNode node) {
 /// keeps its own size instead of stretching.
 Styles toStackChildStyles() {
   return Styles(
+    // Relative, so the cell is painted in the source order the model states. A
+    // static sibling would be painted *below* every absolutely positioned one,
+    // whatever the order: a Flutter `Stack` paints its children in order, so a
+    // positioned layer written first — an ink drop, an indicator pill — would
+    // otherwise sit on top of everything that came after it in the tree.
+    position: Position.relative(),
     display: Display.flex,
     alignItems: AlignItems.start,
     justifyContent: JustifyContent.start,

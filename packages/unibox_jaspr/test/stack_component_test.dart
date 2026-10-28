@@ -4,7 +4,12 @@ import 'package:unibox_core/unibox_core.dart' as core;
 import 'support/harness.dart';
 
 /// The declarations of a stack cell: the whole grid area, content at the start.
+///
+/// The cell is `position: relative` so it is painted in source order: a static box
+/// would be painted below every absolutely positioned sibling, and a Flutter `Stack`
+/// paints its children in the order they are written.
 const Map<String, String> _cellStyles = <String, String>{
+  'position': 'relative',
   'display': 'flex',
   'align-items': 'start',
   'justify-content': 'start',
@@ -139,6 +144,38 @@ void main() {
       expect(stylesOf(find.tag('div').at(2)), _cellStyles);
       expect(find.text('Bottom'), findsOneComponent);
       expect(find.text('Top'), findsOneComponent);
+    });
+
+    testComponents('paints a positioned layer before what follows it', (
+      tester,
+    ) async {
+      // A web box is static by default, and CSS paints an absolutely positioned
+      // sibling *above* every static one whatever the source order — so a layer
+      // written first, like an ink drop or a navigation indicator, would sit on top
+      // of the content written after it. Flutter's `Stack` paints in order, so the
+      // in-flow cell is relative and the two targets agree.
+      pumpNode(
+        tester,
+        const core.StackNode(
+          width: 100,
+          height: 40,
+          children: <core.UINode>[
+            core.PositionedNode(left: 0, top: 0, child: core.TextNode('under')),
+            core.TextNode('over'),
+          ],
+        ),
+      );
+
+      // The stack itself is the first `div`; its two cells follow it.
+      final Map<String, String> under = stylesOf(find.tag('div').at(1));
+      final Map<String, String> over = stylesOf(find.tag('div').at(2));
+
+      expect(under['position'], 'absolute');
+      expect(
+        over['position'],
+        'relative',
+        reason: 'the cell after it is painted in source order, not below',
+      );
     });
 
     testComponents('positions a child absolutely', (tester) async {

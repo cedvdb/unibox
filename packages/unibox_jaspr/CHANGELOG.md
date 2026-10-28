@@ -8,6 +8,13 @@
   outside an option, a tab, a row or a grid cell: the chosen state of both controls was
   announced by nothing on the web while Flutter announced it.
 
+- A stack paints its children in source order again, as Flutter's `Stack` does. A plain
+  child's cell is now `position: relative`: it was static, and CSS paints an absolutely
+  positioned sibling *above* every static one whatever the order, so a layer written
+  first sat on top of everything written after it. The ink of a press painted over the
+  label it belongs under, and `MaterialNavigationBar`'s indicator pill covered the hover
+  tint and the ripple that should have painted across it.
+
 - A box that paints and holds nothing takes no pointer, and a stack cell is a placement
   rather than a control: before, a decoration drawn over a control swallowed the press
   meant for it, so a button under a paint layer — or anywhere under a floating one — was
