@@ -32,16 +32,20 @@ void main() {
       JasprImage,
       JasprLink,
       JasprPositioned,
+      JasprShape,
       JasprStack,
       JasprStateful,
       JasprText,
       JasprTextInput,
       renderJaspr,
+      pathDataOf,
+      clipIdOf,
+      clipPathDataOf,
       component,
       noBuilder,
     ];
 
-    expect(exported, hasLength(14));
+    expect(exported, hasLength(18));
     expect(component, isA<Component>());
     expect(renderJaspr, isNotNull);
   });

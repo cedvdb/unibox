@@ -1,6 +1,8 @@
 import 'package:jaspr/dom.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
 
+import 'shape.dart';
+
 /// Converts a Unibox [core.BoxColor] to a CSS [Color].
 ///
 /// Opaque colors become a `#rrggbb` value, translucent ones an `rgba(...)`
@@ -629,6 +631,57 @@ String _cssSpacingShorthand(core.BoxSpacing spacing) {
 /// would silently turn it into a column — the browser layers a state rule over
 /// the resting one the same way the Flutter renderer merges a state style, and
 /// both may only contribute what the state mentions.
+/// [color] as the text CSS writes it.
+///
+/// A custom property carries text, so a value colour needs its one declaration as
+/// a string; it is read back out of [Styles] rather than formatted again here, so
+/// there is one spelling of a colour in the output and no second opinion about
+/// rounding channels.
+String _colorText(core.BoxColor color) =>
+    Styles(backgroundColor: toCssColor(color)).properties['background-color']!;
+
+/// What a shaped box declares instead of a background, a border and a radius.
+///
+/// The fill and the stroke become custom properties, because the shape's paint
+/// layer is an `<svg>` and not the element: a state rule that changes the
+/// background of a shaped box has to be able to reach the path, and a custom
+/// property is what a pseudo class and a style rule can both set. `fill`,
+/// `stroke` and `stroke-width` are CSS properties of SVG, so a state change of any
+/// of the three eases with the transition the box declares.
+///
+/// The clip is declared here too, and only when the box asks for one: `overflow:
+/// hidden` (or a scrolling box) clips a shaped box to its outline, which needs the
+/// definition `JasprShape` writes in the same box.
+Map<String, String> _shapeDeclarations(
+  core.BoxStyle style,
+  core.BoxShape shape,
+) {
+  final core.BoxColor? fill = style.backgroundColor;
+  final core.BoxBorder? border = style.border;
+  final String? fillReference = fill == null
+      ? null
+      : cssRoleReference(fill) ?? _colorText(fill);
+  final String? strokeReference = border == null || !border.isVisible
+      ? null
+      : cssRoleReference(border.color) ?? _colorText(border.color);
+  final bool clips =
+      style.overflow == core.Overflow.hidden ||
+      style.overflow == core.Overflow.scroll;
+
+  return <String, String>{
+    // The layer is absolutely positioned, and `isolation` keeps its negative
+    // z-index inside this box instead of letting it fall behind an ancestor.
+    'position': 'relative',
+    'isolation': 'isolate',
+    if (clips) 'clip-path': 'url(#${clipIdOf(shape)})',
+    '--unibox-shape-fill': fillReference ?? 'none',
+    if (strokeReference != null) ...<String, String>{
+      '--unibox-shape-stroke': strokeReference,
+      '--unibox-shape-stroke-width': _pixels(border!.width),
+    },
+  };
+}
+
 Styles toBoxStyles(
   core.BoxStyle style, {
   bool interactive = false,
@@ -645,6 +698,7 @@ Styles toBoxStyles(
   final core.CrossAlign? crossAlign = declaredOnly
       ? style.crossAlign
       : style.crossAlign ?? core.CrossAlign.start;
+  final core.BoxShape? shape = style.shape;
   final core.BoxBorder? border = style.border;
   final core.BoxShadow? shadow = style.shadow;
   final core.BoxSpacing? padding = style.padding;
@@ -692,17 +746,18 @@ Styles toBoxStyles(
     margin: margin == null
         ? (declaredOnly ? null : _userAgentMargin(element))
         : toCssSpacing(margin),
-    backgroundColor: backgroundColor == null || roleBackground != null
+    backgroundColor:
+        shape != null || backgroundColor == null || roleBackground != null
         ? null
         : toCssColor(backgroundColor),
     // Corners the box names are four values in one declaration, which the typed
     // radius cannot express; a single radius stays typed.
-    radius: corners != null || borderRadius == null
+    radius: shape != null || corners != null || borderRadius == null
         ? null
         : BorderRadius.circular(Unit.pixels(borderRadius)),
     // A role is written as a custom property; `raw` is emitted after the typed
     // properties, so the border is declared here and its colour overridden below.
-    border: border == null || !border.isVisible
+    border: shape != null || border == null || !border.isVisible
         ? null
         : Border.all(
             color: roleBorder == null
@@ -710,7 +765,7 @@ Styles toBoxStyles(
                 : Color.value(0x000000),
             width: Unit.pixels(border.width),
           ),
-    shadow: shadow == null || roleShadow != null
+    shadow: shape != null || shadow == null || roleShadow != null
         ? null
         : toCssBoxShadow(shadow),
     overflow: overflow == null ? null : toCssOverflow(overflow),
@@ -727,11 +782,13 @@ Styles toBoxStyles(
         'min-width': '0',
         'min-height': '0',
       },
-      'background-color': ?roleBackground,
-      'border-color': ?roleBorder,
-      if (corners != null) 'border-radius': _cornersText(corners),
-      if (shadow != null && roleShadow != null)
+      'background-color': ?(shape == null ? roleBackground : null),
+      'border-color': ?(shape == null ? roleBorder : null),
+      if (shape == null && corners != null)
+        'border-radius': _cornersText(corners),
+      if (shape == null && shadow != null && roleShadow != null)
         'box-shadow': _shadowText(shadow, roleShadow),
+      if (shape != null) ..._shapeDeclarations(style, shape),
     },
     cursor: interactive ? Cursor.pointer : null,
     // The browser aims a press at the topmost element, and Flutter hit-tests a

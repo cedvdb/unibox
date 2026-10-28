@@ -32,6 +32,7 @@ export 'src/image_node.dart' show JasprImage;
 export 'src/labels.dart' show nodeLabelAttribute;
 export 'src/link_node.dart' show JasprLink;
 export 'src/render.dart';
+export 'src/shape.dart' show JasprShape, clipIdOf, clipPathDataOf, pathDataOf;
 export 'src/stylesheet.dart' show JasprThemeScope, UniboxStylesheetScope;
 export 'src/stack_node.dart' show JasprPositioned, JasprStack;
 export 'src/stateful_component.dart' show JasprStateful, JasprStatefulNode;

@@ -8,6 +8,7 @@ import 'package:universal_web/web.dart' as web;
 import 'labels.dart';
 import 'render.dart';
 import 'press_position.dart';
+import 'shape.dart';
 import 'stylesheet.dart';
 import 'values.dart';
 
@@ -42,9 +43,19 @@ class JasprBox extends StatelessComponent {
 
   @override
   Component build(BuildContext context) {
-    final List<Component> children = box.children
-        .map(renderNode)
-        .toList(growable: false);
+    final core.BoxStyle computed = box.computedStyle;
+    final core.BoxShape? shape = computed.shape;
+    final bool clipsToShape =
+        shape != null &&
+        (computed.overflow == core.Overflow.hidden ||
+            computed.overflow == core.Overflow.scroll);
+
+    // A shaped box paints its outline in a layer of its own, before the children: a
+    // CSS background cannot follow a path, and an `<svg>` can.
+    final List<Component> children = <Component>[
+      if (shape != null) JasprShape(shape: shape, clip: clipsToShape),
+      ...box.children.map(renderNode),
+    ];
     final Map<String, String> attributes = withNodeLabel(box, _attributes());
 
     final Map<String, EventCallback>? events = _events();
