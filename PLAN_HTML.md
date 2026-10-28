@@ -249,6 +249,39 @@ and the build should say so.
   pages wins by a shared file. The document decides, and `tool/lighthouse.sh` measures the
   choice that was made.
 
+## The platform's own state, instead of custom elements
+
+A custom element per node type is refused, and the reason is the product: `<unibox-text>`
+is not a heading, `<unibox-link>` is not a link a crawler follows, and `<unibox-image>` has
+no `alt` anyone reads. Customised built-ins (`<h1 is="unibox-text">`) would keep the tag and
+the semantics, and Safari has never implemented them — so that door is closed by the
+platform, not by taste.
+
+Two things follow.
+
+**One custom element, where a boundary is the point.** `<unibox-app>` — the element whose
+`connectedCallback` boots the takeover. One definition is a design; eleven are a second
+markup language.
+
+**Native state beats both.** The node types that need behaviour should adopt what the
+browser already has rather than reimplement it in a script:
+
+| node | the element | what comes free |
+| --- | --- | --- |
+| `OverlayNode` | `<dialog>` + `showModal()` | Escape closes, focus is trapped, the page behind is inert |
+| a menu, a popover, a tooltip | the `popover` attribute | light-dismiss, top-layer stacking |
+| a disclosure | `<details>` | open and closed with no script |
+| `TextInputNode` | `<input>` with `type`, `required`, `pattern` | keyboards and validation |
+
+That is why the client script is small and stays small: closing a dialog is `close()`, not
+a state machine.
+
+**The cost, and when to pay it.** `<dialog>` brings `margin: auto`, a border, padding and a
+background from the user agent, so adopting it means another reset in `unibox_css` — and
+`showModal()`, the call that actually traps focus and answers Escape, only exists once
+something runs JavaScript. So the overlay stays a `<div role="dialog">` in a document, and
+becomes a `<dialog>` in phase 6, when the reset pays for something.
+
 ## Interactions a document cannot carry
 
 A list a reader can filter, sort and reorder is the case that keeps asking for client-side
