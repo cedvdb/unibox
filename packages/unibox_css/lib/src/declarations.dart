@@ -60,6 +60,16 @@ final class CssDeclarations {
     }
   }
 
+  /// Appends `property: value` unless [value] is `null`.
+  ///
+  /// A token the model leaves unset writes nothing at all, so a renderer that walks
+  /// its tokens says so once per token instead of wrapping each in an `if`.
+  void addIf(String property, String? value) {
+    if (value != null) {
+      add(property, value);
+    }
+  }
+
   /// The declarations as the text of a rule, or of a `style` attribute.
   ///
   /// Sorted by property name, and by insertion order when one property is written

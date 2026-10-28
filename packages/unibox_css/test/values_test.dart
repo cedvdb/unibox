@@ -126,6 +126,54 @@ void main() {
     });
   });
 
+  group('typography', () {
+    test('is written for the tokens a style states, and no others', () {
+      // Only what is set: everything else inherits from the surrounding box, which
+      // is what a Flutter `Text` does inside a `DefaultTextStyle`.
+      final CssDeclarations? declarations = typographyDeclarations(
+        const core.BoxTextStyle(fontSize: 20),
+      );
+
+      expect(declarations!.text, 'font-size:20px');
+    });
+
+    test('writes a line height unitless, so descendants scale with it', () {
+      final CssDeclarations? declarations = typographyDeclarations(
+        const core.BoxTextStyle(lineHeight: 1.4, letterSpacing: 0.5),
+      );
+
+      expect(declarations!.text, 'letter-spacing:0.5px;line-height:1.4');
+    });
+
+    test('quotes a family as one family, not as a fallback list', () {
+      expect(cssFontFamily('Inter'), "'Inter'");
+      expect(cssFontFamily('Unibox Text'), "'Unibox Text'");
+      expect(cssFontFamily("O'Neill"), '"O\'Neill"');
+    });
+
+    test('writes a role colour as a custom property', () {
+      final CssDeclarations? declarations = typographyDeclarations(
+        const core.BoxTextStyle(color: core.BoxColor.role(_Role.primary)),
+      );
+
+      expect(declarations!.text, 'color:var(--unibox-color-primary)');
+    });
+
+    test('is left out entirely when the style states nothing', () {
+      expect(typographyDeclarations(const core.BoxTextStyle()), isNull);
+    });
+
+    test('starts from the model defaults, with the platform font family', () {
+      // The model names no family — a font file is the application's — so the
+      // document asks CSS for the generic `system-ui`, unquoted.
+      expect(
+        defaultTypographyDeclarations().text,
+        'color:#000000;font-family:system-ui;font-size:16px;'
+        'font-weight:400;letter-spacing:0px;line-height:1.5',
+      );
+    });
+  });
+
   group('a border, a shadow and a corner', () {
     test('are written in the order CSS reads them', () {
       expect(

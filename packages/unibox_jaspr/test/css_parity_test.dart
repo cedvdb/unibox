@@ -125,7 +125,44 @@ void main() {
     });
   });
 
-  group('a border, a shadow and a corner are spelled the same way', () {
+  group('typography is spelled the same way', () {
+    const List<core.BoxTextStyle> styles = <core.BoxTextStyle>[
+      core.BoxTextStyle(fontSize: 20),
+      core.BoxTextStyle(fontWeight: core.FontWeight.semiBold),
+      core.BoxTextStyle(color: core.BoxColor(0xFF112233)),
+      core.BoxTextStyle(color: core.BoxColor.role(_Role.primary)),
+      core.BoxTextStyle(lineHeight: 1.4, letterSpacing: 0.5),
+      core.BoxTextStyle(fontFamily: 'Inter'),
+      core.BoxTextStyle(fontFamily: 'Unibox Text', fontSize: 12),
+      core.BoxTextStyle(
+        fontSize: 20,
+        fontWeight: core.FontWeight.bold,
+        color: core.BoxColor(0xFF112233),
+        lineHeight: 1.2,
+        letterSpacing: 2,
+        fontFamily: 'Inter',
+      ),
+    ];
+
+    for (final core.BoxTextStyle style in styles) {
+      test('as $style', () {
+        expect(
+          declarationsOf(toTypographyStyles(style)!),
+          css.typographyDeclarations(style)!.text,
+        );
+      });
+    }
+
+    test('when it is the defaults of the model', () {
+      // The `:root` rule both renderers start a document from.
+      expect(
+        declarationsOf(defaultTypographyStyles()),
+        css.defaultTypographyDeclarations().text,
+      );
+    });
+  });
+
+  group('a border and a shadow are spelled the same way', () {
     test('as a border', () {
       const core.BoxBorder border = core.BoxBorder(
         width: 2,

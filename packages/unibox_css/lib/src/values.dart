@@ -1,5 +1,7 @@
 import 'package:unibox_core/unibox_core.dart' as core;
 
+import 'declarations.dart';
+
 /// A number without a needless `.0`, which both CSS and a reader prefer.
 ///
 /// It is the one spelling of a number in this package: a declaration, a class
@@ -170,6 +172,73 @@ String cssBoxShadow(core.BoxShadow shadow) => <String>[
   cssPixels(shadow.spreadRadius),
   cssColor(shadow.color),
 ].join(' ');
+
+/// A font family as CSS writes it: one family, quoted.
+///
+/// A quoted name is one family; an unquoted list of words would be read as a
+/// fallback chain, which is a different thing and is the host's to write. A name
+/// that contains a single quote is wrapped in double quotes instead of being
+/// escaped, which keeps the declaration readable.
+String cssFontFamily(String family) {
+  final bool hasSingle = family.contains("'");
+
+  return hasSingle ? '"$family"' : "'$family'";
+}
+
+/// The declarations that make the descendants of a box inherit its typography.
+///
+/// Every token maps to a property CSS inherits by default — `font-size`,
+/// `font-weight`, `font-family`, `line-height`, `letter-spacing` and `color` — which
+/// is what makes a box behave like the `DefaultTextStyle` a Flutter box installs. The
+/// line height is written unitless so descendants scale with their own font size,
+/// exactly like `TextStyle.height`.
+///
+/// Returns `null` when [style] sets no token, so a box without typography emits no
+/// font declaration at all and inherits from its parent, as it does in Flutter.
+CssDeclarations? typographyDeclarations(core.BoxTextStyle style) {
+  if (style.isEmpty) {
+    return null;
+  }
+
+  final double? fontSize = style.fontSize;
+  final core.FontWeight? fontWeight = style.fontWeight;
+  final core.BoxColor? color = style.color;
+  final String? fontFamily = style.fontFamily;
+  final double? letterSpacing = style.letterSpacing;
+  final double? lineHeight = style.lineHeight;
+
+  return CssDeclarations()
+    ..addIf('font-size', fontSize == null ? null : cssPixels(fontSize))
+    ..addIf(
+      'font-weight',
+      fontWeight == null ? null : cssFontWeight(fontWeight),
+    )
+    ..addIf('color', color == null ? null : cssColorOrRole(color))
+    ..addIf(
+      'font-family',
+      fontFamily == null ? null : cssFontFamily(fontFamily),
+    )
+    ..addIf(
+      'letter-spacing',
+      letterSpacing == null ? null : cssPixels(letterSpacing),
+    )
+    ..addIf('line-height', lineHeight == null ? null : cssNumber(lineHeight));
+}
+
+/// The typography a document starts from.
+///
+/// The tokens are [core.BoxTextStyle.defaults], so both renderers answer with the
+/// same numbers. Only the family is spelled here: the model names none, because a
+/// font file is an asset of the application, and unset means "the platform's UI
+/// font" — which Flutter gets by saying nothing, and CSS by naming the generic
+/// `system-ui`. The family is written unquoted, because a quoted `'system-ui'` would
+/// name a font that no platform installs.
+CssDeclarations defaultTypographyDeclarations() {
+  final CssDeclarations declarations =
+      typographyDeclarations(core.BoxTextStyle.defaults) ?? CssDeclarations();
+
+  return declarations..add('font-family', 'system-ui');
+}
 
 /// The four corner radii of [corners], in CSS's order: top left, top right,
 /// bottom right, bottom left.
