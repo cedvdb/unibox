@@ -73,7 +73,14 @@ UINode _header(MaterialPalette palette) {
   return Box(
     gap: 8,
     children: <UINode>[
-      TextNode('Material 3', style: MaterialTypography.displaySmall),
+      // The page has exactly one h1, and this is it: a crawler and a screen reader
+      // build the outline from the headings, and a document without one reads as an
+      // untitled fragment.
+      TextNode(
+        'Material 3',
+        style: MaterialTypography.displaySmall,
+        headingLevel: 1,
+      ),
       Box(
         width: double.infinity,
         maxWidth: 720,

@@ -44,6 +44,28 @@ a dialog works without a second design. Flutter cannot do that — it draws to a
 so adopting server-rendered HTML would mean repainting it, which is the shift this is
 meant to avoid. The Flutter build is the app beside the page, not on top of it.
 
+### What a crawler sees
+
+The same screen, built twice by `tool/site.sh`. `tool/seo_report.py` counts what a
+search engine reads, so the numbers can be re-run rather than taken on trust:
+
+```shell
+tool/site.sh
+python3 tool/seo_report.py build/site
+```
+
+| Document | Words | `h1` | `h2` | Links | Fields | Bytes |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Jaspr `/web/listings/` | 130 | 1 | 0 | 2 | 0 | 35 910 |
+| Jaspr `/web/signup/` | 147 | 1 | 1 | 4 | 2 | 45 072 |
+| Jaspr `/` | 417 | 1 | 2 | 8 | 0 | 16 940 |
+| Jaspr `/material/` | 454 | 1 | 0 | 3 | 2 | 50 260 |
+| **Flutter `/flutter/listings/`** | **4** | **0** | **0** | **0** | **0** | **772** |
+
+The last row is the point. The Flutter build of the same screen is a document with a
+`<title>` and a canvas host: four words, no heading, no link, nothing to index. The
+tree's version of that screen is the row above it, and it is the same Dart.
+
 **The boundary.** Only the screens that must be found are trees. The rest of an
 application stays ordinary Flutter, screen for screen — a settings page or an internal
 tool gains nothing from being indexable, and nothing here asks it to change.

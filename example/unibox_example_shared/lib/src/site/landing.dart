@@ -146,6 +146,13 @@ UINode _why(MaterialPalette palette) {
             color: palette.onSurfaceVariant,
           ),
           TextNode(
+            'The difference is measurable. A crawler reads 130 words, a single h1 and '
+            'two links on the listings page of this site. The Flutter build of the '
+            'same screen is 4 words and a canvas: a title, and nothing to index.',
+            style: MaterialTypography.bodyLarge,
+            color: palette.onSurface,
+          ),
+          TextNode(
             'Unibox is the one description those two can share. A page that has to '
             'rank is written once as a tree; the export writes it as HTML and CSS, and '
             'the same tree draws the app\'s version of that screen. Nothing is designed '

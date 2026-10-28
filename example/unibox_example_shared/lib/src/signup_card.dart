@@ -314,7 +314,9 @@ UINode _heading() {
     gap: 4,
     textStyle: ExampleType.title,
     children: <UINode>[
-      TextNode('Join Unibox', headingLevel: 1),
+      // A level two: the card is a dialog over a page that already has its h1, and
+      // one document with two of them has no outline a crawler can follow.
+      TextNode('Join Unibox', headingLevel: 2),
       TextNode('One description, two renderers.', style: ExampleType.muted),
     ],
   );
