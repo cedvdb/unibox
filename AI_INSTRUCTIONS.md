@@ -55,10 +55,9 @@ host that renders it.
   components built on nodes the
   renderers already draw — `MaterialCard`, `MaterialListTile`, `MaterialButton`,
   `MaterialChip`, `MaterialSegmentedButton`, `MaterialNavigationBar` and `MaterialIcon`
-  are `Box` subclasses, `MaterialInkWell`,
-  `MaterialTextField` and `MaterialSpinner` are `StatefulNode`s (the ink a press
-  spreads; the text, the focus and whether the field has been touched; the step a
-  ring turns), `MaterialCheckMark` is a `StackNode` (Material's tick, drawn, so a
+  are `Box` subclasses, `MaterialInkWell` and `MaterialTextField` are `StatefulNode`s
+  (the ink a press spreads; the text, the focus and whether the field has been
+  touched), `MaterialCheckMark` is a `StackNode` (Material's tick, drawn, so a
   chosen control needs no font), and `MaterialDialog` and `MaterialBottomSheet` are
   `OverlayNode`s. The palette is a value the tree wears —
   pass the roles into the builders; there is no `Theme` lookup at render time.
