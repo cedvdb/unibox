@@ -72,7 +72,9 @@ UINode buildMaterialSection() {
         _section(
           'Shapes',
           _shapes(palette),
-          note: 'A path in a view box: a hexagon, a circle, and a ring.',
+          note:
+              'A path in a view box: a hexagon, a circle, and a ring — and that ring '
+              'twice over, turning: a progress indicator and the spinner beside it.',
         ),
       ],
     ),
@@ -249,9 +251,14 @@ UINode _shapes(MaterialPalette palette) {
         'Ada',
         outline: palette.primary,
       ),
-      // The label of a ring sits in the hole, so it is painted in the ring's own
-      // colour rather than on top of it.
-      _badge(_ring, palette.primary, palette.primary, '42%'),
+      // The two components built on the shape: a value, and a value nobody knows.
+      MaterialProgressRing(
+        value: 0.42,
+        size: 96,
+        thickness: 8,
+        label: '42% complete',
+      ),
+      MaterialSpinner(size: 96, thickness: 8, label: 'Loading'),
     ],
   );
 }
@@ -298,9 +305,6 @@ const BoxShape _hexagon = BoxShape(
     BoxPathClose(),
   ],
 );
-
-/// A ring of a 12 unit band, which the model states as one value.
-final BoxShape _ring = BoxShape.ring(thickness: 12);
 
 /// A Material button: a filled surface with a [MaterialInkWell] over it.
 ///

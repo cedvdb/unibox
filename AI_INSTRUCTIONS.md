@@ -51,14 +51,16 @@ host that renders it.
 - `unibox_material` is optional: the fifteen Material type roles as `const`
   `BoxTextStyle` values, the colour roles as `MaterialPalette` (`light` and `dark`,
   each a `const` set of `BoxColor`s — or a palette grown from one brand colour with
-  `MaterialPalette.fromSeed(seed, variant:, isDark:, contrastLevel:)`), and twelve
+  `MaterialPalette.fromSeed(seed, variant:, isDark:, contrastLevel:)`), and fourteen
   components built on nodes the
   renderers already draw — `MaterialCard`, `MaterialListTile`, `MaterialButton`,
   `MaterialChip`, `MaterialSegmentedButton`, `MaterialNavigationBar` and `MaterialIcon`
   are `Box` subclasses, `MaterialInkWell` and `MaterialTextField` are `StatefulNode`s
   (the ink a press spreads; the text, the focus and whether the field has been
   touched), `MaterialCheckMark` is a `StackNode` (Material's tick, drawn, so a
-  chosen control needs no font), and `MaterialDialog` and `MaterialBottomSheet` are
+  chosen control needs no font), `MaterialProgressRing` is a `Box` and `MaterialSpinner`
+  a `StatefulNode` (a value, and the value nobody knows), and `MaterialDialog` and
+  `MaterialBottomSheet` are
   `OverlayNode`s. The palette is a value the tree wears —
   pass the roles into the builders; there is no `Theme` lookup at render time.
   Wiring the same roles into the platform (`ColorScheme`, CSS custom properties) is
@@ -151,6 +153,7 @@ host that renders it.
 | `Transform.scale`, `Transform.rotate` | `transform: BoxTransform(scale:, rotation:, offsetX:, offsetY:)` |
 | `AnimatedContainer` | `transition: BoxTransition(...)` plus a `BoxState` style |
 | `ClipRRect` | `overflow: Overflow.hidden` with `borderRadius` |
+| `CircularProgressIndicator` | `MaterialProgressRing(value:, size:, thickness:)` — the ring is a `BoxShape.ring`, so a determinate bar is one node; `MaterialSpinner()` is the value nobody knows |
 | `ClipPath`, `ShapeBorder`, `clip-path` | `Box(shape: BoxShape(...))` — a path in a view box, which the fill, the border and (with `overflow: Overflow.hidden`) the clip all follow; `BoxFillRule.evenOdd` makes a ring |
 | `BorderRadius.vertical(top:)`, `BorderRadius.only(...)` | `corners: BoxBorderRadius(topLeft:, topRight:)` — a box that is not round on all four |
 | `SingleChildScrollView` | `Box(overflow: Overflow.scroll)` |

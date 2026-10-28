@@ -132,6 +132,13 @@
   trailing part sits at the edge instead of beside the text.
 - `MaterialTextField` stretches across the width it is given, so a web page draws it
   as wide as the Flutter one instead of as wide as its label.
+
+- `MaterialProgressRing` and `MaterialSpinner`: Material 3's circular progress
+  indicator. The ring is two boxes painted in `BoxShape.ring` — the track, and the value
+  as a sector of the same band — so no renderer knows what a progress indicator is; the
+  value is clamped rather than refused. The spinner is that ring at three quarters of a
+  turn, rotated one step per frame by a `MaterialSpinStore`, whose sixty steps repeat
+  after one turn so a page settles instead of growing a class a frame.
 - `MaterialTextField` and `MaterialBottomSheet` draw Material's shape: round at the
   top, square where they meet the line or the edge, now that the model has a
   corner token.

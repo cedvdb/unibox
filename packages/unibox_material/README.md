@@ -841,6 +841,43 @@ replaces one level replaces it on every surface that uses it. How a shadow is
 *blurred* is outside the parity contract — a browser and Skia rasterise it
 differently — so a level states the shape of the shadow, not a pixel promise.
 
+## The circular progress indicator
+
+`MaterialProgressRing` is a ring and the part of it that is done: two boxes, each
+painted in a `BoxShape.ring`, one over the other.
+
+```dart
+MaterialProgressRing(value: 0.42, size: 48, thickness: 4, label: '42% complete')
+```
+
+| Token | Value |
+| --- | --- |
+| indicator / track | `primary`, and `surfaceContainerHighest` |
+| size, thickness | 48 and 4, Material's touch target and its stroke |
+| value | a fraction of a turn, clamped: `-0.2` draws no value, `1.4` draws a closed ring |
+
+Nothing about it is a renderer feature. The track is a ring, the value is a sector of
+that ring, and both are paths a box can be painted in, so the component is three
+nodes — the two rings and the stack between them — and the two targets agree because
+they draw the same shape. A ring states its thickness in pixels by writing the shape
+in a grid as wide as the box, which is why `thickness: 4` is four pixels at every size.
+
+**The value is data, not a timeline.** Moving a ring is a store publishing a new
+value; the component draws whatever it is given. When the value is not known it is
+`MaterialSpinner`: the same ring at three quarters of a turn, rotated one step per
+frame by a `MaterialSpinStore`.
+
+```dart
+MaterialSpinner(size: 48, thickness: 4, label: 'Loading')
+```
+
+The turn is a sequence of steps rather than a curve, and the sweep does not breathe
+the way Material's does: a shape cannot be eased, because two outlines have no numbers
+between them, and the model has no keyframe timeline. Sixty steps of six degrees
+repeat after one turn, so on the web the sheet stops growing after the first
+revolution. A renderer that cannot react never calls `onMount`, so a server export
+shows a still ring.
+
 ## Fidelity
 
 What the components state against the Material 3 specification: a card in its three
@@ -913,6 +950,8 @@ value the model could carry:
 | modal entrance and exit transitions | the same missing timeline |
 | `ColorScheme` and CSS custom properties | the two wirings an application owns, described in Task 96 of `TASK_PLAN.md`. A palette *is* generated here (`MaterialPalette.fromSeed`), and installing it on the host stays the application's job |
 | the icon font and its subset | a host asset: declared in `fonts:` or with an `@font-face`, and subset by the Flutter build |
+| Material's breathing spinner | a rotating arc of a fixed sweep: a sweep that grows and shrinks needs a keyframe timeline |
+| a `progressbar` role with its bounds | `BoxSemantics` has no progress role yet, so a ring announces its label as text |
 | chips, menus, navigation | not built; each is a component, not a decision |
 
 ## License
