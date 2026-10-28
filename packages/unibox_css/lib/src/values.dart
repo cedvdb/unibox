@@ -244,3 +244,69 @@ CssDeclarations defaultTypographyDeclarations() {
 /// bottom right, bottom left.
 String cssCorners(core.BoxBorderRadius corners) =>
     corners.radii.map(cssPixels).join(' ');
+
+/// A model [core.BoxTransform] as CSS writes a `transform`, or `null` when it
+/// changes nothing.
+///
+/// The three functions are always listed in the model's order — translate, rotate,
+/// scale — because CSS only interpolates two transforms function by function when the
+/// lists match. `transform-origin` is not written: CSS centres a transform by default
+/// and the Flutter renderer turns and scales about the middle of the box too.
+String? cssTransform(core.BoxTransform? transform) {
+  if (transform == null || transform.isIdentity) {
+    return null;
+  }
+
+  return 'translate(${cssPixels(transform.offsetX)}, '
+      '${cssPixels(transform.offsetY)}) '
+      'rotate(${cssNumber(transform.rotation)}deg) '
+      'scale(${cssNumber(transform.scale)})';
+}
+
+/// The CSS property of every look, in the order a transition lists them.
+///
+/// The paint first, then what is painted on top of it. A border width is left out on
+/// purpose: CSS animates it as a layout change and Flutter as a paint change, so the
+/// two targets would agree on the duration and disagree on what moves.
+const Map<core.BoxProperty, String> transitionedProperties =
+    <core.BoxProperty, String>{
+      core.BoxProperty.backgroundColor: 'background-color',
+      core.BoxProperty.borderColor: 'border-color',
+      core.BoxProperty.borderRadius: 'border-radius',
+      core.BoxProperty.shadow: 'box-shadow',
+      core.BoxProperty.opacity: 'opacity',
+      core.BoxProperty.transform: 'transform',
+    };
+
+/// A model [core.BoxTransition] as CSS writes the `transition` shorthand.
+///
+/// Only the paint properties are listed, for the reason [transitionedProperties]
+/// gives.
+String cssTransition(core.BoxTransition transition) => <String>[
+  for (final MapEntry<core.BoxProperty, String> entry
+      in transitionedProperties.entries)
+    '${entry.value} ${cssTiming(transition, entry.key)}',
+].join(', ');
+
+/// The `duration curve delay` of [look], as CSS writes it.
+///
+/// The delay is omitted when a part does not have one, which is the common case and
+/// the shorter declaration.
+String cssTiming(core.BoxTransition transition, core.BoxProperty look) {
+  final core.BoxTransitionTiming timing = transition.timingOf(look);
+  final String base =
+      '${timing.duration.inMilliseconds}ms ${cssCurve(timing.curve)}';
+
+  return timing.delay == Duration.zero
+      ? base
+      : '$base ${timing.delay.inMilliseconds}ms';
+}
+
+/// The CSS timing function of [curve].
+String cssCurve(core.BoxCurve curve) => switch (curve) {
+  core.BoxCurve.linear => 'linear',
+  core.BoxCurve.ease => 'ease',
+  core.BoxCurve.easeIn => 'ease-in',
+  core.BoxCurve.easeOut => 'ease-out',
+  core.BoxCurve.easeInOut => 'ease-in-out',
+};

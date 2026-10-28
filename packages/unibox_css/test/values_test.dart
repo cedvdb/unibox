@@ -174,6 +174,62 @@ void main() {
     });
   });
 
+  group('a transform and a transition', () {
+    test('list the transform functions in the order CSS interpolates', () {
+      expect(
+        cssTransform(
+          const core.BoxTransform(
+            scale: 1.2,
+            rotation: 45,
+            offsetX: 8,
+            offsetY: 4,
+          ),
+        ),
+        'translate(8px, 4px) rotate(45deg) scale(1.2)',
+      );
+    });
+
+    test('write nothing when the transform changes nothing', () {
+      expect(cssTransform(null), isNull);
+      expect(cssTransform(const core.BoxTransform()), isNull);
+    });
+
+    test('name only the paint, so two targets can agree on what moves', () {
+      // A border width is left out: CSS animates it as layout, Flutter as paint.
+      expect(transitionedProperties.values, <String>[
+        'background-color',
+        'border-color',
+        'border-radius',
+        'box-shadow',
+        'opacity',
+        'transform',
+      ]);
+    });
+
+    test('carry a delay only when a part has one', () {
+      const core.BoxTransition transition = core.BoxTransition(
+        duration: Duration(milliseconds: 150),
+        curve: core.BoxCurve.easeOut,
+      );
+
+      expect(cssTiming(transition, core.BoxProperty.opacity), '150ms ease-out');
+      expect(
+        cssTransition(transition),
+        'background-color 150ms ease-out, border-color 150ms ease-out, '
+        'border-radius 150ms ease-out, box-shadow 150ms ease-out, '
+        'opacity 150ms ease-out, transform 150ms ease-out',
+      );
+    });
+
+    test('name every curve CSS knows', () {
+      expect(cssCurve(core.BoxCurve.linear), 'linear');
+      expect(cssCurve(core.BoxCurve.ease), 'ease');
+      expect(cssCurve(core.BoxCurve.easeIn), 'ease-in');
+      expect(cssCurve(core.BoxCurve.easeOut), 'ease-out');
+      expect(cssCurve(core.BoxCurve.easeInOut), 'ease-in-out');
+    });
+  });
+
   group('a border, a shadow and a corner', () {
     test('are written in the order CSS reads them', () {
       expect(

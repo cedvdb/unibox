@@ -162,6 +162,34 @@ void main() {
     });
   });
 
+  group('a transform and a transition are spelled the same way', () {
+    test('as a transform on a box', () {
+      const core.BoxTransform transform = core.BoxTransform(
+        scale: 1.2,
+        rotation: 45,
+        offsetX: 8,
+        offsetY: 4,
+      );
+      final String text = declarationsOf(
+        toBoxStyles(const core.BoxStyle(transform: transform)),
+      );
+
+      expect(text, contains('transform:${css.cssTransform(transform)}'));
+    });
+
+    test('as a transition on a box', () {
+      const core.BoxTransition transition = core.BoxTransition(
+        duration: Duration(milliseconds: 150),
+        curve: core.BoxCurve.easeOut,
+      );
+      final String text = declarationsOf(
+        toBoxStyles(const core.BoxStyle(transition: transition)),
+      );
+
+      expect(text, contains('transition:${css.cssTransition(transition)}'));
+    });
+  });
+
   group('a border and a shadow are spelled the same way', () {
     test('as a border', () {
       const core.BoxBorder border = core.BoxBorder(
