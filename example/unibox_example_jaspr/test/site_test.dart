@@ -36,6 +36,35 @@ void main() {
     expect(_texts(gallery), isNot(contains('Compare both renderings')));
   });
 
+  test('the card leaves ink from the rows that look tappable', () {
+    // A tile is an ink well, and a well only listens when it is given something to
+    // do: a row with no callback draws a button that answers nothing, which is what
+    // the card did before it passed one.
+    final List<MaterialInkWell> wells = _flatten(buildMaterialGallery())
+        .whereType<MaterialInkWell>()
+        .toList();
+
+    MaterialInkWell rowWith(String text) {
+      return wells.singleWhere((MaterialInkWell well) {
+        final MaterialInkStore store = well.create();
+        return _texts(well.view(store.state, store)).contains(text);
+      });
+    }
+
+    for (final String text in <String>['Ada Lovelace', 'Charles Babbage']) {
+      final MaterialInkWell well = rowWith(text);
+      final MaterialInkStore store = well.create();
+
+      expect(
+        _flatten(well.view(store.state, store))
+            .whereType<Box>()
+            .where((Box box) => box.onTap != null),
+        isNotEmpty,
+        reason: 'the row under $text listens for a press',
+      );
+    }
+  });
+
   test('the dialog demo opens a dialog of its own, and closes it', () {
     final DialogDemo demo = DialogDemo();
     final DialogDemoStore store = demo.create();

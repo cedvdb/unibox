@@ -322,6 +322,39 @@ does for its children — or the tile is given a `borderRadius` of its own. Two 
 stacked in one container want the former, because only the outer corners are round.
 The gallery in the example does exactly that.
 
+## The button
+
+`MaterialButton` is a label on a fill, with the ink of a press. Four named
+constructors, one for each shape Material 3 has:
+
+```dart
+MaterialButton.filled(label: const TextNode('Create account'), onTap: save)
+MaterialButton.tonal(label: const TextNode('Later'), onTap: snooze)
+MaterialButton.outlined(label: const TextNode('Cancel'), onTap: close)
+MaterialButton.text(label: const TextNode('Learn more'), onTap: open)
+```
+
+| Variant | Fill | Label | Line |
+| --- | --- | --- | --- |
+| `filled` | `primary` | `onPrimary` | — |
+| `tonal` | `primaryContainer` | `onPrimaryContainer` | — |
+| `outlined` | none | `primary` | `outline` |
+| `text` | none | `primary` | — |
+
+Every colour is a role, so a dark theme restyles all four with no parameter. It is a
+`Box` around a `MaterialInkWell` — the fill on the box, the tints and the ink on the
+well over it, so a tint cannot wash the colour out — which is also why it needs no
+renderer work: neither target knows the class.
+
+Shape and states are Material's: a radius of 20 (a full round on a 40 pixel height —
+`labelLarge`'s 20 pixel line plus ten above and below), 20 by 10 of room on the three
+filled shapes and 12 by 8 on the text one, and the button role whenever the button can
+be tapped, so it is focusable and activates on `Enter` and `Space`. `enabled: false`
+takes the ink away and leaves the button in place.
+
+An `icon` puts a node before the label, eight pixels away; `ink`, `borderRadius`,
+`padding` and `labelStyle` are parameters when a screen needs to differ.
+
 ## The ink well
 
 `MaterialInkWell` is a tappable region: the three state layers of the palette, and
@@ -547,7 +580,7 @@ them knowing its name.
 
 ## Scope
 
-The type scale, the colour roles, and seven components. What is deliberately not here
+The type scale, the colour roles, and eight components. What is deliberately not here
 is written on the class that lacks it, and it is all platform behaviour rather than a
 value the model could carry:
 
