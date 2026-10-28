@@ -60,6 +60,16 @@ final class CssDeclarations {
     }
   }
 
+  /// Appends every declaration of [other], in its order.
+  ///
+  /// A duplicate stays a duplicate, so combining two lists behaves the way a browser
+  /// reading the result does.
+  void addAllIn(CssDeclarations other) {
+    for (final MapEntry<String, String> entry in other._entries) {
+      _entries.add(entry);
+    }
+  }
+
   /// Appends `property: value` unless [value] is `null`.
   ///
   /// A token the model leaves unset writes nothing at all, so a renderer that walks

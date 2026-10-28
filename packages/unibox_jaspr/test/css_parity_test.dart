@@ -190,6 +190,63 @@ void main() {
     });
   });
 
+  group('a box is spelled the same way', () {
+    const List<core.BoxStyle> styles = <core.BoxStyle>[
+      core.BoxStyle(),
+      core.BoxStyle(direction: core.Axis.horizontal, gap: 8),
+      core.BoxStyle(backgroundColor: core.BoxColor(0xFF112233)),
+      core.BoxStyle(backgroundColor: core.BoxColor.rgba(1, 2, 3, 128)),
+      core.BoxStyle(border: core.BoxBorder(width: 2)),
+      core.BoxStyle(borderRadius: 8, shadow: core.BoxShadow()),
+      core.BoxStyle(corners: core.BoxBorderRadius(topLeft: 8, topRight: 8)),
+      core.BoxStyle(
+        padding: core.BoxSpacing.all(8),
+        margin: core.BoxSpacing.only(top: 4),
+      ),
+      core.BoxStyle(width: 200, height: 100, flex: 1),
+      core.BoxStyle(maxWidth: 400, minHeight: 20),
+      core.BoxStyle(overflow: core.Overflow.scroll, opacity: 0.5),
+      core.BoxStyle(
+        transform: core.BoxTransform(scale: 2),
+        transition: core.BoxTransition(duration: Duration(milliseconds: 200)),
+      ),
+      core.BoxStyle(
+        mainAlign: core.MainAlign.spaceBetween,
+        crossAlign: core.CrossAlign.center,
+        textStyle: core.BoxTextStyle(
+          fontSize: 20,
+          color: core.BoxColor(0xFF00FF00),
+        ),
+      ),
+    ];
+
+    for (final core.BoxStyle style in styles) {
+      for (final bool declaredOnly in <bool>[false, true]) {
+        for (final core.BoxElement element in core.BoxElement.values) {
+          test('as $style, declaredOnly: $declaredOnly, on $element', () {
+            // Not "contains": the whole text, because a class name is a hash of it.
+            expect(
+              declarationsOf(
+                toBoxStyles(
+                  style,
+                  declaredOnly: declaredOnly,
+                  element: element,
+                ),
+              ),
+              css
+                  .boxDeclarations(
+                    style,
+                    declaredOnly: declaredOnly,
+                    element: element,
+                  )
+                  .text,
+            );
+          });
+        }
+      }
+    }
+  });
+
   group('a border and a shadow are spelled the same way', () {
     test('as a border', () {
       const core.BoxBorder border = core.BoxBorder(

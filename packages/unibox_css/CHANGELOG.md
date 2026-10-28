@@ -10,6 +10,12 @@
   role), a dimension (`8px`, `100%` for `double.infinity`), a padding or a margin in
   CSS's four-value order, and an image fit.
 
+- A box, as both web renderers draw it: `boxDeclarations` states the flex container the
+  model resolves to, the paint it names, the two floors a flex item needs, and the
+  typography it installs for its subtree. `declaredOnly` emits only what the style
+  states, which is what a state rule needs — a `:hover` rule that restated the layout
+  would turn a row into a column. A transition belongs to the resting rule alone.
+
 - `CssDeclarations` holds a list of declarations rather than a map: CSS allows a
   property to be written twice as a fallback, and `text` is the canonical spelling —
   sorted by property, insertion order within one property — that a class name is

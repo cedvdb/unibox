@@ -12,5 +12,6 @@
 /// JavaScript along with the renderer that consumes it.
 library;
 
+export 'src/box.dart';
 export 'src/declarations.dart';
 export 'src/values.dart';

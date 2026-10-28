@@ -59,9 +59,9 @@ void main() {
     });
 
     test('is a custom property when it names a role', () {
-      final core.BoxColor? role = core.BoxColor.role(_Role.primary);
+      const core.BoxColor role = core.BoxColor.role(_Role.primary);
 
-      expect(cssRoleReference(role!), startsWith('var(--unibox-color-'));
+      expect(cssRoleReference(role), startsWith('var(--unibox-color-'));
       expect(cssColorOrRole(role), cssRoleReference(role));
     });
 
