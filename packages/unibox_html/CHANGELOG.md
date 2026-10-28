@@ -8,14 +8,17 @@
   never one assembled from data a reader supplied. An embed carrying a payload for another
   target is reported, not skipped.
 
-- `bootScript(src, whenIdle: …, onMove: …)`: the handover, as one script, with one rule —
-  the application starts as early as it can and never earlier than the first paint. A pointer
-  that **moves** across the page is intent: it arrives long before the press it leads to, so
-  the engine is already starting while the reader moves towards the control. A press, a touch,
-  a key or a focus starts it too. An intent that arrives while the document is still loading
-  is remembered and honoured at the load, so a two megabyte engine never competes with the
-  largest paint. For a document that happens to offer an application, `onMove: false` says only
-  a deliberate gesture counts.
+- `bootScript(src, policy: …)`: the handover, as one script and one rule — the application
+  starts as early as it can and never earlier than the first paint. `BootPolicy` names the two
+  kinds of page rather than an event: `immediately` for a page that *is* the application, and
+  `onPointer` — the default — for its front door, where a pointer moving is intent and an idle
+  browser is the fallback. An intent that arrives before the load is remembered and honoured
+  at the load.
+
+- There is no "only on a press" policy, deliberately: a page that must never boot unbidden
+  ships no boot script, because the script is optional by design and the recorders are a
+  separate file. And an interaction that must work without the application is a link or a
+  form, not a press that waits for an engine.
 
 - `toDocument(prefetch: …)`: the bundle is fetched at a low priority while the reader reads,
   so a boot that waits for intent is never a boot on a cold cache. Deferring the execution

@@ -206,9 +206,10 @@ than an assumption.
   to, so the engine's start-up is not spent inside the first interaction — and on a press, a
   touch, a key or a focus. An intent that arrives before the load is remembered and honoured
   at the load, so the engine never competes with the largest paint.
-- **`onMove: false` for a document that offers an application.** Waiting for a deliberate
-  gesture is right for an article and wrong for an app's front door, and only the host knows
-  which it published.
+- **Two kinds of page, one choice.** `BootPolicy.immediately` for a page that *is* the
+  application, `onPointer` for its front door. There is deliberately no "only on a press": a
+  page that must never boot unbidden ships no boot script, and an interaction that must work
+  without the application is a link or a form.
 - **When to boot is a property of the page, not a global rule.** A content page and an
   application entry have opposite answers, and choosing one for both is how a project
   ends up optimising a number instead of a page:

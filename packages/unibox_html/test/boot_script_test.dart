@@ -35,15 +35,12 @@ void main() {
       expect(script, contains("'pointerdown'"));
     });
 
-    test(
-      'can leave a passing pointer alone, for a page that is a document',
-      () {
-        final String script = bootScript('a.js', onMove: false);
-
-        expect(script, isNot(contains("'pointermove'")));
-        expect(script, contains("'pointerdown'"));
-      },
-    );
+    test('is optional in full, which is how a page stays a document', () {
+      // A page that must never boot unbidden ships no boot script: the recorders are a
+      // separate file, so including them does not start an engine.
+      expect(uniboxClientScript, isNot(contains('createElement')));
+      expect(uniboxClientScript, isNot(contains('requestIdleCallback')));
+    });
 
     test('remembers an intent that arrives before the page has loaded', () {
       // An engine that starts while the document is still arriving competes with the largest
@@ -53,6 +50,34 @@ void main() {
       expect(script, contains("document.readyState === 'complete'"));
       expect(script, contains('wanted = true;'));
       expect(script, contains('if (wanted) { boot(); }'));
+    });
+
+    test('boots at once when the page is the application', () {
+      // A dashboard is not arrived at by accident: waiting for a pointer would be a delay
+      // nobody asked for.
+      final String script = bootScript('a.js', policy: BootPolicy.immediately);
+
+      // Before the closing brace of the script, and after everything that sets it up.
+      expect(script, contains('boot();\n})();'));
+      expect(script, isNot(contains("'pointermove'")));
+      expect(script, isNot(contains('requestIdleCallback')));
+    });
+
+    test('boots into the document even before a body exists', () {
+      // The script runs from the head, where `document.body` is still null.
+      expect(
+        bootScript('a.js', policy: BootPolicy.immediately),
+        contains('document.body || document.documentElement'),
+      );
+    });
+
+    test('names two kinds of page, in order of eagerness', () {
+      // Two, not three: a page that must not boot unbidden ships no script, and an
+      // interaction that must work without the application is a link or a form.
+      expect(BootPolicy.values, <BootPolicy>[
+        BootPolicy.immediately,
+        BootPolicy.onPointer,
+      ]);
     });
 
     test('boots once, however often it is asked', () {
@@ -68,13 +93,11 @@ void main() {
       expect(script, contains("addEventListener('load'"));
     });
 
-    test('offers the application only when asked for a document', () {
-      // The difference between a content page and an application entry, and the host is the
-      // only one who knows which it published.
-      final String script = bootScript('a.js', whenIdle: false);
+    test('never waits to be asked, because a page that must be asked ships no script', () {
+      final String script = bootScript('a.js');
 
-      expect(script, isNot(contains('requestIdleCallback')));
-      expect(script, contains('pointerover'));
+      expect(script, contains('requestIdleCallback'));
+      expect(script, contains('pointerdown'));
     });
 
     test('cannot be broken out of by the url it is given', () {
@@ -96,23 +119,19 @@ void main() {
         return;
       }
 
-      for (final bool whenIdle in <bool>[true, false]) {
+      for (final BootPolicy policy in BootPolicy.values) {
         final Directory directory = Directory.systemTemp.createTempSync(
           'unibox',
         );
         addTearDown(() => directory.deleteSync(recursive: true));
         final File file = File('${directory.path}/boot.js')
-          ..writeAsStringSync(bootScript('main.dart.js', whenIdle: whenIdle));
+          ..writeAsStringSync(bootScript('main.dart.js', policy: policy));
         final ProcessResult result = Process.runSync(node, <String>[
           '--check',
           file.path,
         ]);
 
-        expect(
-          result.exitCode,
-          0,
-          reason: 'whenIdle: $whenIdle ${result.stderr}',
-        );
+        expect(result.exitCode, 0, reason: '$policy: ${result.stderr}');
       }
     });
   });
