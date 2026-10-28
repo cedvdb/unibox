@@ -273,6 +273,58 @@ void main() {
     }
   });
 
+  group('a node other than a box is spelled the same way', () {
+    test('as a text', () {
+      const List<core.TextNode> texts = <core.TextNode>[
+        core.TextNode('Hi'),
+        core.TextNode('Hi', fontSize: 20, fontWeight: core.FontWeight.bold),
+        core.TextNode('Hi', textAlign: core.TextAlign.center),
+        core.TextNode('Hi', maxLines: 2),
+        core.TextNode('Hi', overflow: core.TextOverflow.ellipsis),
+        core.TextNode('Hi', headingLevel: 1),
+        core.TextNode('Hi', headingLevel: 2, fontSize: 32),
+      ];
+
+      for (final core.TextNode node in texts) {
+        expect(
+          inOurSpelling(declarationsOf(toTextStyles(node))),
+          css.textDeclarations(node).text,
+        );
+      }
+    });
+
+    test('as an image', () {
+      const List<core.ImageNode> images = <core.ImageNode>[
+        core.ImageNode('a.png', alt: 'A'),
+        core.ImageNode(
+          'a.png',
+          width: 200,
+          height: 100,
+          borderRadius: 8,
+          fit: core.ImageFit.cover,
+        ),
+      ];
+
+      for (final core.ImageNode node in images) {
+        expect(
+          inOurSpelling(declarationsOf(toImageStyles(node))),
+          css.imageDeclarations(node).text,
+        );
+      }
+    });
+
+    test('as a stack and its cell', () {
+      expect(
+        inOurSpelling(declarationsOf(toStackStyles(const core.StackNode()))),
+        css.stackDeclarations(const core.StackNode()).text,
+      );
+      expect(
+        inOurSpelling(declarationsOf(toStackChildStyles())),
+        css.stackCellDeclarations().text,
+      );
+    });
+  });
+
   group('a border and a shadow are spelled the same way', () {
     test('as a border', () {
       const core.BoxBorder border = core.BoxBorder(

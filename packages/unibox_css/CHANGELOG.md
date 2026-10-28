@@ -10,6 +10,18 @@
   role), a dimension (`8px`, `100%` for `double.infinity`), a padding or a margin in
   CSS's four-value order, and an image fit.
 
+- A stack is a relative grid whose single row is the height of the stack rather than of
+  its content, so a list inside it scrolls instead of growing the document; each child
+  gets a cell it cannot escape; a child placed by offsets or by an alignment takes no
+  pointer of its own, because a wrapper is a placement and not a control. Four equal
+  offsets collapse into one `inset`, and an aligned child fills the stack with
+  `inset: 0`.
+
+- A grid counts its tracks from the width it is given. A text writes only the typography
+  it states, clamps with the prefixed box layout when it is given a line count, and
+  cancels what a user agent brings to a heading. An image is a block with an `object-fit`
+  always stated, because an unset one lets a browser stretch the picture over its box.
+
 - A box, as both web renderers draw it: `boxDeclarations` states the flex container the
   model resolves to, the paint it names, the two floors a flex item needs, and the
   typography it installs for its subtree. `declaredOnly` emits only what the style

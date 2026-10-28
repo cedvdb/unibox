@@ -26,6 +26,9 @@ renderer that consumes it.
 | a colour that names a role | `cssRoleReference(...)` → `var(--unibox-color-primary)` |
 | an image fit | `cssObjectFit(...)` → `cover`, `contain`, `fill`, `scale-down` |
 | a set of declarations | `CssDeclarations` — an ordered list, and its canonical `text` |
+| a stack, its cell | `stackDeclarations`, `stackCellDeclarations` |
+| a placed child | `positionedDeclarations`, `alignedDeclarations` |
+| a text, an image, a grid | `textDeclarations`, `imageDeclarations`, `gridDeclarations` |
 | a box | `boxDeclarations(style)` — the flex container, its paint, its typography |
 | the typography of a box | `typographyDeclarations(style)`, and `defaultTypographyDeclarations()` |
 | a transform, a transition | `cssTransform`, `cssTransition` |
@@ -36,8 +39,7 @@ has to be the same however the renderer built it.
 
 ## What is still to come
 
-The package grows node by node: text, image, grid, stack, positioned and the text
-input, then the four state rules (`:hover`, `:focus-visible`, `:active`,
+The package grows node by node: the text input, then the four state rules (`:hover`, `:focus-visible`, `:active`,
 `[aria-disabled="true"]`). Until a family is here, the renderer that needs it is not
 finished either — which is on purpose: half a mapping is how two renderings start to
 differ.

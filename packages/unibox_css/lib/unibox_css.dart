@@ -14,4 +14,5 @@ library;
 
 export 'src/box.dart';
 export 'src/declarations.dart';
+export 'src/nodes.dart';
 export 'src/values.dart';
