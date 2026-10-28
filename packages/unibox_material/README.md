@@ -697,10 +697,13 @@ up.
 
 **What it announces.** Each destination is a button that says whether it is chosen
 and, when it is, that it is the current page — `aria-current="page"` on the web,
-the selected item of a set in Flutter. The bar itself is a `nav` landmark on the
-web, which Flutter's screen readers have no counterpart for. A tab strip's arrow
-keys are deliberately not modelled (`BoxRole` has no tab, for the reason
-[TASK_PLAN](../../TASK_PLAN.md) records), so the role is a button.
+the selected item of a set in Flutter. That is the *only* state it sets: `aria-selected`
+belongs to options, tabs and rows and not to a button, and Flutter already reads
+`current` as the selected state, so one fact reaches both targets and neither is told
+something invalid. The bar itself is a `nav` landmark on the web, which Flutter's screen
+readers have no counterpart for. A tab strip's arrow keys are deliberately not modelled
+(`BoxRole` has no tab, for the reason [TASK_PLAN](../../TASK_PLAN.md) records), so the
+role is a button.
 
 **Where it sits is the tree's business**, and so is the safe area: the bar is a row
 that fills the width and states its height, and being at the bottom is a

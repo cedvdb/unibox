@@ -103,7 +103,7 @@ python3 tool/seo_report.py build/site
 
 | Document | Words | `h1` | `h2` | Links | Fields | Bytes |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Jaspr `/` | 433 | 1 | 2 | 4 | 2 | 123 884 |
+| Jaspr `/` | 433 | 1 | 2 | 4 | 2 | 123 819 |
 | Jaspr `/web/listings/` | 132 | 1 | 0 | 1 | 0 | 60 540 |
 | Jaspr `/web/signup/` | 149 | 1 | 1 | 3 | 2 | 70 252 |
 | **Flutter `/flutter/listings/`** | **4** | **0** | **0** | **0** | **0** | **772** |

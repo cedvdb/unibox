@@ -86,11 +86,14 @@ final class MaterialNavigationDestination {
 /// It adds no safe area inset either: the host that knows the window insets pads
 /// it, because the model has no notion of a device.
 ///
-/// **What it announces.** Each destination is a button that says whether it is the
-/// chosen one and, when it is, that it is the current page — which a browser writes
-/// as `aria-current="page"` and a phone reads as the selected item of a set. The bar
-/// itself is a `nav` landmark on the web. A tab strip's arrow keys and roving focus
-/// are not modelled, which is why the role is a button and not a tab.
+/// **What it announces.** Each destination is a button that says, when it is the
+/// chosen one, that it is the current page — which a browser writes as
+/// `aria-current="page"` and a phone reads as the selected item of a set.
+/// `selected` is deliberately not set as well: `aria-selected` is valid on options,
+/// tabs and rows and not on a button, and Flutter already reads `current` as the
+/// selected state, so one fact reaches both targets. The bar itself is a `nav`
+/// landmark on the web. A tab strip's arrow keys and roving focus are not modelled,
+/// which is why the role is a button and not a tab.
 ///
 /// **What Material draws that this still does not.** The label fades between its two
 /// colours where the pill fades and grows, and the icon swaps rather than cross-fading:
@@ -282,9 +285,11 @@ final class MaterialNavigationBar extends Box {
               semantics: BoxSemantics(
                 role: BoxRole.button,
                 label: destination.semanticsLabel,
-                selected: selected,
-                // The destination that is chosen is the page being read, which is
-                // what a nav item means by current.
+                // The chosen destination is the page being read, which is the one
+                // thing a nav item has to say — `aria-current="page"` on the web,
+                // which is the only valid way to say it on a button (`aria-selected`
+                // belongs to options, tabs and rows), and the selected state of a set
+                // in Flutter, which is what a phone reader announces for it.
                 current: selected ? BoxCurrent.page : null,
               ),
               child: Box(

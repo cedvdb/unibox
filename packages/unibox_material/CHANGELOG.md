@@ -17,7 +17,9 @@
   whole destination, a press inks over the pill, and a switch of destination never inserts
   a node. `BoxTransform` grew `scaleX`/`scaleY` for that sideways stretch, which one factor
   cannot say. The pill does not travel *along* the bar (that needs the width of its
-  neighbours) and the icon still swaps rather than cross-fading.
+  neighbours) and the icon still swaps rather than cross-fading. A destination announces
+  `aria-current="page"` and no longer `aria-selected`: the latter is not valid on a
+  button, and Flutter reads `current` as its selected state anyway.
 
 - `MaterialNavigationBar`: Material 3's navigation bar — three to five destinations in
   one 80 pixel row on the new `surfaceContainer` role, an equal share each, the chosen

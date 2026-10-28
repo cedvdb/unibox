@@ -161,8 +161,8 @@ void main() {
       expect(well.width, double.infinity);
       expect(well.height, MaterialNavigationBar.barHeight);
       expect(
-        well.semantics?.selected,
-        isTrue,
+        well.semantics?.current,
+        BoxCurrent.page,
         reason: 'the tint belongs to the destination that is chosen',
       );
     });
@@ -246,10 +246,12 @@ void main() {
         semantics.map((BoxSemantics s) => s.role),
         everyElement(BoxRole.button),
       );
-      expect(semantics.map((BoxSemantics s) => s.selected ?? false), <bool>[
-        true,
-        false,
-        false,
+      // `current` and not `selected`: `aria-selected` belongs to options, tabs and
+      // rows, and Flutter reads `current` as the selected state itself.
+      expect(semantics.map((BoxSemantics s) => s.selected), <bool?>[
+        null,
+        null,
+        null,
       ]);
       expect(semantics.map((BoxSemantics s) => s.current), <BoxCurrent?>[
         BoxCurrent.page,

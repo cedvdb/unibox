@@ -50,6 +50,26 @@ void main() {
       expect(html, contains('title="Flutter — the same tree"'));
     });
 
+    test('says which destination is the page, and says nothing invalid', () {
+      // `aria-current="page"` is the valid way to say which item of a navigation is the
+      // page being read. `aria-selected` belongs to options, tabs and rows and not to a
+      // button, which is why the component asks for `current` alone — Flutter reads
+      // that as the selected state, so one fact reaches both targets.
+      final int start = html.indexOf(
+        'data-unibox-node="material-navigation-bar"',
+      );
+      final String nav = html.substring(start, html.indexOf('</nav>', start));
+
+      expect(nav, contains('role="button"'));
+      expect(nav, contains('aria-current="page"'));
+      expect(nav, isNot(contains('aria-selected')));
+      expect(
+        RegExp('aria-current="page"').allMatches(nav),
+        hasLength(1),
+        reason: 'exactly one destination is the page',
+      );
+    });
+
     test('installs the palette the page names roles from', () {
       // The site is drawn with the palette the example grows from its seed, so the
       // value is the generated one — what matters here is that the role is installed
