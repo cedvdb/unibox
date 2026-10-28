@@ -23,6 +23,7 @@
 /// application's, once it takes the page over.
 library;
 
+export 'src/client_script.dart';
 export 'src/document.dart';
 export 'src/escape.dart';
 export 'src/plan.dart';

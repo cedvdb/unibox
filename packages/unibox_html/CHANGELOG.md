@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- `uniboxClientScript`, the one behaviour a document has: it paints the ink where a press
+  landed and records the press, so the application that takes the page over can replay the
+  intent instead of losing it. It is one optional file — `data-unibox-ink` without it is
+  inert markup, which is how a page opts out of ink: it includes no script. The tree says
+  *where* a press may paint, the host says *whether* it does.
+
+- The drop's own rule is written into the stylesheet once, and only when a press is marked,
+  so a page with nothing to press carries no animation it cannot use.
+
+- Overlay dismissal is **not** part of the script, deliberately: nothing can open an overlay
+  until a client renderer exists, so a dismissal path would be code nothing can reach. It
+  arrives with `unibox_dom`.
+
 - The conformance suite, which is what makes this a renderer rather than a second design:
   every case in `unibox_testing` is rendered to a document, the presentation is read back
   out of the class the root element wears, and compared with the table the Flutter suite is
