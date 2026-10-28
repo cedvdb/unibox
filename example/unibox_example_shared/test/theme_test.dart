@@ -19,6 +19,10 @@ void main() {
       expect(ExampleSeed.fromName(null), ExampleSeed.values.first);
       expect(ExampleSeed.fromName('nonsense'), ExampleSeed.values.first);
       expect(ExampleSeed.fromName('green'), ExampleSeed.green);
+      // The branding is a decision, so it is pinned: rose is what the example is
+      // drawn with, and it is the first swatch of the row.
+      expect(ExampleSeed.defaultSeed, ExampleSeed.rose);
+      expect(ExampleSeed.values.first, ExampleSeed.defaultSeed);
     });
 
     test('paints each swatch with the accent its seed grows', () {
