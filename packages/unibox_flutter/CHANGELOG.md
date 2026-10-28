@@ -2,6 +2,7 @@
 
 ## 0.1.0
 
+- A text input resolves a colour role in its `placeholderStyle` against the theme, like the colour of any other text; it threw before.
 - A `BoxBorderRadius` becomes `BorderRadius.only`, so a box that rounds only two corners
   draws the same shape it does on the web.
 

@@ -1,6 +1,8 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
+
+import 'package:unibox_flutter/unibox_flutter.dart';
 
 import 'support/harness.dart';
 
@@ -107,5 +109,31 @@ void main() {
 
       expect(decorationOf(tester).color, const Color(0xFFFFFFFF));
     });
+  });
+
+  testWidgets('a role in the hint style is resolved against the theme', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: UniboxThemeScope(
+            theme: theme,
+            child: renderFlutter(
+              const core.TextInputNode(
+                placeholder: 'Email',
+                placeholderStyle: core.BoxTextStyle(
+                  color: core.BoxColor.role(AppColor.primary),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final TextField field = tester.widget<TextField>(find.byType(TextField));
+
+    expect(field.decoration?.hintStyle?.color, const Color(0xFF6750A4));
   });
 }

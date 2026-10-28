@@ -3,6 +3,7 @@ import 'package:flutter/semantics.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
 
 import 'text_style_scope.dart';
+import 'theme_scope.dart';
 import 'values.dart';
 
 /// Renders a [core.TextInputNode] as a Material [TextField].
@@ -64,9 +65,13 @@ class FlutterTextInputState extends State<FlutterTextInput> {
   ///
   /// The hint is drawn by the field, not by the enclosing box, so it is handed to
   /// the control as `hintStyle` — the web renderer answers with a `::placeholder`
-  /// rule — and an unset token means the field says nothing about it.
-  TextStyle? get _hintStyle {
-    final core.BoxTextStyle? style = widget.node.placeholderStyle;
+  /// rule — and an unset token means the field says nothing about it. A colour
+  /// that names a role is resolved against the theme of the rendering, like the
+  /// colour of any other text.
+  TextStyle? _hintStyle(BuildContext context) {
+    final core.BoxTextStyle? style = widget.node.placeholderStyle?.resolve(
+      UniboxThemeScope.of(context) ?? core.UniboxTheme.none,
+    );
     return style == null ? null : toTextStyle(style);
   }
 
@@ -106,11 +111,11 @@ class FlutterTextInputState extends State<FlutterTextInput> {
       decoration: node.padding == null
           ? InputDecoration.collapsed(
               hintText: node.placeholder,
-              hintStyle: _hintStyle,
+              hintStyle: _hintStyle(context),
             )
           : InputDecoration(
               hintText: node.placeholder,
-              hintStyle: _hintStyle,
+              hintStyle: _hintStyle(context),
               border: InputBorder.none,
               isDense: true,
               contentPadding: toEdgeInsets(node.padding!),
