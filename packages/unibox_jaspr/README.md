@@ -38,6 +38,7 @@ rendering nothing.
 | `backgroundColor`             | `background-color`                                     |
 | `borderRadius`                | `border-radius`                                        |
 | `corners`                     | `border-radius` with the four values, in CSS's order   |
+| `PositionedNode.alignment`    | `inset: 0` with a `justify-content`/`align-items` pair  |
 | `border`                      | `border` (`none` when the width is zero)               |
 | `shadow`                      | `box-shadow`                                           |
 | `overflow`                    | `overflow` (`scroll` → `auto`)                         |

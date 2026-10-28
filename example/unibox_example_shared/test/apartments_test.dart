@@ -33,16 +33,31 @@ void main() {
     });
   });
 
+  /// The box that scrolls the listings, wherever the page keeps it.
+  ///
+  /// The page is a stack now — the list scrolls under a floating button — so the box
+  /// that scrolls is reached through whatever wraps it rather than at a fixed depth.
+  Box _scrolling(UINode page) {
+    UINode node = page;
+
+    while (node is! Box || node.overflow != Overflow.scroll) {
+      node = node.children.first;
+    }
+
+    return node;
+  }
+
   group('buildApartmentsPage', () {
     test('scrolls instead of growing the page', () {
       final Box page = buildApartmentsPage();
+      final Box scrolling = _scrolling(page);
 
-      expect(page.overflow, Overflow.scroll);
+      expect(scrolling.overflow, Overflow.scroll);
       expect(page.flex, 1);
       expect(page.direction, Axis.vertical);
       // A scrolling box may not distribute its children: they would be pushed
       // out of reach instead of scrolled to.
-      expect(page.mainAlign, isNull);
+      expect(scrolling.mainAlign, isNull);
     });
 
     test('keeps the padding inside the scrolling area', () {
@@ -51,8 +66,28 @@ void main() {
       final Box page = buildApartmentsPage();
 
       expect(page.padding, isNull);
-      expect(page.children.single, isA<Box>());
-      expect((page.children.single as Box).padding, isNotNull);
+      expect(_scrolling(page).children.single, isA<Box>());
+      expect((_scrolling(page).children.single as Box).padding, isNotNull);
+    });
+
+    test('floats the map button at the bottom centre of the page', () {
+      // The listing scrolls under the button, so the two are siblings in a stack:
+      // the scroll box and an aligned cell, which needs no measurement of a window.
+      final Box page = buildApartmentsPage();
+      final StackNode stack = page.children.single as StackNode;
+      final PositionedNode floating = stack.children.last as PositionedNode;
+
+      expect(stack.children.first, isA<Box>());
+      expect(floating.alignment, BoxAlignment.bottomCenter);
+      expect(
+        floating.isUnpositioned,
+        isTrue,
+        reason: 'an alignment is not an offset',
+      );
+      // The button is the narrow-surface one, lifted to the dialog's elevation.
+      final Box button = floating.child as Box;
+      expect(button.visibleUntil, 900);
+      expect(button.shadow, MaterialElevation.level3);
     });
 
     test('lists every apartment of the example', () {

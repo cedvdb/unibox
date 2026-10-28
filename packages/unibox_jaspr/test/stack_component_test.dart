@@ -12,6 +12,43 @@ const Map<String, String> _cellStyles = <String, String>{
 };
 
 void main() {
+  group('an aligned child', () {
+    testComponents('fills the cell and is placed by the alignment', (
+      tester,
+    ) async {
+      pumpNode(
+        tester,
+        const core.StackNode(
+          width: 300,
+          height: 200,
+          children: <core.UINode>[
+            core.Box(width: double.infinity, height: double.infinity),
+            core.PositionedNode(
+              alignment: core.BoxAlignment.bottomCenter,
+              child: core.TextNode('Open the map'),
+            ),
+          ],
+        ),
+      );
+
+      // The last cell is the aligned one: it fills the stack and places its child
+      // along the row, at the end of the column — bottom-centred is
+      // `justify-content: center` with `align-items: end`.
+      final Map<String, String> styles = stylesOf(find.tag('div').last);
+
+      expect(styles['position'], 'absolute');
+      // The cell is the whole stack: four edges at zero, which is `inset: 0`
+      // written out — Jaspr states the sides rather than the shorthand.
+      expect(styles['top'], '0');
+      expect(styles['right'], '0');
+      expect(styles['bottom'], '0');
+      expect(styles['left'], '0');
+      expect(styles['justify-content'], 'center');
+      expect(styles['align-items'], 'end');
+      expect(find.text('Open the map'), findsOneComponent);
+    });
+  });
+
   group('StackNode', () {
     testComponents('renders a relative grid', (tester) async {
       pumpNode(tester, const core.StackNode());

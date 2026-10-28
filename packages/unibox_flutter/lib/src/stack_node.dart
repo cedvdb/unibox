@@ -3,6 +3,7 @@ import 'package:unibox_core/unibox_core.dart' as core;
 
 import 'keys.dart';
 import 'render.dart';
+import 'values.dart';
 
 /// Renders a [core.StackNode] as a Flutter [Stack].
 ///
@@ -43,6 +44,18 @@ class FlutterStack extends StatelessWidget {
     }
 
     final Widget child = renderNode(node.child);
+
+    // An aligned child fills the cell and the alignment places it inside that: the
+    // same statement as `position: absolute; inset: 0` with a flex alignment, and
+    // what puts a floating button at the bottom centre of the surface it floats over.
+    final core.BoxAlignment? alignment = node.alignment;
+
+    if (alignment != null) {
+      return Positioned.fill(
+        key: toFlutterKey(node.key),
+        child: Align(alignment: toAlignment(alignment), child: child),
+      );
+    }
 
     if (node.isUnpositioned) {
       return child;

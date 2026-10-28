@@ -43,6 +43,43 @@ enum CrossAlign {
   stretch,
 }
 
+/// Where a child sits in the cell of a stack, both axes at once.
+///
+/// [MainAlign] and [CrossAlign] answer for one axis of a flex container; a stack has
+/// two axes and no direction of its own, so a child placed in it names both. The nine
+/// positions are the corners, the edges and the middle.
+///
+/// It is what a floating control needs: a button pinned to the bottom centre of the
+/// surface it floats over, rather than at offsets that suit one window.
+enum BoxAlignment {
+  /// The top left corner.
+  topStart,
+
+  /// The top edge, centred.
+  topCenter,
+
+  /// The top right corner.
+  topEnd,
+
+  /// The left edge, centred.
+  centerStart,
+
+  /// The middle.
+  center,
+
+  /// The right edge, centred.
+  centerEnd,
+
+  /// The bottom left corner.
+  bottomStart,
+
+  /// The bottom edge, centred.
+  bottomCenter,
+
+  /// The bottom right corner.
+  bottomEnd,
+}
+
 /// The easing of a [BoxTransition].
 ///
 /// These five are the curves CSS and Flutter define with the same control points,

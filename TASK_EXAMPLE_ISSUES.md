@@ -70,7 +70,21 @@ the design system it leans on is `packages/unibox_material`.
   in one outlined container, the selected one filled, dividers between them, a 40 pixel
   height and the button role per segment.
 
-- [ ] **5. The map button cannot float at the bottom centre.**
+- [x] **5. The map button cannot float at the bottom centre.** *Done.*
+
+  `PositionedNode` takes an `alignment` now: the child fills the stack and `BoxAlignment`
+  places it, so a control sits at the bottom centre of any surface without measuring a
+  window. Flutter draws it as `Positioned.fill` around an `Align`, the web as `inset: 0`
+  with a `justify-content`/`align-items` pair, `validateTree` reports an alignment and
+  an offset on one node, and the listings page floats its Map button over the list.
+
+  Reaching that turned up two things underneath: the page had to become a stack so the
+  list scrolls *under* the button, and a CSS flex item keeps its content as an automatic
+  minimum, so a page of 1953 pixels of listings refused to shrink while the same tree
+  filled a Flutter window. A box that states `flex` now writes `min-width: 0` and
+  `min-height: 0`, which is what `Expanded` means. Measured in Chromium at 420 by 820:
+  the button is 24 pixels from the bottom, centred, and does not move when the list
+  scrolls.
 
   A floating action over the page needs a position the model cannot state: `Box` lays
   out in the flow and `PositionedNode` places a child inside a `StackNode` at exact

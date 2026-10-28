@@ -188,6 +188,19 @@ BoxDecoration? toDecoration(core.BoxStyle style) {
   );
 }
 
+/// [alignment] as Flutter's own.
+Alignment toAlignment(core.BoxAlignment alignment) => switch (alignment) {
+  core.BoxAlignment.topStart => Alignment.topLeft,
+  core.BoxAlignment.topCenter => Alignment.topCenter,
+  core.BoxAlignment.topEnd => Alignment.topRight,
+  core.BoxAlignment.centerStart => Alignment.centerLeft,
+  core.BoxAlignment.center => Alignment.center,
+  core.BoxAlignment.centerEnd => Alignment.centerRight,
+  core.BoxAlignment.bottomStart => Alignment.bottomLeft,
+  core.BoxAlignment.bottomCenter => Alignment.bottomCenter,
+  core.BoxAlignment.bottomEnd => Alignment.bottomRight,
+};
+
 /// The four corners of [corners] as Flutter's own radius.
 BorderRadius toFlutterBorderRadius(core.BoxBorderRadius corners) =>
     BorderRadius.only(

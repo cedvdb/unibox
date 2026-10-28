@@ -361,6 +361,38 @@ void main() {
     });
   });
 
+  group('aligned placement', () {
+    test('accepts a child placed by an alignment', () {
+      const UINode stack = StackNode(
+        children: <UINode>[
+          Box(width: double.infinity, height: 200),
+          PositionedNode(
+            alignment: BoxAlignment.bottomCenter,
+            child: TextNode('Open the map'),
+          ),
+        ],
+      );
+
+      expect(validateTree(stack), isEmpty);
+    });
+
+    test('reports an alignment and an offset on one node', () {
+      final List<TreeIssue> issues = validateTree(
+        const StackNode(
+          children: <UINode>[
+            PositionedNode(
+              bottom: 24,
+              alignment: BoxAlignment.bottomCenter,
+              child: TextNode('Open the map'),
+            ),
+          ],
+        ),
+      );
+
+      expect(issues.single.message, contains('not by both'));
+    });
+  });
+
   group('visibility', () {
     test('accepts a threshold inside a box', () {
       expect(

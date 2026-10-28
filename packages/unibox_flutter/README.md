@@ -40,6 +40,7 @@ with their target.
 | `minWidth`, `maxWidth`, ...         | `ConstrainedBox`                                    |
 | `backgroundColor`, `borderRadius`, `border`, `shadow` | `DecoratedBox` with a `BoxDecoration` |
 | `overflow: Overflow.hidden`         | `ClipRect`                                          |
+| `PositionedNode.alignment`          | `Positioned.fill` around an `Align`                 |
 | `overflow: Overflow.scroll`         | `SingleChildScrollView`                             |
 | `onTap` / `onLongPress`             | `GestureDetector`                                   |
 | `onHover` / `hoverStyle`            | `MouseRegion` and the hovered token set             |

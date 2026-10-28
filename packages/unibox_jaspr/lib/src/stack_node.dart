@@ -56,6 +56,10 @@ class JasprStack extends StatelessComponent {
 /// `Positioned` widget that was never needed: it is rendered as a regular stack
 /// child. Rendering the node on its own falls back to its child, since there is
 /// no stack to position it in.
+///
+/// A node with an [core.BoxAlignment] fills the stack instead and its child is placed
+/// by a flex alignment inside that — `inset: 0` and a `justify-content`/
+/// `align-items` pair, which is the `Positioned.fill` and `Align` of the other target.
 class JasprPositioned extends StatelessComponent {
   /// Creates a renderer for [node].
   const JasprPositioned({required this.node, super.key});
@@ -67,7 +71,10 @@ class JasprPositioned extends StatelessComponent {
   Component build(BuildContext context) {
     final Component child = renderNode(node.child);
 
-    final Styles styles = node.isUnpositioned
+    final core.BoxAlignment? alignment = node.alignment;
+    final Styles styles = alignment != null
+        ? toAlignedStyles(alignment)
+        : node.isUnpositioned
         ? toStackChildStyles()
         : toPositionedStyles(node);
     final String? className = UniboxStylesheetScope.of(context)?.classFor(

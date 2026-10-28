@@ -86,11 +86,11 @@ void main() {
             )
             .toList();
 
-        // Two navigation items, the four filters of the listings, the opt-in row
-        // and the barrier that dismisses the sign-up dialog. The submit button is
-        // disabled until the form is complete, and a disabled box listens to
-        // nothing.
-        expect(clickable, hasLength(9));
+        // Two navigation items, the four filters of the listings, the floating map
+        // button, the opt-in row and the barrier that dismisses the sign-up dialog.
+        // The submit button is disabled until the form is complete, and a disabled
+        // box listens to nothing.
+        expect(clickable, hasLength(10));
 
         // The bar's sign-up trigger is a button too, and it comes first; the
         // submit button is the last one in the tree.
@@ -120,7 +120,7 @@ void main() {
           .toList();
 
       // The same set, and now the submit button as well.
-      expect(clickable, hasLength(10));
+      expect(clickable, hasLength(11));
 
       final TestRenderElement button = elementsOf(find.tag('div')).lastWhere(
         (TestRenderElement element) => element.attributes?['role'] == 'button',
@@ -191,18 +191,32 @@ void main() {
     testComponents('scrolls the listings inside the page', (tester) async {
       tester.pumpComponent(const ExampleApp());
 
-      // The page is the `<main>` landmark and the scrolling box in one: it is
-      // the part of the frame that takes the room the navigation leaves.
+      // The page is the `<main>` landmark and takes the room the navigation
+      // leaves; the list inside it is what scrolls, under the floating button.
       final Map<String, String> page = stylesOf(find.tag('main'));
 
-      expect(page['overflow'], 'auto');
       expect(page['flex-grow'], '1');
+      expect(
+        page['overflow'],
+        isNull,
+        reason: 'the page itself no longer scrolls: the list inside it does',
+      );
 
-      // Nothing else scrolls, so the document itself stays one viewport tall.
-      final Iterable<TestRenderElement> scrollable = elementsOf(find.tag('div'))
-          .where((TestRenderElement e) => e.styles?['overflow'] == 'auto');
+      // A look is written once as a class, so the declarations are read through
+      // the class each div wears rather than from its inline styles.
+      final List<Map<String, String>> scrollable = <Map<String, String>>[];
+      final int divs = elementsOf(find.tag('div')).length;
 
-      expect(scrollable, isEmpty);
+      for (int i = 0; i < divs; i++) {
+        final Map<String, String> styles = stylesOf(find.tag('div').at(i));
+
+        if (styles['overflow'] == 'auto') {
+          scrollable.add(styles);
+        }
+      }
+
+      expect(scrollable, hasLength(1));
+      expect(scrollable.single['height'], '100%');
     });
 
     testComponents('shows the listings behind the sign-up dialog', (
