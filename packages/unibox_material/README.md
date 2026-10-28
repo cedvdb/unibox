@@ -437,9 +437,13 @@ MaterialSegmentedButton(
 | --- | --- |
 | height, radius | 40, and 20: a full round |
 | container | a 1 pixel `outline` line, `overflow: hidden` so a chosen fill is cut to the rounded ends it reaches |
-| chosen | a `secondaryContainer` fill, an `onSecondaryContainer` label, and `selected` for a screen reader |
+| chosen | a `secondaryContainer` fill, an `onSecondaryContainer` label, a check, and `selected` for a screen reader |
+| check | 18 pixels, drawn from boxes, in place of the chosen segment's icon; `showSelectedIcon: false` keeps the icon |
+| icon | `iconSize` = 18, 8 from the label and 12 from the segment's edge |
+| label | `labelLarge`, `onSurface` or `onSecondaryContainer` |
 | dividers | a 1 pixel box the colour of the outline between two segments |
 | width | equal shares: every segment is `flex: 1` |
+| disabled | the whole control at 38%, with no ink on any segment |
 
 The container is one box and each segment is a box around a `MaterialInkWell`, so the
 tint and the ink cover the segment rather than its label, and the container's clip
@@ -447,11 +451,16 @@ keeps them inside the pill. The well's content is centred and its stack stretche
 that is what the well's `mainAlign` and `crossAlign` are for, and why a segment can
 say `width: double.infinity` and mean it on both targets.
 
-**What Material draws that this does not.** A chosen segment shows a check beside its
-label, which needs a glyph from a font the package does not ship: pass
-`MaterialSegment.icon` if the choice wants a picture, and the fill states the choice
-on its own. The container is also not a `radiogroup`, because `BoxSemantics` has no
-group role — every segment is a button that says whether it is the chosen one.
+A chosen segment draws an 18 pixel check in place of its icon, which is what Material
+does, so a control of pictures still says which one is on. The check is boxes and
+transforms rather than a glyph — an icon font is a host asset and this package ships
+none — and `showSelectedIcon: false` leaves the icon where it is for a control whose
+fill is enough.
+
+**What stays approximate.** The container is not a `radiogroup`, because `BoxSemantics`
+has no group role: every segment is a button that says whether it is the chosen one. A
+disabled control fades as one at 38% rather than drawing `onSurface` at 12% under a 38%
+label, which would need an alpha role per token.
 
 ## The text field
 

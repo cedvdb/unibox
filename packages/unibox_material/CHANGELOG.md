@@ -2,6 +2,12 @@
 
 ## 0.1.0
 
+- `MaterialSegmentedButton` draws the check of the chosen segment, in place of its
+  icon, the way Material does — drawn from boxes, because an icon font is a host asset
+  — with `showSelectedIcon: false` for a control whose fill is enough. `iconSize`
+  states Material's 18 for a segment's icon and for that check, and a disabled control
+  fades as one at 38% instead of looking pressable.
+
 - `MaterialChip` follows Material 3's chip metrics rather than approximating them:
   `controlHeight` states the 32 the pill is, whatever glyph it carries (a leading node
   used to be able to make one chip taller than its neighbours); the padding is taken

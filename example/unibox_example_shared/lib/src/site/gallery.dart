@@ -457,17 +457,17 @@ UINode _viewSwitchView(int chosen, ViewStore store) {
     segments: <MaterialSegment>[
       MaterialSegment(
         label: const TextNode('List'),
-        icon: glyphList(onSurface),
+        icon: glyphList(onSurface, size: MaterialSegmentedButton.iconSize),
         semanticsLabel: 'As a list',
       ),
       MaterialSegment(
         label: const TextNode('Grid'),
-        icon: glyphGrid(onSurface),
+        icon: glyphGrid(onSurface, size: MaterialSegmentedButton.iconSize),
         semanticsLabel: 'As a grid',
       ),
       MaterialSegment(
         label: const TextNode('Map'),
-        icon: glyphPin(onSurface),
+        icon: glyphPin(onSurface, size: MaterialSegmentedButton.iconSize),
         semanticsLabel: 'On the map',
       ),
     ],

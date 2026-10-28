@@ -97,6 +97,62 @@ void main() {
       ]);
     });
 
+    test('puts a check on the chosen segment, in place of its icon', () {
+      const UINode icon = TextNode('grid');
+      final MaterialSegmentedButton button = MaterialSegmentedButton(
+        segments: const <MaterialSegment>[
+          MaterialSegment(label: TextNode('List'), icon: icon),
+          MaterialSegment(label: TextNode('Grid'), icon: icon),
+        ],
+        selected: 1,
+        onSelect: _select,
+      );
+      final List<Box> segments = button.children.whereType<Box>().toList();
+
+      // A chosen segment shows the check *instead of* its icon, which is what
+      // Material does: a control that carries pictures still says which one is on.
+      expect(_checkOf(_wellBox(segments.last)), isNotNull);
+      expect(_nodesOf(_wellBox(segments.last)), isNot(contains(same(icon))));
+      expect(_checkOf(_wellBox(segments.first)), isNull);
+      expect(_nodesOf(_wellBox(segments.first)), contains(same(icon)));
+    });
+
+    test('keeps the icon when the check is turned off', () {
+      const UINode icon = TextNode('grid');
+      final MaterialSegmentedButton button = MaterialSegmentedButton(
+        segments: const <MaterialSegment>[
+          MaterialSegment(label: TextNode('List'), icon: icon),
+        ],
+        selected: 0,
+        onSelect: _select,
+        showSelectedIcon: false,
+      );
+      final Box chosen = button.children.whereType<Box>().single;
+
+      expect(_checkOf(_wellBox(chosen)), isNull);
+      expect(_nodesOf(_wellBox(chosen)), contains(same(icon)));
+    });
+
+    test('fades as one control when it is disabled', () {
+      expect(
+        MaterialSegmentedButton(
+          segments: _segments,
+          selected: 0,
+          onSelect: _select,
+        ).opacity,
+        isNull,
+      );
+      expect(
+        MaterialSegmentedButton(
+          segments: _segments,
+          selected: 0,
+          onSelect: _select,
+          enabled: false,
+        ).opacity,
+        0.38,
+      );
+    });
+
     test('draws a tree the model can validate', () {
       final MaterialSegmentedButton button = MaterialSegmentedButton(
         segments: _segments,
@@ -118,3 +174,22 @@ Box _wellBox(Box segment) {
 
   return box;
 }
+
+/// Every node of [root], depth first.
+List<UINode> _nodesOf(UINode root) => <UINode>[
+  root,
+  ...switch (root) {
+    Box(:final List<UINode> children) ||
+    GridNode(:final List<UINode> children) ||
+    StackNode(:final List<UINode> children) => children.expand(_nodesOf),
+    PositionedNode(:final UINode child) ||
+    LinkNode(:final UINode child) => _nodesOf(child),
+    _ => const <UINode>[],
+  },
+];
+
+/// The check of a chosen segment, which is the icon sized stack, or `null`.
+StackNode? _checkOf(UINode root) => _nodesOf(root)
+    .whereType<StackNode>()
+    .where((StackNode node) => node.width == MaterialSegmentedButton.iconSize)
+    .firstOrNull;

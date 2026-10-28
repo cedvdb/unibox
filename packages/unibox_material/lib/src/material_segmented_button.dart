@@ -40,11 +40,17 @@ final class MaterialSegment {
 /// ink cover the segment and not just its label; a 1 pixel rule between them is a
 /// box the colour of the outline.
 ///
-/// **What Material draws that this does not.** A chosen segment shows a check beside
-/// its label, which needs a glyph from a font the package does not ship — a segment
-/// takes an [MaterialSegment.icon] instead, and the fill states the choice on its
-/// own. The container also announces no `radiogroup`: `BoxSemantics` has no group
-/// role, so each segment is a button that says whether it is the chosen one.
+/// **The chosen segment shows a check**, in place of the icon it would otherwise draw
+/// — Material's own behaviour, so a control that carries pictures still says which
+/// choice is on. The check is drawn from boxes ([_check]): an icon font is a host
+/// asset, and this package ships none. Pass `showSelectedIcon: false` for a control
+/// whose fill is enough, and the icon stays where it is.
+///
+/// **What Material draws that this does not.** The container announces no
+/// `radiogroup`: `BoxSemantics` has no group role, so each segment is a button that
+/// says whether it is the chosen one. A disabled control fades as one (38%), rather
+/// than drawing `onSurface` at 12% under a 38% label, which the model cannot say
+/// without an alpha role per token.
 final class MaterialSegmentedButton extends Box {
   /// Creates a segmented button with [segments], [selected] of them chosen.
   MaterialSegmentedButton({
@@ -52,11 +58,16 @@ final class MaterialSegmentedButton extends Box {
     required int selected,
     required void Function(int index) onSelect,
     bool enabled = true,
+    bool showSelectedIcon = true,
     super.margin,
     BoxTransition? transition,
     super.key,
   }) : super(
          height: controlHeight,
+         // A disabled segmented button fades as one control rather than greying each
+         // segment: Material draws the label at 38%, and one opacity is what this
+         // model can say without an alpha role per token.
+         opacity: enabled ? null : 0.38,
          borderRadius: radius,
          border: _outline,
          overflow: Overflow.hidden,
@@ -69,6 +80,7 @@ final class MaterialSegmentedButton extends Box {
                segment: segments[i],
                selected: i == selected,
                enabled: enabled,
+               showSelectedIcon: showSelectedIcon,
                transition: transition,
                onTap: () => onSelect(i),
              ),
@@ -82,6 +94,12 @@ final class MaterialSegmentedButton extends Box {
   /// The corner radius, which is a full round at [controlHeight].
   static const double radius = 20;
 
+  /// The size Material gives the icon of a segment, and the check of a chosen one.
+  static const double iconSize = 18;
+
+  /// The space between that icon and the label.
+  static const double _iconGap = 8;
+
   /// The line around the container, and between its segments.
   static const BoxBorder _outline = BoxBorder(
     color: BoxColor.role(MaterialColorRole.outline),
@@ -92,10 +110,17 @@ final class MaterialSegmentedButton extends Box {
     required MaterialSegment segment,
     required bool selected,
     required bool enabled,
+    required bool showSelectedIcon,
     required BoxTransition? transition,
     required TapCallback onTap,
   }) {
     final BoxColor foreground = _foregroundOf(selected);
+    // Material puts the check of the chosen segment *in place of* its icon, so a
+    // control that carries pictures still says which one is chosen. It is drawn from
+    // boxes: a glyph from a font is a host asset, and this package ships none.
+    final UINode? leading = selected && showSelectedIcon
+        ? _check(foreground)
+        : segment.icon;
 
     return Box(
       // Equal shares: Material gives every segment the same width, so the control
@@ -125,14 +150,14 @@ final class MaterialSegmentedButton extends Box {
               BoxTextStyle(color: foreground),
             ),
             children: <UINode>[
-              if (segment.icon == null)
+              if (leading == null)
                 segment.label
               else
                 Box(
                   direction: Axis.horizontal,
                   crossAlign: CrossAlign.center,
-                  gap: 8,
-                  children: <UINode>[segment.icon!, segment.label],
+                  gap: _iconGap,
+                  children: <UINode>[leading, segment.label],
                 ),
             ],
           ),
@@ -140,6 +165,44 @@ final class MaterialSegmentedButton extends Box {
       ],
     );
   }
+
+  /// The check of a chosen segment: the two strokes of a tick, drawn as rotated
+  /// bars, so a control that has to say which choice is active needs no font.
+  static UINode _check(BoxColor color) {
+    const double size = iconSize;
+    final double stroke = size / 7;
+
+    return StackNode(
+      width: size,
+      height: size,
+      children: <UINode>[
+        // The short stroke: from the middle down to the corner.
+        _centred(
+          Box(
+            width: size * 0.45,
+            height: stroke,
+            borderRadius: stroke / 2,
+            backgroundColor: color,
+            transform: BoxTransform(rotation: 45, offsetX: -size * 0.22),
+          ),
+        ),
+        // The long stroke: up to the top right.
+        _centred(
+          Box(
+            width: size * 0.8,
+            height: stroke,
+            borderRadius: stroke / 2,
+            backgroundColor: color,
+            transform: BoxTransform(rotation: -45, offsetX: size * 0.12),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// [child] in the middle of the box that holds it.
+  static UINode _centred(UINode child) =>
+      PositionedNode(alignment: BoxAlignment.center, child: child);
 
   /// The rule between two segments: a hairline the colour of the outline.
   static UINode _divider() => Box(
