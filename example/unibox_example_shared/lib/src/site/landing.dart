@@ -146,7 +146,7 @@ UINode _why(MaterialPalette palette) {
             color: palette.onSurfaceVariant,
           ),
           TextNode(
-            'The difference is measurable. A crawler reads 131 words, a single h1 and '
+            'The difference is measurable. A crawler reads 132 words, a single h1 and '
             'three links on the listings page of this site. The Flutter build of the '
             'same screen is 4 words and a canvas: a title, and nothing to index.',
             style: MaterialTypography.bodyLarge,
