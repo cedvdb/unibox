@@ -75,13 +75,13 @@ python3 tool/seo_report.py build/site
 
 | Document | Words | `h1` | `h2` | Links | Fields | Bytes |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Jaspr `/` | 791 | 1 | 2 | 9 | 2 | 118 222 |
+| Jaspr `/` | 488 | 1 | 2 | 9 | 2 | 116 142 |
 | Jaspr `/web/listings/` | 131 | 1 | 0 | 2 | 0 | 42 080 |
 | Jaspr `/web/signup/` | 148 | 1 | 1 | 4 | 2 | 51 240 |
 | **Flutter `/flutter/listings/`** | **4** | **0** | **0** | **0** | **0** | **772** |
 
 The first row is the whole site as one page: the claim, the comparison and the
-catalogue, 791 words of text with one `h1`, an `h2` per band and every component
+catalogue, 488 words of text with one `h1`, an `h2` per band and every component
 written as markup. The last row is the point. The Flutter build of the same screen is
 a document with a `<title>` and a canvas host: four words, no heading, no link,
 nothing to index. `/web/listings/` is that screen as a tree, and it is the same Dart.

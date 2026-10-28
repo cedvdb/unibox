@@ -26,76 +26,57 @@ UINode buildMaterialSection() {
         siteHeading(
           title: 'Material 3, as values and nodes',
           lead:
-              'The type scale is fifteen const BoxTextStyle values, the palette is '
-              'a value the tree wears, and every component is a node built from the '
-              'node that already draws it. Nothing here is a widget the renderers do '
-              'not already have.',
+              'Every component, then the type scale and the colour roles it is '
+              'drawn with — all of them nodes the two renderers already draw.',
         ),
-        _section(
-          'Type scale',
-          'The fifteen roles as const BoxTextStyle values. A box passes one down; a '
-              'text names the one it wants.',
-          _typeScale(),
-        ),
-        _section(
-          'Colour roles',
-          'MaterialPalette.light and .dark: the roles as const BoxColor values, read '
-              'when the tree is built rather than looked up at render time.',
-          _palette(palette),
-        ),
+        // Components first: they are what a page is built from, and the scale and the
+        // palette are what those components name.
         _section(
           'Buttons',
-          'A MaterialButton is a fill around the ink well, so the hover, focus and '
-              'press tints paint over the colour rather than replacing it, and a press '
-              'spreads ink from where it landed. Hold one down to see both.',
           _buttons(),
+          note: 'Four shapes around one ink well: press one.',
         ),
         _section(
           'Chips and segments',
-          'A chip is one choice, a segmented button is a set of them in one pill. Both '
-              'carry a node in front of the label and both are a fill around the ink '
-              'well, so their tints stop at the shape they belong to. A chip with a '
-              'close is removed by pressing the cross; a segment moves the choice it '
-              'belongs to.',
           _choices(),
+          note: 'A choice, and a set of them in one pill.',
         ),
         _section(
           'Text fields',
-          'The filled field: surfaceContainerHighest, a bottom line that thickens and '
-              'turns primary on focus, the label on the line while it is empty and at '
-              'the top of the fill once it is not. Type in either field: the state is '
-              "the field's, so a half finished address says so, and finishing it stops.",
           _fields(palette),
+          note: 'The filled field, with its own focus, label and error.',
         ),
         _section(
           'Cards and tiles',
-          'A card is a box with the Material surface, radius and elevation; a list tile '
-              'is a box with a leading, a title, an optional supporting text and a '
-              'trailing node.',
           _cards(palette),
+          note: 'A surface, and a row that says who it is.',
         ),
         _section(
           'Navigation bar',
-          'A navigation bar is one row of equal shares on the navigation surface: the '
-              'chosen destination sits on a secondary container pill, the rest are '
-              'quiet, and every destination inks where the press landed. Press one.',
           NavigationDemo(),
+          note: 'Three destinations; the chosen one sits on a pill.',
         ),
         _section(
           'Dialog',
-          'A dialog is an OverlayNode rather than a call: it is in the tree only while '
-              'the state says it is open, it covers the page behind a barrier and leaves '
-              'on Escape or a press on the barrier. Press the button.',
           DialogDemo(),
+          note: 'An OverlayNode: in the tree only while it is open.',
         ),
+        // Then the values. The samples are the argument: fifteen lines of text and a
+        // wall of swatches need a name, not a paragraph.
+        _section('Type scale', _typeScale()),
+        _section('Colour roles', _palette(palette)),
       ],
     ),
   );
 }
 
-/// A titled block of the catalogue: an `h3`, the sentence that explains it, and the
-/// nodes that show it.
-UINode _section(String title, String description, UINode content) {
+/// A titled block of the catalogue: an `h3`, one line under it, and the nodes that
+/// show it.
+///
+/// The line is optional and short on purpose. A catalogue is read by looking at the
+/// samples, so a block says what it is and stops; the READMEs are where the long
+/// explanation lives.
+UINode _section(String title, UINode content, {String? note}) {
   const MaterialPalette palette = MaterialPalette.light;
 
   return Box(
@@ -114,17 +95,18 @@ UINode _section(String title, String description, UINode content) {
             style: MaterialTypography.titleLarge,
             headingLevel: 3,
           ),
-          Box(
-            width: double.infinity,
-            maxWidth: 720,
-            children: <UINode>[
-              TextNode(
-                description,
-                style: MaterialTypography.bodyMedium,
-                color: palette.onSurfaceVariant,
-              ),
-            ],
-          ),
+          if (note != null)
+            Box(
+              width: double.infinity,
+              maxWidth: 720,
+              children: <UINode>[
+                TextNode(
+                  note,
+                  style: MaterialTypography.bodyMedium,
+                  color: palette.onSurfaceVariant,
+                ),
+              ],
+            ),
         ],
       ),
       content,

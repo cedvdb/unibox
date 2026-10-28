@@ -56,9 +56,8 @@ UINode _sell(MaterialPalette palette) {
         maxWidth: 560,
         children: <UINode>[
           TextNode(
-            'The page a search engine reads and the screen in your app come from '
-            'the same Dart tree, so there is no second design to keep in step. '
-            'Serve the web version on its own, or let the app take the page over.',
+            'The page a search engine reads and the screen in your app, from one '
+            'Dart tree — so there is no second design to keep in step.',
             style: MaterialTypography.titleMedium.copyWith(
               color: palette.onSurfaceVariant,
             ),

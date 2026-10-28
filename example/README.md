@@ -165,7 +165,7 @@ the argument needs.
 | --- | --- |
 | the hero | the claim — *describe a screen once* — with the two ways in, and the claim drawn as one tree above two cards |
 | *the same tree, drawn twice* | the example in two frames: the Jaspr page on the left, the Flutter build on the right, each resizable |
-| *Material 3, as values and nodes* | the catalogue: the type scale, the colour roles and every component |
+| *Material 3, as values and nodes* | the catalogue: every component first, then the type scale and the colour roles those components name |
 
 The comparison comes before the catalogue on purpose: the claim is that the two
 renderings agree, so a reader should meet the evidence before the design system the
