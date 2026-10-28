@@ -667,7 +667,12 @@ What that buys, stated as the invariants the feature has to keep:
   shape next to a corner radius.
 - **`fillRule` is part of the value.** `BoxFillRule.evenOdd` makes a subpath inside
   another punch a hole, so a ring is two circles and no stroke token: the effect that
-  motivated shapes in the first place needs no second primitive.
+  motivated shapes in the first place needs no second primitive. A partial ring is the
+  same band cut short — one subpath of two arcs and two radial edges, filled under
+  `nonZero` — which is why `BoxShape.ring(thickness:, sweep:)` can be a value rather
+  than a component, and why a progress indicator is two boxes instead of a node type.
+  The model ships that factory and `BoxShape.circle` because arc arithmetic is the one
+  thing every caller would otherwise get subtly wrong; anything else is composed.
 - **Layout does not know.** A shape paints differently and lays out identically: the
   children stay in the same rectangle, which is what puts a label in the hole of a ring
   and why a shape cannot be used to place anything.

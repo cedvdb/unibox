@@ -299,21 +299,8 @@ const BoxShape _hexagon = BoxShape(
   ],
 );
 
-/// A ring: an outer circle and an inner one, the second punched out by the
-/// even-odd rule.
-const BoxShape _ring = BoxShape(
-  viewBoxWidth: 100,
-  viewBoxHeight: 100,
-  fillRule: BoxFillRule.evenOdd,
-  commands: <BoxPathCommand>[
-    BoxPathMoveTo(50, 0),
-    BoxPathArcTo(50, 100, radiusX: 50, radiusY: 50),
-    BoxPathArcTo(50, 0, radiusX: 50, radiusY: 50),
-    BoxPathMoveTo(50, 12),
-    BoxPathArcTo(50, 88, radiusX: 38, radiusY: 38),
-    BoxPathArcTo(50, 12, radiusX: 38, radiusY: 38),
-  ],
-);
+/// A ring of a 12 unit band, which the model states as one value.
+final BoxShape _ring = BoxShape.ring(thickness: 12);
 
 /// A Material button: a filled surface with a [MaterialInkWell] over it.
 ///

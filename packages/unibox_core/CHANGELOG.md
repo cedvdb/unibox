@@ -35,7 +35,11 @@
   view box, in the command vocabulary of SVG's `d` (`M`, `L`, `C`, `Q`, `A`, `Z`) with
   a fill rule. The background fills the path, the border is a stroke along it, layout
   is untouched and `overflow: hidden` clips the children to it. `BoxFillRule.evenOdd`
-  turns two circles into a ring. A shape is not eased and casts no shadow, and
+  turns two circles into a ring. `BoxShape.circle` and `BoxShape.ring(thickness:,
+  sweep:)` state the two outlines people ask for — a ring is two circles under the
+  even-odd rule, and a partial one is a single subpath of that band, so a progress
+  indicator is two boxes rather than new geometry. A shape is not eased and casts no
+  shadow, and
   `validateTree` reports it next to a corner radius, a shadow, an empty command list
   or a view box with no size.
 - `BoxStyle.resolve` carries every token through, not only the ones a theme resolves:

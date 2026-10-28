@@ -88,6 +88,60 @@ void main() {
     });
   });
 
+  group('BoxShape.ring', () {
+    test('is two circles and the even-odd rule for a whole ring', () {
+      final BoxShape ring = BoxShape.ring(thickness: 12);
+
+      expect(ring.fillRule, BoxFillRule.evenOdd);
+      expect(ring.commands, hasLength(6));
+      expect(ring.viewBoxWidth, 100);
+      // The outer circle fills the view box; the inner one is 12 units inside it.
+      expect(ring.commands.first, const BoxPathMoveTo(50, 0));
+      expect(ring.commands[3], const BoxPathMoveTo(50, 12));
+    });
+
+    test('is one subpath for a partial ring, filled under non-zero', () {
+      final BoxShape quarter = BoxShape.ring(thickness: 12, sweep: 0.25);
+
+      expect(quarter.fillRule, BoxFillRule.nonZero);
+      expect(quarter.commands, hasLength(5));
+      expect(
+        quarter.commands.last,
+        const BoxPathClose(),
+        reason: 'a sector closes on itself instead of drawing two circles',
+      );
+      // A quarter turn from twelve o'clock ends at three o'clock on the rim.
+      expect(quarter.commands[1].toString(), contains('100'));
+    });
+
+    test('takes the long way round past half a turn', () {
+      final BoxShape most = BoxShape.ring(thickness: 12, sweep: 0.75);
+      final BoxPathArcTo outer = most.commands[1] as BoxPathArcTo;
+
+      expect(outer.largeArc, isTrue);
+      expect(
+        (BoxShape.ring(thickness: 12, sweep: 0.42).commands[1] as BoxPathArcTo)
+            .largeArc,
+        isFalse,
+      );
+    });
+
+    test('draws a sliver at zero instead of nothing', () {
+      final BoxShape empty = BoxShape.ring(thickness: 12, sweep: 0);
+
+      expect(empty.isEmpty, isFalse);
+      expect(validateTree(const Box(shape: BoxShape.circle)), isEmpty);
+    });
+
+    test('keeps a hole however wide the band is asked to be', () {
+      final BoxShape thick = BoxShape.ring(thickness: 400);
+      final BoxPathArcTo inner = thick.commands[4] as BoxPathArcTo;
+
+      expect(inner.radiusX, greaterThan(0));
+      expect(inner.radiusX.isFinite, isTrue);
+    });
+  });
+
   group('BoxPathCommand', () {
     test('compares by its numbers, so a path can be keyed', () {
       expect(const BoxPathLineTo(1, 2), const BoxPathLineTo(1, 2));

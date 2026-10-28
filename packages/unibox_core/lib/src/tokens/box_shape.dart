@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 /// A shape a box can be painted in, instead of its rectangle.
 ///
 /// A shape is a path in a **view box**: the outline is written in the coordinates
@@ -48,6 +50,79 @@ final class BoxShape {
     required this.commands,
     this.fillRule = BoxFillRule.nonZero,
   });
+
+  /// A ring: the band between the box's edge and a circle [thickness] inside it.
+  ///
+  /// A whole ring is two circles filled with [BoxFillRule.evenOdd], the inner one
+  /// being the hole. A partial ring — [sweep] of a turn, clockwise from twelve
+  /// o'clock — is a sector of that band: one subpath of two arcs and two radial
+  /// edges, filled under [BoxFillRule.nonZero]. Either way it is one shape, so a
+  /// progress indicator is two boxes: the track at one sweep and the value at
+  /// another.
+  ///
+  /// [thickness] is the band's width in the view box's units, and the outline fills
+  /// the box: the outer radius is half the view box. A sweep of zero draws a
+  /// sliver rather than nothing, so a value at zero is still a shape the tree can
+  /// hold — and still a ring a renderer can draw.
+  factory BoxShape.ring({
+    required double thickness,
+    double sweep = 1,
+    double viewBox = 100,
+  }) {
+    assert(thickness > 0, 'A ring has a band wider than nothing.');
+
+    final double centre = viewBox / 2;
+    final double outer = centre;
+    final double inner = math.max(0.01, outer - thickness);
+    final double turn = math.max(0.0001, math.min(1, sweep));
+
+    if (turn >= 1) {
+      return BoxShape(
+        viewBoxWidth: viewBox,
+        viewBoxHeight: viewBox,
+        fillRule: BoxFillRule.evenOdd,
+        commands: <BoxPathCommand>[
+          ..._circle(centre, outer),
+          ..._circle(centre, inner),
+        ],
+      );
+    }
+
+    final double start = -math.pi / 2;
+    final double end = start + 2 * math.pi * turn;
+    final bool largeArc = turn > 0.5;
+
+    return BoxShape(
+      viewBoxWidth: viewBox,
+      viewBoxHeight: viewBox,
+      commands: <BoxPathCommand>[
+        BoxPathMoveTo(
+          centre + outer * math.cos(start),
+          centre + outer * math.sin(start),
+        ),
+        BoxPathArcTo(
+          centre + outer * math.cos(end),
+          centre + outer * math.sin(end),
+          radiusX: outer,
+          radiusY: outer,
+          largeArc: largeArc,
+        ),
+        BoxPathLineTo(
+          centre + inner * math.cos(end),
+          centre + inner * math.sin(end),
+        ),
+        BoxPathArcTo(
+          centre + inner * math.cos(start),
+          centre + inner * math.sin(start),
+          radiusX: inner,
+          radiusY: inner,
+          largeArc: largeArc,
+          clockwise: false,
+        ),
+        BoxPathClose(),
+      ],
+    );
+  }
 
   /// A circle filling a square view box.
   ///
@@ -327,3 +402,14 @@ final class BoxPathClose extends BoxPathCommand {
   @override
   String toString() => 'BoxPathClose()';
 }
+
+/// Two half turns: the circle of [radius] around ([centre], [centre]).
+///
+/// Half turns and not an ellipse primitive, because that is what the command
+/// vocabulary has — and a renderer that draws two arcs is drawing exactly what the
+/// web writes in its `d`.
+List<BoxPathCommand> _circle(double centre, double radius) => <BoxPathCommand>[
+  BoxPathMoveTo(centre, centre - radius),
+  BoxPathArcTo(centre, centre + radius, radiusX: radius, radiusY: radius),
+  BoxPathArcTo(centre, centre - radius, radiusX: radius, radiusY: radius),
+];

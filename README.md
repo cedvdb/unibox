@@ -305,7 +305,17 @@ Box(width: 40, height: 40, shape: hexagon, backgroundColor: BoxColor.white)
 
 The commands are the ones SVG's `d` attribute has — `M`, `L`, `C`, `Q`, `A` and `Z`
 — and every renderer has a method for each, so neither parses what the other wrote.
-`BoxShape.circle` is the one value the model ships; everything else is composed.
+The model ships two values over that vocabulary, because two shapes are asked for far
+more often than the rest: `BoxShape.circle`, and `BoxShape.ring`:
+
+```dart
+// A track: the band between the edge and a circle 12 units inside it.
+Box(width: 96, height: 96, shape: BoxShape.ring(thickness: 12), backgroundColor: grey)
+
+// A value over it: the same ring, a fraction of a turn, clockwise from twelve
+// o'clock. Two boxes, one shape each — no stroke, no image, no canvas.
+Box(width: 96, height: 96, shape: BoxShape.ring(thickness: 12, sweep: 0.42), backgroundColor: accent)
+```
 
 Four things follow from a shape:
 
