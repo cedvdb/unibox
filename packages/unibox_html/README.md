@@ -47,9 +47,15 @@ repainting it. It is decided here, once, before a second renderer exists to disa
 A node this renderer cannot draw throws rather than being skipped: a tree built for
 another target fails loudly instead of shipping a page with a piece missing.
 
+## Held to the same appearance
+
+`test/conformance_test.dart` renders every case in `unibox_testing` and reads the
+presentation back out of the output — the class the root element wears, and the
+declarations that class is given — then compares it with the table the Flutter suite is
+held to. That is the whole claim of the package: a document and a widget built from one
+node look the same, and a token that drifted fails a test rather than a screenshot review.
+
 ## What is still to come
 
-Grid, stack and positioned nodes, the text input, the overlay (drawn open) and a
-`StatefulNode` (its initial state); the container queries a width threshold needs;
-`toDocument()` with a typed head; and the conformance suite from `unibox_testing`, which
-is what holds this renderer to the same appearance as the Flutter one.
+The container queries a width threshold needs, the overlay and text cases from
+`unibox_testing`, and then the client script and the performance gate of phase 3.

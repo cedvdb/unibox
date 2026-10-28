@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- The conformance suite, which is what makes this a renderer rather than a second design:
+  every case in `unibox_testing` is rendered to a document, the presentation is read back
+  out of the class the root element wears, and compared with the table the Flutter suite is
+  held to. Twenty-one box cases and fourteen text cases, describing the same output two
+  ways.
+
 - A new package: the web renderer, pure Dart with no dependencies, so a document can be
   produced in a server, in a build step, in a CLI, or compiled to JavaScript for a host
   whose backend is not Dart.
