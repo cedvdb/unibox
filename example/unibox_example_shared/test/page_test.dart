@@ -4,13 +4,29 @@ import 'package:unibox_example_shared/unibox_example_shared.dart';
 
 import 'support/tree.dart';
 
-/// The box of the navigation item labelled [label].
+/// The control the bar offers for [label]: the link of a destination, or the button
+/// that opens the form.
 ///
-/// An item that changes the page is a link and the one that opens the sign-up
-/// dialog is a button, so the role is not part of the search: the tap is.
-Box navItem(UINode page, String label) => flatten(page)
-    .whereType<Box>()
-    .firstWhere((Box box) => box.onTap != null && textsIn(box).contains(label));
+/// A destination is a `LinkNode` around a label, because its `href` is what a reader
+/// without a client runtime follows; the sign-up form is a `Box` with the button role,
+/// because an account is an action and not a place to go.
+UINode navControl(UINode page, String label) => flatten(page).firstWhere(
+  (UINode node) =>
+      (node is LinkNode && textsIn(node).contains(label)) ||
+      (node is Box && node.onTap != null && textsIn(node).contains(label)),
+);
+
+/// The box the bar draws its label for [label] in, which is what a reader sees.
+///
+/// It is found by its role — a link for a destination, a button for the form — because
+/// the page behind the bar carries the same word in a heading.
+Box navLabelBox(UINode page, String label) =>
+    flatten(page).whereType<Box>().firstWhere(
+      (Box box) =>
+          (box.semantics?.role == BoxRole.link ||
+              box.semantics?.role == BoxRole.button) &&
+          textsIn(box).contains(label),
+    );
 
 void main() {
   group('ExamplePage', () {
@@ -43,19 +59,26 @@ void main() {
       expect(children.last, same(content));
     });
 
-    test('offers one item per destination', () {
+    test('offers a link per destination and a button for the form', () {
       final Box page = RecordingHost().frame();
 
-      expect(navItem(page, 'Sign up'), isA<Box>());
-      expect(navItem(page, 'Apartments'), isA<Box>());
+      // A destination is a document, so it is a link; an account is an action, so it
+      // is a button beside the navigation.
+      expect(navControl(page, 'Apartments'), isA<LinkNode>());
+      expect(navControl(page, 'Sign up'), isA<Box>());
+      expect(
+        (navControl(page, 'Sign up') as Box).semantics?.role,
+        BoxRole.button,
+      );
     });
 
     test('reports the destination an item asks for', () {
       final RecordingHost host = RecordingHost();
       final Box page = host.frame();
 
-      navItem(page, 'Apartments').onTap!();
-      navItem(page, 'Sign up').onTap!();
+      final LinkNode destination = navControl(page, 'Apartments') as LinkNode;
+      destination.onTap!();
+      (navControl(page, 'Sign up') as Box).onTap!();
 
       expect(host.navigations, <ExamplePage>[
         ExamplePage.apartments,
@@ -66,19 +89,19 @@ void main() {
     test('marks the open page and not the others', () {
       final Box page = RecordingHost().frame(current: ExamplePage.apartments);
 
-      final Box open = navItem(page, 'Apartments');
-      final Box other = navItem(page, 'Sign up');
+      final Box open = navLabelBox(page, 'Apartments');
+      final Box other = navLabelBox(page, 'Sign up');
 
       expect(open.backgroundColor, ExamplePalette.accentSurface);
       expect(open.textStyle?.color, ExamplePalette.accent);
-      expect(other.backgroundColor, isNull);
-      expect(other.textStyle?.color, ExamplePalette.muted);
+      expect(other.backgroundColor, ExamplePalette.accent);
+      expect(other.textStyle?.color, ExampleType.button.color);
     });
 
     test('keeps the page that is open reachable from the keyboard', () {
-      // A navigation item is a link, which is what puts it in the tab order:
-      // without a role a box is a plain container.
-      final Box item = navItem(RecordingHost().frame(), 'Apartments');
+      // A destination is a link, which is what puts it in the tab order: without a
+      // role a box is a plain container.
+      final Box item = navLabelBox(RecordingHost().frame(), 'Apartments');
 
       expect(item.semantics?.role, BoxRole.link);
       expect(item.isFocusable, isTrue);
@@ -88,7 +111,7 @@ void main() {
     test('opens the sign-up form as a dialog, not a page', () {
       final Box page = RecordingHost().frame();
 
-      final Box trigger = navItem(page, 'Sign up');
+      final Box trigger = navLabelBox(page, 'Sign up');
 
       expect(trigger.semantics?.role, BoxRole.button);
       // A dialog is not a document, so the trigger never claims to be current.

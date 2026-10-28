@@ -1,6 +1,8 @@
 import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_material/unibox_material.dart';
 
+import '../theme.dart';
+
 /// The width a band of the page is measured to.
 ///
 /// A measure, not the window: a paragraph, or a row of four buttons, stretched
@@ -48,7 +50,7 @@ UINode siteBand({
 /// outline a crawler and a screen reader build the page from is the reason a band
 /// is a section rather than a pile of boxes.
 UINode siteHeading({required String title, required String lead}) {
-  const MaterialPalette palette = MaterialPalette.light;
+  final MaterialPalette palette = ExamplePalette.material;
 
   return Box(
     width: double.infinity,

@@ -1,7 +1,6 @@
 import 'package:jaspr/jaspr.dart';
 import 'package:unibox_example_shared/unibox_example_shared.dart';
 import 'package:unibox_jaspr/unibox_jaspr.dart';
-import 'package:unibox_material/unibox_material.dart';
 
 import 'iframe_node.dart';
 
@@ -19,7 +18,7 @@ Component buildSiteRoot() {
   return renderJaspr(
     // The page is built from material components, which name colour roles: the
     // theme answers them, once, for the whole page.
-    theme: MaterialPalette.lightTheme,
+    theme: ExamplePalette.theme,
     buildSitePage(
       frame: ({required String src, required String title}) =>
           IframeNode(src: src, title: title, resizable: true),

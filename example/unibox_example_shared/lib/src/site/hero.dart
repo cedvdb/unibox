@@ -1,6 +1,8 @@
 import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_material/unibox_material.dart';
 
+import '../theme.dart';
+
 import 'section.dart';
 
 /// The first band: what the library is, what it buys, and the claim drawn once.
@@ -10,7 +12,7 @@ import 'section.dart';
 /// large and the room around it is wide, because that is what makes a page of plain
 /// boxes read as a modern one — scale and space, not a second set of colours.
 UINode buildHeroSection() {
-  const MaterialPalette palette = MaterialPalette.light;
+  final MaterialPalette palette = ExamplePalette.material;
 
   return siteBand(
     background: palette.surface,

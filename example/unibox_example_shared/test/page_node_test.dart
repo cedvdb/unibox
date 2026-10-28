@@ -23,29 +23,29 @@ void main() {
       expect(store.state.signupOpen, isTrue);
       // An account is a dialog, not a destination: the listings stay the page, and
       // the bar goes on highlighting them under the form.
-      expect(store.state.page, ExamplePage.apartments);
+      expect(store.state.current, ExamplePage.signup);
 
       store.navigate(ExamplePage.apartments);
       expect(store.state.signupOpen, isFalse);
-      expect(store.state.page, ExamplePage.apartments);
+      expect(store.state.current, ExamplePage.apartments);
     });
 
     test('publishes every field it carries, not only the form', () {
       // The store skips a publish whose state equals the last one, so a field left out
-      // of `==` is a change nobody draws: the destination, the filter and the layout
-      // were all silent before they were compared.
+      // of `==` is a change nobody draws: the filter and the layout were silent before
+      // they were compared, and the dialog was the only member that could redraw.
       final ExampleStore store = ExampleStore();
       int notifications = 0;
       store.addListener(() => notifications++);
-
-      store.navigate(ExamplePage.pricing);
-      expect(store.state.page, ExamplePage.pricing);
 
       store.chooseFilter('Studio');
       expect(store.state.filter, 'Studio');
 
       store.showListings(ListingsView.list);
       expect(store.state.view, ListingsView.list);
+
+      store.openSignup();
+      expect(store.state.signupOpen, isTrue);
 
       expect(
         notifications,
@@ -105,23 +105,6 @@ void main() {
 
       expect(store.state.signupOpen, isFalse);
       expect(store.state.form.name, 'Ada');
-    });
-
-    test('publishes the map, which is a view of its own', () {
-      // The map is a member of the state like the dialog, so opening it has to be a
-      // change the store publishes: a field left out of `ExampleState ==` is a
-      // toggle that draws nothing.
-      final ExampleStore store = ExampleStore();
-      int notifications = 0;
-      store.addListener(() => notifications++);
-
-      store.openMap();
-      expect(store.state.mapOpen, isTrue);
-      expect(notifications, 1);
-
-      store.closeMap();
-      expect(store.state.mapOpen, isFalse);
-      expect(notifications, 2);
     });
   });
 

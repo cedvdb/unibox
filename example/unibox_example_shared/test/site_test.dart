@@ -106,7 +106,8 @@ void main() {
       // components, and the scale and the palette are what those components name.
       expect(blocks, <String>[
         'Buttons',
-        'Chips and segments',
+        'Chips',
+        'Segments',
         'Text fields',
         'Cards and tiles',
         'Navigation bar',

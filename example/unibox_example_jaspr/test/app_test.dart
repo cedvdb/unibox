@@ -29,17 +29,20 @@ void main() {
       expect(docs.attributes?['target'], '_blank');
     });
 
-    testComponents('links each destination to its document', (tester) async {
+    testComponents('links the destination and leaves the form a button', (
+      tester,
+    ) async {
       tester.pumpComponent(signupApp());
 
       final List<String?> hrefs = elementsOf(find.tag('a'))
           .map((TestRenderElement element) => element.attributes?['href'])
           .toList();
 
-      // The navigation is a real anchor, so a static page follows it: the sign-up
-      // item lands on the document that draws the dialog open, the other one on
-      // the listings, and the dialog's close control goes back to the listings.
-      expect(hrefs, containsAll(<String>['../signup/', '../listings/']));
+      // A destination is a real anchor, so a static page follows it: the bar's item
+      // lands on the listings, and the dialog's close control goes back to them. The
+      // sign-up form is a button and not a place, so nothing links to its document.
+      expect(hrefs, contains('../listings/'));
+      expect(hrefs, isNot(contains('../signup/')));
       expect(
         hrefs.where((String? href) => href == '../listings/'),
         hasLength(2),
@@ -160,19 +163,35 @@ void main() {
       expect(find.text('Looks good - press Create account.'), findsNothing);
     });
 
-    testComponents('offers a navigation item per page', (tester) async {
-      tester.pumpComponent(signupApp());
+    testComponents('offers a navigation item and a way into an account', (
+      tester,
+    ) async {
+      // The dialog closed: the destination the reader is on is the listings.
+      tester.pumpComponent(const ExampleApp());
 
       expect(find.text('Sign up'), findsOneComponent);
-      // The item and the heading of the page behind the dialog.
+      // The item and the heading of the page.
       expect(find.text('Apartments'), findsNComponents(2));
+
+      // The destination is an anchor that answers a press without loading the page,
+      // and the label inside it says which page it is.
+      final TestRenderElement anchor = elementsOf(find.tag('a')).firstWhere(
+        (TestRenderElement element) =>
+            element.attributes?['href'] == '../listings/',
+      );
+      expect(anchor.events?.keys, contains('click'));
 
       final TestRenderElement item = elementsOf(find.tag('div')).firstWhere(
         (TestRenderElement element) => element.attributes?['role'] == 'link',
       );
-
+      expect(item.attributes?['aria-current'], 'page');
       expect(item.attributes?['tabindex'], '0');
-      expect(item.events?.keys, contains('click'));
+
+      // The form is a button, so a reader hears one navigation and one button.
+      final TestRenderElement button = elementsOf(find.tag('div')).firstWhere(
+        (TestRenderElement element) => element.attributes?['role'] == 'button',
+      );
+      expect(button.events?.keys, contains('click'));
     });
   });
 

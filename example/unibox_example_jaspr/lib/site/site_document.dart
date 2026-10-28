@@ -19,7 +19,14 @@ import 'site_root.dart';
 /// *document*, while a node tree describes a region of one. A host that needs more — a
 /// canonical url, Open Graph tags, structured data — adds them through
 /// `Document.head`, which is where elements that do not belong to the tree go.
-Document buildSiteDocument() {
+///
+/// [build] is the commit the document was rendered from, written into the head as
+/// `unibox-build`. A tab opened before a deploy and the deployed page look the same,
+/// down to a layout the new build has already fixed, so the one thing that separates
+/// them is a fact carried by the document itself: `curl` the page and the stamp
+/// answers the question the screenshot cannot. It is `null` for a build that cannot
+/// name itself — a test, or a local run outside a repository.
+Document buildSiteDocument({String? build}) {
   return Document(
     // Without `lang` both a screen reader and a crawler have to guess which language
     // the page is in.
@@ -35,6 +42,9 @@ Document buildSiteDocument() {
           'Describe a screen once, in plain Dart, and draw it twice: Flutter widgets '
           'in an app and HTML with CSS in a browser. The Material 3 type scale, the '
           'colour roles and the components, as values and nodes.',
+      // The commit this document was rendered from. A stale tab and the deployed
+      // page are otherwise identical to look at.
+      'unibox-build': ?build,
     },
     head: <Component>[
       fontFaces(''),

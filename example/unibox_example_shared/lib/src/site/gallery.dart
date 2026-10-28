@@ -2,6 +2,7 @@ import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_material/unibox_material.dart';
 
 import '../icons.dart';
+import '../theme.dart';
 import 'section.dart';
 
 /// The third band: the Material library as one node tree — the type scale, the
@@ -15,7 +16,7 @@ import 'section.dart';
 /// the catalogue is, and each block under it is an `h3`, so the page still has one
 /// `h1` and two `h2`s above it.
 UINode buildMaterialSection() {
-  const MaterialPalette palette = MaterialPalette.light;
+  final MaterialPalette palette = ExamplePalette.material;
 
   return siteBand(
     background: palette.surface,
@@ -36,10 +37,11 @@ UINode buildMaterialSection() {
           _buttons(),
           note: 'Four shapes around one ink well: press one.',
         ),
+        _section('Chips', _chips(), note: 'A choice, and one with a cross.'),
         _section(
-          'Chips and segments',
-          _choices(),
-          note: 'A choice, and a set of them in one pill.',
+          'Segments',
+          _segments(),
+          note: 'A set of choices in one pill.',
         ),
         _section(
           'Text fields',
@@ -77,7 +79,7 @@ UINode buildMaterialSection() {
 /// samples, so a block says what it is and stops; the READMEs are where the long
 /// explanation lives.
 UINode _section(String title, UINode content, {String? note}) {
-  const MaterialPalette palette = MaterialPalette.light;
+  final MaterialPalette palette = ExamplePalette.material;
 
   return Box(
     width: double.infinity,
@@ -116,7 +118,7 @@ UINode _section(String title, UINode content, {String? note}) {
 
 /// One row per type role: the role's name and a line of text typeset with it.
 UINode _typeScale() {
-  const MaterialPalette palette = MaterialPalette.light;
+  final MaterialPalette palette = ExamplePalette.material;
 
   return Box(
     gap: 12,
@@ -280,47 +282,76 @@ UINode _natural(UINode child) => Box(
   children: <UINode>[child],
 );
 
-/// The two controls that pick from a small set.
+/// The two kinds of chip: a filter, and one that can be closed.
 ///
-/// The chips show the three shapes Material gives one: a chosen chip with a check in
-/// front, a plain one, and an input chip whose cross removes it. The glyphs are drawn
-/// by `icons.dart`, because an icon font is an asset the example does not ship.
-UINode _choices() {
+/// The chips show the shapes Material gives one: a chosen chip with a check in
+/// front, plain ones, a disabled one, and an input chip whose cross removes it. The
+/// chosen chip's check is `MaterialCheckMark` — drawn, because an icon font is an
+/// asset the example does not ship — and the other glyphs come from `icons.dart`.
+///
+/// Each group keeps its children at their natural size, so a chip never stretches
+/// into the space its grid track has, and each row scrolls rather than pushing the
+/// page sideways on a phone.
+UINode _chips() {
   const BoxColor onSelected = BoxColor.role(
     MaterialColorRole.onSecondaryContainer,
   );
   const BoxColor onPlain = BoxColor.role(MaterialColorRole.onSurfaceVariant);
 
-  return Box(
-    direction: Axis.horizontal,
-    crossAlign: CrossAlign.center,
-    gap: 32,
+  return GridNode(
+    minItemWidth: 280,
+    maxColumns: 2,
+    gap: 24,
     children: <UINode>[
       Box(
         direction: Axis.horizontal,
         crossAlign: CrossAlign.center,
         gap: 8,
+        // Four chips need more than one cell of this grid holds on a phone, and a
+        // chip is a control with a fixed size: the row scrolls rather than pushing
+        // the page sideways.
+        overflow: Overflow.scroll,
         children: <UINode>[
           MaterialChip(
             label: const TextNode('Two rooms'),
             selected: true,
-            leading: glyphCheck(onSelected, size: 12),
+            onTap: () {},
+            leading: MaterialCheckMark(
+              color: onSelected,
+              size: MaterialChip.iconSize,
+            ),
           ),
           MaterialChip(
             label: const TextNode('Studio'),
-            leading: glyphGrid(onPlain),
+            onTap: () {},
+            leading: glyphGrid(onPlain, size: MaterialChip.iconSize),
           ),
           MaterialChip(
             label: const TextNode('Map'),
             onTap: () {},
-            leading: glyphList(onPlain),
+            leading: glyphList(onPlain, size: MaterialChip.iconSize),
+          ),
+          // A chip that cannot be pressed fades rather than shouting: the last
+          // state Material gives one.
+          MaterialChip(
+            label: const TextNode('Sold'),
+            enabled: false,
+            leading: glyphList(onPlain, size: MaterialChip.iconSize),
           ),
         ],
       ),
       RemovableChips(),
-      SegmentedDemo(),
-      ViewSwitchDemo(),
     ],
+  );
+}
+
+/// The segmented buttons: one that picks from a set, and one that switches a view.
+UINode _segments() {
+  return GridNode(
+    minItemWidth: 280,
+    maxColumns: 2,
+    gap: 24,
+    children: <UINode>[SegmentedDemo(), ViewSwitchDemo()],
   );
 }
 
@@ -352,6 +383,9 @@ UINode _removableView(Set<String> chips, ChipsStore store) {
     direction: Axis.horizontal,
     crossAlign: CrossAlign.center,
     gap: 8,
+    // Two pills and their crosses are wider than a phone's cell, so the row scrolls
+    // instead of widening the page.
+    overflow: Overflow.scroll,
     children: <UINode>[
       for (final String chip in chips)
         MaterialChip(
@@ -377,6 +411,10 @@ UINode _removableView(Set<String> chips, ChipsStore store) {
 /// and the reason a segmented button needs no state of its own.
 UINode _segmentedView(int chosen, SegmentedStore store) {
   return MaterialSegmentedButton(
+    // The width the grid cell gives it, divided three ways. Without one each segment
+    // hugs its label while the outline still takes the cell — a pill with two thirds
+    // of it empty, which is the one thing a segmented button never is.
+    width: double.infinity,
     segments: const <MaterialSegment>[
       MaterialSegment(label: TextNode('Day'), semanticsLabel: 'Per day'),
       MaterialSegment(label: TextNode('Week'), semanticsLabel: 'Per week'),
@@ -408,20 +446,23 @@ UINode _viewSwitchView(int chosen, ViewStore store) {
   const BoxColor onSurface = BoxColor.role(MaterialColorRole.onSurface);
 
   return MaterialSegmentedButton(
+    // The same width divided three ways, for the reason the day/week/month control
+    // states: a stretched pill whose segments hug is a pill with room to spare.
+    width: double.infinity,
     segments: <MaterialSegment>[
       MaterialSegment(
         label: const TextNode('List'),
-        icon: glyphList(onSurface),
+        icon: glyphList(onSurface, size: MaterialSegmentedButton.iconSize),
         semanticsLabel: 'As a list',
       ),
       MaterialSegment(
         label: const TextNode('Grid'),
-        icon: glyphGrid(onSurface),
+        icon: glyphGrid(onSurface, size: MaterialSegmentedButton.iconSize),
         semanticsLabel: 'As a grid',
       ),
       MaterialSegment(
         label: const TextNode('Map'),
-        icon: glyphPin(onSurface),
+        icon: glyphPin(onSurface, size: MaterialSegmentedButton.iconSize),
         semanticsLabel: 'On the map',
       ),
     ],
@@ -595,13 +636,10 @@ UINode _navigationView(int chosen, NavigationStore store) {
         selectedIcon: glyphPin(MaterialNavigationBar.activeIconColor, size: 20),
       ),
       MaterialNavigationDestination(
-        label: const TextNode('Saved'),
-        icon: MaterialCheckMark(
-          color: MaterialNavigationBar.inactiveIconColor,
-          size: 20,
-        ),
-        selectedIcon: MaterialCheckMark(
-          color: MaterialNavigationBar.activeIconColor,
+        label: const TextNode('Grid'),
+        icon: glyphGrid(MaterialNavigationBar.inactiveIconColor, size: 20),
+        selectedIcon: glyphGrid(
+          MaterialNavigationBar.activeIconColor,
           size: 20,
         ),
       ),
@@ -635,7 +673,7 @@ final class DialogDemo extends StatefulNode<bool, DialogDemoStore> {
 
 /// The button, the dialog when it is open, and what the section says about it.
 UINode _dialogView(bool open, DialogDemoStore store) {
-  const MaterialPalette palette = MaterialPalette.light;
+  final MaterialPalette palette = ExamplePalette.material;
 
   // A grid, so the button and the note beside it stack on a narrow window instead
   // of pushing the page sideways.

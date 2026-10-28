@@ -51,8 +51,31 @@ void main() {
     });
 
     test('installs the palette the page names roles from', () {
-      expect(html, contains('--unibox-color-surface-container: #f3edf7'));
+      // The site is drawn with the palette the example grows from its seed, so the
+      // value is the generated one — what matters here is that the role is installed
+      // as a custom property and that the page reads it rather than a hex value.
+      expect(
+        RegExp(r'--unibox-color-surface-container:\s*#[0-9a-f]{6}')
+            .hasMatch(html),
+        isTrue,
+        reason: 'the generated palette is not in the root',
+      );
       expect(html, contains('var(--unibox-color-surface-container)'));
+    });
+
+    test('names the build it came from when it is told one', () async {
+      // A tab opened before a deploy keeps the markup it arrived with, which looks
+      // identical to the deployed page; the stamp is the one fact that separates them.
+      final ResponseLike stamped = await renderComponent(
+        buildSiteDocument(build: 'abc1234'),
+      );
+
+      expect(
+        utf8.decode(stamped.body),
+        contains('<meta name="unibox-build" content="abc1234"'),
+      );
+      // A build that cannot name itself says nothing rather than guessing.
+      expect(html, isNot(contains('unibox-build')));
     });
 
     test('loads the browser runtime beside the page', () {

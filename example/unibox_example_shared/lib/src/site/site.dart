@@ -1,6 +1,8 @@
 import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_material/unibox_material.dart';
 
+import '../theme.dart';
+
 import 'gallery.dart';
 import 'hero.dart';
 import 'section.dart';
@@ -22,7 +24,7 @@ const String repositoryUrl = 'https://github.com/cedvdb/unibox';
 /// design system both sides are drawn with. A reader who stops after the comparison
 /// has still seen the claim settled.
 UINode buildSitePage({required ShowcaseFrame frame}) {
-  const MaterialPalette palette = MaterialPalette.light;
+  final MaterialPalette palette = ExamplePalette.material;
 
   return Box(
     direction: Axis.vertical,

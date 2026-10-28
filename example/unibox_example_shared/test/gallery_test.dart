@@ -12,7 +12,7 @@ void main() {
       // With a width, each segment takes an equal share: 102, 102, 102 at 375 and
       // 144, 144, 144 at 1440.
       final List<MaterialSegmentedButton> buttons = _nodesOf(
-        buildMaterialGallery(),
+        buildMaterialSection(),
       ).whereType<MaterialSegmentedButton>().toList();
 
       expect(buttons, hasLength(2));
@@ -30,7 +30,7 @@ void main() {
       // Four chips need 368 pixels and a phone's cell gives 311, so a row that neither
       // shrinks nor scrolls pushes the page sideways: the gallery measured a 400 pixel
       // document in a 375 pixel window before these rows scrolled.
-      final List<Box> scrollers = _nodesOf(buildMaterialGallery())
+      final List<Box> scrollers = _nodesOf(buildMaterialSection())
           .whereType<Box>()
           .where((Box box) => box.overflow == Overflow.scroll)
           .toList();
@@ -40,19 +40,21 @@ void main() {
       expect(_textsIn(scrollers.last), contains('Garden'));
     });
 
-    test('draws the chosen segment with Material’s check, in place of its icon', () {
-      final List<UINode> nodes = _nodesOf(buildMaterialGallery());
+    test(
+      'draws the chosen segment with Material’s check, in place of its icon',
+      () {
+        final List<UINode> nodes = _nodesOf(buildMaterialSection());
 
-      // The chosen chip, the chosen segment of each of the two buttons, and the
-      // picture of the bar's third destination: four marks, and no text glyph
-      // standing in for one.
-      expect(nodes.whereType<MaterialCheckMark>(), hasLength(4));
-      // A segment that is not chosen still draws its own icon.
-      expect(
-        _textsIn(buildMaterialGallery()),
-        containsAll(<String>['Grid', 'Map']),
-      );
-    });
+        // The chosen chip and the chosen segment of each of the two buttons: three
+        // marks, and no text glyph standing in for one.
+        expect(nodes.whereType<MaterialCheckMark>(), hasLength(3));
+        // A segment that is not chosen still draws its own icon.
+        expect(
+          _textsIn(buildMaterialSection()),
+          containsAll(<String>['Grid', 'Map']),
+        );
+      },
+    );
   });
 }
 

@@ -55,9 +55,13 @@ flutter pub get || fail 'flutter pub get'
 
 step 'Rendering the pages'
 # The site is one node tree and the example is another; one script writes all of
-# their documents, so the site and the app cannot disagree about a path.
+# their documents, so the site and the app cannot disagree about a path. The commit is
+# asked for once and written into every document, so a stale tab can be told from a
+# live page without reading CSS class hashes.
+build="$(git -C "$root" rev-parse HEAD 2>/dev/null || true)"
 rm -rf "$site"
-(cd example/unibox_example_jaspr && dart run bin/build_site.dart --out="$site") \
+(cd example/unibox_example_jaspr &&
+  dart run bin/build_site.dart --out="$site" ${build:+--build="$build"}) \
   || fail 'the site render'
 
 step 'Compiling the browser runtime'
@@ -114,6 +118,19 @@ fi
 # GitHub Pages runs Jekyll over a published directory unless this file is there,
 # and Jekyll drops paths it thinks are special.
 : >"$site/.nojekyll"
+
+# The commit the published site was built from. A deploy is not instant and not always
+# the one we think it is — one publication in this repository shipped the previous
+# build while its script was current — so "is the site stale?" should be answerable
+# with one request rather than by reading CSS class hashes. Every document names the
+# same commit in `<meta name="unibox-build">`, so the two cannot disagree.
+if [[ -n "$build" ]]; then
+  printf '%s\n' "$build" >"$site/version.txt"
+  printf '%s\n' "$(git -C "$root" log -1 --format='%s' 2>/dev/null || echo 'unknown')" \
+    >>"$site/version.txt"
+else
+  date -u +%Y-%m-%dT%H:%M:%SZ >"$site/version.txt"
+fi
 
 printf '\n==> Built %s (base %s)\n' "$site" "$base"
 

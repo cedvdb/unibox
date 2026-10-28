@@ -1,11 +1,13 @@
 import 'package:unibox_core/unibox_core.dart';
 
+import 'apartments.dart';
 import 'page.dart';
 import 'signup_card.dart';
 
-/// The state of the example page: the form and whether its dialog is open.
+/// The state of the example page: the form, its dialog, and the two choices the
+/// listings offer.
 ///
-/// One value, because one node draws both: the bar, the listings and the dialog
+/// One value, because one node draws all of it: the bar, the listings and the dialog
 /// are the same tree, and this object is the only thing that changes between two
 /// renderings of it.
 final class ExampleState {
@@ -13,8 +15,12 @@ final class ExampleState {
   const ExampleState({
     this.form = const SignupFormState(),
     this.signupOpen = false,
-    this.mapOpen = false,
+    this.filter = defaultFilter,
+    this.view = ListingsView.grid,
   });
+
+  /// The filter the listings start with, and the one a cleared row goes back to.
+  static const String defaultFilter = defaultListingFilter;
 
   /// The values of the sign-up form.
   final SignupFormState form;
@@ -22,18 +28,18 @@ final class ExampleState {
   /// Whether the sign-up dialog is open.
   final bool signupOpen;
 
-  /// Whether the map is open as a view of its own.
-  ///
-  /// It only matters on a narrow surface: from 900 logical pixels the map is drawn
-  /// beside the listings, and the toggle that opens it is not drawn at all.
-  final bool mapOpen;
+  /// The filter the listing chips have chosen, or `null` for no filter.
+  final String? filter;
+
+  /// How the listings are drawn: one column, or a grid.
+  final ListingsView view;
 
   /// The destination the bar highlights.
   ///
-  /// The example has one page, so the sign-up form is the current destination
-  /// while its dialog is open and the listings are current otherwise. It is
-  /// derived rather than stored: a page field would be a second place to say which
-  /// destination is open, and the two could disagree.
+  /// The example has one page, so the sign-up form is the current destination while
+  /// its dialog is open and the listings are current otherwise. It is derived rather
+  /// than stored: a page field would be a second place to say which destination is
+  /// open, and the two could disagree.
   ExamplePage get current =>
       signupOpen ? ExamplePage.signup : ExamplePage.apartments;
 
@@ -41,14 +47,20 @@ final class ExampleState {
   ExampleState copyWith({
     SignupFormState? form,
     bool? signupOpen,
-    bool? mapOpen,
+    Object? filter = _unchanged,
+    ListingsView? view,
   }) {
     return ExampleState(
       form: form ?? this.form,
       signupOpen: signupOpen ?? this.signupOpen,
-      mapOpen: mapOpen ?? this.mapOpen,
+      // A filter is cleared by passing `null`, which is a value and not "unchanged".
+      filter: identical(filter, _unchanged) ? this.filter : filter as String?,
+      view: view ?? this.view,
     );
   }
+
+  /// The marker that tells [copyWith] "leave this token alone".
+  static const Object _unchanged = Object();
 
   /// Whether two states describe the same page.
   ///
@@ -59,17 +71,19 @@ final class ExampleState {
     return other is ExampleState &&
         other.form == form &&
         other.signupOpen == signupOpen &&
-        other.mapOpen == mapOpen;
+        other.filter == filter &&
+        other.view == view;
   }
 
   /// Two states with equal values hash alike, which is what lets the store skip
   /// a rebuild that would draw the same tree again.
   @override
-  int get hashCode => Object.hash(form, signupOpen, mapOpen);
+  int get hashCode => Object.hash(form, signupOpen, filter, view);
 
   @override
   String toString() =>
-      'ExampleState(form: $form, signupOpen: $signupOpen, mapOpen: $mapOpen)';
+      'ExampleState(form: $form, signupOpen: $signupOpen, filter: $filter, '
+      'view: $view)';
 }
 
 /// The store of `ExamplePageNode`: every interaction of the page as one
@@ -111,11 +125,11 @@ final class ExampleStore extends StateStore<ExampleState> {
   /// Closes the sign-up dialog.
   void closeSignup() => state = state.copyWith(signupOpen: false);
 
-  /// Opens the map as a view of its own, which is what a narrow surface offers.
-  void openMap() => state = state.copyWith(mapOpen: true);
+  /// Chooses the filter of the listing chips, or clears it with `null`.
+  void chooseFilter(String? filter) => state = state.copyWith(filter: filter);
 
-  /// Closes the map view.
-  void closeMap() => state = state.copyWith(mapOpen: false);
+  /// Draws the listings in the layout [view] names.
+  void showListings(ListingsView view) => state = state.copyWith(view: view);
 
   /// Follows a destination of the bar.
   ///

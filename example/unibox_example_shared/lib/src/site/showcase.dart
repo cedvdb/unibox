@@ -1,6 +1,8 @@
 import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_material/unibox_material.dart';
 
+import '../theme.dart';
+
 import 'section.dart';
 
 /// A frame of the showcase: the node that draws [src], which the host supplies.
@@ -24,7 +26,7 @@ typedef ShowcaseFrame = UINode Function({
 /// agree, and a reader should meet the evidence before the design system the
 /// evidence is drawn with.
 UINode buildShowcaseSection({required ShowcaseFrame frame}) {
-  const MaterialPalette palette = MaterialPalette.light;
+  final MaterialPalette palette = ExamplePalette.material;
 
   return siteBand(
     background: palette.surfaceContainerLow,

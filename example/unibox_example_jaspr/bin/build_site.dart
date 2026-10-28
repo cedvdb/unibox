@@ -8,7 +8,7 @@ import 'package:unibox_example_shared/unibox_example_shared.dart';
 /// Renders the site to static files: one page, and the example it compares.
 ///
 /// ```sh
-/// dart run bin/build_site.dart --out=build/site
+/// dart run bin/build_site.dart --out=build/site --build=$(git rev-parse HEAD)
 /// ```
 ///
 /// Two kinds of document. `index.html` is the **site** — one page of three bands: the
@@ -24,15 +24,18 @@ Future<void> main(List<String> arguments) async {
   Jaspr.initializeApp();
 
   final Directory out = Directory(_option(arguments, 'out') ?? 'build/site');
+  // `tool/site.sh` passes the commit it writes into `version.txt`, so a document can
+  // name the build it came from and a stale tab can be told from a live one.
+  final String? build = _option(arguments, 'build');
 
-  await _write(out, 'index.html', buildSiteDocument());
+  await _write(out, 'index.html', buildSiteDocument(build: build));
 
   for (final ExamplePage page in ExamplePage.values) {
     final String path = page == ExamplePage.apartments
         ? 'web/listings/index.html'
         : 'web/${page.name}/index.html';
 
-    await _write(out, path, buildExampleDocument(page: page));
+    await _write(out, path, buildExampleDocument(page: page, build: build));
   }
 }
 

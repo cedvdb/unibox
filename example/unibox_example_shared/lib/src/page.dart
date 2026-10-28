@@ -130,7 +130,7 @@ UINode _navigationBar({
         gap: 12,
         flex: 1,
         children: <UINode>[
-          const TextNode('Unibox', style: ExampleType.brand),
+          TextNode('Unibox', style: ExampleType.brand),
           Box(
             flex: 1,
             // A column, not a row: a grid inside a row is unbounded again, and an
