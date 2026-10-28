@@ -97,11 +97,16 @@ void main() {
         semantics.map((BoxSemantics s) => s.role),
         everyElement(BoxRole.button),
       );
-      expect(semantics.map((BoxSemantics s) => s.selected ?? false), <bool>[
+      expect(semantics.map((BoxSemantics s) => s.pressed ?? false), <bool>[
         true,
         false,
         false,
       ]);
+      expect(
+        semantics.map((BoxSemantics s) => s.selected),
+        everyElement(isNull),
+        reason: 'a segment is a toggle button, not an item of a tab strip',
+      );
     });
 
     test('puts a check on the chosen segment, in place of its icon', () {

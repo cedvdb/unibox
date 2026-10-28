@@ -271,6 +271,7 @@ Flutter counterpart has it.
 | `BoxSemantics.checked` | `aria-checked` on a checkbox or a switch |
 | `BoxSemantics.expanded` | `aria-expanded` |
 | `BoxSemantics.selected` | `aria-selected` |
+| `BoxSemantics.pressed` | `aria-pressed`, on a toggle button |
 | `BoxSemantics.liveRegion` | `aria-live="polite"` |
 | `BoxSemantics.hidden` | `aria-hidden="true"`, and no `tabindex` |
 | `Box.enabled` | `aria-disabled="true"`, and no listeners |

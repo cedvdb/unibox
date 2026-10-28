@@ -176,7 +176,13 @@ void main() {
       final Box plain = _box(MaterialChip(label: const TextNode('Studio')));
 
       expect(tappable.semantics?.role, BoxRole.button);
-      expect(tappable.semantics?.selected, isTrue);
+      expect(tappable.semantics?.pressed, isTrue);
+      expect(
+        tappable.semantics?.selected,
+        isNull,
+        reason:
+            'a chip is a toggle button: `aria-selected` is not a button state',
+      );
       expect(
         plain.semantics,
         isNull,

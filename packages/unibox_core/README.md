@@ -130,7 +130,7 @@ A node says what it is as well as how it looks, and none of it changes a pixel:
 | `TextNode.headingLevel` | the text is a heading of level 1 to 6: `<h1>`–`<h6>` on the web, `Semantics(header: true, headingLevel: n)` in Flutter |
 | `BoxSemantics.element` | the element the box becomes: `div`, `main`, `nav`, `header`, `footer`, `aside`, `section`, `article`, `form`, `figure`, `ul`, `ol` or `li` |
 | `BoxSemantics.role` | the ARIA role of a hand drawn control: button, checkbox, switch, link or heading |
-| `BoxSemantics.expanded`, `.selected`, `.hidden`, `.liveRegion` | the state a reader announces and a browser exposes as `aria-expanded`, `aria-selected`, `aria-hidden` and `aria-live` |
+| `BoxSemantics.expanded`, `.selected`, `.pressed`, `.hidden`, `.liveRegion` | the state a reader announces and a browser exposes as `aria-expanded`, `aria-selected`, `aria-pressed`, `aria-hidden` and `aria-live` |
 | `BoxSemantics.current` | which item of a set the box is: `aria-current` (`BoxCurrent.page`, `.step`, `.location`) |
 | `TextInputNode.required`, `.invalid`, `.description` | what the form needs from a field and why a value was rejected: `aria-required`, `aria-invalid`, `aria-description` on the web and the same state in Flutter |
 | `BoxSemantics.label` | the name to announce instead of the contents |

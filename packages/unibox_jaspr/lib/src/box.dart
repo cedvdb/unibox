@@ -304,12 +304,19 @@ class JasprBox extends StatelessComponent {
 
     final bool? expanded = semantics?.expanded;
     final bool? selected = semantics?.selected;
+    final bool? pressed = semantics?.pressed;
 
     if (expanded != null) {
       attributes['aria-expanded'] = '$expanded';
     }
     if (selected != null) {
       attributes['aria-selected'] = '$selected';
+    }
+    // A toggle button's own state. `aria-selected` is not this one: a browser only
+    // honours it on an option, a tab, a row or a grid cell, so a chip or a segment
+    // that said "selected" said nothing at all.
+    if (pressed != null) {
+      attributes['aria-pressed'] = '$pressed';
     }
     // A hidden box keeps its look and leaves the accessibility tree, and it is
     // never focusable, so it cannot be a focusable element with aria-hidden.

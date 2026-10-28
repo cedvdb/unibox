@@ -155,6 +155,7 @@ host that renders it.
 | `SingleChildScrollView` | `Box(overflow: Overflow.scroll)` |
 | `Stack` + `Positioned` | `StackNode` + `PositionedNode` |
 | `Semantics(button: true, label:)` | `semantics: BoxSemantics(role: BoxRole.button, label: …)` |
+| `Semantics(button: true, toggled: true)`, `aria-pressed` | `semantics: BoxSemantics(role: BoxRole.button, pressed: true)` — a toggle button, which is what a chip and a segment are; `selected` is for the item of a set (an option, a tab) and a browser ignores it on a button |
 | `TextField` | `TextInputNode(value:, placeholder:, inputType:, onChanged:)`, or `MaterialTextField(label:, validator:, onChanged:)` for Material's frame, which validates itself once the field has been touched |
 | `showDialog`, `Dialog` | `MaterialDialog(title:, content:, actions:, onDismiss:)` — an `OverlayNode`, not a call |
 | `showModalBottomSheet` | `MaterialBottomSheet(title:, content:, actions:)` — the same overlay at the bottom |

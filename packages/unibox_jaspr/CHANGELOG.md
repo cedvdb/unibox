@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- A box whose semantics state `pressed` writes `aria-pressed`, which is the state a
+  browser honours on a `button`. A toggle button — a filter chip, a segment of a
+  segmented button — used to write `aria-selected` instead, and a browser ignores that
+  outside an option, a tab, a row or a grid cell: the chosen state of both controls was
+  announced by nothing on the web while Flutter announced it.
+
 - A box that paints and holds nothing takes no pointer, and a stack cell is a placement
   rather than a control: before, a decoration drawn over a control swallowed the press
   meant for it, so a button under a paint layer — or anywhere under a floating one — was

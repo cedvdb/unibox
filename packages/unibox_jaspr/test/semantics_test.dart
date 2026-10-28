@@ -261,6 +261,49 @@ void main() {
       expect(attributes['aria-live'], 'polite');
     });
 
+    testComponents('tells a toggle button apart from a selected item', (
+      tester,
+    ) async {
+      pumpNode(
+        tester,
+        core.Box(
+          onTap: () {},
+          semantics: const core.BoxSemantics(
+            role: core.BoxRole.button,
+            pressed: true,
+          ),
+          children: <core.UINode>[core.TextNode('Two rooms')],
+        ),
+      );
+
+      final Map<String, String> attributes = attributesOf(find.tag('div'));
+
+      // A filter chip is a toggle button: a browser honours `aria-pressed` on a
+      // `button` and ignores `aria-selected` there, so the state a chosen chip used
+      // to write was announced by nothing.
+      expect(attributes['role'], 'button');
+      expect(attributes['aria-pressed'], 'true');
+      expect(attributes.containsKey('aria-selected'), isFalse);
+    });
+
+    testComponents('writes a toggle button that is off as not pressed', (
+      tester,
+    ) async {
+      pumpNode(
+        tester,
+        core.Box(
+          onTap: () {},
+          semantics: const core.BoxSemantics(
+            role: core.BoxRole.button,
+            pressed: false,
+          ),
+          children: <core.UINode>[core.TextNode('Studio')],
+        ),
+      );
+
+      expect(attributesOf(find.tag('div'))['aria-pressed'], 'false');
+    });
+
     testComponents('hides a box without taking it out of the layout', (
       tester,
     ) async {

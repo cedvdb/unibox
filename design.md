@@ -277,9 +277,14 @@ never inherited (CSS does not inherit them either).
 - A node says what it *is* as well as how it looks, and the two are separate
   tokens: `BoxSemantics.element` picks the element a box becomes, `BoxRole` picks
   the ARIA role of a hand drawn control, `TextNode.headingLevel` says a text is a
-  heading, and `expanded`, `selected`, `hidden` and `liveRegion` describe its
-  state. None of them changes a pixel, which is the test the semantics tests run:
+  heading, and `expanded`, `selected`, `pressed`, `hidden` and `liveRegion` describe
+  its state. None of them changes a pixel, which is the test the semantics tests run:
   a heading measures the same as the text it would be without the element.
+- `selected` and `pressed` are not interchangeable. `aria-selected` belongs to an
+  *option*, a tab, a row or a grid cell — the item of a set — while a toggle button
+  states its own state with `aria-pressed`. A browser ignores both when they sit on
+  the wrong role, so a chip or a segment that said "selected" was announced as an
+  ordinary button, and the state was lost on the web alone.
 - A heading is a text and not a container: `<h1>`–`<h6>` on the web,
   `Semantics(header: true, headingLevel: n)` in Flutter. The element brings no look
   of its own — the renderer cancels the user agent's margin, size and weight —

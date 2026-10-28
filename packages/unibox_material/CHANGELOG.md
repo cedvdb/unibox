@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- `MaterialChip` and `MaterialSegmentedButton` state their choice with
+  `BoxSemantics.pressed` rather than `selected`: both are toggle buttons, and a browser
+  ignores `aria-selected` on a button, so the chosen chip and the chosen segment were
+  announced as plain buttons on the web. `MaterialNavigationBar` keeps `current` alone,
+  which is the state a navigation item has.
+
 - `MaterialChip`'s target is 48 pixels around a pill that still paints 32. Material states
   one target for a touch screen and a 32 pixel chip is below it; the pill is centred in the
   room and the tints stay on the pill, so hovering the extra eight pixels takes the press

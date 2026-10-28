@@ -510,7 +510,7 @@ MaterialSegmentedButton(
 | --- | --- |
 | height, radius | 40, and 20: a full round |
 | container | a 1 pixel `outline` line, `overflow: hidden` so a chosen fill is cut to the rounded ends it reaches |
-| chosen | a `secondaryContainer` fill, an `onSecondaryContainer` label, a check, and `selected` for a screen reader |
+| chosen | a `secondaryContainer` fill, an `onSecondaryContainer` label, a check, and `pressed` for a screen reader |
 | check | 18 pixels, a `MaterialCheckMark`, in place of the chosen segment's icon; `showSelectedIcon: false` keeps the icon |
 | icon | `iconSize` = 18, 8 from the label and 12 from the segment's edge |
 | label | `labelLarge`, `onSurface` or `onSecondaryContainer` |
@@ -628,7 +628,10 @@ a box inside it — is what made a hand-built chip tint 14 pixels past itself. T
 clips to the radius, so the ink of a press stays inside too.
 
 A chip is a control: it announces itself as a button when it can be pressed, and says
-whether it is chosen, which is a state a screen reader hears rather than a colour.
+whether it is on — `pressed`, which a screen reader announces and a browser writes as
+`aria-pressed`. It is not `selected`: `aria-selected` is only honoured on an option, a
+tab, a row or a grid cell, so a button that carried it said nothing about its state on
+the web, and said "selected" on a phone — one control described two ways.
 
 **What stays approximate.** A chosen filter chip shows a check mark in Material; here the
 check is `leading`, because a chip carries whatever node the caller gives it.
@@ -815,7 +818,7 @@ at 40, and a tick drawn at a seventh of its box — nearly twice Material's weig
 what makes a hand-tuned one read as a pen stroke beside Material's type.
 
 It takes no semantics: it is decoration beside a label, and the control it sits in says
-what is chosen through its own `selected`.
+what is chosen through its own `pressed`.
 
 ## Elevation
 

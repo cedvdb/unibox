@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- `BoxSemantics.pressed` is the state of a toggle button: `aria-pressed` on the web and
+  Flutter's `toggled`. It is not `selected`, and the difference is not cosmetic —
+  `aria-selected` is only honoured on an option, a tab, a row or a grid cell, so a
+  button that carried it announced its state to nobody. A chip and a segment are
+  toggle buttons, and they say so now.
+
 - `BoxTransform` takes `scaleX` and `scaleY`, so a box can stretch on one axis and keep
   its size on the other. They multiply `scale` rather than replacing it, and both targets
   paint the result with the same matrix: Material's navigation indicator grows sideways

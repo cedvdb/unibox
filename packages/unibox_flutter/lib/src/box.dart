@@ -570,7 +570,9 @@ class FlutterBoxState extends State<FlutterBox> {
       link: role == core.BoxRole.link,
       header: role == core.BoxRole.heading,
       checked: role == core.BoxRole.checkbox ? checked : null,
-      toggled: role == core.BoxRole.switch_ ? checked : null,
+      // A switch is on or off, and so is a toggle button: Flutter states both with
+      // `toggled`, and the web with `aria-checked` and `aria-pressed` respectively.
+      toggled: role == core.BoxRole.switch_ ? checked : semantics?.pressed,
       label: label,
       enabled: box.enabled,
       focusable: focusable,

@@ -627,6 +627,20 @@ void main() {
       expect(const BoxSemantics().current, isNull);
     });
 
+    test('says whether a toggle button is pressed', () {
+      const BoxSemantics semantics = BoxSemantics(
+        role: BoxRole.button,
+        pressed: true,
+      );
+
+      expect(semantics.pressed, isTrue);
+      expect(semantics.copyWith().pressed, isTrue);
+      expect(semantics.copyWith(pressed: false).pressed, isFalse);
+      expect(semantics, isNot(const BoxSemantics(role: BoxRole.button)));
+      expect(semantics.toString(), contains('pressed: true'));
+      expect(const BoxSemantics().pressed, isNull);
+    });
+
     test('copies the element and the state it is given', () {
       const semantics = BoxSemantics(role: BoxRole.button);
 

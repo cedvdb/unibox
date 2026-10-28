@@ -785,6 +785,7 @@ Box(
 | `element` | `div`, `main`, `nav`, `header`, `footer`, `aside`, `section`, `article`, `form`, `figure`, `figcaption`, `ul`, `ol`, `li`: the element a box renders as on the web. |
 | `label` | The name announced instead of the contents. |
 | `checked`, `expanded`, `selected` | `aria-checked`, `aria-expanded`, `aria-selected`, and the same state in Flutter. |
+| `pressed` | `aria-pressed` on a toggle button — a chip, a segment — and Flutter's `toggled`. It is not `selected`: a browser only honours `aria-selected` on an option, a tab, a row or a grid cell, so a button that carried it announced nothing. |
 | `hidden` | `aria-hidden`: the box keeps its look but leaves the accessibility tree and the tab order. |
 | `liveRegion` | `aria-live`: a change inside is announced, which is how a form reports a result without moving the focus. |
 | `current` | `aria-current` (`page`, `step`, `location`): the item of a navigation the reader is on. Flutter has no counterpart, so it announces the box as the selected item of a set. |

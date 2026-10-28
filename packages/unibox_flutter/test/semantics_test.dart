@@ -195,6 +195,56 @@ void main() {
       handle.dispose();
     });
 
+    testWidgets('reports a toggle button as toggled, not selected', (
+      tester,
+    ) async {
+      final SemanticsHandle handle = tester.ensureSemantics();
+
+      await pumpNode(
+        tester,
+        core.Box(
+          onTap: () {},
+          semantics: const core.BoxSemantics(
+            role: core.BoxRole.button,
+            pressed: true,
+          ),
+          children: <core.UINode>[core.TextNode('Two rooms')],
+        ),
+      );
+
+      final SemanticsData data = dataOf(tester, find.byKey(nodeKey));
+
+      // The state the web writes as `aria-pressed` is Flutter's `toggled`; a button
+      // is not an item of a set, so `selected` stays unset.
+      expect(data.flagsCollection.isToggled, Tristate.isTrue);
+      expect(data.flagsCollection.isSelected, Tristate.none);
+
+      handle.dispose();
+    });
+
+    testWidgets('reports a box that is not pressed as off', (tester) async {
+      final SemanticsHandle handle = tester.ensureSemantics();
+
+      await pumpNode(
+        tester,
+        core.Box(
+          onTap: () {},
+          semantics: const core.BoxSemantics(
+            role: core.BoxRole.button,
+            pressed: false,
+          ),
+          children: <core.UINode>[core.TextNode('Studio')],
+        ),
+      );
+
+      expect(
+        dataOf(tester, find.byKey(nodeKey)).flagsCollection.isToggled,
+        Tristate.isFalse,
+      );
+
+      handle.dispose();
+    });
+
     testWidgets('hides a box from assistive technologies and the tab order', (
       tester,
     ) async {

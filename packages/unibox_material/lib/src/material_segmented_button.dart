@@ -48,10 +48,13 @@ final class MaterialSegment {
 /// control whose fill is enough, and the icon stays where it is.
 ///
 /// **What Material draws that this does not.** The container announces no
-/// `radiogroup`: `BoxSemantics` has no group role, so each segment is a button that
-/// says whether it is the chosen one. A disabled control fades as one (38%), rather
-/// than drawing `onSurface` at 12% under a 38% label, which the model cannot say
-/// without an alpha role per token.
+/// `radiogroup`: a radio promises arrow keys between the choices and a single tab stop
+/// for the set, and a box activates with `Enter` and `Space` alone — on both targets,
+/// which is why `BoxRole` has no radio either. Each segment is a toggle button that
+/// says whether it is pressed (`aria-pressed`, Flutter's `toggled`), which is true of
+/// the control without promising behaviour the model cannot keep. A disabled control
+/// fades as one (38%), rather than drawing `onSurface` at 12% under a 38% label, which
+/// the model cannot say without an alpha role per token.
 final class MaterialSegmentedButton extends Box {
   /// Creates a segmented button with [segments], [selected] of them chosen.
   MaterialSegmentedButton({
@@ -150,7 +153,7 @@ final class MaterialSegmentedButton extends Box {
           semantics: BoxSemantics(
             role: BoxRole.button,
             label: segment.semanticsLabel,
-            selected: selected,
+            pressed: selected,
           ),
           child: Box(
             padding: const BoxSpacing.symmetric(horizontal: 12),

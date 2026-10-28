@@ -58,6 +58,37 @@ void main() {
       expect(page['height'], '100%');
     });
 
+    testComponents('states the chosen chip and segment as pressed buttons', (
+      tester,
+    ) async {
+      tester.pumpComponent(ExampleApp());
+
+      // The page's two toggle controls: the filter chip that is on, and the segment of
+      // the layout switch that is on. Both are a `button` with `aria-pressed`, which is
+      // the state a browser honours on one — `aria-selected` belongs to an option, a
+      // tab or a row, so the two controls announced nothing on the web before.
+      final List<TestRenderElement> pressed = elementsOf(find.tag('div'))
+          .where(
+            (TestRenderElement element) =>
+                element.attributes?['aria-pressed'] == 'true',
+          )
+          .toList();
+
+      expect(pressed, hasLength(2));
+      expect(
+        pressed.map((TestRenderElement element) => element.attributes?['role']),
+        everyElement('button'),
+      );
+
+      final Iterable<TestRenderElement> selected = elementsOf(find.tag('div'))
+          .where(
+            (TestRenderElement element) =>
+                element.attributes?.containsKey('aria-selected') ?? false,
+          );
+
+      expect(selected, isEmpty);
+    });
+
     testComponents('wires both fields to the host', (tester) async {
       tester.pumpComponent(signupApp());
 
