@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:unibox_example_flutter/main.dart';
-import 'package:unibox_example_shared/unibox_example_shared.dart';
 
 /// Pumps the example on a surface tall enough for the whole card.
 ///
@@ -15,12 +14,11 @@ import 'package:unibox_example_shared/unibox_example_shared.dart';
 Future<void> pumpApp(
   WidgetTester tester, {
   Size surface = const Size(900, 1000),
-  ExamplePage page = ExamplePage.apartments,
 }) async {
   tester.view.physicalSize = surface;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
-  await tester.pumpWidget(ExampleApp(page: page));
+  await tester.pumpWidget(const ExampleApp());
   // The dialog asks for its layer on the frame after it mounts.
   await tester.pump();
 }

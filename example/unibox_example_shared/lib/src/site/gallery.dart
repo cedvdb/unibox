@@ -2,140 +2,101 @@ import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_material/unibox_material.dart';
 
 import '../icons.dart';
-import '../theme.dart';
+import 'section.dart';
 
-/// The Material library as one node tree: the type scale, the colour roles and the
-/// components, drawn by the web renderer like any other page.
+/// The third band: the Material library as one node tree — the type scale, the
+/// colour roles and the components.
 ///
-/// The page is a demonstration and a claim at once. Every value on it comes from
-/// `unibox_material` — no colour is typed into this file, and the palette is the one
-/// the example grows from its seed — and every component is a node the two renderers
-/// already draw, so nothing here is a screenshot.
-UINode buildMaterialGallery() {
-  final MaterialPalette palette = ExamplePalette.material;
+/// The band is a demonstration and a claim at once. Every value on it is a `const`
+/// in `unibox_material` — no colour is typed into this file — and every component is
+/// a node the two renderers already draw, so nothing here is a screenshot.
+///
+/// It is a band of the page rather than a page of its own: the heading names what
+/// the catalogue is, and each block under it is an `h3`, so the page still has one
+/// `h1` and two `h2`s above it.
+UINode buildMaterialSection() {
+  const MaterialPalette palette = MaterialPalette.light;
 
-  // A measure, not the window: the gallery is a catalogue, and a paragraph or a row of
-  // buttons stretched across a 27 inch screen is unreadable however well it renders.
-  // The column is centred in whatever width the page is given, and fills a phone.
-  return Box(
-    width: double.infinity,
-    direction: Axis.horizontal,
-    mainAlign: MainAlign.center,
-    children: <UINode>[
-      Box(
-        width: double.infinity,
-        maxWidth: 960,
-        padding: const BoxSpacing.symmetric(horizontal: 32, vertical: 32),
-        gap: 48,
-        children: <UINode>[
-          _header(palette),
-          _section(
-            'Type scale',
-            'The fifteen roles as const BoxTextStyle values. A box passes one down; a '
-                'text names the one it wants.',
-            _typeScale(),
-          ),
-          _section(
-            'Colour roles',
-            'One seed grown into the roles: MaterialPalette.fromSeed keeps the hue '
-                'of the brand colour and replaces its tone, and the values are read '
-                'when the tree is built rather than looked up at render time.',
-            _palette(palette),
-          ),
-          _section(
-            'Buttons',
-            'A MaterialButton is a fill around the ink well, so the hover, focus and '
-                'press tints paint over the colour rather than replacing it, and a press '
-                'spreads ink from where it landed. Hold one down to see both.',
-            _buttons(),
-          ),
-          _section(
-            'Chips',
-            'A filter chip is one choice: a 32 pixel pill, filled with '
-                'secondaryContainer when it is chosen and outlined when it is not, with '
-                'a node in front of the label. An input chip adds a close — onRemove '
-                'gives the cross a round 18 pixel target of its own, so a press on it '
-                'removes the chip instead of choosing it.',
-            _chips(),
-          ),
-          _section(
-            'Segmented buttons',
-            'Two to five choices in one 40 pixel pill at radius 20: a shared outline, a '
-                '1 pixel rule between the segments, an equal share of the width for '
-                'each, and the chosen one filled with secondaryContainer and announced '
-                'as selected. The chosen segment trades its icon for Material\'s check '
-                '— two bars, drawn from boxes because a font is a host asset — so a '
-                'control of pictures still says which one is on.',
-            _segments(),
-          ),
-          _section(
-            'Text fields',
-            'The filled field: surfaceContainerHighest, a bottom line that thickens and '
-                'turns primary on focus, the label on the line while it is empty and at '
-                'the top of the fill once it is not. Type in either field: the state is '
-                "the field's, so a half finished address says so, and finishing it stops.",
-            _fields(palette),
-          ),
-          _section(
-            'Cards and tiles',
-            'A card is a box with the Material surface, radius and elevation; a list tile '
-                'is a box with a leading, a title, an optional supporting text and a '
-                'trailing node.',
-            _cards(palette),
-          ),
-          _section(
-            'Navigation bar',
-            'A navigation bar is one row of equal shares on the navigation surface: the '
-                'chosen destination sits on a secondary container pill, the rest are '
-                'quiet, and every destination inks where the press landed. Press one.',
-            NavigationDemo(),
-          ),
-          _section(
-            'Dialog',
-            'A dialog is an OverlayNode rather than a call: it is in the tree only while '
-                'the state says it is open, it covers the page behind a barrier and leaves '
-                'on Escape or a press on the barrier. Press the button.',
-            DialogDemo(),
-          ),
-        ],
-      ),
-    ],
+  return siteBand(
+    background: palette.surface,
+    child: Box(
+      width: double.infinity,
+      gap: 48,
+      children: <UINode>[
+        siteHeading(
+          title: 'Material 3, as values and nodes',
+          lead:
+              'The type scale is fifteen const BoxTextStyle values, the palette is '
+              'a value the tree wears, and every component is a node built from the '
+              'node that already draws it. Nothing here is a widget the renderers do '
+              'not already have.',
+        ),
+        _section(
+          'Type scale',
+          'The fifteen roles as const BoxTextStyle values. A box passes one down; a '
+              'text names the one it wants.',
+          _typeScale(),
+        ),
+        _section(
+          'Colour roles',
+          'MaterialPalette.light and .dark: the roles as const BoxColor values, read '
+              'when the tree is built rather than looked up at render time.',
+          _palette(palette),
+        ),
+        _section(
+          'Buttons',
+          'A MaterialButton is a fill around the ink well, so the hover, focus and '
+              'press tints paint over the colour rather than replacing it, and a press '
+              'spreads ink from where it landed. Hold one down to see both.',
+          _buttons(),
+        ),
+        _section(
+          'Chips and segments',
+          'A chip is one choice, a segmented button is a set of them in one pill. Both '
+              'carry a node in front of the label and both are a fill around the ink '
+              'well, so their tints stop at the shape they belong to. A chip with a '
+              'close is removed by pressing the cross; a segment moves the choice it '
+              'belongs to.',
+          _choices(),
+        ),
+        _section(
+          'Text fields',
+          'The filled field: surfaceContainerHighest, a bottom line that thickens and '
+              'turns primary on focus, the label on the line while it is empty and at '
+              'the top of the fill once it is not. Type in either field: the state is '
+              "the field's, so a half finished address says so, and finishing it stops.",
+          _fields(palette),
+        ),
+        _section(
+          'Cards and tiles',
+          'A card is a box with the Material surface, radius and elevation; a list tile '
+              'is a box with a leading, a title, an optional supporting text and a '
+              'trailing node.',
+          _cards(palette),
+        ),
+        _section(
+          'Navigation bar',
+          'A navigation bar is one row of equal shares on the navigation surface: the '
+              'chosen destination sits on a secondary container pill, the rest are '
+              'quiet, and every destination inks where the press landed. Press one.',
+          NavigationDemo(),
+        ),
+        _section(
+          'Dialog',
+          'A dialog is an OverlayNode rather than a call: it is in the tree only while '
+              'the state says it is open, it covers the page behind a barrier and leaves '
+              'on Escape or a press on the barrier. Press the button.',
+          DialogDemo(),
+        ),
+      ],
+    ),
   );
 }
 
-/// The name of the package and what the page shows.
-UINode _header(MaterialPalette palette) {
-  return Box(
-    gap: 8,
-    children: <UINode>[
-      // The page has exactly one h1, and this is it: a crawler and a screen reader
-      // build the outline from the headings, and a document without one reads as an
-      // untitled fragment.
-      TextNode(
-        'Material 3',
-        style: MaterialTypography.displaySmall,
-        headingLevel: 1,
-      ),
-      Box(
-        width: double.infinity,
-        maxWidth: 720,
-        children: <UINode>[
-          TextNode(
-            'The fifteen type roles, the colour roles and the components of '
-            'Material 3, written as values and nodes. Both renderers draw them '
-            'from the same tree.',
-            style: MaterialTypography.bodyLarge,
-            color: palette.onSurfaceVariant,
-          ),
-        ],
-      ),
-    ],
-  );
-}
-
-/// A titled block of the gallery.
+/// A titled block of the catalogue: an `h3`, the sentence that explains it, and the
+/// nodes that show it.
 UINode _section(String title, String description, UINode content) {
-  final MaterialPalette palette = ExamplePalette.material;
+  const MaterialPalette palette = MaterialPalette.light;
 
   return Box(
     width: double.infinity,
@@ -148,12 +109,10 @@ UINode _section(String title, String description, UINode content) {
       Box(
         gap: 4,
         children: <UINode>[
-          // A section title is an `h2`: the page has one `h1` and everything below it,
-          // which is the outline a crawler and a screen reader both read.
           TextNode(
             title,
             style: MaterialTypography.titleLarge,
-            headingLevel: 2,
+            headingLevel: 3,
           ),
           Box(
             width: double.infinity,
@@ -175,7 +134,7 @@ UINode _section(String title, String description, UINode content) {
 
 /// One row per type role: the role's name and a line of text typeset with it.
 UINode _typeScale() {
-  final MaterialPalette palette = ExamplePalette.material;
+  const MaterialPalette palette = MaterialPalette.light;
 
   return Box(
     gap: 12,
@@ -229,6 +188,8 @@ UINode _palette(MaterialPalette palette) {
     ('onSurfaceVariant', palette.onSurfaceVariant),
     ('surfaceContainerLowest', palette.surfaceContainerLowest),
     ('surfaceContainerLow', palette.surfaceContainerLow),
+    ('surfaceContainer', palette.surfaceContainer),
+    ('surfaceContainerHigh', palette.surfaceContainerHigh),
     ('surfaceContainerHighest', palette.surfaceContainerHighest),
     ('outline', palette.outline),
     ('outlineVariant', palette.outlineVariant),
@@ -306,86 +267,78 @@ UINode _buttons() {
     maxColumns: 4,
     gap: 16,
     children: <UINode>[
-      MaterialButton.filled(label: const TextNode('Filled'), onTap: () {}),
-      MaterialButton.tonal(label: const TextNode('Tonal'), onTap: () {}),
-      MaterialButton.outlined(label: const TextNode('Outlined'), onTap: () {}),
-      MaterialButton.text(label: const TextNode('Text'), onTap: () {}),
+      _natural(
+        MaterialButton.filled(label: const TextNode('Filled'), onTap: () {}),
+      ),
+      _natural(
+        MaterialButton.tonal(label: const TextNode('Tonal'), onTap: () {}),
+      ),
+      _natural(
+        MaterialButton.outlined(
+          label: const TextNode('Outlined'),
+          onTap: () {},
+        ),
+      ),
+      _natural(
+        MaterialButton.text(label: const TextNode('Text'), onTap: () {}),
+      ),
     ],
   );
 }
+
+/// Keeps [child] at its own size inside a grid track.
+///
+/// A track is as wide as its column and a box inside one fills that width, which
+/// turned every button on this page into a banner with its hover tint stretched
+/// across it. A row lays the control out at its natural size and leaves the rest of
+/// the track empty.
+UINode _natural(UINode child) => Box(
+  direction: Axis.horizontal,
+  crossAlign: CrossAlign.center,
+  children: <UINode>[child],
+);
 
 /// The two controls that pick from a small set.
 ///
 /// The chips show the three shapes Material gives one: a chosen chip with a check in
 /// front, a plain one, and an input chip whose cross removes it. The glyphs are drawn
 /// by `icons.dart`, because an icon font is an asset the example does not ship.
-/// The two kinds of chip: a filter, and one that can be closed.
-///
-/// Each group keeps its children at their natural size, so a chip never stretches
-/// into the space its grid track has: the tracks fold to one column on a phone.
-UINode _chips() {
+UINode _choices() {
   const BoxColor onSelected = BoxColor.role(
     MaterialColorRole.onSecondaryContainer,
   );
   const BoxColor onPlain = BoxColor.role(MaterialColorRole.onSurfaceVariant);
 
-  return GridNode(
-    minItemWidth: 280,
-    maxColumns: 2,
-    gap: 24,
+  return Box(
+    direction: Axis.horizontal,
+    crossAlign: CrossAlign.center,
+    gap: 32,
     children: <UINode>[
       Box(
         direction: Axis.horizontal,
         crossAlign: CrossAlign.center,
         gap: 8,
-        // Four chips need more than the width one cell of this grid holds on a phone,
-        // and a chip is a control with a fixed size: the row scrolls rather than
-        // pushing the page sideways, which is what the listings page does with its
-        // cards and what `Overflow.scroll` means on both targets.
-        overflow: Overflow.scroll,
         children: <UINode>[
           MaterialChip(
             label: const TextNode('Two rooms'),
             selected: true,
-            onTap: () {},
-            // Material's chip glyph is 18, and the check is drawn rather than set:
-            // a font is a host asset and this package ships none.
-            leading: MaterialCheckMark(
-              color: onSelected,
-              size: MaterialChip.iconSize,
-            ),
+            leading: glyphCheck(onSelected, size: 12),
           ),
           MaterialChip(
             label: const TextNode('Studio'),
-            onTap: () {},
-            leading: glyphGrid(onPlain, size: MaterialChip.iconSize),
+            leading: glyphGrid(onPlain),
           ),
           MaterialChip(
             label: const TextNode('Map'),
             onTap: () {},
-            leading: glyphList(onPlain, size: MaterialChip.iconSize),
-          ),
-          // A chip that cannot be pressed fades rather than shouting: the last state
-          // Material gives one.
-          MaterialChip(
-            label: const TextNode('Sold'),
-            enabled: false,
-            leading: glyphList(onPlain, size: MaterialChip.iconSize),
+            leading: glyphList(onPlain),
           ),
         ],
       ),
       RemovableChips(),
+      SegmentedDemo(),
+      ViewSwitchDemo(),
     ],
-  );
-}
-
-/// The segmented buttons: one that picks from a set, and one that switches a view.
-UINode _segments() {
-  return GridNode(
-    minItemWidth: 280,
-    maxColumns: 2,
-    gap: 24,
-    children: <UINode>[SegmentedDemo(), ViewSwitchDemo()],
   );
 }
 
@@ -417,9 +370,6 @@ UINode _removableView(Set<String> chips, ChipsStore store) {
     direction: Axis.horizontal,
     crossAlign: CrossAlign.center,
     gap: 8,
-    // The same reason as the row of filter chips above: two pills and their crosses
-    // are wider than a phone's cell, so the row scrolls instead of widening the page.
-    overflow: Overflow.scroll,
     children: <UINode>[
       for (final String chip in chips)
         MaterialChip(
@@ -445,10 +395,6 @@ UINode _removableView(Set<String> chips, ChipsStore store) {
 /// and the reason a segmented button needs no state of its own.
 UINode _segmentedView(int chosen, SegmentedStore store) {
   return MaterialSegmentedButton(
-    // The width the grid cell gives it, divided three ways. Without one each segment
-    // hugs its label while the outline still takes the cell — a 40 pixel pill with
-    // two thirds of it empty, which is the one thing a segmented button never is.
-    width: double.infinity,
     segments: const <MaterialSegment>[
       MaterialSegment(label: TextNode('Day'), semanticsLabel: 'Per day'),
       MaterialSegment(label: TextNode('Week'), semanticsLabel: 'Per week'),
@@ -480,23 +426,20 @@ UINode _viewSwitchView(int chosen, ViewStore store) {
   const BoxColor onSurface = BoxColor.role(MaterialColorRole.onSurface);
 
   return MaterialSegmentedButton(
-    // The same width divided three ways, for the reason the day/week/month control
-    // states: a stretched pill whose segments hug is a pill with room to spare.
-    width: double.infinity,
     segments: <MaterialSegment>[
       MaterialSegment(
         label: const TextNode('List'),
-        icon: glyphList(onSurface, size: MaterialSegmentedButton.iconSize),
+        icon: glyphList(onSurface),
         semanticsLabel: 'As a list',
       ),
       MaterialSegment(
         label: const TextNode('Grid'),
-        icon: glyphGrid(onSurface, size: MaterialSegmentedButton.iconSize),
+        icon: glyphGrid(onSurface),
         semanticsLabel: 'As a grid',
       ),
       MaterialSegment(
         label: const TextNode('Map'),
-        icon: glyphPin(onSurface, size: MaterialSegmentedButton.iconSize),
+        icon: glyphPin(onSurface),
         semanticsLabel: 'On the map',
       ),
     ],
@@ -710,7 +653,7 @@ final class DialogDemo extends StatefulNode<bool, DialogDemoStore> {
 
 /// The button, the dialog when it is open, and what the section says about it.
 UINode _dialogView(bool open, DialogDemoStore store) {
-  final MaterialPalette palette = ExamplePalette.material;
+  const MaterialPalette palette = MaterialPalette.light;
 
   // A grid, so the button and the note beside it stack on a narrow window instead
   // of pushing the page sideways.
@@ -719,11 +662,23 @@ UINode _dialogView(bool open, DialogDemoStore store) {
     maxColumns: 3,
     gap: 24,
     children: <UINode>[
-      // The component, not a hand-rolled copy of it: a button already knows how to
-      // keep its fill and its ink the size of its label.
-      MaterialButton.filled(
-        label: const TextNode('Delete listing'),
-        onTap: store.open,
+      Box(
+        backgroundColor: palette.primary,
+        borderRadius: 20,
+        children: <UINode>[
+          MaterialInkWell(
+            onTap: store.open,
+            borderRadius: 20,
+            ink: palette.onPrimary,
+            padding: const BoxSpacing.symmetric(horizontal: 20, vertical: 10),
+            child: TextNode(
+              'Delete listing',
+              style: MaterialTypography.labelLarge.copyWith(
+                color: palette.onPrimary,
+              ),
+            ),
+          ),
+        ],
       ),
       Box(
         width: double.infinity,

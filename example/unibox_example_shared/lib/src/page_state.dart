@@ -1,6 +1,5 @@
 import 'package:unibox_core/unibox_core.dart';
 
-import 'apartments.dart';
 import 'page.dart';
 import 'signup_card.dart';
 
@@ -14,13 +13,8 @@ final class ExampleState {
   const ExampleState({
     this.form = const SignupFormState(),
     this.signupOpen = false,
-    this.page = ExamplePage.apartments,
-    this.filter = defaultFilter,
-    this.view = ListingsView.grid,
+    this.mapOpen = false,
   });
-
-  /// The filter the listings start with, and the one a cleared row goes back to.
-  static const String defaultFilter = defaultListingFilter;
 
   /// The values of the sign-up form.
   final SignupFormState form;
@@ -28,61 +22,54 @@ final class ExampleState {
   /// Whether the sign-up dialog is open.
   final bool signupOpen;
 
-  /// The filter the listing chips have chosen, or `null` for no filter.
-  final String? filter;
-
-  /// How the listings are drawn: one column, or a grid.
-  final ListingsView view;
-
-  /// The page below the bar, which is the destination the bar highlights.
+  /// Whether the map is open as a view of its own.
   ///
-  /// The sign-up form is not a page: it is a dialog over whichever page this is, so it
-  /// is never the value here — opening it changes [signupOpen] and leaves the page
-  /// underneath highlighted, which is what the reader is still looking at.
-  final ExamplePage page;
+  /// It only matters on a narrow surface: from 900 logical pixels the map is drawn
+  /// beside the listings, and the toggle that opens it is not drawn at all.
+  final bool mapOpen;
+
+  /// The destination the bar highlights.
+  ///
+  /// The example has one page, so the sign-up form is the current destination
+  /// while its dialog is open and the listings are current otherwise. It is
+  /// derived rather than stored: a page field would be a second place to say which
+  /// destination is open, and the two could disagree.
+  ExamplePage get current =>
+      signupOpen ? ExamplePage.signup : ExamplePage.apartments;
 
   /// Returns a copy of this state with the given fields replaced.
   ExampleState copyWith({
     SignupFormState? form,
     bool? signupOpen,
-    ExamplePage? page,
-    Object? filter = _unchanged,
-    ListingsView? view,
+    bool? mapOpen,
   }) {
     return ExampleState(
       form: form ?? this.form,
       signupOpen: signupOpen ?? this.signupOpen,
-      page: page ?? this.page,
-      // A filter is cleared by passing `null`, which is a value and not "unchanged".
-      filter: identical(filter, _unchanged) ? this.filter : filter as String?,
-      view: view ?? this.view,
+      mapOpen: mapOpen ?? this.mapOpen,
     );
   }
 
-  /// The marker that tells [copyWith] "leave this token alone".
-  static const Object _unchanged = Object();
-
+  /// Whether two states describe the same page.
+  ///
+  /// Every field is compared, because the store publishes a change only when this
+  /// says the two differ: a field left out would be a member that never redraws.
   @override
   bool operator ==(Object other) {
-    // Every field, because the store skips a publish whose state equals the last
-    // one: a field left out of this comparison is a change that draws nothing.
     return other is ExampleState &&
         other.form == form &&
         other.signupOpen == signupOpen &&
-        other.page == page &&
-        other.filter == filter &&
-        other.view == view;
+        other.mapOpen == mapOpen;
   }
 
   /// Two states with equal values hash alike, which is what lets the store skip
   /// a rebuild that would draw the same tree again.
   @override
-  int get hashCode => Object.hash(form, signupOpen, page, filter, view);
+  int get hashCode => Object.hash(form, signupOpen, mapOpen);
 
   @override
   String toString() =>
-      'ExampleState(form: $form, signupOpen: $signupOpen, page: $page, '
-      'filter: $filter, view: $view)';
+      'ExampleState(form: $form, signupOpen: $signupOpen, mapOpen: $mapOpen)';
 }
 
 /// The store of `ExamplePageNode`: every interaction of the page as one
@@ -101,8 +88,7 @@ final class ExampleStore extends StateStore<ExampleState> {
   ExampleStore({
     SignupFormState initial = const SignupFormState(),
     bool openSignup = false,
-    ExamplePage page = ExamplePage.apartments,
-  }) : super(ExampleState(form: initial, signupOpen: openSignup, page: page));
+  }) : super(ExampleState(form: initial, signupOpen: openSignup));
 
   /// Replaces the name and clears a previous confirmation.
   void setName(String name) =>
@@ -119,28 +105,25 @@ final class ExampleStore extends StateStore<ExampleState> {
   /// Confirms the form, when the entered values allow it.
   void submit() => _setForm(submitSignupForm(state.form));
 
-  /// Opens the sign-up dialog over the page it is on, which is what a call to
-  /// action on the pricing page does.
+  /// Opens the sign-up dialog over the page it is on.
   void openSignup() => state = state.copyWith(signupOpen: true);
 
   /// Closes the sign-up dialog.
   void closeSignup() => state = state.copyWith(signupOpen: false);
 
-  /// Chooses the filter of the listing chips, or clears it with `null`.
-  void chooseFilter(String? filter) => state = state.copyWith(filter: filter);
+  /// Opens the map as a view of its own, which is what a narrow surface offers.
+  void openMap() => state = state.copyWith(mapOpen: true);
 
-  /// Draws the listings in the layout [view] names.
-  void showListings(ListingsView view) => state = state.copyWith(view: view);
+  /// Closes the map view.
+  void closeMap() => state = state.copyWith(mapOpen: false);
 
   /// Follows a destination of the bar.
   ///
   /// The sign-up form is a dialog rather than a page, so choosing it opens the
-  /// dialog over whatever page is drawn; every other destination is a page, and
-  /// choosing one closes the dialog first.
+  /// dialog; the listings are the page it is drawn over, so choosing them closes
+  /// the dialog instead.
   void navigate(ExamplePage destination) {
-    state = destination == ExamplePage.signup
-        ? state.copyWith(signupOpen: true)
-        : state.copyWith(page: destination, signupOpen: false);
+    state = state.copyWith(signupOpen: destination == ExamplePage.signup);
   }
 
   void _setForm(SignupFormState form) => state = state.copyWith(form: form);

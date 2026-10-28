@@ -4,76 +4,20 @@ import 'package:unibox_example_shared/unibox_example_shared.dart';
 
 import 'support/tree.dart';
 
-/// The link of the navigation item labelled [label].
-///
-/// The link is the control: its `href` is the document a page without a runtime goes
-/// to, and its `onTap` is what the store hears once there is one. The box inside is
-/// how the label looks, so the tests that care about appearance ask for that.
-LinkNode navLink(UINode page, String label) => flatten(page)
-    .whereType<LinkNode>()
-    .firstWhere(
-      (LinkNode link) => link.onTap != null && textsIn(link).contains(label),
-    );
-
 /// The box of the navigation item labelled [label].
-Box navItem(UINode page, String label) => navLink(page, label).child as Box;
-
-/// The control that opens the sign-up dialog.
 ///
-/// It is a box with the button role, not a link: an account is an action over the page
-/// and not a place to go, and a link here navigated as well as opening the dialog.
-Box signUpButton(UINode page) => flatten(page).whereType<Box>().firstWhere(
-  (Box box) => box.onTap != null && textsIn(box).contains('Sign up'),
-);
-
-/// The box the web renders as a `<nav>`: the navigation landmark of the bar.
-Box navLandmark(UINode page) =>
-    flatten(page)
-        .whereType<Box>()
-        .firstWhere((Box box) => box.semantics?.element == BoxElement.nav);
+/// An item that changes the page is a link and the one that opens the sign-up
+/// dialog is a button, so the role is not part of the search: the tap is.
+Box navItem(UINode page, String label) => flatten(page)
+    .whereType<Box>()
+    .firstWhere((Box box) => box.onTap != null && textsIn(box).contains(label));
 
 void main() {
   group('ExamplePage', () {
     test('names the destinations of the example', () {
-      expect(ExamplePage.values, hasLength(3));
-      expect(ExamplePage.signup.label, 'Sign up');
+      expect(ExamplePage.values, hasLength(2));
       expect(ExamplePage.apartments.label, 'Apartments');
-      expect(ExamplePage.pricing.label, 'Pricing');
-    });
-  });
-
-  group('buildPricingPage', () {
-    test('is a marketing page a crawler can read', () {
-      final UINode page = buildPricingPage(
-        onStart: () {},
-        onNavigate: (ExamplePage page) {},
-      );
-      final List<String> headings = _headings(page);
-
-      // One h1, and a heading per section: that is the outline a search engine and
-      // a screen reader both build the page from.
-      expect(
-        headings.where((String text) => text.startsWith('1|')),
-        hasLength(1),
-      );
-      expect(headings, contains('2|What it costs'));
-      expect(headings, contains('2|Questions'));
-      expect(validateTree(page, theme: ExamplePalette.theme), isEmpty);
-    });
-
-    test('says what a home costs and what people ask', () {
-      final UINode page = buildPricingPage(
-        onStart: () {},
-        onNavigate: (ExamplePage page) {},
-      );
-      final List<String> texts = _texts(page);
-
-      // The page sells the homes, not the library: a visitor reads what a studio
-      // costs and what the rent covers, and the questions are the ones a tenant
-      // asks before a visit.
-      expect(texts, containsAll(<String>['Studio', 'Two rooms', 'Loft']));
-      expect(texts, contains('€1,180'));
-      expect(texts, contains('What is in the rent?'));
+      expect(ExamplePage.signup.label, 'Sign up');
     });
   });
 
@@ -99,41 +43,19 @@ void main() {
       expect(children.last, same(content));
     });
 
-    test('offers one link per destination, and the form as a button', () {
+    test('offers one item per destination', () {
       final Box page = RecordingHost().frame();
 
+      expect(navItem(page, 'Sign up'), isA<Box>());
       expect(navItem(page, 'Apartments'), isA<Box>());
-      expect(navItem(page, 'Pricing'), isA<Box>());
-
-      // The sign-up form is not a destination: it is a box with the button role, and
-      // no link in the bar points at a document for it.
-      final Box trigger = signUpButton(page);
-
-      expect(trigger.semantics?.role, BoxRole.button);
-      expect(
-        flatten(page).whereType<LinkNode>().map((LinkNode link) => link.url),
-        isNot(contains('../signup/')),
-      );
-    });
-
-    test('keeps the sign-up button out of the navigation landmark', () {
-      // A `<nav>` is the page's list of places to go. A control that opens a dialog
-      // is not one of them, and a reader who is told "navigation, Sign up, link" is
-      // being told the wrong thing about it.
-      final Box page = RecordingHost().frame();
-      final Box landmark = navLandmark(page);
-
-      expect(textsIn(landmark), containsAll(<String>['Unibox', 'Apartments']));
-      expect(textsIn(landmark), isNot(contains('Sign up')));
-      expect(flatten(landmark), isNot(contains(signUpButton(page))));
     });
 
     test('reports the destination an item asks for', () {
       final RecordingHost host = RecordingHost();
       final Box page = host.frame();
 
-      navLink(page, 'Apartments').onTap!();
-      signUpButton(page).onTap!();
+      navItem(page, 'Apartments').onTap!();
+      navItem(page, 'Sign up').onTap!();
 
       expect(host.navigations, <ExamplePage>[
         ExamplePage.apartments,
@@ -141,24 +63,11 @@ void main() {
       ]);
     });
 
-    test('keeps a document for every destination on its link', () {
-      // The href is what a page without the client runtime follows, so it names the
-      // document of the destination rather than the page being drawn.
-      final Box page = RecordingHost().frame();
-
-      expect(navLink(page, 'Apartments').url, ExampleRoutes.listings);
-      expect(navLink(page, 'Pricing').url, ExampleRoutes.pricing);
-      expect(ExamplePage.destinations.keys, <ExamplePage>[
-        ExamplePage.apartments,
-        ExamplePage.pricing,
-      ], reason: 'the sign-up form is an action, not a destination of the bar');
-    });
-
     test('marks the open page and not the others', () {
       final Box page = RecordingHost().frame(current: ExamplePage.apartments);
 
       final Box open = navItem(page, 'Apartments');
-      final Box other = navItem(page, 'Pricing');
+      final Box other = navItem(page, 'Sign up');
 
       expect(open.backgroundColor, ExamplePalette.accentSurface);
       expect(open.textStyle?.color, ExamplePalette.accent);
@@ -179,7 +88,7 @@ void main() {
     test('opens the sign-up form as a dialog, not a page', () {
       final Box page = RecordingHost().frame();
 
-      final Box trigger = signUpButton(page);
+      final Box trigger = navItem(page, 'Sign up');
 
       expect(trigger.semantics?.role, BoxRole.button);
       // A dialog is not a document, so the trigger never claims to be current.
@@ -205,37 +114,4 @@ void main() {
       expect(host.dismissals, 1);
     });
   });
-}
-
-/// The texts of a tree, in reading order.
-List<String> _texts(UINode root) => <String>[
-  for (final UINode node in _flatten(root))
-    if (node is TextNode) node.text,
-];
-
-/// The headings of a tree as `level|text`, which is the outline of the page.
-List<String> _headings(UINode root) => <String>[
-  for (final UINode node in _flatten(root))
-    if (node is TextNode && node.headingLevel != null)
-      '${node.headingLevel}|${node.text}',
-];
-
-/// Every node of a tree, depth first.
-Iterable<UINode> _flatten(UINode root) sync* {
-  yield root;
-  if (root is Box) {
-    for (final UINode child in root.children) {
-      yield* _flatten(child);
-    }
-  } else if (root is GridNode) {
-    for (final UINode child in root.children) {
-      yield* _flatten(child);
-    }
-  } else if (root is StackNode) {
-    for (final UINode child in root.children) {
-      yield* _flatten(child);
-    }
-  } else if (root is LinkNode) {
-    yield* _flatten(root.child);
-  }
 }

@@ -6,9 +6,9 @@ import 'package:unibox_example_shared/unibox_example_shared.dart';
 
 /// The browser half of the site.
 ///
-/// A static export writes one document per destination, so the runtime asks the
-/// browser which document it is on rather than being compiled once per page. Each
-/// branch renders the same root its document was exported from, which is the only
+/// The export writes the one page and the two states of the example, so the runtime
+/// asks the browser which document it is on rather than being compiled once per page.
+/// Each branch renders the same root its document was exported from, which is the only
 /// way the page that arrives and the page it keeps can be one page.
 ///
 /// `tool/site.sh` compiles this file to `main.client.js` beside the pages. It is
@@ -16,25 +16,14 @@ import 'package:unibox_example_shared/unibox_example_shared.dart';
 /// component: no `@client` marker has to be matched against a server tree, so the
 /// entrypoint is host code and nothing else.
 void main() {
-  final String path = Uri.base.path;
-  final ExamplePage? example = examplePageForPath(path);
+  final ExamplePage? example = examplePageForPath(Uri.base.path);
 
   if (example != null) {
-    // The page the path names decides both the tree and the state the document starts
-    // in, the way the exported document itself was written.
-    runApp(
-      buildExampleRoot(
-        openSignup: example == ExamplePage.signup,
-        initialPage: example,
-      ),
-    );
+    // The page the path names decides the state the document starts in, the way the
+    // exported document itself was written.
+    runApp(buildExampleRoot(openSignup: example == ExamplePage.signup));
     return;
   }
 
-  // A page of the site itself, by the path it was exported to. The home document
-  // names no destination — it is the directory the others sit under — so it is the
-  // fallback and not part of the search. The page's own path is matched without its
-  // trailing slash, because the export writes a directory per destination and a
-  // browser reports that directory either way.
-  runApp(buildSiteRoot(sitePageForPath(path) ?? SitePage.home));
+  runApp(buildSiteRoot());
 }

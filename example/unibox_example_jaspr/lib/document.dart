@@ -37,10 +37,7 @@ import 'main.dart';
 /// twice to a search engine. A host that needs more — a canonical url, Open Graph
 /// tags, structured data — adds them through `Document.head`, which is where
 /// elements that do not belong to the tree go.
-Document buildExampleDocument({
-  ExamplePage page = ExamplePage.apartments,
-  String? build,
-}) {
+Document buildExampleDocument({ExamplePage page = ExamplePage.apartments}) {
   return Document(
     // Without `lang` both a screen reader and a crawler have to guess which
     // language the page is in.
@@ -53,12 +50,7 @@ Document buildExampleDocument({
     base: null,
     title: _titleOf(page),
     viewport: 'width=device-width, initial-scale=1',
-    meta: <String, String>{
-      'description': _descriptionOf(page),
-      // The commit this document was rendered from, for the same reason the site's
-      // pages carry one: a stale tab and a deployed page look identical.
-      'unibox-build': ?build,
-    },
+    meta: <String, String>{'description': _descriptionOf(page)},
     // The documents of the example sit two directories below the site root.
     head: <Component>[
       fontFaces('../../'),
@@ -98,7 +90,7 @@ Document buildExampleDocument({
             styles: Styles(
               raw: <String, String>{
                 '--unibox-color-canvas': '#101216',
-                '--unibox-color-panel': '#1a1d24',
+                '--unibox-color-surface': '#1a1d24',
                 '--unibox-color-text': '#e9eaee',
                 '--unibox-color-muted': '#a2a8b4',
                 '--unibox-color-border': '#2c313a',
@@ -122,10 +114,7 @@ Document buildExampleDocument({
     // they are given values. The `:root` block of the document follows from it.
     // `buildExampleRoot` is the same call the browser runtime makes, so the page
     // that arrives and the page it redraws are one root, not two that look alike.
-    body: buildExampleRoot(
-      openSignup: page == ExamplePage.signup,
-      initialPage: page,
-    ),
+    body: buildExampleRoot(openSignup: page == ExamplePage.signup),
   );
 }
 
@@ -137,7 +126,6 @@ Document buildExampleDocument({
 String _titleOf(ExamplePage page) {
   return switch (page) {
     ExamplePage.signup => 'Join Unibox — sign up',
-    ExamplePage.pricing => 'Pricing — Unibox',
     ExamplePage.apartments => 'Apartments — Unibox',
   };
 }
@@ -154,8 +142,5 @@ String _descriptionOf(ExamplePage page) {
     ExamplePage.apartments =>
       'Six apartments with a map beside the listings on a wide screen and the '
           'listings alone on a narrow one, from the same node tree.',
-    ExamplePage.pricing =>
-      'What renting costs in Brussels: three price bands with the charges in '
-          'them, and the questions people ask before a visit.',
   };
 }

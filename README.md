@@ -48,9 +48,10 @@ redrawn from that tree — a press, a field, a dialog. **No Flutter on that page
 so a phone downloads a page and a script instead of an application. The document a
 crawler reads and the document a visitor uses are one and the same.
 
-That is what this site does: `/web/pricing/`, `/web/listings/` and `/web/signup/` are
-strategy 2. `/flutter/listings/` is the same tree built by Flutter and served as its own
-route.
+That is what this site does: the page at `/` is strategy 2 — one tree per band, exported
+as HTML and CSS, made interactive by one small bundle — and `/web/listings/` is the
+example in the left frame, the same strategy. `/flutter/listings/` is the same tree
+built by Flutter and served as its own route.
 
 ### What stays Flutter
 
@@ -74,17 +75,16 @@ python3 tool/seo_report.py build/site
 
 | Document | Words | `h1` | `h2` | Links | Fields | Bytes |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Jaspr `/web/pricing/` | 333 | 1 | 2 | 4 | 0 | 22 322 |
-| Jaspr `/web/listings/` | 133 | 1 | 0 | 2 | 0 | 59 691 |
-| Jaspr `/web/signup/` | 150 | 1 | 1 | 4 | 2 | 68 687 |
-| Jaspr `/` | 168 | 1 | 4 | 4 | 0 | 15 474 |
-| Jaspr `/material/` | 615 | 1 | 8 | 3 | 2 | 92 024 |
+| Jaspr `/` | 791 | 1 | 2 | 9 | 2 | 118 222 |
+| Jaspr `/web/listings/` | 131 | 1 | 0 | 2 | 0 | 42 080 |
+| Jaspr `/web/signup/` | 148 | 1 | 1 | 4 | 2 | 51 240 |
 | **Flutter `/flutter/listings/`** | **4** | **0** | **0** | **0** | **0** | **772** |
 
-`/web/pricing/` is the shape a marketing page takes: a hero, three price bands and the
-questions people ask, all of it text. The last row is the point. The Flutter build of the same screen is a document with a
-`<title>` and a canvas host: four words, no heading, no link, nothing to index. The
-tree's version of that screen is the row above it, and it is the same Dart.
+The first row is the whole site as one page: the claim, the comparison and the
+catalogue, 791 words of text with one `h1`, an `h2` per band and every component
+written as markup. The last row is the point. The Flutter build of the same screen is
+a document with a `<title>` and a canvas host: four words, no heading, no link,
+nothing to index. `/web/listings/` is that screen as a tree, and it is the same Dart.
 
 **The boundary.** Only the screens that must be found are trees. The rest of an
 application stays ordinary Flutter, screen for screen — a settings page or an internal
@@ -849,7 +849,7 @@ written inline.
 | `packages/unibox_jaspr` | The Jaspr renderer: `renderJaspr(node)` and `node.toComponent()`. |
 | `packages/unibox_testing` | The tables both renderers are tested against. Development only, not published. |
 | `packages/unibox_material` | The Material 3 type scale, the colour roles as a theme — the baseline scheme written down, or a palette grown from one seed colour — and the components built from them (card, list tile, button, chip, segmented button, ink well, text field, icon, check mark, navigation bar, dialog, bottom sheet). Optional: no renderer depends on it. |
-| `example/` | Two pages, one form and one navigation bar shared by a Flutter app and a static site. |
+| `example/` | The example — a listings page and a sign-up dialog, one node tree — and the site: one page of three bands, with the example drawn by both renderers in the middle one. |
 
 Dependencies point one way: both renderers depend on `unibox_core`, never the other
 way around, which is what keeps the description available to a third renderer.
@@ -916,11 +916,11 @@ order, which is the command to reach for before a commit; `--fast` stops after t
 analysis, `--fix` formats the tree first and `--docs` adds the API docs of every
 package.
 
-`tool/site.sh` builds the site: a front page at `/` that says what the library is, a
-gallery of the Material library at `/material/`, the example drawn by both renderers
-side by side at `/showcase/`, and the two builds behind them. Every page is a node
-tree — the frames in the showcase are the one thing the model cannot describe, and
-they arrive through `EmbedNode`.
+`tool/site.sh` builds the site: one page at `/` — the claim, the example drawn by both
+renderers side by side, and the Material catalogue the page is built with — plus the
+example itself at `/web/` and its Flutter build at `/flutter/`. Every band of the page
+is a node tree: the two frames of the comparison are the one thing the model cannot
+describe, and they arrive through `EmbedNode`.
 `--serve` previews the result locally, and
 [`.github/workflows/pages.yml`](.github/workflows/pages.yml) publishes it to GitHub
 Pages on every push to `main`, which needs one setting first: Settings → Pages →
