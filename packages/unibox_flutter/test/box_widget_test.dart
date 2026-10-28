@@ -441,6 +441,41 @@ void main() {
       expect(inNode(find.byType(ClipRect)), findsNothing);
     });
 
+    testWidgets('paints the shadow outside the clip it applies', (
+      tester,
+    ) async {
+      await pumpNode(
+        tester,
+        const core.Box(
+          width: 50,
+          height: 20,
+          borderRadius: 12,
+          overflow: core.Overflow.hidden,
+          shadow: core.BoxShadow(color: core.BoxColor.black, blurRadius: 6),
+          children: [core.Box(width: 200, height: 10)],
+        ),
+      );
+
+      // A browser cuts the content to the radius and never its own `box-shadow`,
+      // which paints outside the border box: the decoration has to be the outer
+      // widget, or a card with `overflow: hidden` is lifted on the web and flat here.
+      final Finder decorated = inNode(find.byType(DecoratedBox));
+      final Finder clip = inNode(find.byType(ClipRRect));
+
+      expect(
+        find.ancestor(of: clip, matching: decorated),
+        findsOneWidget,
+        reason:
+            'the decoration wraps the clip, so its shadow paints outside it',
+      );
+      expect(
+        (tester.widget<DecoratedBox>(decorated).decoration as BoxDecoration)
+            .boxShadow,
+        isNotNull,
+      );
+      expect(tester.getSize(find.byKey(nodeKey)), const Size(50, 20));
+    });
+
     testWidgets('clips a rounded scrolling box to its radius', (tester) async {
       await pumpNode(
         tester,

@@ -69,21 +69,25 @@ class FlutterBoxState extends State<FlutterBox> {
       content = Padding(padding: toEdgeInsets(padding), child: content);
     }
 
-    final BoxDecoration? decoration = toDecoration(style);
-    if (decoration != null) {
-      content = _decorated(decoration, _paintTiming(style.transition), content);
-    }
-
     // A scrolling box already clips its own viewport, but squarely: it needs an
-    // explicit clip only when the box is rounded, so that the content is cut to
-    // the radius the way CSS cuts it.
+    // explicit clip only when the box is rounded, so that the content is cut to the
+    // radius the way CSS cuts it.
     final double radius = style.borderRadius ?? 0;
     final bool clipsContent =
         style.overflow == core.Overflow.hidden ||
         (style.overflow == core.Overflow.scroll && radius > 0);
 
+    // The clip goes *inside* the decoration, not around it. CSS cuts a box's content
+    // to its radius and never its own `box-shadow`, which paints outside the border
+    // box; a ClipRRect around a DecoratedBox would swallow the shadow, and a card with
+    // `overflow: hidden` would be lifted on the web and flat in Flutter.
     if (clipsContent) {
       content = _clipTo(content, style);
+    }
+
+    final BoxDecoration? decoration = toDecoration(style);
+    if (decoration != null) {
+      content = _decorated(decoration, _paintTiming(style.transition), content);
     }
 
     content = _applyDimensions(content, style);

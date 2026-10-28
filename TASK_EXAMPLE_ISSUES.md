@@ -91,3 +91,16 @@ the design system it leans on is `packages/unibox_material`.
   offsets. A button pinned to the bottom centre of the surface needs an alignment in the
   stack (or a placement token) that both renderers honour — a core change, then the
   example uses it.
+
+## Follow-ups, after a second look
+
+- **The Flutter card still had no shadow.** The web clips a box's content and leaves its
+  `box-shadow` alone; Flutter wrapped a `ClipRRect` *around* the `DecoratedBox`, so every
+  card with `overflow: hidden` was flat there and lifted in the browser. The clip now sits
+  inside the decoration, pinned by a test that asks the widget tree for the order.
+- **More Material 3 on the two choice controls.** `MaterialChip` takes `leading`,
+  `trailing` and `onRemove` (an input chip whose cross is a target of its own), and the
+  gallery shows a chip with a check, one with a folder, one with a close; the segmented
+  button shows a label-only control and an icon-led view switcher, where a picture is what
+  a segment is for. The glyphs are drawn from boxes in `example/unibox_example_shared`
+  (`icons.dart`), because an icon font is an asset the example does not ship.

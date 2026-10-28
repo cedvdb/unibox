@@ -1,6 +1,8 @@
 import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_material/unibox_material.dart';
 
+import '../icons.dart';
+
 /// The Material library as one node tree: the type scale, the colour roles and the
 /// components, drawn by the web renderer like any other page.
 ///
@@ -38,8 +40,10 @@ UINode buildMaterialGallery() {
       _section(
         'Chips and segments',
         'A chip is one choice, a segmented button is a set of them in one pill. Both '
-            'are a fill around the ink well, so their tints stop at the shape they '
-            'belong to; press a segment to move the choice.',
+            'carry a node in front of the label and both are a fill around the ink '
+            'well, so their tints stop at the shape they belong to. A chip with a '
+            'close is removed by pressing the cross; a segment moves the choice it '
+            'belongs to.',
         _choices(),
       ),
       _section(
@@ -273,7 +277,16 @@ UINode _buttons() {
 }
 
 /// The two controls that pick from a small set.
+///
+/// The chips show the three shapes Material gives one: a chosen chip with a check in
+/// front, a plain one, and an input chip whose cross removes it. The glyphs are drawn
+/// by `icons.dart`, because an icon font is an asset the example does not ship.
 UINode _choices() {
+  const BoxColor onSelected = BoxColor.role(
+    MaterialColorRole.onSecondaryContainer,
+  );
+  const BoxColor onPlain = BoxColor.role(MaterialColorRole.onSurfaceVariant);
+
   return Box(
     direction: Axis.horizontal,
     crossAlign: CrossAlign.center,
@@ -284,12 +297,71 @@ UINode _choices() {
         crossAlign: CrossAlign.center,
         gap: 8,
         children: <UINode>[
-          MaterialChip(label: const TextNode('Two rooms'), selected: true),
-          MaterialChip(label: const TextNode('Studio')),
-          MaterialChip(label: const TextNode('Map')),
+          MaterialChip(
+            label: const TextNode('Two rooms'),
+            selected: true,
+            leading: glyphCheck(onSelected, size: 12),
+          ),
+          MaterialChip(
+            label: const TextNode('Studio'),
+            leading: glyphGrid(onPlain),
+          ),
+          MaterialChip(
+            label: const TextNode('Map'),
+            onTap: () {},
+            leading: glyphList(onPlain),
+          ),
         ],
       ),
+      RemovableChips(),
       SegmentedDemo(),
+      ViewSwitchDemo(),
+    ],
+  );
+}
+
+/// The chips that are left after the crosses were pressed.
+final class ChipsStore extends StateStore<Set<String>> {
+  /// Creates the demo with every chip still there.
+  ChipsStore() : super(const <String>{'Garden', 'Balcony'});
+
+  /// Removes the chip called [label].
+  void remove(String label) =>
+      state = <String>{...state.where((String chip) => chip != label)};
+}
+
+/// Input chips: a cross in each, and a chip that goes away when it is pressed.
+///
+/// It takes a `StackNode` with an empty first child because a view may not read as an
+/// empty layer: the row is the stack's sizer, so a removed chip leaves a gap rather
+/// than collapsing the demo.
+final class RemovableChips extends StatefulNode<Set<String>, ChipsStore> {
+  /// Creates the demo, with both chips there.
+  RemovableChips() : super(create: ChipsStore.new, view: _removableView);
+}
+
+/// The row of chips the store still holds.
+UINode _removableView(Set<String> chips, ChipsStore store) {
+  const BoxColor ink = BoxColor.role(MaterialColorRole.onSurfaceVariant);
+
+  return Box(
+    direction: Axis.horizontal,
+    crossAlign: CrossAlign.center,
+    gap: 8,
+    children: <UINode>[
+      for (final String chip in chips)
+        MaterialChip(
+          label: TextNode(chip),
+          trailing: glyphClose(ink),
+          onRemove: () => store.remove(chip),
+        ),
+      if (chips.isEmpty)
+        TextNode(
+          'All filters removed',
+          style: MaterialTypography.labelLarge.copyWith(
+            color: const BoxColor.role(MaterialColorRole.onSurfaceVariant),
+          ),
+        ),
     ],
   );
 }
@@ -305,6 +377,49 @@ UINode _segmentedView(int chosen, SegmentedStore store) {
       MaterialSegment(label: TextNode('Day'), semanticsLabel: 'Per day'),
       MaterialSegment(label: TextNode('Week'), semanticsLabel: 'Per week'),
       MaterialSegment(label: TextNode('Month'), semanticsLabel: 'Per month'),
+    ],
+    selected: chosen,
+    onSelect: store.choose,
+  );
+}
+
+/// The choice of the view switcher: which way the listings are drawn.
+final class ViewStore extends StateStore<int> {
+  /// Creates the switcher with the list chosen.
+  ViewStore() : super(0);
+
+  /// Chooses the view at [index].
+  void choose(int index) => state = index;
+}
+
+/// A segmented button led by icons, which is where a segment's glyph earns its
+/// place: a list, a grid and a map are pictures before they are words.
+final class ViewSwitchDemo extends StatefulNode<int, ViewStore> {
+  /// Creates the switcher, with its first segment chosen.
+  ViewSwitchDemo() : super(create: ViewStore.new, view: _viewSwitchView);
+}
+
+/// The three ways to draw a page of listings.
+UINode _viewSwitchView(int chosen, ViewStore store) {
+  const BoxColor onSurface = BoxColor.role(MaterialColorRole.onSurface);
+
+  return MaterialSegmentedButton(
+    segments: <MaterialSegment>[
+      MaterialSegment(
+        label: const TextNode('List'),
+        icon: glyphList(onSurface),
+        semanticsLabel: 'As a list',
+      ),
+      MaterialSegment(
+        label: const TextNode('Grid'),
+        icon: glyphGrid(onSurface),
+        semanticsLabel: 'As a grid',
+      ),
+      MaterialSegment(
+        label: const TextNode('Map'),
+        icon: glyphPin(onSurface),
+        semanticsLabel: 'On the map',
+      ),
     ],
     selected: chosen,
     onSelect: store.choose,

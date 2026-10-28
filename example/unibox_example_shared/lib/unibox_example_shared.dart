@@ -11,6 +11,7 @@
 library;
 
 export 'src/apartments.dart';
+export 'src/icons.dart';
 export 'src/page_node.dart';
 export 'src/page.dart';
 export 'src/page_state.dart';

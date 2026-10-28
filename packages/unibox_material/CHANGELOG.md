@@ -2,6 +2,11 @@
 
 ## 0.1.0
 
+- `MaterialChip` takes `leading` and `trailing` nodes, and `onRemove` makes it an input
+  chip: the trailing node is wrapped in a round 18 pixel target of its own, so a press
+  on the cross removes the chip rather than choosing it. `MaterialSegment` grew the same
+  idea the other way round — a segment's `icon` sits before its label.
+
 - `MaterialSegmentedButton`: Material 3's segmented button — two to five choices in one
   40 pixel pill at radius 20, a 1 pixel outline around it and between its segments,
   equal shares, the chosen one filled with `secondaryContainer` and announced as
