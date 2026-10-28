@@ -115,11 +115,37 @@ void main() {
       expect(html, contains(':hover'));
     });
 
-    test('reports a width threshold it cannot draw yet', () {
-      expect(
-        () => toHtml(const core.Box(visibleFrom: 600)),
-        throwsA(isA<UnsupportedError>()),
+    test('starts hidden when it only appears above a width', () {
+      // Mobile first: a browser without container queries draws the narrow layout rather
+      // than a broken wide one.
+      final String html = toHtml(const core.Box(visibleFrom: 600));
+
+      expect(html, contains('display:none'));
+      expect(html, contains('@container (min-width: 600px)'));
+    });
+
+    test('holds the width its children measure themselves against', () {
+      // A container query asks the parent, not the window: a card in a narrow column is
+      // narrow whatever the window is.
+      final String html = toHtml(
+        const core.Box(children: <core.UINode>[core.Box(visibleUntil: 900)]),
       );
+
+      expect(html, contains('container-type:inline-size'));
+      expect(html, contains('@container (min-width: 900px)'));
+    });
+
+    test('draws a band between two widths', () {
+      final String html = toHtml(
+        const core.Box(
+          children: <core.UINode>[
+            core.Box(visibleFrom: 600, visibleUntil: 900),
+          ],
+        ),
+      );
+
+      expect(html, contains('@container (min-width: 600px)'));
+      expect(html, contains('@container (min-width: 900px)'));
     });
   });
 
@@ -427,6 +453,14 @@ void main() {
       expect(html, contains('0'));
     });
 
+    test('carries the options of the rendering into its view', () {
+      // The state's tree is planned like any other, so a choice made for the document —
+      // showing an overlay, say — has to reach a node the view drew.
+      final String html = toHtml(_OverlayNode(), showOverlays: true);
+
+      expect(html, isNot(contains('hidden')));
+    });
+
     test('does not start the work an application would', () {
       // The store's contract: a server render reads the state without calling
       // `onMount`, so a request or a timer the application starts never runs here.
@@ -459,6 +493,14 @@ void main() {
     });
   });
 }
+
+/// A page whose view is a dialog.
+final class _OverlayNode extends core.StatefulNode<int, _CountingStore> {
+  _OverlayNode() : super(create: _CountingStore.new, view: _overlayView);
+}
+
+core.UINode _overlayView(int state, _CountingStore store) =>
+    const core.OverlayNode(child: core.TextNode('Sign up'));
 
 /// A node this renderer has no branch for.
 final class _UnembeddableNode extends core.UINode {

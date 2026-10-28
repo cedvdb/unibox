@@ -1,6 +1,7 @@
 import 'package:unibox_core/unibox_core.dart' as core;
 
 import 'box.dart';
+import 'values.dart';
 import 'declarations.dart';
 
 /// One CSS rule: a selector, what it declares, and the media condition it lives under.
@@ -14,6 +15,7 @@ final class CssRule {
     required this.selector,
     required this.declarations,
     this.media,
+    this.container,
   });
 
   /// The selector, class and pseudo class included: `.unibox-box-1f3c9a7b:hover`.
@@ -25,6 +27,13 @@ final class CssRule {
   /// The media condition the rule lives under, or `null` for a rule that always
   /// applies. Written as a condition, without the `@media` keyword.
   final String? media;
+
+  /// The container condition the rule lives under, or `null`.
+  ///
+  /// A container query asks about the box that holds the element rather than about the
+  /// window, which is the only question a component can answer: a card in a narrow column
+  /// is narrow whatever the window is.
+  final String? container;
 
   @override
   String toString() => media == null
@@ -81,3 +90,47 @@ List<CssRule> stateRules(core.Box box, String className) {
 
   return rules;
 }
+
+/// The rules that draw a box at only some widths.
+///
+/// A wide-only box is hidden in its own rule and brought back here; a narrow-only one is
+/// drawn by its rule and taken away here. Both ask about the *container* rather than the
+/// window, and they resolve against the nearest box that declares `container-type:
+/// inline-size` — the parent — so the width is the one the box is drawn in.
+///
+/// `from` is the width the box starts being drawn at, `until` the width it stops at: the two
+/// together are a band, and either alone is a floor or a ceiling.
+List<CssRule> thresholdRules(
+  String className, {
+  required double? from,
+  required double? until,
+}) {
+  final List<CssRule> rules = <CssRule>[];
+
+  if (from != null) {
+    // Drawn from here up, which is what the hidden resting rule left to do.
+    rules.add(
+      CssRule(
+        selector: '.$className',
+        container: '(min-width: ${cssPixels(from)})',
+        declarations: CssDeclarations()..add('display', 'flex'),
+      ),
+    );
+  }
+
+  if (until != null) {
+    rules.add(
+      CssRule(
+        selector: '.$className',
+        container: '(min-width: ${cssPixels(until)})',
+        declarations: CssDeclarations()..add('display', 'none'),
+      ),
+    );
+  }
+
+  return rules;
+}
+
+/// The declarations of a box that measures its own width, so a child can ask.
+CssDeclarations containerDeclarations() =>
+    CssDeclarations()..add('container-type', 'inline-size');

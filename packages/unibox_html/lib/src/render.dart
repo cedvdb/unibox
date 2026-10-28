@@ -111,13 +111,6 @@ const String supportedNodes = 'a Box, a TextNode, an ImageNode and a LinkNode';
 ElementPlan _planBox(core.Box box, Stylesheet sheet, PlanOptions options) {
   final core.BoxStyle style = box.computedStyle;
 
-  if (style.visibleFrom != null || style.visibleUntil != null) {
-    throw UnsupportedError(
-      'A box that is visible only at some widths needs a container query, which this '
-      'renderer does not write yet: ${box.debugName}.',
-    );
-  }
-
   final core.BoxElement element = box.semantics?.element ?? core.BoxElement.div;
   // A painted leaf takes no pointer: it has nothing to press, and letting it be the
   // target would put a decoration in front of the control it was drawn for.
@@ -133,16 +126,41 @@ ElementPlan _planBox(core.Box box, Stylesheet sheet, PlanOptions options) {
       box.stateStyle(core.BoxState.hover) != null ||
       box.stateStyle(core.BoxState.pressed) != null;
 
+  final bool holdsThreshold = box.children.any(
+    (core.UINode child) =>
+        child is core.Box &&
+        (child.computedStyle.visibleFrom != null ||
+            child.computedStyle.visibleUntil != null),
+  );
   final CssDeclarations declarations = boxDeclarations(
     style,
     interactive: box.isInteractive,
     capturesPointer: capturesPointer,
     element: element,
   );
+
+  // Mobile first: a box that only appears above a width starts hidden, and the container
+  // query below brings it back. A browser without container queries then draws the narrow
+  // layout rather than a broken wide one.
+  if (style.visibleFrom != null) {
+    declarations.add('display', 'none');
+  }
+
+  // A box that holds a threshold is the box that threshold measures.
+  if (holdsThreshold) {
+    declarations.addAllIn(containerDeclarations());
+  }
   final String className = sheet.classFor(
     'box',
     declarations,
-    states: (String name) => stateRules(box, name),
+    states: (String name) => <CssRule>[
+      ...stateRules(box, name),
+      ...thresholdRules(
+        name,
+        from: style.visibleFrom,
+        until: style.visibleUntil,
+      ),
+    ],
   );
 
   return ElementPlan(
@@ -544,7 +562,7 @@ ElementPlan _planStateful(
 ) {
   final core.Store<Object> store = node.createStore();
 
-  return planNode(node.viewFor(store.state, store), sheet);
+  return planNode(node.viewFor(store.state, store), sheet, options: options);
 }
 
 /// An embed, written into the page as the markup it carries.

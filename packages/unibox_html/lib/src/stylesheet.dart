@@ -77,16 +77,16 @@ final class Stylesheet {
         continue;
       }
 
-      final String? condition = rule.media;
+      final String body = '${rule.selector}{${rule.declarations.text}}';
+      final String? media = rule.media;
+      final String? container = rule.container;
 
-      if (condition == null) {
-        buffer.writeln('${rule.selector}{${rule.declarations.text}}');
+      if (media != null) {
+        buffer.writeln('@media $media{$body}');
         continue;
       }
 
-      buffer.writeln(
-        '@media $condition{${rule.selector}{${rule.declarations.text}}}',
-      );
+      buffer.writeln(container == null ? body : '@container $container{$body}');
     }
 
     return buffer.toString();
