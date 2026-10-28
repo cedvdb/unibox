@@ -521,7 +521,7 @@ MaterialChip(label: const TextNode('Studio'), onTap: filter)
 | leading, trailing | a node before and after the label — a check, a folder, a cross |
 | onRemove | an 18 pixel round target inside the pill: a press on it removes the chip, not the choice |
 
-It is a [Box] around a `MaterialInkWell`, like `MaterialButton`, and the padding is
+It is a `Box` around a `MaterialInkWell`, like `MaterialButton`, and the padding is
 **the well's alone**: one node carries the room inside the chip, so the tint of a
 hover reaches exactly the edge of the pill. Two paddings — one on the well and one on
 a box inside it — is what made a hand-built chip tint 14 pixels past itself. The well

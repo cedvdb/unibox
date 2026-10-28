@@ -259,8 +259,10 @@ host that measures or spaces is the drift the conformance tables cannot catch.
 
 ## Definition of done
 
-- `tool/verify.sh` passes. Add `--docs` when a public API changed, because CI
-  fails on a `dart doc` warning.
+- `tool/verify.sh` passes. Add `--docs` when a public API changed **or a README was
+  edited** — dartdoc renders every package README and treats a bare `[Box]` in the
+  prose as a doc reference, so an unresolved one fails the docs job. Prose about a
+  type belongs in backticks, not brackets.
 - A new or changed token has a contract case and is in the "every token at once"
   case; a new construct has a validation rule; a new node has a test on both
   targets.
