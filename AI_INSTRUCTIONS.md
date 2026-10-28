@@ -50,12 +50,13 @@ host that renders it.
   Never reach for the host's default.
 - `unibox_material` is optional: the fifteen Material type roles as `const`
   `BoxTextStyle` values, the colour roles as `MaterialPalette` (`light` and `dark`,
-  each a `const` set of `BoxColor`s), and ten components built on nodes the
+  each a `const` set of `BoxColor`s), and eleven components built on nodes the
   renderers already draw — `MaterialCard`, `MaterialListTile`, `MaterialButton`,
-  `MaterialChip`, `MaterialSegmentedButton` and `MaterialIcon` are `Box` subclasses, `MaterialInkWell`,
-  `MaterialTextField` and `MaterialSpinner` are `StatefulNode`s (the ink a press
-  spreads; the text, the focus and whether the field has been touched; the step a
-  ring turns), and `MaterialDialog` and `MaterialBottomSheet` are `OverlayNode`s. The palette is a value the tree wears —
+  `MaterialChip`, `MaterialSegmentedButton`, `MaterialNavigationBar` and `MaterialIcon`
+  are `Box` subclasses, `MaterialInkWell` and `MaterialTextField` are
+  `StatefulNode`s (the ink a press spreads; the text, the focus and whether the field
+  has been touched), and `MaterialDialog` and `MaterialBottomSheet` are
+  `OverlayNode`s. The palette is a value the tree wears —
   pass the roles into the builders; there is no `Theme` lookup at render time.
   Wiring the same roles into the platform (`ColorScheme`, CSS custom properties) is
   the application's job.
@@ -149,6 +150,7 @@ host that renders it.
 | `showDialog`, `Dialog` | `MaterialDialog(title:, content:, actions:, onDismiss:)` — an `OverlayNode`, not a call |
 | `showModalBottomSheet` | `MaterialBottomSheet(title:, content:, actions:)` — the same overlay at the bottom |
 | `SegmentedButton`, a `ToggleButtons` row | `MaterialSegmentedButton(segments:, selected:, onSelect:)` — one pill of equal segments, the chosen one filled |
+| `NavigationBar`, `BottomNavigationBar` | `MaterialNavigationBar(destinations:, selected:, onSelect:)` — one 80 pixel row of equal shares, the chosen destination on a `secondaryContainer` pill; where it sits is the tree's business, so being at the bottom is the last row of a column or a `PositionedNode` |
 | `Chip`, `FilterChip`, `ChoiceChip` | `MaterialChip(label:, selected:, leading:, onTap:)` — 32 pixels tall, an outline when unselected, the secondary container when chosen |
 | `InkWell`, `InkResponse` | `MaterialInkWell(onTap:, borderRadius:, ink:, child:)` — a state layer plus the ink a press spreads; it paints no surface, so the filled box goes around it |
 | `StatefulWidget` + `setState` around a tree | `StatefulNode` + a `StateStore` |

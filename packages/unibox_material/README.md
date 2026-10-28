@@ -203,7 +203,7 @@ renderFlutter(page, theme: MaterialPalette.lightTheme);
 | `primary`, `onPrimary`, `primaryContainer`, `onPrimaryContainer` | an accent and the text on it |
 | `secondary`, `onSecondary`, `secondaryContainer`, `onSecondaryContainer` | the quieter accent a chosen control wears |
 | `surface`, `onSurface`, `onSurfaceVariant` | the page, its text, and its lower emphasis text |
-| `surfaceContainerLowest`, `surfaceContainerLow`, `surfaceContainerHigh`, `surfaceContainerHighest` | the tones a card, a dialog and a filled field sit at |
+| `surfaceContainerLowest`, `surfaceContainerLow`, `surfaceContainer`, `surfaceContainerHigh`, `surfaceContainerHighest` | the tones a card, a navigation bar, a dialog and a filled field sit at |
 | `outline`, `outlineVariant` | a line that frames a control, and one that only separates |
 | `error`, `onError` | what went wrong, and the text on it |
 | `scrim` | what covers the page behind a modal |
@@ -537,6 +537,69 @@ and a cross all come from a font, and a font is a host asset this package does n
 ship. `MaterialIcon` is the way in when an application has one; the example draws its
 four glyphs from boxes instead.
 
+## The navigation bar
+
+`MaterialNavigationBar` is three to five destinations along the bottom edge of a
+screen, one of them the page it is on.
+
+```dart
+MaterialNavigationBar(
+  destinations: <MaterialNavigationDestination>[
+    MaterialNavigationDestination(
+      label: const TextNode('Listings'),
+      icon: MaterialIcon.ligature(
+        'list',
+        color: MaterialNavigationBar.inactiveIconColor,
+      ),
+      selectedIcon: MaterialIcon.ligature(
+        'list',
+        color: MaterialNavigationBar.activeIconColor,
+      ),
+    ),
+    MaterialNavigationDestination(label: const TextNode('Map')),
+  ],
+  selected: destination,
+  onSelect: store.choose,
+)
+```
+
+| Token | Value |
+| --- | --- |
+| height | `80` |
+| container | `surfaceContainer`, and a `nav` landmark on the web |
+| share | every destination is `flex: 1` and as tall as the bar |
+| indicator | 64 by 32 at radius 16, `secondaryContainer`, behind the chosen icon |
+| label | `labelMedium`: `onSurface` when chosen, `onSurfaceVariant` when not |
+| ink | the label's own colour, from where the press landed |
+
+Each destination is a `Box` around a `MaterialInkWell`, so the tint and the ink
+cover the whole share rather than the label, and the pill is filled only while the
+destination is the chosen one. The 12 pixels above the pill, the 4 between it and
+the label, and the 16 below add up to the bar's 80 with `labelMedium`'s 16 pixel
+line box — which is why a destination needs no height of its own and both targets
+put the icon in the same place.
+
+**The icon is the caller's, and so is its colour.** A picture carries its own colour
+on both targets — typography is the one inherited axis — so `activeIconColor` and
+`inactiveIconColor` are public constants to build the two glyphs with, and
+`selectedIcon` is the filled variant Material pairs with an outlined one. A
+destination with no picture keeps its empty pill, so the labels of a bar still line
+up.
+
+**What it announces.** Each destination is a button that says whether it is chosen
+and, when it is, that it is the current page — `aria-current="page"` on the web,
+the selected item of a set in Flutter. The bar itself is a `nav` landmark on the
+web, which Flutter's screen readers have no counterpart for. A tab strip's arrow
+keys are deliberately not modelled (`BoxRole` has no tab, for the reason
+[TASK_PLAN](../../TASK_PLAN.md) records), so the role is a button.
+
+**Where it sits is the tree's business**, and so is the safe area: the bar is a row
+that fills the width and states its height, and being at the bottom is a
+`PositionedNode` at the bottom of a `StackNode`, or the last row of a full height
+column. The indicator does not slide, the label does not fade and the bar does not
+hide as the page scrolls: the first two are animations and the third is scroll
+state, and a switch of destination here is a rebuild.
+
 ## The dialog and the bottom sheet
 
 Both are `OverlayNode`s, so they sit in the tree where the state says they belong, and
@@ -629,11 +692,13 @@ pixel vertical padding and the palette's title, supporting text and state layers
 text field at least 56 pixels tall with a 2 pixel focused outline, a primary focused
 label, an `onSurface` hover outline and 38% opacity when disabled; a dialog whose
 content is `bodyMedium` in `onSurfaceVariant` over `labelLarge` actions in `primary`;
-and a bottom sheet that fills the width up to 640 pixels, with a drag handle and a
-shadow that rises. Still approximate: the sheet rounds all four corners, the handle
-is not draggable, shadows are one layer where Material has two, and the ink is one
-circle that grows and fades where Material draws a splash with a fading highlight
-and a second ripple when the press is released.
+a navigation bar 80 pixels tall on `surfaceContainer`, its chosen destination's icon
+on a 64 by 32 `secondaryContainer` pill; and a bottom sheet that fills the width up
+to 640 pixels, with a drag handle and a shadow that rises. Still approximate: the sheet
+rounds all four corners, the handle is not draggable, shadows are one layer where
+Material has two, the navigation indicator does not slide, and the ink is one circle
+that grows and fades where Material draws a splash with a fading highlight and a
+second ripple when the press is released.
 
 ## Line heights
 
