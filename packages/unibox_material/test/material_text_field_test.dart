@@ -61,6 +61,15 @@ void main() {
       expect(messageOf(tree), 'We only use it for the receipt.');
     });
 
+    test('stretches to the width it is given, on the field and its wrapper', () {
+      final Box tree = treeOf(MaterialTextField(label: 'Email'));
+
+      // A web flex column shrinks a start-aligned child to its content, so the
+      // field would be as wide as its label.
+      expect(tree.crossAlign, CrossAlign.stretch);
+      expect(fillOf(tree).crossAlign, CrossAlign.stretch);
+    });
+
     test('puts the padding on the input, so the whole field is tappable', () {
       final TextInputNode input = inputOf(
         treeOf(MaterialTextField(label: 'Email')),

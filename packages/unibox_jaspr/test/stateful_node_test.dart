@@ -1,3 +1,4 @@
+import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_test/jaspr_test.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
 import 'package:unibox_jaspr/src/stateful_node.dart';
@@ -106,4 +107,46 @@ void main() {
     expect(_lastStore!.mounts, 0);
     expect(_lastStore!.disposed, isTrue);
   });
+
+  testComponents('draws the node a parent hands it on a redraw', (
+    tester,
+  ) async {
+    // The store outlives a redraw, the node does not: a parent that rebuilds hands
+    // down a node whose view closes over its new state, and drawing the first node
+    // again left a selected chip looking unselected.
+    tester.pumpComponent(const _Parent());
+    expect(find.text('off'), findsOneComponent);
+
+    _ParentState.current.flip();
+    await tester.pump();
+
+    expect(find.text('on'), findsOneComponent);
+  });
+}
+
+class _Parent extends StatefulComponent {
+  const _Parent();
+
+  @override
+  State<_Parent> createState() => _ParentState();
+}
+
+class _ParentState extends State<_Parent> {
+  static late _ParentState current;
+
+  bool _on = false;
+
+  void flip() => setState(() => _on = true);
+
+  @override
+  Component build(BuildContext context) {
+    current = this;
+    final String label = _on ? 'on' : 'off';
+    return JasprStatefulNode(
+      node: core.StatefulNode<int, _Store>(
+        create: _createStore,
+        view: (int state, _Store store) => core.TextNode(label),
+      ),
+    );
+  }
 }

@@ -2,6 +2,8 @@
 
 ## 0.1.0
 
+- `MaterialTextField` stretches across the width it is given, so a web page draws it
+  as wide as the Flutter one instead of as wide as its label.
 - `MaterialTextField` and `MaterialBottomSheet` draw Material's shape: round at the
   top, square where they meet the line or the edge, now that the model has a
   corner token.

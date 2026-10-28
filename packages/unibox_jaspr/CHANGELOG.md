@@ -2,6 +2,9 @@
 
 ## 0.1.0
 
+- A `JasprStatefulNode` draws the node its parent hands it on every redraw and keeps
+  only the store, so a nested node whose look depends on the parent's state (a
+  selected chip inside an ink well) no longer keeps its first look.
 - A `BoxBorderRadius` becomes one `border-radius` with four values, in CSS's order, so a
   box that rounds only two corners needs no wrapper and no clipped overlay.
 - Every element a node draws carries `data-unibox-node="<name>"`, so an inspector
