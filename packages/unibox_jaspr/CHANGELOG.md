@@ -21,9 +21,16 @@
   differ only in the colour of their hint do not share a class.
 
 - A box with `onTapDown` writes a `pointerdown` listener that reports the press where
-  it landed (`offsetX`/`offsetY`, the same local frame Flutter reports) and the device
+  it landed inside *the box*, the same local frame Flutter reports, and the device
   through `pointerType`. Like every other listener it stays inert until the client
   runtime exists, so a static export costs nothing.
+- The press position is measured against the element that listens, not against the one
+  the pointer hit. `offsetX`/`offsetY` are relative to the hit target, which is a label
+  as soon as the press lands on text, so an ink drop placed in that frame started
+  somewhere else — and the typed getters throw outright on the fractional coordinates a
+  scaled browser reports, so a press on a label did nothing at all. The coordinates are
+  read through `dart:js_interop` for that reason, in a file a browser build uses and the
+  VM suites compile a stub for.
 - A `StatefulNode` that sits in a tree is a component like the page it is drawn in: a
   browser subscribes to its store, calls `onMount` and redraws that node when it is
   notified, while a server still reads only the first state. Until now a node inside a

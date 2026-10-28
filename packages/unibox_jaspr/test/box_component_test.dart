@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:jaspr_test/jaspr_test.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
+import 'package:unibox_jaspr/src/box.dart';
 import 'package:unibox_jaspr/unibox_jaspr.dart';
 
 import 'support/harness.dart';
@@ -429,6 +430,17 @@ void main() {
       final TestRenderElement element = elementsOf(find.tag('div')).first;
 
       expect(element.events?.keys, contains('pointerdown'));
+    });
+
+    test('measures a press from the box, not from what it hit', () {
+      // The label of a button sits 40 across and 12 down from the box's corner, and
+      // the pointer lands at 90, 30 in client coordinates: the press is 50, 18
+      // inside the box. `offsetX` would have measured from the label instead, which
+      // is where the ink used to start.
+      expect(
+        pressPointInside(clientX: 90, clientY: 30, originX: 40, originY: 12),
+        const core.BoxPoint(50, 18),
+      );
     });
 
     testComponents('adds no listener to a box that does not ask', (

@@ -7,6 +7,7 @@ import 'package:universal_web/web.dart' as web;
 
 import 'labels.dart';
 import 'render.dart';
+import 'press_position.dart';
 import 'stylesheet.dart';
 import 'values.dart';
 
@@ -361,6 +362,20 @@ class JasprBox extends StatelessComponent {
   }
 }
 
+/// Where a press landed inside the box that listens, in the box's own pixels.
+///
+/// Measured from the box, not from the element the pointer hit: `offsetX` and
+/// `offsetY` are relative to the hit target, and a press on a label is reported in
+/// the label's frame — which put an ink drop somewhere else entirely, or nowhere at
+/// all once the drop was clipped to the well around it. These are the four numbers
+/// the browser can give, so this is the arithmetic on its own, away from the DOM.
+core.BoxPoint pressPointInside({
+  required double clientX,
+  required double clientY,
+  required double originX,
+  required double originY,
+}) => core.BoxPoint(clientX - originX, clientY - originY);
+
 /// Maps the interaction callbacks of [box] to DOM event listeners.
 ///
 /// The listeners are omitted entirely for a non interactive box, so a static
@@ -379,16 +394,17 @@ Map<String, EventCallback> _buildEvents(core.Box box) {
     return events;
   }
 
-  // The press is reported where it landed: `offsetX`/`offsetY` are the position
-  // inside the element, the same local frame Flutter reports, and `pointerType`
-  // names the device. The listener only runs once the client runtime does.
+  // The press is reported in the frame Flutter calls `localPosition`; see
+  // [pressPointInside] for why the offsets the event carries are not that frame.
+  // `pointerType` names the device. The listener only runs once the client runtime
+  // does.
   if (onTapDown != null) {
     events['pointerdown'] = (web.Event event) {
       final web.PointerEvent pointer = event as web.PointerEvent;
 
       onTapDown(
         core.BoxTapEvent(
-          position: core.BoxPoint(pointer.offsetX, pointer.offsetY),
+          position: pressPositionOf(event) ?? const core.BoxPoint(0, 0),
           pointer: _pointerKind(pointer.pointerType),
         ),
       );
