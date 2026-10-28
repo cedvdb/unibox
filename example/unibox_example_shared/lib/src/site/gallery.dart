@@ -50,10 +50,10 @@ UINode buildMaterialGallery() {
       ),
       _section(
         'Dialog',
-        'A dialog is an OverlayNode rather than a call: it covers the tree behind a '
-            'barrier and leaves on Escape or a press on the barrier. This is the '
-            'surface it draws, shown inline.',
-        _dialog(),
+        'A dialog is an OverlayNode rather than a call: it is in the tree only while '
+            'the state says it is open, it covers the page behind a barrier and leaves '
+            'on Escape or a press on the barrier. Press the button.',
+        DialogDemo(),
       ),
     ],
   );
@@ -213,12 +213,10 @@ UINode _swatch(String name, BoxColor color, MaterialPalette palette) {
   );
 }
 
-/// A Material button: a filled surface whose state layer is an ink well.
+/// A Material button: a filled surface with a [MaterialInkWell] over it.
 ///
-/// The tint has to sit *inside* the fill, because a state layer paints above the
-/// surface it belongs to; wrapped the other way round, the button's own background
-/// would hide it. The callback is empty and the tint is inert on a static page —
-/// what the page shows is the shape, the role and the palette.
+/// The tint has to sit *above* the fill, so the fill is the box around the ink
+/// well; the other way round the background would hide the state layer.
 UINode _button(
   String label,
   BoxColor background,
@@ -232,31 +230,14 @@ UINode _button(
         ? BoxBorder(color: palette.outline)
         : null,
     children: <UINode>[
-      // A button is a box with a state layer: the layer paints translucent ink
-      // over the fill, so the colour stays and the hover, focus and press read.
-      Box(
+      MaterialInkWell(
+        onTap: () {},
         borderRadius: 20,
         padding: const BoxSpacing.symmetric(horizontal: 20, vertical: 10),
-        onTap: () {},
-        transition: const BoxTransition(duration: Duration(milliseconds: 100)),
-        semantics: const BoxSemantics(role: BoxRole.button),
-        stateStyles: const <BoxState, BoxStyle>{
-          BoxState.hover: BoxStyle(
-            backgroundColor: BoxColor.role(MaterialColorRole.hoverLayer),
-          ),
-          BoxState.focus: BoxStyle(
-            backgroundColor: BoxColor.role(MaterialColorRole.focusLayer),
-          ),
-          BoxState.pressed: BoxStyle(
-            backgroundColor: BoxColor.role(MaterialColorRole.pressedLayer),
-          ),
-        },
-        children: <UINode>[
-          TextNode(
-            label,
-            style: MaterialTypography.labelLarge.copyWith(color: foreground),
-          ),
-        ],
+        child: TextNode(
+          label,
+          style: MaterialTypography.labelLarge.copyWith(color: foreground),
+        ),
       ),
     ],
   );
@@ -388,35 +369,94 @@ UINode _cards(MaterialPalette palette) {
   );
 }
 
-/// A plain dialog, shown as the surface it draws rather than as an overlay.
+/// The state of the dialog demo: open, or closed.
+final class DialogDemoStore extends StateStore<bool> {
+  /// Creates the demo with its dialog closed.
+  DialogDemoStore() : super(false);
+
+  /// Opens the dialog.
+  void open() => state = true;
+
+  /// Closes the dialog.
+  void close() => state = false;
+}
+
+/// A button that opens a dialog of its own.
 ///
-/// The alternative would cover the page it demonstrates, so the gallery renders
-/// [core.OverlayNode.child] — the same tree the overlay puts above the barrier.
-UINode _dialog() {
+/// Presence is the state: the view puts the `MaterialDialog` in the tree while
+/// [DialogDemoStore] says it is open, and leaves it out when it closes. That is the
+/// whole mechanism a dialog needs — the node carries the barrier and the dismissal.
+final class DialogDemo extends StatefulNode<bool, DialogDemoStore> {
+  /// Creates the demo, with its dialog closed.
+  DialogDemo() : super(create: DialogDemoStore.new, view: _dialogView);
+}
+
+/// The button, the dialog when it is open, and what the section says about it.
+UINode _dialogView(bool open, DialogDemoStore store) {
   const MaterialPalette palette = MaterialPalette.light;
-  final MaterialDialog dialog = MaterialDialog(
-    title: 'Delete listing?',
-    content: const TextNode('The photos go with it.'),
-    actions: <UINode>[const TextNode('Cancel'), const TextNode('Delete')],
-  );
 
   return Box(
     direction: Axis.horizontal,
     crossAlign: CrossAlign.start,
     gap: 24,
     children: <UINode>[
-      dialog.child,
+      Box(
+        backgroundColor: palette.primary,
+        borderRadius: 20,
+        children: <UINode>[
+          MaterialInkWell(
+            onTap: store.open,
+            borderRadius: 20,
+            padding: const BoxSpacing.symmetric(horizontal: 20, vertical: 10),
+            child: TextNode(
+              'Delete listing',
+              style: MaterialTypography.labelLarge.copyWith(
+                color: palette.onPrimary,
+              ),
+            ),
+          ),
+        ],
+      ),
       Box(
         width: 320,
         children: <UINode>[
           TextNode(
-            'Title, content and actions, on the surface a dialog is raised by. '
-            'Opening one is the state of the page that owns it.',
+            'Title, content and actions, on the surface a dialog is raised by. The '
+            'button is a MaterialInkWell over a filled box; the dialog is in the '
+            'tree only while it is open.',
             style: MaterialTypography.labelSmall.copyWith(
               color: palette.onSurfaceVariant,
             ),
           ),
         ],
+      ),
+      if (open)
+        MaterialDialog(
+          title: 'Delete listing?',
+          content: const TextNode('The photos go with it.'),
+          actions: <UINode>[
+            _dialogAction('Cancel', store.close, palette),
+            _dialogAction('Delete', store.close, palette),
+          ],
+          onDismiss: store.close,
+        ),
+    ],
+  );
+}
+
+/// One action of the dialog: a label with an ink well over it.
+UINode _dialogAction(String label, TapCallback onTap, MaterialPalette palette) {
+  return Box(
+    borderRadius: 20,
+    children: <UINode>[
+      MaterialInkWell(
+        onTap: onTap,
+        borderRadius: 20,
+        padding: const BoxSpacing.symmetric(horizontal: 12, vertical: 8),
+        child: TextNode(
+          label,
+          style: MaterialTypography.labelLarge.copyWith(color: palette.primary),
+        ),
       ),
     ],
   );

@@ -152,8 +152,12 @@ The pages link with paths relative to their own depth and the documents carry **
 `/` would send every relative link, and both frames, to the domain root.
 
 The gallery and the showcase are node trees as well, so the site is built with the
-library it documents. The one thing the model cannot describe is an `<iframe>`, and
-that is what `EmbedNode` is for: the showcase's two frames are the only non-node
+library it documents. The gallery's dialog is the exception that proves the rule:
+the button is a `MaterialInkWell` over a filled box, and the `MaterialDialog` is in
+the tree only while the demo's store says it is open — the runtime is what makes the
+press do anything, and a document without JavaScript shows the button and no dialog.
+
+The one thing the model cannot describe is an `<iframe>`, and that is what `EmbedNode` is for: the showcase's two frames are the only non-node
 content on the site, and the page around them is boxes and text.
 
 Being open is state, and a static page cannot be clicked into existence, so the

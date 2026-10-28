@@ -130,6 +130,13 @@ Three things follow, and they are the reason it is done this way:
   response small once it is compressed and lets the CSS be cached next to the HTML
   instead of being rebuilt inside it.
 
+A server writes the sheet as the `<style>` of the tree, at the end of the page. A
+browser writes it into `<style id="unibox-styles">` in the head instead and keeps
+it there: a state change redraws one subtree, so a look that subtree registers is
+appended to the element already in the page rather than waiting for a second full
+render. Those are the only two shapes — a sheet that is text in a response, and a
+sheet that is an element in a document.
+
 ### Roles and the theme
 
 A colour role is written as a custom property, and the theme is written once, in
@@ -632,6 +639,12 @@ What a server cannot do is interact: `Escape`, a press on the barrier and moving
 focus need the client runtime (Task 104), so a static export shows the layer and
 leaves it there. The layer is drawn exactly where the client will draw it, which is
 what hydration needs.
+
+In a browser the barrier carries the press and the `Escape` key is heard on the
+**document** while the overlay is up, because nothing inside a freshly opened
+overlay holds focus and a listener on the layer only sees a keystroke that starts
+inside it. Two overlays open at once therefore both hear it; a stack with a
+single top-most dismissal needs focus containment, which is still open.
 
 ## Testing
 

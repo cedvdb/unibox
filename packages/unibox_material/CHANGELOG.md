@@ -5,8 +5,10 @@
 - `MaterialTextField` and `MaterialBottomSheet` draw Material's shape: round at the
   top, square where they meet the line or the edge, now that the model has a
   corner token.
-
-The first release: Material 3 as a package of values, plus the components built
+- `MaterialInkWell` is the state layer of a tappable region: a `Box` with Material's
+  hover, focus and press tints as roles, a 100ms fade and the button role when it can
+  be tapped. It paints no surface of its own, so the filled box goes around it.
+- The first release: Material 3 as a package of values, plus the components built
 from them. Every value here is a plain token of `unibox_core`, so neither renderer
 has to know this package exists.
 

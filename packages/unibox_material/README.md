@@ -316,6 +316,43 @@ style parameters. A `Box` around it remains the escape hatch.
 
 ## The ink well
 
+`MaterialInkWell` is the state layer of a tappable region: a `Box` that paints the
+three tints of the palette over the surface it sits on.
+
+```dart
+Box(
+  backgroundColor: palette.primary,
+  borderRadius: 20,
+  children: <UINode>[
+    MaterialInkWell(
+      onTap: store.save,
+      borderRadius: 20,
+      padding: const BoxSpacing.symmetric(horizontal: 20, vertical: 10),
+      child: TextNode(
+        'Save',
+        style: MaterialTypography.labelLarge.copyWith(color: palette.onPrimary),
+      ),
+    ),
+  ],
+)
+```
+
+| Token | Value |
+| --- | --- |
+| hover, focus, press | `hoverLayer`, `focusLayer`, `pressedLayer` |
+| transition | 100ms, so a tint eases instead of flashing |
+| role | `BoxRole.button` when it can be tapped |
+
+It paints **no surface of its own**: the tint has to sit above the fill it belongs
+to, so the filled box goes around the ink well. Wrapped the other way round the
+fill would hide the state layer, which is the mistake the class exists to spare
+you. A `MaterialCard`, a `MaterialListTile` and the gallery's buttons are the same
+pattern in the package.
+
+What it is not is a ripple: the splash starts at the pointer and grows over a
+timeline of its own, and the model has no triggered animation, so a press is a
+tint. `EmbedNode` is the escape hatch when the effect matters.
+
 ## The text field
 
 `MaterialTextField` is a filled `Box` with a `TextInputNode` inside it and a message

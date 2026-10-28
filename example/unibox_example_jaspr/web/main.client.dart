@@ -1,5 +1,6 @@
 import 'package:jaspr/client.dart';
 import 'package:unibox_example_jaspr/main.dart';
+import 'package:unibox_example_jaspr/site/page_for_path.dart';
 import 'package:unibox_example_jaspr/site/site_root.dart';
 import 'package:unibox_example_shared/unibox_example_shared.dart';
 
@@ -24,13 +25,8 @@ void main() {
 
   // A page of the site itself, by the path it was exported to. The home document
   // names no destination — it is the directory the others sit under — so it is the
-  // fallback and not part of the search.
-  for (final SitePage page in SitePage.values) {
-    if (page.path.isNotEmpty && path.endsWith('/${page.path}')) {
-      runApp(buildSiteRoot(page));
-      return;
-    }
-  }
-
-  runApp(buildSiteRoot(SitePage.home));
+  // fallback and not part of the search. The page's own path is matched without its
+  // trailing slash, because the export writes a directory per destination and a
+  // browser reports that directory either way.
+  runApp(buildSiteRoot(sitePageForPath(path) ?? SitePage.home));
 }

@@ -146,7 +146,7 @@ host that renders it.
 | `TextField` | `TextInputNode(value:, placeholder:, inputType:, onChanged:)`, or `MaterialTextField` for Material's frame and states |
 | `showDialog`, `Dialog` | `MaterialDialog(title:, content:, actions:, onDismiss:)` — an `OverlayNode`, not a call |
 | `showModalBottomSheet` | `MaterialBottomSheet(title:, content:, actions:)` — the same overlay at the bottom |
-| `InkWell`, `InkResponse` | no component: a `Box` with `onTap`, the button role and `stateStyles` for hover, focus and press |
+| `InkWell`, `InkResponse` | `MaterialInkWell(onTap:, borderRadius:, child:)` — a state layer, so the filled box goes around it; a press is a tint, not a ripple |
 | `StatefulWidget` + `setState` around a tree | `StatefulNode` + a `StateStore` |
 | `GridView`, a `Wrap` of cards | `GridNode(minItemWidth:, maxColumns:, gap:)` — equal columns that follow the width, no breakpoint |
 | `Card` | `MaterialCard` (from `unibox_material`) |

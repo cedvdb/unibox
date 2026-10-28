@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:universal_web/web.dart' as web;
@@ -16,11 +18,13 @@ import 'values.dart';
 /// flow of its parent — an overlay on the web is a layer or nothing.
 ///
 /// The barrier carries the `click` that dismisses when the node says the barrier
-/// is dismissible, and the layer carries the `Escape` key that does the same; a
-/// static document cannot run either, so they take effect once the page is
+/// is dismissible; `Escape` dismisses too, but the key is heard on the document
+/// while the overlay is up, because nothing inside a freshly opened overlay holds
+/// focus and a listener on the layer only sees a keystroke that starts inside it.
+/// A static document can run neither, so both take effect once the page is
 /// hydrated by the client build. Until then the export is the snapshot the
 /// `signup` document exists for.
-class JasprOverlay extends StatelessComponent {
+class JasprOverlay extends StatefulComponent {
   /// Creates a renderer for [node].
   const JasprOverlay({required this.node, super.key});
 
@@ -28,8 +32,50 @@ class JasprOverlay extends StatelessComponent {
   final core.OverlayNode node;
 
   @override
+  State<JasprOverlay> createState() => _JasprOverlayState();
+}
+
+/// The overlay's browser half: the `Escape` listener it holds while it is up.
+class _JasprOverlayState extends State<JasprOverlay> {
+  /// The `keydown` subscription of a browser, or `null` on a server.
+  StreamSubscription<web.KeyboardEvent>? _keyDown;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final core.TapCallback? onDismiss = component.node.onDismiss;
+
+    if (!kIsWeb || onDismiss == null) {
+      return;
+    }
+
+    _keyDown = web.EventStreamProviders.keyDownEvent
+        .forTarget(web.document)
+        .listen((web.KeyboardEvent event) {
+          if (event.key != 'Escape') {
+            return;
+          }
+
+          event.preventDefault();
+          onDismiss();
+        });
+  }
+
+  @override
+  void dispose() {
+    final StreamSubscription<web.KeyboardEvent>? keyDown = _keyDown;
+
+    if (keyDown != null) {
+      unawaited(keyDown.cancel());
+    }
+
+    super.dispose();
+  }
+
+  @override
   Component build(BuildContext context) {
-    final String alignment = switch (node.alignment) {
+    final String alignment = switch (component.node.alignment) {
       core.OverlayAlignment.center => 'center',
       core.OverlayAlignment.top => 'flex-start',
       core.OverlayAlignment.bottom => 'flex-end',
@@ -49,8 +95,8 @@ class JasprOverlay extends StatelessComponent {
         'position': 'absolute',
         'inset': '0',
         'background-color':
-            cssRoleReference(node.barrierColor) ??
-            toCssColor(node.barrierColor).value,
+            cssRoleReference(component.node.barrierColor) ??
+            toCssColor(component.node.barrierColor).value,
       },
     );
     // Positioned boxes paint above in-flow ones, in that order whichever comes
@@ -71,18 +117,17 @@ class JasprOverlay extends StatelessComponent {
           events: _barrierEvents(),
         ),
         div(
-          <Component>[renderNode(node.child)],
+          <Component>[renderNode(component.node.child)],
           classes: _className(sheet, 'overlay-content', content),
           styles: sheet == null ? content : null,
         ),
       ],
-      attributes: withNodeLabel(node, const <String, String>{
+      attributes: withNodeLabel(component.node, const <String, String>{
         'role': 'dialog',
         'aria-modal': 'true',
       }),
       classes: _className(sheet, 'overlay', layer),
       styles: sheet == null ? layer : null,
-      events: _keyEvents(),
     );
   }
 
@@ -91,38 +136,13 @@ class JasprOverlay extends StatelessComponent {
   /// Nothing is stopped: the barrier covers the page and is a sibling of the
   /// content, so the press never reaches a handler behind it.
   Map<String, EventCallback>? _barrierEvents() {
-    final core.TapCallback? onDismiss = node.onDismiss;
+    final core.TapCallback? onDismiss = component.node.onDismiss;
 
-    if (!node.barrierDismissible || onDismiss == null) {
+    if (!component.node.barrierDismissible || onDismiss == null) {
       return null;
     }
 
     return <String, EventCallback>{'click': (web.Event event) => onDismiss()};
-  }
-
-  /// `Escape` dismisses, as it does in Flutter's overlay.
-  ///
-  /// The listener sits on the layer and the event bubbles from whatever inside the
-  /// dialog has focus, which is why the layer itself does not have to be focusable.
-  Map<String, EventCallback>? _keyEvents() {
-    final core.TapCallback? onDismiss = node.onDismiss;
-
-    if (onDismiss == null) {
-      return null;
-    }
-
-    return <String, EventCallback>{
-      'keydown': (web.Event event) {
-        // A keydown on the layer is a keyboard event; the cast is what the box
-        // renderer does with the same listener.
-        final web.KeyboardEvent keyEvent = event as web.KeyboardEvent;
-
-        if (keyEvent.key == 'Escape') {
-          event.preventDefault();
-          onDismiss();
-        }
-      },
-    };
   }
 
   /// The class of [styles] in [sheet], or `null` when there is no sheet to put it

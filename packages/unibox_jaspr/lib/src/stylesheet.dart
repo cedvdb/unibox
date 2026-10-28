@@ -1,5 +1,6 @@
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
+import 'package:universal_web/web.dart' as web;
 import 'package:unibox_core/unibox_core.dart' as core;
 
 import 'values.dart';
@@ -31,6 +32,9 @@ final class UniboxStylesheet {
   /// The rules, in the order their classes were first asked for.
   final List<StyleRule> _rules = <StyleRule>[];
 
+  /// Where rules registered after the sheet was written out are sent.
+  void Function(String css)? _sink;
+
   /// The class for [declarations], built by [rules] the first time it is asked
   /// for.
   ///
@@ -50,10 +54,21 @@ final class UniboxStylesheet {
 
     final String className = 'unibox-$kind-${fnv1a(key)}';
     _classNames[key] = className;
-    _rules.addAll(rules(className));
+    final List<StyleRule> added = rules(className);
+    _rules.addAll(added);
+    // A browser has already written the sheet into the document and redraws one
+    // subtree at a time, so a look registered later has to reach the page by
+    // itself; a server renders the whole sheet as text and never needs a sink.
+    _sink?.call(added.map((StyleRule rule) => rule.toCss()).join('\n'));
 
     return className;
   }
+
+  /// Sends every rule registered from now on to [sink] as well as into [rules].
+  ///
+  /// `JasprStylesheet` installs it in a browser, where the sheet is an element in
+  /// the document rather than text in the response.
+  void attachSink(void Function(String css) sink) => _sink = sink;
 
   /// Every rule this rendering needs, each one once.
   List<StyleRule> get rules => List<StyleRule>.unmodifiable(_rules);
@@ -105,33 +120,64 @@ class JasprStylesheet extends StatelessComponent {
   /// The theme whose roles the rules point at, if the tree was given one.
   final core.UniboxTheme? theme;
 
+  /// The id of the element a browser keeps the sheet in.
+  static const String elementId = 'unibox-styles';
+
   @override
   Component build(BuildContext context) {
     final core.UniboxTheme? declared = theme;
+    final List<StyleRule> rules = declared == null || declared.isEmpty
+        ? sheet.rules
+        // The theme once, in `:root`, whether or not a node names each role: a host
+        // stylesheet or an embed has to be able to read a role the tree happens to
+        // leave alone, and a `:root` block that changed with the tree would be a
+        // different document every time the content did.
+        : <StyleRule>[
+            StyleRule(
+              selector: const Selector(':root'),
+              styles: Styles(
+                raw: <String, String>{
+                  for (final MapEntry<String, core.BoxColor> entry
+                      in declared.variables.entries)
+                    entry.key: toCssColor(entry.value).value,
+                },
+              ),
+            ),
+            ...sheet.rules,
+          ];
 
-    if (declared == null || declared.isEmpty) {
-      return Style(styles: sheet.rules);
+    // A browser draws the sheet into the document head and keeps it there: a
+    // state change redraws one subtree, and the class that subtree registers has
+    // to reach the page without a second render of the whole document. A server
+    // writes the `<style>` into the tree instead, which is the sheet a page
+    // without JavaScript keeps.
+    if (kIsWeb) {
+      final web.HTMLStyleElement element = _styleElement();
+      element.textContent = rules
+          .map((StyleRule rule) => rule.toCss())
+          .join('\n');
+      sheet.attachSink((String css) {
+        element.textContent = '${element.textContent ?? ''}\n$css';
+      });
+
+      return Component.fragment(const <Component>[]);
     }
 
-    // The theme once, in `:root`, whether or not a node names each role: a host
-    // stylesheet or an embed has to be able to read a role the tree happens to
-    // leave alone, and a `:root` block that changed with the tree would be a
-    // different document every time the content did.
-    return Style(
-      styles: <StyleRule>[
-        StyleRule(
-          selector: const Selector(':root'),
-          styles: Styles(
-            raw: <String, String>{
-              for (final MapEntry<String, core.BoxColor> entry
-                  in declared.variables.entries)
-                entry.key: toCssColor(entry.value).value,
-            },
-          ),
-        ),
-        ...sheet.rules,
-      ],
-    );
+    return Style(styles: rules);
+  }
+
+  /// The `<style>` of this document, created on first use.
+  static web.HTMLStyleElement _styleElement() {
+    final web.Element? existing = web.document.getElementById(elementId);
+
+    if (existing != null) {
+      return existing as web.HTMLStyleElement;
+    }
+
+    final web.HTMLStyleElement element = web.HTMLStyleElement()..id = elementId;
+    web.document.head?.appendChild(element);
+
+    return element;
   }
 }
 

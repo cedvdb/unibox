@@ -1,6 +1,8 @@
+import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_test/jaspr_test.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
+import 'package:unibox_jaspr/src/stylesheet.dart';
 import 'package:unibox_jaspr/unibox_jaspr.dart';
 
 import 'support/harness.dart';
@@ -153,6 +155,46 @@ void main() {
         expect(elementsOf(find.tag('style')), hasLength(6));
       },
     );
+
+    test('sends a look registered after the sheet was written to the sink', () {
+      final UniboxStylesheet sheet = UniboxStylesheet();
+      final List<String> written = <String>[];
+
+      StyleRule ruleOf(String className, String colour) => StyleRule(
+        selector: Selector.className(className),
+        styles: Styles(raw: <String, String>{'background-color': colour}),
+      );
+
+      // Before a sink is attached the sheet is text for the response, as it is on
+      // a server.
+      sheet.classFor(
+        'box',
+        'background-color:red',
+        (String name) => <StyleRule>[ruleOf(name, 'red')],
+      );
+
+      expect(written, isEmpty);
+
+      sheet.attachSink(written.add);
+
+      sheet.classFor(
+        'box',
+        'background-color:blue',
+        (String name) => <StyleRule>[ruleOf(name, 'blue')],
+      );
+      // A look it already knows is not written twice.
+      sheet.classFor(
+        'box',
+        'background-color:blue',
+        (String name) => <StyleRule>[ruleOf(name, 'blue')],
+      );
+
+      expect(written, hasLength(1));
+      expect(
+        written.single,
+        allOf(contains('background-color'), contains('blue')),
+      );
+    });
 
     testComponents('names a class after the node it draws', (tester) async {
       pumpNode(tester, const core.TextNode('Unibox'));
