@@ -116,7 +116,7 @@ defaults. While `unibox_jaspr` still exists, a temporary cross-check asserts tha
 produce the same declaration text for a corpus of nodes, so drift cannot hide. One
 commit per family.
 
-**2. `unibox_html`, the emitter.** Escaping first, with adversarial tests (text,
+**2. `unibox_html`, the emitter.** *(escaping done)* Escaping first, with adversarial tests (text,
 attributes, `src`, `alt`), because that is where the only security bug in this package
 can live. Then one node at a time: box, text, image, link, grid, stack, positioned,
 text input. The conformance suite from `unibox_testing` is wired before the second

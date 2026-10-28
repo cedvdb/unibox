@@ -1,0 +1,26 @@
+name: unibox_html
+description: Renders Unibox node trees as HTML and CSS that a search engine can read, with no framework and no dependencies.
+publish_to: none
+version: 0.1.0
+repository: https://github.com/cedvdb/unibox
+homepage: https://github.com/cedvdb/unibox
+issue_tracker: https://github.com/cedvdb/unibox/issues
+topics:
+  - layout
+  - ui
+  - web
+  - seo
+  - server-side-rendering
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  unibox_core: ^0.1.0
+  unibox_css: ^0.1.0
+
+dev_dependencies:
+  lints: ^6.1.0
+  test: ^1.25.8
+  unibox_testing: ^0.1.0

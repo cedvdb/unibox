@@ -41,6 +41,9 @@ assumes you have read the README's node sections.
 - [unibox_css](packages/unibox_css/README.md): the CSS two web renderers share,
   a token as a declaration, and the canonical text a class name is hashed from.
   Pure Dart, no dependencies.
+- [unibox_html](packages/unibox_html/README.md): the web renderer — a tree as a
+  document a search engine can read, with no framework and no runtime. Pure Dart, no
+  dependencies.
 - [unibox_jaspr](packages/unibox_jaspr/README.md): the Jaspr renderer
   (`renderJaspr`, `node.toComponent()`), the CSS it emits, and the document work it
   leaves to the host.
