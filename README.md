@@ -1,62 +1,90 @@
 # Unibox
 
-Describe a screen once, in plain Dart, and draw it twice: as Flutter widgets in an
-app, and as HTML with CSS in a browser.
-
-```dart
-const greeting = Box(
-  padding: BoxSpacing.all(16),
-  backgroundColor: BoxColor.white,
-  borderRadius: 12,
-  children: <UINode>[
-    TextNode('Hello', fontSize: 24, fontWeight: FontWeight.bold),
-    TextNode('Drawn by Flutter and by the browser.'),
-  ],
-);
-```
-
-One description, two renderers. Layout, spacing, colours, typography and the
-accessibility tree are written once; each target draws them with its own
-primitives, and a test suite holds both to the same expected result.
-
-## Why this exists
-
 A search engine, a link preview and a reader whose JavaScript failed all see the same
 thing in a Flutter screen: nothing. Flutter draws into a canvas, so there is no text to
-index. The usual fix is to write that page again as HTML — and then keep two designs in
-step, which drift the week after they are written.
+index and no link to follow. The usual fix is to write that page again in HTML, and then
+to keep two designs in step — which, a week later, they are not.
 
-Unibox removes the second design. You write the screen once, as a tree, and then choose
-how to serve it. There are two strategies.
+Unibox removes the second design. A screen is one immutable Dart tree:
+[`unibox_flutter`](packages/unibox_flutter) draws it as widgets,
+[`unibox_jaspr`](packages/unibox_jaspr) draws it as HTML and CSS, and one table of
+expected appearance holds both renderers to the same answer.
 
-### Strategy 1: the Flutter app takes over
+<p align="center">
+  <img src="docs/showcase.jpg" alt="The same apartment listings screen drawn twice, side by side: on the left the Jaspr page built as HTML and CSS, on the right the same node tree built by Flutter. Both show the same search bar, the same filters, the same cards and the same prices." width="960">
+</p>
 
-The server renders the screen from the tree as a **read-only page** — HTML and CSS, all
-the text and links in it, which is what a crawler reads and what a visitor sees before
-anything loads. The Flutter app then takes the page over and draws the same screen from
-the same tree. The visitor gets one screen, not two versions of it: the markup and the
-app come from the same description, so they cannot disagree.
+<p align="center">
+  <sub>One tree, drawn twice: <code>/web/listings/</code> on the left, <code>/flutter/listings/</code> on the right.</sub>
+</p>
+
+## How it works
+
+A screen is a tree of eleven immutable node types — boxes and texts, images, links,
+stacks, grids, inputs, overlays, state, embeds — whose style values are `const` objects of
+their own. Nothing in the description names a framework: no widget, no HTML tag.
+
+```dart
+final page = Box(
+  gap: 12,
+  padding: BoxSpacing.all(16),
+  children: <UINode>[
+    TextNode('Apartments', fontSize: 24, fontWeight: FontWeight.bold),
+    GridNode(minItemWidth: 380, children: listings),
+  ],
+);
+
+runApp(MaterialApp(home: renderFlutter(page)));          // Flutter: widgets
+Document(title: 'Apartments', body: renderJaspr(page));  // Jaspr: HTML and CSS
+```
+
+Three rules keep the two drawings the same screen:
+
+- **Defaults belong to the model.** An unset `direction` is a column and unset text is
+  `BoxTextStyle.defaults`, because the hosts disagree about the answer — 14 logical
+  pixels of black in Flutter, 16 pixels of `canvastext` in a browser.
+- **A renderer is thin, and knows nothing of the other.** One file per node, and a token
+  means the same value on both sides.
+- **Parity is tested, not promised.** [`unibox_testing`](packages/unibox_testing) writes
+  down what each token looks like, both suites read that appearance back out of their own
+  output, and a renderer that drifts fails its own suite.
+
+Neither target wraps the other. On a phone the tree is drawn by Flutter's own widgets, in
+a browser the same tree is markup and CSS: there is no WebView in the arrangement, and no
+second document to keep in step.
+
+What the description does *not* contain is what only a host can know: how wide the window
+is, what a tap does, and what the surrounding document is called — see
+[what the host owns](#what-the-host-owns).
+
+## Two ways to serve a tree
+
+### The server renders it, the Flutter app takes over
+
+The server renders the tree as a **read-only page** — HTML and CSS, every word and link
+in it, which is what a crawler reads and what a visitor sees before anything loads. The
+Flutter app then takes that page over and draws the same screen from the same tree. The
+visitor gets one screen, not two versions of it: the markup and the app come from one
+description, so they cannot disagree.
 
 The handover is a repaint, because Flutter can only draw into a canvas — expect a brief
 flash. That is a fine trade when the page really is the app and the visitor is about to
 use it.
 
-### Strategy 2: Jaspr serves the page
+### Jaspr serves the page
 
 The same tree is exported as HTML and CSS and made interactive by one small bundle
 redrawn from that tree — a press, a field, a dialog. **No Flutter on that page at all**,
 so a phone downloads a page and a script instead of an application. The document a
 crawler reads and the document a visitor uses are one and the same.
 
-That is what this site does: the page at `/` is strategy 2 — one tree per band, exported
-as HTML and CSS, made interactive by one small bundle — and `/web/listings/` is the
-example in the left frame, the same strategy. `/flutter/listings/` is the same tree
-built by Flutter and served as its own route.
+That is what this site does: `/` is this strategy, one tree per band; `/web/listings/` is
+the left half of the picture above and `/flutter/listings/` the right half.
 
 ### What stays Flutter
 
-Only the pages that have to be found need either strategy. The rest of an application
-stays ordinary Flutter, screen for screen: a settings screen or an internal tool gains
+Only the screens that have to be found need either strategy. The rest of an application
+stays ordinary Flutter, screen for screen: a settings page or an internal tool gains
 nothing from being indexable, and nothing here asks it to change.
 
 A page that has to work on a phone is written to fold rather than to a fixed width:
@@ -75,34 +103,19 @@ python3 tool/seo_report.py build/site
 
 | Document | Words | `h1` | `h2` | Links | Fields | Bytes |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Jaspr `/` | 492 | 1 | 2 | 9 | 2 | 129 767 |
+| Jaspr `/` | 455 | 1 | 2 | 8 | 2 | 125 678 |
 | Jaspr `/web/listings/` | 132 | 1 | 0 | 1 | 0 | 60 510 |
 | Jaspr `/web/signup/` | 149 | 1 | 1 | 3 | 2 | 70 216 |
 | **Flutter `/flutter/listings/`** | **4** | **0** | **0** | **0** | **0** | **772** |
 
-The first row is the whole site as one page: the claim, the comparison and the
-catalogue, 492 words of text with one `h1`, an `h2` per band and every component
-written as markup. The last row is the point. The Flutter build of the same screen is
-a document with a `<title>` and a canvas host: four words, no heading, no link,
-nothing to index. `/web/listings/` is that screen as a tree, and it is the same Dart.
+The last row is the point. The Flutter build of the screen in the picture is a document
+with a `<title>` and a canvas host: four words, no heading, no link, nothing to index.
+`/web/listings/` is that same screen as a tree, and it is the same Dart. The first row is
+this site as one page — 455 words of text, an `h1`, an `h2` for the comparison and one for
+the catalogue, every component written as markup.
 
-**The boundary.** Only the screens that must be found are trees. The rest of an
-application stays ordinary Flutter, screen for screen — a settings page or an internal
-tool gains nothing from being indexable, and nothing here asks it to change.
-
-A breakpoint is the host's, so a page that has to work on a phone says so with the
-layout it already has: `GridNode` folds its columns as the window narrows, and the site
-this README describes is built that way — every page of it fits a 375 pixel viewport.
-
-<p align="center">
-  <img src="docs/hero.svg" alt="One immutable Dart node tree on the left, a fork into two panels showing the same card drawn by Flutter's widget tree and by Jaspr as HTML and CSS." width="900">
-</p>
-
-What the description does *not* contain is what only a host can know: how big the
-window is, what happens when the user taps, and what the surrounding document is
-called. Those belong to the host — see [what the host owns](#what-the-host-owns).
-
-- [Why this exists](#why-this-exists)
+- [How it works](#how-it-works)
+- [Two ways to serve a tree](#two-ways-to-serve-a-tree)
 - [Quick start](#quick-start)
 - [The nodes](#the-nodes)
 - [Colours](#colours)
@@ -849,7 +862,7 @@ written inline.
 | `packages/unibox_jaspr` | The Jaspr renderer: `renderJaspr(node)` and `node.toComponent()`. |
 | `packages/unibox_testing` | The tables both renderers are tested against. Development only, not published. |
 | `packages/unibox_material` | The Material 3 type scale, the colour roles as a theme — the baseline scheme written down, or a palette grown from one seed colour — and the components built from them (card, list tile, button, chip, segmented button, ink well, text field, icon, check mark, navigation bar, dialog, bottom sheet). Optional: no renderer depends on it. |
-| `example/` | The example — a listings page and a sign-up dialog, one node tree — and the site: one page of three bands, with the example drawn by both renderers in the middle one. |
+| `example/` | The example — a listings page and a sign-up dialog, one node tree — and the site: one page of two bands, with the example drawn by both renderers in the first. |
 
 Dependencies point one way: both renderers depend on `unibox_core`, never the other
 way around, which is what keeps the description available to a third renderer.
