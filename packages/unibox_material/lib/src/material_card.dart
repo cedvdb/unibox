@@ -46,13 +46,18 @@ final class MaterialCard extends Box {
   ///
   /// `padding`, `color`, `borderRadius`, `shadow`, `border` and `textStyle` are
   /// the card's own defaults; every one is a parameter so an application can
-  /// theme them without giving up the card.
+  /// theme them without giving up the card. So is `crossAlign`, and it stretches:
+  /// a card's content spans the card, which is what Material's own card does, and
+  /// what makes a `width: double.infinity` inside a card mean the same thing on
+  /// both targets — a percentage inside a box that hugs its own content resolves
+  /// to `auto` in CSS and fills in Flutter, which is how the example's rows came to
+  /// stop half way across the card on the web.
   const MaterialCard({
     super.key,
     super.children,
     super.direction,
     super.mainAlign,
-    super.crossAlign,
+    CrossAlign crossAlign = CrossAlign.stretch,
     super.gap,
     super.flex,
     super.overflow,
@@ -74,6 +79,7 @@ final class MaterialCard extends Box {
     double borderRadius = 12,
     BoxTextStyle textStyle = MaterialTypography.bodyMedium,
   }) : super(
+         crossAlign: crossAlign,
          padding: padding,
          backgroundColor: color,
          borderRadius: borderRadius,
@@ -116,7 +122,7 @@ final class MaterialCard extends Box {
          children: children,
          direction: direction,
          mainAlign: mainAlign,
-         crossAlign: crossAlign,
+         crossAlign: crossAlign ?? CrossAlign.stretch,
          gap: gap,
          flex: flex,
          overflow: overflow,
@@ -177,7 +183,7 @@ final class MaterialCard extends Box {
          children: children,
          direction: direction,
          mainAlign: mainAlign,
-         crossAlign: crossAlign,
+         crossAlign: crossAlign ?? CrossAlign.stretch,
          gap: gap,
          flex: flex,
          overflow: overflow,
@@ -239,7 +245,7 @@ final class MaterialCard extends Box {
          children: children,
          direction: direction,
          mainAlign: mainAlign,
-         crossAlign: crossAlign,
+         crossAlign: crossAlign ?? CrossAlign.stretch,
          gap: gap,
          flex: flex,
          overflow: overflow,

@@ -7,7 +7,15 @@ review can stop after any of them.
 The page they are about is `example/unibox_example_shared/lib/src/apartments.dart` and
 the design system it leans on is `packages/unibox_material`.
 
-- [ ] **1. The card layout is wrong on the web, right in Flutter.**
+- [x] **1. The card layout is wrong on the web, right in Flutter.** *Done.*
+
+  Cause confirmed by measuring the rendered page: the card's content column hugged
+  its content (177 pixels of a 352 pixel card), so the rows' `width: 100%` resolved
+  against that. `MaterialCard` now defaults to `crossAlign: CrossAlign.stretch`, which
+  is the model's way to say "my children fill my width" and what Material's own card
+  does; the gallery's sections stretch too, because a section's blocks fill it. The
+  card's rows now end at 352 and the price at its right edge, checked in Chromium and
+  pinned by a Flutter test that measures it.
 
   The name row and the price row are `mainAlign: spaceBetween` with
   `width: double.infinity`, and the price and the badge do not reach the right edge of

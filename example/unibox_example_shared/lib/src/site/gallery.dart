@@ -90,6 +90,10 @@ UINode _section(String title, String description, UINode content) {
   return Box(
     width: double.infinity,
     gap: 16,
+    // The blocks of a section fill it: a tile, a field or a row of chips is as wide
+    // as the section, which is also what makes a `width: double.infinity` inside one
+    // mean the same thing in Flutter and in a browser.
+    crossAlign: CrossAlign.stretch,
     children: <UINode>[
       Box(
         gap: 4,

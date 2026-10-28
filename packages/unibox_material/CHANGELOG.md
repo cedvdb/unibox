@@ -2,6 +2,12 @@
 
 ## 0.1.0
 
+- `MaterialCard` stretches the children it holds (`crossAlign: CrossAlign.stretch`,
+  still a parameter). A card's content spans the card, and a `width: double.infinity`
+  inside it means the same thing on both targets: a browser resolves `100%` against a
+  parent's width, so inside a column that hugged its content the rows of a card
+  stopped half way across it on the web while Flutter filled the width it was handed.
+
 - `MaterialTextField.initialValue` seeds the text of a field the form does not control,
   where `value` takes it over; the gallery's two fields are the same field in the
   label's two positions now, both validating.

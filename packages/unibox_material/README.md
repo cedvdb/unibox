@@ -249,7 +249,7 @@ the conformance table already pins — the class is a combination, not a new tok
 | radius | `12` | the medium shape of Material 3 |
 | shadow | `MaterialCard.elevatedShadow` | elevation level one, one of its two layers |
 | typography | `MaterialTypography.bodyMedium` | inherited by the texts inside |
-| layout | a column (`Box`'s default) | a card stacks its content unless told otherwise |
+| layout | a column (`Box`'s default), with `crossAlign: stretch` | a card stacks its content and stretches it to the card, so a row of it spans the width |
 
 Every one is a parameter, so an application themes a card instead of forking it:
 

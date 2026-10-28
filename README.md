@@ -184,6 +184,11 @@ platform does", so `gap` and the alignments work in every box. Nothing is inheri
 from a box to its children except typography: a box never pushes its padding, gap or
 alignment down.
 
+A child that fills the width needs a parent that offers one: `width: double.infinity`
+takes the space it is given, and a browser can only resolve `100%` against a parent
+that has a width — so inside a column that hugs its content, state
+`crossAlign: CrossAlign.stretch` on the column and the two targets agree.
+
 ### TextNode
 
 A run of text.
