@@ -77,6 +77,12 @@ not Dart — compiled to JavaScript.
 8. **An embed carries a payload per target.** `HtmlEmbed(String)` is the mirror of
    `JasprComponentNode`, and a tree with no implementation for this target is reported
    rather than silently skipped.
+9. **Nothing is released, so nothing is owed compatibility.** A rename, a deletion or a
+   spelling change is one commit with a changelog line, not a deprecation period:
+   `design.md` §5.7 describes a promise that has not started. `unibox_jaspr` therefore
+   goes outright rather than through a forwarding member, `toComponent()` goes with it,
+   and the deprecated `style` bag on `Box` can go too — separately, so the removal of a
+   renderer and the removal of a parameter are two reviewable changes.
 
 ## Phases
 
@@ -110,7 +116,9 @@ defers `flutter_bootstrap.js` to the first intent so a reader who never interact
 nothing, and the Flutter side replays the scroll offset and the press the document
 recorded.
 
-**5. Removal.** Delete `unibox_jaspr`; move the tests that still mean something
+**5. Removal.** Delete `unibox_jaspr` outright — no deprecation, no forwarding member — and
+settle the spellings listed below in the same commit that removes the parity test, so the
+CSS changes once and visibly. Move the tests that still mean something
 (appearance, structure, semantics, CSS) and delete the ones that describe a runtime
 that no longer exists (interaction, stateful, overlay, hydration). Update
 `unibox_testing`'s README, the root README, both renderer READMEs, `design.md` — one
@@ -119,6 +127,22 @@ CHANGELOGs and `TASK_PLAN.md`.
 
 **6. Cleanup.** Delete the cross-check tests and their temporary dependency on the
 removed package.
+
+## Spellings to settle when Jaspr is gone
+
+While `unibox_jaspr` exists the parity test demands byte-identical text, so the first
+mapping reproduces Jaspr's serialiser exactly — including the places where that was an
+accident. Those become a choice once nothing is left to be compatible with, and all three
+want changing:
+
+- `border: solid #112233 2px` → `2px solid #112233`. Both are valid CSS; the conventional
+  order is what a reader of the output, and a golden file, expects to see.
+- `margin: 0` for a user-agent reset but `padding: 0px` for a declared zero → one rule:
+  a zero length is written `0`. The difference came from two constructors in one library,
+  not from a decision.
+- Every class containing a settled spelling gets a new name, because a class name is a hash
+  of the text. That is why the spellings change in one commit, after the renderer is gone,
+  rather than as a side effect of anything else.
 
 ## Acceptance
 
