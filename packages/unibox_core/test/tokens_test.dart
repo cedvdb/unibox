@@ -251,6 +251,35 @@ void main() {
       );
     });
 
+    test('carries the page a pager shows, and 0 is a page', () {
+      // The position of a pager, which is the one way to move one: a tree drawn twice with the same
+      // page does not move the second time, and `copyWith` has to treat 0 as a value and not as
+      // "unchanged" — the bug every nullable int field invites.
+      const style = BoxStyle(
+        overflow: Overflow.scroll,
+        snap: ScrollSnap.page,
+        page: 2,
+      );
+
+      expect(style.page, 2);
+      expect(style.copyWith().page, 2);
+      expect(style.copyWith(page: 0).page, 0);
+      expect(
+        style,
+        const BoxStyle(
+          overflow: Overflow.scroll,
+          snap: ScrollSnap.page,
+          page: 2,
+        ),
+      );
+      expect(style.toString(), contains('page: 2'));
+      expect(
+        style.merge(const BoxStyle(page: 1)).page,
+        1,
+        reason: 'an overlay wins, like every other token',
+      );
+    });
+
     test('carries the opacity and the transform of a box', () {
       const style = BoxStyle(opacity: 0.5, transform: BoxTransform(scale: 1.1));
 

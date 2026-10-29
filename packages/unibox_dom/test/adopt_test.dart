@@ -134,10 +134,7 @@ void main() {
         key: 'scroller',
         overflow: core.Overflow.scroll,
         children: <core.UINode>[
-          core.Box(
-            height: 600,
-            children: const <core.UINode>[core.TextNode('tall')],
-          ),
+          core.Box(height: 600, children: <core.UINode>[core.TextNode('tall')]),
         ],
       );
       final web.HTMLDivElement element = host()

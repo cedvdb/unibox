@@ -49,6 +49,7 @@ class Box extends UINode {
     this.flex,
     this.overflow,
     this.snap,
+    this.page,
     this.width,
     this.height,
     this.minWidth,
@@ -119,6 +120,17 @@ class Box extends UINode {
   /// child rather than between two, which is a pager. `validateTree` reports a snap on a
   /// box that cannot scroll, because it can do nothing there.
   final ScrollSnap? snap;
+
+  /// The page this box shows, counted along its own axis, or `null` for wherever it is.
+  ///
+  /// This is how a pager is moved, and it is state rather than a command: the tree says *which*
+  /// child the box is showing, the store that owns the index changes it, and a renderer slides the
+  /// box when the value differs from what it last applied. Drawn twice with the same page, nothing
+  /// moves — which is what makes it safe to state on every rebuild.
+  ///
+  /// Only meaningful with [snap] of [ScrollSnap.page]; `validateTree` reports a page on a box that
+  /// does not snap, and a snap with no page is left alone, since a reader may still swipe.
+  final int? page;
 
   // Dimensions.
 
@@ -316,6 +328,7 @@ class Box extends UINode {
     flex: flex,
     overflow: overflow,
     snap: snap,
+    page: page,
     width: width,
     height: height,
     minWidth: minWidth,

@@ -11,6 +11,8 @@ import 'support/document.dart';
 web.Element firstIn(web.Element root) => root.children.item(0)!;
 
 void main() {
+  _pageTests();
+
   group('a long press', () {
     test(
       'fires after the threshold, and swallows the click that follows',
@@ -203,5 +205,47 @@ void main() {
 
       view.dispose();
     });
+  });
+}
+
+void _pageTests() {
+  // A pager on the web: the same rule as Flutter's, applied to `scrollLeft` once per change.
+  web.Element pagerHost(int page) {
+    final web.HTMLDivElement element = host();
+    DomView.mount(
+      core.Box(
+        key: 'pager',
+        width: 120,
+        height: 80,
+        direction: core.Axis.horizontal,
+        overflow: core.Overflow.scroll,
+        snap: core.ScrollSnap.page,
+        page: page,
+        children: <core.UINode>[
+          for (int index = 0; index < 3; index++)
+            core.Box(
+              key: 'page-$index',
+              width: 120,
+              height: 80,
+              children: <core.UINode>[core.TextNode('$index')],
+            ),
+        ],
+      ),
+      element,
+    );
+
+    return element;
+  }
+
+  test('a pager starts on the page the tree names, without sliding there', () {
+    // The first application is a jump, so the box is already on its page when the view returns — a
+    // pager that slid into place as it appeared would be a flash nobody asked for.
+    final web.Element pager = pagerHost(1).children.item(0)!;
+
+    expect(pager.scrollLeft, 120);
+
+    // And the box is a scroller with three pages, so the offset is reachable at all.
+    expect(pager.getAttribute('data-unibox-key'), 'pager');
+    expect(pager.className, startsWith('unibox-box-'));
   });
 }

@@ -74,7 +74,7 @@ UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
         _section(
           palette,
           'Tabs',
-          _tabs(palette),
+          TabsDemo(palette: palette),
           note:
               'A tab bar over three pages: the bar says which tab is chosen and the '
               'node draws that page.',
@@ -521,23 +521,123 @@ UINode _removableView(Set<String> chips, ChipsStore store) {
   );
 }
 
-/// Three tabs over three pages.
+/// Three tabs over a pager: pressing a tab slides the page, and swiping a page moves the bar.
 ///
-/// `MaterialTabs` is a `StatefulNode`: the bar reports a press, the store keeps the index, and the
-/// view draws the page of the chosen tab. The roles are the model's — `tablist` around `tab`s, one
-/// of them `selected` — so a screen reader hears a set rather than three buttons.
-UINode _tabs(MaterialPalette palette) {
-  return MaterialTabs(
-    palette: palette,
-    tabs: const <MaterialTab>[
-      MaterialTab(label: TextNode('Overview')),
-      MaterialTab(label: TextNode('Listings')),
-      MaterialTab(label: TextNode('Reviews')),
-    ],
-    pages: <UINode>[
-      _page(palette, 'Six flats, from the same tree.'),
-      _page(palette, 'A map beside them on a wide screen.'),
-      _page(palette, 'What the tenants said.'),
+/// This is what `MaterialTabs` cannot be on its own: a pager needs a page the size of the box, and
+/// the size of a tab's page is the layout's business. So the demo composes the two halves — a
+/// [MaterialTabBar] and a snapping box — over one store, which is the model's answer to "one state,
+/// two views". The index travels into the box as `page`, and back out of it as the offset the box
+/// reports, so neither half can disagree with the other.
+final class TabsDemo extends StatefulNode<TabsDemoState, TabsDemoStore> {
+  /// Creates the demo, with [palette] answering its colour roles.
+  factory TabsDemo({MaterialPalette? palette}) => TabsDemo._(
+    view: (TabsDemoState state, TabsDemoStore store) => _tabsView(
+      state,
+      store,
+      palette ?? ExamplePalette.materialFor(ExampleSeed.defaultSeed),
+    ),
+  );
+
+  TabsDemo._({required super.view}) : super(create: TabsDemoStore.new);
+}
+
+/// Which tab is chosen, and how wide one page is.
+///
+/// The width is state because it is what turns an offset into a page: a pager reports pixels, and
+/// the bar speaks in indices, so something has to know the divisor. Here, because the demo draws
+/// pages of a fixed size.
+final class TabsDemoState {
+  /// Creates a state showing page [selected], with pages [pageWidth] wide.
+  const TabsDemoState({this.selected = 0, this.pageWidth = 240});
+
+  /// The index of the chosen tab, which is also the page the pager shows.
+  final int selected;
+
+  /// How wide one page is, in logical pixels.
+  final double pageWidth;
+
+  @override
+  bool operator ==(Object other) =>
+      other is TabsDemoState &&
+      other.selected == selected &&
+      other.pageWidth == pageWidth;
+
+  @override
+  int get hashCode => Object.hash(selected, pageWidth);
+
+  @override
+  String toString() => 'TabsDemoState(selected: $selected)';
+}
+
+/// The store of [TabsDemo]: one index, from a press or from a swipe.
+final class TabsDemoStore extends StateStore<TabsDemoState> {
+  /// Creates the store on page 0.
+  TabsDemoStore() : super(const TabsDemoState());
+
+  /// Chooses the tab at [index].
+  void choose(int index) => state = TabsDemoState(
+    selected: index.clamp(0, 2),
+    pageWidth: state.pageWidth,
+  );
+
+  /// Follows the reader's swipe: the offset becomes the page it landed on.
+  ///
+  /// Rounded rather than floored, because a swipe that stops three quarters of the way to the next
+  /// page settles on it: the bar should say where the pager came to rest, not where it started.
+  void scrolledTo(double offset) {
+    final int index = (offset / state.pageWidth).round();
+
+    if (index != state.selected) {
+      choose(index);
+    }
+  }
+}
+
+/// The bar, then the pager both are looking at.
+UINode _tabsView(
+  TabsDemoState state,
+  TabsDemoStore store,
+  MaterialPalette palette,
+) {
+  const List<String> captions = <String>[
+    'Six flats, from the same tree.',
+    'A map beside them on a wide screen.',
+    'What the tenants said.',
+  ];
+
+  return Box(
+    width: double.infinity,
+    gap: 16,
+    children: <UINode>[
+      MaterialTabBar(
+        palette: palette,
+        selected: state.selected,
+        onSelect: store.choose,
+        tabs: const <MaterialTab>[
+          MaterialTab(label: TextNode('Overview')),
+          MaterialTab(label: TextNode('Listings')),
+          MaterialTab(label: TextNode('Reviews')),
+        ],
+      ),
+      Box(
+        width: state.pageWidth,
+        height: 96,
+        direction: Axis.horizontal,
+        overflow: Overflow.scroll,
+        snap: ScrollSnap.page,
+        page: state.selected,
+        onScroll: store.scrolledTo,
+        borderRadius: 12,
+        children: <UINode>[
+          for (final (int index, String caption) in captions.indexed)
+            Box(
+              key: 'page-$index',
+              width: state.pageWidth,
+              height: 96,
+              children: <UINode>[_page(palette, caption)],
+            ),
+        ],
+      ),
     ],
   );
 }

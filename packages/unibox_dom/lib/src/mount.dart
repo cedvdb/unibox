@@ -69,6 +69,9 @@ final class DomView {
   final Map<String, _Mount> _mounts = <String, _Mount>{};
   final Map<web.Element, List<void Function()>> _listeners =
       <web.Element, List<void Function()>>{};
+
+  /// The page each pager was last moved to, so a rebuild with the same page leaves a reader alone.
+  final Map<web.Element, int> _pages = <web.Element, int>{};
   core.UINode _tree;
   web.HTMLStyleElement? _style;
   ElementPlan? _plan;
@@ -334,10 +337,65 @@ final class DomView {
       if (undo.isNotEmpty) {
         _listeners[element] = undo;
       }
+
+      _applyPage(node, element);
     }
 
     for (final ElementPlan child in plan.children) {
       _bindAll(pass, child);
+    }
+  }
+
+  /// Slides a pager to the page the tree says it shows, when that is not where it already is.
+  ///
+  /// A page is a position rather than a command: the box moves only when the value differs from the
+  /// one last applied, so a publish during a reader's swipe does not pull the page out from under it.
+  /// The width of a page is the box's own, which is why the target is `page × clientWidth`.
+  void _applyPage(core.UINode node, web.Element element) {
+    if (node case final core.Box box
+        when box.page != null && box.snap == core.ScrollSnap.page) {
+      final int page = box.page!;
+
+      if (_pages[element] == page) {
+        return;
+      }
+
+      final bool first = !_pages.containsKey(element);
+      _pages[element] = page;
+
+      final core.BoxStyle style = box.computedStyle;
+      final bool horizontal = style.resolvedDirection == core.Axis.horizontal;
+      // The extent of a page comes from the box, when the box states one: a pager is a child the size
+      // of its box, so the size is in the tree. It is read from the layout only when the box expands,
+      // because an element that was inserted in this frame has not been laid out yet and reports 0.
+      final double? stated = horizontal ? style.width : style.height;
+      final double extent = stated != null && stated.isFinite
+          ? stated
+          : (horizontal
+                ? element.clientWidth.toDouble()
+                : element.clientHeight.toDouble());
+
+      // Reading the scrollable extent flushes layout, which an element inserted in this frame does not
+      // have yet: a scroll applied before it is clamped to zero and the page never moves.
+      final double scrollable = horizontal
+          ? element.scrollWidth.toDouble()
+          : element.scrollHeight.toDouble();
+
+      if (extent <= 0 || scrollable <= 0) {
+        return;
+      }
+
+      final double target = page * extent;
+
+      element.scrollTo(
+        web.ScrollToOptions(
+          left: horizontal ? target : 0,
+          top: horizontal ? 0 : target,
+          // A jump on the first application — a pager sliding into place as it appears is a flash —
+          // and a slide for every press after it.
+          behavior: first ? 'instant' : 'smooth',
+        ),
+      );
     }
   }
 

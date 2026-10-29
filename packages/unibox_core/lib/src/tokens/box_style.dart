@@ -38,6 +38,7 @@ final class BoxStyle {
     this.flex,
     this.overflow,
     this.snap,
+    this.page,
     this.width,
     this.height,
     this.minWidth,
@@ -99,6 +100,17 @@ final class BoxStyle {
   /// nothing to settle. [ScrollSnap.page] makes it a pager — it moves one child at a time,
   /// along the box's own axis, and stops on a child rather than between two.
   final ScrollSnap? snap;
+
+  /// The page a snapping box shows, counted along its own axis, or `null` for wherever it is.
+  ///
+  /// This is the one way to *move* a pager, and it is a position rather than a controller: a tree
+  /// drawn twice with the same page does not move the second time, and a tree drawn with another
+  /// page slides one child. It is discrete on purpose — a continuous offset belongs to the reader'
+  /// finger, and a renderer that set one on every rebuild would fight it.
+  ///
+  /// Only meaningful with [snap] of [ScrollSnap.page]: [ScrollSnap] says where the box settles and
+  /// this says where it is told to settle, which `validateTree` reports when only one is given.
+  final int? page;
 
   // Dimensions.
 
@@ -245,6 +257,7 @@ final class BoxStyle {
       flex: flex,
       overflow: overflow,
       snap: snap,
+      page: page,
       width: width,
       height: height,
       minWidth: minWidth,
@@ -282,6 +295,7 @@ final class BoxStyle {
     int? flex,
     Overflow? overflow,
     ScrollSnap? snap,
+    int? page,
     double? width,
     double? height,
     double? minWidth,
@@ -311,6 +325,7 @@ final class BoxStyle {
       flex: flex ?? this.flex,
       overflow: overflow ?? this.overflow,
       snap: snap ?? this.snap,
+      page: page ?? this.page,
       width: width ?? this.width,
       height: height ?? this.height,
       minWidth: minWidth ?? this.minWidth,
@@ -355,6 +370,7 @@ final class BoxStyle {
       flex: other.flex ?? flex,
       overflow: other.overflow ?? overflow,
       snap: other.snap ?? snap,
+      page: other.page ?? page,
       width: other.width ?? width,
       height: other.height ?? height,
       minWidth: other.minWidth ?? minWidth,
@@ -388,6 +404,7 @@ final class BoxStyle {
       other.flex == flex &&
       other.overflow == overflow &&
       other.snap == snap &&
+      other.page == page &&
       other.width == width &&
       other.height == height &&
       other.minWidth == minWidth &&
@@ -418,6 +435,7 @@ final class BoxStyle {
     flex,
     overflow,
     snap,
+    page,
     width,
     height,
     minWidth,
@@ -448,6 +466,7 @@ final class BoxStyle {
       if (flex != null) 'flex: $flex',
       if (overflow != null) 'overflow: $overflow',
       if (snap != null) 'snap: $snap',
+      if (page != null) 'page: $page',
       if (width != null) 'width: $width',
       if (height != null) 'height: $height',
       if (minWidth != null) 'minWidth: $minWidth',

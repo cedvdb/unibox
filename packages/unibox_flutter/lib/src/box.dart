@@ -49,6 +49,9 @@ class FlutterBoxState extends State<FlutterBox> {
   /// list and then correct it.
   ScrollController? _scroll;
 
+  /// The page this box was last moved to, so a rebuild with the same page leaves the reader alone.
+  int? _appliedPage;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -70,6 +73,47 @@ class FlutterBoxState extends State<FlutterBox> {
     _scroll?.dispose();
     _focusNode.dispose();
     super.dispose();
+  }
+
+  /// Slides a pager to the page the tree says it shows, when that is not where it already is.
+  ///
+  /// A page is a position and not a command, so the box moves only when the value differs from the
+  /// one it last applied: a rebuild that states the same page leaves a reader mid-swipe alone, which
+  /// is the difference between a description and a controller. It happens after the frame, because
+  /// the extent of a page is the viewport's and that is only known once the box has been laid out.
+  void _applyPage(core.BoxStyle style) {
+    final int? page = style.page;
+
+    if (page == null || page == _appliedPage) {
+      return;
+    }
+
+    // The first application is a jump: a pager that slides into place on the frame it appears is a
+    // flash, and the reader did not ask for the movement. Every later one is the press that asked.
+    final bool first = _appliedPage == null;
+    _appliedPage = page;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final ScrollController? controller = _scroll;
+
+      if (!mounted || controller == null || !controller.hasClients) {
+        return;
+      }
+
+      final double target = page * controller.position.viewportDimension;
+
+      if (first) {
+        controller.jumpTo(target);
+
+        return;
+      }
+
+      controller.animateTo(
+        target,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutCubic,
+      );
+    });
   }
 
   /// Creates the controller of a scrolling box, at the offset the page recorded for it.
@@ -128,6 +172,8 @@ class FlutterBoxState extends State<FlutterBox> {
                 _buildContent(box, style, availableWidth: constraints.maxWidth),
           )
         : _buildContent(box, style, availableWidth: null);
+
+    _applyPage(style);
 
     final core.BoxTextStyle textStyle =
         style.textStyle ?? const core.BoxTextStyle();

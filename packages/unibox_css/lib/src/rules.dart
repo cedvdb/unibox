@@ -100,11 +100,16 @@ List<CssRule> stateRules(core.Box box, String className) {
 ///
 /// `from` is the width the box starts being drawn at, `until` the width it stops at: the two
 /// together are a band, and either alone is a floor or a ceiling.
-/// The rule that makes a pager's children the stops it settles on.
+/// The rules that make a pager's children the stops it settles on.
 ///
 /// `scroll-snap-align` belongs to the child, and the parent's class is the only thing this
 /// renderer can select it by: the children of a pager are the tree's own children, in the
 /// order the box lays them out, so `> *` names exactly the pages.
+///
+/// `flex-shrink: 0` is the other half, and it is what makes a page a page: a flex item shrinks to
+/// fit by default, so three pages of 120 pixels inside a box of 120 shrank to a third each and the
+/// box had nothing to scroll — a pager with three pages and one page of width. A child of a pager
+/// is the size the tree says it is.
 List<CssRule> snapRules(String className, core.BoxStyle style) {
   if (style.snap != core.ScrollSnap.page) {
     return const <CssRule>[];
@@ -113,7 +118,9 @@ List<CssRule> snapRules(String className, core.BoxStyle style) {
   return <CssRule>[
     CssRule(
       selector: '.$className > *',
-      declarations: CssDeclarations()..add('scroll-snap-align', 'start'),
+      declarations: CssDeclarations()
+        ..add('scroll-snap-align', 'start')
+        ..add('flex-shrink', '0'),
     ),
   ];
 }

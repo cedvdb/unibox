@@ -55,6 +55,26 @@ void main() {
       expect(issues.single.message, contains('snap: ScrollSnap.page'));
     });
 
+    test('reports a page on a box that does not snap', () {
+      // A page is a position in a pager, so a box that settles nowhere has no pages to be on.
+      final List<TreeIssue> issues = validateTree(
+        const Box(overflow: Overflow.scroll, page: 1),
+      );
+
+      expect(issues, hasLength(1));
+      expect(issues.single.message, contains('page: 1'));
+      expect(issues.single.message, contains('ScrollSnap.page'));
+    });
+
+    test('accepts a page on a pager', () {
+      expect(
+        validateTree(
+          const Box(overflow: Overflow.scroll, snap: ScrollSnap.page, page: 1),
+        ),
+        isEmpty,
+      );
+    });
+
     test('accepts a well formed tree', () {
       const Box tree = Box(
         direction: Axis.vertical,

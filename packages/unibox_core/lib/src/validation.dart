@@ -232,6 +232,30 @@ void _validate(
       );
     }
 
+    // A page is a position in a pager, so it needs one: a box that settles nowhere has no pages to
+    // be on, and a reader's swipe is the only thing that could have moved it.
+    if (style.page != null && style.snap != ScrollSnap.page) {
+      issues.add(
+        TreeIssue(
+          node: node,
+          message:
+              'A box states page: ${style.page} without snap: ScrollSnap.page, so '
+              'nothing tells it where its pages begin. Set the snap, or drop the page.',
+        ),
+      );
+    }
+
+    if (style.page != null && style.page! < 0) {
+      issues.add(
+        TreeIssue(
+          node: node,
+          message:
+              'A box states page: ${style.page}, and a page cannot be before the '
+              'first one.',
+        ),
+      );
+    }
+
     if (style.borderRadius != null && style.corners != null) {
       issues.add(
         TreeIssue(

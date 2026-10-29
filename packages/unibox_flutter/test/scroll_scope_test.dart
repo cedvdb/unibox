@@ -143,4 +143,77 @@ void main() {
 
     expect(controller.offset, 40);
   });
+
+  _pageTests();
+}
+
+void _pageTests() {
+  // A pager states *which* page it shows, and the renderer moves it when that changes.
+  Widget pager(int page) => Directionality(
+    textDirection: TextDirection.ltr,
+    child: Align(
+      alignment: Alignment.topLeft,
+      child: SizedBox(
+        width: 120,
+        height: 80,
+        child: renderFlutter(
+          core.Box(
+            width: 120,
+            height: 80,
+            direction: core.Axis.horizontal,
+            overflow: core.Overflow.scroll,
+            snap: core.ScrollSnap.page,
+            page: page,
+            children: <core.UINode>[
+              for (int index = 0; index < 3; index++)
+                core.Box(
+                  key: 'page-$index',
+                  width: 120,
+                  height: 80,
+                  children: <core.UINode>[core.TextNode('$index')],
+                ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+
+  testWidgets('a pager slides to the page the tree names', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(pager(0));
+    final ScrollController controller = tester
+        .widget<Scrollable>(find.byType(Scrollable))
+        .controller!;
+
+    expect(controller.offset, 0);
+
+    await tester.pumpWidget(pager(2));
+    await tester.pumpAndSettle();
+
+    // The extent of a page is the viewport's, and the box is one page wide.
+    expect(controller.offset, 240);
+  });
+
+  testWidgets('a rebuild with the same page leaves the reader alone', (
+    WidgetTester tester,
+  ) async {
+    // A page is a position, not a command: a publish that states the page it already shows must not
+    // pull a reader's swipe back.
+    await tester.pumpWidget(pager(1));
+    await tester.pumpAndSettle();
+    final ScrollController controller = tester
+        .widget<Scrollable>(find.byType(Scrollable))
+        .controller!;
+
+    controller.jumpTo(150);
+    await tester.pump();
+    await tester.pumpWidget(pager(1));
+    // One frame: the rebuild applied and nothing else. Settling would let the page physics snap to
+    // the nearest page, which is the box doing its job rather than the rebuild moving the reader.
+    await tester.pump();
+
+    expect(controller.offset, 150);
+  });
 }

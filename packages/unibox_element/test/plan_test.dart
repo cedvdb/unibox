@@ -87,7 +87,12 @@ void main() {
       );
       expect(
         sheet.css,
-        contains('.${plan.className} > *{scroll-snap-align:start}'),
+        // A page keeps the size the tree gives it: a flex item shrinks to fit by default, and three
+        // pages that shrink into the width of one leave the box nothing to scroll — a pager with one
+        // page.
+        contains(
+          '.${plan.className} > *{flex-shrink:0;scroll-snap-align:start}',
+        ),
       );
     });
 

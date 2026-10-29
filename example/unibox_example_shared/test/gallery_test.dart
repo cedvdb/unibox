@@ -35,13 +35,26 @@ void main() {
           .where((Box box) => box.overflow == Overflow.scroll)
           .toList();
 
-      // Two rows of chips, and the pager — which is a scrolling box that settles rather than a row
-      // that overflows, so it is counted here for a different reason.
-      expect(scrollers, hasLength(3));
+      // Two rows of chips that overflow, and two pagers: the `Pages` block, and the one under the
+      // tabs. A pager scrolls for a different reason — it settles on a child — so it is counted here
+      // and told apart below.
+      expect(scrollers, hasLength(4));
       expect(_textsIn(scrollers.first), contains('Two rooms'));
       expect(_textsIn(scrollers[1]), contains('Garden'));
-      expect(scrollers.last.snap, ScrollSnap.page);
-      expect(_textsIn(scrollers.last), contains('Three'));
+
+      final List<Box> paged = scrollers
+          .where((Box box) => box.snap == ScrollSnap.page)
+          .toList();
+
+      expect(paged, hasLength(2));
+      // One is told which page it shows, and that is the one a press can move; the other is left to
+      // the reader, which is what a pager is in a document.
+      expect(paged.where((Box box) => box.page != null), hasLength(1));
+      // The tabs come first in the catalogue, and theirs is the pager a press can move; the `Pages`
+      // block is left to the reader, which is what a pager is in a document.
+      expect(paged.first.page, 0);
+      expect(paged.last.page, isNull);
+      expect(_textsIn(paged.last), contains('Three'));
     });
 
     test(
