@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- The navigation bar's pill answers a hover and a selection with two speeds, the way Material
+  does: a hover fades a state layer over the pill in 50ms and never stretches it, while a
+  selection keeps the 100ms fade and 500ms sideways stretch. A hovered destination that is
+  also chosen now keeps its indicator colour and gains a tint, instead of replacing one with
+  the other, and a press shows ink alone — Material's navigation destination has a
+  transparent highlight, so the pill goes from the tick of ink to its new colour.
+
 - `MaterialPalette.colorScheme`: read from the palette's own surface, so `light`, `dark` and
   `fromSeed(isDark:)` answer it without being told, and `MaterialPalette.theme` carries it.
 

@@ -66,9 +66,13 @@ StackNode _indicator(
 Box _colour(MaterialNavigationBar bar, int index, {bool hovered = false}) =>
     _indicator(bar, index, hovered: hovered).children.first as Box;
 
-/// The ink well over the colour: the layer that tints and ripples.
+/// The hover layer over the colour: the tint a pointer brings.
+Box _hoverLayer(MaterialNavigationBar bar, int index, {bool hovered = false}) =>
+    _indicator(bar, index, hovered: hovered).children[1] as Box;
+
+/// The ink well over both: the layer that carries the icon and the splash.
 MaterialInkWell _well(MaterialNavigationBar bar, int index) =>
-    _indicator(bar, index).children[1] as MaterialInkWell;
+    _indicator(bar, index).children[2] as MaterialInkWell;
 
 /// The box the ink well draws, where its tints end up.
 Box _pill(MaterialNavigationBar bar, int index) {
@@ -176,11 +180,19 @@ void main() {
       final Box destination = _destination(bar, 0);
 
       // The share paints nothing of its own — what a hover lights is the pill — and the
-      // well stops tinting, so a hover is one layer rather than two over one shape.
+      // well paints no tint either, so the pointer is answered by one layer and the press
+      // by ink alone.
       expect(destination.backgroundColor, isNull);
       expect(destination.stateStyle(BoxState.hover), isNull);
       expect(destination.onHover, isNotNull);
       expect(_pill(bar, 0).hoverStyle?.backgroundColor, BoxColor.transparent);
+      // A press is the splash: Material's navigation destination gives its highlight a
+      // transparent colour, so the pill goes from the tick of ink to its new colour with no
+      // grey flash between the two.
+      expect(
+        _pill(bar, 0).stateStyle(BoxState.pressed),
+        const BoxStyle(backgroundColor: BoxColor.transparent),
+      );
       expect(_pill(bar, 0).onTap, isNotNull);
       expect(
         _pill(bar, 0).semantics?.hidden,
@@ -195,29 +207,47 @@ void main() {
       // pointer is not over, which is why the destination keeps the hover in a store.
       final MaterialNavigationBar bar = _bar(selected: 0);
 
-      final Box hovered = _colour(bar, 2, hovered: true);
-      final Box resting = _colour(bar, 2);
+      final Box hovered = _hoverLayer(bar, 2, hovered: true);
+      final Box resting = _hoverLayer(bar, 2);
 
       expect(
         hovered.backgroundColor,
         const BoxColor.role(MaterialColorRole.hoverLayer),
       );
       expect(hovered.opacity, 1);
-      // At full width: nothing is stretching, the layer simply appears.
-      expect(hovered.transform?.scaleX, 1);
       expect(resting.opacity, 0);
       expect(resting.backgroundColor, isNull);
-      expect(resting.transform?.scaleX, lessThan(1));
+      // A hover is a fade, not the indicator's stretch: 50 milliseconds, which is
+      // `InkResponse`'s own hover duration, and no transform at all.
+      expect(hovered.transition?.duration, const Duration(milliseconds: 50));
+      expect(hovered.transform, isNull);
+    });
+
+    test('does not stretch the pill for a hover', () {
+      // The one thing the old shape got wrong: the hover and the selection shared a layer,
+      // so a pointer moving over the bar slid a 40% pill out to full width over half a
+      // second — a selection animation played for a hover.
+      final MaterialNavigationBar bar = _bar(selected: 0);
+      final Box indicator = _colour(bar, 2, hovered: true);
+
+      expect(indicator.opacity, 0);
+      expect(indicator.backgroundColor, isNull);
+      expect(indicator.transform?.scaleX, lessThan(1));
     });
 
     test('keeps the indicator of the chosen destination under a hover', () {
       final MaterialNavigationBar bar = _bar(selected: 0);
 
-      // The chosen destination shows its indicator colour either way: a hover adds a layer
-      // over a surface in Material, and one colour is all a box paints.
+      // The chosen destination keeps its colour, and the hover is a layer over it — which is
+      // what Material paints and what one box could not say: a box paints one background.
       expect(
         _colour(bar, 0, hovered: true).backgroundColor,
         const BoxColor.role(MaterialColorRole.secondaryContainer),
+      );
+      expect(_colour(bar, 0, hovered: true).opacity, 1);
+      expect(
+        _hoverLayer(bar, 0, hovered: true).backgroundColor,
+        const BoxColor.role(MaterialColorRole.hoverLayer),
       );
     });
 
