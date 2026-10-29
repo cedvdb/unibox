@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import 'package:unibox_example_site/site/site_document.dart';
+import 'package:unibox_example_html/site/site_document.dart';
 
 /// What the site owes a reader and a crawler.
 ///

@@ -4,7 +4,7 @@
 /// store holds the form and whether the sign-up dialog is open, and whose view draws
 /// the navigation bar, the listings and the dialog. The tree is plain Dart, so the
 /// same node renders as Flutter widgets in `unibox_example_flutter` and as a document in
-/// `unibox_example_site`.
+/// `unibox_example_html`.
 ///
 /// The site itself is one page — [buildSitePage] — of two bands: the claim, answered in
 /// the same band by the same tree drawn twice, and the Material catalogue. Its sections

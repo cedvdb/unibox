@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
 import 'package:unibox_example_shared/unibox_example_shared.dart';
-import 'package:unibox_example_site/document.dart';
+import 'package:unibox_example_html/document.dart';
 
 /// What an example document owes a crawler, a reader and the application that takes it over.
 void main() {

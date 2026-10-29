@@ -238,7 +238,7 @@ logical pixels. `design.md` §5.15 holds the reasoning; these are the pieces.
   structural ones a renderer suite of its own, and the 65 that described a browser runtime —
   hydration, the JavaScrip interop, pointer listeners — went with the runtime they tested.
 
-- [x] Task 140: `example/unibox_example_jaspr` became `example/unibox_example_site`: the same
+- [x] Task 140: `example/unibox_example_jaspr` became `example/unibox_example_html`: the same
   trees, written as documents by `toDocument` instead of components by `renderComponent`. The
   frames of the comparison became an `HtmlEmbed`, the fonts a head block, and the browser runtime
   the two recorders — where a region was scrolled, what was pressed — which is what lets an

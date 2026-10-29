@@ -16,4 +16,4 @@ workspace:
   - packages/unibox_material
   - example/unibox_example_shared
   - example/unibox_example_flutter
-  - example/unibox_example_site
+  - example/unibox_example_html

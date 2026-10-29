@@ -1,4 +1,4 @@
-name: unibox_example_site
+name: unibox_example_html
 description: The site of the example, exported as documents a crawler can read.
 publish_to: none
 version: 0.1.0

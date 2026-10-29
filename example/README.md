@@ -15,11 +15,13 @@ catalogue the whole thing is built with.
 | --- | --- |
 | `unibox_example_shared` | The example as one node (`ExamplePageNode`, with `ExampleState` and `ExampleStore`) and the parts it is built from (`buildExamplePage`, `buildApartmentsPage`, `buildSignupDialog`); the site as one node (`buildSitePage`) and its two bands (`buildHeroSection` — the claim and the comparison under it — and `buildMaterialSection`); plus the palette. The listings are a `GridNode` of `MaterialCard`s, so the example also shows the design-system package. Pure Dart, no renderer. |
 | `unibox_example_flutter` | Flutter host: one file (`lib/main.dart`) — the surface and the link policy. |
-| `unibox_example_site` | the document renderer host: the site's document, the example's document, the shipped font faces, the one `<iframe>` node the comparison needs, and the build script — no page trees, which live in the shared package. |
+| `unibox_example_html` | HTML host: the site's document, the example's document, the shipped font faces, the one `<iframe>` node the comparison needs, and the build script — no page trees, which live in the shared package. |
 
-Neither host holds state. The page owns it in `ExampleStore`; the host renders the
-node through `FlutterStateful` or `the document rendererStateful`, which creates the store, subscribes
-to it and disposes it. What a host still supplies is what a node cannot know — the
+Neither host holds state. The page owns it in `ExampleStore`: the Flutter host renders
+the node through `FlutterStateful`, which creates the store, subscribes to it and
+disposes it, and the HTML host writes the state that store starts with, because a
+document is a snapshot — `toDocument` calls `onMount` for nobody and there is no
+second frame to redraw. What a host still supplies is what a node cannot know — the
 surface the tree is drawn on and how a link opens — which is why each one is a single
 small file.
 
@@ -33,11 +35,12 @@ and the renderer draws the view again. No host wires a callback, so the whole
 application moves between the two targets as one node.
 
 Flutter renders it with `FlutterStateful(node: ExamplePageNode())` inside its
-`MaterialApp`; the document renderer renders the same node through `the document rendererStateful` inside a
-`Document`, which draws the first state on the server. The client build (Task 104)
-is what makes a browser subscribe to the same store; until then the export is the
-first frame, which is why a static document has to be told which state to start
-in.
+`MaterialApp`; the HTML host renders the same node with `toDocument`, which draws the
+state the store starts with. A document is a snapshot, so the published page has to
+be told which state to start in — `showOverlays: true` is the `/signup` page, whose
+whole purpose is the open dialog. What makes a browser subscribe to the same store is
+a client runtime (`unibox_dom`), which is a later phase; until then the export is the
+first frame.
 
 ## The sign-up form is a dialog
 
@@ -188,7 +191,7 @@ Both apps render the same page, so they have to *show* the same page. That is
 pinned where a renderer lives, not here: `packages/unibox_testing` holds one
 table of boxes and the appearance each of them has to produce, and both renderer
 suites render that table and read the appearance back out of their own output —
-the Flutter suite from the widget tree, the the document renderer suite from the emitted CSS.
+the Flutter suite from the widget tree, the HTML suite from the emitted CSS.
 
 A renderer that drops a token, or starts wrapping a node in something that paints
 differently, therefore fails its own suite instead of making the two renderings drift
@@ -201,8 +204,8 @@ The rest of the parity lives in the hosts, because a host owns the surface a tre
 is drawn on:
 
 - The Flutter app inherits the platform font, the window size and a `Material`
-  theme from `MaterialApp`; the the document renderer document declares `html, body { height:
-  100%; margin: 0 }` so the page box has something to resolve its `100%` against,
+  theme from `MaterialApp`; the HTML document declares `html, body { height: 100%;
+  margin: 0 }` so the page box has something to resolve its `100%` against,
   and asks CSS for the platform font with `font-family: system-ui, …`.
 - Fields and links carry no platform chrome on either side (no Material
   underline, no user agent border, padding, focus ring or underline), so the node
@@ -350,17 +353,16 @@ cd example/unibox_example_flutter
 flutter test
 ```
 
-## the document renderer app
+## The HTML host
 
-The host is four files: `lib/main.dart` holds `ExampleApp`, the same node in its
-server form, `lib/document.dart` puts it in a document (language, title, description,
+The host is a handful of files: `lib/document.dart` puts `ExamplePageNode` in a document (language, title, description,
 the `html, body` height and the font stack), and `lib/site/` holds the site's own
 document and its root — the page, its `<iframe>` frame, and the palette the page's
 roles resolve against. `bin/build_site.dart` writes the site page and the two states
 of the example:
 
 ```shell
-cd example/unibox_example_site
+cd example/unibox_example_html
 dart run bin/build_site.dart --out=build/site
 open build/site/index.html
 ```
@@ -403,14 +405,14 @@ opens a dialog over the page — so a crawler sees the two documents of the exam
 one link between them. A page that has to be found makes sense as a `LinkNode` with a
 real url — which is the router work `TASK_PLAN.md` lists as deferred.
 
-The static export is a snapshot of the server render: the markup, the inline
-styles, the scoped hover rules and the media query are all there, but the `click`
-and `input` listeners become live only once the component runs on the client (the
-the document renderer client build). The shared state logic they call into is covered by the tests
-of `unibox_example_shared`.
+The static export is a snapshot: the markup, the stylesheet with its state rules and
+its container queries are all there, but nothing on the page answers a press. A
+`takeover` document does — by starting the application, which is the point of the
+handover. A page that has to stay a document without an application is waiting on
+`unibox_dom`, the client runtime `PLAN_HTML.md` describes.
 
 ```shell
-cd example/unibox_example_site
+cd example/unibox_example_html
 dart test
 ```
 

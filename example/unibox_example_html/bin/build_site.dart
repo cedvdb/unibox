@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:unibox_example_shared/unibox_example_shared.dart';
-import 'package:unibox_example_site/document.dart';
-import 'package:unibox_example_site/site/site_document.dart';
+import 'package:unibox_example_html/document.dart';
+import 'package:unibox_example_html/site/site_document.dart';
 
 /// Writes the site to static files: one page, and the example it compares.
 ///

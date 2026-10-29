@@ -69,7 +69,7 @@ jobs:
         working-directory: example/unibox_example_shared
         run: dart test
       - name: example site host
-        working-directory: example/unibox_example_site
+        working-directory: example/unibox_example_html
         run: dart test
       - name: example Flutter host
         working-directory: example/unibox_example_flutter

@@ -75,7 +75,7 @@ packages/unibox_element|dart
 packages/unibox_html|dart
 packages/unibox_flutter|flutter
 example/unibox_example_shared|dart
-example/unibox_example_site|dart
+example/unibox_example_html|dart
 example/unibox_example_flutter|flutter
 SUITES
 fi

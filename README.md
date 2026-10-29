@@ -44,7 +44,7 @@ expected appearance holds both renderers to the same answer.
 **Kept honest**
 
 - 🧪 **One table of appearance** — `unibox_testing` holds both renderers to the same expected presentation, read back out of each one's output.
-- 📦 **No dependencies below the renderers** — the tree, the CSS and the document renderer are pure Dart, and the tree never imports a platform.
+- 📦 **No dependencies below the renderers** — the tree, the element plan, the CSS and the HTML renderer are pure Dart, and the tree never imports a platform.
 - 🧱 **Material 3 as values** — an optional package with the type scale, the colour roles and the components, drawn by both renderers rather than by a third runtime.
 
 ## Why this exists
@@ -1061,7 +1061,7 @@ dart analyze                                     # static analysis everywhere
 (cd packages/unibox_html && dart test)
 (cd packages/unibox_flutter && flutter test)
 (cd example/unibox_example_shared && dart test)
-(cd example/unibox_example_site && dart test)
+(cd example/unibox_example_html && dart test)
 (cd example/unibox_example_flutter && flutter test)
 ```
 

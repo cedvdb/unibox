@@ -24,7 +24,7 @@ dart analyze
 (cd packages/unibox_html && dart test)
 (cd packages/unibox_flutter && flutter test)
 (cd example/unibox_example_shared && dart test)
-(cd example/unibox_example_site && dart test)
+(cd example/unibox_example_html && dart test)
 (cd example/unibox_example_flutter && flutter test)
 (cd packages/unibox_core && dart doc --output=/tmp/doc-core)
 (cd packages/unibox_material && dart doc --output=/tmp/doc-material)

@@ -60,7 +60,7 @@ step 'Rendering the pages'
 # live page without reading CSS class hashes.
 build="$(git -C "$root" rev-parse HEAD 2>/dev/null || true)"
 rm -rf "$site"
-(cd example/unibox_example_site &&
+(cd example/unibox_example_html &&
   dart run bin/build_site.dart --out="$site" ${build:+--build="$build"}) \
   || fail 'the site render'
 

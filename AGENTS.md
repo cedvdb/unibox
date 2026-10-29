@@ -45,7 +45,7 @@ guide is [`README.md`](README.md).
 | `packages/*/test/support/` | the harnesses (`pumpNode`, `inNode`, `stylesOf`, ...) and `appearance.dart`, which reads the presentation back out of the output | a test needs a new fact |
 ======
 | `example/unibox_example_shared/` | the example as one `StatefulNode` (`ExamplePageNode`, `ExampleState`, `ExampleStore`) and the trees it is built from, the site as one page (`buildSitePage`) whose two bands are the claim with the comparison inside it (`buildHeroSection`) and the catalogue (`buildMaterialSection`), plus the palette grown from one seed | the example or the site content changes |
-| `example/unibox_example_flutter/`, `example/unibox_example_site/` | hosts: the surface, the link policy, and the documents — never layout or state | the surface, a link or a document changes |
+| `example/unibox_example_flutter/`, `example/unibox_example_html/` | hosts: the surface, the link policy, and the documents — never layout or state | the surface, a link or a document changes |
 | `README.md`, `design.md`, package READMEs | the user guide, the reasoning, the per-target mapping tables | public API or behaviour changes |
 | `AI_INSTRUCTIONS.md` | the consumer-facing counterpart: rules and a translation table for an assistant writing application code | a parameter is renamed or a default changes |
 | `TASK_PLAN.md` | what was built, why, and what was deliberately deferred | rarely: record a decision, not a task |
@@ -73,7 +73,7 @@ The six suites, exactly as CI runs them:
 (cd packages/unibox_material && dart test)
 (cd packages/unibox_flutter && flutter test)
 (cd example/unibox_example_shared && dart test)
-(cd example/unibox_example_site && dart test)
+(cd example/unibox_example_html && dart test)
 (cd example/unibox_example_flutter && flutter test)
 ```
 

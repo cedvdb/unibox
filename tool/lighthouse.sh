@@ -33,7 +33,7 @@ cleanup() {
 trap cleanup EXIT
 
 printf '\n==> Writing the documents\n'
-dart run example/unibox_example_site/bin/build_site.dart --out="$WORK"
+dart run example/unibox_example_html/bin/build_site.dart --out="$WORK"
 
 # The site's routes, which is where the example lives: `web/listings/` and `web/signup/`.
 printf '\n==> Serving %s on %s\n' "$WORK" "$PORT"
