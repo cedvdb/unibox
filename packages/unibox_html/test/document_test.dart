@@ -39,6 +39,17 @@ void main() {
       expect(html, isNot(contains('<script>alert(1)</script>')));
       expect(html, contains('&lt;/title&gt;'));
       expect(html, contains('&quot; onload=&quot;'));
+
+      // A language tag is a string too, and it is written into an attribute.
+      expect(
+        toDocument(
+          const core.TextNode('Hi'),
+          alternates: <String, String>{
+            '" onload="alert(1)': 'https://example.com/',
+          },
+        ),
+        contains('hreflang="&quot; onload=&quot;alert(1)"'),
+      );
     });
 
     test('points at itself, so a duplicate is not a competitor', () {
@@ -52,6 +63,48 @@ void main() {
         ),
       );
     });
+
+    test(
+      'names the other languages of the page, so they are not duplicates',
+      () {
+        // A translation is the same page in another language, and only a document can say so:
+        // a crawler told nothing compares translated text and keeps one of the three.
+        final String html = toDocument(
+          const core.TextNode('Wohnungen'),
+          lang: 'de',
+          canonical: 'https://example.com/de/apartments/',
+          alternates: <String, String>{
+            'de': 'https://example.com/de/apartments/',
+            'en': 'https://example.com/apartments/',
+            'x-default': 'https://example.com/apartments/',
+          },
+        );
+
+        expect(html, contains('<html lang="de">'));
+        // Every page of the set names the whole set, itself included: the pairing a crawler
+        // builds has to work from whichever language it happened to arrive at.
+        expect(
+          html,
+          contains(
+            '<link rel="alternate" hreflang="de" '
+            'href="https://example.com/de/apartments/">',
+          ),
+        );
+        expect(
+          html,
+          contains(
+            '<link rel="alternate" hreflang="en" '
+            'href="https://example.com/apartments/">',
+          ),
+        );
+        expect(html, contains('hreflang="x-default"'));
+        expect(
+          html.indexOf('hreflang'),
+          lessThan(html.indexOf('<body>')),
+          reason: 'the head is what a crawler reads; a link in the body is a sentence',
+        );
+      },
+    );
 
     test('carries what a link preview shows', () {
       // The other half of being found: a preview with no description shows a url.
@@ -128,10 +181,15 @@ void main() {
     });
 
     test('cannot be pointed anywhere a script would run', () {
-      expect(
-        toDocument(const core.TextNode('Hi'), canonical: 'javascript:alert(1)'),
-        contains('href="#"'),
+      // A translation set is assembled from locales, and a locale can come from an address.
+      final String html = toDocument(
+        const core.TextNode('Hi'),
+        canonical: 'javascript:alert(1)',
+        alternates: <String, String>{'en': 'javascript:alert(1)'},
       );
+
+      expect(html, contains('href="#"'));
+      expect(html, isNot(contains('javascript:')));
     });
 
     test('is the tree in the body, exactly as a fragment renders it', () {

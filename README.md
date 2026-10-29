@@ -35,6 +35,7 @@ expected appearance holds both renderers to the same answer.
 - [Quick start](#quick-start)
 - [Flutter hydrates it](#flutter-hydrates-it--the-least-to-change)
 - [The DOM hydrates itself](#the-dom-hydrates-itself--nothing-of-flutter)
+- [In several languages](#in-several-languages--one-document-per-language)
 - [The nodes](#the-nodes)
 - [Colours](#colours)
 - [Typography](#typography)
@@ -150,6 +151,32 @@ tree rather than a widget only the app can draw.
 A dialog, a filter, a reorder — each works without Flutter. A widget Flutter alone can draw stays in
 the app, and neither way asks you to rewrite the rest: the screens that do not have to be found stay
 ordinary Flutter, untouched.
+
+### In several languages — one document per language
+
+A localised site is the same builder called with the copy of each language, each written to its own
+address, each document naming the whole set:
+
+```dart
+for (final SiteEdition edition in SiteEdition.all) {
+  final String page = toDocument(
+    buildListingsPage(edition.copy),
+    title: edition.copy.title,
+    lang: edition.tag,
+    canonical: edition.url('apartments'),
+    alternates: SiteEdition.alternates('apartments'),
+  );
+  File('site/${edition.tag}/apartments/index.html').writeAsStringSync(page);
+}
+```
+
+`lang` says which language the page is written in; `alternates` says which other addresses carry the
+same page, so a search engine pairs the translations instead of keeping one and hiding the rest. The
+locale comes from the address rather than a cookie or `Accept-Language`, because a crawler sends
+neither, and a language switch is a [link](#linknode) to the other address — followable by a reader
+and by a crawler. Copy stays a value passed into the tree (`SiteCopy.de`), so a string a language is
+missing is a compile error; an `.arb` catalogue, plurals and date formats live in the application's
+own package, which the tree never sees.
 
 ## Quick start
 
@@ -927,6 +954,7 @@ to the host that draws it.
 | **State**: the values of a form, which page is open, what a tap does | Nodes are immutable and hold no values. A callback is a `void Function()` the host implements, and the host re-renders with new nodes. |
 | **The surface**: window size, safe areas, scroll position | A description does not know how large the window is. A responsive page takes the answer as a parameter, and each host produces it its own way. |
 | **The document**: title, language, description, canonical url, structured data | Those describe a page, not a region of one. The Flutter host gives them to its `MaterialApp`, the web host to `toDocument`. |
+| **The language**: which copy the page is written in, and the addresses of its translations | Copy is a string, so it is built into the tree as a value like a colour; the locale is the host's, because a crawler can only read it from the address. A tree that read `Localizations` could not be rendered as a document at all. |
 | **The fonts** | A font file is an asset of the application, and it has to be the same file on both sides. |
 | **Effects with no common description** | That is what [`EmbedNode`](#embednode) is for. |
 

@@ -66,7 +66,8 @@ final class DocumentScript {
 ///
 /// A document is what a search engine, a link preview and a reader without JavaScript
 /// see, and every element of it is stated: `title`, `lang`, a description, a canonical
-/// url, the Open Graph pair a preview uses, and the scripts the host needs.
+/// url, the other languages the page is available in, the Open Graph pair a preview uses,
+/// and the scripts the host needs.
 ///
 /// ```dart
 /// final String page = toDocument(
@@ -83,12 +84,22 @@ final class DocumentScript {
 ///
 /// [scripts] are for the host's own: Flutter's bootstrap, the scroll recorder, an
 /// analytics file. Each is deferred by default, so nothing blocks the first paint.
+///
+/// [lang] is the language the page is written in, and [alternates] is the same page in
+/// the others, keyed by the `hreflang` value a search engine matches on — `'de'`,
+/// `'de-AT'`, and `'x-default'` for the address that answers a language the site does not
+/// have. Every page of a translation set names the whole set, itself included: a crawler
+/// told nothing sees three pages of translated text and treats two of them as duplicates
+/// of the third. Which language a reader is given is the host's decision, and the address
+/// is the only place a crawler can read it from — so `/de/apartments/` is the German page,
+/// and a header or a cookie would be a page no crawler ever sees.
 String toDocument(
   core.UINode node, {
   String? title,
   String lang = 'en',
   String? description,
   String? canonical,
+  Map<String, String> alternates = const <String, String>{},
   Map<String, String> meta = const <String, String>{},
   List<String> head = const <String>[],
   List<DocumentScript> scripts = const <DocumentScript>[],
@@ -122,6 +133,17 @@ String toDocument(
 
   if (canonical != null) {
     buffer.write('<link rel="canonical" href="${safeUrl(canonical)}">');
+  }
+
+  // The same page in its other languages. Without these a search engine compares translated
+  // copies of one page and keeps one of them, so the translations compete as duplicates of
+  // each other. A locale arrives from an address a reader typed, so the url goes through the
+  // same gate the canonical does and the tag is escaped like any other string.
+  for (final MapEntry<String, String> entry in alternates.entries) {
+    buffer.write(
+      '<link rel="alternate" hreflang="${escapeAttribute(entry.key)}" '
+      'href="${safeUrl(entry.value)}">',
+    );
   }
 
   // What a link preview shows, which is the other half of being found.

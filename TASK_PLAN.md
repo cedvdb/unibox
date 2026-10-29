@@ -365,7 +365,10 @@ Deliberately out of scope for this pass, with the reason they were left:
   mirrors rows and flips `start`/`end`, so it changes the layout. But both platforms
   already resolve a logical direction natively — `Directionality` in Flutter, `dir` on
   the web — so setting it is a host duty like the font file, and the tree only has to
-  speak logical tokens. A `BoxTheme` in core would be worse: `onPrimary` and
+  speak logical tokens. The one document fact of a localised site that no host can
+  supply from outside the API is the set of translations: `hreflang` belongs to the
+  page, so it landed as `toDocument(alternates:)` (§5.19) instead of waiting for a
+  node. A `BoxTheme` in core would be worse: `onPrimary` and
   `outline` are Material's words, and a design system is a package of values
   (`unibox_material`), not a concept the model has to carry. The outward projection
   that a core theme would have needed — `ThemeData` on one side, CSS variables on the
