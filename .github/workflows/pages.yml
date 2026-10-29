@@ -53,6 +53,11 @@ jobs:
       # The other half, which the boot check cannot see: a client script that throws still serves, still
       # scores well in Lighthouse, and still passes every suite — because the suites start their own
       # browser instead of reading what this build produced.
+      # The pages are still pages: headings are headings, and every file a document names is in the
+      # build. A wrong relative path serves, scores and does nothing — no browser calls it an error.
+      - name: Check that the documents still crawl
+        run: python3 tool/doc_check.py build/site "$SITE_URL"
+
       - name: Check that the client answers a press
         run: tool/dom_check.sh build/site
 

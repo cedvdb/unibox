@@ -176,6 +176,20 @@ the boot and client checks.
 
 **Cost.** ~10 seconds, no browser.
 
+## T2. Done: the documents still crawl
+
+`tool/doc_check.py` reads each published document off disk and holds it to what a page owes: a word
+floor, an `h1`, its links and fields, the sitemap and robots — and, the one that earns its keep, that
+**every file a document names is in the build**. It runs in the deploy beside the boot and client
+checks.
+
+It found two things on its first run:
+
+1. `web/takeover/`'s photos had no `../../` prefix, so all six 404'd. The page drew the same tree as
+   the document beside it and forgot the one thing a bundled image needs from its host.
+2. Nothing else — but it *would* have caught the `../main.client.js` that cost an afternoon: pointed at
+   a build with that mistake, it says `<script points at web/main.client.js, which is not in the build`.
+
 ## T3. The client's remaining bindings have tests
 
 **Now.** Bound but untested: `onLongPress`, `onSubmitted` (Enter in a field), and a link's refusal

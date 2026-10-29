@@ -63,7 +63,7 @@ String buildExampleDocument({String? build}) {
 /// markup and becomes an engine, which is the trade the whole library is about.
 String buildTakeoverDocument({String? build}) {
   return toDocument(
-    ExamplePageNode(),
+    ExamplePageNode(photoPrefix: '../../'),
     title: 'Apartments, taken over by Flutter — Unibox',
     description:
         'The same node tree as the document beside it, first as HTML and then, when a '
