@@ -14,15 +14,14 @@ typedef ShowcaseFrame = UINode Function({
   required String title,
 });
 
-/// The first band: what the library is, what it buys, and the claim drawn twice.
+/// The first band: the claim, and the diagram that answers it.
 ///
-/// The claim and its evidence share one band because, split in two, they said the same
-/// thing twice: the claim ended in a picture of two cards captioned *the web* and
-/// *Flutter*, and the band under it drew those same two cards for real, under the same
-/// two captions. A reader now meets the claim and the rendering that settles it in one
-/// scroll, and each of the two names is on the page once.
+/// A one-line claim and one chip that branches into the two things the tree becomes, each
+/// branch carrying the live rendering it produces. That is the whole pitch in one screen:
+/// a stranger reads *one tree*, sees it split into HTML and Flutter, and can type into
+/// either half of the diagram to check that it is real.
 ///
-/// The copy above the frames is set large and the room around it is wide, because that
+/// The copy above the diagram is set large and the room around it is wide, because that
 /// is what makes a page of plain boxes read as a modern one — scale and space, not a
 /// second set of colours.
 UINode buildHeroSection({
@@ -33,26 +32,21 @@ UINode buildHeroSection({
 
   return siteBand(
     background: palette.surface,
-    vertical: 88,
+    vertical: 80,
     child: Box(
       width: double.infinity,
-      gap: 44,
-      children: <UINode>[
-        _claim(palette),
-        _reasons(palette),
-        _comparison(palette, frame, seed),
-      ],
+      gap: 48,
+      children: <UINode>[_claim(palette), _diagram(palette, frame, seed)],
     ),
   );
 }
 
 /// The measure the band's copy is set to.
 ///
-/// One measure, and every text block in the band ends on it: the claim at 57 pixels
-/// breaks where a line is worth reading, the paragraph under it ends where the headline
-/// does, and the comparison's heading is the same column rather than a second layout.
-/// Without it the band is four blocks with four right edges, which reads as two
-/// sections that were stapled together.
+/// One measure, and both text blocks of the claim end on it: the headline at 57 pixels
+/// breaks where a line is worth reading, and the paragraph under it stops on the same
+/// edge rather than running to the window. The diagram below is measured by the band
+/// instead, because it is a picture of the whole, not a paragraph of the claim.
 const double _copyMeasure = 640;
 
 /// The claim, on the one measure the rest of the band's copy shares.
@@ -86,8 +80,9 @@ UINode _claim(MaterialPalette palette) {
         headingLevel: 1,
       ),
       TextNode(
-        'The page a search engine reads and the screen in your app, from one '
-        'Dart tree — so there is no second design to keep in step.',
+        'An immutable Dart tree. Flutter draws it as widgets; the web reads it '
+        'as HTML — real text, real links, real headings, so the page a visitor '
+        'lands on is the page a search engine ranks.',
         style: MaterialTypography.titleMedium.copyWith(
           color: palette.onSurfaceVariant,
         ),
@@ -96,114 +91,56 @@ UINode _claim(MaterialPalette palette) {
   );
 }
 
-/// Why the library exists, in three lines: the argument the frames underneath settle.
+/// The diagram the whole page turns on: one tree, and the two things it becomes.
 ///
-/// They sit in the hero rather than in a band of their own because a page that argues for
-/// itself has one place to argue: a reader who scrolls past the claim meets the three
-/// reasons and then the evidence, without a section that repeats the claim in three cards.
-/// Each line is one reason a reader would give for adopting it, not one feature of the
-/// model — a feature list is what the catalogue further down is for.
-UINode _reasons(MaterialPalette palette) {
-  return GridNode(
-    minItemWidth: 280,
-    maxColumns: 3,
-    gap: 24,
-    children: <UINode>[
-      _reason(
-        palette,
-        title: 'One tree',
-        line:
-            'The screen is written once: Flutter draws it in the app, HTML and CSS '
-            'draw it in the browser.',
-      ),
-      _reason(
-        palette,
-        title: 'Found, not crawled hollow',
-        line:
-            'Real text, real links, real headings. What a crawler reads is the page a '
-            'reader lands on, not a canvas and a title.',
-      ),
-      _reason(
-        palette,
-        title: 'Deploy it your way',
-        line:
-            'Flutter can take the page over, or the page can run on its own — no engine, '
-            'and a bundle you can measure in kilobytes.',
-      ),
-    ],
-  );
-}
-
-/// One reason: a line to remember, and the sentence that earns it.
-UINode _reason(
-  MaterialPalette palette, {
-  required String title,
-  required String line,
-}) {
-  return Box(
-    width: double.infinity,
-    gap: 6,
-    children: <UINode>[
-      TextNode(
-        title,
-        style: MaterialTypography.titleSmall.copyWith(color: palette.primary),
-      ),
-      TextNode(
-        line,
-        style: MaterialTypography.bodyMedium.copyWith(
-          color: palette.onSurfaceVariant,
-        ),
-      ),
-    ],
-  );
-}
-
-/// The claim settled: the same node tree in two frames, side by side.
+/// It is the answer to *what is this*, drawn rather than described — a single chip where
+/// the tree is, an arrow down each branch, and the live rendering each branch produces
+/// directly under its own name. The frames are not a screenshot, so the diagram is not a
+/// picture of an architecture: it *is* the architecture, and a reader can type into
+/// either half of it.
 ///
-/// Two frames rather than two links, because the point is the comparison: narrow the
-/// window and both answer the same breakpoint, on the same node tree. The heading and
-/// the captions are boxes and texts like everything else here; the frames are the one
-/// thing the model cannot describe, so they arrive through [ShowcaseFrame].
-UINode _comparison(
+/// The two branch names are the page's `h2`s, because they are what the page is about:
+/// a crawler that reads *HTML and CSS* and *Flutter* as two sections of one document has
+/// understood the library better than one that reads a slogan.
+UINode _diagram(
   MaterialPalette palette,
   ShowcaseFrame frame,
   ExampleSeed seed,
 ) {
   return Box(
     width: double.infinity,
-    gap: 20,
+    gap: 16,
     children: <UINode>[
-      // A label for the frames, not a second title: the band makes one claim, and this
-      // says what is drawn under it. It stays an `h2` so the page keeps its outline and
-      // a crawler keeps its heading — it is set small because the next heading down the
-      // page is a real section.
-      TextNode(
-        'The same tree, drawn twice',
-        style: MaterialTypography.titleMedium,
-        headingLevel: 2,
+      // The root, centred over both branches.
+      Box(
+        width: double.infinity,
+        direction: Axis.horizontal,
+        mainAlign: MainAlign.center,
+        children: <UINode>[_treeChip(palette)],
       ),
       GridNode(
         minItemWidth: 380,
         maxColumns: 2,
         gap: 20,
         children: <UINode>[
-          _panel(
-            title: 'HTML and CSS — the document',
+          _branch(
+            palette,
+            label: 'HTML and CSS',
+            note: 'a document a crawler reads and a reader can act on',
             src: 'web/listings/?seed=${seed.name}',
-            palette: palette,
             frame: frame,
           ),
-          _panel(
-            title: 'Flutter — the same tree',
+          _branch(
+            palette,
+            label: 'Flutter',
+            note: 'the same tree as widgets, in the app',
             src: 'flutter/listings/?seed=${seed.name}',
-            palette: palette,
             frame: frame,
           ),
         ],
       ),
-      // Two footnotes, read after the evidence: what the frames show, and what the page
-      // is made of. There is no link here — the example is shown in the frames and
-      // nowhere else.
+      // Read after the evidence: what the two frames show, and what the page is made of.
+      // There is no link here — the example is shown in the frames and nowhere else.
       Box(
         gap: 6,
         children: <UINode>[
@@ -214,8 +151,8 @@ UINode _comparison(
             ),
           ),
           TextNode(
-            'Pure Dart · the core has no dependencies · both renderers measured '
-            'against one table',
+            'Pure Dart · the core has no dependencies · every rendering measured '
+            'against one table of expected appearance',
             style: MaterialTypography.labelSmall.copyWith(
               color: palette.onSurfaceVariant,
             ),
@@ -226,23 +163,62 @@ UINode _comparison(
   );
 }
 
-/// One half of the comparison: a caption and the frame.
-///
-/// There is no link beside the caption: the frame is the only way the example is
-/// reached from this page, and the page it draws is not a destination of its own.
-UINode _panel({
-  required String title,
+/// The tree, in one chip: where both branches start.
+UINode _treeChip(MaterialPalette palette) {
+  return Box(
+    padding: const BoxSpacing.symmetric(horizontal: 20, vertical: 12),
+    borderRadius: 30,
+    backgroundColor: palette.surface,
+    border: BoxBorder(color: palette.outlineVariant),
+    // A soft drop shadow under the chip: the one place on the page where the tree is
+    // drawn *above* the two things it becomes, rather than beside them.
+    shadow: BoxShadow(
+      color: palette.outlineVariant,
+      offsetY: 4,
+      blurRadius: 12,
+    ),
+    children: <UINode>[
+      TextNode(
+        'Unibox',
+        style: MaterialTypography.titleMedium.copyWith(
+          color: palette.onSurface,
+        ),
+      ),
+    ],
+  );
+}
+
+/// One branch: the arrow, the name of what the tree becomes, and that thing itself.
+UINode _branch(
+  MaterialPalette palette, {
+  required String label,
+  required String note,
   required String src,
-  required MaterialPalette palette,
   required ShowcaseFrame frame,
 }) {
   return Box(
     width: double.infinity,
-    gap: 10,
+    gap: 8,
     children: <UINode>[
+      // Centred over its column: left-aligned, the arrows read as ornaments in the margin
+      // rather than as the two branches of the chip above them.
+      Box(
+        width: double.infinity,
+        direction: Axis.horizontal,
+        mainAlign: MainAlign.center,
+        children: <UINode>[
+          TextNode(
+            '↓',
+            style: MaterialTypography.titleLarge.copyWith(
+              color: palette.primary,
+            ),
+          ),
+        ],
+      ),
+      TextNode(label, style: MaterialTypography.titleLarge, headingLevel: 2),
       TextNode(
-        title,
-        style: MaterialTypography.labelLarge.copyWith(
+        note,
+        style: MaterialTypography.bodySmall.copyWith(
           color: palette.onSurfaceVariant,
         ),
       ),
@@ -250,12 +226,13 @@ UINode _panel({
       // iframe with no height is a sliver.
       Box(
         width: double.infinity,
-        height: 560,
+        height: 540,
+        margin: const BoxSpacing.only(top: 6),
         borderRadius: 18,
         overflow: Overflow.hidden,
         border: BoxBorder(color: palette.outlineVariant),
         backgroundColor: palette.surface,
-        children: <UINode>[frame(src: src, title: title)],
+        children: <UINode>[frame(src: src, title: label)],
       ),
     ],
   );

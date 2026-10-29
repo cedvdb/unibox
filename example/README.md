@@ -7,13 +7,14 @@ navigation bar and a sign-up form the bar opens as a dialog over it: two control
 text inputs, a hand drawn checkbox, a hover aware button, a link and a status line, in
 a card that a barrier and `Escape` dismiss. The list scrolls under the bar.
 
-That page is the *example*. The **site** is one page of its own: the claim, the
-comparison — the example drawn by both renderers, side by side — and the Material
-catalogue the whole thing is built with.
+That page is the *example*. The **site** is one page of its own: the claim and the diagram
+that answers it — one `Unibox` chip branching into HTML and Flutter, each branch carrying
+the example drawn by that renderer — and the Material catalogue the whole thing is built
+with.
 
 | Package | Role |
 | --- | --- |
-| `unibox_example_shared` | The example as one node (`ExamplePageNode`, with `ExampleState` and `ExampleStore`) and the parts it is built from (`buildExamplePage`, `buildApartmentsPage`, `buildSignupDialog`); the site as one node (`buildSitePage`) and its two bands (`buildHeroSection` — the claim, the three reasons and the comparison under them — and `buildMaterialSection`); plus the palette. The listings are a `GridNode` of `MaterialCard`s, so the example also shows the design-system package. Pure Dart, no renderer. |
+| `unibox_example_shared` | The example as one node (`ExamplePageNode`, with `ExampleState` and `ExampleStore`) and the parts it is built from (`buildExamplePage`, `buildApartmentsPage`, `buildSignupDialog`); the site as one node (`buildSitePage`) and its two bands (`buildHeroSection` — the claim and the diagram under it — and `buildMaterialSection`); plus the palette. The listings are a `GridNode` of `MaterialCard`s, so the example also shows the design-system package. Pure Dart, no renderer. |
 | `unibox_example_flutter` | Flutter host: one file (`lib/main.dart`) — the surface and the link policy. |
 | `unibox_example_html` | HTML host: the site's document, the example's document, the shipped font faces, the one `<iframe>` node the comparison needs, and the build script — no page trees, which live in the shared package. |
 
@@ -178,9 +179,8 @@ on a box *inside* the scrolling one, because Flutter puts the padding of a
 scrolling box around its viewport while CSS puts it inside the scrollport; one
 level in, both renderers scroll the same content.
 
-The two frames of the showcase are windows, not handles: each is an `<iframe>` filling the
-box the tree drew for it, 560 pixels tall, so the comparison is between two renderings of
-one size. Narrow the *window* and both answer the same breakpoint. A grip on one frame
+The two branches are windows, not handles: each frame is an `<iframe>` filling the box the
+tree drew for it, 540 pixels tall, so the two renderings are of one size. Narrow the *window* and both answer the same breakpoint. A grip on one frame
 would make the two incomparable, which is why neither has one.
 
 ## Keeping the two renderings alike
@@ -221,18 +221,17 @@ argument needs.
 
 | Band | What it says |
 | --- | --- |
-| the hero | the claim — *describe a screen once* — and, in the same band, the claim answered: the example in two frames, the page on the left, the Flutter build on the right, each resizable |
+| the hero | the claim — *describe a screen once* — and the diagram that answers it: one `Unibox` chip branching into **HTML and CSS** and **Flutter**, each branch carrying the live example it produces, so the page on the left and the Flutter build on the right are the two halves of the diagram rather than a comparison beside it |
 | *Material 3, as values and nodes* | the catalogue: every component first, then the type scale and the colour roles those components name |
 
 The frames are the claim's evidence, so they sit in the band that makes it: a reader
 scrolls from the sentence to the two renderings it is about, and meets each rendering's
-name once. The three reasons sit inside the hero, under the claim: one place to argue,
-and the frames underneath are the proof of each. The catalogue comes last, because the
-design system is how the evidence is drawn, not what it says. Every band is a node tree — the frames are the only thing the
+name once, and each name sits over the rendering it belongs to. The catalogue comes last,
+because the design system is how the evidence is drawn, not what it says. Every band is a node tree — the frames are the only thing the
 model cannot describe, and they arrive through `ShowcaseFrame`/`EmbedNode`.
 
-There is one `h1` (the claim), an `h2` for each section after it — the comparison, then the
-catalogue — and an `h3` per block of the catalogue, so the outline a crawler and
+There is one `h1` (the claim), an `h2` for each branch of the diagram and for the catalogue,
+and an `h3` per block of the catalogue, so the outline a crawler and
 a screen reader build the page from is the outline a reader sees. The header and the
 footer are landmarks, the links are real `LinkNode`s, and the page needs no route: a
 reader scrolls from the claim to the evidence, which is a thing a static document can do
@@ -254,7 +253,7 @@ tool/site.sh --base=/unibox/ --url=https://cedvdb.github.io/unibox/
 
 | Path | What it is |
 | --- | --- |
-| `/` | The site: the claim and its comparison, then the catalogue, as one page |
+| `/` | The site: the claim and the diagram, then the catalogue, as one page |
 | `/web/listings/` | The example as a document — the left frame, and the page the app takes over |
 | `/flutter/listings/` | The same example, built by Flutter — the right frame |
 | `/flutter/app.js` | The loader a document boots the application through, with the base path `flutter_bootstrap.js` cannot know |

@@ -27,12 +27,16 @@ void main() {
       expect(html, contains('<main'));
     });
 
-    test('frames the same screen in both renderings', () {
+    test('frames the same screen in both branches of the diagram', () {
       final String html = buildSiteDocument();
 
       expect('<iframe'.allMatches(html), hasLength(2));
-      expect(html, contains('title="Flutter — the same tree"'));
-      expect(html, contains('title="HTML and CSS — the document"'));
+      // Each frame is labelled with the branch it belongs to, which is what a screen
+      // reader announces in place of the branch heading.
+      expect(html, contains('title="Flutter"'));
+      expect(html, contains('title="HTML and CSS"'));
+      expect(html, contains('src="web/listings/'));
+      expect(html, contains('src="flutter/listings/'));
     });
 
     test('gives each frame the box the tree drew, and no grip', () {

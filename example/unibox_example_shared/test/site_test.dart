@@ -56,7 +56,8 @@ void main() {
       expect(
         headings,
         containsAll(<String>[
-          '2|The same tree, drawn twice',
+          '2|HTML and CSS',
+          '2|Flutter',
           '2|Material 3, as values and nodes',
           '3|Type scale',
           '3|Navigation bar',
@@ -117,29 +118,29 @@ void main() {
       );
     });
 
-    test('argues in the hero, then shows what it is made of', () {
-      // One place to argue: the reasons sit under the claim and above the frames that settle
-      // them, and the catalogue comes after both.
-      final List<Box> bands = buildSitePage(frame: _frame).children
-          .whereType<Box>()
-          .toList();
-      final List<String> hero = _flatten(bands[1])
-          .whereType<TextNode>()
-          .map((TextNode text) => text.text)
-          .toList();
+    test('draws the tree, then the two things it becomes', () {
+      // One chip where the tree is, then a branch per target, each with the live rendering
+      // it produces underneath it. The order is the diagram's, and a reader who reads the
+      // chip, the arrow and the name has understood the library.
+      final List<String> hero = <String>[
+        for (final UINode node in _flatten(
+          buildSitePage(frame: _frame).children.whereType<Box>().elementAt(1),
+        ))
+          if (node is TextNode) node.text,
+      ];
 
-      expect(hero, contains('One tree'));
-      expect(hero, contains('Found, not crawled hollow'));
-      expect(hero, contains('Deploy it your way'));
-      // The claim, then the reasons, then the evidence — the order a reader reads it in.
+      expect(hero, contains('Describe a screen once.'));
+      expect(hero, contains('Unibox'));
+      expect(hero, contains('HTML and CSS'));
+      expect(hero, contains('Flutter'));
+
+      // The claim, then the tree, then the branches: the diagram answers the headline.
       expect(
         hero.indexOf('Describe a screen once.'),
-        lessThan(hero.indexOf('One tree')),
+        lessThan(hero.indexOf('Unibox')),
       );
-      expect(
-        hero.indexOf('One tree'),
-        lessThan(hero.indexOf('The same tree, drawn twice')),
-      );
+      expect(hero.indexOf('Unibox'), lessThan(hero.indexOf('HTML and CSS')));
+      expect(hero.indexOf('HTML and CSS'), lessThan(hero.indexOf('Flutter')));
     });
 
     test('draws the frames in the palette the catalogue picked', () {
@@ -239,14 +240,14 @@ void main() {
 
       expect(texts, contains('Describe a screen once.'));
       // The claim is drawn as well as written: both renderings are on the page.
-      expect(texts, contains('HTML and CSS — the document'));
-      expect(texts, contains('Flutter — the same tree'));
+      expect(texts, contains('HTML and CSS'));
+      expect(texts, contains('Flutter'));
       // Neither rendering is a call to action: the page has no way into the example.
       expect(texts, isNot(contains('Open the example')));
       expect(texts, isNot(contains('The Flutter build')));
     });
 
-    test('names each rendering once, and shows it rather than a picture of it', () {
+    test('shows each rendering rather than a picture of it, and names it once', () {
       final List<String> texts = <String>[
         for (final UINode node in _flatten(buildSitePage(frame: _emptyFrame)))
           if (node is TextNode) node.text,
@@ -257,13 +258,10 @@ void main() {
       // a reader the point twice, once as a diagram and once for real. The frames are
       // the claim's answer, in the claim's band, so each name is written once.
       expect(
-        texts.where((String text) => text == 'HTML and CSS — the document'),
+        texts.where((String text) => text == 'HTML and CSS'),
         hasLength(1),
       );
-      expect(
-        texts.where((String text) => text == 'Flutter — the same tree'),
-        hasLength(1),
-      );
+      expect(texts.where((String text) => text == 'Flutter'), hasLength(1));
       expect(texts, isNot(contains('Sunny flat, 62 m²')));
     });
   });
