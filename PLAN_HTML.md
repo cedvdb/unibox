@@ -229,7 +229,29 @@ than an assumption.
 - `tool/` measures the handover: the exported page is served, driven, and timed from the
   first byte to the first Flutter frame, with the number recorded beside the export.
 
-### The boot's base path, and how it was proved
+## Remaining tasks: the merge with main
+
+`main` moved 20 commits while this branch was open. The merge is resolved on `merge-main-wip`
+(`83d1ad6`) except for one thing it cannot resolve: main added a **shape token**, and a web
+renderer that does not draw one fails the example, which shows a box wearing each outline.
+
+What main already proved on the web, and what this ports: an `<svg>` layer over the box, one
+`<path>` inside, and the fill and stroke as custom properties so a state rule can reach them.
+`clip-path` (not `clip-path: path()`, whose numbers are pixels) when the box clips its content.
+
+- [ ] **1. `unibox_css`**: `cssShapePath`, `cssShapeClipPath`, `cssShapeClipId`; a shaped box's
+declarations replace its background, border, radius and shadow with the layer's four
+  properties and, when it clips, the `clip-path`.
+- [ ] **2. `unibox_element`**: a shaped box's plan carries the `<svg>` layer as its first child,
+  and the throw goes away.
+- [ ] **3. `unibox_html`**: the writer needs nothing — the plan holds the layer — but the
+  conformance suite gains a shaped case of its own, since the appearance table cannot read an
+  outline back.
+- [ ] **4. Verify the merge**: seven suites, `dart doc`, and the shape on the example's page.
+- [ ] **5. Land it**: fast-forward `feat/unibox-html` onto `merge-main-wip` and delete the
+  working branch.
+
+### The boot's base path, and how it was proved's base path, and how it was proved
 
 A takeover page loads the application, and Flutter resolves its own entrypoint against
 `document.baseURI` — `new URL(path, document.baseURI)`. Our documents sit at `web/listings/`,
