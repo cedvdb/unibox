@@ -31,7 +31,7 @@ String buildSiteDocument({String? build}) {
         'Describe a screen once, in plain Dart, and draw it twice: Flutter widgets '
         'in an app and HTML with CSS in a browser. The Material 3 type scale, the '
         'colour roles and the components, as values and nodes.',
-    meta: <String, String>{if (build != null) 'unibox-build': build},
+    meta: <String, String>{'unibox-build': ?build},
     theme: ExamplePalette.themeFor(ExampleSeed.blue),
     head: <String>['<style>${fontFaceCss('')}$siteCss</style>'],
     // A site a crawler reads is a document: the recorders are what a reader who interacts

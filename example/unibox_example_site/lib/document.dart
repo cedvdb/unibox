@@ -32,7 +32,7 @@ String buildExampleDocument({
     ExamplePageNode(signupOpen: page == ExamplePage.signup),
     title: titleOf(page),
     description: descriptionOf(page),
-    meta: <String, String>{if (build != null) 'unibox-build': build},
+    meta: <String, String>{'unibox-build': ?build},
     // A document has no click, so the page that exists to show the dialog says so.
     showOverlays: page == ExamplePage.signup,
     theme: ExamplePalette.themeFor(ExampleSeed.blue),
