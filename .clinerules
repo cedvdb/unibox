@@ -23,8 +23,7 @@ What is not negotiable:
    on a warning.
 6. **Conventional Commits**, one verified change per commit
    (`feat(core): ...`, `fix(flutter): ...`, `test(conformance): ...`, `docs: ...`).
-7. **Do not publish, bump a version or remove `publish_to: none`**, and do not
-   implement anything from the `Deferred` section of `TASK_PLAN.md` unless asked.
+7. **Do not publish or bump a version, and keep `publish_to: none`** unless asked.
 8. **A design system is a package of values, plus nodes built from nodes.**
    `unibox_material` holds the Material 3 type scale as `const` tokens and
    `MaterialCard`, a `Box` with the card's defaults. It depends on `unibox_core`

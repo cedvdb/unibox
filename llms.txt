@@ -76,7 +76,7 @@ coding agent needs are in [AGENTS.md](AGENTS.md), and a human contributing needs
 - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md): the Contributor Covenant in short, and where a
   report goes.
 - [MAINTENANCE.md](MAINTENANCE.md): what runs on its own (CI, the weekly gate,
-  Dependabot), the monthly hour, what a human decides, and the prompt that hands a
+  Dependabot), the monthly pass, what a human decides, and the prompt that hands a
   maintenance task to an assistant.
 - [tool/verify.sh](tool/verify.sh): format check, analysis and the test
   suites, the way CI runs them; it reads `.flutter-version` first, and stops when the
@@ -99,8 +99,6 @@ coding agent needs are in [AGENTS.md](AGENTS.md), and a human contributing needs
 - [.github/ISSUE_TEMPLATE/maintenance_task.yml](.github/ISSUE_TEMPLATE/maintenance_task.yml): the
   form that makes an issue `agent-ready` — the recipe, the package, the line that has to pass.
   [MAINTENANCE.md](MAINTENANCE.md#the-queue) says what the labels mean.
-- [TASK_PLAN.md](TASK_PLAN.md): what is built, the decisions taken, and the
-  `Deferred` list that is deliberately out of scope.
 - [RELEASE.md](RELEASE.md): the human release checklist. CI never publishes.
 - [example/README.md](example/README.md): the example's trees, the two hosts, and how a
   document and a Flutter app are built from them.

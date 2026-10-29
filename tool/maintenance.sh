@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# The monthly hour, in one command: the gate with the API docs, the performance budget, and
+# The monthly pass, in one command: the gate with the API docs, the performance budget, and
 # the numbers the README quotes.
 #
 # Usage:

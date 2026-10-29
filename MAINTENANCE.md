@@ -1,7 +1,9 @@
 # Maintaining Unibox
 
-The repository is built to be assisted with AI for maintenance. This page describes what runs on its own,
-what a human decides, and what to do when something is red.
+Maintenance here is mostly machine work, so most of it is done by machines: the full gate on
+every push, the same gate on a cold cache every week, Dependabot, and a documentation index
+that refuses a stale link. This page is what is left — what a human decides, what to run when
+something is red, and how to hand a task to an assistant so its output is reviewable.
 
 If you are an assistant asked to do maintenance work, read [`AGENTS.md`](AGENTS.md) first
 — it holds the architecture rules and the file-by-file recipes — then work from the
@@ -23,7 +25,7 @@ Nothing merges itself. A dependency bump is a change: `packages/unibox_testing` 
 the two renderings, so a version that changes what a box looks like fails the gate before
 anyone ships it.
 
-## The monthly hour
+## The monthly pass
 
 ```shell
 git switch main && git pull
@@ -49,8 +51,6 @@ Then, from what it printed:
    `packages/unibox_testing`: write the case there first, watch both suites, and fix the
    renderer that disagrees. That order is in
    [`AGENTS.md`](AGENTS.md#d-a-difference-between-the-two-renderers).
-6. **The `Deferred` list** in [`TASK_PLAN.md`](TASK_PLAN.md). Nothing on it is a bug; it is
-   work deliberately not done. Do not start one because it is the oldest item.
 
 ## What a human decides
 
@@ -114,8 +114,7 @@ web mapping — with a case in packages/unibox_testing, a doc comment on every p
 member, and a bullet under "## Unreleased" in each CHANGELOG.md touched. Run
 tool/verify.sh (add --docs if a public member or a README changed) and do not commit
 until it passes. Conventional Commits, one verified change per commit. Do not bump a
-version, do not publish, and do not implement anything from the Deferred section of
-TASK_PLAN.md.
+version and do not publish.
 ```
 
 Two habits that keep its output reviewable: **one change per commit**, and **the failing
@@ -128,6 +127,5 @@ until the suite goes green is a coincidence.
 | --- | --- |
 | Why is the model shaped this way? | [`design.md`](design.md) |
 | What has to be touched for a change? | [`AGENTS.md`](AGENTS.md) — one recipe per kind of change |
-| What is built, and what was left out? | [`TASK_PLAN.md`](TASK_PLAN.md) |
 | How is a release cut? | [`RELEASE.md`](RELEASE.md) |
 | What does a token look like on each target? | the package READMEs, and `packages/unibox_testing/lib/src/` |

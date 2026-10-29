@@ -77,5 +77,3 @@ body:
       options:
         - label: I read the node's section in `README.md`
           required: true
-        - label: This is not on the `Deferred` list in `TASK_PLAN.md`
-          required: false

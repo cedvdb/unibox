@@ -152,9 +152,16 @@ beside them. It is the shape a real listing page has, drawn from the model:
 | the search bar | a rounded `Box` with a border, and a magnifier of two boxes and a 45° transform — no icon font, no asset |
 | the filters | pills of `MaterialInkWell`, one of them selected; `With a garden` is `visibleFrom: 900` |
 | the cards | a `GridNode` of 240 pixel minimum, two columns at most, so the grid reflows from one column to two as its own width grows — not the window's |
-| each card | a `MaterialCard` with a Pexels photo (`ImageNode`, `ImageFit.cover`), the name, the district, two words about the flat, the summary and the rent |
-| the map | drawn from nodes: a surface, four parks, three rotated roads, the district names and three price pins placed with `PositionedNode` |
+| each card | a `MaterialCard` with a Pexels photo (`ImageNode`, `ImageFit.cover`), the name, where it is — a district and a capital — two words about the flat, the summary and the rent |
+| the map | drawn from nodes: a surface, four parks, three rotated roads, the capital names and three price pins placed with `PositionedNode` |
 | the pill on a phone | the map column is `visibleFrom: 900`, so below it the page floats a `Map` pill over the bottom of the listing — placed, not measured, and it does nothing when pressed |
+
+The six listings stand in six capitals — Paris, Berlin, Lisbon, Vienna, Madrid and
+Rome — one flat each, because a site that only ever shows one city is a site about that
+city. Every capital is a euro country, so the one currency the card prints is honest, and
+each street is named in the language of the city it is in. The two lines that describe the
+list — the query in the search bar and `6 apartments in 6 capitals` above the cards —
+count the capitals from the data rather than repeating a number.
 
 The map is drawn rather than embedded on purpose: a real map is a third-party embed
 with a key and a script, and this one shows the shape of a map without either. It is
@@ -380,8 +387,8 @@ example itself — it is drawn in the frames, and it is not a destination of thi
 Inside the frame the example carries one more: its bar is a `<nav>` whose destination is
 an `<a href>` naming the document that draws it. The sign-up control is not a link — it
 opens a dialog over the page — so a crawler sees one document of the example and the one
-link into it. A page that has to be found makes sense as a `LinkNode` with a
-real url — which is the router work `TASK_PLAN.md` lists as deferred.
+link into it. A page that has to be found makes sense as a `LinkNode` with a real url,
+which is the router work this project has deliberately not built.
 
 The static export is the document on its own: the markup, the stylesheet with its state rules
 and its container queries, and nothing that answers a press. What answers them is the client

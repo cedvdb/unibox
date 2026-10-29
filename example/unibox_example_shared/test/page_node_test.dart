@@ -110,7 +110,7 @@ void main() {
     test('draws the listings and no dialog while it is closed', () {
       final UINode tree = viewOf(ExamplePageNode());
 
-      expect(textsIn(tree), contains('Via Bellavista 12'));
+      expect(textsIn(tree), contains('Rue de Turenne 12'));
       expect(textsIn(tree), isNot(contains('Join Unibox')));
       expect(flatten(tree).whereType<OverlayNode>(), isEmpty);
     });
@@ -123,7 +123,7 @@ void main() {
       expect(flatten(tree).whereType<OverlayNode>(), hasLength(1));
       expect(textsIn(tree), contains('Join Unibox'));
       // The page is still there: the dialog is a layer, not another page.
-      expect(textsIn(tree), contains('Via Bellavista 12'));
+      expect(textsIn(tree), contains('Rue de Turenne 12'));
     });
 
     test('draws the values its store publishes', () {

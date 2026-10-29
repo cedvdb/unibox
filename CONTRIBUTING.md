@@ -21,9 +21,8 @@ precise description of the repository that exists; humans read it too.
 | **Performance** | the measure is `tool/lighthouse.sh`, and a page outside its budget fails CI. |
 
 Not in scope, at least not without a human asking: releasing (version bumps, publishing,
-closing a changelog — see [`RELEASE.md`](RELEASE.md)), new dependencies in
-`unibox_core` (it has none, deliberately), and the `Deferred` section of
-[`TASK_PLAN.md`](TASK_PLAN.md).
+closing a changelog — see [`RELEASE.md`](RELEASE.md)) and new dependencies in
+`unibox_core`, which has none deliberately.
 
 ## Get set up
 

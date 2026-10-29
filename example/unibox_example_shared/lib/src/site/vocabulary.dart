@@ -129,11 +129,11 @@ UINode _card(MaterialPalette palette) {
             gap: 4,
             children: <UINode>[
               TextNode(
-                'Canal view, two rooms',
+                'Over the rooftops, two rooms',
                 style: MaterialTypography.titleMedium,
               ),
               TextNode(
-                '72 m² · Amsterdam · available now',
+                '72 m² · Paris · available now',
                 style: MaterialTypography.bodySmall.copyWith(
                   color: palette.onSurfaceVariant,
                 ),
