@@ -531,6 +531,65 @@ void main() {
 
       expect(view.scrollDirection, Axis.horizontal);
     });
+
+    testWidgets('reports how far its own content has scrolled', (tester) async {
+      final List<double> offsets = <double>[];
+
+      await pumpNode(
+        tester,
+        core.Box(
+          height: 100,
+          overflow: core.Overflow.scroll,
+          onScroll: offsets.add,
+          children: const <core.UINode>[core.Box(width: 10, height: 400)],
+        ),
+      );
+
+      await tester.drag(find.byKey(nodeKey), const Offset(0, -60));
+      await tester.pump();
+
+      expect(offsets, isNotEmpty);
+      expect(offsets.last, 60);
+    });
+
+    testWidgets('reports nothing for a scrollable nested inside it', (
+      tester,
+    ) async {
+      // A nested scrollable is the nested box's scroll, not the outer one's: the outer
+      // callback fires only for its own viewport, and its offset stays where it was.
+      final List<double> outer = <double>[];
+      final List<double> inner = <double>[];
+
+      await pumpNode(
+        tester,
+        core.Box(
+          height: 100,
+          overflow: core.Overflow.scroll,
+          onScroll: outer.add,
+          children: <core.UINode>[
+            core.Box(
+              height: 100,
+              overflow: core.Overflow.scroll,
+              onScroll: inner.add,
+              children: const <core.UINode>[core.Box(width: 10, height: 400)],
+            ),
+          ],
+        ),
+      );
+
+      await tester.drag(
+        inNode(find.byType(SingleChildScrollView).last),
+        const Offset(0, -40),
+      );
+      await tester.pump();
+
+      expect(inner, isNotEmpty);
+      expect(
+        outer,
+        isEmpty,
+        reason: 'the outer box did not scroll; the inner one did',
+      );
+    });
   });
 
   group('renderFlutter', () {

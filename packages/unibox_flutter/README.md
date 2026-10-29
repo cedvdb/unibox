@@ -46,6 +46,7 @@ with their target.
 | `overflow: Overflow.scroll`         | `SingleChildScrollView`                             |
 | `onTap` / `onLongPress`             | `GestureDetector`                                   |
 | `onHover` / `hoverStyle`            | `MouseRegion` and the hovered token set             |
+| `onScroll`                          | `NotificationListener<ScrollUpdateNotification>` around the scroll view, reporting `metrics.pixels` when the notification's `depth` is zero |
 
 A `shape` is painted through a `CustomPaint` and built with `pathOf(shape, size)`:
 the commands become a `Path`, so the same value draws the same silhouette at any
@@ -54,6 +55,11 @@ box whose outline touches its edge, as it does in the browser). `ClipPath` clips
 pointer as well as the paint, so a shaped box that also says `overflow:
 Overflow.hidden` answers only inside its outline — a browser answers for the whole
 rectangle, which is one of the differences hit testing already had.
+
+The scroll offset is the one report whose **edges** differ from the browser's: an iOS
+bounce reports negative pixels and a value past the end, while `scrollTop` clamps at zero
+and at the content's height. In the middle of the range the two numbers agree, which is
+where a folding header or a "back to the top" control reads them.
 
 `width`/`height: double.infinity` expands to fill the available space. Inside a
 flex parent the expanding child is wrapped in an `Expanded` (using `flex`, or

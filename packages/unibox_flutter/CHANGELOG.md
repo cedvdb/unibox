@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `Box.onScroll` is reported from the box's own scroll view (`ScrollUpdateNotification` with
+  a depth of zero), so a nested scrollable does not report to the box around it. An iOS
+  bounce reports negative pixels and a value past the end, where a browser clamps: the
+  middle of the range is where the two agree.
+
 - A shaped box strokes its outline with the cap its border states, and `toStrokeCap` maps the
   token to Flutter's `StrokeCap`. An open outline — `BoxShape.arc` — has two ends, and the cap is
   what draws them: `BoxStrokeCap.round` gives the rounded ends Material's progress indicator has,

@@ -141,6 +141,25 @@ class FlutterBoxState extends State<FlutterBox> {
         controller: _scroll,
         child: content,
       );
+
+      final core.ScrollCallback? onScroll = box.onScroll;
+      if (onScroll != null) {
+        // *Around* the scroll view: a notification travels up from the scrollable to its
+        // ancestors, so a listener inside it hears nothing.
+        content = NotificationListener<ScrollUpdateNotification>(
+          // A scrollable nested in the content notifies this listener too, at a greater
+          // depth: only this box's own viewport is reported, which is what the browser's
+          // non-bubbling `scroll` event gives for free.
+          onNotification: (ScrollUpdateNotification notification) {
+            if (notification.depth == 0) {
+              onScroll(notification.metrics.pixels);
+            }
+
+            return false;
+          },
+          child: content,
+        );
+      }
     }
 
     final core.BoxSpacing? padding = style.padding;
