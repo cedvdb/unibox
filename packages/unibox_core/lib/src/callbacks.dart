@@ -9,6 +9,17 @@ typedef LongPressCallback = void Function();
 /// Called when the pointer enters (`true`) or leaves (`false`) a node.
 typedef HoverCallback = void Function(bool isHovered);
 
+/// Called as a scrolling box scrolls, with how far its content has moved.
+///
+/// [offset] is the distance in logical pixels from the start of the content along the box's
+/// main axis: `0` at rest, growing as the content moves up (or left). It is the one number
+/// both hosts report — `ScrollMetrics.pixels` in Flutter, `scrollTop`/`scrollLeft` in a
+/// browser — which is why the value is a plain double and not a position in two axes.
+///
+/// A callback fires on the frames a box actually scrolls, so a store that publishes on every
+/// call re-renders the subtree on every frame of a drag: throttle in the store, not here.
+typedef ScrollCallback = void Function(double offset);
+
 /// Called whenever the text of an input node changes.
 typedef TextChangedCallback = void Function(String text);
 

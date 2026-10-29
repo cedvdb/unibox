@@ -79,6 +79,7 @@ class Box extends UINode {
     this.onTapDown,
     this.onLongPress,
     this.onHover,
+    this.onScroll,
   });
 
   /// The child nodes laid out by this box.
@@ -285,6 +286,17 @@ class Box extends UINode {
 
   /// Called when the pointer enters or leaves the box.
   final HoverCallback? onHover;
+
+  /// Called as the box scrolls, with how far its content has moved.
+  ///
+  /// Only a box that scrolls ([overflow] of [Overflow.scroll]) reports it, and only for its
+  /// own scrolling: a scrollable nested inside it reports to its own box, because the browser
+  /// does not let a `scroll` event bubble and Flutter's notifications carry a depth.
+  ///
+  /// It is how a screen reacts to the scroll itself — a header that folds as the list under it
+  /// moves, a control that appears once a reader is part of the way down — which a tree could
+  /// not do at all while the position lived only in the host.
+  final ScrollCallback? onScroll;
 
   /// The flat parameters of this box as a style overlay.
   BoxStyle get _flatStyle => BoxStyle(

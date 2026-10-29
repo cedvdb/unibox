@@ -176,6 +176,17 @@ void main() {
       expect(const Box().isInteractive, isFalse);
     });
 
+    test('carries a scroll callback without becoming a control', () {
+      void onScroll(double offset) {}
+
+      final box = Box(overflow: Overflow.scroll, onScroll: onScroll);
+
+      // A scroll callback is a report, not an interaction: a box that only listens to its own
+      // scroll is not a button, has no hover state and is not focusable.
+      expect(box.onScroll, onScroll);
+      expect(box.isInteractive, isFalse);
+    });
+
     test('is enabled by default', () {
       expect(const Box().enabled, isTrue);
     });

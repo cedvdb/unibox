@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- `Box.onScroll`: a scrolling box reports how far its content has moved along its main axis,
+  as one `double` — `0` at rest, growing as the content moves up (or left). Only a box with
+  `overflow: Overflow.scroll` reports it, and only for its own scrolling: a scrollable nested
+  inside it reports to its own box, which is what the browser's non-bubbling `scroll` event
+  and Flutter's notification depth both give.
+
 - `BoxBorder.cap` and `BoxShape.arc`: a border can state how its ends are drawn, and a shape can
   be an arc of a circle whose `sweep` is a number rather than a path. A cap only shows where an
   outline has ends — a rectangle's border meets itself at four corners — so `validateTree` reports
