@@ -22,6 +22,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import doc_check
 import lighthouse_budget
 import performance_report
+import scale_check
 
 PASSED = []
 FAILED = []
@@ -142,10 +143,63 @@ def test_performance_report():
               sizes['document'] == len(gzip.compress(b'x' * 1000, 6)), str(sizes))
 
 
+def test_scale_check():
+    """A shape that stops being linear is refused, and a shape that is linear is not."""
+    baseline = {
+        'shapes': {
+            'a-shape': {
+                'small': {'nodes': 100, 'classes': 2, 'html_bytes': 10, 'css_bytes': 4,
+                          'plan_ms': 1.0, 'css_ms': 0.5, 'write_ms': 1.0},
+                'large': {'nodes': 200, 'classes': 2, 'html_bytes': 20, 'css_bytes': 4,
+                          'plan_ms': 2.0, 'css_ms': 1.0, 'write_ms': 2.0},
+            },
+        },
+    }
+
+    def measured(plan_small, plan_large, **changes):
+        small = dict(baseline['shapes']['a-shape']['small'], plan_ms=plan_small)
+        large = dict(baseline['shapes']['a-shape']['large'], plan_ms=plan_large)
+
+        for name, value in changes.items():
+            small[name] = value
+
+        return {'shapes': {'a-shape': {'small': small, 'large': large}}}
+
+    check('scale_check accepts a linear stage',
+          scale_check.judge(measured(1.0, 2.0), baseline) == [],
+          str(scale_check.judge(measured(1.0, 2.0), baseline)))
+
+    # The failure it was written for: doubling the tree quadrupled the work.
+    problems = scale_check.judge(measured(4.0, 16.0), baseline)
+    check('scale_check refuses a stage that goes quadratic',
+          any('not linear' in problem for problem in problems), str(problems))
+
+    # A ratio measured on a stage too small to time is noise, not a regression.
+    check('scale_check ignores a ratio below its floor',
+          scale_check.judge(measured(0.1, 0.5), baseline) == [],
+          str(scale_check.judge(measured(0.1, 0.5), baseline)))
+
+    # The exact facts are a function of the tree, so they are compared exactly.
+    problems = scale_check.judge(measured(1.0, 2.0, classes=3), baseline)
+    check('scale_check refuses a class count that moved',
+          any('classes' in problem for problem in problems), str(problems))
+
+    # And a stage that got uniformly slower, which no ratio can see.
+    problems = scale_check.judge(measured(50.0, 60.0), baseline)
+    check('scale_check refuses a stage far above the baseline',
+          any('the baseline' in problem for problem in problems), str(problems))
+
+    # A shape the benchmark stopped measuring is a hole in the guard, not a pass.
+    problems = scale_check.judge({'shapes': {}}, baseline)
+    check('scale_check refuses a report that lost a shape',
+          any('no longer measures' in problem for problem in problems), str(problems))
+
+
 def main():
     test_doc_check()
     test_lighthouse_budget()
     test_performance_report()
+    test_scale_check()
 
     for name in PASSED:
         print(f'  ok   {name}')
