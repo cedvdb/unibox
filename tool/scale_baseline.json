@@ -1,0 +1,65 @@
+{
+  "repeats": 5,
+  "shapes": {
+    "deep-chain": {
+      "large": {
+        "classes": 2,
+        "css_bytes": 245,
+        "css_ms": 0.005,
+        "html_bytes": 99272,
+        "nodes": 1601,
+        "plan_ms": 4.215,
+        "write_ms": 1.955
+      },
+      "small": {
+        "classes": 2,
+        "css_bytes": 245,
+        "css_ms": 0.006,
+        "html_bytes": 49672,
+        "nodes": 801,
+        "plan_ms": 3.065,
+        "write_ms": 0.993
+      }
+    },
+    "distinct-look": {
+      "large": {
+        "classes": 3003,
+        "css_bytes": 546284,
+        "css_ms": 0.652,
+        "html_bytes": 859952,
+        "nodes": 12001,
+        "plan_ms": 19.505,
+        "write_ms": 22.16
+      },
+      "small": {
+        "classes": 1503,
+        "css_bytes": 273284,
+        "css_ms": 0.37,
+        "html_bytes": 429452,
+        "nodes": 6001,
+        "plan_ms": 9.361,
+        "write_ms": 10.589
+      }
+    },
+    "shared-look": {
+      "large": {
+        "classes": 4,
+        "css_bytes": 441,
+        "css_ms": 0.018,
+        "html_bytes": 859952,
+        "nodes": 12001,
+        "plan_ms": 14.478,
+        "write_ms": 20.643
+      },
+      "small": {
+        "classes": 4,
+        "css_bytes": 441,
+        "css_ms": 0.056,
+        "html_bytes": 429452,
+        "nodes": 6001,
+        "plan_ms": 9.845,
+        "write_ms": 10.081
+      }
+    }
+  }
+}

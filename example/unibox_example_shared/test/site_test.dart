@@ -72,6 +72,21 @@ void main() {
       );
     });
 
+    test('puts the vocabulary under the claim, and the catalogue last', () {
+      // The order is the argument: the evidence, then the parts it is made of, then the
+      // design system all of it is drawn with. The catalogue is what the page closes on.
+      final List<String> bands = _headings(buildSitePage(frame: _frame))
+          .where((String heading) => heading.startsWith('2|'))
+          .toList();
+
+      expect(bands, <String>[
+        '2|HTML and CSS',
+        '2|Flutter',
+        '2|The whole vocabulary',
+        '2|Material 3, as values and nodes',
+      ]);
+    });
+
     test('keys the two arrows of the diagram, so the site can move them', () {
       // The page draws the diagram; the stylesheet names the arrows by their keys, because a
       // key is what a tree already carries and a class is not in the model.
@@ -229,8 +244,8 @@ void main() {
       'draws the nodes the rest of the page never shows, and names them',
       () {
         // The hero frames a tree and the catalogue draws components; four nodes were never
-        // drawn as themselves, so the last band is where a reader meets them — and the
-        // list beside the card is what names them, because a picture has no words.
+        // drawn as themselves, so the band under the hero is where a reader meets them — and
+        // the list beside the card is what names them, because a picture has no words.
         final List<UINode> page = _flatten(buildSitePage(frame: _frame))
             .toList();
         final Set<String> words = page

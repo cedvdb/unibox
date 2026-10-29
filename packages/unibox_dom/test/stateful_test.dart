@@ -429,6 +429,47 @@ void main() {
       view.dispose();
     });
   });
+
+  group('the stylesheet a view writes', () {
+    test('is left alone by a publish that adds no look', () {
+      // A ripple publishes sixty times a second, and between two publishes of one tree no class
+      // has changed. Serialising the sheet would make the browser re-parse every rule on the
+      // page, so the sentinel is how a test sees that nothing was written at all.
+      final web.HTMLDivElement element = host();
+      final DomView view = DomView.mount(Counter(), element);
+      final web.Element style = web.document.head!.querySelector(
+        'style[data-unibox-css]',
+      )!;
+
+      style.textContent = '/* sentinel */';
+      press(at(element, 'increment'));
+
+      expect(textAt(element, 'label'), 'count 1');
+      expect(style.textContent, '/* sentinel */');
+
+      view.dispose();
+      style.remove();
+    });
+
+    test('is written when a publish brings a look the page does not have', () {
+      // The other half of the rule: a state whose look is new needs a rule, or the page holds an
+      // element with a class nothing describes.
+      final web.HTMLDivElement element = host();
+      final DomView view = DomView.mount(Tint(), element);
+      final web.Element style = web.document.head!.querySelector(
+        'style[data-unibox-css]',
+      )!;
+
+      expect(style.textContent, isNot(contains('#00ff00')));
+
+      press(at(element, 'tint'));
+
+      expect(style.textContent, contains('#00ff00'));
+
+      view.dispose();
+      style.remove();
+    });
+  });
 }
 
 /// A component that publishes *during* a press, the way the ink well does: a drop appears before
@@ -554,4 +595,29 @@ final class Form extends core.StatefulNode<String, FormStore> {
           onChanged: store.set,
         ),
       );
+}
+
+/// A box that turns green when it is pressed, so a publish can bring a look the page has not
+/// drawn yet: the shape of anything whose state is a colour of its own.
+final class Tint extends core.StatefulNode<bool, TintStore> {
+  /// Creates the box, off.
+  Tint()
+    : super(
+        create: TintStore.new,
+        view: (bool on, TintStore store) => core.Box(
+          key: 'tint',
+          backgroundColor: on ? const core.BoxColor(0xFF00FF00) : null,
+          onTap: store.toggle,
+          children: <core.UINode>[const core.TextNode('tint')],
+        ),
+      );
+}
+
+/// Whether the box of a [Tint] is coloured.
+final class TintStore extends core.StateStore<bool> {
+  /// Creates the store, off.
+  TintStore() : super(false);
+
+  /// Colours the box, or stops colouring it.
+  void toggle() => state = !state;
 }

@@ -82,6 +82,9 @@ coding agent needs are in [AGENTS.md](AGENTS.md), and a human contributing needs
   suites, the way CI runs them; it reads `.flutter-version` first, and stops when the
   machine's Flutter is not the one the repository is developed against. `--fast` skips the
   suites, `--docs` adds `dart doc`.
+- [tool/scale.sh](tool/scale.sh): the synthetic benchmark — a page with thousands of
+  nodes, planned and written — and `tool/scale_check.py`, which holds it to the
+  baseline in `tool/scale_baseline.json`. Runs in CI.
 - [tool/maintenance.sh](tool/maintenance.sh): the slower monthly pass — the gate with the
   docs, the performance budget, the site build and the numbers the README quotes.
 - [.github/workflows/ci.yml](.github/workflows/ci.yml), and
@@ -113,8 +116,8 @@ coding agent needs are in [AGENTS.md](AGENTS.md), and a human contributing needs
   [packages/unibox_html/CHANGELOG.md](packages/unibox_html/CHANGELOG.md),
   [packages/unibox_dom/CHANGELOG.md](packages/unibox_dom/CHANGELOG.md): the unreleased
   changes, which is where a new token is described for the user.
-- [PLAN_HTML.md](PLAN_HTML.md): the plan the web renderer was built from, kept as a
-  record. It is history, not instructions — where it disagrees with the code, the code
-  wins.
+- [PERFORMANCE.md](PERFORMANCE.md): what a page with thousands of nodes costs, the three
+  shapes the benchmark measures, the baseline CI holds them to, and the six places the
+  pipeline was not linear before they were fixed.
 - [example/unibox_example_shared/lib/](example/unibox_example_shared/lib/): the
   example trees as plain Dart, the arrangement to copy for a real application.

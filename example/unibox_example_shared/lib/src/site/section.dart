@@ -12,9 +12,9 @@ const double siteMeasure = 1080;
 /// A band of the page: a full width background, and its content measured to
 /// [siteMeasure] and centred.
 ///
-/// The page is a column of bands — the claim, the comparison, the catalogue, the
-/// vocabulary — so a band states its own background and its own vertical room, and
-/// nothing about where it sits.
+/// The page is a column of bands — the claim, the vocabulary, the catalogue — so a
+/// band states its own background and its own vertical room, and nothing about where
+/// it sits.
 UINode siteBand({
   required UINode child,
   BoxColor? background,

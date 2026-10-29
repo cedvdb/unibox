@@ -1,7 +1,6 @@
 # Maintaining Unibox
 
-The repository is built to be maintained by one person with a spare hour a month, and by
-an assistant working inside the same rules. This page is that hour: what runs on its own,
+The repository is built to be assisted with AI for maintenance. This page describes what runs on its own,
 what a human decides, and what to do when something is red.
 
 If you are an assistant asked to do maintenance work, read [`AGENTS.md`](AGENTS.md) first
@@ -12,7 +11,7 @@ routine below, and stop where it says a human decides.
 
 | | |
 | --- | --- |
-| `ci.yml` | format, analysis, every suite, the API docs and the performance budget, on every push and pull request |
+| `ci.yml` | format, analysis, every suite, the API docs, the performance budget and the scale benchmark, on every push and pull request |
 | `weekly.yml` | the same gate on a cold cache, every Monday — because a dependency, Chrome or a cached artefact can break a green branch with no commit behind it |
 | `pages.yml` | rebuilds and publishes the site on every push to `main` |
 | `dependabot.yml` | one grouped pull request a week for dependencies, one a month for actions; each runs the full gate like any other change |

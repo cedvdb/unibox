@@ -21,9 +21,10 @@ const String repositoryUrl = 'https://github.com/cedvdb/unibox';
 /// take a reader to, so a static document loses nothing it had.
 ///
 /// The order is the argument. The hero makes the claim, gives the three reasons for it, and
-/// settles them with two live renderings of one tree; the catalogue shows the design system
-/// both sides are drawn with. A reader who stops after the hero has seen the argument and
-/// its evidence, which is the whole of what this page is for.
+/// settles them with two live renderings of one tree; the vocabulary takes those renderings
+/// apart into the four nodes they never put a name to; and the catalogue closes the page with
+/// the design system every band above it is drawn with. A reader who stops after the hero has
+/// seen the argument and its evidence, which is the whole of what this page is for.
 UINode buildSitePage({
   required ShowcaseFrame frame,
   ExampleSeed seed = ExampleSeed.defaultSeed,
@@ -47,11 +48,13 @@ UINode buildSitePage({
         semantics: const BoxSemantics(element: BoxElement.main),
         children: <UINode>[
           buildHeroSection(frame: frame, seed: seed),
-          buildMaterialSection(seed: seed),
-          // The page ends on the vocabulary itself: every band above is drawn from
-          // these eleven nodes, and the last one says so by drawing the four it had
-          // not shown and naming them.
+          // The vocabulary follows the claim directly: the hero frames a whole tree, and
+          // these are the nodes it never names — drawn once, as one card, and taken apart
+          // in a list beside it.
           buildVocabularySection(seed: seed),
+          // The catalogue closes the page, because the design system is what every band
+          // above it is drawn with.
+          buildMaterialSection(seed: seed),
         ],
       ),
       _footer(palette),

@@ -339,6 +339,24 @@ void main() {
       expect(box.computedStyle.backgroundColor, BoxColor.black);
     });
 
+    test('finds a threshold in a bag as well as in a flat parameter', () {
+      // The renderer asks this of every child of every box, to know which box a container
+      // query belongs on, and it asks without resolving a style: a bag may state the
+      // threshold that a flat parameter does not.
+      expect(const Box().hasThreshold, isFalse);
+      expect(const Box(visibleFrom: 600).hasThreshold, isTrue);
+      expect(const Box(visibleUntil: 900).hasThreshold, isTrue);
+      expect(
+        const Box(styles: <BoxStyle>[BoxStyle(visibleFrom: 600)]).hasThreshold,
+        isTrue,
+      );
+      // ignore: deprecated_member_use_from_same_package
+      expect(
+        const Box(style: BoxStyle(visibleUntil: 900)).hasThreshold,
+        isTrue,
+      );
+    });
+
     test('takes no look at all from an empty list', () {
       expect(const Box(styles: <BoxStyle>[]).computedStyle.isEmpty, isTrue);
     });

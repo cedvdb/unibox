@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- A tree is written into one buffer instead of one per element, so its text is written once rather
+  than copied once per ancestor: a deeply nested page no longer costs its own depth squared.
 - `toDocument(alternates: …)`: the `hreflang` links that pair a page with its translations.
   A localised site is the same builder called with another value, and a translated copy of a
   page is not a competitor — it is the same page in another language — but a search engine can

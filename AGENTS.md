@@ -44,7 +44,7 @@ guide is [`README.md`](README.md).
 | `packages/unibox_core/lib/src/state/` | `Store` and `StateStore`: the state a `StatefulNode` draws and the lifecycle a renderer calls | a store member, the publish rule or a lifecycle rule changes |
 | `packages/*/test/support/` | the harnesses (`pumpNode`, `inNode`, `stylesOf`, ...) and `appearance.dart`, which reads the presentation back out of the output | a test needs a new fact |
 ======
-| `example/unibox_example_shared/` | the example as one `StatefulNode` (`ExamplePageNode`, `ExampleState`, `ExampleStore`) and the trees it is built from, the site as one page (`buildSitePage`) whose bands are the claim with the comparison inside it (`buildHeroSection`), the catalogue (`buildMaterialSection`) and the vocabulary that closes the page (`buildVocabularySection`), plus the palette grown from one seed | the example or the site content changes |
+| `example/unibox_example_shared/` | the example as one `StatefulNode` (`ExamplePageNode`, `ExampleState`, `ExampleStore`) and the trees it is built from, the site as one page (`buildSitePage`) whose bands are the claim with the comparison inside it (`buildHeroSection`), the vocabulary that names the nodes the page had not drawn (`buildVocabularySection`) and the catalogue that closes it (`buildMaterialSection`), plus the palette grown from one seed | the example or the site content changes |
 | `example/unibox_example_flutter/`, `example/unibox_example_html/` | hosts: the surface, the link policy, and the documents — never layout or state | the surface, a link or a document changes |
 | `README.md`, `design.md`, package READMEs | the user guide, the reasoning, the per-target mapping tables | public API or behaviour changes |
 | `AI_INSTRUCTIONS.md` | the consumer-facing counterpart: rules and a translation table for an assistant writing application code | a parameter is renamed or a default changes |
@@ -65,6 +65,8 @@ so the packages share one resolution.
 | Also build the API docs | `tool/verify.sh --docs` |
 | Every number: budgets, boot to frame, bytes | `tool/performance.sh` |
 | Accept today's numbers as the baseline | `tool/performance.sh --update` |
+| A big page: plan, stylesheet and text, against a baseline | `tool/scale.sh` |
+| Accept a new scale baseline, after reading the table | `tool/scale.sh --update` |
 | One suite, the fast loop | `(cd packages/unibox_html && dart test)` |
 | The monthly pass: gate, budget, site, the quoted numbers | `tool/maintenance.sh` |
 | Does the index point at files that exist? | `python3 tool/check_docs.py` |
@@ -380,6 +382,7 @@ and two when each side is independently reviewable.
 | Which Material type role should I use? | [`packages/unibox_material/README.md`](packages/unibox_material/README.md) |
 | What has to look the same on both? | [`packages/unibox_testing/README.md`](packages/unibox_testing/README.md) |
 | What is built, and what was deferred? | [`TASK_PLAN.md`](TASK_PLAN.md) |
+| What does a page with thousands of nodes cost? | [`PERFORMANCE.md`](PERFORMANCE.md) — the shapes measured and the baseline `tool/scale.sh` holds them to |
 | How do I build an application with this, as an assistant? | [`AI_INSTRUCTIONS.md`](AI_INSTRUCTIONS.md) — the consumer-facing file, written to be pasted into a context |
 | How do I contribute? | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
 | What does maintenance look like, and what runs on its own? | [`MAINTENANCE.md`](MAINTENANCE.md) |

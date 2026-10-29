@@ -30,7 +30,7 @@ void main() {
     test('draws the vocabulary as a picture and as the list of it', () {
       final String html = buildSiteDocument();
 
-      // The last band: one card, drawn from the nodes the page had not shown, and the
+      // The second band: one card, drawn from the nodes the page had not shown, and the
       // same card taken apart as text — which is the argument of the whole site.
       expect(html, contains('The whole vocabulary'));
       expect(html, contains('alt="A living room'));

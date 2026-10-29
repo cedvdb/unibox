@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- The page's stylesheet is written only when a publish has added a rule. A store that publishes
+  every frame — an ink ripple, a spinner — used to re-serialise and hand the browser a sheet that
+  could not have changed, which made the browser re-parse every rule on the page sixty times a
+  second.
+- A keyed list is matched through an index rather than by asking every element for its key, and an
+  adopted page is walked once rather than once per element: both were quadratic, and both happen
+  where the page is biggest.
 - A publish no longer dies on a shaped box: the class is written as an attribute, because an
   `<svg>`'s `className` is an object rather than a string, which threw and left the pass half
   applied.

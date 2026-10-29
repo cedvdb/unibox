@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `Box.hasThreshold`: whether a box is drawn at only some widths, read from the tokens without
+  resolving a style. A renderer asks it of every child of every box to know which box a container
+  query measures, and answering that by merging every bag was work per node for a question about
+  two tokens.
 - `UniboxTheme.colorScheme` (`BoxColorScheme.light` or `dark`, light unless stated): the scheme a
   theme's values are painted in. It is not a preference — it is the fact a `color-scheme`
   declaration states, so the browser paints its own chrome to match the page. No renderer reads
