@@ -34,8 +34,10 @@ import sys
 #
 # A page that *becomes an application* promises something smaller: the markup arrives first — so the
 # largest paint is real text, not a canvas — and what it costs afterwards is what an engine costs.
-# The budget is a floor rather than an aspiration: it catches a regression to "a blank canvas for
-# five seconds" without pretending a page that loads two megabytes is as fast as one that does not.
+# The budget is a floor rather than an aspiration, but it is drawn where the page actually is rather
+# than where it started: 90 / 0.9 s / 2.25 s / 333 ms when this was written, so 80 / 2.0 s / 3.5 s /
+# 600 ms leaves room for a slower runner and none for a page that stops painting before its engine
+# arrives — which is the regression the floor exists for.
 BUDGETS = {
     "document": {
         "performance": 95,
@@ -52,11 +54,11 @@ BUDGETS = {
         "total-blocking-time": 50,
     },
     "application": {
-        "performance": 55,
-        "first-contentful-paint": 2500,
-        "largest-contentful-paint": 4500,
+        "performance": 80,
+        "first-contentful-paint": 2000,
+        "largest-contentful-paint": 3500,
         "cumulative-layout-shift": 0.02,
-        "total-blocking-time": 700,
+        "total-blocking-time": 600,
     },
 }
 
