@@ -47,6 +47,11 @@
   produced in a server, in a build step, in a CLI, or compiled to JavaScript for a host
   whose backend is not Dart.
 
+- A `Box` that wears a shape is drawn: the layer, the outline and the clip come from
+  `unibox_element`, so a shaped box is the same silhouette on the web as in Flutter. The
+  appearance table cannot read an outline back — it compares tokens a value can describe — so the
+  markup is pinned by a renderer test instead.
+
 - The element plan, as a value: `ElementPlan` says which tag a node becomes, which
   attributes it carries, in what order, and which class it wears, without writing any
   markup. A string renderer writes it to HTML; a DOM renderer would build nodes from the

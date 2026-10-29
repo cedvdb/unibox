@@ -25,6 +25,12 @@
   selector, its declarations and an optional media condition, so a string renderer and a
   DOM renderer write the same rules two ways from one value.
 
+- A box can wear an outline instead of its rectangle: `cssShapePath`, `cssShapeClipPath` and
+  `cssShapeClipId` write a `BoxShape` as SVG path data, in the units it was authored in and, for
+  a clip, in bounding box units so one definition fits whatever element it is applied to. A
+  shaped box's declarations send its fill and stroke to the layer as custom properties — which
+  a state rule can paint — and replace its background, border, radius and shadow.
+
 - A stack is a relative grid whose single row is the height of the stack rather than of
   its content, so a list inside it scrolls instead of growing the document; each child
   gets a cell it cannot escape; a child placed by offsets or by an alignment takes no

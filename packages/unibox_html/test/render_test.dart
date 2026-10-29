@@ -472,6 +472,52 @@ void main() {
     });
   });
 
+  group('a shaped box', () {
+    // The appearance table reads tokens a value can describe, and an outline is not one of them:
+    // this is pinned here instead, at the renderer that writes it.
+    const core.BoxShape triangle = core.BoxShape(
+      viewBoxWidth: 10,
+      viewBoxHeight: 10,
+      commands: <core.BoxPathCommand>[
+        core.BoxPathMoveTo(0, 0),
+        core.BoxPathLineTo(10, 0),
+        core.BoxPathLineTo(5, 10),
+        core.BoxPathClose(),
+      ],
+    );
+
+    test('paints its outline in a layer over the box', () {
+      final String html = toHtml(const core.Box(shape: triangle));
+
+      expect(html, contains('<svg'));
+      expect(html, contains('viewBox="0 0 10 10"'));
+      expect(html, contains('preserveAspectRatio="none"'));
+      expect(html, contains('d="M0 0 L10 0 L5 10 Z"'));
+    });
+
+    test('sends the fill to the path, not to the element', () {
+      final String html = toHtml(
+        const core.Box(
+          shape: triangle,
+          backgroundColor: core.BoxColor(0xFF112233),
+        ),
+      );
+
+      expect(html, contains('--unibox-shape-fill:#112233'));
+      expect(html, contains('fill:var(--unibox-shape-fill'));
+      expect(html, isNot(contains('background-color:#112233')));
+    });
+
+    test('clips its content to the outline when it says to', () {
+      final String html = toHtml(
+        const core.Box(shape: triangle, overflow: core.Overflow.hidden),
+      );
+
+      expect(html, contains('clip-path:url(#unibox-shape-'));
+      expect(html, contains('clipPathUnits="objectBoundingBox"'));
+    });
+  });
+
   group('a node this renderer cannot draw', () {
     test('is reported instead of skipped', () {
       // A tree built for another target fails loudly rather than shipping a page with a

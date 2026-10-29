@@ -244,7 +244,7 @@ declarations replace its background, border, radius and shadow with the layer's 
   properties and, when it clips, the `clip-path`.
 - [x] **2. `unibox_element`**: a shaped box's plan carries the `<svg>` layer as its first child,
   and the throw goes away.
-- [ ] **3. `unibox_html`**: the writer needs nothing — the plan holds the layer — but the
+- [x] **3. `unibox_html`**: the writer needs nothing — the plan holds the layer — but the
   conformance suite gains a shaped case of its own, since the appearance table cannot read an
   outline back.
 - [ ] **4. Verify the merge**: seven suites, `dart doc`, and the shape on the example's page.
