@@ -1,6 +1,6 @@
 # unibox_css
 
-The CSS that two web renderers share.
+The CSS the web renders from.
 
 A token is a Dart value in `unibox_core`; CSS is text. This package is the single
 place where one becomes the other, so `unibox_html` and any renderer built on a web

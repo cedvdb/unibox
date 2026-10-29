@@ -37,7 +37,7 @@
   cancels what a user agent brings to a heading. An image is a block with an `object-fit`
   always stated, because an unset one lets a browser stretch the picture over its box.
 
-- A box, as both web renderers draw it: `boxDeclarations` states the flex container the
+- A box, as the web draws it: `boxDeclarations` states the flex container the
   model resolves to, the paint it names, the two floors a flex item needs, and the
   typography it installs for its subtree. `declaredOnly` emits only what the style
   states, which is what a state rule needs — a `:hover` rule that restated the layout

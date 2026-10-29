@@ -4,7 +4,7 @@
 
 Unibox is a Dart 3.13 workspace of six packages. `packages/unibox_core` holds the
 node tree and the design tokens and has no dependencies at all; `packages/unibox_css`
-holds the CSS both web renderers share, `packages/unibox_html` writes a document from the
+holds the CSS the web renders from, `packages/unibox_html` writes a document from the
 tree, and `packages/unibox_flutter` draws it as widgets; `packages/unibox_testing`
 holds the tables of expected presentation that both renderer suites are checked
 against, so the two renderings cannot drift apart silently; and
@@ -39,7 +39,7 @@ assumes you have read the README's node sections.
   defaults, validation. Pure Dart; never imports `dart:ui`, Flutter or a web framework.
 - [unibox_flutter](packages/unibox_flutter/README.md): the Flutter renderer
   (`renderFlutter`, `node.toWidget()`), node by node, with what differs from the web.
-- [unibox_css](packages/unibox_css/README.md): the CSS two web renderers share,
+- [unibox_css](packages/unibox_css/README.md): the CSS the web renders from,
   a token as a declaration, and the canonical text a class name is hashed from.
   Pure Dart, no dependencies.
 - [unibox_html](packages/unibox_html/README.md): the web renderer — a tree as a

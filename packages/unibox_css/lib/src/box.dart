@@ -3,7 +3,7 @@ import 'package:unibox_core/unibox_core.dart' as core;
 import 'declarations.dart';
 import 'values.dart';
 
-/// The declarations of a box, as both web renderers write them.
+/// The declarations of a box, as the web writes them.
 ///
 /// A box is a flex container that states only what the tree asked for, plus the two
 /// floors a flex item needs to behave like a Flutter child: `box-sizing: border-box`,
