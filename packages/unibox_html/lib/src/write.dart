@@ -8,8 +8,22 @@ import 'escape.dart';
 /// function escapes every attribute value and every piece of text a node carries, and the plan
 /// itself holds values. A DOM renderer sets the same values as properties, where no escaping
 /// exists to get wrong.
+///
+/// The tree is written into one buffer, depth first. A buffer per element would be a buffer
+/// per node and a `toString()` per node, and its parent would then copy that string into its
+/// own: the text of a leaf would be copied once for every level above it, which makes a deep
+/// page cost its own depth squared. One buffer writes each character once, wherever it sits.
 String writeElement(ElementPlan plan) {
-  final StringBuffer buffer = StringBuffer('<${plan.tag}');
+  final StringBuffer buffer = StringBuffer();
+
+  _write(plan, buffer);
+
+  return buffer.toString();
+}
+
+/// [plan] and everything inside it, appended to [buffer].
+void _write(ElementPlan plan, StringBuffer buffer) {
+  buffer.write('<${plan.tag}');
 
   if (plan.className != null) {
     buffer.write(' class="${escapeAttribute(plan.className!)}"');
@@ -22,7 +36,7 @@ String writeElement(ElementPlan plan) {
   if (_voidTags.contains(plan.tag)) {
     buffer.write('>');
 
-    return buffer.toString();
+    return;
   }
 
   buffer.write('>');
@@ -38,12 +52,10 @@ String writeElement(ElementPlan plan) {
   }
 
   for (final ElementPlan child in plan.children) {
-    buffer.write(writeElement(child));
+    _write(child, buffer);
   }
 
   buffer.write('</${plan.tag}>');
-
-  return buffer.toString();
 }
 
 /// The tags that hold no content and take no closing tag.
