@@ -31,7 +31,7 @@ expected appearance holds both renderers to the same answer.
 ## Contents
 
 - [How it works](#how-it-works)
-- [Two ways to serve a tree](#two-ways-to-serve-a-tree)
+- [Serving a tree](#serving-a-tree)
 - [Quick start](#quick-start)
 - [The handover](#the-handover-in-code)
 - [The nodes](#the-nodes)
@@ -86,36 +86,33 @@ What the description does *not* contain is what only your application knows — 
 is, what a tap does, what the document is called. Those are the host's; see
 [what the host owns](#what-the-host-owns).
 
-## Two ways to serve a tree
+## Serving a tree
 
-### The server renders it, the Flutter app takes over
+Two ways, and the difference is what answers a press.
 
-The server renders the tree as a **read-only page** — HTML and CSS, every word and link
-in it, which is what a crawler reads and what a visitor sees before anything loads. The
-Flutter app then takes that page over and draws the same screen from the same tree. The
-visitor gets one screen, not two versions of it: the markup and the app come from one
-description, so they cannot disagree.
+### The server writes the document, and Flutter takes it over
 
-The handover is a repaint, because Flutter can only draw into a canvas — expect a brief
-flash. That is a fine trade when the page really is the app and the visitor is about to
-use it.
+The server renders the tree as a **read-only page** — HTML and CSS, every word and link in it,
+which is what a crawler reads and what a visitor sees before anything loads. The Flutter app then
+boots into that page and draws the same screen from the same tree, so the visitor gets one screen
+rather than two versions of one.
 
-### The page draws itself
+The handover is a repaint, because Flutter draws into a canvas: expect a brief flash. That is a
+fine trade when the page really is the app and the visitor is about to use it.
 
-The same tree is written by `unibox_html` and made live by `unibox_dom`: one small bundle,
-compiled from Dart with `dart compile js`, which **adopts** the markup the server wrote — the same
-elements, the same classes — and keeps it in step with the stores the tree created. A press runs
-the same Dart closure the Flutter host would have run, and there is no engine on the page.
+**Two things cross the handover**, so a reader does not start again:
 
-Because it adopts rather than repaints, a reader who has already scrolled keeps their place, and
-the page a crawler reads and the page a reader uses are one file. Without the script it is still a
-document: the markup stands on its own and nothing in it needs the runtime, which is also why a
-static host can serve it — a document is a string, and a build step writes the files.
+- **The scroll.** Every region the tree keyed records where it was scrolled to, and the scroll view
+  that carries the same key starts at that offset as its *initial* position — in place at the first
+  layout, not after a correction, and a rebuild does not move the reader back. A record for another
+  key is ignored: moving whichever region happens to scroll is how the wrong list jumps.
+- **The presses.** The page records what was pressed, on which element and where, and the app
+  replays them against the first view the node builds — the only place their callbacks exist,
+  because a view is a function of the store that is created when the widget mounts. A press whose
+  key matches no node, two nodes, or a node with no behaviour is dropped rather than guessed at:
+  firing whatever is nearby is how the wrong control goes off.
 
-### The handover, in code
-
-Two lines, one on each side. The server needs a `Takeover`, the application needs the record it
-leaves:
+Two lines, one on each side:
 
 ```dart
 // the server: a document, and the bundle prefetched behind it
@@ -140,51 +137,24 @@ void main() => runApp(
 travel with the boot, and the boot starts on a signal. Written by hand it was three arguments in
 two spellings, and swapping two of them shipped a page that booted on a cold cache.
 
-**The scroll comes back** as the scroll view's *initial* position, so a region is in place at the
-first layout rather than after a correction, and a rebuild does not move the reader back. A record
-whose key is not this box is ignored: moving whichever region happens to scroll is how the wrong
-list jumps.
+What the record cannot do is make a document interactive on its own. It carries a reader's *intent*
+across the handover; the application is still what answers it.
 
-**A press is data, and it is answered once.** `FlutterStateful(presses: …)` replays them against
-the first view the node builds, which is the only place their callbacks exist — a view is a
-function of the store, and the store is created when the widget mounts. A key that matches no
-node, two nodes, or a node with no behaviour is dropped rather than guessed at: firing whatever is
-nearby is how the wrong control goes off.
+### The page draws itself
 
-What the record cannot do is make a document interactive on its own. It carries a reader's
-*intent* across the handover; the application is still what answers it.
+The same tree is written by `unibox_html` and made live by `unibox_dom`: one small bundle, compiled
+from Dart with `dart compile js`, which **adopts** the markup the server wrote — the same elements,
+the same classes — and keeps it in step with the stores the tree created. A press runs the same Dart
+closure the Flutter host would have run, and there is no engine on the page.
 
-### What stays Flutter
+Because it adopts rather than repaints, a reader who has already scrolled keeps their place, and the
+page a crawler reads and the page a reader uses are one file. Without the script it is still a
+document: the markup stands on its own and nothing in it needs the runtime, which is also why a
+static host can serve it — a document is a string, and a build step writes the files.
 
-Only the screens that have to be found need either strategy. The rest of an application
-stays ordinary Flutter, screen for screen: a settings page or an internal tool gains
-nothing from being indexable, and nothing here asks it to change.
-
-A page that has to work on a phone is written to fold rather than to a fixed width:
-`GridNode` drops columns as the window narrows, and every page of this site fits a
-375-pixel screen.
-
-### What a crawler sees
-
-The same screen, built twice by `tool/site.sh`. `tool/seo_report.py` counts what a
-search engine reads, so the numbers can be re-run rather than taken on trust:
-
-```shell
-tool/site.sh
-python3 tool/seo_report.py build/site
-```
-
-| Document | Words | `h1` | `h2` | Links | Fields | Bytes |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| HTML `/` | 465 | 1 | 2 | 10 | 2 | 138 927 |
-| HTML `/web/listings/` | 132 | 1 | 0 | 1 | 0 | 60 563 |
-| **Flutter `/flutter/listings/`** | **4** | **0** | **0** | **0** | **0** | **772** |
-
-The last row is the point. The Flutter build of the screen in the picture is a document
-with a `<title>` and a canvas host: four words, no heading, no link, nothing to index.
-`/web/listings/` is that same screen as a tree, and it is the same Dart. The first row is
-this site as one page — 433 words of text, an `h1`, an `h2` for the comparison and one for
-the catalogue, every component written as markup.
+Only the screens that have to be found need either way. The rest of an application stays ordinary
+Flutter, screen for screen: a settings page or an internal tool gains nothing from being
+indexable, and nothing here asks it to change.
 
 ## Quick start
 
@@ -1044,13 +1014,18 @@ dart analyze                                     # static analysis everywhere
 (cd packages/unibox_css && dart test)
 (cd packages/unibox_element && dart test)
 (cd packages/unibox_html && dart test)
+(cd packages/unibox_dom && dart test -p chrome)
 (cd packages/unibox_flutter && flutter test)
 (cd example/unibox_example_shared && dart test)
 (cd example/unibox_example_html && dart test)
 (cd example/unibox_example_flutter && flutter test)
 ```
 
-`tool/verify.sh` runs the format check, the analysis and all seven suites in that
+`python3 tool/seo_report.py build/site` counts what a search engine reads in the site's
+documents — words, headings, links, fields and bytes — so the claim can be re-run rather than
+taken on trust.
+
+`tool/verify.sh` runs the format check, the analysis and all eleven suites in that
 order, which is the command to reach for before a commit; `--fast` stops after the
 analysis, `--fix` formats the tree first and `--docs` adds the API docs of every
 package.
