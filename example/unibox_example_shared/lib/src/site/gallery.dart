@@ -571,19 +571,20 @@ final class TabsDemo extends StatefulNode<TabsDemoState, TabsDemoStore> {
   TabsDemo._({required super.view}) : super(create: TabsDemoStore.new);
 }
 
-/// Which tab is chosen, and how wide one page is.
+/// Which tab is chosen, and how wide the tab view is.
 ///
 /// The width is state because it is what turns an offset into a page: a pager reports pixels, and
-/// the bar speaks in indices, so something has to know the divisor. Here, because the demo draws
-/// pages of a fixed size.
+/// the bar speaks in indices, so something has to know the divisor. Here, because the demo draws a
+/// table of a fixed size — the bar, the pager and every page are the same width, which is what puts
+/// the page under the tab that shows it and leaves no strip of view narrower than the bar above it.
 final class TabsDemoState {
-  /// Creates a state showing page [selected], with pages [pageWidth] wide.
-  const TabsDemoState({this.selected = 0, this.pageWidth = 240});
+  /// Creates a state showing page [selected], in a view [pageWidth] wide.
+  const TabsDemoState({this.selected = 0, this.pageWidth = 720});
 
   /// The index of the chosen tab, which is also the page the pager shows.
   final int selected;
 
-  /// How wide one page is, in logical pixels.
+  /// How wide one page, and the bar above it, is in logical pixels.
   final double pageWidth;
 
   @override
@@ -662,7 +663,11 @@ UINode _tabsView(
   ];
 
   return Box(
-    width: double.infinity,
+    // The bar is as wide as the page under it, which is the width the demo states: a page has to
+    // be a number in the tree for the pager to land on one, so the bar is given that number too
+    // rather than the whole section. Stretched instead, the bar was 1080 pixels and the page 720,
+    // and the view under the tabs read as a narrower strip than the row above it.
+    width: state.pageWidth,
     gap: 16,
     children: <UINode>[
       MaterialTabBar(
@@ -698,11 +703,17 @@ UINode _tabsView(
   );
 }
 
-/// One page of the tab demo: a line of text on the surface the band is drawn on.
+/// One page of the tab demo: a line of text on a surface of its own.
+///
+/// It paints a fill and a hairline rather than sitting on whatever is behind it, because a page
+/// whose extent is invisible is a page a reader cannot place: the outline says where the view
+/// under the tabs begins and ends, and shows that it is exactly as wide as the row above it.
 UINode _page(MaterialPalette palette, String text) {
   return Box(
     width: double.infinity,
     padding: const BoxSpacing.all(20),
+    backgroundColor: palette.surfaceContainerLow,
+    border: BoxBorder(color: palette.outlineVariant),
     children: <UINode>[
       TextNode(
         text,
