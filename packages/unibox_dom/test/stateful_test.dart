@@ -255,6 +255,56 @@ void main() {
       view.dispose();
     });
 
+    test('activates a control from the keyboard', () {
+      // A box with a role is in the tab order, so it has to answer the keys a button answers:
+      // `Enter` on the way down and `Space` on the way up, the way Flutter's renderer does.
+      int taps = 0;
+      final web.HTMLDivElement element = host();
+      final DomView view = DomView.mount(
+        core.Box(
+          semantics: const core.BoxSemantics(role: core.BoxRole.button),
+          onTap: () => taps++,
+          children: <core.UINode>[const core.TextNode('Save')],
+        ),
+        element,
+      );
+      final web.Element box = element.children.item(0)!;
+
+      box.dispatchEvent(
+        web.KeyboardEvent('keydown', web.KeyboardEventInit(key: 'Enter')),
+      );
+      expect(taps, 1);
+
+      box.dispatchEvent(
+        web.KeyboardEvent('keydown', web.KeyboardEventInit(key: ' ')),
+      );
+      expect(taps, 1, reason: 'Space fires on the way up');
+
+      box.dispatchEvent(
+        web.KeyboardEvent('keyup', web.KeyboardEventInit(key: ' ')),
+      );
+      expect(taps, 2);
+
+      view.dispose();
+    });
+
+    test('reports the focus a field gains and loses', () {
+      final List<bool> focus = <bool>[];
+      final web.HTMLDivElement element = host();
+      final DomView view = DomView.mount(
+        core.TextInputNode(onFocusChanged: focus.add, key: 'field'),
+        element,
+      );
+      final web.HTMLElement field = at(element, 'field') as web.HTMLElement;
+
+      field.focus();
+      field.blur();
+
+      expect(focus, <bool>[true, false]);
+
+      view.dispose();
+    });
+
     test('follows a link only when the tree says what a press means', () {
       bool followed = false;
       final web.HTMLDivElement element = host();

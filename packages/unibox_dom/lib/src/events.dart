@@ -45,6 +45,10 @@ List<void Function()> bindNode(core.UINode node, web.Element element) {
         _bindLongPress(on, onLongPress);
       }
 
+      if (box.isInteractive && box.onTap != null) {
+        _bindActivationKey(on, box.onTap!);
+      }
+
       if (box.onHover case final core.HoverCallback onHover) {
         // `enter` and `leave` rather than `over` and `out`: those two fire for every child the
         // pointer crosses, so a control made of several boxes would report a hover dozens of times
@@ -81,6 +85,14 @@ List<void Function()> bindNode(core.UINode node, web.Element element) {
         });
       }
 
+      if (field.onFocusChanged
+          case final core.FocusChangedCallback onFocusChanged) {
+        // `focus` and `blur` rather than their bubbling twins: an input is one element, so the pair
+        // that fires on it is the whole story.
+        on('focus', (web.Event event) => onFocusChanged(true));
+        on('blur', (web.Event event) => onFocusChanged(false));
+      }
+
       if (field.onSubmitted case final core.TextSubmittedCallback onSubmitted) {
         on('keydown', (web.Event event) {
           final web.KeyboardEvent key = event as web.KeyboardEvent;
@@ -99,6 +111,44 @@ List<void Function()> bindNode(core.UINode node, web.Element element) {
   }
 
   return undo;
+}
+
+/// Activates a box from the keyboard, the way Flutter does it.
+///
+/// `Enter` fires on the way down and `Space` on the way up, which is what a button does everywhere.
+/// `Space` has to be cancelled on the way down as well, or the page scrolls under the reader while
+/// they are pressing a control.
+void _bindActivationKey(
+  void Function(String type, void Function(web.Event event) handler) on,
+  core.TapCallback onTap,
+) {
+  bool held = false;
+
+  on('keydown', (web.Event event) {
+    final web.KeyboardEvent key = event as web.KeyboardEvent;
+
+    if (key.key == 'Enter') {
+      event.preventDefault();
+      onTap();
+
+      return;
+    }
+
+    if (key.key == ' ') {
+      // The default of Space on a focused element is a page of scrolling.
+      event.preventDefault();
+      held = true;
+    }
+  });
+
+  on('keyup', (web.Event event) {
+    final web.KeyboardEvent key = event as web.KeyboardEvent;
+
+    if (key.key == ' ' && held) {
+      held = false;
+      onTap();
+    }
+  });
 }
 
 /// A press held long enough is a long press, and the click it would have become is swallowed.
