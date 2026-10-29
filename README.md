@@ -131,9 +131,9 @@ with no engine and no repaint.
 This site's whole client — renderer, stores and trees — is 67 KB gzipped. Its Flutter build is
 718 KB before Canvaskit.
 
-The cost is the converse: an interaction has to exist as a node, so a dialog is a node in the tree
-rather than a widget only the app can draw. A filter and a reorder are nodes too. What Flutter
-alone can draw stays in the app, and the screens that do not have to be found stay ordinary Flutter.
+The price is that an interaction has to exist as a node: a dialog is a node in the tree, not a
+widget only the app can draw. A filter and a reorder are nodes too. What Flutter alone can draw
+stays in the app, and the screens that do not have to be found stay ordinary Flutter.
 
 ### In several languages — one document per language
 
