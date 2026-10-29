@@ -31,6 +31,8 @@ jobs:
         run: dart format --output=none --set-exit-if-changed .
       - name: Analyze every package
         run: dart analyze
+      - name: Check that the documentation points at files that exist
+        run: python3 tool/check_docs.py
 
   test:
     name: Test

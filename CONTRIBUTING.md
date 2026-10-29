@@ -50,6 +50,10 @@ tool/verify.sh                           # the gate, before a commit
 public member or a README: a `dart doc` warning fails CI, and prose like `[Box]` instead
 of `` `Box` `` is the usual cause.
 
+The fast loop also runs `python3 tool/check_docs.py`, which fails when a document links to
+a file that is not there or a package is missing its README or changelog. If you moved a
+file, that check tells you what still says the old name.
+
 ## What "done" means
 
 A change is finished when all of these are true. Half of a change is not a smaller

@@ -73,6 +73,8 @@ coding agent needs are in [AGENTS.md](AGENTS.md), and a human contributing needs
 
 - [CONTRIBUTING.md](CONTRIBUTING.md): setup, the fast loop, what "done" means for a token
   or a node, the commit convention, and what is out of scope.
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md): the Contributor Covenant in short, and where a
+  report goes.
 - [MAINTENANCE.md](MAINTENANCE.md): what runs on its own (CI, the weekly gate,
   Dependabot), the monthly hour, what a human decides, and the prompt that hands a
   maintenance task to an assistant.
@@ -92,6 +94,8 @@ coding agent needs are in [AGENTS.md](AGENTS.md), and a human contributing needs
 
 ## Optional
 
+- [CLAUDE.md](CLAUDE.md): the three-page pointer a Claude Code session reads, which forwards
+  to [AGENTS.md](AGENTS.md) rather than repeating it.
 - [analysis_options.yaml](analysis_options.yaml): the strict analyzer settings and
   the enabled lints.
 - [packages/unibox_core/CHANGELOG.md](packages/unibox_core/CHANGELOG.md),

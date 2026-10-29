@@ -5,7 +5,7 @@
 # never described as done before it has been run.
 #
 # Usage:
-#   tool/verify.sh            format check, analysis, every test suite
+#   tool/verify.sh            format check, analysis, the documentation check, every suite
 #   tool/verify.sh --fast     format check and analysis only
 #   tool/verify.sh --fix      format the tree, then verify
 #   tool/verify.sh --docs     also build the API docs of every package
@@ -57,6 +57,12 @@ fi
 
 step 'Analyzing'
 dart analyze || fail 'dart analyze'
+
+# Cheaper than the suites and worth more than most of them: an index that points at a
+# renamed file sends a reader -- or an assistant, which believes indexes -- into a package
+# that is gone.
+step 'Checking the documentation'
+python3 tool/check_docs.py || fail 'tool/check_docs.py'
 
 if [ "$run_tests" -eq 1 ]; then
   # `dart test` for the pure Dart packages, `flutter test` for the two that build

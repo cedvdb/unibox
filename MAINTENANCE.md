@@ -16,6 +16,7 @@ routine below, and stop where it says a human decides.
 | `weekly.yml` | the same gate on a cold cache, every Monday — because a dependency, Chrome or a cached artefact can break a green branch with no commit behind it |
 | `pages.yml` | rebuilds and publishes the site on every push to `main` |
 | `dependabot.yml` | one grouped pull request a week for dependencies, one a month for actions; each runs the full gate like any other change |
+| `tool/check_docs.py` | runs in the fast loop, so a renamed file cannot leave an index pointing at nothing |
 
 Nothing merges itself. A dependency bump is a change: `packages/unibox_testing` compares
 the two renderings, so a version that changes what a box looks like fails the gate before
