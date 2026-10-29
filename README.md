@@ -56,41 +56,43 @@ the document and the application.
 
 ## How it works
 
-A screen is a tree of eleven immutable node types — boxes and texts, images, links,
-stacks, grids, inputs, overlays, state, embeds — whose style values are `const` objects of
-their own. Nothing in the description names a framework: no widget, no HTML tag.
+A screen is a `Box` with children. Each child is another node — a text, an image, a link, a grid,
+a stack — and every node is an immutable Dart object. Nothing in the description mentions Flutter
+or HTML: no widget, no tag, no stylesheet.
 
 ```dart
 final page = Box(
-  gap: 12,
   padding: BoxSpacing.all(16),
+  gap: 12,
   children: <UINode>[
     TextNode('Apartments', fontSize: 24, fontWeight: FontWeight.bold),
     GridNode(minItemWidth: 380, children: listings),
   ],
 );
 
-runApp(MaterialApp(home: page.toWidget()));              // Flutter: widgets
-final html = toDocument(page, title: 'Apartments');     // the web: a document
+runApp(MaterialApp(home: page.toWidget()));           // Flutter draws it as widgets
+final html = toDocument(page, title: 'Apartments');  // the web reads it as a page
 ```
 
-Three rules keep the two drawings the same screen:
+Two functions, one tree. `toWidget()` builds the widgets; `toDocument()` writes the page and its
+head. Which one you call is the only decision, and the tree is the same either way.
 
-- **Defaults belong to the model.** An unset `direction` is a column and unset text is
-  `BoxTextStyle.defaults`, because the hosts disagree about the answer — 14 logical
-  pixels of black in Flutter, 16 pixels of `canvastext` in a browser.
-- **A renderer is thin, and knows nothing of the other.** One file per node, and a token
+Three rules keep the two drawings equal:
+
+- **The model decides the defaults.** A box with no direction is a column, a text with no size is
+  16, and both targets are told so. Their own defaults disagree — 14 pixels of black in Flutter,
+  16 of `canvastext` in a browser — so neither is allowed to answer.
+- **A renderer only translates.** One file per node, no knowledge of the other target, and a token
   means the same value on both sides.
-- **Parity is tested, not promised.** [`unibox_testing`](packages/unibox_testing) writes
-  down what each token looks like, both suites read that appearance back out of their own
-  output, and a renderer that drifts fails its own suite.
+- **A test compares the two.** [`unibox_testing`](packages/unibox_testing) records what each token
+  looks like; both suites read that appearance back out of their own output, so a renderer that
+  drifts fails its own test.
 
-Neither target wraps the other. On a phone the tree is drawn by Flutter's own widgets, in
-a browser the same tree is markup and CSS: there is no WebView in the arrangement, and no
-second document to keep in step.
+Neither target wraps the other: on a phone the tree is Flutter widgets, in a browser it is markup
+and CSS, and there is no WebView between them.
 
-What the description does *not* contain is what only a host can know: how wide the window
-is, what a tap does, and what the surrounding document is called — see
+What the description does *not* contain is what only your application knows — how wide the window
+is, what a tap does, what the document is called. Those are the host's; see
 [what the host owns](#what-the-host-owns).
 
 ## Two ways to serve a tree
