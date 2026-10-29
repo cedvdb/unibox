@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:unibox_core/unibox_core.dart' show BoxPress, BoxScrollOffset;
+import 'package:unibox_core/unibox_core.dart'
+    show BoxColorScheme, BoxPress, BoxScrollOffset, UniboxTheme;
 import 'package:unibox_example_shared/unibox_example_shared.dart';
 import 'package:unibox_flutter/unibox_flutter.dart';
 
@@ -79,11 +80,22 @@ class _ExampleAppState extends State<ExampleApp> {
 
   @override
   Widget build(BuildContext context) {
+    // The scheme is not guessed from the phone: the theme the tree is drawn with has already said
+    // which one it is, and `ThemeData` is told the same fact. Without it the parts Material still
+    // draws for us — the caret, the selection, a field's scrollbars — would follow the system
+    // while the page around them stayed light.
+    final UniboxTheme uniboxTheme = ExamplePalette.themeFor(_seed);
+
     return MaterialApp(
       title: 'Unibox example',
       // The family the pubspec bundles, so the tree is drawn with the same four
       // files the site ships: a weight means the same thing on both renderings.
-      theme: ThemeData(fontFamily: fontFamily),
+      theme: ThemeData(
+        fontFamily: fontFamily,
+        brightness: uniboxTheme.colorScheme == BoxColorScheme.dark
+            ? Brightness.dark
+            : Brightness.light,
+      ),
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         // Read once, as the controller's initial position, so a region is where the
@@ -98,7 +110,7 @@ class _ExampleAppState extends State<ExampleApp> {
             // force — and two places saying it is the only way the mark can lie.
             child: FlutterStateful(
               node: ExamplePageNode(seed: _seed),
-              theme: ExamplePalette.themeFor(_seed),
+              theme: uniboxTheme,
               // The presses are answered by the node that owns the callbacks, once.
               presses: widget.presses,
             ),

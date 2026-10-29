@@ -4,10 +4,17 @@ import 'package:unibox_material/unibox_material.dart';
 /// The colour roles of the example.
 ///
 /// A role is what a tree names; the palette below says what it is worth. Keeping
-/// the two apart is what lets a host restyle the page — the exported document
-/// overrides three of these roles in a `prefers-color-scheme: dark` block — and it
-/// is why the same names are readable from CSS (`--unibox-color-canvas`) and from
+/// the two apart is what lets a host restyle the page without touching the tree, and
+/// it is why the same names are readable from CSS (`--unibox-color-canvas`) and from
 /// the Flutter theme built from this palette.
+///
+/// The example is **light, and says so**: the theme carries its scheme, so the
+/// document writes `color-scheme: light` and the Flutter host tells `ThemeData` the
+/// same fact. Following the reader would be one block in a host —
+/// `@media (prefers-color-scheme: dark)` over every role of
+/// `MaterialPalette.fromSeed(seed, isDark: true)` — and the example does not write
+/// it, because the page is drawn twice and two frames that disagree about the scheme
+/// break the comparison it exists to make.
 enum ExampleColor {
   /// The accent of the banner, the button and the checkbox.
   accent,

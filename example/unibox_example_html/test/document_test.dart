@@ -33,10 +33,14 @@ void main() {
       );
     });
 
-    test('lets a dark browser outrank the tree', () {
-      // A host keeps the last word: the tree says "the canvas role", and this block says what
-      // that role is worth in a dark browser.
-      expect(buildExampleDocument(), contains('(prefers-color-scheme: dark)'));
+    test('says it is a light page, and leaves the reader alone', () {
+      // A statement, not a preference: the browser paints its scrollbars and its caret to match
+      // the page. The example never follows the system, because it is drawn twice — a document
+      // and a Flutter build — and two frames that disagree about the scheme break its one claim.
+      final String document = buildExampleDocument();
+
+      expect(document, contains('color-scheme:light'));
+      expect(document, isNot(contains('prefers-color-scheme')));
     });
 
     test('gives the page box a height to fill', () {
