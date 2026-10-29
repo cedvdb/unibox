@@ -259,6 +259,19 @@ void _patchSelf(web.Element element, ElementPlan previous, ElementPlan next) {
     }
   });
 
+  // A field's value is a *property*, and setting the attribute of one a reader has typed in changes
+  // nothing they can see: the attribute is the default, the property is the value. A store that
+  // clears a form has to reach the property, or the box says one thing and the page shows another.
+  if (next.attributes['value'] case final String value) {
+    if (element case final web.HTMLInputElement input
+        when input.value != value) {
+      input.value = value;
+    } else if (element case final web.HTMLTextAreaElement area
+        when area.value != value) {
+      area.value = value;
+    }
+  }
+
   // A plan holds text, or markup, or children — never two of them.
   if (next.raw != null) {
     if (next.raw != previous.raw) {

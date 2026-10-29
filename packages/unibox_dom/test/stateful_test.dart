@@ -339,6 +339,28 @@ void main() {
       view.dispose();
     });
 
+    test('clears a field when the store says the value changed', () {
+      // The attribute of a field is its default and its property is what a reader sees, so a store
+      // that resets a form has to reach the property: otherwise the box says empty and the page
+      // still shows the old text.
+      final web.HTMLDivElement element = host();
+      final Form node = Form();
+      final DomView view = DomView.mount(node, element);
+      final web.HTMLInputElement field =
+          at(element, 'field') as web.HTMLInputElement;
+
+      field.value = 'ada';
+      field.dispatchEvent(web.Event('input', web.EventInit(bubbles: true)));
+      expect(field.value, 'ada');
+
+      final FormStore store = FormStore.last!;
+      store.clear();
+
+      expect(field.value, '');
+
+      view.dispose();
+    });
+
     test('follows a link only when the tree says what a press means', () {
       bool followed = false;
       final web.HTMLDivElement element = host();
@@ -396,6 +418,32 @@ final class Press extends core.StatefulNode<int, PressStore> {
               core.Box(key: 'drop$i', children: const <core.UINode>[]),
             core.TextNode('presses ${state % 100}', key: 'label'),
           ],
+        ),
+      );
+}
+
+/// A field a store owns: it can be typed into, and cleared from elsewhere.
+final class FormStore extends core.StateStore<String> {
+  FormStore() : super('') {
+    last = this;
+  }
+
+  /// The store the view created, for a test that has to reach into it.
+  static FormStore? last;
+
+  void set(String value) => state = value;
+
+  void clear() => state = '';
+}
+
+final class Form extends core.StatefulNode<String, FormStore> {
+  Form()
+    : super(
+        create: FormStore.new,
+        view: (String value, FormStore store) => core.TextInputNode(
+          key: 'field',
+          value: value,
+          onChanged: store.set,
         ),
       );
 }
