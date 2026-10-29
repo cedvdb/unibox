@@ -45,6 +45,14 @@ List<void Function()> bindNode(core.UINode node, web.Element element) {
         _bindLongPress(on, onLongPress);
       }
 
+      if (box.onHover case final core.HoverCallback onHover) {
+        // `enter` and `leave` rather than `over` and `out`: those two fire for every child the
+        // pointer crosses, so a control made of several boxes would report a hover dozens of times
+        // and end it while the pointer is still inside.
+        on('pointerenter', (web.Event event) => onHover(true));
+        on('pointerleave', (web.Event event) => onHover(false));
+      }
+
     case final core.LinkNode link when link.onTap != null:
       // The link is a real `href`, so a page without a runtime still follows it. With one, the
       // press is the tree's and the browser does not load the document as well.

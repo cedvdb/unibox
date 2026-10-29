@@ -235,6 +235,26 @@ void main() {
       view.dispose();
     });
 
+    test('reports a hover, and ends it when the pointer leaves', () {
+      // The material navigation bar lights the pill of the destination under the pointer, and the
+      // pointer is over the share while the pill is a layer below it — so the hover is state, and a
+      // renderer that binds no `onHover` leaves that light dead.
+      final List<bool> hovers = <bool>[];
+      final web.HTMLDivElement element = host();
+      final DomView view = DomView.mount(
+        core.Box(width: 100, height: 48, onHover: hovers.add),
+        element,
+      );
+
+      final web.Element box = element.children.item(0)!;
+      box.dispatchEvent(web.PointerEvent('pointerenter'));
+      box.dispatchEvent(web.PointerEvent('pointerleave'));
+
+      expect(hovers, <bool>[true, false]);
+
+      view.dispose();
+    });
+
     test('follows a link only when the tree says what a press means', () {
       bool followed = false;
       final web.HTMLDivElement element = host();
