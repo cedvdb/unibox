@@ -172,7 +172,7 @@ dependencies:
 // Flutter
 runApp(MaterialApp(home: tree.toWidget()));
 
-// the web: a page a crawler reads, and the app takes over
+// the web: a page a crawler reads, and a reader acts on
 final String page = toDocument(tree, title: 'My page');
 ```
 

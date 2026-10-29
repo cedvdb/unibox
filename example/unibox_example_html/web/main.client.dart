@@ -1,3 +1,4 @@
+import 'package:unibox_core/unibox_core.dart' as core;
 import 'package:unibox_dom/unibox_dom.dart';
 import 'package:unibox_example_html/site/site_document.dart';
 import 'package:unibox_example_shared/unibox_example_shared.dart';
@@ -13,6 +14,16 @@ import 'package:web/web.dart' as web;
 /// The catalogue is why this exists: its chips, its segmented button and its dialog are a store
 /// each, and a store needs a runtime. Here it is, at a fraction of an engine: the same Dart closures
 /// the Flutter host would call.
+/// Which tree a page draws. The document says so in its head, so one bundle serves both: a page that
+/// names `example` gets the example, and one that names `site` gets the site.
+String _pageName() {
+  final web.Element? meta = web.document.querySelector(
+    'meta[name="unibox-page"]',
+  );
+
+  return meta?.getAttribute('content') ?? 'site';
+}
+
 void main() {
   final web.Element? root = web.document.body?.firstElementChild;
 
@@ -21,12 +32,21 @@ void main() {
     return;
   }
 
-  // The palette a reader chose is in the address, because the picker is a row of links: the
-  // export writes the default one, and this is what answers the address with another. The
-  // rendered tree differs only in the roles it resolves, so adopting it patches the custom
-  // properties and the few elements that name a colour directly — the page a reader is looking
-  // at stays the page they were looking at.
+  // The palette a reader chose is in the address, because the picker is a row of links: the export
+  // writes the default one, and this is what answers the address with another.
   final ExampleSeed seed = seedFromQuery(web.window.location.search);
 
-  DomView.adopt(sitePageTree(seed: seed), root, theme: siteThemeFor(seed));
+  // Two pages, one bundle: the site (the claim and the catalogue) and the example (the listings and
+  // the sign-up dialog). Which one this is, the document says — no path is sniffed.
+  final core.UINode tree = _pageName() == 'example'
+      ? ExamplePageNode(seed: seed)
+      : sitePageTree(seed: seed);
+
+  DomView.adopt(
+    tree,
+    root,
+    theme: _pageName() == 'example'
+        ? ExamplePalette.themeFor(seed)
+        : siteThemeFor(seed),
+  );
 }

@@ -92,21 +92,21 @@ void main() {
       expect(buildExampleDocument(), isNot(contains('unibox-build')));
     });
 
-    test(
-      'downloads the bundle while the reader reads, and boots it on intent',
-      () {
-        final String html = buildExampleDocument();
-
-        expect(html, contains('rel="prefetch" href="../../flutter/app.js"'));
-        expect(html, contains('unibox.boot'));
-      },
-    );
-
-    test('records what the reader did, so the application can pick it up', () {
+    test('carries the client rendering, and starts no application', () {
+      // The page a reader acts on is the page a crawler read: a document that runs itself. Nothing
+      // here downloads Flutter, so an inspector sees markup and a press is answered by the client.
       final String html = buildExampleDocument();
 
-      expect(html, contains('unibox.takePressed'));
-      expect(html, contains('unibox.takeScroll'));
+      expect(html, contains('src="../main.client.js"'));
+      expect(html, isNot(contains('unibox.boot')));
+      expect(html, isNot(contains('flutter/app.js')));
+    });
+
+    test('says which tree it draws, so one bundle serves both pages', () {
+      expect(
+        buildExampleDocument(),
+        contains('<meta name="unibox-page" content="example">'),
+      );
     });
   });
 }

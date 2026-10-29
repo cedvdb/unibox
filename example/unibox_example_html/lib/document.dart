@@ -35,12 +35,19 @@ String buildExampleDocument({String? build}) {
     description:
         'Six apartments with a map beside the listings on a wide screen and the '
         'listings alone on a narrow one, from the same node tree.',
-    meta: <String, String>{'unibox-build': ?build},
+    meta: <String, String>{'unibox-build': ?build, 'unibox-page': 'example'},
     theme: ExamplePalette.themeFor(ExampleSeed.defaultSeed),
     head: <String>['<style>${fontFaceCss('../../')}$pageCss</style>'],
-    // One argument: the bundle is prefetched, the recorders travel with the boot, and the boot
-    // waits for a signal. The example is the application's front door, so the default policy fits.
-    takeover: const Takeover(boot: boot),
+    // A document that runs itself rather than one that becomes an application. The client renderer
+    // adopts this markup and keeps it: a reader acts on real elements — the same ones a crawler
+    // read — and Flutter is nowhere on the page. That is the difference worth showing, and it is
+    // also what makes the comparison honest: the left frame is HTML before and after a press.
+    scripts: const <DocumentScript>[
+      // The client renderer, which adopts this markup and keeps it: a reader acts on the same
+      // elements the crawler read, and Flutter is nowhere on the page. One directory up, because
+      // this document is one directory down from the file `tool/site.sh` compiles.
+      DocumentScript(src: '../main.client.js'),
+    ],
   );
 }
 

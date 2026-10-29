@@ -254,7 +254,7 @@ tool/site.sh --base=/unibox/ --url=https://cedvdb.github.io/unibox/
 | Path | What it is |
 | --- | --- |
 | `/` | The site: the claim and the diagram, then the catalogue, as one page |
-| `/web/listings/` | The example as a document — the left frame, and the page the app takes over |
+| `/web/listings/` | The example as a document that runs itself — the left frame, real HTML a reader can inspect and act on |
 | `/flutter/listings/` | The same example, built by Flutter — the right frame |
 | `/flutter/app.js` | The loader a document boots the application through, with the base path `flutter_bootstrap.js` cannot know |
 
@@ -265,8 +265,10 @@ listing: the ink shows the press, and the application boots on that signal — i
 the page was scrolled, not at the top. `/flutter/listings/` is the same screen built by Flutter and
 served as its own route, which is what the right frame shows.
 
-Two commands prove it without a reader: `tool/boot_check.sh build/site` asks a browser whether the
-document becomes the application, and `tool/boot_time.dart` says how long that took in real time.
+Two commands prove it without a reader: `tool/dom_check.sh build/site` presses a control in the
+client rendering and fails when the page does not answer, and `tool/boot_check.sh build/site` asks
+the other question — whether a *takeover* document becomes the application, which is the library's
+tool for a screen that must be found, not what this example's pages do.
 The check serves the build under the prefix it was built for, which `tool/site.sh` records, so the
 command that runs locally is the command that runs on a deploy.
 
@@ -376,11 +378,14 @@ opens a dialog over the page — so a crawler sees one document of the example a
 link into it. A page that has to be found makes sense as a `LinkNode` with a
 real url — which is the router work `TASK_PLAN.md` lists as deferred.
 
-The static export is a snapshot: the markup, the stylesheet with its state rules and
-its container queries are all there, but nothing on the page answers a press. A
-`takeover` document does — by starting the application, which is the point of the
-handover. A page that has to stay a document without an application is waiting on
-`unibox_dom`, the client runtime `PLAN_HTML.md` describes.
+The static export is the document on its own: the markup, the stylesheet with its state rules
+and its container queries, and nothing that answers a press. What answers them is the client
+rendering — `web/main.client.dart`, compiled by `tool/site.sh` into `web/main.client.js` and
+fetched by the document — which adopts that markup and keeps it, so the elements a reader acts
+on are the elements the crawler read. That is why the left frame of the comparison can be
+inspected: there is no canvas in it, before or after a press. The library's `takeover` is the
+other way to make a page interactive — it starts the application instead — and it is what
+`tool/boot_check.sh` measures; this example's pages do not need it.
 
 ```shell
 cd example/unibox_example_html
