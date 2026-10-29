@@ -229,6 +229,15 @@ is still it; set `scrollTop` on the scroll region of the served markup, adopt, a
 **Done when.** Both pass without the renderer compensating for them (they should, because it patches
 in place — if a case fails, that is a bug in the patch, not in the test).
 
+## T4. Done: adoption keeps what a reader was doing
+
+Two cases, and the writing of them said something about the design: both had to make the *browser*
+provide the condition rather than the tree, because the tree's heights and widths are class rules and a
+test that serves markup without its stylesheet has an element nothing can scroll. That is the correct
+split — the stylesheet is pinned by the conformance suite — and what these two hold is the one thing
+adoption must not do: reset a scroll position, or move the focus. On the fast path nothing is touched,
+so both survive rather than being restored.
+
 ## T5. Flutter gets the behaviour tests it is missing
 
 **Now.** 11 tests against the client's 67. Its suite leans on the conformance table, so it pins

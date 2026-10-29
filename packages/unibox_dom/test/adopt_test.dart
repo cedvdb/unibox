@@ -100,6 +100,79 @@ void main() {
       meta.remove();
     });
 
+    test('keeps the focus a reader already had', () {
+      // The reason adoption is judged on scroll and focus rather than on markup: the reader was here
+      // first. Nothing is rebuilt on the fast path, so both survive untouched rather than restored.
+      const core.UINode tree = core.Box(
+        children: <core.UINode>[core.TextInputNode(key: 'field')],
+      );
+      final web.HTMLDivElement element = host()
+        ..innerHTML = servedMarkup(tree).toJS;
+      final web.HTMLElement field =
+          element.querySelector('[data-unibox-key="field"]') as web.HTMLElement;
+      field.focus();
+
+      final DomView view = DomView.adopt(tree, element.children.item(0)!);
+
+      if (web.document.hasFocus()) {
+        expect(web.document.activeElement, field);
+      }
+
+      expect(
+        identical(element.querySelector('[data-unibox-key="field"]'), field),
+        isTrue,
+      );
+
+      view.dispose();
+    });
+
+    test('keeps a region where the reader scrolled it', () {
+      // The reader was here first. The region is made scrollable in the test rather than through the
+      // stylesheet — that plumbing is pinned by the conformance suite — so what this holds is the one
+      // thing adoption must not do: reset a scroll position.
+      const core.UINode tree = core.Box(
+        key: 'scroller',
+        overflow: core.Overflow.scroll,
+        children: <core.UINode>[
+          core.Box(
+            height: 600,
+            children: const <core.UINode>[core.TextNode('tall')],
+          ),
+        ],
+      );
+      final web.HTMLDivElement element = host()
+        ..innerHTML = servedMarkup(tree).toJS;
+      final web.HTMLElement scroller =
+          element.children.item(0)! as web.HTMLElement;
+      scroller.style
+        ..height = '100px'
+        ..width = '200px'
+        ..overflow = 'scroll';
+      // Something tall enough to scroll: every height in the tree is a class rule, and a class rule is
+      // in the stylesheet this test does not serve.
+      final web.HTMLDivElement spacer =
+          web.document.createElement('div') as web.HTMLDivElement;
+      spacer.style.height = '600px';
+      scroller.append(spacer);
+      scroller.scrollTop = 40;
+
+      expect(
+        scroller.scrollTop,
+        40,
+        reason: 'the region scrolls before the client arrives',
+      );
+
+      final DomView view = DomView.adopt(tree, scroller);
+
+      expect(
+        scroller.scrollTop,
+        40,
+        reason: 'and it is still there afterwards',
+      );
+
+      view.dispose();
+    });
+
     test('still repaints a stateful node when its store publishes', () {
       // The fast path binds the callbacks of the view a store starts with. A press runs one, the
       // store publishes — and the page has to be drawn again. If the walk binds but leaves the
