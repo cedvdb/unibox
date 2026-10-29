@@ -239,7 +239,7 @@ What main already proved on the web, and what this ports: an `<svg>` layer over 
 `<path>` inside, and the fill and stroke as custom properties so a state rule can reach them.
 `clip-path` (not `clip-path: path()`, whose numbers are pixels) when the box clips its content.
 
-- [ ] **1. `unibox_css`**: `cssShapePath`, `cssShapeClipPath`, `cssShapeClipId`; a shaped box's
+- [x] **1. `unibox_css`**: `cssShapePath`, `cssShapeClipPath`, `cssShapeClipId`; a shaped box's
 declarations replace its background, border, radius and shadow with the layer's four
   properties and, when it clips, the `clip-path`.
 - [ ] **2. `unibox_element`**: a shaped box's plan carries the `<svg>` layer as its first child,

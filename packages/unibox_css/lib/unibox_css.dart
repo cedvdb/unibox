@@ -16,4 +16,5 @@ export 'src/box.dart';
 export 'src/declarations.dart';
 export 'src/nodes.dart';
 export 'src/rules.dart';
+export 'src/shape.dart';
 export 'src/values.dart';

@@ -1,6 +1,7 @@
 import 'package:unibox_core/unibox_core.dart' as core;
 
 import 'declarations.dart';
+import 'shape.dart';
 import 'values.dart';
 
 /// The declarations of a box, as the web writes them.
@@ -47,6 +48,7 @@ CssDeclarations boxDeclarations(
   final double? gap = style.gap;
   final double? borderRadius = style.borderRadius;
   final core.BoxBorderRadius? corners = style.corners;
+  final core.BoxShape? shape = style.shape;
   final int? flex = style.flex;
 
   final String? roleBackground = backgroundColor == null
@@ -113,17 +115,17 @@ CssDeclarations boxDeclarations(
     declarations.addIf('margin', userAgentMargin(element));
   }
 
-  if (backgroundColor != null && roleBackground == null) {
+  if (shape == null && backgroundColor != null && roleBackground == null) {
     declarations.add('background-color', cssColor(backgroundColor));
   }
 
   // Corners the box names are four values in one declaration; a single radius stays
   // the one-value shorthand.
-  if (corners == null && borderRadius != null) {
+  if (shape == null && corners == null && borderRadius != null) {
     declarations.add('border-radius', cssPixels(borderRadius));
   }
 
-  if (border != null && border.isVisible) {
+  if (shape == null && border != null && border.isVisible) {
     declarations.add(
       'border',
       cssBorder(
@@ -134,7 +136,7 @@ CssDeclarations boxDeclarations(
     );
   }
 
-  if (shadow != null && roleShadow == null) {
+  if (shape == null && shadow != null && roleShadow == null) {
     declarations.add('box-shadow', cssBoxShadow(shadow));
   }
 
@@ -153,14 +155,14 @@ CssDeclarations boxDeclarations(
   }
 
   declarations
-    ..addIf('background-color', roleBackground)
-    ..addIf('border-color', roleBorder);
+    ..addIf('background-color', shape == null ? roleBackground : null)
+    ..addIf('border-color', shape == null ? roleBorder : null);
 
-  if (corners != null) {
+  if (shape == null && corners != null) {
     declarations.add('border-radius', cssCorners(corners));
   }
 
-  if (shadow != null && roleShadow != null) {
+  if (shape == null && shadow != null && roleShadow != null) {
     declarations.add(
       'box-shadow',
       <String>[
@@ -171,6 +173,10 @@ CssDeclarations boxDeclarations(
         roleShadow,
       ].join(' '),
     );
+  }
+
+  if (shape != null) {
+    declarations.addAllIn(shapeDeclarations(style, shape));
   }
 
   declarations.addIf('cursor', interactive ? 'pointer' : null);
@@ -208,3 +214,39 @@ String? userAgentMargin(core.BoxElement element) =>
         element == core.BoxElement.figure
     ? '0'
     : null;
+
+/// What a shaped box declares instead of a background, a border and a radius.
+///
+/// The fill and the stroke become custom properties, because the shape's paint layer is an
+/// `<svg>` and the colour belongs to its path, not to the element: a state rule that changes the
+/// background of a shaped box has to reach the path, and a custom property is what a pseudo
+/// class and a style rule can both set. `fill`, `stroke` and `stroke-width` are CSS properties
+/// of SVG, so a change of any of the three eases with the transition the box declares.
+///
+/// The clip is declared here too, and only when the box asks for one: `overflow: hidden` — or a
+/// scrolling box — clips a shaped box to its outline, which needs the definition the layer
+/// writes in the same box.
+CssDeclarations shapeDeclarations(core.BoxStyle style, core.BoxShape shape) {
+  final core.BoxColor? fill = style.backgroundColor;
+  final core.BoxBorder? border = style.border;
+  final String? fillReference = fill == null ? null : cssColorOrRole(fill);
+  final String? strokeReference = border == null || !border.isVisible
+      ? null
+      : cssColorOrRole(border.color);
+  final bool clips =
+      style.overflow == core.Overflow.hidden ||
+      style.overflow == core.Overflow.scroll;
+
+  return CssDeclarations()
+    // The layer is absolutely positioned, and `isolation` keeps its negative `z-index` inside
+    // this box instead of letting it fall behind an ancestor.
+    ..add('position', 'relative')
+    ..add('isolation', 'isolate')
+    ..addIf('clip-path', clips ? 'url(#${cssShapeClipId(shape)})' : null)
+    ..add('--unibox-shape-fill', fillReference ?? 'none')
+    ..addIf('--unibox-shape-stroke', strokeReference)
+    ..addIf(
+      '--unibox-shape-stroke-width',
+      strokeReference == null ? null : cssPixels(border!.width),
+    );
+}
