@@ -49,13 +49,21 @@ fail() {
 # the failure it prevents: a tree that is green in CI and red on a laptop sends a reader after a
 # bug that does not exist, and the cheapest wrong fix available to anyone, human or assistant, is
 # to loosen `environment.sdk` until the red goes away.
+#
+# The version is read out of wherever it appears in the output rather than off the first line: the
+# tool prints "Building flutter tool..." or a lock message first when it is busy, and a check that
+# answered "no Flutter" for that would send the reader after the wrong thing entirely.
 step 'Checking the Flutter version'
 expected_flutter="$(tr -d '[:space:]' < .flutter-version)"
-version_line="$(flutter --version 2>/dev/null || true)"
-actual_flutter="$(awk 'NR == 1 { print $2 }' <<< "$version_line")"
+version_output="$(flutter --version 2>&1 || true)"
+actual_flutter="$(grep -oE '[0-9]+\.[0-9]+\.[0-9]+' <<< "$version_output" | head -n 1 || true)"
+if [ -z "$actual_flutter" ]; then
+  printf '  `flutter --version` printed nothing this check could read:\n\n%s\n\n' "$version_output" >&2
+  fail 'could not read a Flutter version — is the Flutter tool installed and on PATH?'
+fi
 if [ "$actual_flutter" != "$expected_flutter" ]; then
   printf '  .flutter-version says %s; this machine has %s\n' \
-    "$expected_flutter" "${actual_flutter:-no flutter on PATH}" >&2
+    "$expected_flutter" "$actual_flutter" >&2
   printf '  That is the environment, not your change. Install %s; do not edit the SDK constraint.\n' \
     "$expected_flutter" >&2
   fail "the Flutter version (expected $expected_flutter, from .flutter-version)"
