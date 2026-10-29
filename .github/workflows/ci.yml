@@ -97,7 +97,7 @@ jobs:
       # Pure Dart and a few seconds, so it is a job of its own rather than a step in the
       # test job: it measures the pipeline a node goes through — plan, stylesheet, text —
       # which Lighthouse cannot see, and it fails when a page with thousands of nodes stops
-      # being linear. See PLAN_PERFORMANCE.md.
+      # being linear. See PERFORMANCE.md.
       - name: Hold a big page to its baseline
         run: tool/scale.sh
 

@@ -369,7 +369,7 @@ and two when each side is independently reviewable.
 | Which Material type role should I use? | [`packages/unibox_material/README.md`](packages/unibox_material/README.md) |
 | What has to look the same on both? | [`packages/unibox_testing/README.md`](packages/unibox_testing/README.md) |
 | What is built, and what was deferred? | [`TASK_PLAN.md`](TASK_PLAN.md) |
-| What does a page with thousands of nodes cost? | [`PLAN_PERFORMANCE.md`](PLAN_PERFORMANCE.md) — the shapes measured and the baseline `tool/scale.sh` holds them to |
+| What does a page with thousands of nodes cost? | [`PERFORMANCE.md`](PERFORMANCE.md) — the shapes measured and the baseline `tool/scale.sh` holds them to |
 | How do I build an application with this, as an assistant? | [`AI_INSTRUCTIONS.md`](AI_INSTRUCTIONS.md) — the consumer-facing file, written to be pasted into a context |
 | How do I contribute? | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
 | What does maintenance look like, and what runs on its own? | [`MAINTENANCE.md`](MAINTENANCE.md) |

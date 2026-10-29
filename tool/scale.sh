@@ -5,7 +5,7 @@
 # `tool/performance.sh` measures the site we ship -- Lighthouse, boot to frame, bytes. This
 # measures the pipeline underneath it, which Lighthouse cannot see: resolve a style, hash a
 # class, plan an element, write text. The shapes, and what each one catches, are in
-# PLAN_PERFORMANCE.md.
+# PERFORMANCE.md.
 #
 # Usage:
 #   tool/scale.sh              measure, then compare with the baseline

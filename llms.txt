@@ -106,11 +106,8 @@ coding agent needs are in [AGENTS.md](AGENTS.md), and a human contributing needs
   [packages/unibox_html/CHANGELOG.md](packages/unibox_html/CHANGELOG.md),
   [packages/unibox_dom/CHANGELOG.md](packages/unibox_dom/CHANGELOG.md): the unreleased
   changes, which is where a new token is described for the user.
-- [PLAN_HTML.md](PLAN_HTML.md): the plan the web renderer was built from, kept as a
-  record. It is history, not instructions — where it disagrees with the code, the code
-  wins.
-- [PLAN_PERFORMANCE.md](PLAN_PERFORMANCE.md): what a page with thousands of nodes costs,
-  where the pipeline was not linear, and the benchmark and baseline that now guard it.
-  A record, not instructions.
+- [PERFORMANCE.md](PERFORMANCE.md): what a page with thousands of nodes costs, the three
+  shapes the benchmark measures, the baseline CI holds them to, and the six places the
+  pipeline was not linear before they were fixed.
 - [example/unibox_example_shared/lib/](example/unibox_example_shared/lib/): the
   example trees as plain Dart, the arrangement to copy for a real application.
