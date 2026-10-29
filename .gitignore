@@ -16,3 +16,7 @@ doc/api/
 
 # macOS
 .DS_Store
+
+# Python bytecode: tool/ has three scripts and no reason to carry their caches.
+__pycache__/
+*.pyc
