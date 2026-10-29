@@ -509,6 +509,17 @@ ElementPlan _planOverlay(
     overlayContentDeclarations(),
   );
 
+  // The barrier is the overlay's own element for behaviour: it is the one part of the layer whose
+  // press means "dismiss", and a renderer with a runtime binds it. It says so, because the two
+  // elements of one node need telling apart and a class name is a hash nobody can read.
+  final ElementPlan barrierPlan = ElementPlan(
+    tag: 'div',
+    className: barrier,
+    attributes: const <String, String>{'data-unibox-barrier': ''},
+  );
+
+  options.onPlanned?.call(barrierPlan, node);
+
   return ElementPlan(
     tag: 'div',
     className: layer,
@@ -522,7 +533,7 @@ ElementPlan _planOverlay(
       ...nodeAttributes(node),
     },
     children: <ElementPlan>[
-      ElementPlan(tag: 'div', className: barrier),
+      barrierPlan,
       ElementPlan(
         tag: 'div',
         className: content,

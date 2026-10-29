@@ -57,6 +57,13 @@ List<void Function()> bindNode(core.UINode node, web.Element element) {
         on('pointerleave', (web.Event event) => onHover(false));
       }
 
+    case final core.OverlayNode overlay
+        when overlay.onDismiss != null &&
+            element.getAttribute('data-unibox-barrier') != null:
+      // The barrier, not the layer: a press inside the dialog is the dialog's, and a press on the
+      // shade behind it is the reader asking to be let out.
+      on('click', (web.Event event) => overlay.onDismiss!());
+
     case final core.LinkNode link when link.onTap != null:
       // The link is a real `href`, so a page without a runtime still follows it. With one, the
       // press is the tree's and the browser does not load the document as well.

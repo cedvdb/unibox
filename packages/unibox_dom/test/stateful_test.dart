@@ -305,6 +305,40 @@ void main() {
       view.dispose();
     });
 
+    test('dismisses an overlay on its barrier, and not on the dialog', () {
+      // A dialog in the tree is a dialog a reader can see; the one press that closes it is a press
+      // on the shade behind it. Without this a client can open a dialog and never be let out of it.
+      int dismissals = 0;
+      final web.HTMLDivElement element = host();
+      final DomView view = DomView.mount(
+        core.OverlayNode(
+          onDismiss: () => dismissals++,
+          child: const core.Box(
+            width: 100,
+            height: 100,
+            key: 'dialog',
+            children: <core.UINode>[core.TextNode('Save?')],
+          ),
+        ),
+        element,
+      );
+
+      at(element, 'dialog').dispatchEvent(
+        web.MouseEvent('click', web.MouseEventInit(bubbles: true)),
+      );
+      expect(dismissals, 0);
+
+      element
+          .querySelector('[data-unibox-barrier]')!
+          .dispatchEvent(
+            web.MouseEvent('click', web.MouseEventInit(bubbles: true)),
+          );
+
+      expect(dismissals, 1);
+
+      view.dispose();
+    });
+
     test('follows a link only when the tree says what a press means', () {
       bool followed = false;
       final web.HTMLDivElement element = host();
