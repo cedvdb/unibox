@@ -229,6 +229,34 @@ than an assumption.
 - `tool/` measures the handover: the exported page is served, driven, and timed from the
   first byte to the first Flutter frame, with the number recorded beside the export.
 
+## Remaining tasks: client execution, the API and the docs
+
+What the takeover still lacks, what is clumsy to wire, and what the documents do not yet say.
+
+- [ ] **1. Key the example's scroll regions.** The recorder reads `data-unibox-key`, and no
+  scrolling box in the example has one: the record is empty, so scroll replay cannot work end to
+  end. `apartments.dart` and the two in `gallery.dart`.
+- [ ] **2. A takeover in one argument.** `toDocument` takes `prefetch`, `scripts` and a policy, and
+  a host has to know that the recorders belong in `scripts` and the bundle in `prefetch`. One
+  `Takeover(boot: …)` should carry all of it, with the recorders and the policy defaulted.
+- [ ] **3. Click replay.** The page records a press and nothing reads it. A `BoxPress` value in
+  core, a pure `replayPresses(tree, presses)` that walks the tree to the node that carried the key
+  and calls its callback, a browser reader in `unibox_flutter`, and the tests for both.
+- [ ] **4. Scroll replay, proved.** A Flutter test on a tree whose scrolling box is keyed the way
+  the example keys it, so the two halves meet in one place.
+- [ ] **5. A boot time, measured.** The check asks whether the document boots; it cannot say how
+  long it took, because `--virtual-time-budget` makes `performance.now()` virtual. A real number
+  needs a browser driven over the DevTools protocol in real time, which `dart:io`'s WebSocket can
+  do.
+- [ ] **6. The documents.** `README.md` gains the shape token, the client side (document, takeover,
+  scroll and click replay) and the new packages in its tables; `packages/unibox_html/README.md` the
+  same from its own side; `AI_INSTRUCTIONS.md` the takeover recipe; the changelogs the four bullets.
+
+**Not in this pass: `unibox_dom`.** A client renderer is the largest piece in the repository, and
+its criterion is unchanged — it comes back when an interaction cannot be a URL, cannot be a
+request, and is too frequent to boot an engine for. Scroll and click replay cover the handover
+before it exists; they do not make a document interactive.
+
 ## Remaining tasks: the merge with main
 
 `main` moved 20 commits while this branch was open. The merge is resolved on `merge-main-wip`
