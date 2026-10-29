@@ -236,7 +236,7 @@ What the takeover still lacks, what is clumsy to wire, and what the documents do
 - [x] **1. Key the example's scroll regions.** The recorder reads `data-unibox-key`, and no
   scrolling box in the example has one: the record is empty, so scroll replay cannot work end to
   end. `apartments.dart` and the two in `gallery.dart`.
-- [ ] **2. A takeover in one argument.** `toDocument` takes `prefetch`, `scripts` and a policy, and
+- [x] **2. A takeover in one argument.** `toDocument` takes `prefetch`, `scripts` and a policy, and
   a host has to know that the recorders belong in `scripts` and the bundle in `prefetch`. One
   `Takeover(boot: …)` should carry all of it, with the recorders and the policy defaulted.
 - [ ] **3. Click replay.** The page records a press and nothing reads it. A `BoxPress` value in

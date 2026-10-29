@@ -37,12 +37,9 @@ String buildExampleDocument({
     showOverlays: page == ExamplePage.signup,
     theme: ExamplePalette.themeFor(ExampleSeed.blue),
     head: <String>['<style>${fontFaceCss('../../')}$pageCss</style>'],
-    prefetch: <String>[boot],
-    scripts: <DocumentScript>[
-      DocumentScript.inline(
-        body: '$pressScript\n$scrollScript\n${bootScript(boot)}',
-      ),
-    ],
+    // One argument: the bundle is prefetched, the recorders travel with the boot, and the boot
+    // waits for a signal. The example is the application's front door, so the default policy fits.
+    takeover: const Takeover(boot: boot),
   );
 }
 

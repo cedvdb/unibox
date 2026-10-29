@@ -33,4 +33,5 @@ export 'src/document.dart';
 export 'src/embed_node.dart';
 export 'src/escape.dart';
 export 'src/render.dart';
+export 'src/takeover.dart';
 export 'src/write.dart' show writeElement;

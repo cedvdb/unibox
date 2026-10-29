@@ -5,6 +5,7 @@ import 'escape.dart';
 import 'package:unibox_element/unibox_element.dart';
 
 import 'render.dart';
+import 'takeover.dart';
 import 'write.dart';
 
 /// A script a page carries, in the head, in the order it is listed.
@@ -94,6 +95,7 @@ String toDocument(
   List<String> prefetch = const <String>[],
   core.UniboxTheme? theme,
   bool showOverlays = false,
+  Takeover? takeover,
 }) {
   final ({ElementPlan plan, String css}) rendered = renderFragment(
     node,
@@ -157,6 +159,21 @@ String toDocument(
   // the host's own text and never assembled from data a reader supplied.
   for (final String markup in head) {
     buffer.write(markup);
+  }
+
+  // A takeover says the same three things in one value: what to prefetch, which scripts to run,
+  // and when the boot may start. Added before the host's own scripts, because the recorders
+  // have to exist before the application asks what the reader did.
+  if (takeover != null) {
+    buffer.write(
+      '<link rel="prefetch" href="${safeUrl(takeover.prefetch)}" as="script">',
+    );
+
+    for (final String script in takeover.scripts) {
+      buffer.write(
+        DocumentScript.inline(body: script, nonce: takeover.nonce).write(),
+      );
+    }
   }
 
   for (final DocumentScript script in scripts) {

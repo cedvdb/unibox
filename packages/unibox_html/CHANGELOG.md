@@ -15,6 +15,13 @@
   browser is the fallback. An intent that arrives before the load is remembered and honoured
   at the load.
 
+- `Takeover(boot: …)` and `toDocument(takeover: …)`: a page that becomes an application in one
+  argument. It prefetches the loader, carries the two recorders before the boot so the
+  application can ask what the reader did, and starts the boot on a signal. Written by hand it
+  was three arguments in two spellings, and a host that swapped `prefetch` and `scripts` shipped
+  a page that booted on a cold cache. The policy is the one choice left, and `record: false`
+  drops the recorders for a page that only has to boot.
+
 - `toDocument(head: …)`: markup the host owns and the model does not describe — the
   `@font-face` rules of the asset it ships, a dark-mode block, a structured-data script. It is
   written verbatim and placed before the tree, so a font face arrives before the text that
