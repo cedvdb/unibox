@@ -234,6 +234,23 @@ void main() {
       );
     });
 
+    test('carries where a scrolling box settles', () {
+      const style = BoxStyle(overflow: Overflow.scroll, snap: ScrollSnap.page);
+
+      expect(style.snap, ScrollSnap.page);
+      expect(style.copyWith().snap, ScrollSnap.page);
+      expect(
+        style,
+        const BoxStyle(overflow: Overflow.scroll, snap: ScrollSnap.page),
+      );
+      expect(style.toString(), contains('snap: ScrollSnap.page'));
+      // An overlay wins, like every other token.
+      expect(
+        style.merge(const BoxStyle(snap: ScrollSnap.none)).snap,
+        ScrollSnap.none,
+      );
+    });
+
     test('carries the opacity and the transform of a box', () {
       const style = BoxStyle(opacity: 0.5, transform: BoxTransform(scale: 1.1));
 

@@ -216,6 +216,22 @@ void _validate(
   if (node is Box) {
     final BoxStyle style = node.computedStyle;
 
+    // A snap on a box that cannot scroll is a token that can do nothing: the renderers
+    // write it and no gesture ever reads it.
+    if (style.snap != null &&
+        style.snap != ScrollSnap.none &&
+        style.overflow != Overflow.scroll) {
+      issues.add(
+        TreeIssue(
+          node: node,
+          message:
+              'A box snaps (snap: ScrollSnap.${style.snap!.name}) without '
+              'overflow: Overflow.scroll, so nothing scrolls and nothing settles. '
+              'Set overflow, or drop the snap.',
+        ),
+      );
+    }
+
     if (style.borderRadius != null && style.corners != null) {
       issues.add(
         TreeIssue(

@@ -37,6 +37,7 @@ final class BoxStyle {
     this.gap,
     this.flex,
     this.overflow,
+    this.snap,
     this.width,
     this.height,
     this.minWidth,
@@ -91,6 +92,13 @@ final class BoxStyle {
 
   /// How overflowing content is treated.
   final Overflow? overflow;
+
+  /// Where the box comes to rest when a scroll gesture ends.
+  ///
+  /// Only meaningful with [overflow] of [Overflow.scroll]: a box that does not scroll has
+  /// nothing to settle. [ScrollSnap.page] makes it a pager — it moves one child at a time,
+  /// along the box's own axis, and stops on a child rather than between two.
+  final ScrollSnap? snap;
 
   // Dimensions.
 
@@ -236,6 +244,7 @@ final class BoxStyle {
       gap: gap,
       flex: flex,
       overflow: overflow,
+      snap: snap,
       width: width,
       height: height,
       minWidth: minWidth,
@@ -272,6 +281,7 @@ final class BoxStyle {
     double? gap,
     int? flex,
     Overflow? overflow,
+    ScrollSnap? snap,
     double? width,
     double? height,
     double? minWidth,
@@ -300,6 +310,7 @@ final class BoxStyle {
       gap: gap ?? this.gap,
       flex: flex ?? this.flex,
       overflow: overflow ?? this.overflow,
+      snap: snap ?? this.snap,
       width: width ?? this.width,
       height: height ?? this.height,
       minWidth: minWidth ?? this.minWidth,
@@ -343,6 +354,7 @@ final class BoxStyle {
       gap: other.gap ?? gap,
       flex: other.flex ?? flex,
       overflow: other.overflow ?? overflow,
+      snap: other.snap ?? snap,
       width: other.width ?? width,
       height: other.height ?? height,
       minWidth: other.minWidth ?? minWidth,
@@ -375,6 +387,7 @@ final class BoxStyle {
       other.gap == gap &&
       other.flex == flex &&
       other.overflow == overflow &&
+      other.snap == snap &&
       other.width == width &&
       other.height == height &&
       other.minWidth == minWidth &&
@@ -404,6 +417,7 @@ final class BoxStyle {
     gap,
     flex,
     overflow,
+    snap,
     width,
     height,
     minWidth,
@@ -433,6 +447,7 @@ final class BoxStyle {
       if (gap != null) 'gap: $gap',
       if (flex != null) 'flex: $flex',
       if (overflow != null) 'overflow: $overflow',
+      if (snap != null) 'snap: $snap',
       if (width != null) 'width: $width',
       if (height != null) 'height: $height',
       if (minWidth != null) 'minWidth: $minWidth',

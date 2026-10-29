@@ -157,6 +157,21 @@ enum Overflow {
   scroll,
 }
 
+/// Where a scrolling box comes to rest when a gesture ends.
+///
+enum ScrollSnap {
+  /// Wherever the gesture left it, which is what a list does.
+  none,
+
+  /// On a child, one child at a time: a pager, a carousel, a wizard step.
+  ///
+  /// The axis is the box's own ([BoxStyle.resolvedDirection]), so a row of full width
+  /// pages pages sideways and a column of full height pages downwards, and the value sits
+  /// on the scrolling box rather than inside a new node type: a pager is a scrolling box
+  /// that settles.
+  page,
+}
+
 /// How an image fills its bounds.
 enum ImageFit {
   /// Scale the image to cover its bounds, cropping when needed.

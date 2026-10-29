@@ -48,6 +48,7 @@ class Box extends UINode {
     this.gap,
     this.flex,
     this.overflow,
+    this.snap,
     this.width,
     this.height,
     this.minWidth,
@@ -110,6 +111,14 @@ class Box extends UINode {
 
   /// How content exceeding the box bounds is treated.
   final Overflow? overflow;
+
+  /// Where the box comes to rest when a scroll gesture ends.
+  ///
+  /// Only a box that scrolls has anything to settle, so this is [ScrollSnap.page] on a box
+  /// with `overflow: Overflow.scroll`: it then moves one child at a time and stops on a
+  /// child rather than between two, which is a pager. `validateTree` reports a snap on a
+  /// box that cannot scroll, because it can do nothing there.
+  final ScrollSnap? snap;
 
   // Dimensions.
 
@@ -306,6 +315,7 @@ class Box extends UINode {
     gap: gap,
     flex: flex,
     overflow: overflow,
+    snap: snap,
     width: width,
     height: height,
     minWidth: minWidth,

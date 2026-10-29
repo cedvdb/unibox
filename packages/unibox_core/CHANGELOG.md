@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `Box.snap`: a scrolling box can settle on a child instead of wherever the gesture ended,
+  with `ScrollSnap.page` — a pager, a carousel, a wizard step, along the box's own
+  direction. `validateTree` reports a snap on a box that cannot scroll.
+
 - `Box.onScroll`: a scrolling box reports how far its content has moved along its main axis,
   as one `double` — `0` at rest, growing as the content moves up (or left). Only a box with
   `overflow: Overflow.scroll` reports it, and only for its own scrolling: a scrollable nested

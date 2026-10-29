@@ -32,6 +32,29 @@ void main() {
       expect(issues.single.message, contains('without a srcSet'));
     });
 
+    test('accepts a pager', () {
+      expect(
+        validateTree(
+          const Box(
+            overflow: Overflow.scroll,
+            snap: ScrollSnap.page,
+            children: <UINode>[Box(width: 100), Box(width: 100)],
+          ),
+        ),
+        isEmpty,
+      );
+    });
+
+    test('reports a snap on a box that cannot scroll', () {
+      // Nothing scrolls, so nothing settles: the token would be written and never read.
+      final List<TreeIssue> issues = validateTree(
+        const Box(snap: ScrollSnap.page),
+      );
+
+      expect(issues, hasLength(1));
+      expect(issues.single.message, contains('snap: ScrollSnap.page'));
+    });
+
     test('accepts a well formed tree', () {
       const Box tree = Box(
         direction: Axis.vertical,
