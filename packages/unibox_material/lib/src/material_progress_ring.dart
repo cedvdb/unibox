@@ -12,24 +12,26 @@ import 'material_palette.dart';
 /// ```
 ///
 /// The whole component is three nodes: a box that draws the track, a box that draws
-/// the value, and the stack that puts one over the other. Both rings are
-/// `BoxShape.ring`, so no renderer knows what a progress indicator is — which is what
-/// makes the look a value and the component a node built from nodes.
+/// the value, and the stack that puts one over the other. Each is **an arc stroked in
+/// a colour** — `BoxShape.arc` for the outline, `BoxBorder` for the paint, with the
+/// rounded ends Material draws — so no renderer knows what a progress indicator is,
+/// which is what makes the look a value and the component a node built from nodes.
 ///
 /// **A ring states its thickness in pixels.** The shape is written in a view box as
 /// wide as the box, so a hundredth of the ring is a hundredth of the diameter and
-/// [thickness] is a length: a 4 pixel band is 4 pixels at every size, which is what
-/// Material's stroke does.
+/// [thickness] is a length: a 4 pixel stroke is 4 pixels at every size, which is what
+/// Material's indicator does. The same number is the shape's inset and the border's
+/// width, which is why the stroke sits inside the box rather than half outside it.
 ///
 /// **The value is clamped.** A ring is one turn, so `-0.2` draws no value and `1.4`
 /// draws a closed ring rather than reporting an error: a value is data an application
 /// computes, not a mistake to throw about.
 ///
-/// **What it is not.** It does not animate: the model has no timeline for a value
-/// that changes, so a bar that moves is a value a store publishes. An unknown value
-/// is [MaterialSpinner], which does own a clock. And the model has no progress role,
-/// so a screen reader hears [label] as text — a `role="progressbar"` with its bounds
-/// is a gap in `BoxSemantics`, not something this class can fix.
+/// **What it is not.** It does not animate: a bar that moves is a value a store
+/// publishes or a timeline the model runs, and this class draws whatever fraction it is
+/// given. An unknown value is [MaterialSpinner]. And the model has no progress role, so
+/// a screen reader hears [label] as text — a `role="progressbar"` with its bounds is a
+/// gap in `BoxSemantics`, not something this class can fix.
 final class MaterialProgressRing extends Box {
   /// Creates a ring that is [value] of the way round, over its track.
   MaterialProgressRing({
@@ -48,27 +50,37 @@ final class MaterialProgressRing extends Box {
          children: <UINode>[
            StackNode(
              children: <UINode>[
-               Box(
-                 width: size,
-                 height: size,
-                 shape: BoxShape.ring(thickness: thickness, viewBox: size),
-                 backgroundColor: track,
-               ),
+               _arc(size: size, thickness: thickness, color: track),
                if (value > 0)
-                 Box(
-                   width: size,
-                   height: size,
-                   shape: BoxShape.ring(
-                     thickness: thickness,
-                     sweep: value,
-                     viewBox: size,
-                   ),
-                   backgroundColor: indicator,
+                 _arc(
+                   size: size,
+                   thickness: thickness,
+                   color: indicator,
+                   sweep: value,
                  ),
              ],
            ),
          ],
        );
+
+  /// One arc of the ring: the outline of a circle, [sweep] of the way round, stroked
+  /// in [color].
+  ///
+  /// The border *is* the paint. A shaped box strokes its outline instead of filling it,
+  /// so the stroke's width and the shape's inset are one number, and `round` is what
+  /// gives the arc the ends Material draws — without a cap, a stroke stops on a radius
+  /// and an indicator reads as a wedge.
+  static Box _arc({
+    required double size,
+    required double thickness,
+    required BoxColor color,
+    double sweep = 1,
+  }) => Box(
+    width: size,
+    height: size,
+    shape: BoxShape.arc(stroke: thickness, sweep: sweep, viewBox: size),
+    border: BoxBorder(width: thickness, color: color, cap: BoxStrokeCap.round),
+  );
 
   /// The colour of the part that is done.
   static const BoxColor defaultIndicator = BoxColor.role(

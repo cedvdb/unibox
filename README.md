@@ -244,7 +244,7 @@ Box(
 | Parameter | Type | Default | Meaning |
 | --- | --- | --- | --- |
 | `backgroundColor` | `BoxColor?` | none | Colour behind the children. |
-| `border` | `BoxBorder?` | none | Line around the box, with a width and a colour. |
+| `border` | `BoxBorder?` | none | Line around the box, with a width, a colour and — for a shape's open outline — a cap. |
 | `borderRadius` | `double?` | square | Corner radius in logical pixels, the same on all four. |
 | `corners` | `BoxBorderRadius?` | square | The radius of each corner, for a box that is not round on all four — a filled text field rounds its top and leaves the bottom square. Takes precedence over `borderRadius`. |
 | `shadow` | `BoxShadow?` | none | Drop shadow: colour, offset, blur, spread. |
@@ -330,25 +330,36 @@ Box(width: 40, height: 40, shape: hexagon, backgroundColor: BoxColor.white)
 
 The commands are the ones SVG's `d` attribute has — `M`, `L`, `C`, `Q`, `A` and `Z`
 — and every renderer has a method for each, so neither parses what the other wrote.
-The model ships two values over that vocabulary, because two shapes are asked for far
-more often than the rest: `BoxShape.circle`, and `BoxShape.ring`:
+The model ships three values over that vocabulary, because they are asked for far more
+often than the rest: `BoxShape.circle`, `BoxShape.ring` and `BoxShape.arc`.
 
 ```dart
-// A track: the band between the edge and a circle 12 units inside it.
+// A band: the region between the edge and a circle 12 units inside it.
 Box(width: 96, height: 96, shape: BoxShape.ring(thickness: 12), backgroundColor: grey)
 
-// A value over it: the same ring, a fraction of a turn, clockwise from twelve
-// o'clock. Two boxes, one shape each — no stroke, no image, no canvas.
+// A value over it: the same band, a fraction of a turn, clockwise from twelve.
 Box(width: 96, height: 96, shape: BoxShape.ring(thickness: 12, sweep: 0.42), backgroundColor: accent)
+
+// A line: a circle's centreline, run along by an open path. What paints it is the border,
+// and `cap` is what its two ends look like — which is how Material's indicator is drawn.
+Box(
+  width: 48,
+  height: 48,
+  shape: BoxShape.arc(stroke: 4, sweep: 0.42, viewBox: 48),
+  border: BoxBorder(width: 4, color: accent, cap: BoxStrokeCap.round),
+)
 ```
 
-Four things follow from a shape:
+Five things follow from a shape:
 
 - **The fill is the shape.** `backgroundColor` fills the path rather than the
   rectangle, and `border` is a stroke along the same path.
 - **`fillRule` decides what is inside.** `BoxFillRule.evenOdd` punches a hole: two
-  circles become a ring, which is how a progress ring is drawn without a stroke
-  token of its own.
+  circles become a ring, which is how a donut is drawn without a second outline.
+- **An open outline is a line, not a region.** `BoxShape.arc` closes nothing, so what a
+  reader sees is the border's stroke — and `BoxBorder.cap` (`butt`, `round`, `square`)
+  states how its two ends are drawn. A cap on a rectangle draws nothing, so
+  `validateTree` reports one there.
 - **Layout does not change.** Children are laid out in the same rectangle as before,
   which is what puts a label inside the hole of a ring; `overflow: Overflow.hidden`
   is what clips them to the outline.

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- `MaterialProgressRing` is drawn the way Material 3 draws it: one arc **stroked** in a
+  colour, with `round` caps, instead of a filled band whose ends were radial cuts. The outline
+  is `BoxShape.arc` — a centreline inset by half the stroke, so the stroke meets the box's
+  edge — and the paint is the box's `border`, whose `cap` states the rounded ends. The
+  component is still three nodes and still adds no renderer code; what changed is that the
+  model can now say what the ends of a stroke look like.
+
 - `MaterialChip` and `MaterialSegmentedButton` state their choice with
   `BoxSemantics.pressed` rather than `selected`: both are toggle buttons, and a browser
   ignores `aria-selected` on a button, so the chosen chip and the chosen segment were

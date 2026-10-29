@@ -247,6 +247,9 @@ logical pixels. `design.md` §5.15 holds the reasoning; these are the pieces.
   application pick a page up mid-read. The duplicate export in the Flutter host is gone: one host
   writes documents, the other builds the application.
 
+
+- [x] Task 144: A shape can be a line, and the ends of a line can be capped. `BoxShape.arc` states an arc as a *sweep* — a fraction of a turn, clockwise from twelve o'clock — drawn on a centreline inset by half the stroke, as an **open** path; `BoxBorder.cap` states `butt`, `round` or `square` for where such a line ends, carried to the web as `--unibox-shape-stroke-cap` on the box's rule and `stroke-linecap` on the path's class, and to Flutter as `Paint.strokeCap` through `toStrokeCap`. `validateTree` reports a cap on a rectangle, where no target draws one. With those two the Material ring is one stroked circle with rounded ends instead of a filled band with radial cuts — the shape was right and the paint was wrong — and its sweep is a number, which is what a value, a state or a later timeline can move without either renderer learning what an indicator is.
+
 ## Decisions
 
 - **License:** MIT, at the root and in every package.

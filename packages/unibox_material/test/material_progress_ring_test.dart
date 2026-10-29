@@ -14,49 +14,55 @@ final UniboxTheme _theme = MaterialPalette.lightTheme;
 
 void main() {
   group('MaterialProgressRing', () {
-    test('draws a track and the part that is done, as two rings', () {
+    test('draws a track and the part that is done, as two stroked arcs', () {
       final List<Box> rings = _rings(MaterialProgressRing(value: 0.42));
 
       expect(rings, hasLength(2));
       expect(
-        rings.first.backgroundColor,
+        rings.first.border?.color,
         MaterialProgressRing.defaultTrack,
         reason: 'the track is painted first, so the value sits over it',
       );
-      expect(rings.last.backgroundColor, MaterialProgressRing.defaultIndicator);
-      expect((rings.last.shape?.commands.first as BoxPathMoveTo).x, 24);
+      expect(rings.last.border?.color, MaterialProgressRing.defaultIndicator);
+      // The stroke is the paint: a shaped box filled with nothing but its outline.
+      expect(rings.last.backgroundColor, isNull);
+      expect(rings.last.border?.cap, BoxStrokeCap.round);
+      // The outline starts at twelve o'clock, one half stroke inside the box.
+      final BoxPathMoveTo start =
+          rings.last.shape!.commands.first as BoxPathMoveTo;
+      expect(start.x, 24);
+      expect(start.y, 2);
     });
 
-    test('states the band in pixels, by writing the shape in the box grid', () {
-      final List<Box> rings = _rings(
-        MaterialProgressRing(value: 0.5, size: 64, thickness: 6),
-      );
+    test(
+      'states the stroke in pixels, by writing the shape in the box grid',
+      () {
+        final List<Box> rings = _rings(
+          MaterialProgressRing(value: 0.5, size: 64, thickness: 6),
+        );
 
-      // One unit is one pixel, because the view box is as wide as the box.
-      expect(rings.first.shape?.viewBoxWidth, 64);
-      expect(rings.last.shape?.viewBoxWidth, 64);
-      expect(
-        rings.first.shape?.fillRule,
-        BoxFillRule.evenOdd,
-        reason: 'a closed track is two circles, the inner one being the hole',
-      );
-      // The inner circle starts six units below the top of the box.
-      expect((rings.first.shape?.commands[3] as BoxPathMoveTo).y, 6);
-    });
+        // One unit is one pixel, because the view box is as wide as the box.
+        expect(rings.first.shape?.viewBoxWidth, 64);
+        expect(rings.last.shape?.viewBoxWidth, 64);
+        expect(rings.first.border?.width, 6);
+        // And the centreline is inset by half the stroke, so the stroke meets the edge.
+        expect((rings.first.shape?.commands.first as BoxPathMoveTo).y, 3);
+      },
+    );
 
-    test('draws the value a fraction of a turn round', () {
+    test('draws the value a fraction of a turn round, as one open line', () {
       final Box value = _rings(MaterialProgressRing(value: 0.25)).last;
       final BoxShape shape = value.shape!;
 
       expect(
-        shape.fillRule,
-        BoxFillRule.nonZero,
-        reason: 'a sector is open, so its subpaths do not cancel',
+        shape.commands,
+        hasLength(2),
+        reason: 'an arc is a line, so it has ends for the stroke to cap',
       );
-      // A quarter turn from twelve o\'clock ends at three o\'clock on the rim.
-      final BoxPathArcTo outer = shape.commands[1] as BoxPathArcTo;
-      expect(outer.x, closeTo(48, 0.01));
-      expect(outer.y, closeTo(24, 0.01));
+      // A quarter turn from twelve o'clock ends at three o'clock, on the centreline.
+      final BoxPathArcTo end = shape.commands[1] as BoxPathArcTo;
+      expect(end.x, closeTo(46, 0.01));
+      expect(end.y, closeTo(24, 0.01));
     });
 
     test('clamps the value rather than reporting one', () {
@@ -66,9 +72,9 @@ void main() {
       final List<Box> full = _rings(MaterialProgressRing(value: 1.4));
       expect(full, hasLength(2));
       expect(
-        full.last.shape?.fillRule,
-        BoxFillRule.evenOdd,
-        reason: 'more than a turn is a closed ring, not a longer sector',
+        full.last.shape?.commands,
+        hasLength(3),
+        reason: 'more than a turn is a closed circle, drawn as two half turns',
       );
     });
 
