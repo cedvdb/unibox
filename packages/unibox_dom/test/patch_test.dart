@@ -4,6 +4,7 @@ library;
 import 'package:test/test.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
 import 'package:unibox_dom/unibox_dom.dart';
+import 'package:unibox_html/unibox_html.dart';
 import 'package:web/web.dart' as web;
 
 /// A host in the document, because focus is the document's to give: an element outside it cannot
@@ -131,6 +132,25 @@ void main() {
         'content',
       ]);
       expect(identical(spans.last, content), isTrue);
+
+      view.dispose();
+    });
+
+    test('keeps the markup an embed carries', () {
+      // An embed is one element whose content is the host's markup. Reconciling children after
+      // writing that markup read the frame as an unmatched child and removed it, which is how the
+      // example's comparison lost both of its frames the moment the client adopted the page.
+      final DomView view = DomView.mount(
+        const HtmlEmbed('<iframe src="a"></iframe>'),
+        host(),
+      );
+
+      expect(view.element.querySelector('iframe'), isNotNull);
+
+      view.render(const HtmlEmbed('<iframe src="b"></iframe>'));
+
+      expect(view.element.querySelector('iframe'), isNotNull);
+      expect(view.element.querySelector('iframe')!.getAttribute('src'), 'b');
 
       view.dispose();
     });

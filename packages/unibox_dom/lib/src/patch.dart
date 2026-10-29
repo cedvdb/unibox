@@ -47,7 +47,14 @@ web.Element patchElement(
   }
 
   _patchSelf(element, previous, next);
-  patchChildren(element, previous, next, onBuilt: onBuilt);
+
+  // A plan holds text, or markup, or children — never two of them. Reconciling children after
+  // writing markup would read that markup as an unmatched child and remove it, which is how an
+  // embed's frame disappeared the moment a client adopted the page.
+  if (next.raw == null && next.text == null) {
+    patchChildren(element, previous, next, onBuilt: onBuilt);
+  }
+
   onBuilt?.call(next, element);
 
   return element;
