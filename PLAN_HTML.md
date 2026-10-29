@@ -292,12 +292,16 @@ the export and is the next thing to wire; the export does not ship the Flutter b
 run today measures the document and stops, which is exactly the trap this section warns
 about.
 
-A second number is gated beside it, because Lighthouse measures the load and not the page:
-**boot to first interactive frame**, taken by driving the exported page in a headless
-browser — on a content page from the first pointer press, on an application entry from
-`load`. That is the cost the reader pays, and it is the one a good document score is able
-to hide. A page that scores 100 and takes two seconds to answer its first click has failed,
-and the build should say so.
+A second question is gated beside it, because Lighthouse measures the load and not the page:
+**does the document become the application at all?** `tool/boot_check.sh` answers it in the
+deploy, in a real browser, and fails when it does not.
+
+No millisecond budget is claimed for it. A one-shot `--dump-dom` runs the page under
+`--virtual-time-budget`, which advances the page's clock faster than the wall clock, so a
+`performance.now()` delta from it is virtual: it reads as a precise number and means nothing. A
+real duration needs a browser driven in real time, and the number that matters is what a reader
+on a phone pays — which is a question for real-user monitoring rather than for a shell script.
+The plan keeps the question and drops the pretend answer.
 
 ### The two tensions worth naming
 

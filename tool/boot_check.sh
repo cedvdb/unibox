@@ -18,6 +18,11 @@ set -euo pipefail
 
 site="${1:-build/site}"
 port="${PORT:-8765}"
+# No milliseconds are claimed. The dump is taken under `--virtual-time-budget`, which runs the
+# page's clock faster than the wall clock, so any `performance.now()` delta it produced would be
+# virtual and would read as a number that looks precise and means nothing. A real duration needs a
+# browser driven in real time — a driver rather than a one-shot dump — and the number that matters
+# is what a reader on a phone pays, which is a question for real-user monitoring.
 probe="$site/web/boot-check/index.html"
 
 if [ ! -d "$site/flutter" ]; then
@@ -56,6 +61,8 @@ cat >"$probe" <<'PROBE'
        browser never moves a pointer, so intent-based booting cannot be tested this way. -->
   <script>
     (function () {
+      // Boot at once: a headless browser never moves a pointer, so a page that waits for intent
+      // cannot be tested this way. What is being tested is the loader's paths, not the policy.
       var element = document.createElement('script');
       element.src = '../../flutter/app.js';
       document.head.appendChild(element);
