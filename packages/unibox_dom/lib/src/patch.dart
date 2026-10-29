@@ -84,7 +84,6 @@ void patchChildren(
     for (int i = 0; i < parent.children.length; i++)
       if (parent.children.item(i) case final web.Node node) node as web.Element,
   ];
-  final List<ElementPlan> before = previous.children;
   final List<web.Element?> matched = List<web.Element?>.filled(
     next.children.length,
     null,
@@ -93,6 +92,13 @@ void patchChildren(
   _matchKeys(next.children, pool, matched);
   _matchEnds(next.children, pool, matched);
   _matchStarts(next.children, pool, matched);
+
+  // The previous plans, by key, asked once: the attributes to take away come from them, and
+  // looking each one up by scanning the list made a keyed list quadratic for no reason.
+  final Map<String, ElementPlan> before = <String, ElementPlan>{
+    for (final ElementPlan plan in previous.children)
+      if (plan.attributes['data-unibox-key'] case final String key) key: plan,
+  };
 
   final List<web.Element> built = <web.Element>[];
 
@@ -132,11 +138,25 @@ void patchChildren(
 }
 
 /// Matches children that state a key, wherever they moved to.
+///
+/// The page is asked for its keys once, not once per plan: asking every element its key for
+/// every keyed child is a list squared, and each ask crosses into the browser. A key is an
+/// identity, so one lookup is all it should cost.
 void _matchKeys(
   List<ElementPlan> plans,
   List<web.Element?> pool,
   List<web.Element?> matched,
 ) {
+  final Map<String, int> byKey = <String, int>{};
+
+  for (int i = 0; i < pool.length; i++) {
+    final String? key = pool[i]?.getAttribute('data-unibox-key');
+
+    if (key != null) {
+      byKey[key] = i;
+    }
+  }
+
   for (int i = 0; i < plans.length; i++) {
     final String? key = plans[i].attributes['data-unibox-key'];
 
@@ -144,13 +164,13 @@ void _matchKeys(
       continue;
     }
 
-    for (int j = 0; j < pool.length; j++) {
-      if (pool[j]?.getAttribute('data-unibox-key') == key) {
-        matched[i] = pool[j];
-        pool[j] = null;
+    // Taken out of the map as it is used, so an element matches one plan: two children with
+    // one key is a mistake, and the first of them gets it.
+    final int? at = byKey.remove(key);
 
-        break;
-      }
+    if (at != null) {
+      matched[i] = pool[at];
+      pool[at] = null;
     }
   }
 }
@@ -218,21 +238,16 @@ void _matchStarts(
   }
 }
 
-/// The plan an element in [before] was built from, by its key or by its place.
+/// The plan an element in [before] was built from, by its key.
 ///
 /// It only supplies the attributes to take away, so an approximate answer is safe: the worst case
 /// is an attribute left on an element that already wears it.
-ElementPlan _planOf(web.Element element, List<ElementPlan> before) {
+ElementPlan _planOf(web.Element element, Map<String, ElementPlan> before) {
   final String? key = element.getAttribute('data-unibox-key');
 
-  for (final ElementPlan plan in before) {
-    if (plan.attributes['data-unibox-key'] == key &&
-        plan.attributes['data-unibox-key'] != null) {
-      return plan;
-    }
-  }
-
-  return const ElementPlan(tag: '');
+  return key == null
+      ? const ElementPlan(tag: '')
+      : before[key] ?? const ElementPlan(tag: '');
 }
 
 /// The element's own part of the plan: class, attributes, and its content.
