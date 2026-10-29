@@ -37,7 +37,7 @@ void main() {
 
     final Finder card = find
         .ancestor(
-          of: find.text('Via Bellavista 12'),
+          of: find.text('Rue de Turenne 12'),
           matching: find.byWidgetPredicate(
             (Widget widget) =>
                 widget is FlutterBox && widget.box is MaterialCard,
