@@ -1,0 +1,80 @@
+name: Review
+
+# A second reader. Every pull request is read against `.github/agent/review-prompt.md` — the six
+# questions in `AGENTS.md` that a diff can get wrong — and the answer is posted as one comment.
+#
+# It approves nothing, blocks nothing and pushes nothing. The gate decides whether a change is
+# allowed; this decides whether a maintainer should look harder. A green gate outranks a comment.
+#
+# Two limits, both deliberate:
+#
+#   * A pull request from a fork cannot read a repository secret, so a stranger's change is not
+#     reviewed here. `pull_request_target` would fix that and would also hand the secret to code
+#     from the fork. Do not.
+#   * Without `ANTHROPIC_API_KEY` the job still runs, says so in the log, and does nothing: a
+#     repository without the key is a repository that verifies exactly as it did before.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    name: Read the diff against the rules
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The diff is taken against the base branch, so the history comes with it.
+          fetch-depth: 0
+
+      - name: Is a reviewer configured?
+        id: configured
+        env:
+          KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -n "${KEY}" ]; then
+            echo 'yes=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'yes=false' >> "$GITHUB_OUTPUT"
+            echo '::notice title=No reviewer configured::Set ANTHROPIC_API_KEY to have every pull request read against .github/agent/review-prompt.md. The checks still run.'
+          fi
+
+      # The prompt is a file, so there is one copy of it and it reads as prose. The diff is gathered
+      # here rather than fetched by the assistant, so the question is the same on every run.
+      - name: Assemble the question
+        if: steps.configured.outputs.yes == 'true'
+        id: question
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          {
+            echo 'text<<UNIBOX_REVIEW'
+            cat .github/agent/review-prompt.md
+            printf '\n\n## The change\n\n'
+            gh pr view "$PR" --json title,body,author \
+              --jq '"Title: \(.title)\n\nAuthor: \(.author.login)\n\n\(.body // "no description")"'
+            printf '\n## The diff\n\n```diff\n'
+            gh pr diff "$PR" | head -c 40000 || true
+            printf '\n```\n'
+            echo 'UNIBOX_REVIEW'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Read the diff against the rules
+        if: steps.configured.outputs.yes == 'true'
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: ${{ steps.question.outputs.text }}

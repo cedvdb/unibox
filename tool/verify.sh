@@ -44,6 +44,24 @@ fail() {
   exit 1
 }
 
+# The version is written in one file — `.flutter-version`, which the workflows read too — so a
+# local run and a CI run cannot disagree about it. This is checked before anything else because of
+# the failure it prevents: a tree that is green in CI and red on a laptop sends a reader after a
+# bug that does not exist, and the cheapest wrong fix available to anyone, human or assistant, is
+# to loosen `environment.sdk` until the red goes away.
+step 'Checking the Flutter version'
+expected_flutter="$(tr -d '[:space:]' < .flutter-version)"
+version_line="$(flutter --version 2>/dev/null || true)"
+actual_flutter="$(awk 'NR == 1 { print $2 }' <<< "$version_line")"
+if [ "$actual_flutter" != "$expected_flutter" ]; then
+  printf '  .flutter-version says %s; this machine has %s\n' \
+    "$expected_flutter" "${actual_flutter:-no flutter on PATH}" >&2
+  printf '  That is the environment, not your change. Install %s; do not edit the SDK constraint.\n' \
+    "$expected_flutter" >&2
+  fail "the Flutter version (expected $expected_flutter, from .flutter-version)"
+fi
+printf '  %s\n' "$actual_flutter"
+
 step 'Resolving the workspace'
 flutter pub get || fail 'flutter pub get'
 
@@ -63,6 +81,12 @@ dart analyze || fail 'dart analyze'
 # that is gone.
 step 'Checking the documentation'
 python3 tool/check_docs.py || fail 'tool/check_docs.py'
+
+# The table is checked from the inside by `test/cases_test.dart`; this checks it from the outside, and
+# it is the check a reviewer used to supply. A token that reaches the source without a place in the
+# table is a token neither renderer suite compares -- and an assistant adding one will not notice.
+step 'Checking the surface'
+python3 tool/surface_check.py || fail 'tool/surface_check.py'
 
 # The checkers are code too, and were the only code here without tests: a gate that silently stops
 # gating is worse than no gate, because the green tick is a lie.

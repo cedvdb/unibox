@@ -16,7 +16,9 @@ routine below, and stop where it says a human decides.
 | `weekly.yml` | the same gate on a cold cache, every Monday — because a dependency, Chrome or a cached artefact can break a green branch with no commit behind it |
 | `pages.yml` | rebuilds and publishes the site on every push to `main` |
 | `dependabot.yml` | one grouped pull request a week for dependencies, one a month for actions; each runs the full gate like any other change |
+| `review.yml` | a comment on every pull request, read against [`AGENTS.md`](AGENTS.md) through the six questions in [`.github/agent/review-prompt.md`](.github/agent/review-prompt.md). It approves nothing, blocks nothing and pushes nothing |
 | `tool/check_docs.py` | runs in the fast loop, so a renamed file cannot leave an index pointing at nothing |
+| `tool/surface_check.py` | runs in the fast loop, so a token that reaches the model without a decision about the appearance table cannot look finished |
 
 Nothing merges itself. A dependency bump is a change: `packages/unibox_testing` compares
 the two renderings, so a version that changes what a box looks like fails the gate before
@@ -65,6 +67,39 @@ These are not automatable, and an assistant should stop and ask rather than deci
   library is unreleased a rename is allowed; say so in the changelog, and say what
   replaced it.
 - **The `Deferred` list**, unless a human asks for an item by name.
+
+## The queue
+
+Everything above happens when you look. The queue is what happens when you don't.
+
+An issue is **`agent-ready`** when a competent contributor — or an assistant — could finish it from
+the issue text and [`AGENTS.md`](AGENTS.md) alone: one change, one package, no decision left to make.
+Anything held up by a decision is **`agent-blocked`**, and the decisions are the list above:
+releasing, a new dependency, a new workspace package, removing a public spelling, and the `Deferred`
+items.
+
+The task form — [`.github/ISSUE_TEMPLATE/maintenance_task.yml`](.github/ISSUE_TEMPLATE/maintenance_task.yml)
+— is what makes an issue ready: it asks for the recipe (A to H) that names the files the change
+touches, the package, and the line that has to pass. A task that cannot name its recipe is not
+scoped yet, which is the useful thing to learn before it is handed over rather than after.
+
+The labels, once per repository:
+
+```shell
+gh label create agent-ready --description 'Scoped, no decision left: an assistant can land it' --color 0e8a16
+gh label create agent-blocked --description 'A human decides: release, dependency, package, public spelling, Deferred' --color b60205
+gh label create maintenance --description 'Keeping the repository what its documentation says it is' --color fbca04
+```
+
+And then the list you work from, in the order it was written:
+
+```shell
+gh issue list --label agent-ready --limit 10
+```
+
+Two habits keep it honest. An issue that turns out to need a decision moves to `agent-blocked` in
+the same breath, instead of sitting in the queue and being skipped. And a finished task is closed by
+the commit that closed it, so the label keeps meaning what it says.
 
 ## Handing a task to an assistant
 

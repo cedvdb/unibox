@@ -19,8 +19,7 @@ permissions:
   contents: read
   issues: write
 
-env:
-  FLUTTER_VERSION: 3.47.5
+# Flutter is read from `.flutter-version`, the same file `ci.yml` and `tool/verify.sh` use.
 
 jobs:
   gate:
@@ -28,9 +27,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - name: Read the Flutter version
+        id: flutter-version
+        run: echo "version=$(cat .flutter-version)" >> "$GITHUB_OUTPUT"
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
+          flutter-version: ${{ steps.flutter-version.outputs.version }}
           channel: stable
           cache: false
       - name: Format, analyze, every suite and the API docs
@@ -59,9 +61,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - name: Read the Flutter version
+        id: flutter-version
+        run: echo "version=$(cat .flutter-version)" >> "$GITHUB_OUTPUT"
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
+          flutter-version: ${{ steps.flutter-version.outputs.version }}
           channel: stable
           cache: false
       - name: Resolve the workspace

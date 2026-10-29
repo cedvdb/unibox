@@ -23,7 +23,6 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  FLUTTER_VERSION: 3.47.5
   # The address the site is served from. A project site lives under /<repo>/.
   SITE_URL: https://cedvdb.github.io/unibox/
 
@@ -35,9 +34,12 @@ jobs:
       pages: ${{ steps.pages.outputs.enabled }}
     steps:
       - uses: actions/checkout@v7
+      - name: Read the Flutter version
+        id: flutter-version
+        run: echo "version=$(cat .flutter-version)" >> "$GITHUB_OUTPUT"
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
+          flutter-version: ${{ steps.flutter-version.outputs.version }}
           channel: stable
           cache: true
       - name: Verify the workspace
