@@ -30,7 +30,7 @@ export 'src/page_press.dart' show pressesFromPage;
 export 'src/page_scroll.dart' show scrollOffsetsFromPage;
 export 'src/render.dart';
 export 'src/scroll_scope.dart' show UniboxScrollScope;
-export 'src/shape.dart' show pathOf;
+export 'src/shape.dart' show pathOf, toStrokeCap;
 export 'src/stack_node.dart' show FlutterStack;
 export 'src/stateful_node.dart' show FlutterStateful;
 export 'src/text_input_node.dart' show FlutterTextInput;

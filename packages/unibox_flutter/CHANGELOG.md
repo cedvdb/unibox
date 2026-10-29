@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- A shaped box strokes its outline with the cap its border states, and `toStrokeCap` maps the
+  token to Flutter's `StrokeCap`. An open outline — `BoxShape.arc` — has two ends, and the cap is
+  what draws them: `BoxStrokeCap.round` gives the rounded ends Material's progress indicator has,
+  where the previous filled band stopped on a radius.
+
 - `pressesFromPage()` and `FlutterStateful(presses: …)`: the presses a page recorded, answered
   once against the first view the node builds — which is the only place their callbacks exist,
   since the view is a function of the store created when the widget mounts. A rebuild is not a

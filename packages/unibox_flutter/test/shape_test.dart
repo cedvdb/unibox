@@ -115,6 +115,40 @@ void main() {
       );
     });
 
+    testWidgets('caps the ends of an arc the way its border says', (
+      WidgetTester tester,
+    ) async {
+      await pumpNode(
+        tester,
+        core.Box(
+          width: 48,
+          height: 48,
+          shape: core.BoxShape.arc(stroke: 4, sweep: 0.42, viewBox: 48),
+          border: const core.BoxBorder(
+            width: 4,
+            color: core.BoxColor.black,
+            cap: core.BoxStrokeCap.round,
+          ),
+        ),
+      );
+
+      // An arc is a line, not a region: what a reader sees is the stroke, and its ends
+      // are the only place a cap is drawn. The matcher cannot read a cap, so the mapping
+      // that supplies it is pinned in `toStrokeCap`'s own test below.
+      await expectLater(
+        find.byWidgetPredicate(
+          (Widget widget) => widget is CustomPaint && widget.painter != null,
+        ),
+        paints..path(strokeWidth: 4),
+      );
+    });
+
+    test('maps every cap to the one Flutter draws the same way', () {
+      expect(toStrokeCap(core.BoxStrokeCap.butt), StrokeCap.butt);
+      expect(toStrokeCap(core.BoxStrokeCap.round), StrokeCap.round);
+      expect(toStrokeCap(core.BoxStrokeCap.square), StrokeCap.square);
+    });
+
     testWidgets('clips its content only when the box says so', (
       WidgetTester tester,
     ) async {

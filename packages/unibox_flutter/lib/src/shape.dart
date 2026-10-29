@@ -69,6 +69,17 @@ Path pathOf(core.BoxShape shape, Size size) {
   return path;
 }
 
+/// Converts a Unibox [core.BoxStrokeCap] to a Flutter [StrokeCap].
+///
+/// The three are the ones CSS and Skia define with the same geometry, so a cap is the
+/// same half disc or half square on both targets — and the mapping is exhaustive, which
+/// is what makes a fourth cap a compile error rather than a silent default.
+StrokeCap toStrokeCap(core.BoxStrokeCap cap) => switch (cap) {
+  core.BoxStrokeCap.butt => StrokeCap.butt,
+  core.BoxStrokeCap.round => StrokeCap.round,
+  core.BoxStrokeCap.square => StrokeCap.square,
+};
+
 /// Paints the background and the border of a shaped box.
 ///
 /// The fill is the box's `backgroundColor` and the border is a stroke along the
@@ -106,7 +117,10 @@ class UniboxShapePainter extends CustomPainter {
         Paint()
           ..color = toColor(border.color)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = border.width,
+          ..strokeWidth = border.width
+          // The ends of an open outline — an arc — are the ends of the stroke, so the
+          // cap the border states is what draws them: round for Material's indicator.
+          ..strokeCap = toStrokeCap(border.cap),
       );
     }
   }
