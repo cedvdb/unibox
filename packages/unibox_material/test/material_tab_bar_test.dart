@@ -40,6 +40,22 @@ PositionedNode _indicatorOf(MaterialTabBar bar) =>
     (bar.children.single as StackNode).children.last as PositionedNode;
 
 void main() {
+  /// The underline [tab] carries, or `null` when it carries none.
+  ///
+  /// It is the positioned child pinned to both edges of the stack the label sizes; an ink
+  /// drop is positioned too, but by an offset from one corner rather than across two.
+  PositionedNode? pinnedLineOf(Box tab) {
+    final MaterialInkWell well = _wellOf(tab);
+    final Store<MaterialInkState> store = well.createStore();
+    final List<PositionedNode> lines = _nodes(well.viewFor(store.state, store))
+        .whereType<PositionedNode>()
+        .where((PositionedNode node) => node.left == 0 && node.right == 0)
+        .toList();
+    store.dispose();
+
+    return lines.isEmpty ? null : lines.single;
+  }
+
   group('MaterialTabBar', () {
     MaterialTabBar bar({
       int selected = 0,
@@ -137,6 +153,59 @@ void main() {
       }
 
       expect(selected, <bool?>[false, true, false]);
+    });
+
+    test('underlines a secondary tab, and lays it across its label', () {
+      final MaterialTabBar tabs = bar(
+        selected: 1,
+        variant: MaterialTabVariant.secondary,
+      );
+
+      // A share of the bar cannot land under a tab whose width is its label's, so a
+      // secondary bar has no overlay at all: each tab carries its own underline.
+      expect((tabs.children.single as StackNode).children.length, 1);
+
+      for (final (int index, Box tab) in _tabBoxes(tabs).indexed) {
+        final PositionedNode line = pinnedLineOf(tab)!;
+
+        // Pinned to both edges and to the bottom of the stack its own label sizes: the
+        // width is whatever the label came out as, which nobody had to measure.
+        expect(line.left, 0);
+        expect(line.right, 0);
+        expect(line.bottom, 0);
+        expect(line.alignment, isNull);
+
+        final Box painted = line.child as Box;
+
+        expect(painted.height, MaterialTabBar.indicatorHeight);
+        expect(painted.backgroundColor, isNotNull);
+        // Only the chosen tab's underline is drawn, and the other two fade out where they
+        // are rather than leaving nothing to fade in.
+        expect(
+          painted.opacity,
+          index == 1 ? 1 : 0,
+          reason: 'the chosen tab is the underlined one',
+        );
+        expect(
+          painted.transition?.parts.single.properties,
+          <BoxProperty>{BoxProperty.opacity},
+          reason:
+              'a label width apart is a measurement, so the underline fades',
+        );
+      }
+    });
+
+    test('gives a primary tab no underline of its own', () {
+      for (final Box tab in _tabBoxes(bar())) {
+        expect(
+          pinnedLineOf(tab),
+          isNull,
+          reason: 'a primary tab is a share of the bar, and the bar moves one indicator',
+        );
+      }
+
+      // And the bar keeps the one indicator it moves instead.
+      expect(_indicatorOf(bar()).alignment, BoxAlignment.bottomCenter);
     });
   });
 }

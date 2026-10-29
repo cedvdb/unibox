@@ -81,6 +81,14 @@ UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
         ),
         _section(
           palette,
+          'Secondary tabs',
+          _secondaryTabs(palette),
+          note:
+              'The same three tabs packed, each as wide as its label: the underline '
+              'is the label\'s own width, not a share of the bar.',
+        ),
+        _section(
+          palette,
           'Pages',
           _pager(palette),
           note:
@@ -517,6 +525,28 @@ UINode _removableView(Set<String> chips, ChipsStore store) {
             color: const BoxColor.role(MaterialColorRole.onSurfaceVariant),
           ),
         ),
+    ],
+  );
+}
+
+/// Three tabs as wide as their labels, over a page each: what [MaterialTabs] is.
+///
+/// The primary demo beside it composes a bar and a pager by hand, because a pager needs to
+/// know how wide a page is. This one has nothing to compose — a bar that swaps its page is
+/// one component — so it is the component itself, and the four-line shape a caller writes.
+UINode _secondaryTabs(MaterialPalette palette) {
+  return MaterialTabs(
+    variant: MaterialTabVariant.secondary,
+    palette: palette,
+    tabs: const <MaterialTab>[
+      MaterialTab(label: TextNode('Overview')),
+      MaterialTab(label: TextNode('Listings')),
+      MaterialTab(label: TextNode('Reviews')),
+    ],
+    pages: <UINode>[
+      _page(palette, 'Six flats, from the same tree.'),
+      _page(palette, 'A map beside them on a wide screen.'),
+      _page(palette, 'What the tenants said.'),
     ],
   );
 }

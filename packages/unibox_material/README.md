@@ -514,8 +514,14 @@ one packs them to the start at their own width.
 
 Its indicator is one element, a share of the bar wide, moved by a multiple of its own width —
 so it slides between tabs with a `transform` a transition eases, and nobody has to measure a
-tab. A *secondary* bar keeps an even share for the same reason: an indicator under a label's
-text would be the one thing here that needs a measurement the tree cannot make.
+tab. That is the *primary* bar, whose tabs are equal shares by definition.
+
+A *secondary* bar packs its tabs to the start and gives each one its label's width, so a share
+would land under no tab at all. Each tab carries its own underline instead, pinned across the
+bottom of a stack its label sizes — the one width a tree can have that its siblings do not
+share, and still no measurement: a stack takes the size of the child it lays out. It fades
+between tabs rather than sliding, because where the next label *starts* is the one distance
+this tree cannot state.
 
 It does not page between tabs: a swipe needs a controlled scroll position, and the model
 reports an offset (`Box.onScroll`) without setting one. The pager is `Box(snap:

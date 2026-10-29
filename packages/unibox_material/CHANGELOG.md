@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- A **secondary** tab bar draws its indicator under the label rather than under a share of
+  the bar. Its tabs are as wide as their labels, so the share-wide indicator that suits a
+  primary bar landed under no tab at all: each tab now carries its own underline, pinned
+  across the bottom of a stack its own label sizes, so the width is the text's without
+  anyone measuring it. It fades between tabs instead of sliding, because the distance
+  between two labels is the one thing a tree cannot state.
+
 - The tab bar's indicator is one element, a share of the width, moved by a fraction of itself — so it
   **slides** to the chosen tab and a transition eases it, instead of appearing under one tab and not
   the other. It is a `transform`, which both targets already animate.

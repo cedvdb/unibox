@@ -216,6 +216,7 @@ void main() {
         'Cards and tiles',
         'Navigation bar',
         'Tabs',
+        'Secondary tabs',
         'Pages',
         'Dialog',
         'Type scale',

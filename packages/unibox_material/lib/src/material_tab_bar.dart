@@ -60,6 +60,16 @@ enum MaterialTabVariant {
 /// `primary` under the chosen tab alone, and the row's hairline is a shadow with no blur,
 /// because a border draws on all four sides.
 ///
+/// **The two variants place the indicator differently, because they size a tab
+/// differently.** A [MaterialTabVariant.primary] bar gives every tab the same share, so one
+/// indicator a share wide moves by a multiple of *its own* width and slides to the chosen
+/// tab without anyone measuring one. A [MaterialTabVariant.secondary] bar gives a tab the
+/// width of its label, and labels are not the same width, so a share would land under no
+/// tab at all: each tab carries its own underline instead, laid across the bottom of a
+/// stack its own label sizes — which needs no measurement either, because the underline
+/// spans the box that holds the label. The chosen tab's underline fades in rather than
+/// sliding, since the distance between two tabs is the one thing this tree cannot state.
+///
 /// **A bar shows nothing itself.** It says which tab is chosen and reports a press; the node
 /// that draws a page is [MaterialTabs], or the application's own view. Keeping the two apart
 /// is what lets a bar sit above a page that swaps, above a pager, or beside a preview — the
@@ -107,33 +117,34 @@ final class MaterialTabBar extends Box {
                        selected: index == selected,
                        variant: variant,
                        palette: palette,
+                       indicator: _tint(palette, indicator),
                        onTap: onSelect == null ? null : () => onSelect(index),
                      ),
                  ],
                ),
-               // One indicator, one share of the bar wide, moved by a multiple of its own width:
-               // that is a whole tab per step, so `selected` places it without anyone measuring a
-               // tab. The transform is what a transition eases, so it slides rather than jumps.
-               PositionedNode(
-                 alignment: BoxAlignment.bottomCenter,
-                 child: Box(
-                   widthFraction: 1 / tabs.length,
-                   height: indicatorHeight,
-                   backgroundColor:
-                       indicator ?? palette?.primary ?? _baselinePrimary,
-                   transform: BoxTransform(fractionX: selected.toDouble()),
-                   transition: const BoxTransition(
-                     duration: Duration(milliseconds: 250),
-                     curve: BoxCurve.easeOut,
-                     parts: <BoxTransitionPart>[
-                       BoxTransitionPart(
-                         properties: <BoxProperty>{BoxProperty.transform},
-                         duration: Duration(milliseconds: 250),
-                       ),
-                     ],
+               // A primary bar's tabs are the same width, so one indicator can be a share of the
+               // bar and moved by a multiple of its own width: a whole tab per step, placed by
+               // `selected` alone. The transform is what a transition eases, so it slides.
+               if (variant == MaterialTabVariant.primary)
+                 PositionedNode(
+                   alignment: BoxAlignment.bottomCenter,
+                   child: Box(
+                     widthFraction: 1 / tabs.length,
+                     height: indicatorHeight,
+                     backgroundColor: _tint(palette, indicator),
+                     transform: BoxTransform(fractionX: selected.toDouble()),
+                     transition: const BoxTransition(
+                       duration: Duration(milliseconds: 250),
+                       curve: BoxCurve.easeOut,
+                       parts: <BoxTransitionPart>[
+                         BoxTransitionPart(
+                           properties: <BoxProperty>{BoxProperty.transform},
+                           duration: Duration(milliseconds: 250),
+                         ),
+                       ],
+                     ),
                    ),
                  ),
-               ),
              ],
            ),
          ],
@@ -142,6 +153,11 @@ final class MaterialTabBar extends Box {
   /// The baseline `primary` of the Material 3 light scheme, for a bar built without a
   /// palette: the same value [MaterialCard] writes out for its own surface.
   static const BoxColor _baselinePrimary = BoxColor(0xFF8C4A5D);
+
+  /// The colour of the indicator: the one the caller named, else the palette's `primary`,
+  /// else the baseline.
+  static BoxColor _tint(MaterialPalette? palette, BoxColor? indicator) =>
+      indicator ?? palette?.primary ?? _baselinePrimary;
 
   /// The height of a tab without an icon: Material's own.
   static const double tabHeight = 48;
@@ -154,46 +170,98 @@ final class MaterialTabBar extends Box {
     required bool selected,
     required MaterialTabVariant variant,
     required MaterialPalette? palette,
+    required BoxColor indicator,
     required TapCallback? onTap,
   }) {
+    final bool primary = variant == MaterialTabVariant.primary;
+
     final BoxColor labelColour = palette == null
         ? (selected ? _baselinePrimary : const BoxColor(0xFF514346))
         : (selected ? palette.primary : palette.onSurfaceVariant);
+
+    // The label belongs to the caller, so its colour is inherited rather than reached into:
+    // a box hands its `textStyle` down to the texts inside it, which is the model's copy of
+    // CSS font inheritance.
+    final Box label = Box(
+      gap: 4,
+      crossAlign: CrossAlign.center,
+      textStyle: MaterialTypography.titleSmall.copyWith(color: labelColour),
+      children: <UINode>[?tab.icon, tab.label],
+    );
 
     // The tab is the well, filling all 48 pixels and the whole share: Material tints the tab, and a
     // column that held the well above an indicator strip made the tint as wide as its label and
     // left the bottom three pixels outside the thing a pointer could reach.
     return Box(
-      flex: variant == MaterialTabVariant.primary ? 1 : null,
+      flex: primary ? 1 : null,
       height: tabHeight,
-      crossAlign: CrossAlign.stretch,
+      // A share cannot be split, so a primary tab stretches its well across its share; a secondary
+      // tab is as wide as its label, which is what packing them to the start means.
+      crossAlign: primary ? CrossAlign.stretch : CrossAlign.center,
       children: <UINode>[
         MaterialInkWell(
           onTap: onTap,
-          width: double.infinity,
+          width: primary ? double.infinity : null,
           height: tabHeight,
           mainAlign: MainAlign.center,
           crossAlign: CrossAlign.center,
-          padding: BoxSpacing.symmetric(
-            horizontal: variant == MaterialTabVariant.primary ? 8 : 16,
-          ),
-          // The label belongs to the caller, so its colour is inherited rather than reached into:
-          // a box hands its `textStyle` down to the texts inside it, which is the model's copy of
-          // CSS font inheritance.
-          child: Box(
-            gap: 4,
-            crossAlign: CrossAlign.center,
-            textStyle: MaterialTypography.titleSmall.copyWith(
-              color: labelColour,
-            ),
-            children: <UINode>[?tab.icon, tab.label],
-          ),
+          padding: BoxSpacing.symmetric(horizontal: primary ? 8 : 16),
+          child: primary
+              ? label
+              : _underlined(label, selected: selected, indicator: indicator),
           semantics: BoxSemantics(
             role: BoxRole.tab,
             label: tab.semanticsLabel,
             // Which of the set is chosen: `aria-selected` on the web, and Flutter's own selected
             // flag, which is what a screen reader announces for a tab.
             selected: selected,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// [label] with the indicator drawn across the bottom of it, shown when [selected].
+  ///
+  /// The stack is sized by the label and the indicator is pinned to both of its edges, so the
+  /// underline is exactly as wide as the text above it — the one width a tab can have that its
+  /// siblings do not share. Nothing measures it: a stack takes the size of the child it lays
+  /// out, and a positioned child with no width of its own spans whatever that was.
+  ///
+  /// It fades rather than sliding, because where the *next* tab starts is the one thing this
+  /// tree cannot state: two labels are not a share apart, they are a measurement apart.
+  static UINode _underlined(
+    UINode label, {
+    required bool selected,
+    required BoxColor indicator,
+  }) {
+    return StackNode(
+      height: tabHeight,
+      children: <UINode>[
+        Box(
+          height: tabHeight,
+          mainAlign: MainAlign.center,
+          crossAlign: CrossAlign.center,
+          children: <UINode>[label],
+        ),
+        PositionedNode(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: Box(
+            height: indicatorHeight,
+            backgroundColor: indicator,
+            opacity: selected ? 1 : 0,
+            transition: const BoxTransition(
+              duration: Duration(milliseconds: 250),
+              curve: BoxCurve.easeOut,
+              parts: <BoxTransitionPart>[
+                BoxTransitionPart(
+                  properties: <BoxProperty>{BoxProperty.opacity},
+                  duration: Duration(milliseconds: 250),
+                ),
+              ],
+            ),
           ),
         ),
       ],
