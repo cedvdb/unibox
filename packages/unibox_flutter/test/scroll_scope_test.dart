@@ -98,6 +98,27 @@ void main() {
     );
   });
 
+  testWidgets(
+    'a region keyed the way the example keys it starts where the page said',
+    (WidgetTester tester) async {
+      // The two halves only meet if the key in the tree is the key in the record: the document
+      // writes `data-unibox-key`, and this is that value.
+      await tester.pumpWidget(
+        page(const <core.BoxScrollOffset>[
+          core.BoxScrollOffset(key: 'listings', dy: 320),
+        ], key: 'listings'),
+      );
+
+      expect(
+        tester
+            .widget<Scrollable>(find.byType(Scrollable))
+            .controller
+            ?.initialScrollOffset,
+        320,
+      );
+    },
+  );
+
   testWidgets('a rebuild does not move the reader back', (
     WidgetTester tester,
   ) async {

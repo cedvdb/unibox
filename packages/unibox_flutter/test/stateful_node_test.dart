@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
+import 'package:unibox_flutter/unibox_flutter.dart';
 
 import 'support/harness.dart';
 
@@ -113,6 +114,8 @@ final class _RequestNode extends core.StatefulNode<String, _RequestStore> {
 }
 
 void main() {
+  pressReplayTests();
+
   group('FlutterStateful', () {
     testWidgets('draws the view of the state the store starts with', (
       tester,
@@ -176,4 +179,54 @@ void main() {
       expect(find.text('pending'), findsNothing);
     });
   });
+}
+
+void pressReplayTests() {
+  testWidgets('answers a recorded press once, where the callback exists', (
+    WidgetTester tester,
+  ) async {
+    // The store is created when the widget mounts, so the callback belongs to the view it draws
+    // and not to a copy of the tree a host might have built.
+    var pressed = 0;
+
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: FlutterStateful(
+          node: _PressNode(onTap: () => pressed++),
+          presses: const <core.BoxPress>[core.BoxPress(key: 'cta')],
+        ),
+      ),
+    );
+
+    expect(pressed, 1);
+
+    // A rebuild is not a second press.
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: FlutterStateful(
+          node: _PressNode(onTap: () => pressed++),
+          presses: const <core.BoxPress>[core.BoxPress(key: 'cta')],
+        ),
+      ),
+    );
+
+    expect(pressed, 1);
+  });
+}
+
+/// A page whose view is one readable control.
+final class _PressNode extends core.StatefulNode<int, _Store> {
+  _PressNode({required void Function() onTap})
+    : super(
+        create: _Store.new,
+        view: (int _, _) {
+          return core.Box(
+            key: 'cta',
+            onTap: onTap,
+            children: const <core.UINode>[core.TextNode('Press')],
+          );
+        },
+      );
 }

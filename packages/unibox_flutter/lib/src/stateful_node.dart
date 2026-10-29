@@ -21,7 +21,12 @@ class FlutterStateful extends StatefulWidget {
   /// `renderFlutter`: a host that roots its application in a stateful node writes it
   /// once here instead of remembering a scope around it — which is also the scope an
   /// overlay reads when it hands the theme on.
-  const FlutterStateful({required this.node, this.theme, super.key});
+  const FlutterStateful({
+    required this.node,
+    this.theme,
+    this.presses = const <core.BoxPress>[],
+    super.key,
+  });
 
   /// The node being rendered.
   final core.StatefulNode<Object, core.Store<Object>> node;
@@ -29,12 +34,23 @@ class FlutterStateful extends StatefulWidget {
   /// The values the roles of the tree stand for, or `null` when the tree names none.
   final core.UniboxTheme? theme;
 
+  /// The presses a page recorded before this node existed.
+  ///
+  /// They are answered once, against the first view this node builds — which is the only place
+  /// their callbacks exist: the view is a function of the store, and the store is created when
+  /// this widget mounts. A press whose key matches no node, or two of them, is dropped rather
+  /// than guessed at; see `replayPresses`.
+  final List<core.BoxPress> presses;
+
   @override
   State<FlutterStateful> createState() => FlutterStatefulState();
 }
 
 class FlutterStatefulState extends State<FlutterStateful> {
   late core.Store<Object> _store;
+
+  /// Whether the recorded presses have been answered, which happens once per mounting.
+  bool _replayed = false;
 
   @override
   void initState() {
@@ -60,7 +76,16 @@ class FlutterStatefulState extends State<FlutterStateful> {
 
   @override
   Widget build(BuildContext context) {
-    final Widget tree = renderNode(widget.node.viewFor(_store.state, _store));
+    final core.UINode view = widget.node.viewFor(_store.state, _store);
+
+    // A press is answered where its callback is: the view just built, with the store it closed
+    // over. Once, so a rebuild does not press again.
+    if (!_replayed && widget.presses.isNotEmpty) {
+      _replayed = true;
+      core.replayPresses(view, widget.presses);
+    }
+
+    final Widget tree = renderNode(view);
     final core.UniboxTheme? theme = widget.theme;
 
     return theme == null ? tree : UniboxThemeScope(theme: theme, child: tree);

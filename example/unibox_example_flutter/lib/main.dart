@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:unibox_core/unibox_core.dart' show BoxScrollOffset;
+import 'package:unibox_core/unibox_core.dart' show BoxPress, BoxScrollOffset;
 import 'package:unibox_example_shared/unibox_example_shared.dart';
 import 'package:unibox_flutter/unibox_flutter.dart';
 
@@ -11,10 +11,11 @@ void main() => runApp(
   ExampleApp(
     signupOpen: signupOpenFromUrl(),
     seed: seedFromUrl(),
-    // Where the page was scrolled to before the application existed. The document
-    // recorded it and the script left it on `window.unibox`; every other platform
+    // What the page recorded before the application existed: where a region was scrolled to, and
+    // what was pressed. Read once here, where a host does its other reads; every other platform
     // answers with nothing, because there is no page in front of it.
     offsets: scrollOffsetsFromPage(),
+    presses: pressesFromPage(),
   ),
 );
 
@@ -56,6 +57,7 @@ class ExampleApp extends StatefulWidget {
     this.signupOpen = false,
     this.seed = ExampleSeed.blue,
     this.offsets = const <BoxScrollOffset>[],
+    this.presses = const <BoxPress>[],
   });
 
   /// Whether the sign-up dialog is open on the first frame.
@@ -66,6 +68,9 @@ class ExampleApp extends StatefulWidget {
 
   /// Where each region of the page was scrolled to, before the application arrived.
   final List<BoxScrollOffset> offsets;
+
+  /// What was pressed before the application arrived.
+  final List<BoxPress> presses;
 
   @override
   State<ExampleApp> createState() => _ExampleAppState();
@@ -109,6 +114,8 @@ class _ExampleAppState extends State<ExampleApp> {
             child: FlutterStateful(
               node: ExamplePageNode(signupOpen: widget.signupOpen, seed: _seed),
               theme: ExamplePalette.themeFor(_seed),
+              // The presses are answered by the node that owns the callbacks, once.
+              presses: widget.presses,
             ),
           ),
         ),

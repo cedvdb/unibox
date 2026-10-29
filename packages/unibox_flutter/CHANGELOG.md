@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `pressesFromPage()` and `FlutterStateful(presses: …)`: the presses a page recorded, answered
+  once against the first view the node builds — which is the only place their callbacks exist,
+  since the view is a function of the store created when the widget mounts. A rebuild is not a
+  second press.
+
 - `UniboxScrollScope` and `scrollOffsetsFromPage()`: a box that scrolls opens where a reader
   left it. The document records the offset of each region it rendered, a browser reads the
   record through one call, and the offset becomes the controller's *initial* position — so a

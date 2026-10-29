@@ -9,6 +9,8 @@ import 'package:unibox_flutter/unibox_flutter.dart';
 /// never see the JavaScript. The browser half is `page_scroll_web.dart`, chosen by the
 /// conditional export and exercised by the exported site.
 void main() {
+  pressesTest();
+
   test('answers with nothing where there is no page to read', () {
     expect(scrollOffsetsFromPage(), isEmpty);
   });
@@ -19,4 +21,24 @@ void main() {
 
     expect(offsets, isA<List<core.BoxScrollOffset>>());
   });
+}
+
+/// The presses a page recorded, read where a page exists.
+///
+/// A test runs on the VM, so it exercises the stub — the JavaScript half is chosen by the
+/// conditional export and exercised by the exported site.
+void pressesTest() {
+  test('answers with nothing where there is no page to read', () {
+    expect(pressesFromPage(), isEmpty);
+  });
+
+  test(
+    'is the type the replay takes, so a host wires two names and no glue',
+    () {
+      // The signature is the contract between the reader and `replayPresses`.
+      final List<core.BoxPress> presses = pressesFromPage();
+
+      expect(presses, isA<List<core.BoxPress>>());
+    },
+  );
 }

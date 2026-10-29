@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- `BoxPress` and `replayPresses`: a press a page recorded before an application existed, and the
+  one place it can be answered. The walk finds the node that carried the key, and a press is only
+  answered where the tree names exactly one node with a callback — a key that matches nothing, two
+  nodes or a node with no behaviour is dropped rather than guessed at, because firing whatever is
+  nearby is how the wrong control goes off.
+
 - `BoxScrollOffset`: where one scrolling region was scrolled to, before a tree drew it. A page
   records the offset of each region it rendered, keyed by the key that region's node carried,
   and the application that takes the page over starts there instead of at the top. It is a

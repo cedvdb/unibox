@@ -239,10 +239,10 @@ What the takeover still lacks, what is clumsy to wire, and what the documents do
 - [x] **2. A takeover in one argument.** `toDocument` takes `prefetch`, `scripts` and a policy, and
   a host has to know that the recorders belong in `scripts` and the bundle in `prefetch`. One
   `Takeover(boot: …)` should carry all of it, with the recorders and the policy defaulted.
-- [ ] **3. Click replay.** The page records a press and nothing reads it. A `BoxPress` value in
+- [x] **3. Click replay.** The page records a press and nothing reads it. A `BoxPress` value in
   core, a pure `replayPresses(tree, presses)` that walks the tree to the node that carried the key
   and calls its callback, a browser reader in `unibox_flutter`, and the tests for both.
-- [ ] **4. Scroll replay, proved.** A Flutter test on a tree whose scrolling box is keyed the way
+- [x] **4. Scroll replay, proved.** A Flutter test on a tree whose scrolling box is keyed the way
   the example keys it, so the two halves meet in one place.
 - [ ] **5. A boot time, measured.** The check asks whether the document boots; it cannot say how
   long it took, because `--virtual-time-budget` makes `performance.now()` virtual. A real number
