@@ -30,7 +30,7 @@ const String boot = '../../flutter/app.js';
 /// carries the one fact that separates them.
 String buildExampleDocument({String? build}) {
   return toDocument(
-    ExamplePageNode(),
+    ExamplePageNode(photoPrefix: '../../'),
     title: 'Apartments — Unibox',
     description:
         'Six apartments with a map beside the listings on a wide screen and the '

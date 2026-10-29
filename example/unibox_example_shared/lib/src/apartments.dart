@@ -37,11 +37,15 @@ final class Apartment {
   /// The monthly rent in euro.
   final int rent;
 
-  /// The photo the card shows, as an absolute url.
+  /// The photo the card shows, as the name of a bundled file: `apartment-1.jpg`.
   ///
-  /// A network photo is what a real listing page shows, and it is also the one
-  /// piece of the card the model hands to the platform: an `ImageNode` with an url
-  /// is a network request in Flutter and an `<img src>` on the page.
+  /// Bundled rather than fetched from a photo host, and that is a decision about this example rather
+  /// than about the model: a remote image makes the page's largest paint a third party's latency, and
+  /// a page whose number belongs to somebody else's server cannot be held to a budget. Six thumbnails
+  /// are 152 kB, all of them local.
+  ///
+  /// The name is a file, not a path: where that file sits is the host's fact, because a document two
+  /// directories deep and an application's asset bundle reach the same file from different places.
   final String photo;
 
   /// Two or three words about what the flat feels like.
@@ -71,7 +75,7 @@ const List<Apartment> exampleApartments = <Apartment>[
     rooms: 3,
     area: 84,
     rent: 1850,
-    photo: 'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=640',
+    photo: 'apartment-1.jpg',
     tags: 'Bright, quiet street',
     badge: 'New',
   ),
@@ -81,7 +85,7 @@ const List<Apartment> exampleApartments = <Apartment>[
     rooms: 2,
     area: 61,
     rent: 1240,
-    photo: 'https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg?auto=compress&cs=tinysrgb&w=640',
+    photo: 'apartment-2.jpg',
     tags: 'Furnished, balcony',
     badge: '4.5',
   ),
@@ -91,7 +95,7 @@ const List<Apartment> exampleApartments = <Apartment>[
     rooms: 1,
     area: 44,
     rent: 980,
-    photo: 'https://images.pexels.com/photos/265087/pexels-photo-265087.jpeg?auto=compress&cs=tinysrgb&w=640',
+    photo: 'apartment-3.jpg',
     tags: 'Studio, near the station',
     badge: '4.8',
   ),
@@ -101,7 +105,7 @@ const List<Apartment> exampleApartments = <Apartment>[
     rooms: 4,
     area: 112,
     rent: 2400,
-    photo: 'https://images.pexels.com/photos/259588/pexels-photo-259588.jpeg?auto=compress&cs=tinysrgb&w=640',
+    photo: 'apartment-4.jpg',
     tags: 'Family, garden',
     badge: 'New',
   ),
@@ -111,7 +115,7 @@ const List<Apartment> exampleApartments = <Apartment>[
     rooms: 2,
     area: 70,
     rent: 1420,
-    photo: 'https://images.pexels.com/photos/271619/pexels-photo-271619.jpeg?auto=compress&cs=tinysrgb&w=640',
+    photo: 'apartment-5.jpg',
     tags: 'Top floor, lift',
     badge: '4.2',
   ),
@@ -121,7 +125,7 @@ const List<Apartment> exampleApartments = <Apartment>[
     rooms: 3,
     area: 95,
     rent: 2100,
-    photo: 'https://images.pexels.com/photos/1170412/pexels-photo-1170412.jpeg?auto=compress&cs=tinysrgb&w=640',
+    photo: 'apartment-6.jpg',
     tags: 'Renovated, terrace',
     badge: '4.9',
   ),
@@ -164,6 +168,12 @@ enum ListingsView {
 /// bottom of the list instead: the same tree at every window, and the placement a phone
 /// gets.
 Box buildApartmentsPage({
+  /// How far the document that draws this page sits from the site root, so a bundled photo resolves.
+  ///
+  /// `''` in an application, whose assets are looked up by bundle key, and `'../../'` in a document
+  /// two directories down. It is a host fact — the tree cannot know where it is drawn — and it is the
+  /// only thing a bundled image needs from one.
+  String photoPrefix = '',
   String? filter = defaultListingFilter,
   ListingsView view = ListingsView.grid,
   void Function(String? filter)? onFilter,
@@ -193,6 +203,7 @@ Box buildApartmentsPage({
             overflow: Overflow.scroll,
             children: <UINode>[
               _content(
+                photoPrefix: photoPrefix,
                 filter: filter,
                 view: view,
                 onFilter: onFilter,
@@ -221,6 +232,7 @@ Box buildApartmentsPage({
 
 /// Everything the page holds, in the box that scrolls.
 Box _content({
+  required String photoPrefix,
   required String? filter,
   required ListingsView view,
   required void Function(String? filter)? onFilter,
@@ -257,8 +269,11 @@ Box _content({
                 maxColumns: view == ListingsView.list ? 1 : 2,
                 gap: 12,
                 children: <UINode>[
-                  for (final Apartment apartment in exampleApartments)
-                    _card(apartment),
+                  for (final (int index, Apartment apartment)
+                      in exampleApartments.indexed)
+                    // The first card's photo is the largest thing above the fold, so it says so and
+                    // the browser fetches it ahead of the five nobody has scrolled to yet.
+                    _card(apartment, photoPrefix, ahead: index == 0),
                 ],
               ),
             ],
@@ -496,7 +511,7 @@ UINode _filterChip(
 /// elevation and body type — so the example shows the design system as well as the
 /// model. Its width is the grid's track and its height is its content; the grid
 /// top-aligns the cards of a row, so a shorter card does not stretch.
-UINode _card(Apartment apartment) {
+UINode _card(Apartment apartment, String photoPrefix, {bool ahead = false}) {
   return MaterialCard(
     semantics: const BoxSemantics(element: BoxElement.article),
     padding: const BoxSpacing.all(0),
@@ -509,8 +524,11 @@ UINode _card(Apartment apartment) {
         height: 150,
         children: <UINode>[
           ImageNode(
-            apartment.photo,
+            '${photoPrefix}assets/photos/${apartment.photo}',
             alt: 'A room in ${apartment.name}',
+            fetchPriority: ahead
+                ? ImageFetchPriority.high
+                : ImageFetchPriority.auto,
             width: double.infinity,
             height: 150,
             fit: ImageFit.cover,

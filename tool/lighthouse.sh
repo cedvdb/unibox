@@ -52,7 +52,7 @@ fi
 # that becomes an application to a floor — see `tool/lighthouse_budget.py` for why there are two.
 pages="web/listings:document :application"
 printf '\n==> Serving %s on %s\n' "$WORK" "$PORT"
-python3 -m http.server "$PORT" --directory "$WORK" >/dev/null 2>&1 &
+python3 tool/serve.py "$WORK" "$PORT" >/dev/null 2>&1 &
 SERVER=$!
 sleep 1
 

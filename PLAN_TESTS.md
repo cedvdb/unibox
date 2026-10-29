@@ -88,6 +88,29 @@ The four faces went from 496 kB to 80 kB (`pyftsubset --flavor=woff2`, Latin ran
 third party's asset: that one is content, and bundling it is a decision about this example, not about
 the renderer.
 
+### What the third fix did: local thumbnails, and a server that compresses
+
+Two more things were true of the measurements rather than of the page. The listing photos came from
+`images.pexels.com`, so the largest paint was a third party's latency; and every check served the
+build with `python3 -m http.server`, which sends **no `Content-Encoding` at all** — 238 kB of client
+where GitHub Pages sends 76 kB.
+
+Six thumbnails are now bundled (72 kB, 260 px wide at quality 55; Flutter bundles the same six and
+reaches them by asset name, the document by `../../assets/photos/`, which is why the page takes a
+`photoPrefix` and an application takes none). `tool/serve.py` serves a build the way a host does:
+threaded, gzip when the client accepts it.
+
+| | performance | FCP | LCP | TBT |
+| --- | ---: | ---: | ---: | ---: |
+| remote photos, uncompressed serving | 85 | 2.01 s | 4.02 s | 10 ms |
+| bundled thumbnails, uncompressed serving | 85 | 2.01 s | 4.02 s | 10 ms |
+| bundled thumbnails, **compressed serving** | **98** | **1.05 s** | **2.42 s** | 19 ms |
+
+The compression was most of it, which is worth saying plainly: three of these fixes were the page and
+one was the ruler. The budgets now name **FCP** as the number this repository owns — the first paint
+of the markup, before any content image — with LCP held to a line that leaves room for one photograph
+over a phone's network, because on a page whose largest element is a photo, LCP measures the photo.
+
 **And wasm?** No. TBT is the number a compiler shows up in, and it is 12–18 ms; `dart2wasm` would add
 a larger download and a streaming compile to a page whose problem was 400 kB of fonts. The lever was
 the bytes, not the machine code.

@@ -21,6 +21,11 @@ dev_dependencies:
   unibox_material: ^0.1.0
 
 flutter:
+  # The listings' photos, bundled: the same six thumbnails the website serves, so an `ImageNode`
+  # with a relative source finds its file in the app's asset bundle as it does under `assets/photos`
+  # on the web.
+  assets:
+    - assets/photos/
   # One font, shipped by both hosts. A browser substitutes a face it does not have
   # and Skia substitutes the nearest one it does, so a weight only means the same
   # thing on the two renderings when they are given the same four files: this demo

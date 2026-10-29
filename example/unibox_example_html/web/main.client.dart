@@ -39,7 +39,7 @@ void main() {
   // Two pages, one bundle: the site (the claim and the catalogue) and the example (the listings and
   // the sign-up dialog). Which one this is, the document says — no path is sniffed.
   final core.UINode tree = _pageName() == 'example'
-      ? ExamplePageNode(seed: seed)
+      ? ExamplePageNode(seed: seed, photoPrefix: '../../')
       : sitePageTree(seed: seed);
 
   DomView.adopt(

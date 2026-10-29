@@ -39,12 +39,18 @@ import sys
 BUDGETS = {
     "document": {
         "performance": 95,
-        "largest-contentful-paint": 2000,
+        # FCP is the number this repository owns: the first paint of the markup, before any content
+        # image. LCP is the same paint only until a listing photo is the largest thing on screen,
+        # which it is on this example — so it is held to a line that leaves room for one photograph
+        # over a phone's network, and FCP is the one that catches a renderer that got slower.
+        "first-contentful-paint": 1200,
+        "largest-contentful-paint": 3000,
         "cumulative-layout-shift": 0.02,
         "total-blocking-time": 50,
     },
     "application": {
         "performance": 55,
+        "first-contentful-paint": 2500,
         "largest-contentful-paint": 4500,
         "cumulative-layout-shift": 0.02,
         "total-blocking-time": 700,

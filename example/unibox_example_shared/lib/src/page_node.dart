@@ -23,13 +23,18 @@ final class ExamplePageNode extends StatefulNode<ExampleState, ExampleStore> {
   factory ExamplePageNode({
     SignupFormState initialForm = const SignupFormState(),
     ExampleSeed seed = ExampleSeed.defaultSeed,
+    String photoPrefix = '',
     Object? key,
   }) {
     return ExamplePageNode._(
       key: key,
       create: () => ExampleStore(initial: initialForm),
-      view: (ExampleState state, ExampleStore store) =>
-          exampleView(state: state, store: store, seed: seed),
+      view: (ExampleState state, ExampleStore store) => exampleView(
+        state: state,
+        store: store,
+        seed: seed,
+        photoPrefix: photoPrefix,
+      ),
     );
   }
 
@@ -44,12 +49,14 @@ UINode exampleView({
   required ExampleState state,
   required ExampleStore store,
   ExampleSeed seed = ExampleSeed.defaultSeed,
+  String photoPrefix = '',
 }) {
   return buildExamplePage(
     current: state.current,
     seed: seed,
     onNavigate: store.navigate,
     page: buildApartmentsPage(
+      photoPrefix: photoPrefix,
       filter: state.filter,
       view: state.view,
       onFilter: store.chooseFilter,

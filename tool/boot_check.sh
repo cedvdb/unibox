@@ -121,7 +121,7 @@ case "$base" in
     ;;
 esac
 
-python3 -m http.server "$port" --directory "$root" >/dev/null 2>&1 &
+python3 tool/serve.py "$root" "$port" >/dev/null 2>&1 &
 SERVER=$!
 sleep 1
 
