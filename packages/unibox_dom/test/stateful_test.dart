@@ -300,6 +300,14 @@ void main() {
       field.focus();
       field.blur();
 
+      // A headless runner's window is not focused, and Chrome dispatches no focus event for an element
+      // in a document that is not: the binding is what this pins, so the events are dispatched when
+      // the browser did not send them.
+      if (focus.isEmpty) {
+        field.dispatchEvent(web.Event('focus'));
+        field.dispatchEvent(web.Event('blur'));
+      }
+
       expect(focus, <bool>[true, false]);
 
       view.dispose();
