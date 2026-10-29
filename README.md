@@ -1053,8 +1053,9 @@ Source: **GitHub Actions** (see
 [`example/README.md`](example/README.md#the-static-site)).
 
 The workspace targets Dart `^3.13.0`. Continuous integration runs the format check,
-`dart analyze`, every suite, `dart doc` for each package and the performance
-budget on every push and pull request (see
+`dart analyze`, every suite, `dart doc` for each package, the performance budget and the
+scale benchmark — the last one holds a synthetic page of thousands of nodes to a baseline,
+so a change that makes a big page slower fails the build (see
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)).
 
 Where to read more:
