@@ -32,24 +32,39 @@ MaterialNavigationBar _bar({int selected = 0}) => MaterialNavigationBar(
 Box _item(MaterialNavigationBar bar, int index) => bar.children[index] as Box;
 
 /// The destination itself: the box a press lands on, and the one a reader hears.
-Box _destination(MaterialNavigationBar bar, int index) =>
-    _item(bar, index).children.single as Box;
+///
+/// A destination is stateful, because a hover anywhere in its share lights the pill inside it, so
+/// the box a test reads is what its view draws for [hovered].
+Box _destination(MaterialNavigationBar bar, int index, {bool hovered = false}) {
+  final StatefulNode<Object, Store<Object>> node =
+      _item(bar, index).children.single as StatefulNode<Object, Store<Object>>;
+  final Store<Object> store = node.createStore();
+
+  return node.viewFor(hovered, store) as Box;
+}
 
 /// The layers of one destination: the indicator, then the label above its ink.
-StackNode _layers(MaterialNavigationBar bar, int index) =>
-    _destination(bar, index).children.single as StackNode;
+StackNode _layers(
+  MaterialNavigationBar bar,
+  int index, {
+  bool hovered = false,
+}) => _destination(bar, index, hovered: hovered).children.single as StackNode;
 
 /// The indicator's layer: the colour pill, the ink well and the icon, in that order.
-StackNode _indicator(MaterialNavigationBar bar, int index) {
+StackNode _indicator(
+  MaterialNavigationBar bar,
+  int index, {
+  bool hovered = false,
+}) {
   final PositionedNode layer =
-      _layers(bar, index).children.first as PositionedNode;
+      _layers(bar, index, hovered: hovered).children.first as PositionedNode;
 
   return (layer.child as Box).children.first as StackNode;
 }
 
 /// The pill's colour, which is the layer that fades and stretches.
-Box _colour(MaterialNavigationBar bar, int index) =>
-    _indicator(bar, index).children.first as Box;
+Box _colour(MaterialNavigationBar bar, int index, {bool hovered = false}) =>
+    _indicator(bar, index, hovered: hovered).children.first as Box;
 
 /// The ink well over the colour: the layer that tints and ripples.
 MaterialInkWell _well(MaterialNavigationBar bar, int index) =>
@@ -160,19 +175,49 @@ void main() {
       final MaterialNavigationBar bar = _bar(selected: 0);
       final Box destination = _destination(bar, 0);
 
-      // The tints belong to the pill's well — a box inside it — and the share paints
-      // nothing of its own, which is the arrangement Material draws.
+      // The share paints nothing of its own — what a hover lights is the pill — and the
+      // well stops tinting, so a hover is one layer rather than two over one shape.
       expect(destination.backgroundColor, isNull);
       expect(destination.stateStyle(BoxState.hover), isNull);
-      expect(
-        _pill(bar, 0).hoverStyle?.backgroundColor,
-        const BoxColor.role(MaterialColorRole.hoverLayer),
-      );
+      expect(destination.onHover, isNotNull);
+      expect(_pill(bar, 0).hoverStyle?.backgroundColor, BoxColor.transparent);
       expect(_pill(bar, 0).onTap, isNotNull);
       expect(
         _pill(bar, 0).semantics?.hidden,
         isTrue,
         reason: 'the pill is not a second control for a reader',
+      );
+    });
+
+    test('lights the pill when the pointer is anywhere in the share', () {
+      // Material lights the indicator when the pointer is over the destination, and the
+      // destination is the whole share, not the pill inside it. The pill is a layer the
+      // pointer is not over, which is why the destination keeps the hover in a store.
+      final MaterialNavigationBar bar = _bar(selected: 0);
+
+      final Box hovered = _colour(bar, 2, hovered: true);
+      final Box resting = _colour(bar, 2);
+
+      expect(
+        hovered.backgroundColor,
+        const BoxColor.role(MaterialColorRole.hoverLayer),
+      );
+      expect(hovered.opacity, 1);
+      // At full width: nothing is stretching, the layer simply appears.
+      expect(hovered.transform?.scaleX, 1);
+      expect(resting.opacity, 0);
+      expect(resting.backgroundColor, isNull);
+      expect(resting.transform?.scaleX, lessThan(1));
+    });
+
+    test('keeps the indicator of the chosen destination under a hover', () {
+      final MaterialNavigationBar bar = _bar(selected: 0);
+
+      // The chosen destination shows its indicator colour either way: a hover adds a layer
+      // over a surface in Material, and one colour is all a box paints.
+      expect(
+        _colour(bar, 0, hovered: true).backgroundColor,
+        const BoxColor.role(MaterialColorRole.secondaryContainer),
       );
     });
 

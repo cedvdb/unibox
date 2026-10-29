@@ -76,9 +76,10 @@ final class MaterialNavigationDestination {
 /// `surfaceContainer`, one equal share per destination, and inside each share an
 /// icon on a 64 by 32 `secondaryContainer` pill at radius 16, four pixels above a
 /// `labelMedium` label. The chosen destination's label is `onSurface`, the rest
-/// `onSurfaceVariant`, and each destination is a [MaterialInkWell] — so a press
-/// inks the whole destination and the hover and focus tints cover it rather than
-/// its label.
+/// `onSurfaceVariant`, and each destination answers a press with a [MaterialInkWell]
+/// over its pill — so a press inks the pill, and a hover anywhere in the destination's share
+/// lights it. That is why a destination is a `StatefulNode`: the pointer is over the share and
+/// the look that changes is a layer down, which a box cannot style from itself.
 ///
 /// **Where it sits is the tree's business.** The bar fills the width and states
 /// its height; being at the bottom is a `PositionedNode` at the bottom of a
@@ -135,7 +136,7 @@ final class MaterialNavigationBar extends Box {
                // so the bar reads as one control and not as three of a weight.
                flex: 1,
                children: <UINode>[
-                 _destination(
+                 _DestinationNode(
                    destination: destinations[i],
                    selected: i == selected,
                    onTap: () => onSelect(i),
@@ -237,7 +238,9 @@ final class MaterialNavigationBar extends Box {
   static UINode _destination({
     required MaterialNavigationDestination destination,
     required bool selected,
+    required bool hovered,
     required TapCallback onTap,
+    required HoverCallback onHover,
     required BoxColor indicatorColor,
     required BoxTextStyle labelStyle,
     required BoxColor? ink,
@@ -260,6 +263,8 @@ final class MaterialNavigationBar extends Box {
       height: barHeight,
       // The whole share is the control, and the one thing a reader hears.
       onTap: onTap,
+      // Hover is reported from the share, because the pill it lights is a layer down.
+      onHover: onHover,
       textStyle: style,
       semantics: BoxSemantics(
         role: BoxRole.button,
@@ -286,6 +291,7 @@ final class MaterialNavigationBar extends Box {
                   _indicator(
                     icon: icon,
                     selected: selected,
+                    hovered: hovered,
                     color: indicatorColor,
                     onTap: onTap,
                     ink: ink ?? foreground,
@@ -332,6 +338,7 @@ final class MaterialNavigationBar extends Box {
   static UINode _indicator({
     required UINode? icon,
     required bool selected,
+    required bool hovered,
     required BoxColor color,
     required TapCallback onTap,
     required BoxColor ink,
@@ -345,11 +352,21 @@ final class MaterialNavigationBar extends Box {
           width: indicatorWidth,
           height: indicatorHeight,
           borderRadius: indicatorHeight / 2,
-          backgroundColor: selected ? color : null,
-          opacity: selected ? 1 : 0,
+          // A hovered destination wears Material's state layer where the chosen one
+          // wears its indicator, and both are the pill: the layer is a tint of the
+          // surface, so no icon of the bar is drawn over it.
+          backgroundColor: selected
+              ? color
+              : hovered
+              ? const BoxColor.role(MaterialColorRole.hoverLayer)
+              : null,
+          opacity: selected || hovered ? 1 : 0,
           // Sideways only: Material stretches the pill out of the icon at its own
-          // height.
-          transform: BoxTransform(scaleX: selected ? 1 : _indicatorRestScale),
+          // height. A hover arrives at full width instead, because nothing is
+          // stretching: the layer simply appears under the pointer.
+          transform: BoxTransform(
+            scaleX: selected || hovered ? 1 : _indicatorRestScale,
+          ),
           transition: indicatorTransition,
         ),
         MaterialInkWell(
@@ -359,6 +376,9 @@ final class MaterialNavigationBar extends Box {
           borderRadius: indicatorHeight / 2,
           ink: ink,
           padding: BoxSpacing.zero,
+          // The pill is what a hover lights, and the destination reports the hover: a
+          // tint of the well would be a second one over the same shape.
+          hoverStyle: const BoxStyle(backgroundColor: BoxColor.transparent),
           transition: transition ?? MaterialInkWell.defaultTransition,
           semantics: const BoxSemantics(hidden: true),
           child: Box(
@@ -383,4 +403,52 @@ final class MaterialNavigationBar extends Box {
   /// A literal, not the type name: a compiled build mangles the latter.
   @override
   String? get debugLabel => 'material-navigation-bar';
+}
+
+/// Whether a pointer is over one destination's share.
+final class _HoverStore extends StateStore<bool> {
+  _HoverStore() : super(false);
+
+  void setHovered(bool hovered) => state = hovered;
+}
+
+/// One destination of a bar: its share, and whether the pointer is over it.
+///
+/// It is a [StatefulNode] for one reason, and it is the reason the model has stores: Material
+/// lights the indicator pill when the pointer is anywhere in the destination's share, and a box
+/// can style only itself. Everything the view draws is the tree the bar would have drawn without
+/// it; the hover is what moves.
+final class _DestinationNode extends StatefulNode<bool, _HoverStore> {
+  factory _DestinationNode({
+    required MaterialNavigationDestination destination,
+    required bool selected,
+    required TapCallback onTap,
+    required BoxColor indicatorColor,
+    required BoxTextStyle labelStyle,
+    required BoxColor? ink,
+    required BoxTransition? transition,
+    Object? key,
+  }) {
+    return _DestinationNode._(
+      key: key,
+      create: _HoverStore.new,
+      view: (bool hovered, _HoverStore store) =>
+          MaterialNavigationBar._destination(
+            destination: destination,
+            selected: selected,
+            hovered: hovered,
+            onTap: onTap,
+            onHover: store.setHovered,
+            indicatorColor: indicatorColor,
+            labelStyle: labelStyle,
+            ink: ink,
+            transition: transition,
+          ),
+    );
+  }
+
+  _DestinationNode._({required super.create, required super.view, super.key});
+
+  @override
+  String? get debugLabel => 'material-navigation-destination';
 }

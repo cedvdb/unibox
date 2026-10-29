@@ -71,6 +71,16 @@
   one each segment hugs its label: a `flex` in an unbounded row is a layout error in
   Flutter, so equal shares need a bound to divide.
 
+## Unreleased
+
+- A navigation bar destination lights its indicator pill when the pointer is anywhere in its
+  share, which is where Material puts the hover and what a reader expects of a bar: before, only
+  the pill itself answered, so hovering the label or the room around the icon did nothing. The
+  look is one layer down from the pointer, and a box can style only itself, so a destination is
+  now a `StatefulNode` that keeps the hover and its view paints the pill — the well over it stops
+  tinting, so a hover is one layer rather than two over one shape. An unchosen destination shows
+  Material's 8% state layer at full width; the chosen one keeps its indicator colour.
+
 ## 0.1.0
 
 - `MaterialSegmentedButton` draws the check of the chosen segment, in place of its
