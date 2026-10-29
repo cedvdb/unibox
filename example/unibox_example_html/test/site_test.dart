@@ -35,11 +35,27 @@ void main() {
       expect(html, contains('title="HTML and CSS — the document"'));
     });
 
-    test('lets a reader drag a frame narrower', () {
-      // The page inside reflows to its own width, so the responsive behaviour is one gesture
-      // away instead of one window resize — host chrome, which no node describes.
-      expect(buildSiteDocument(), contains('resize:horizontal'));
+    test('gives each frame the box the tree drew, and no grip', () {
+      // A comparison is between two windows of one size: a reader who drags one narrower is no
+      // longer comparing like with like. The frame fills its box and offers nothing else.
+      final RegExpMatch frame = RegExp(r'<iframe[^>]*>')
+          .firstMatch(buildSiteDocument())!;
+
+      // The frame, not the stylesheet: a text input states `resize: none` there, and that is a
+      // different element's business.
+      expect(frame.group(0), contains('width:100%;height:100%'));
+      expect(frame.group(0), isNot(contains('resize')));
     });
+
+    test(
+      'does not let the wrapper this renderer invents take part in the layout',
+      () {
+        // The embed is written in a `div`, and that `div` is the renderer's: `display: contents`
+        // makes the frame a child of the box the tree drew, so its `height: 100%` resolves
+        // against that box instead of against a wrapper of unknown height.
+        expect(buildSiteDocument(), contains('display:contents'));
+      },
+    );
 
     test('installs the palette its roles are named from', () {
       expect(buildSiteDocument(), contains('--unibox-color-accent:'));

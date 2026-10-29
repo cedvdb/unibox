@@ -23,7 +23,7 @@ String toHtml(
   final ElementPlan plan = planNode(
     node,
     sheet,
-    options: _options(showOverlays),
+    options: _options(showOverlays, sheet),
   );
 
   return '<style>${sheetWithRoot(sheet, theme: theme)}</style>'
@@ -41,15 +41,17 @@ String toHtml(
   final ElementPlan plan = planNode(
     node,
     sheet,
-    options: _options(showOverlays),
+    options: _options(showOverlays, sheet),
   );
 
   return (plan: plan, css: sheetWithRoot(sheet, theme: theme));
 }
 
 /// The options of a rendering, with this target's way of drawing an embed.
-PlanOptions _options(bool showOverlays) =>
-    PlanOptions(showOverlays: showOverlays, embed: _planEmbed);
+PlanOptions _options(bool showOverlays, Stylesheet sheet) => PlanOptions(
+  showOverlays: showOverlays,
+  embed: (core.EmbedNode embed) => _planEmbed(embed, sheet),
+);
 
 /// The CSS a document needs before the tree: the typography of the model, the colours of the
 /// theme, then every class the tree wears.
@@ -70,12 +72,22 @@ String sheetWithRoot(Stylesheet sheet, {core.UniboxTheme? theme}) {
 ///
 /// Only an [HtmlEmbed] is drawn: a node carrying a payload for another target is reported rather
 /// than skipped, because a page with a piece missing is worse than a failure.
-ElementPlan _planEmbed(core.EmbedNode embed) {
+///
+/// The element it is written in takes no part in the layout (`display: contents`), so the payload
+/// is laid out by the box around the embed rather than by a box this renderer invented. Without
+/// that, the wrapper is a block of unknown height: an `<iframe>` asking for `height: 100%` gets
+/// nothing to resolve against and falls back to the browser's 150 pixels, which is how the two
+/// frames of the example's comparison came out a quarter of the height they were given.
+ElementPlan _planEmbed(core.EmbedNode embed, Stylesheet sheet) {
   for (final Object implementation in embed.implementations) {
     if (implementation is String) {
       return ElementPlan.raw(
         tag: 'div',
         raw: implementation,
+        className: sheet.classFor(
+          'embed',
+          CssDeclarations()..add('display', 'contents'),
+        ),
         attributes: nodeAttributes(embed),
       );
     }

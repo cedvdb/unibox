@@ -94,7 +94,7 @@ UINode _claim(MaterialPalette palette) {
 
 /// The claim settled: the same node tree in two frames, side by side.
 ///
-/// Two frames rather than two links, because the point is the comparison: resize the
+/// Two frames rather than two links, because the point is the comparison: narrow the
 /// window and both answer the same breakpoint, on the same node tree. The heading and
 /// the captions are boxes and texts like everything else here; the frames are the one
 /// thing the model cannot describe, so they arrive through [ShowcaseFrame].
@@ -135,14 +135,14 @@ UINode _comparison(
           ),
         ],
       ),
-      // Two footnotes, read after the evidence: how to use the frames, and what the
-      // page is made of. There is no link here — the example is shown in the frames and
+      // Two footnotes, read after the evidence: what the frames show, and what the page
+      // is made of. There is no link here — the example is shown in the frames and
       // nowhere else.
       Box(
         gap: 6,
         children: <UINode>[
           TextNode(
-            'Drag a frame narrower: both answer the same breakpoint.',
+            'Narrow the window: both frames answer the same breakpoint.',
             style: MaterialTypography.labelSmall.copyWith(
               color: palette.onSurfaceVariant,
             ),

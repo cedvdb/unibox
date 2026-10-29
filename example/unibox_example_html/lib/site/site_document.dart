@@ -24,7 +24,7 @@ String buildSiteDocument({String? build}) {
   return toDocument(
     buildSitePage(
       frame: ({required String src, required String title}) =>
-          IframeNode(src: src, title: title, resizable: true),
+          IframeNode(src: src, title: title),
     ),
     title: 'Unibox — one tree, two renderers',
     description:

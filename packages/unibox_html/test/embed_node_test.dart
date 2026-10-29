@@ -36,6 +36,20 @@ void main() {
       );
     });
 
+    test('is written in an element that takes no part in the layout', () {
+      // The wrapper is this renderer's, not the node's: a block of unknown height would leave an
+      // `<iframe>` asking for `height: 100%` with nothing to resolve against, and it would fall
+      // back to the browser's 150 pixels however tall a box the tree drew around it.
+      final String html = toHtml(
+        const core.Box(
+          height: 560,
+          children: <core.UINode>[HtmlEmbed('<iframe src="a"></iframe>')],
+        ),
+      );
+
+      expect(html, contains('display:contents'));
+    });
+
     test('lets everything around it lay out with boxes', () {
       final String html = toHtml(
         const core.Box(

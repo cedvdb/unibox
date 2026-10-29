@@ -180,9 +180,10 @@ on a box *inside* the scrolling one, because Flutter puts the padding of a
 scrolling box around its viewport while CSS puts it inside the scrollport; one
 level in, both renderers scroll the same content.
 
-The two frames of the showcase are draggable: each is an `<iframe>` with CSS
-`resize: horizontal`, so a reader narrows one and watches the page inside reflow —
-the comparison the page exists for. The drag is host chrome, not a token.
+The two frames of the showcase are windows, not handles: each is an `<iframe>` filling the
+box the tree drew for it, 560 pixels tall, so the comparison is between two renderings of
+one size. Narrow the *window* and both answer the same breakpoint. A grip on one frame
+would make the two incomparable, which is why neither has one.
 
 ## Keeping the two renderings alike
 
