@@ -25,7 +25,31 @@ expected appearance holds both renderers to the same answer.
 - 🖐 **The app takes the page over** — Flutter boots into the document it was served, prefetched while the reader reads and started at their first intent, with the scroll and the presses the page recorded handed back to it.
 - 🟩 **Rendered from Node too** — pure Dart with no dependencies, so a document is produced in a server, a build step, a CLI, or compiled to JavaScript for a backend that is not Dart.
 
+## Contents
+
+- [How it works](#how-it-works)
+- [Two ways to serve a tree](#two-ways-to-serve-a-tree)
+- [Quick start](#quick-start)
+- [The handover](#the-handover-in-code)
+- [The nodes](#the-nodes)
+- [Colours](#colours)
+- [Typography](#typography)
+- [Motion](#motion)
+- [Semantics](#semantics)
+- [What the host owns](#what-the-host-owns)
+- [How the two renderers stay in step](#how-the-two-renderers-stay-in-step)
+- [Packages](#packages)
+- [Building with an AI assistant](#building-with-an-ai-assistant)
+
 ## Why this exists
+
+A search engine, a link preview and a reader whose JavaScript failed all see the same thing in
+a Flutter screen: nothing. Flutter draws into a canvas, so there is no text to index — and the
+usual fix is to write that page again as HTML, then keep two designs in step, which drift the
+week after they are written.
+
+Unibox removes the second design: the screen is written once, as a tree, and that tree is both
+the document and the application.
 
 ## How it works
 
@@ -163,20 +187,6 @@ with a `<title>` and a canvas host: four words, no heading, no link, nothing to 
 `/web/listings/` is that same screen as a tree, and it is the same Dart. The first row is
 this site as one page — 433 words of text, an `h1`, an `h2` for the comparison and one for
 the catalogue, every component written as markup.
-
-- [How it works](#how-it-works)
-- [Two ways to serve a tree](#two-ways-to-serve-a-tree)
-- [Quick start](#quick-start)
-- [The handover](#the-handover-in-code)
-- [The nodes](#the-nodes)
-- [Colours](#colours)
-- [Typography](#typography)
-- [Motion](#motion)
-- [Semantics](#semantics)
-- [What the host owns](#what-the-host-owns)
-- [How the two renderers stay in step](#how-the-two-renderers-stay-in-step)
-- [Packages](#packages)
-- [Building with an AI assistant](#building-with-an-ai-assistant)
 
 ## Quick start
 
