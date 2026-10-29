@@ -112,7 +112,12 @@ for route in listings signup; do
   cp "$site/flutter/index.html" "$site/flutter/$route/index.html"
 done
 
-step 'Writing robots, sitemap and .nojekyll'
+# Where the site expects to be served from. A loader, a preload and a `base href` are written with
+# this prefix, so anything that serves the folder has to serve it under the same one. Written beside
+# the site rather than inside it: the folder is published exactly as it is.
+printf '%s' "$base" >"$(dirname "$site")/.unibox-site-base"
+
+step 'Writing robots, sitemap and .nojekyll' 
 cat >"$site/robots.txt" <<'ROBOTS'
 # The Flutter build is a canvas with no text of its own for a crawler to read; the
 # web rendering carries the markup, so it is the one that gets indexed.

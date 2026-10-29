@@ -268,6 +268,8 @@ served as its own route, which is what the right frame shows.
 
 Two commands prove it without a reader: `tool/boot_check.sh build/site` asks a browser whether the
 document becomes the application, and `tool/boot_time.dart` says how long that took in real time.
+The check serves the build under the prefix it was built for, which `tool/site.sh` records, so the
+command that runs locally is the command that runs on a deploy.
 
 `build/site/version.txt` names the commit the site was built from. A deploy is not
 instant and is not always the one it looks like — one publication here shipped the

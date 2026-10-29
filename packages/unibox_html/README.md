@@ -103,6 +103,7 @@ is a list of commands. It is pinned by a renderer test instead.
 ## The takeover's own checks
 
 `tool/lighthouse.sh` measures the exported pages against a budget, and `tool/boot_check.sh` asks a
-browser whether the document becomes the application at all — the one question no byte-level check
+browser whether the document becomes the application at all, serving the build under the path prefix
+it was built for — the one question no byte-level check
 can answer. `tool/boot_time.dart` says how long that took, in real time, because a one-shot dump
 runs the page under virtual time and would report a number that means nothing.

@@ -12,12 +12,22 @@
 # The probe exists for the length of the run and is deleted afterwards.
 #
 # Usage:
-#   tool/boot_check.sh build/site
+#   tool/boot_check.sh build/site                  (the base tool/site.sh recorded)
+#   tool/boot_check.sh build/site /unibox/         (stated explicitly)
 #   PORT=9100 tool/boot_check.sh build/site
 set -euo pipefail
 
 site="${1:-build/site}"
 port="${PORT:-8765}"
+# The prefix the site was built for. Its loader and its preload are written with that prefix, so a
+# directory served at / would fetch paths that do not exist there — which is what a deploy build does
+# when a check assumes the default base. `tool/site.sh` records it beside the files it wrote.
+base="${2:-}"
+if [ -z "$base" ] && [ -f "$(dirname "$site")/.unibox-site-base" ]; then
+  base="$(cat "$(dirname "$site")/.unibox-site-base")"
+fi
+base="${base:-/}"
+url="http://127.0.0.1:$port${base}web/boot-check/"
 # No milliseconds are claimed. The dump is taken under `--virtual-time-budget`, which runs the
 # page's clock faster than the wall clock, so any `performance.now()` delta it produced would be
 # virtual and would read as a number that looks precise and means nothing. A real duration needs a
@@ -96,7 +106,22 @@ cleanup() {
 work="$(mktemp -d)"
 trap cleanup EXIT
 
-python3 -m http.server "$port" --directory "$site" >/dev/null 2>&1 &
+# Serve the layout the deploy will use, not the folder at a bare root: a site built for /unibox/
+# answers /unibox/flutter/main.dart.js, and a server that mounts everything at / would 404 every
+# one of those fetches — a check that passes locally and fails on a deploy for the same files.
+root="$site"
+case "$base" in
+  /) ;;
+  *)
+    first="${base#/}"
+    first="${first%%/*}"
+    root="$work/serve"
+    mkdir -p "$root"
+    ln -s "$(cd "$site" && pwd)" "$root/$first"
+    ;;
+esac
+
+python3 -m http.server "$port" --directory "$root" >/dev/null 2>&1 &
 SERVER=$!
 sleep 1
 
@@ -104,7 +129,7 @@ printf '\n==> Booting the application in a headless browser\n'
 
 if ! "$chrome" --headless=new --disable-gpu --no-sandbox \
   --virtual-time-budget=40000 \
-  --dump-dom "http://127.0.0.1:$port/web/boot-check/" >"$work/dom.html" 2>"$work/chrome.log"; then
+  --dump-dom "$url" >"$work/dom.html" 2>"$work/chrome.log"; then
   printf 'Chrome could not load the probe:\n' >&2
   cat "$work/chrome.log" >&2
   exit 1
@@ -112,6 +137,17 @@ fi
 
 if ! grep -q 'flt-glass-pane\|flutter-view' "$work/dom.html"; then
   printf '\nFAILED: the document did not become the application.\n' >&2
+  # The two things that go wrong first, named before the DOM: where the page was served from, and
+  # whether the bundle it asks for answers there at all.
+  printf 'Served at %s (base %s).\n' "$url" "$base" >&2
+  for file in "flutter/app.js" "flutter/main.dart.js"; do
+    if [ -f "$site/$file" ]; then
+      code="$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$port${base}$file" || true)"
+      printf '  %s%s -> %s\n' "$base" "$file" "${code:-no answer}" >&2
+    else
+      printf '  %s%s -> not in the build\n' "$base" "$file" >&2
+    fi
+  done
   printf 'The DOM the run ended with is in %s, and its head:\n' "$work/dom.html" >&2
   head -c 400 "$work/dom.html" >&2
   printf '\n' >&2
@@ -123,6 +159,6 @@ printf '\n==> The document boots: Flutter painted into it.\n'
 # The dump above cannot time it — virtual time moves faster than the clock — so the number comes
 # from a second browser driven over the DevTools protocol, in real time.
 if [ "${MEASURE:-1}" = "1" ]; then
-  measured="$(dart run tool/boot_time.dart "http://127.0.0.1:$port/web/boot-check/" 2>&1)" || measured="unavailable: $measured"
+  measured="$(dart run tool/boot_time.dart "$url" 2>&1)" || measured="unavailable: $measured"
   printf '\n==> %s\n' "$measured"
 fi
