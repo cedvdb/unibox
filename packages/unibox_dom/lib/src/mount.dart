@@ -222,14 +222,13 @@ final class DomView {
     final List<core.UINode> nodes = <core.UINode>[];
     pass.collect(_tree, nodes);
 
+    // Asked once for the whole page: a query per element is a walk of the subtree per element,
+    // which is a page squared. A big page is adopted in the reader's first frame, so this is the
+    // worst possible place to be quadratic.
+    final web.NodeList found = root.querySelectorAll('[data-unibox-node]');
     final List<web.Element> elements = <web.Element>[
       if (root.getAttribute('data-unibox-node') != null) root,
-      for (
-        int i = 0;
-        i < root.querySelectorAll('[data-unibox-node]').length;
-        i++
-      )
-        root.querySelectorAll('[data-unibox-node]').item(i)! as web.Element,
+      for (int i = 0; i < found.length; i++) found.item(i)! as web.Element,
     ];
 
     if (nodes.length != elements.length) {
