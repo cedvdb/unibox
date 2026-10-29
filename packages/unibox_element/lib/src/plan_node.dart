@@ -92,15 +92,6 @@ ElementPlan _planBox(core.Box box, Stylesheet sheet, PlanOptions options) {
     element: element,
   );
 
-  // A shaped box paints its background and border in a path, and this plan has no `clip-path`
-  // for one: reported rather than drawn as the rectangle it is not.
-  if (style.shape != null) {
-    throw UnsupportedError(
-      'A box that wears a shape needs an SVG clip path, which this renderer does not write '
-      'yet: ${box.debugName}.',
-    );
-  }
-
   // Mobile first: a box that only appears above a width starts hidden, and the container
   // query below brings it back. A browser without container queries then draws the narrow
   // layout rather than a broken wide one.
@@ -130,6 +121,9 @@ ElementPlan _planBox(core.Box box, Stylesheet sheet, PlanOptions options) {
     className: className,
     attributes: <String, String>{...boxAttributes(box), ...nodeAttributes(box)},
     children: <ElementPlan>[
+      // A shape is painted by a layer of its own, which comes first so the content sits over
+      // it — and behind it in `z-index`, since the layer is absolutely positioned.
+      if (style.shape != null) _planShape(style.shape!, sheet),
       for (final core.UINode child in box.children)
         planNode(child, sheet, options: options),
     ],
@@ -531,3 +525,74 @@ ElementPlan _planStateful(
 ElementPlan _noEmbed(core.EmbedNode node) => throw UnsupportedError(
   'The node carries an embed and no plan for one: pass `embed` in PlanOptions.',
 );
+
+/// The paint layer of a shaped box: an `<svg>` stretched over the box, with one `<path>`.
+///
+/// The path carries no colour of its own: it reads the three custom properties the box's own
+/// rule sets, which is what lets a state rule paint a shape. The layer takes no pointer and is
+/// positioned absolutely with `z-index: -1`, so a shaped box behaves like a painted one — what a
+/// pointer finds is its content.
+///
+/// `preserveAspectRatio="none"` is what stretches the outline with the box instead of fitting it
+/// inside, which is the same stretching the Flutter renderer does when it scales the path to the
+/// size it was given.
+ElementPlan _planShape(core.BoxShape shape, Stylesheet sheet) {
+  final CssDeclarations layer = CssDeclarations()
+    ..add('position', 'absolute')
+    ..add('inset', '0')
+    ..add('width', '100%')
+    ..add('height', '100%')
+    // A stroke centred on the outline hangs over the box's edge, the way Flutter paints it
+    // outside the canvas bounds.
+    ..add('overflow', 'visible')
+    ..add('z-index', '-1')
+    ..add('pointer-events', 'none');
+
+  final CssDeclarations path = CssDeclarations()
+    ..add('fill', 'var(--unibox-shape-fill, none)')
+    ..add('stroke', 'var(--unibox-shape-stroke, none)')
+    ..add('stroke-width', 'var(--unibox-shape-stroke-width, 0)');
+
+  return ElementPlan(
+    tag: 'svg',
+    className: sheet.classFor('shape', layer),
+    attributes: <String, String>{
+      'viewBox':
+          '0 0 ${cssNumber(shape.viewBoxWidth)} '
+          '${cssNumber(shape.viewBoxHeight)}',
+      'preserveAspectRatio': 'none',
+      'aria-hidden': 'true',
+    },
+    children: <ElementPlan>[
+      // The definition the box's `clip-path` points at, when it clips its content.
+      ElementPlan(
+        tag: 'defs',
+        children: <ElementPlan>[
+          ElementPlan(
+            tag: 'clipPath',
+            attributes: <String, String>{
+              'id': cssShapeClipId(shape),
+              'clipPathUnits': 'objectBoundingBox',
+            },
+            children: <ElementPlan>[
+              ElementPlan(
+                tag: 'path',
+                attributes: <String, String>{'d': cssShapeClipPath(shape)},
+              ),
+            ],
+          ),
+        ],
+      ),
+      ElementPlan(
+        tag: 'path',
+        className: sheet.classFor('shape-path', path),
+        attributes: <String, String>{
+          'd': cssShapePath(shape),
+          'fill-rule': shape.fillRule == core.BoxFillRule.evenOdd
+              ? 'evenodd'
+              : 'nonzero',
+        },
+      ),
+    ],
+  );
+}

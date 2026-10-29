@@ -242,7 +242,7 @@ What main already proved on the web, and what this ports: an `<svg>` layer over 
 - [x] **1. `unibox_css`**: `cssShapePath`, `cssShapeClipPath`, `cssShapeClipId`; a shaped box's
 declarations replace its background, border, radius and shadow with the layer's four
   properties and, when it clips, the `clip-path`.
-- [ ] **2. `unibox_element`**: a shaped box's plan carries the `<svg>` layer as its first child,
+- [x] **2. `unibox_element`**: a shaped box's plan carries the `<svg>` layer as its first child,
   and the throw goes away.
 - [ ] **3. `unibox_html`**: the writer needs nothing — the plan holds the layer — but the
   conformance suite gains a shaped case of its own, since the appearance table cannot read an

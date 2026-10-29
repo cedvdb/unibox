@@ -82,6 +82,8 @@ void main() {
     });
   });
 
+  shapedTests();
+
   group('an embed', () {
     test('is planned by the renderer that can draw it', () {
       // Its payload is the host's, so the plan package cannot decide.
@@ -98,4 +100,58 @@ final class _BareEmbed extends core.EmbedNode {
 
   @override
   List<Object> get implementations => <Object>[Object()];
+}
+
+void shapedTests() {
+  group('a shaped box', () {
+    const core.BoxShape hexagon = core.BoxShape(
+      viewBoxWidth: 100,
+      viewBoxHeight: 100,
+      commands: <core.BoxPathCommand>[
+        core.BoxPathMoveTo(50, 0),
+        core.BoxPathLineTo(93, 25),
+        core.BoxPathLineTo(50, 100),
+        core.BoxPathClose(),
+      ],
+    );
+
+    test('carries a paint layer before its content', () {
+      // The layer is the first child and paints behind the content, so a shaped box behaves
+      // like a painted one.
+      final ElementPlan plan = planNode(
+        const core.Box(
+          shape: hexagon,
+          children: <core.UINode>[core.TextNode('Hi')],
+        ),
+        Stylesheet(),
+      );
+
+      expect(plan.children.first.tag, 'svg');
+      expect(plan.children.first.className, startsWith('unibox-shape-'));
+      expect(plan.children.last.tag, 'span');
+    });
+
+    test('stretches its outline with the box', () {
+      final ElementPlan plan = planNode(
+        const core.Box(shape: hexagon),
+        Stylesheet(),
+      );
+      final ElementPlan layer = plan.children.first;
+
+      expect(layer.attributes['viewBox'], '0 0 100 100');
+      expect(layer.attributes['preserveAspectRatio'], 'none');
+    });
+
+    test('writes the definition its clip points at', () {
+      final ElementPlan layer = planNode(
+        const core.Box(shape: hexagon, overflow: core.Overflow.hidden),
+        Stylesheet(),
+      ).children.first;
+      final ElementPlan clip = layer.children.first.children.single;
+
+      expect(clip.tag, 'clipPath');
+      expect(clip.attributes['clipPathUnits'], 'objectBoundingBox');
+      expect(clip.attributes['id'], startsWith('unibox-shape-'));
+    });
+  });
 }
