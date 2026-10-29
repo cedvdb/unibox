@@ -63,6 +63,18 @@ cat >"$probe" <<'PROBE'
     (function () {
       // Boot at once: a headless browser never moves a pointer, so a page that waits for intent
       // cannot be tested this way. What is being tested is the loader's paths, not the policy.
+      //
+      // The mark is what `tool/boot_time.dart` reads, in real time: this page is the only place
+      // that knows both the navigation and the first frame.
+      var start = performance.now();
+
+      window.addEventListener('flutter-first-frame', function () {
+        document.documentElement.setAttribute(
+          'data-unibox-boot-ms',
+          String(Math.round(performance.now() - start))
+        );
+      });
+
       var element = document.createElement('script');
       element.src = '../../flutter/app.js';
       document.head.appendChild(element);
@@ -107,3 +119,10 @@ if ! grep -q 'flt-glass-pane\|flutter-view' "$work/dom.html"; then
 fi
 
 printf '\n==> The document boots: Flutter painted into it.\n'
+
+# The dump above cannot time it — virtual time moves faster than the clock — so the number comes
+# from a second browser driven over the DevTools protocol, in real time.
+if [ "${MEASURE:-1}" = "1" ]; then
+  measured="$(dart run tool/boot_time.dart "http://127.0.0.1:$port/web/boot-check/" 2>&1)" || measured="unavailable: $measured"
+  printf '\n==> %s\n' "$measured"
+fi

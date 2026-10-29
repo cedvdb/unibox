@@ -244,7 +244,7 @@ What the takeover still lacks, what is clumsy to wire, and what the documents do
   and calls its callback, a browser reader in `unibox_flutter`, and the tests for both.
 - [x] **4. Scroll replay, proved.** A Flutter test on a tree whose scrolling box is keyed the way
   the example keys it, so the two halves meet in one place.
-- [ ] **5. A boot time, measured.** The check asks whether the document boots; it cannot say how
+- [x] **5. A boot time, measured.** The check asks whether the document boots; it cannot say how
   long it took, because `--virtual-time-budget` makes `performance.now()` virtual. A real number
   needs a browser driven over the DevTools protocol in real time, which `dart:io`'s WebSocket can
   do.
@@ -346,12 +346,16 @@ A second question is gated beside it, because Lighthouse measures the load and n
 **does the document become the application at all?** `tool/boot_check.sh` answers it in the
 deploy, in a real browser, and fails when it does not.
 
-No millisecond budget is claimed for it. A one-shot `--dump-dom` runs the page under
-`--virtual-time-budget`, which advances the page's clock faster than the wall clock, so a
-`performance.now()` delta from it is virtual: it reads as a precise number and means nothing. A
-real duration needs a browser driven in real time, and the number that matters is what a reader
-on a phone pays — which is a question for real-user monitoring rather than for a shell script.
-The plan keeps the question and drops the pretend answer.
+The number is measured separately, because it cannot come from the dump: a one-shot `--dump-dom`
+runs under `--virtual-time-budget`, which advances the page's clock faster than the wall clock, so
+a `performance.now()` delta from it is virtual and means nothing. `tool/boot_time.dart` drives
+Chrome over the DevTools protocol instead — a real browser in real time — and reads the mark the
+probe writes on `flutter-first-frame`.
+
+Measured on the assembled site, localhost, release build: **239 / 242 / 255 ms** from navigation to
+the first frame. That is the handover's shape on a warm local connection, not what a reader on a
+phone pays — that number is real-user monitoring's job — but it is real, and it is a floor a
+regression would move.
 
 ### The two tensions worth naming
 
