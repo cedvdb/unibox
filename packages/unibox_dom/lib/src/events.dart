@@ -25,6 +25,12 @@ List<void Function()> bindNode(core.UINode node, web.Element element) {
 
   switch (node) {
     case final core.Box box when box.enabled:
+      // The long press is bound first because it may have to swallow the click that ends it, and a
+      // listener only runs before the ones added after it.
+      if (box.onLongPress case final core.LongPressCallback onLongPress) {
+        _bindLongPress(on, onLongPress);
+      }
+
       if (box.onTap case final core.TapCallback onTap) {
         on('click', (web.Event event) => onTap());
       }
@@ -39,10 +45,6 @@ List<void Function()> bindNode(core.UINode node, web.Element element) {
             ),
           );
         });
-      }
-
-      if (box.onLongPress case final core.LongPressCallback onLongPress) {
-        _bindLongPress(on, onLongPress);
       }
 
       if (box.isInteractive && box.onTap != null) {
@@ -200,10 +202,11 @@ void _bindLongPress(
       return;
     }
 
-    // The release that ends a long press is not also a press.
+    // The release that ends a long press is not also a press: every other listener on this element
+    // is skipped, not merely the bubbling.
     fired = false;
     event.preventDefault();
-    event.stopPropagation();
+    event.stopImmediatePropagation();
   });
 }
 

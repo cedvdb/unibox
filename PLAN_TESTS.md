@@ -203,6 +203,21 @@ browser's behaviour while a plain click is cancelled.
 
 **Done when.** The three cases pass, and `stateful_test.dart` is about state only.
 
+## T3. Done: the bindings that had no tests, and the two bugs hiding in them
+
+`unibox_dom/test/events_test.dart` covers what `stateful_test.dart` only used: a long press, `Enter`
+in a field, and a link's refusal to cancel a modified or new-tab click.
+
+Two real bugs came out of writing them:
+
+1. **A long press did not swallow its click.** The tap listener was registered before the long-press
+   one, and listeners run in the order they were added — so holding a control fired the press as
+   well, which is exactly what a context menu is not. The hold is bound first now, and it calls
+   `stopImmediatePropagation` rather than `stopPropagation`: the sibling listeners on the same
+   element are the ones that must not run.
+2. **The hold was bound twice** — a second call left behind by an earlier edit, so one press started
+   two timers and reported two long presses. The test caught it in the first run.
+
 ## T4. Adoption keeps what a reader was doing
 
 **Now.** `adopt_test.dart` proves the elements are kept. It does not prove the reason that matters:
