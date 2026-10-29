@@ -1,8 +1,11 @@
 import 'package:unibox_core/unibox_core.dart' as core;
 
 import 'escape.dart';
-import 'plan.dart';
+
+import 'package:unibox_element/unibox_element.dart';
+
 import 'render.dart';
+import 'write.dart';
 
 /// A script a page carries, in the head, in the order it is listed.
 ///
@@ -163,6 +166,6 @@ String toDocument(
   return '<!DOCTYPE html>'
       '<html lang="${escapeAttribute(lang)}">'
       '<head>${buffer.toString()}</head>'
-      '<body>${rendered.plan.write()}</body>'
+      '<body>${writeElement(rendered.plan)}</body>'
       '</html>';
 }

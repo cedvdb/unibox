@@ -32,6 +32,5 @@ export 'src/client/press.dart'
 export 'src/document.dart';
 export 'src/embed_node.dart';
 export 'src/escape.dart';
-export 'src/plan.dart';
 export 'src/render.dart';
-export 'src/stylesheet.dart';
+export 'src/write.dart' show writeElement;

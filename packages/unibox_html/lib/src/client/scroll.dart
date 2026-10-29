@@ -13,7 +13,7 @@ import 'keys.dart';
 /// A `scroll` event does not bubble, but it does run through the capture phase, so one
 /// listener on the document sees every region's scroll — including one added later.
 ///
-/// The record is read once, at the moment the runtime asks: [take] reads the page again
+/// The record is read once, at the moment the runtime asks: `take` reads the page again
 /// before answering, so the answer is the position at *that* moment however long the reader
 /// has left the page alone.
 const String scrollScript =

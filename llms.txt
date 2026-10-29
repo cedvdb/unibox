@@ -42,6 +42,9 @@ assumes you have read the README's node sections.
 - [unibox_css](packages/unibox_css/README.md): the CSS the web renders from,
   a token as a declaration, and the canonical text a class name is hashed from.
   Pure Dart, no dependencies.
+- [unibox_element](packages/unibox_element/README.md): the element plan — what each node
+  becomes, before anyone writes it — and the stylesheet that gives every look its class. Shared
+  by every web renderer. Pure Dart.
 - [unibox_html](packages/unibox_html/README.md): the web renderer — a tree as a
   document a search engine can read, with no framework and no runtime. Pure Dart, no
   dependencies.

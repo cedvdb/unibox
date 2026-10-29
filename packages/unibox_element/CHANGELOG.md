@@ -1,0 +1,18 @@
+# Changelog
+
+## Unreleased
+
+- The element plan moves out of the string renderer: which tag a node becomes, the attributes it
+  carries and in what order, the class it wears and the elements inside it. A web renderer reads
+  this package rather than deciding again what a `Box` looks like, which is what keeps a second
+  one — a DOM renderer — from drawing the same tree its own way.
+
+- `ElementPlan` holds values, not markup: escaping belongs to whoever writes the page, and a DOM
+  renderer sets the same values as properties. The one exception is `raw`, which is markup the
+  host wrote and trusts.
+
+- `isRiskyUrl` and `safeUrlValue` live here because a `javascript:` href is a script that runs
+  when a reader clicks, whichever target set the attribute.
+
+- `Stylesheet` moves with the plan: the class a look wears is a hash of its declarations, so both
+  renderers give one look one name.

@@ -6,7 +6,8 @@ Unibox provides pure Dart layout primitives that draw natively as Flutter widget
 - **Workspace:** Dart 3.13+ workspace in `packages/`:
   - `packages/unibox_core`: Pure Dart AST & tokens. Zero dependencies (no Flutter, no web framework, no `dart:ui`).
   - `packages/unibox_css`: Depends on `unibox_core` only. The token-to-CSS mapping and the class hash the web renders from.
-  - `packages/unibox_html`: Depends on `unibox_core` + `unibox_css`. Writes a fragment or a document.
+  - `packages/unibox_element`: Depends on `unibox_core` + `unibox_css`. The element plan: what each node becomes.
+  - `packages/unibox_html`: Depends on `unibox_core` + `unibox_css` + `unibox_element`. Writes a fragment or a document.
   - `packages/unibox_flutter`: Depends on `unibox_core` + Flutter SDK.
   - `packages/unibox_material`: Optional design-system tokens and one component (the Material 3 type scale and `MaterialCard`). Depends on `unibox_core` only; no renderer depends on it.
 - **Engineering Agency:** You have permission to diverge, adjust signatures, or simplify types where it makes sense, as long as the packages remain decoupled and work seamlessly across both platforms.

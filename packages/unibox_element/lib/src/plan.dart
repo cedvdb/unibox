@@ -1,7 +1,5 @@
 import 'package:unibox_core/unibox_core.dart' as core;
 
-import 'escape.dart';
-
 /// One element a tree becomes, with nothing yet written.
 ///
 /// This is the element plan: which tag a node renders to, which attributes it carries,
@@ -53,71 +51,10 @@ final class ElementPlan {
 
   /// Markup written as it is, with nothing escaped.
   ///
-  /// Only [EmbedNode] produces it: an embed is the host saying "this is markup I trust",
-  /// for a web component, a `<video>` or a chart that the model does not describe. Every
-  /// other string a node carries is escaped, and this is the one field where escaping is
-  /// the caller's responsibility — which is why it has no public constructor.
-
-  /// This element as HTML.
-  ///
-  /// A void element closes itself and holds no text, and every attribute value is
-  /// escaped, because an attribute value is application data.
-  String write() {
-    final StringBuffer buffer = StringBuffer('<$tag');
-
-    if (className != null) {
-      buffer.write(' class="${escapeAttribute(className!)}"');
-    }
-
-    for (final MapEntry<String, String> attribute in attributes.entries) {
-      buffer.write(' ${attribute.key}="${escapeAttribute(attribute.value)}"');
-    }
-
-    if (_voidTags.contains(tag)) {
-      buffer.write('>');
-
-      return buffer.toString();
-    }
-
-    buffer.write('>');
-
-    if (raw != null) {
-      buffer.write(raw);
-    }
-
-    if (text != null) {
-      buffer.write(escapeText(text!));
-    }
-
-    for (final ElementPlan child in children) {
-      buffer.write(child.write());
-    }
-
-    buffer.write('</$tag>');
-
-    return buffer.toString();
-  }
-
-  @override
-  String toString() => write();
+  /// Only an embed produces it: it is the host saying "this is markup I trust", for a web
+  /// component, a `<video>` or a chart the model does not describe. Every other string a node
+  /// carries is a value, which the renderer that writes the page escapes.
 }
-
-/// The tags that hold no content and take no closing tag.
-const Set<String> _voidTags = <String>{
-  'area',
-  'base',
-  'br',
-  'col',
-  'embed',
-  'hr',
-  'img',
-  'input',
-  'link',
-  'meta',
-  'source',
-  'track',
-  'wbr',
-};
 
 /// The ARIA role of [role], or `null` for a plain container.
 String? htmlRoleOf(core.BoxRole role) => switch (role) {

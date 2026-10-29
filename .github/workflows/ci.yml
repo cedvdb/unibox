@@ -56,6 +56,9 @@ jobs:
       - name: unibox_css
         working-directory: packages/unibox_css
         run: dart test
+      - name: unibox_element
+        working-directory: packages/unibox_element
+        run: dart test
       - name: unibox_html
         working-directory: packages/unibox_html
         run: dart test
@@ -102,6 +105,7 @@ jobs:
           unibox_testing
           unibox_material
           unibox_css
+          unibox_element
           unibox_html
           unibox_flutter
           PACKAGES

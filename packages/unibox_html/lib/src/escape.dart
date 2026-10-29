@@ -7,6 +7,8 @@
 /// rather than illustrative.
 library;
 
+import 'package:unibox_element/unibox_element.dart';
+
 /// [value] escaped for HTML content between two tags.
 ///
 /// `&`, `<` and `>` are the three characters that can end text and start an element or a
@@ -49,17 +51,6 @@ String escapeAttribute(String value) {
 /// is what a validator should ask, so that the tree is reported rather than only patched.
 String safeUrl(String value) =>
     escapeAttribute(isRiskyUrl(value) ? '#' : value);
-
-/// Whether [value] names a URL scheme that would run as a script.
-///
-/// The check ignores case and leading whitespace, and it looks at the raw value, because
-/// a URL that has already been escaped is no longer recognisable.
-bool isRiskyUrl(String value) {
-  final String normalised = value.trimLeft().toLowerCase();
-
-  return normalised.startsWith('javascript:') ||
-      normalised.startsWith('vbscript:');
-}
 
 /// The characters that end text or start a reference.
 final RegExp _textSpecials = RegExp('[&<>]');

@@ -56,14 +56,5 @@ void main() {
       expect(safeUrl(' javascript:alert(1)'), '#');
       expect(safeUrl('vbscript:msgbox(1)'), '#');
     });
-
-    test('is reported rather than only patched', () {
-      // A validator asks this, so a tree carrying one is reported instead of quietly
-      // rendering a link that goes nowhere.
-      expect(isRiskyUrl('javascript:alert(1)'), isTrue);
-      expect(isRiskyUrl('https://example.com'), isFalse);
-      expect(isRiskyUrl('/listings'), isFalse);
-      expect(isRiskyUrl('mailto:hi@example.com'), isFalse);
-    });
   });
 }
