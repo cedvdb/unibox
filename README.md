@@ -70,7 +70,7 @@ final page = Box(
   ],
 );
 
-runApp(MaterialApp(home: renderFlutter(page)));          // Flutter: widgets
+runApp(MaterialApp(home: page.toWidget()));              // Flutter: widgets
 final html = toDocument(page, title: 'Apartments');     // the web: a document
 ```
 
@@ -212,7 +212,7 @@ dependencies:
 
 ```dart
 // Flutter
-runApp(MaterialApp(home: renderFlutter(tree)));
+runApp(MaterialApp(home: tree.toWidget()));
 
 // the web: a page a crawler reads, and the app takes over
 final String page = toDocument(tree, title: 'My page');
