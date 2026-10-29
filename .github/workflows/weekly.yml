@@ -1,0 +1,72 @@
+name: Weekly gate
+
+# The pull request gate answers "did this change break it". Nothing answers "is it still
+# green" — a dependency publishes a bad version, Chrome moves under Lighthouse, a build
+# starts failing once the cache is cold — so the whole gate runs once a week and says so
+# in an issue, because a red run on a schedule that nobody reads is not maintenance.
+#
+# It deliberately duplicates what `ci.yml` does. The duplication is the point: the two run
+# for different reasons, and a weekly failure is a fact about the repository rather than
+# about a change.
+
+on:
+  schedule:
+    # Mondays at 04:00 UTC, before a working day in Europe.
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  FLUTTER_VERSION: 3.47.5
+
+jobs:
+  gate:
+    name: The gate, from a cold cache
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: false
+      - name: Format, analyze, every suite and the API docs
+        run: tool/verify.sh --docs
+
+      # One issue, not one per week: the failure is the same failure until somebody fixes
+      # it, so a run appends to the open report instead of opening a second one.
+      - name: Say so in an issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          title='maintenance: the weekly gate is red'
+          body=$(printf 'The gate failed on a cold cache.\n\nRun: %s\nCommit: %s\n\nA red weekly run is the repository, not a change: fix it in its own commit, or record why the step is expected to fail.' "$RUN_URL" "$GITHUB_SHA")
+          existing=$(gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[0].number // ""')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body" --label maintenance || gh issue create --title "$title" --body "$body"
+          fi
+
+  performance:
+    name: Performance budget
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: false
+      - name: Resolve the workspace
+        run: flutter pub get
+      # Lighthouse's own version, Chrome's own behaviour and the machine all move between
+      # runs, which is exactly why this is measured on a schedule as well as on a change.
+      - name: Measure the exported pages
+        run: tool/lighthouse.sh

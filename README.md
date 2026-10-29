@@ -1034,7 +1034,8 @@ taken on trust.
 `tool/verify.sh` runs the format check, the analysis and all eleven suites in that
 order, which is the command to reach for before a commit; `--fast` stops after the
 analysis, `--fix` formats the tree first and `--docs` adds the API docs of every
-package.
+package. `tool/maintenance.sh` is the slower, monthly pass: the same gate with the docs,
+the performance budget, the site build and the numbers this page quotes.
 
 `tool/site.sh` builds the site: one page at `/` — the claim, the example drawn by both
 renderers side by side, and the Material catalogue the page is built with — plus the
@@ -1056,6 +1057,8 @@ Where to read more:
 
 - [CONTRIBUTING.md](CONTRIBUTING.md) — setup, the verify loop, what "done" means for a
   token or a node, and the commit convention.
+- [MAINTENANCE.md](MAINTENANCE.md) — the monthly hour: what runs on its own (CI, the
+  weekly gate, Dependabot), what a human decides, and how to hand a task to an assistant.
 - [AGENTS.md](AGENTS.md) — the working rules for a coding agent: the guardrails, the
   repository map, the verification command and the touch points for a change that
   spans core and both renderers.

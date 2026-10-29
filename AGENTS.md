@@ -344,5 +344,7 @@ and two when each side is independently reviewable.
 | Which Material type role should I use? | [`packages/unibox_material/README.md`](packages/unibox_material/README.md) |
 | What has to look the same on both? | [`packages/unibox_testing/README.md`](packages/unibox_testing/README.md) |
 | What is built, and what was deferred? | [`TASK_PLAN.md`](TASK_PLAN.md) |
+| How do I contribute? | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
+| What does maintenance look like, and what runs on its own? | [`MAINTENANCE.md`](MAINTENANCE.md) |
 | How is a release cut? | [`RELEASE.md`](RELEASE.md) |
 | How do the examples fit together? | [`example/README.md`](example/README.md) |

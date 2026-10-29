@@ -1,0 +1,31 @@
+version: 2
+
+# The monthly upkeep, in the only form that keeps itself: a pull request per dependency
+# change, and the same gate on it that a human's change gets. Nothing merges on its own —
+# `tool/verify.sh` compares the two renderings, so a dependency that changes what a box
+# looks like fails here rather than in someone's browser.
+updates:
+  - package-ecosystem: pub
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: 'chore(deps)'
+    open-pull-requests-limit: 2
+    groups:
+      # Patch and minor together, because they land as one review: the suites decide, and
+      # reading eleven separate diffs of `pubspec.lock` teaches nobody anything.
+      pub-minor-and-patch:
+        patterns: ['*']
+        update-types: ['minor', 'patch']
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: 'chore(ci)'
+    groups:
+      actions:
+        patterns: ['*']
