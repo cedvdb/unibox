@@ -61,22 +61,25 @@ dart analyze || fail 'dart analyze'
 if [ "$run_tests" -eq 1 ]; then
   # `dart test` for the pure Dart packages, `flutter test` for the two that build
   # widgets. The order is the dependency order CI uses.
-  while IFS='|' read -r directory runner; do
+  while IFS='|' read -r directory command; do
     step "Testing $directory"
-    if ! (cd "$directory" && "$runner" test); then
-      fail "$runner test in $directory"
+    # `$command` is split on spaces on purpose: a row is a whole command line, and the DOM suite
+    # is the one that needs a platform flag.
+    if ! (cd "$directory" && $command); then
+      fail "$command in $directory"
     fi
   done <<'SUITES'
-packages/unibox_core|dart
-packages/unibox_testing|dart
-packages/unibox_material|dart
-packages/unibox_css|dart
-packages/unibox_element|dart
-packages/unibox_html|dart
-packages/unibox_flutter|flutter
-example/unibox_example_shared|dart
-example/unibox_example_html|dart
-example/unibox_example_flutter|flutter
+packages/unibox_core|dart test
+packages/unibox_testing|dart test
+packages/unibox_material|dart test
+packages/unibox_css|dart test
+packages/unibox_element|dart test
+packages/unibox_html|dart test
+packages/unibox_dom|dart test -p chrome
+packages/unibox_flutter|flutter test
+example/unibox_example_shared|dart test
+example/unibox_example_html|dart test
+example/unibox_example_flutter|flutter test
 SUITES
 fi
 

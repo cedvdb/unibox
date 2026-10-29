@@ -13,7 +13,19 @@ ElementPlan planNode(
   core.UINode node,
   Stylesheet sheet, {
   PlanOptions options = const PlanOptions(),
-}) => switch (node) {
+}) {
+  final ElementPlan plan = _planOf(node, sheet, options);
+  options.onPlanned?.call(plan, node);
+
+  return plan;
+}
+
+/// The plan of one node, before anybody is told about it.
+ElementPlan _planOf(
+  core.UINode node,
+  Stylesheet sheet,
+  PlanOptions options,
+) => switch (node) {
   final core.Box box => _planBox(box, sheet, options),
   final core.TextNode text => _planText(text, sheet),
   final core.ImageNode image => _planImage(image, sheet),
@@ -49,13 +61,20 @@ typedef PlanEmbed = ElementPlan Function(core.EmbedNode node);
 /// presence in the tree is the state, and this only decides whether a page draws it.
 final class PlanOptions {
   /// Creates the options of a rendering.
-  const PlanOptions({this.showOverlays = false, this.embed});
+  const PlanOptions({this.showOverlays = false, this.embed, this.onPlanned});
 
   /// Whether an overlay in the tree is drawn rather than hidden.
   final bool showOverlays;
 
   /// How to plan an embed, or `null` when this renderer draws none.
   final PlanEmbed? embed;
+
+  /// Told about every plan as it is made, with the node it came from.
+  ///
+  /// A renderer that has to attach behaviour needs the two together: the plan says which element
+  /// to build, the node says what the element does (a press, a change), and only a renderer with a
+  /// runtime can run it. A string renderer passes nothing and the callback never fires.
+  final void Function(ElementPlan plan, core.UINode node)? onPlanned;
 }
 
 /// What this renderer draws so far, named for the message a missing one prints.

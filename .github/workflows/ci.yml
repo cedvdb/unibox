@@ -62,6 +62,9 @@ jobs:
       - name: unibox_html
         working-directory: packages/unibox_html
         run: dart test
+      - name: unibox_dom
+        working-directory: packages/unibox_dom
+        run: dart test -p chrome
       - name: unibox_flutter
         working-directory: packages/unibox_flutter
         run: flutter test

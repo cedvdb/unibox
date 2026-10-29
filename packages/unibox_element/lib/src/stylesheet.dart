@@ -1,3 +1,4 @@
+import 'package:unibox_core/unibox_core.dart' as core;
 import 'package:unibox_css/unibox_css.dart';
 
 /// The rules one rendering needs, each one once.
@@ -91,4 +92,24 @@ final class Stylesheet {
 
     return buffer.toString();
   }
+}
+
+/// The CSS a page needs before the tree: the typography of the model, the colours of the theme,
+/// then every class the tree wears.
+///
+/// The `:root` block first, because it is what a text with no declarations of its own inherits; the
+/// classes after it, so a look always outranks the default it started from.
+///
+/// Here rather than in a renderer because both web renderers have to produce the same text: a class
+/// name is a hash of the declarations behind it, so a renderer that assembled its CSS differently
+/// would write different class names for the same tree, and a client could no longer adopt a page a
+/// server wrote.
+String documentCss(Stylesheet sheet, {core.UniboxTheme? theme}) {
+  final CssDeclarations root = defaultTypographyDeclarations();
+
+  if (theme != null) {
+    root.addAllIn(themeDeclarations(theme));
+  }
+
+  return ':root{${root.text}}${sheet.css}';
 }

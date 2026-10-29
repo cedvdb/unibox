@@ -229,6 +229,19 @@ than an assumption.
 - `tool/` measures the handover: the exported page is served, driven, and timed from the
   first byte to the first Flutter frame, with the number recorded beside the export.
 
+## A client script per component: not for one behaviour
+
+- [x] Considered and declined for now. `ClientScript` (a node a document hoists into one inline
+  `script` before the tree) is the right shape for a component that carries its own behaviour,
+  and it composes with the handover — paint until the runtime arrives, inert once a view is
+  mounted — but ink is the only behaviour that qualifies today, and a second implementation of
+  one 450 ms animation does not pay for a core node, a hoisting path, nonce plumbing and a
+  browser test.
+- [x] The rule that would bring it back: a **second** paint-only behaviour (a ripple alone is not
+  enough), or a real page that cannot afford two megabytes and must feel alive on press.
+  Everything else — selection, disclosure, a dialog's open state — drives the tree and needs
+  `unibox_dom`, where one implementation runs on a third target instead of a copy in JavaScript.
+
 ## A dialog is not a page
 
 - [x] The example published `/web/signup/` — a second document for the sign-up dialog. Removed:

@@ -26,7 +26,7 @@ String toHtml(
     options: _options(showOverlays, sheet),
   );
 
-  return '<style>${sheetWithRoot(sheet, theme: theme)}</style>'
+  return '<style>${documentCss(sheet, theme: theme)}</style>'
       '${writeElement(plan)}';
 }
 
@@ -44,7 +44,7 @@ String toHtml(
     options: _options(showOverlays, sheet),
   );
 
-  return (plan: plan, css: sheetWithRoot(sheet, theme: theme));
+  return (plan: plan, css: documentCss(sheet, theme: theme));
 }
 
 /// The options of a rendering, with this target's way of drawing an embed.
@@ -52,21 +52,6 @@ PlanOptions _options(bool showOverlays, Stylesheet sheet) => PlanOptions(
   showOverlays: showOverlays,
   embed: (core.EmbedNode embed) => _planEmbed(embed, sheet),
 );
-
-/// The CSS a document needs before the tree: the typography of the model, the colours of the
-/// theme, then every class the tree wears.
-///
-/// The `:root` block first, because it is what a text with no declarations of its own inherits;
-/// the classes after it, so a look always outranks the default it started from.
-String sheetWithRoot(Stylesheet sheet, {core.UniboxTheme? theme}) {
-  final CssDeclarations root = defaultTypographyDeclarations();
-
-  if (theme != null) {
-    root.addAllIn(themeDeclarations(theme));
-  }
-
-  return ':root{${root.text}}${sheet.css}';
-}
 
 /// An embed, written into the page as the markup it carries.
 ///
