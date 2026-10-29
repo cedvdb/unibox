@@ -530,6 +530,30 @@ void main() {
   });
 
   group('the sheet', () {
+    test('states the scheme the theme draws in', () {
+      // What the browser needs to paint its own chrome — scrollbars, the caret, the canvas
+      // before this sheet applies — to match the page rather than the reader's operating
+      // system. Without it a light page in a dark-mode browser gets dark scrollbars.
+      const core.UniboxTheme light = core.UniboxTheme(
+        colors: <Enum, core.BoxColor>{_Role.ink: core.BoxColor.black},
+      );
+      const core.UniboxTheme dark = core.UniboxTheme(
+        colors: <Enum, core.BoxColor>{_Role.ink: core.BoxColor.white},
+        colorScheme: core.BoxColorScheme.dark,
+      );
+
+      expect(
+        toHtml(const core.Box(), theme: light),
+        contains('color-scheme:light'),
+      );
+      expect(
+        toHtml(const core.Box(), theme: dark),
+        contains('color-scheme:dark'),
+      );
+      // A tree with no theme makes no claim about a scheme either.
+      expect(toHtml(const core.Box()), isNot(contains('color-scheme')));
+    });
+
     test('starts from the typography of the model', () {
       final String html = toHtml(const core.Box());
 
@@ -576,3 +600,6 @@ final class _CountingStore extends core.StateStore<int> {
 
 /// A callback a box can carry; a document writes no listener for it.
 void noop() {}
+
+/// The one role these tests give a theme.
+enum _Role { ink }

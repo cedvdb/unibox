@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- `MaterialPalette.colorScheme`: read from the palette's own surface, so `light`, `dark` and
+  `fromSeed(isDark:)` answer it without being told, and `MaterialPalette.theme` carries it.
+
 - A **secondary** tab bar draws its indicator under the label rather than under a share of
   the bar. Its tabs are as wide as their labels, so the share-wide indicator that suits a
   primary bar landed under no tab at all: each tab now carries its own underline, pinned
