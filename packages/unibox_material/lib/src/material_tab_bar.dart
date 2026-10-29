@@ -129,45 +129,71 @@ final class MaterialTabBar extends Box {
         ? (selected ? _baselinePrimary : const BoxColor(0xFF514346))
         : (selected ? palette.primary : palette.onSurfaceVariant);
 
+    // The well fills the tab: 48 pixels tall and as wide as the share, with the indicator laid
+    // over its bottom edge rather than stacked under it. Material tints *the tab* and draws the
+    // indicator on top of the tint, and a column of two children got that wrong in both
+    // directions — the well was as wide as its label, and the bottom three pixels were outside
+    // the thing a pointer could reach.
     return Box(
-      // A primary tab takes an equal share of the row; a secondary one is as wide as its
-      // label, so it asks for no share at all.
       flex: variant == MaterialTabVariant.primary ? 1 : null,
       height: tabHeight,
+      crossAlign: CrossAlign.stretch,
       children: <UINode>[
-        MaterialInkWell(
-          onTap: onTap,
-          flex: 1,
-          mainAlign: MainAlign.center,
-          crossAlign: CrossAlign.center,
-          padding: BoxSpacing.symmetric(
-            horizontal: variant == MaterialTabVariant.primary ? 8 : 16,
-          ),
-          // The label belongs to the caller, so its colour is inherited rather than reached
-          // into: a box hands its `textStyle` down to the texts inside it, which is the
-          // model's copy of CSS font inheritance.
-          child: Box(
-            gap: 4,
-            crossAlign: CrossAlign.center,
-            textStyle: MaterialTypography.titleSmall.copyWith(
-              color: labelColour,
+        StackNode(
+          children: <UINode>[
+            MaterialInkWell(
+              onTap: onTap,
+              width: double.infinity,
+              height: tabHeight,
+              mainAlign: MainAlign.center,
+              crossAlign: CrossAlign.center,
+              padding: BoxSpacing.symmetric(
+                horizontal: variant == MaterialTabVariant.primary ? 8 : 16,
+              ),
+              // The label belongs to the caller, so its colour is inherited rather than reached
+              // into: a box hands its `textStyle` down to the texts inside it, which is the
+              // model's copy of CSS font inheritance.
+              child: Box(
+                gap: 4,
+                crossAlign: CrossAlign.center,
+                textStyle: MaterialTypography.titleSmall.copyWith(
+                  color: labelColour,
+                ),
+                children: <UINode>[?tab.icon, tab.label],
+              ),
+              semantics: BoxSemantics(
+                role: BoxRole.tab,
+                label: tab.semanticsLabel,
+                // Which of the set is chosen: `aria-selected` on the web, and Flutter's own
+                // selected flag, which is what a screen reader announces for a tab.
+                selected: selected,
+              ),
             ),
-            children: <UINode>[?tab.icon, tab.label],
-          ),
-          semantics: BoxSemantics(
-            role: BoxRole.tab,
-            label: tab.semanticsLabel,
-            // Which of the set is chosen: `aria-selected` on the web, and Flutter's own selected
-            // flag, which is what a screen reader announces for a tab.
-            selected: selected,
-          ),
-        ),
-        // The indicator is a box of its own, so an unchosen tab draws nothing at all: a rule
-        // that hid a layer would be a second way to say what a missing box already says.
-        Box(
-          width: double.infinity,
-          height: indicatorHeight,
-          backgroundColor: selected ? indicator : null,
+            // Drawn on every tab and only visible on one, because an element that appears and
+            // disappears cannot be eased: the underline fades between tabs. It does not slide,
+            // and that is the honest limit of what a tree can say — a slide needs the width of
+            // the tabs beside this one, which is the layout's to know and not the node's.
+            PositionedNode(
+              alignment: BoxAlignment.bottomCenter,
+              child: Box(
+                width: double.infinity,
+                height: indicatorHeight,
+                backgroundColor: indicator,
+                opacity: selected ? 1 : 0,
+                // A transition names the looks it eases, and this box paints one: the underline.
+                transition: BoxTransition(
+                  duration: const Duration(milliseconds: 150),
+                  curve: BoxCurve.easeOut,
+                  parts: const <BoxTransitionPart>[
+                    BoxTransitionPart(
+                      properties: <BoxProperty>{BoxProperty.opacity},
+                      duration: Duration(milliseconds: 150),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );

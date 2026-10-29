@@ -29,6 +29,14 @@ List<String> _texts(UINode root) =>
 /// The boxes a bar lays out, one per tab.
 List<Box> _tabBoxes(MaterialTabBar bar) => bar.children.cast<Box>().toList();
 
+/// The well of [tab], which fills it.
+MaterialInkWell _wellOf(Box tab) =>
+    (tab.children.single as StackNode).children.first as MaterialInkWell;
+
+/// The indicator of [tab], laid over the well's bottom edge.
+PositionedNode _indicatorOf(Box tab) =>
+    (tab.children.single as StackNode).children.last as PositionedNode;
+
 void main() {
   group('MaterialTabBar', () {
     MaterialTabBar bar({
@@ -53,18 +61,24 @@ void main() {
 
       expect(_texts(tabs), <String>['Overview', 'Listings', 'Reviews']);
 
-      // The indicator is the last box of a tab, and an unchosen tab draws it without a
-      // colour — which is how it draws nothing, with no rule hiding a layer.
+      // Every tab carries the indicator and only one shows it, because an element that appears and
+      // disappears cannot be eased: the underline fades between tabs.
       final List<Box> indicators = <Box>[
-        for (final Box tab in _tabBoxes(tabs)) tab.children.last as Box,
+        for (final Box tab in _tabBoxes(tabs)) _indicatorOf(tab).child as Box,
       ];
 
       expect(indicators, hasLength(3));
       expect(indicators.map((Box box) => box.backgroundColor), <BoxColor?>[
-        null,
         const BoxColor(0xFF8C4A5D),
-        null,
+        const BoxColor(0xFF8C4A5D),
+        const BoxColor(0xFF8C4A5D),
       ]);
+      expect(indicators.map((Box box) => box.opacity), <double?>[0, 1, 0]);
+      expect(
+        indicators.every((Box box) => box.transition != null),
+        isTrue,
+        reason: 'the fade is what makes it a change rather than a redraw',
+      );
       expect(
         indicators.every(
           (Box box) => box.height == MaterialTabBar.indicatorHeight,
@@ -79,7 +93,7 @@ void main() {
       final List<int> presses = <int>[];
       final MaterialTabBar tabs = bar(presses: presses);
       final Box third = _tabBoxes(tabs)[2];
-      final MaterialInkWell well = third.children.first as MaterialInkWell;
+      final MaterialInkWell well = _wellOf(third);
       final Store<MaterialInkState> store = well.createStore();
       final Box painted = _nodes(well.viewFor(store.state, store))
           .whereType<Box>()
@@ -117,7 +131,7 @@ void main() {
       final List<bool?> selected = <bool?>[];
 
       for (final Box tab in _tabBoxes(tabs)) {
-        final MaterialInkWell well = tab.children.first as MaterialInkWell;
+        final MaterialInkWell well = _wellOf(tab);
         final Store<MaterialInkState> store = well.createStore();
         for (final Box box in _nodes(
           well.viewFor(store.state, store),
