@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- `snap: ScrollSnap.page` is `PageScrollPhysics` on the box's scroll view, so a drag that
+  ends between two children comes to rest on one.
+
 - `Box.onScroll` is reported from the box's own scroll view (`ScrollUpdateNotification` with
   a depth of zero), so a nested scrollable does not report to the box around it. An iOS
   bounce reports negative pixels and a value past the end, where a browser clamps: the

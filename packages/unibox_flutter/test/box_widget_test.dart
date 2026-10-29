@@ -532,6 +532,39 @@ void main() {
       expect(view.scrollDirection, Axis.horizontal);
     });
 
+    testWidgets('settles on a child when it pages', (tester) async {
+      // A pager is a scrolling box with paging physics: a drag that ends between two pages
+      // comes to rest on one, which is the whole difference from a list.
+      await pumpNode(
+        tester,
+        const core.Box(
+          height: 100,
+          overflow: core.Overflow.scroll,
+          snap: core.ScrollSnap.page,
+          children: <core.UINode>[
+            core.Box(height: 100, minHeight: 100),
+            core.Box(height: 100, minHeight: 100),
+            core.Box(height: 100, minHeight: 100),
+          ],
+        ),
+      );
+
+      final SingleChildScrollView view = tester.widget<SingleChildScrollView>(
+        find.byType(SingleChildScrollView),
+      );
+      expect(view.physics, isA<PageScrollPhysics>());
+
+      // A drag of less than a page is enough: the physics finishes the move.
+      await tester.drag(find.byKey(nodeKey), const Offset(0, -40));
+      await tester.pumpAndSettle();
+
+      final double offset = tester
+          .state<ScrollableState>(find.byType(Scrollable))
+          .position
+          .pixels;
+      expect(offset % 100, 0, reason: 'it came to rest on a page boundary');
+    });
+
     testWidgets('reports how far its own content has scrolled', (tester) async {
       final List<double> offsets = <double>[];
 

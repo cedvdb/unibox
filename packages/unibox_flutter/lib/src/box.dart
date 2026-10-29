@@ -139,6 +139,13 @@ class FlutterBoxState extends State<FlutterBox> {
       content = SingleChildScrollView(
         scrollDirection: toAxis(style.resolvedDirection),
         controller: _scroll,
+        // A pager settles on a child instead of wherever the finger stopped. The physics is
+        // the whole of it: a page is a child the size of the box, so the viewport's own
+        // boundaries are the children's, and the two targets agree because CSS snaps to the
+        // child's own `scroll-snap-align` edge.
+        physics: style.snap == core.ScrollSnap.page
+            ? const PageScrollPhysics()
+            : null,
         child: content,
       );
 
