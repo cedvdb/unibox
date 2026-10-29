@@ -1042,23 +1042,27 @@ UINode _dialogView(bool open, DialogDemoStore store, MaterialPalette palette) {
     maxColumns: 3,
     gap: 24,
     children: <UINode>[
-      Box(
-        backgroundColor: palette.primary,
-        borderRadius: 20,
-        children: <UINode>[
-          MaterialInkWell(
-            onTap: store.open,
-            borderRadius: 20,
-            ink: palette.onPrimary,
-            padding: const BoxSpacing.symmetric(horizontal: 20, vertical: 10),
-            child: TextNode(
-              'Delete listing',
-              style: MaterialTypography.labelLarge.copyWith(
-                color: palette.onPrimary,
+      // At its own size, like every control on this page: a grid item fills its track, and
+      // this button without a wrapper became a banner whose tint was wider than its label.
+      _natural(
+        Box(
+          backgroundColor: palette.primary,
+          borderRadius: 20,
+          children: <UINode>[
+            MaterialInkWell(
+              onTap: store.open,
+              borderRadius: 20,
+              ink: palette.onPrimary,
+              padding: const BoxSpacing.symmetric(horizontal: 20, vertical: 10),
+              child: TextNode(
+                'Delete listing',
+                style: MaterialTypography.labelLarge.copyWith(
+                  color: palette.onPrimary,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       Box(
         width: double.infinity,
