@@ -120,7 +120,12 @@ printf '%s' "$base" >"$(dirname "$site")/.unibox-site-base"
 step 'Compiling the client rendering'
 # One file, compiled from the same package the documents are written from: the site's interactive
 # layer is the tree itself, not a second description of it.
-dart compile js -O4 example/unibox_example_html/web/main.client.dart -o "$site/web/main.client.js"
+# `-Dunibox-build` is what lets the client know it was compiled for this document: a page whose
+# markup came from another build is patched, and one from this build is adopted without rendering.
+dart compile js -O4 \
+  ${build:+-Dunibox-build="$build"} \
+  example/unibox_example_html/web/main.client.dart \
+  -o "$site/web/main.client.js"
 
 step 'Writing robots, sitemap and .nojekyll' 
 cat >"$site/robots.txt" <<'ROBOTS'

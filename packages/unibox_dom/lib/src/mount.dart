@@ -48,7 +48,17 @@ final class DomView {
   }) {
     final DomView view = DomView._(root.parentElement ?? root, tree, theme)
       .._element = root;
-    view._paint();
+
+    // The page and this bundle are from two builds of one tree. When they are from the *same* build
+    // the markup is what this client would have drawn, so the client only has to say which element
+    // does what — no plan, no patch, no stylesheet, and therefore no touch on the scroll position,
+    // the focus or the caret of a reader who has already started reading.
+    //
+    // A mismatch — a cached document against a newer bundle — takes the slow path: plan, patch,
+    // rewrite. That path is also what repairs the page.
+    if (!view._adopt(root)) {
+      view._paint();
+    }
 
     return view;
   }
@@ -172,6 +182,62 @@ final class DomView {
     _sweep(pass.visited);
   }
 
+  /// Pairs the tree's nodes with the page's elements and binds what they do.
+  ///
+  /// Returns `false` when the page is not this tree's own rendering — a label that does not match,
+  /// a count that does not line up, or a document from another build — so the caller falls back to
+  /// planning and patching.
+  bool _adopt(web.Element root) {
+    if (!_sameBuild()) {
+      return false;
+    }
+
+    final _Pass pass = _Pass(this, _sheet);
+    final List<core.UINode> nodes = <core.UINode>[];
+    pass.collect(_tree, nodes);
+
+    final List<web.Element> elements = <web.Element>[
+      if (root.getAttribute('data-unibox-node') != null) root,
+      for (
+        int i = 0;
+        i < root.querySelectorAll('[data-unibox-node]').length;
+        i++
+      )
+        root.querySelectorAll('[data-unibox-node]').item(i)! as web.Element,
+    ];
+
+    if (nodes.length != elements.length) {
+      return false;
+    }
+
+    for (int i = 0; i < nodes.length; i++) {
+      if (elements[i].getAttribute('data-unibox-node') != nodes[i].debugName) {
+        return false;
+      }
+    }
+
+    for (int i = 0; i < nodes.length; i++) {
+      final List<void Function()> undo = bindNode(nodes[i], elements[i]);
+
+      if (undo.isNotEmpty) {
+        _listeners[elements[i]] = undo;
+      }
+    }
+
+    _plan = null;
+
+    for (final String slot in pass.visited) {
+      final _Mount? mount = _mounts[slot];
+      final int? at = mount?.at;
+
+      if (mount != null && at != null && at < elements.length) {
+        mount.element = elements[at];
+      }
+    }
+
+    return true;
+  }
+
   /// Re-renders one stateful node's subtree, and nothing else.
   ///
   /// The boundary's element is patched, never replaced: a browser works out a click from the
@@ -183,9 +249,8 @@ final class DomView {
     }
 
     final web.Element? element = mount.element;
-    final ElementPlan? plan = mount.plan;
 
-    if (element == null || plan == null) {
+    if (element == null) {
       // Published before this node was drawn: the pass in flight will draw the state it holds.
       _dirty = true;
 
@@ -211,7 +276,18 @@ final class DomView {
       options: pass.options,
     );
 
-    mount.element = patchElement(element, plan, next, onBuilt: pass.record);
+    // A boundary adopted from a page has no plan yet: it was paired with its element, never drawn.
+    // The first publish is when it is planned — and from then on it patches like any other.
+    mount.element = patchElement(
+      element,
+      mount.plan ??
+          ElementPlan(
+            tag: next.tag,
+            className: element.className.isEmpty ? null : element.className,
+          ),
+      next,
+      onBuilt: pass.record,
+    );
     mount.plan = next;
     mount.element = pass.built[next] ?? mount.element;
     _style?.textContent = documentCss(_sheet, theme: _theme);
@@ -288,6 +364,22 @@ final class DomView {
   }
 }
 
+/// The build this bundle was compiled from, if the build said so.
+///
+/// `tool/site.sh` passes it to `dart compile js` and to the document, so a page and a client are
+/// known to come from one build — which is the whole question an adopting client asks before it
+/// trusts markup it did not write.
+const String _clientBuild = String.fromEnvironment('unibox-build');
+
+/// Whether the page was written by this build.
+bool _sameBuild() {
+  final web.Element? meta = web.document.querySelector(
+    'meta[name="unibox-build"]',
+  );
+
+  return (meta?.getAttribute('content') ?? '') == _clientBuild;
+}
+
 /// The stylesheet a document wrote, if it is there, so a client rewrites it instead of adding a
 /// second copy of the same rules.
 web.HTMLStyleElement? _stylesheetIn(web.Element? head) =>
@@ -327,6 +419,43 @@ final class _Pass {
   );
 
   String css(core.UniboxTheme? theme) => documentCss(sheet, theme: theme);
+
+  /// Collects the nodes of [tree] in the order their elements appear, expanding stateful nodes.
+  ///
+  /// A stateful node has no view until its store exists, so this is where the stores are created:
+  /// one per address, as in a planning pass, and the same mounts are the ones a later publish
+  /// re-renders.
+  void collect(core.UINode tree, List<core.UINode> into) {
+    if (tree
+        case final core.StatefulNode<Object, core.Store<Object>> stateful) {
+      final String slot = _slotOf(stateful);
+      visited.add(slot);
+
+      final _Mount mount = _view._mounts[slot] ??= _Mount(stateful, _view);
+      mount.node = stateful;
+      // Where this boundary starts in the node list, so an adoption can pair it with the element the
+      // page already has: the first element of the view it draws.
+      mount.at = into.length;
+
+      _path.add(slot);
+      _counts.add(0);
+
+      try {
+        collect(stateful.viewFor(mount.store.state, mount.store), into);
+      } finally {
+        _path.removeLast();
+        _counts.removeLast();
+      }
+
+      return;
+    }
+
+    into.add(tree);
+
+    for (final core.UINode child in tree.children) {
+      collect(child, into);
+    }
+  }
 
   /// Records the element a plan became, for binding and for the next pass.
   void record(ElementPlan plan, web.Element element) => built[plan] = element;
@@ -388,6 +517,9 @@ final class _Mount {
   /// would put a whole page's patching between a press and its release.
   ElementPlan? plan;
   web.Element? element;
+
+  /// Where this boundary's first element sits among the nodes an adoption walked.
+  int? at;
 
   void release() {
     store.onUnmount();

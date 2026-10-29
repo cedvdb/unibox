@@ -53,6 +53,29 @@ The two costs are separable and both ours:
    rewrite a stylesheet whose text it has just read. A later publish patches from the plan as it
    does now — and a stale page is still corrected by the first publish.
 
+### What the first fix did
+
+Adoption no longer renders: the client pairs the tree's nodes with the page's labelled elements,
+creates the stores a stateful node needs, and binds — no plan, no patch, no stylesheet write — when
+the document says it came from the same build (`meta[name="unibox-build"]`, which `tool/site.sh`
+passes to `dart compile js`). A page from another build takes the old path, which is also what
+repairs it.
+
+Measured on the built site, Lighthouse mobile, the same machine:
+
+| | performance | LCP | TBT |
+| --- | ---: | ---: | ---: |
+| before (plan + patch + CSS on adoption) | 56 | 4.30 s | 840 ms |
+| after (bind only) | **60** | 4.30 s | **591 ms** |
+
+So it recovered ~250 ms of the 567 the adoption cost, and it left the LCP where it was — which says
+the largest paint is not the client's doing at all: it is a frame. The rest of the 591 ms is the
+bundle's own parse and the stores the walk has to create (every ink well, destination and chip demo
+on the page is a `StatefulNode`), plus ~270 ms that the frames' contents spend on the same thread.
+
+What is left, in order of size: the **Flutter frame** (LCP and ~270 ms of TBT), then the 204 kB
+bundle (65 kB gzipped) and the 20 kB of CSS re-downloaded in every page.
+
 **Done when** the front page is back inside the budget of T1 with the frames and the client in
 place, and the two fixes are separately committed and measured.
 
