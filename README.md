@@ -22,12 +22,11 @@ expected appearance holds both renderers to the same answer.
 
 - 🧩 **One tree, two renderings** — the same nodes are Flutter widgets in the app and HTML with CSS in the browser, so the design is written once.
 - 🔍 **A page a search engine reads** — real text, headings, links, `alt`, landmarks and metadata: what a crawler, a link preview and a reader without JavaScript see is the page itself.
-- 🖐 **The app takes the page over** — Flutter boots into the document it was served, prefetched while the reader reads and started at their first intent, with the scroll and the presses the page recorded handed back to it.
+- 🖐 **Take the page over, and keep the reader's place** — Flutter boots into the document it was served, prefetched while they read and started at their first intent, and the scroll of every keyed region and the presses they made come back with it.
+- ⚡ **Or let the page run on its own** — the same tree compiled to JavaScript renders into the page with `unibox_dom` and reacts through its store, so a page that should stay light needs no Flutter binary at all.
 - 🟩 **Rendered from Node too** — pure Dart with no dependencies, so a document is produced in a server, a build step, a CLI, or compiled to JavaScript for a backend that is not Dart.
-- 🎨 **Tokens, not defaults** — colour, spacing, border, shadow, radius, typography, transform and transition are values the model resolves, so neither target can fall back to its own.
-- 📐 **One tree per band, not per breakpoint** — `visibleFrom` / `visibleUntil` compile to container queries, so a layout that folds stays one description.
-- 🧪 **Parity tested, not promised** — `unibox_testing` holds both renderers to one table of expected appearance, read back out of each one's own output.
-- 🧱 **Material 3 as values** — the type scale, the colour roles and the components as an optional package, drawn by both renderers rather than by a third runtime.
+- 🧪 **Parity tested, not promised** — `unibox_testing` holds the renderers to one table of expected appearance, read back out of each one's own output.
+- 🧱 **Material 3 as values** — the type scale, the colour roles and the components as an optional package, drawn by the renderers rather than by a third runtime.
 
 ## Contents
 
@@ -108,15 +107,17 @@ The handover is a repaint, because Flutter can only draw into a canvas — expec
 flash. That is a fine trade when the page really is the app and the visitor is about to
 use it.
 
-### The page is only a document
+### The page draws itself
 
-The same tree is written as HTML and CSS by `unibox_html` and **stays that**: nothing boots over
-it, and the only script it carries is optional. That is the strategy for a page whose job is to
-be read — this site's own `/` — and it needs no server process either, because a document is a
-string: a build step writes the files, a static host serves them.
+The same tree is written by `unibox_html` and made live by `unibox_dom`: one small bundle,
+compiled from Dart with `dart compile js`, which **adopts** the markup the server wrote — the same
+elements, the same classes — and keeps it in step with the stores the tree created. A press runs
+the same Dart closure the Flutter host would have run, and there is no engine on the page.
 
-The document that a crawler reads and the document a reader gets are then the same file, which is
-the whole point: at `/`, one tree per band, three bands, one page.
+Because it adopts rather than repaints, a reader who has already scrolled keeps their place, and
+the page a crawler reads and the page a reader uses are one file. Without the script it is still a
+document: the markup stands on its own and nothing in it needs the runtime, which is also why a
+static host can serve it — a document is a string, and a build step writes the files.
 
 ### The handover, in code
 
