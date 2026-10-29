@@ -272,7 +272,7 @@ final class DomView {
             entry.key,
     ];
 
-    final _Pass pass = _Pass(this, _sheet);
+    final _Pass pass = _Pass(this, _sheet, boundary: mount.slot);
     final ElementPlan next = planNode(
       mount.node.viewFor(mount.store.state, mount.store),
       _sheet,
@@ -446,7 +446,15 @@ web.HTMLStyleElement? _stylesheetIn(web.Element? head) =>
 /// One planning pass: the stylesheet it builds, the node each plan came from, and the element each
 /// plan became.
 final class _Pass {
-  _Pass(this._view, this.sheet);
+  /// Plans a tree, or one boundary's view of its state.
+  ///
+  /// [boundary] is the slot of the node the pass starts at, and it is what keeps a store on the
+  /// element that drew it: a repaint of a boundary plans that node's view directly, so the nodes
+  /// inside it are numbered from the boundary's own address — the address the pass that drew the
+  /// boundary gave them. Numbered from nothing instead, they would take the addresses of the
+  /// controls beside the boundary, and one control's store would be drawn by another's element.
+  _Pass(this._view, this.sheet, {String boundary = ''})
+    : _path = <String>[boundary];
 
   final DomView _view;
   final Stylesheet sheet;
@@ -459,7 +467,7 @@ final class _Pass {
   /// The address of the stateful node being planned, so a slot is a place and not an order: a
   /// store is kept for the node at that address, the way Flutter keeps state on the element that
   /// sits there.
-  final List<String> _path = <String>[''];
+  final List<String> _path;
   final List<int> _counts = <int>[0];
 
   ElementPlan planTree(core.UINode tree) =>
@@ -489,7 +497,11 @@ final class _Pass {
       final String slot = _slotOf(stateful);
       visited.add(slot);
 
-      final _Mount mount = _view._mounts[slot] ??= _Mount(stateful, _view);
+      final _Mount mount = _view._mounts[slot] ??= _Mount(
+        slot,
+        stateful,
+        _view,
+      );
       mount.node = stateful;
       // Where this boundary starts in the node list, so an adoption can pair it with the element the
       // page already has: the first element of the view it draws.
@@ -526,7 +538,7 @@ final class _Pass {
     final String slot = _slotOf(node);
     visited.add(slot);
 
-    final _Mount mount = _view._mounts[slot] ??= _Mount(node, _view);
+    final _Mount mount = _view._mounts[slot] ??= _Mount(slot, node, _view);
     mount.node = node;
 
     _path.add(slot);
@@ -558,13 +570,19 @@ final class _Pass {
 
 /// A store, the node that draws it, and the subscription that keeps the page up to date.
 final class _Mount {
-  _Mount(this.node, DomView view) : store = node.createStore() {
+  _Mount(this.slot, this.node, DomView view) : store = node.createStore() {
     _changed = () => view._repaintBoundary(this);
     store.addListener(_changed);
     // `onMount` is what starts the work a component does when it appears. A publish from it is
     // queued by the view rather than drawn in the middle of the first pass.
     store.onMount();
   }
+
+  /// The address this store is kept at: the node's place in the tree.
+  ///
+  /// A repaint of this boundary plans its view from here, so the nodes inside it are addressed the
+  /// way the pass that drew them addressed them.
+  final String slot;
 
   core.StatefulNode<Object, core.Store<Object>> node;
   final core.Store<Object> store;

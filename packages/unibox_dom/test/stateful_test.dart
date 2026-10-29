@@ -195,6 +195,42 @@ void main() {
       view.dispose();
     });
 
+    test('keeps a store with the element it drew, beside a stateful frame', () {
+      // The catalogue's shape: buttons, and then a segmented button — a stateful frame holding
+      // three ink wells, whose store is the frame's. A store is kept for the node at an *address*,
+      // and a boundary repaint has to compute the addresses the pass that drew it used: when it
+      // did not, the frame's repaint adopted the stores of the controls beside it, and the ripple
+      // of a press on *Outlined* was drawn inside the third segment, *Month*.
+      final web.HTMLDivElement element = host();
+      final DomView view = DomView.mount(
+        core.Box(
+          children: <core.UINode>[
+            Mark('filled'),
+            Mark('tonal'),
+            Mark('outlined'),
+            Marks(),
+          ],
+        ),
+        element,
+      );
+
+      // Choosing a segment republishes the frame, which re-plans the three wells inside it.
+      press(at(element, 'marks'));
+
+      // The press after it lands on a control of its own.
+      MarkStore.of('outlined').press();
+
+      expect(
+        element.querySelector('[data-unibox-key="mark-month"]'),
+        isNotNull,
+        reason: 'the third segment is still drawn by its own element',
+      );
+      expect(textAt(element, 'mark-month'), 'month 0');
+      expect(textAt(element, 'mark-outlined'), 'outlined 1');
+
+      view.dispose();
+    });
+
     test('measures a press from the box, not from what it hit', () {
       // A press lands on whatever is under the pointer — usually a label inside the control — and
       // `offsetX` is measured from that label's edge. A ripple built from it starts at the top of
@@ -426,6 +462,70 @@ final class Press extends core.StatefulNode<int, PressStore> {
               core.Box(key: 'drop$i', children: const <core.UINode>[]),
             core.TextNode('presses ${state % 100}', key: 'label'),
           ],
+        ),
+      );
+}
+
+/// The marks one control has left, the way an ink well keeps the drops it is drawing.
+final class MarkStore extends core.StateStore<int> {
+  /// Creates the store of the mark called [id].
+  MarkStore(this.id) : super(0) {
+    byId[id] = this;
+  }
+
+  /// The store each mark drew, so a test can press one without hunting for its element.
+  static final Map<String, MarkStore> byId = <String, MarkStore>{};
+
+  /// The name the control is drawn and found by.
+  final String id;
+
+  /// The store of the control called [id].
+  static MarkStore of(String id) => byId[id]!;
+
+  /// Leaves one more mark.
+  void press() => state = state + 1;
+}
+
+/// A control that leaves a mark when it is pressed: the shape of an ink well.
+final class Mark extends core.StatefulNode<int, MarkStore> {
+  /// Creates the control called [id].
+  factory Mark(String id) => Mark._(id, () => MarkStore(id));
+
+  Mark._(this.id, MarkStore Function() create)
+    : super(create: create, view: _markView);
+
+  /// The name this control is drawn and found by.
+  final String id;
+}
+
+/// One control's marks, in front of the label that counts them.
+core.UINode _markView(int marks, MarkStore store) => core.Box(
+  children: <core.UINode>[
+    for (int i = 0; i < marks; i++) core.Box(key: '${store.id}-mark$i'),
+    core.TextNode('${store.id} $marks', key: 'mark-${store.id}'),
+  ],
+);
+
+/// The chosen segment of a [Marks]: its state, and the press that asks for another.
+final class MarksStore extends core.StateStore<int> {
+  /// Creates the frame with its first segment chosen.
+  MarksStore() : super(0);
+
+  /// Chooses the next segment.
+  void choose() => state = state + 1;
+}
+
+/// Three controls in one stateful frame, the way a segmented button holds three ink wells: a press
+/// asks the frame for another choice, and the frame re-plans what it holds.
+final class Marks extends core.StatefulNode<int, MarksStore> {
+  /// Creates the frame, with its first segment chosen.
+  Marks()
+    : super(
+        create: MarksStore.new,
+        view: (int chosen, MarksStore store) => core.Box(
+          key: 'marks',
+          onTap: store.choose,
+          children: <core.UINode>[Mark('day'), Mark('week'), Mark('month')],
         ),
       );
 }
