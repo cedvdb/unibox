@@ -3,16 +3,23 @@ name: Review
 # A second reader. Every pull request is read against `.github/agent/review-prompt.md` — the six
 # questions in `AGENTS.md` that a diff can get wrong — and the answer is posted as one comment.
 #
-# It approves nothing, blocks nothing and pushes nothing. The gate decides whether a change is
-# allowed; this decides whether a maintainer should look harder. A green gate outranks a comment.
+# It approves nothing, blocks nothing and pushes nothing: `tool/verify.sh` decides whether a change
+# is allowed, and this decides whether a maintainer should look harder. A green gate outranks a
+# comment written here.
+#
+# The call is one HTTPS request to an OpenAI-compatible endpoint, which is what keeps the reviewer
+# out of a vendor: `deepseek-chat` by default, and `vars.REVIEW_ENDPOINT` / `vars.REVIEW_MODEL` point
+# it at another provider, or at a local model on a self-hosted runner. It is deliberately not an
+# agent — it reads the diff and nothing else, which is all the six questions need, and an agent that
+# could open files would notice a little more and cost a lot more.
 #
 # Two limits, both deliberate:
 #
 #   * A pull request from a fork cannot read a repository secret, so a stranger's change is not
-#     reviewed here. `pull_request_target` would fix that and would also hand the secret to code
-#     from the fork. Do not.
-#   * Without `ANTHROPIC_API_KEY` the job still runs, says so in the log, and does nothing: a
-#     repository without the key is a repository that verifies exactly as it did before.
+#     reviewed. `pull_request_target` would fix that and would also hand the secret to code from the
+#     fork. Do not.
+#   * Without `secrets.REVIEW_API_KEY` the job still runs, says so in the log, and does nothing: a
+#     repository without a key is a repository that verifies exactly as it did before.
 
 on:
   pull_request:
@@ -31,50 +38,82 @@ jobs:
     name: Read the diff against the rules
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
         with:
-          # The diff is taken against the base branch, so the history comes with it.
           fetch-depth: 0
 
       - name: Is a reviewer configured?
         id: configured
         env:
-          KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          KEY: ${{ secrets.REVIEW_API_KEY }}
         run: |
           if [ -n "${KEY}" ]; then
             echo 'yes=true' >> "$GITHUB_OUTPUT"
           else
             echo 'yes=false' >> "$GITHUB_OUTPUT"
-            echo '::notice title=No reviewer configured::Set ANTHROPIC_API_KEY to have every pull request read against .github/agent/review-prompt.md. The checks still run.'
+            echo '::notice title=No reviewer configured::Set REVIEW_API_KEY to have every pull request read against .github/agent/review-prompt.md. The checks still run.'
           fi
 
       # The prompt is a file, so there is one copy of it and it reads as prose. The diff is gathered
-      # here rather than fetched by the assistant, so the question is the same on every run.
-      - name: Assemble the question
+      # here rather than fetched by the model, so the question is the same on every run — and capped,
+      # because a diff with a lockfile in it is not worth paying to read.
+      - name: Ask
+        id: ask
         if: steps.configured.outputs.yes == 'true'
-        id: question
         env:
+          KEY: ${{ secrets.REVIEW_API_KEY }}
+          ENDPOINT: ${{ vars.REVIEW_ENDPOINT || 'https://api.deepseek.com/chat/completions' }}
+          MODEL: ${{ vars.REVIEW_MODEL || 'deepseek-chat' }}
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
         run: |
           set -euo pipefail
           {
-            echo 'text<<UNIBOX_REVIEW'
-            cat .github/agent/review-prompt.md
-            printf '\n\n## The change\n\n'
             gh pr view "$PR" --json title,body,author \
               --jq '"Title: \(.title)\n\nAuthor: \(.author.login)\n\n\(.body // "no description")"'
-            printf '\n## The diff\n\n```diff\n'
+            printf '\n\n## The diff\n\n```diff\n'
             gh pr diff "$PR" | head -c 40000 || true
             printf '\n```\n'
-            echo 'UNIBOX_REVIEW'
-          } >> "$GITHUB_OUTPUT"
+          } > "$RUNNER_TEMP/change.md"
 
-      - name: Read the diff against the rules
+          jq -n --arg model "$MODEL" \
+                --rawfile rules .github/agent/review-prompt.md \
+                --rawfile change "$RUNNER_TEMP/change.md" \
+                '{model: $model, temperature: 0, max_tokens: 1200, messages: [
+                   {role: "system", content: $rules},
+                   {role: "user", content: $change}
+                 ]}' > "$RUNNER_TEMP/request.json"
+
+          if ! curl -sS --max-time 120 -o "$RUNNER_TEMP/response.json" \
+                 -H "Authorization: Bearer $KEY" \
+                 -H 'content-type: application/json' \
+                 --data @"$RUNNER_TEMP/request.json" "$ENDPOINT"; then
+            echo '::warning title=The reviewer could not reach the endpoint::Nothing was posted. Check vars.REVIEW_ENDPOINT, and whether the runner can reach it.'
+            exit 0
+          fi
+
+          answer="$(jq -r '.choices[0].message.content // empty' "$RUNNER_TEMP/response.json")"
+          if [ -z "$answer" ]; then
+            # An expired key, or a request the model refused, looks like this. It is an annotation
+            # and not a failed job on purpose: a reviewer that turns a pull request red has become a
+            # gate, and this is not one.
+            echo "::warning title=The reviewer returned nothing::$(jq -c '.error // .' "$RUNNER_TEMP/response.json" | head -c 300)"
+            exit 0
+          fi
+
+          printf '%s\n\n---\n\n<sub>Written by a model reading the diff against `AGENTS.md`. The gate is the authority; a maintainer decides.</sub>\n' \
+            "$answer" > "$RUNNER_TEMP/review.md"
+
+      - name: Post the answer
         if: steps.configured.outputs.yes == 'true'
-        uses: anthropics/claude-code-action@v1
-        with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          prompt: ${{ steps.question.outputs.text }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          if [ -s "$RUNNER_TEMP/review.md" ]; then
+            gh pr comment "$PR" --body-file "$RUNNER_TEMP/review.md"
+          fi
+

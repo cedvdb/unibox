@@ -16,7 +16,7 @@ routine below, and stop where it says a human decides.
 | `weekly.yml` | the same gate on a cold cache, every Monday — because a dependency, Chrome or a cached artefact can break a green branch with no commit behind it |
 | `pages.yml` | rebuilds and publishes the site on every push to `main` |
 | `dependabot.yml` | one grouped pull request a week for dependencies, one a month for actions; each runs the full gate like any other change |
-| `review.yml` | a comment on every pull request, read against [`AGENTS.md`](AGENTS.md) through the six questions in [`.github/agent/review-prompt.md`](.github/agent/review-prompt.md). It approves nothing, blocks nothing and pushes nothing |
+| `review.yml` | a comment on every pull request, read against [`AGENTS.md`](AGENTS.md) through the six questions in [`.github/agent/review-prompt.md`](.github/agent/review-prompt.md). One HTTPS call to an OpenAI-compatible endpoint — `deepseek-chat` unless `vars.REVIEW_MODEL` and `vars.REVIEW_ENDPOINT` say otherwise, with the key in `secrets.REVIEW_API_KEY`. It approves nothing, blocks nothing and pushes nothing, and does nothing at all without a key |
 | `tool/check_docs.py` | runs in the fast loop, so a renamed file cannot leave an index pointing at nothing |
 | `tool/surface_check.py` | runs in the fast loop, so a token that reaches the model without a decision about the appearance table cannot look finished |
 
