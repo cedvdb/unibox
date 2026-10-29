@@ -76,7 +76,7 @@ coding agent needs are in [AGENTS.md](AGENTS.md), and a human contributing needs
 - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md): the Contributor Covenant in short, and where a
   report goes.
 - [MAINTENANCE.md](MAINTENANCE.md): what runs on its own (CI, the weekly gate,
-  Dependabot), the monthly hour, what a human decides, and the prompt that hands a
+  Dependabot), the monthly pass, what a human decides, and the prompt that hands a
   maintenance task to an assistant.
 - [tool/verify.sh](tool/verify.sh): format check, analysis and the test
   suites, the way CI runs them. `--fast` skips the suites, `--docs` adds `dart doc`.

@@ -1,7 +1,9 @@
 # Maintaining Unibox
 
-The repository is built to be assisted with AI for maintenance. This page describes what runs on its own,
-what a human decides, and what to do when something is red.
+Maintenance here is mostly machine work, so most of it is done by machines: the full gate on
+every push, the same gate on a cold cache every week, Dependabot, and a documentation index
+that refuses a stale link. This page is what is left — what a human decides, what to run when
+something is red, and how to hand a task to an assistant so its output is reviewable.
 
 If you are an assistant asked to do maintenance work, read [`AGENTS.md`](AGENTS.md) first
 — it holds the architecture rules and the file-by-file recipes — then work from the
@@ -21,7 +23,7 @@ Nothing merges itself. A dependency bump is a change: `packages/unibox_testing` 
 the two renderings, so a version that changes what a box looks like fails the gate before
 anyone ships it.
 
-## The monthly hour
+## The monthly pass
 
 ```shell
 git switch main && git pull
