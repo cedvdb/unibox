@@ -7,7 +7,7 @@ import 'package:unibox_testing/unibox_testing.dart';
 /// wears, and the declarations that class is given — and never from the node tree, so they
 /// describe what this target *did* with the node. The Flutter suite reads the same facts
 /// out of the widget tree, and both compare them with the table in `unibox_testing`.
-BoxAppearance appearanceOf(String html) {
+BoxAppearance boxAppearanceIn(String html) {
   final Map<String, Map<String, String>> rules = rulesOf(html);
   final String? className = rootClassOf(html);
 
@@ -278,7 +278,7 @@ core.CrossAlign crossAlignOf(String? value) => switch (value) {
 /// Read from the class the text element wears, never from the node: the tokens a text
 /// states are the ones the document wrote, and everything else is inherited from the box
 /// around it, exactly as a Flutter `Text` inherits from `DefaultTextStyle`.
-TextAppearance textAppearanceOf(String html) {
+TextAppearance textAppearanceIn(String html) {
   final Map<String, Map<String, String>> rules = rulesOf(html);
   final String? className = rootClassOf(html);
 
@@ -358,7 +358,7 @@ core.TextOverflow? _overflowOf(
 ///
 /// The barrier colour comes from the rule its own element wears and the alignment from the
 /// keywords the layer is given, so neither is read from the node.
-OverlayAppearance overlayAppearanceOf(String html) {
+OverlayAppearance overlayAppearanceIn(String html) {
   final Map<String, Map<String, String>> rules = rulesOf(html);
   final List<String> classes = RegExp(r'class="([^"]+)"')
       .allMatches(html.substring(html.indexOf('</style>')))

@@ -22,5 +22,6 @@ export 'src/appearance.dart';
 export 'src/cases.dart';
 export 'src/overlay_appearance.dart';
 export 'src/overlay_cases.dart';
+export 'src/reading.dart';
 export 'src/text_appearance.dart';
 export 'src/text_cases.dart';

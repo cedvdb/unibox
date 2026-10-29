@@ -2,9 +2,7 @@ import 'package:test/test.dart';
 import 'package:unibox_html/unibox_html.dart';
 import 'package:unibox_testing/unibox_testing.dart';
 
-import 'support/appearance.dart';
-
-/// Holds this renderer to the presentation table both renderers owe.
+/// Holds this renderer to the presentation table every renderer owes.
 ///
 /// The table lives in `unibox_testing`, and the Flutter suite is held to it in exactly the
 /// same way. A case that fails here is a document that looks different from the widget the
@@ -12,7 +10,7 @@ import 'support/appearance.dart';
 void main() {
   for (final BoxCase testCase in boxCases) {
     test('a document ${testCase.description}', () {
-      final BoxAppearance appearance = appearanceOf(toHtml(testCase.box));
+      final BoxAppearance appearance = boxAppearanceIn(toHtml(testCase.box));
 
       expect(
         appearance.differencesFrom(testCase.expected),
@@ -24,7 +22,7 @@ void main() {
 
   for (final TextCase testCase in textCases) {
     test('a document ${testCase.description}', () {
-      final TextAppearance appearance = textAppearanceOf(toHtml(testCase.node));
+      final TextAppearance appearance = textAppearanceIn(toHtml(testCase.node));
 
       expect(
         appearance.differencesFrom(testCase.expected),
@@ -36,7 +34,7 @@ void main() {
 
   for (final OverlayCase testCase in overlayCases) {
     test('a document ${testCase.description}', () {
-      final OverlayAppearance appearance = overlayAppearanceOf(
+      final OverlayAppearance appearance = overlayAppearanceIn(
         toHtml(testCase.node, showOverlays: true),
       );
 

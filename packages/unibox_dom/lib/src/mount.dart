@@ -148,7 +148,8 @@ final class DomView {
 
       if (_style == null) {
         final web.HTMLStyleElement created =
-            web.document.createElement('style') as web.HTMLStyleElement;
+            web.document.createElement('style') as web.HTMLStyleElement
+              ..setAttribute('data-unibox-css', '');
         web.document.head!.append(created);
         _style = created;
       }
@@ -156,7 +157,10 @@ final class DomView {
       _style!.textContent = pass.css(_theme);
     } else {
       _element = buildElement(next, onBuilt: pass.record);
+      // Marked as the tree's stylesheet either way, so an adoption later rewrites this element
+      // instead of adding a second copy of the same rules — and so a reader can find it.
       _style = web.document.createElement('style') as web.HTMLStyleElement
+        ..setAttribute('data-unibox-css', '')
         ..textContent = pass.css(_theme);
       web.document.head!.append(_style!);
       _host.replaceChildren(_element!);
