@@ -434,6 +434,26 @@ void main() {
       expect(issues.single.message, contains('no command'));
     });
 
+    test('accepts a capped border on a shaped box', () {
+      expect(
+        validateTree(
+          const Box(
+            shape: BoxShape.circle,
+            border: BoxBorder(cap: BoxStrokeCap.round),
+          ),
+        ),
+        isEmpty,
+      );
+    });
+
+    test('reports a cap on a rectangle, which has no ends to cap', () {
+      final List<TreeIssue> issues = validateTree(
+        const Box(border: BoxBorder(cap: BoxStrokeCap.round)),
+      );
+
+      expect(issues.single.message, contains('cap'));
+    });
+
     test('reports a view box with no size', () {
       final List<TreeIssue> issues = validateTree(
         const Box(

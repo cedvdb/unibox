@@ -124,6 +124,84 @@ final class BoxShape {
     );
   }
 
+  /// An arc of a circle, stroked: the outline is a line rather than a region.
+  ///
+  /// The radius is inset by half of [stroke], so the stroke's outer edge meets the
+  /// box's own edge and the ring sits inside the box it was given instead of half
+  /// outside it. Paint it with a `BoxBorder` of the same width — a shaped box strokes
+  /// its outline — and give that border `BoxStrokeCap.round` for Material's ends.
+  ///
+  /// The path is **open**, so the two ends of the arc are the ends of the stroke: no
+  /// `BoxPathClose`, and a cap where twelve o'clock is and where the sweep runs out.
+  ///
+  /// [sweep] is how much of the turn to draw, clockwise from twelve o'clock. It is a
+  /// *number* on purpose. A path cannot be interpolated between two shapes, but a
+  /// fraction of a turn can, which is what lets a value, a state style or a timeline
+  /// move the same shape without the renderers learning a new trick. A sweep of zero
+  /// draws a dot the width of the stroke rather than nothing, so a value of zero is
+  /// still something the tree can hold and both renderers can draw.
+  ///
+  /// [viewBox] is the coordinate space, and the box it is stretched to is as wide as
+  /// the box is big, so [stroke] is read in the same units as the border: pass
+  /// `viewBox: size` and the two agree in logical pixels.
+  factory BoxShape.arc({
+    required double stroke,
+    double sweep = 1,
+    double viewBox = 100,
+  }) {
+    assert(stroke > 0, 'An arc has a stroke wider than nothing.');
+
+    final double centre = viewBox / 2;
+    final double radius = math.max(0.01, centre - stroke / 2);
+    final double turn = math.max(0.0001, math.min(1, sweep));
+    final double start = -math.pi / 2;
+
+    if (turn >= 1) {
+      // A whole turn cannot be one arc: its start and end are the same point, and an
+      // arc whose ends coincide draws nothing. Two half turns draw the circle, and an
+      // open path still paints a closed stroke, so the caps have nothing to show.
+      return BoxShape(
+        viewBoxWidth: viewBox,
+        viewBoxHeight: viewBox,
+        commands: <BoxPathCommand>[
+          BoxPathMoveTo(centre, centre - radius),
+          BoxPathArcTo(
+            centre,
+            centre + radius,
+            radiusX: radius,
+            radiusY: radius,
+          ),
+          BoxPathArcTo(
+            centre,
+            centre - radius,
+            radiusX: radius,
+            radiusY: radius,
+          ),
+        ],
+      );
+    }
+
+    final double end = start + 2 * math.pi * turn;
+
+    return BoxShape(
+      viewBoxWidth: viewBox,
+      viewBoxHeight: viewBox,
+      commands: <BoxPathCommand>[
+        BoxPathMoveTo(
+          centre + radius * math.cos(start),
+          centre + radius * math.sin(start),
+        ),
+        BoxPathArcTo(
+          centre + radius * math.cos(end),
+          centre + radius * math.sin(end),
+          radiusX: radius,
+          radiusY: radius,
+          largeArc: turn > 0.5,
+        ),
+      ],
+    );
+  }
+
   /// A circle filling a square view box.
   ///
   /// Two half turns rather than an ellipse primitive, because that is what the

@@ -142,6 +142,67 @@ void main() {
     });
   });
 
+  group('BoxShape.arc', () {
+    test('is an open line, so the stroke has two ends to cap', () {
+      final BoxShape quarter = BoxShape.arc(stroke: 4, sweep: 0.25);
+
+      expect(quarter.commands, hasLength(2));
+      expect(
+        quarter.commands.last,
+        isNot(isA<BoxPathClose>()),
+        reason: 'an arc is stroked, and a closed path has no ends',
+      );
+    });
+
+    test('insets the radius by half the stroke', () {
+      final BoxShape arc = BoxShape.arc(stroke: 4, viewBox: 100);
+      final BoxPathMoveTo start = arc.commands.first as BoxPathMoveTo;
+
+      // The centreline sits 48 from the centre, so a 4 unit stroke reaches the edge.
+      expect(start.x, closeTo(50, 0.001));
+      expect(start.y, closeTo(2, 0.001));
+    });
+
+    test('starts at twelve o clock and runs clockwise', () {
+      final BoxShape quarter = BoxShape.arc(stroke: 4, sweep: 0.25);
+      final BoxPathArcTo end = quarter.commands[1] as BoxPathArcTo;
+
+      // A quarter turn from the top ends at three o'clock.
+      expect(end.x, closeTo(98, 0.001));
+      expect(end.y, closeTo(50, 0.001));
+      expect(end.largeArc, isFalse);
+    });
+
+    test('takes the long way round past half a turn', () {
+      final BoxShape most = BoxShape.arc(stroke: 4, sweep: 0.75);
+
+      expect((most.commands[1] as BoxPathArcTo).largeArc, isTrue);
+    });
+
+    test('draws two half turns for a whole circle', () {
+      final BoxShape whole = BoxShape.arc(stroke: 4);
+
+      expect(whole.commands, hasLength(3));
+      expect(whole.commands.first, isA<BoxPathMoveTo>());
+      expect((whole.commands[1] as BoxPathArcTo).largeArc, isFalse);
+    });
+
+    test('keeps a dot at zero sweep instead of nothing', () {
+      final BoxShape empty = BoxShape.arc(stroke: 4, sweep: 0);
+
+      expect(empty.isEmpty, isFalse);
+      expect(empty.commands, hasLength(2));
+    });
+
+    test('keeps a radius however thick the stroke is asked to be', () {
+      final BoxShape thick = BoxShape.arc(stroke: 400);
+      final BoxPathArcTo arc = thick.commands[1] as BoxPathArcTo;
+
+      expect(arc.radiusX, greaterThan(0));
+      expect(arc.radiusX.isFinite, isTrue);
+    });
+  });
+
   group('BoxPathCommand', () {
     test('compares by its numbers, so a path can be keyed', () {
       expect(const BoxPathLineTo(1, 2), const BoxPathLineTo(1, 2));

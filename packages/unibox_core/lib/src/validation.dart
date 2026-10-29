@@ -275,6 +275,21 @@ void _validate(
       }
     }
 
+    // A cap is where an outline ends, which only a shape has: a rectangle's border
+    // meets itself at four corners and no target paints a cap there.
+    final BoxBorder? border = style.border;
+
+    if (shape == null && border != null && border.cap != BoxStrokeCap.butt) {
+      issues.add(
+        TreeIssue(
+          node: node,
+          message:
+              'A border cap is drawn where an outline has ends, and a rectangular '
+              'border has none: give the box a shape, or leave the cap at butt.',
+        ),
+      );
+    }
+
     for (final double radius in style.corners?.radii ?? const <double>[]) {
       if (radius >= 0) continue;
 

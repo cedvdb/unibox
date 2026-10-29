@@ -185,6 +185,29 @@ void main() {
         const BoxBorder(width: 2, color: BoxColor.white),
       );
       expect(const BoxBorder(width: 2), isNot(const BoxBorder(width: 3)));
+      // The cap is part of the value: a style that changed only its cap would
+      // otherwise merge away.
+      expect(
+        const BoxBorder(cap: BoxStrokeCap.round),
+        isNot(const BoxBorder(cap: BoxStrokeCap.square)),
+      );
+    });
+
+    test('a border carries its cap through a theme', () {
+      const BoxBorder border = BoxBorder(
+        width: 3,
+        color: BoxColor.role(_BorderCapRole.primary),
+        cap: BoxStrokeCap.round,
+      );
+      final BoxBorder resolved = border.resolve(
+        const UniboxTheme(
+          colors: <Enum, BoxColor>{_BorderCapRole.primary: BoxColor.white},
+        ),
+      );
+
+      expect(resolved.color, BoxColor.white);
+      expect(resolved.cap, BoxStrokeCap.round);
+      expect(resolved.width, 3);
     });
 
     test('shadow implements value equality', () {
@@ -797,3 +820,6 @@ void main() {
     });
   });
 }
+
+/// A role of its own, so a cap can be resolved without the Material package.
+enum _BorderCapRole { primary }

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- `BoxBorder.cap` and `BoxShape.arc`: a border can state how its ends are drawn, and a shape can
+  be an arc of a circle whose `sweep` is a number rather than a path. A cap only shows where an
+  outline has ends — a rectangle's border meets itself at four corners — so `validateTree` reports
+  one on a box with no shape. Together they draw Material's progress ring as one stroked circle
+  with rounded ends instead of a filled band with radial cuts, and a sweep that a value, a state
+  style or a timeline can move without either renderer learning what an indicator is.
+
 - `BoxPress` and `replayPresses`: a press a page recorded before an application existed, and the
   one place it can be answered. The walk finds the node that carried the key, and a press is only
   answered where the tree names exactly one node with a callback — a key that matches nothing, two
