@@ -13,28 +13,29 @@ const String boot = '../../flutter/app.js';
 
 /// The example as a document, rendered from the same tree the app draws.
 ///
-/// One document per state of the example — `web/listings/` and `web/signup/` — because being
-/// open is state and a document cannot be clicked into existence.
+/// One document, in the state the application starts in. The page is a document first and an
+/// application second: the stylesheet arrives in the head, the tree in the body, the bundle is
+/// prefetched while the reader reads, and the boot waits for the first sign of a reader. The two
+/// recorders are what let the application pick up where they left: where they scrolled, and what
+/// they pressed.
 ///
-/// The page is a document first and an application second: the stylesheet arrives in the head,
-/// the tree in the body, the bundle is prefetched while the reader reads, and the boot waits
-/// for the first sign of a reader. The two recorders are what let the application pick up
-/// where they left: where they scrolled, and what they pressed.
+/// There is no document per state, and the sign-up form is the reason: a dialog is not a page.
+/// Nothing links to it, a crawler has nothing to index under it, and a document cannot be clicked
+/// into existence — so the one page is the listings, and the form is what a press opens once the
+/// application is there. `showOverlays` answers a page whose published state *is* a dialog; this
+/// example has no such page.
 ///
 /// [build] is the commit the document was rendered from. A tab opened before a deploy and the
 /// deployed page look identical, down to a layout the new build has fixed, so the document
 /// carries the one fact that separates them.
-String buildExampleDocument({
-  ExamplePage page = ExamplePage.apartments,
-  String? build,
-}) {
+String buildExampleDocument({String? build}) {
   return toDocument(
-    ExamplePageNode(signupOpen: page == ExamplePage.signup),
-    title: titleOf(page),
-    description: descriptionOf(page),
+    ExamplePageNode(),
+    title: 'Apartments — Unibox',
+    description:
+        'Six apartments with a map beside the listings on a wide screen and the '
+        'listings alone on a narrow one, from the same node tree.',
     meta: <String, String>{'unibox-build': ?build},
-    // A document has no click, so the page that exists to show the dialog says so.
-    showOverlays: page == ExamplePage.signup,
     theme: ExamplePalette.themeFor(ExampleSeed.blue),
     head: <String>['<style>${fontFaceCss('../../')}$pageCss</style>'],
     // One argument: the bundle is prefetched, the recorders travel with the boot, and the boot
@@ -70,28 +71,3 @@ body { font-family: UniboxText, system-ui, -apple-system, 'Segoe UI', Roboto, sa
     --unibox-color-border: #2c313a;
   }
 }''';
-
-/// The `<title>` of [page], which is what a search result links and a tab shows.
-///
-/// The page name comes first and the site name last, the order a reader scans a result in.
-String titleOf(ExamplePage page) {
-  return switch (page) {
-    ExamplePage.signup => 'Join Unibox — sign up',
-    ExamplePage.apartments => 'Apartments — Unibox',
-  };
-}
-
-/// The `<meta name="description">` of [page].
-///
-/// It describes what the page is, in the words a reader would use, because a search engine may
-/// show it under the title instead of an excerpt of the text.
-String descriptionOf(ExamplePage page) {
-  return switch (page) {
-    ExamplePage.signup =>
-      'A sign-up card described as one Unibox node tree and rendered by '
-          'Flutter and as HTML, with a working form on both.',
-    ExamplePage.apartments =>
-      'Six apartments with a map beside the listings on a wide screen and the '
-          'listings alone on a narrow one, from the same node tree.',
-  };
-}

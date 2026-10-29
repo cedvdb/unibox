@@ -94,15 +94,9 @@ final class ExampleState {
 /// all of them publish [ExampleState]. A renderer subscribes to the store and
 /// draws the view again.
 final class ExampleStore extends StateStore<ExampleState> {
-  /// Creates a store starting with [initial] and the dialog open when
-  /// [openSignup] is set.
-  ///
-  /// [openSignup] exists for a static export: a document has no click to open the
-  /// dialog, so it is rendered in the state it should start in.
-  ExampleStore({
-    SignupFormState initial = const SignupFormState(),
-    bool openSignup = false,
-  }) : super(ExampleState(form: initial, signupOpen: openSignup));
+  /// Creates a store starting with [initial] and the dialog closed.
+  ExampleStore({SignupFormState initial = const SignupFormState()})
+    : super(ExampleState(form: initial));
 
   /// Replaces the name and clears a previous confirmation.
   void setName(String name) =>

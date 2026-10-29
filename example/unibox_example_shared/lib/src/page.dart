@@ -11,8 +11,8 @@ import 'theme.dart';
 ///
 /// [signup] is not a destination of the bar: an account is a form that opens over
 /// the page being read, so the bar offers it as a button and only [destinations]
-/// are drawn as links. It stays a member because the state names it and because the
-/// export still writes the document that shows the form open.
+/// are drawn as links. It stays a member because the state names it — and because a
+/// dialog is what the bar asks for, not a document any address leads to.
 enum ExamplePage {
   /// The list of apartments.
   apartments('Apartments'),
@@ -35,23 +35,18 @@ enum ExamplePage {
   };
 }
 
-/// The addresses of the example's documents, relative to any of them.
+/// The address of the example's document, relative to the page that links to it.
 ///
-/// Every page is written into its own directory — `web/listings/` and `web/signup/`
-/// — so a sibling link is the same string from every document, which is why the tree
-/// can carry it without the host telling it where it is. It is also how a static page
-/// does what a click cannot without a client runtime: follow a link and land on the
-/// state the destination names.
+/// The example is one document — `web/listings/` — written into its own directory, so
+/// a sibling link is the same string from anywhere, which is why the tree can carry it
+/// without the host telling it where the page is. It is also how a static page does
+/// what a click cannot without a client runtime: follow the link and land on the page.
+///
+/// The sign-up form has no address here. It is a dialog over that page, so a link to
+/// it would tell a crawler and a context menu that an account is a document.
 abstract final class ExampleRoutes {
   /// The document that shows the listings.
   static const String listings = '../listings/';
-
-  /// The document that shows the sign-up dialog open over the listings.
-  ///
-  /// Nothing in the markup links to it: the form is a button, not a place to go. It
-  /// is written for a reader who arrives at its address, and for a crawler that
-  /// finds the state described.
-  static const String signup = '../signup/';
 }
 
 /// The frame every page is drawn in: the canvas, the navigation bar, [page] and,
@@ -216,7 +211,7 @@ UINode _navigationItem(
 /// a box that names the button role and carries an `onTap` — nothing more. A
 /// `LinkNode` here would tell a crawler, a context menu and a reader without the
 /// client runtime that an account is a document, and the browser would load
-/// `/web/signup/` on top of the dialog the runtime had just opened.
+/// a document on top of the dialog the runtime had just opened.
 ///
 /// It is also outside the `<nav>` landmark, because a landmark is the page's list of
 /// places to go and this is an action.

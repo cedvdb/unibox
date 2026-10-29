@@ -9,7 +9,6 @@ const String fontFamily = 'UniboxText';
 
 void main() => runApp(
   ExampleApp(
-    signupOpen: signupOpenFromUrl(),
     seed: seedFromUrl(),
     // What the page recorded before the application existed: where a region was scrolled to, and
     // what was pressed. Read once here, where a host does its other reads; every other platform
@@ -18,14 +17,6 @@ void main() => runApp(
     presses: pressesFromPage(),
   ),
 );
-
-/// Whether the sign-up dialog starts open, read from the path the page is served at.
-///
-/// A static host cannot boot a page with a click, so the export writes one document
-/// per state — `/flutter/listings/` and `/flutter/signup/` — and the app reads which
-/// one it was served as. Any other path, and every build that is not a static
-/// export, starts with the dialog closed.
-bool signupOpenFromUrl() => Uri.base.pathSegments.contains('signup');
 
 /// The palette the page starts in, read from `?seed=<name>` the way the site reads it.
 ///
@@ -49,19 +40,13 @@ ExampleSeed seedFromUrl() =>
 class ExampleApp extends StatefulWidget {
   /// Creates the example application.
   ///
-  /// [signupOpen] is for the static site, where a document starts in the state the
-  /// destination names instead of waiting for a click. [seed] is the palette it
-  /// starts in, which the picker then replaces.
+  /// [seed] is the palette it starts in, which the picker then replaces.
   const ExampleApp({
     super.key,
-    this.signupOpen = false,
     this.seed = ExampleSeed.blue,
     this.offsets = const <BoxScrollOffset>[],
     this.presses = const <BoxPress>[],
   });
-
-  /// Whether the sign-up dialog is open on the first frame.
-  final bool signupOpen;
 
   /// The palette the page is drawn with on the first frame.
   final ExampleSeed seed;
@@ -112,7 +97,7 @@ class _ExampleAppState extends State<ExampleApp> {
             // node is told the same seed, because the picker marks which one is in
             // force — and two places saying it is the only way the mark can lie.
             child: FlutterStateful(
-              node: ExamplePageNode(signupOpen: widget.signupOpen, seed: _seed),
+              node: ExamplePageNode(seed: _seed),
               theme: ExamplePalette.themeFor(_seed),
               // The presses are answered by the node that owns the callbacks, once.
               presses: widget.presses,

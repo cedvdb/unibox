@@ -35,7 +35,7 @@ trap cleanup EXIT
 printf '\n==> Writing the documents\n'
 dart run example/unibox_example_html/bin/build_site.dart --out="$WORK"
 
-# The site's routes, which is where the example lives: `web/listings/` and `web/signup/`.
+# The site's route, which is where the example lives: `web/listings/`.
 printf '\n==> Serving %s on %s\n' "$WORK" "$PORT"
 python3 -m http.server "$PORT" --directory "$WORK" >/dev/null 2>&1 &
 SERVER=$!
@@ -43,7 +43,7 @@ sleep 1
 
 status=0
 
-for page in web/listings web/signup; do
+for page in web/listings; do
   # The route is a path; the files are named after it without the slash.
   name="${page//\//-}"
   printf '\n==> Measuring %s\n' "$page"

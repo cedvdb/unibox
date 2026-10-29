@@ -1,5 +1,4 @@
 import 'package:test/test.dart';
-import 'package:unibox_example_shared/unibox_example_shared.dart';
 import 'package:unibox_example_html/document.dart';
 
 /// What an example document owes a crawler, a reader and the application that takes it over.
@@ -10,7 +9,7 @@ void main() {
     });
 
     test('describes the page to a search engine', () {
-      final String html = buildExampleDocument(page: ExamplePage.apartments);
+      final String html = buildExampleDocument();
 
       expect(html, contains('<title>Apartments — Unibox</title>'));
       expect(
@@ -18,14 +17,6 @@ void main() {
         contains('<meta name="description" content="Six apartments'),
       );
       expect(html, contains('<meta property="og:title"'));
-    });
-
-    test('gives each state of the example its own words', () {
-      // Two documents that share a title look like one page twice to a search engine.
-      expect(
-        buildExampleDocument(page: ExamplePage.signup),
-        contains('<title>Join Unibox — sign up</title>'),
-      );
     });
 
     test('writes the palette into the root, as custom properties', () {
@@ -72,23 +63,20 @@ void main() {
     );
 
     test('renders the shared tree, with its text as text', () {
-      final String html = buildExampleDocument(page: ExamplePage.signup);
+      final String html = buildExampleDocument();
 
-      expect(html, contains('One description, two renderers.'));
+      // The dialog's copy is not here: the form is only in the tree while it is open.
+      expect(html, contains('Via Bellavista 12'));
       expect(html, contains('data-unibox-node="text"'));
     });
 
-    test('starts with the sign-up dialog over the listings', () {
-      // Being open is state, and a static document has nothing to click: the document that
-      // exists to show the dialog says so.
-      expect(
-        buildExampleDocument(page: ExamplePage.signup),
-        contains('role="dialog"'),
-      );
-      expect(
-        buildExampleDocument(page: ExamplePage.apartments),
-        isNot(contains('role="dialog"')),
-      );
+    test('publishes the state the application starts in, with no dialog', () {
+      // A dialog is not a page: nothing links to it and a crawler has nothing to index
+      // under it, so the one document is the page the form opens over.
+      final String html = buildExampleDocument();
+
+      expect(html, isNot(contains('role="dialog"')));
+      expect(html, contains('Via Bellavista 12'));
     });
 
     test('marks the page title as a heading', () {

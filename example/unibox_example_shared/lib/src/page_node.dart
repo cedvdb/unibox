@@ -14,25 +14,20 @@ import 'theme.dart';
 /// node cannot know — the surface and how a link opens — which is why each host of
 /// the example is one small file.
 final class ExamplePageNode extends StatefulNode<ExampleState, ExampleStore> {
-  /// Creates the page, starting with [initialForm], with the dialog open when
-  /// [signupOpen] is set, and marked as drawn with [seed].
+  /// Creates the page, starting with [initialForm] and the dialog closed, and marked
+  /// as drawn with [seed].
   ///
   /// [seed] is only what the picker marks as in force: the palette itself is the
   /// theme the host installs, which is why the two must agree and why the host
   /// passes the same value to both.
-  ///
-  /// [signupOpen] is for a static export: a document has no click to open the
-  /// dialog, so it is rendered in the state it should start in.
-  ///
   factory ExamplePageNode({
     SignupFormState initialForm = const SignupFormState(),
-    bool signupOpen = false,
     ExampleSeed seed = ExampleSeed.blue,
     Object? key,
   }) {
     return ExamplePageNode._(
       key: key,
-      create: () => ExampleStore(initial: initialForm, openSignup: signupOpen),
+      create: () => ExampleStore(initial: initialForm),
       view: (ExampleState state, ExampleStore store) =>
           exampleView(state: state, store: store, seed: seed),
     );

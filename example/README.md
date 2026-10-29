@@ -66,13 +66,10 @@ box's border and the message red, and finishing the address takes both away, bec
 fields carry a key each, so an input keeps its state — and its caret — while a message
 row comes and goes above or below it.
 
-That is what the two documents are: `build/site/web/listings/index.html` is the
-listings, and `build/site/web/signup/index.html` is the same page with the dialog over
-it, written by `dart run bin/build_site.dart` (`tool/site.sh` puts the Flutter build
-beside them). A browser without the client bundle can only be shown one of the two — so
-the listings document is the one that can be read without dismissing anything, and the
-form
-is its own url.
+That is what the document is: `build/site/web/listings/index.html`, written by
+`dart run bin/build_site.dart` (`tool/site.sh` puts the Flutter build beside it). The form
+is in the tree only while the dialog is open, so the document is published with it closed —
+the state the application starts in.
 
 ## One seed, six palettes
 
@@ -239,12 +236,11 @@ footer are landmarks, the links are real `LinkNode`s, and the page needs no rout
 reader scrolls from the claim to the evidence, which is a thing a static document can do
 without a click.
 
-The example itself is not a page of the site any more. Its two documents —
-`build/site/web/listings/index.html` and `build/site/web/signup/index.html` — exist
-because the left frame has to load one and because being open is state: a browser
-without the client bundle can only be shown one state at a time, so the sign-up
-dialog gets its own url and the nav links to it. The Flutter build sits beside them at
-`build/site/flutter/`, with one document per state for the same reason.
+The example itself is not a page of the site any more. Its one document —
+`build/site/web/listings/index.html` — exists because the left frame has to load it. The
+sign-up form is a dialog over that page and not an address of its own: nothing links to it,
+and a browser without the client bundle shows the page with the form closed. The Flutter
+build sits beside it at `build/site/flutter/`, with the same one route.
 
 `tool/site.sh` builds the whole thing into `build/site`, a directory any static host
 can publish:
@@ -258,8 +254,7 @@ tool/site.sh --base=/unibox/ --url=https://cedvdb.github.io/unibox/
 | --- | --- |
 | `/` | The site: the claim and its comparison, then the catalogue, as one page |
 | `/web/listings/` | The example as a document — the left frame, and the page the app takes over |
-| `/web/signup/` | The same page with the sign-up dialog over it |
-| `/flutter/listings/`, `/flutter/signup/` | The same example, built by Flutter — the right frame |
+| `/flutter/listings/` | The same example, built by Flutter — the right frame |
 | `/flutter/app.js` | The loader a document boots the application through, with the base path `flutter_bootstrap.js` cannot know |
 
 ### See the handover
@@ -289,31 +284,11 @@ The page links with relative paths and the documents carry **no `<base>` element
 the same build works at `/` and at `/unibox/`: a base href of `/` would send every
 relative link, and both frames, to the domain root.
 
-The site is a node tree as well, so it is built with the library it documents. The
-catalogue's dialog is the exception that proves the rule: the button is a
-`MaterialInkWell` over a filled box — so a press leaves ink where it landed — and the
-`MaterialDialog` is in the tree only while the demo's store says it is open. The
-runtime is what makes the press do anything, and a document without JavaScript shows
-the button, no ink and no dialog.
-
-The one thing the model cannot describe is an `<iframe>`, and that is what `EmbedNode`
-is for: the comparison's two frames are the only non-node content on the site, and the
-page around them is boxes and text.
-
-Being open is state, and a static page cannot be clicked into existence, so the export
-writes one document per state of the example and the Flutter app reads the path it was
-served at (`signupOpenFromUrl`) to start in the matching one. A static host has no
-rewrite rule either, which is why every Flutter route is a real `index.html`: the
-build writes one entry document and the script copies it to each route, with the
-absolute base href that lets the assets resolve from any depth.
-
-The page arrives as HTML and CSS and then stays that: `unibox_html` writes it, the
-stylesheet is in the head and the tree is in the body, and the two scripts it carries are the
-only behaviour — one records where a region was scrolled to, the other what a reader pressed.
-Nothing on the site draws itself twice, and no bundle is compiled for it.
+The site is a node tree as well, so it is built with the library it documents: its bands
+are boxes and text, drawn by the same renderer that draws the example.
 
 The catalogue's dialog is the exception that proves the rule: the button is a
-`MaterialInkWell` over a filled box — so a press leaves ink where it landed — and the
+`MaterialInkWell` over a filled box, so a press leaves ink where it landed, and the
 `MaterialDialog` is in the tree only while the demo's store says it is open. A document has
 no store, so it draws the resting well and no dialog until an application takes the page over.
 
@@ -321,12 +296,11 @@ The one thing the model cannot describe is an `<iframe>`, and that is what `Embe
 the comparison's two frames are the only non-node content on the site, and the page around
 them is boxes and text.
 
-Being open is state, and a static page cannot be clicked into existence, so the export writes
-one document per state of the example and the Flutter app reads the path it was served at
-(`signupOpenFromUrl`) to start in the matching one. A static host has no rewrite rule either,
-which is why every Flutter route is a real `index.html`: the build writes one entry document
-and the script copies it to each route, with the absolute base href that lets the assets
-resolve from any depth.
+The export writes one document, in the state the application starts in: the dialog is state,
+and a dialog is not a route, so there is no second page to publish. A static host has no
+rewrite rule either, which is why the Flutter route is a real `index.html`; the build writes
+one entry document and the script copies it into `flutter/listings/`, with the absolute base
+href that lets the assets resolve from the deeper path.
 
 The deployment is `.github/workflows/pages.yml` — verify, build, publish. It needs
 one setting a workflow cannot make: Settings → Pages → Source: **GitHub Actions**.
@@ -367,18 +341,14 @@ dart run bin/build_site.dart --out=build/site
 open build/site/index.html
 ```
 
-There is one document per state of the example because being open is state, and a
-static export cannot keep state — open the document you want.
-`web/listings/index.html` is the listings; `web/signup/index.html` is the same page
-with the dialog already open. The destination of the bar is a real link, for the same
-two reasons: a crawler follows the `href`, and a copy of the page with no client
-runtime follows it too, landing on the document that draws the state it names. Where
-the runtime is there, the same press is answered by the tree instead — the page
-switches in place and the document is not loaded as well.
-The sign-up control in the bar is a button and not a link, because an account is not a
-place to go: it opens the form over whatever page is being read, and nothing in the
-markup links to `web/signup/` — that document is there for a reader who arrives at its
-address.
+`web/listings/index.html` is the one document: the page, with the dialog closed, which is
+the state the application starts in. The destination of the bar is a real link, so a crawler
+follows the `href` and a copy of the page with no client runtime follows it too. Where the
+runtime is there, the same press is answered by the tree instead — the page switches in place
+and the document is not loaded as well.
+
+The sign-up control in the bar is a button and not a link, because an account is not a place
+to go: it opens the form over the page being read, and no address leads to it.
 The whole site, with both renderings and the Flutter build beside them, is
 `tool/site.sh` (see [the site is one page](#the-site-is-one-page)).
 
@@ -401,8 +371,8 @@ The page's links are real: the header and the footer are `LinkNode`s and the fra
 example itself — it is drawn in the frames, and it is not a destination of this page.
 Inside the frame the example carries one more: its bar is a `<nav>` whose destination is
 an `<a href>` naming the document that draws it. The sign-up control is not a link — it
-opens a dialog over the page — so a crawler sees the two documents of the example and
-one link between them. A page that has to be found makes sense as a `LinkNode` with a
+opens a dialog over the page — so a crawler sees one document of the example and the one
+link into it. A page that has to be found makes sense as a `LinkNode` with a
 real url — which is the router work `TASK_PLAN.md` lists as deferred.
 
 The static export is a snapshot: the markup, the stylesheet with its state rules and

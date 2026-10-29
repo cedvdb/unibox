@@ -229,6 +229,18 @@ than an assumption.
 - `tool/` measures the handover: the exported page is served, driven, and timed from the
   first byte to the first Flutter frame, with the number recorded beside the export.
 
+## A dialog is not a page
+
+- [x] The example published `/web/signup/` — a second document for the sign-up dialog. Removed:
+  a dialog is state, not a route, so nothing links to it and a crawler has nothing to index
+  under it. The export writes one document, `web/listings/`, in the state the application
+  starts in; `showOverlays` stays because a page whose *published* state is a dialog is still
+  a legitimate page, and the overlay conformance case pins it.
+- [x] What existed only to serve that document went with it: `ExampleRoutes.signup`, the
+  Flutter route `/flutter/signup/`, `signupOpenFromUrl` in the host, and the `signupOpen`
+  argument of `ExamplePageNode` and `ExampleStore` — a document has nothing to click, which is
+  the only reason that argument existed. The dialog opens where it always did: on a press.
+
 ## Remaining tasks: client execution, the API and the docs
 
 What the takeover still lacks, what is clumsy to wire, and what the documents do not yet say.

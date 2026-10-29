@@ -178,7 +178,6 @@ python3 tool/seo_report.py build/site
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | HTML `/` | 465 | 1 | 2 | 10 | 2 | 138 927 |
 | HTML `/web/listings/` | 132 | 1 | 0 | 1 | 0 | 60 563 |
-| HTML `/web/signup/` | 149 | 1 | 1 | 3 | 2 | 70 275 |
 | **Flutter `/flutter/listings/`** | **4** | **0** | **0** | **0** | **0** | **772** |
 
 The last row is the point. The Flutter build of the screen in the picture is a document

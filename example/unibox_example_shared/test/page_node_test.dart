@@ -6,14 +6,13 @@ import 'support/tree.dart';
 
 void main() {
   group('ExampleStore', () {
-    test('starts with the form and the dialog the page was given', () {
+    test('starts with the form the page was given, and no dialog', () {
       final ExampleStore store = ExampleStore(
         initial: const SignupFormState(name: 'Ada'),
-        openSignup: true,
       );
 
       expect(store.state.form.name, 'Ada');
-      expect(store.state.signupOpen, isTrue);
+      expect(store.state.signupOpen, isFalse);
     });
 
     test('follows the bar: the form opens over the page it was opened on', () {
@@ -98,8 +97,7 @@ void main() {
     test('closes the dialog without touching the form', () {
       final ExampleStore store = ExampleStore(
         initial: const SignupFormState(name: 'Ada'),
-        openSignup: true,
-      );
+      )..openSignup();
 
       store.closeSignup();
 
@@ -118,7 +116,9 @@ void main() {
     });
 
     test('draws the dialog over the listings while it is open', () {
-      final UINode tree = viewOf(ExamplePageNode(signupOpen: true));
+      final ExamplePageNode node = ExamplePageNode();
+      final ExampleStore store = node.create()..openSignup();
+      final UINode tree = node.viewFor(store.state, store);
 
       expect(flatten(tree).whereType<OverlayNode>(), hasLength(1));
       expect(textsIn(tree), contains('Join Unibox'));
@@ -139,17 +139,6 @@ void main() {
       expect(flatten(tree).whereType<OverlayNode>(), hasLength(1));
       expect(flatten(tree).whereType<TextInputNode>().first.value, 'Ada');
       expect(textsIn(tree), contains('Looks good - press Create account.'));
-    });
-
-    test('starts in the state the export asks for', () {
-      final ExamplePageNode node = ExamplePageNode(signupOpen: true);
-      final ExampleStore store = node.create();
-
-      expect(store.state.signupOpen, isTrue);
-      expect(
-        flatten(node.viewFor(store.state, store)).whereType<OverlayNode>(),
-        hasLength(1),
-      );
     });
   });
 }

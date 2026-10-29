@@ -105,9 +105,9 @@ PATCH
 
 # A static host has no rewrite rule, so a Flutter route is a real file. The build's
 # absolute base href is what lets the copied document resolve its assets from a
-# deeper path. The two routes are the two states of the example: the page, and the
-# page with the sign-up dialog open.
-for route in listings signup; do
+# deeper path. One route: the example is one page, and the sign-up form is a dialog
+# over it rather than an address of its own.
+for route in listings; do
   mkdir -p "$site/flutter/$route"
   cp "$site/flutter/index.html" "$site/flutter/$route/index.html"
 done
