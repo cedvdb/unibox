@@ -20,6 +20,13 @@ final class CssDeclarations {
 
   final List<MapEntry<String, String>> _entries = <MapEntry<String, String>>[];
 
+  /// The canonical text of the list, built the first time it is asked for.
+  ///
+  /// Every box and every field asks for it to hash a class name, and the stylesheet asks
+  /// again for the rule it writes; a page with thousands of nodes asks thousands of times,
+  /// and sorting and joining thirty declarations per ask is work nobody sees.
+  String? _text;
+
   /// Whether nothing is declared at all.
   bool get isEmpty => _entries.isEmpty;
 
@@ -51,6 +58,7 @@ final class CssDeclarations {
   /// A second write of the same property is kept: it is a fallback, not a mistake.
   void add(String property, String value) {
     _entries.add(MapEntry<String, String>(property, value));
+    _text = null;
   }
 
   /// Appends every declaration of [declarations], in their map order.
@@ -58,6 +66,8 @@ final class CssDeclarations {
     for (final MapEntry<String, String> entry in declarations.entries) {
       _entries.add(entry);
     }
+
+    _text = null;
   }
 
   /// Appends every declaration of [other], in its order.
@@ -68,6 +78,8 @@ final class CssDeclarations {
     for (final MapEntry<String, String> entry in other._entries) {
       _entries.add(entry);
     }
+
+    _text = null;
   }
 
   /// Appends `property: value` unless [value] is `null`.
@@ -85,7 +97,12 @@ final class CssDeclarations {
   /// Sorted by property name, and by insertion order when one property is written
   /// more than once, so the same look always produces the same text — and therefore
   /// the same class name — however the renderer built the list.
-  String get text {
+  ///
+  /// Built once and kept: a list that is added to after it was asked for starts again, so
+  /// a caller sees the text of the whole list either way.
+  String get text => _text ??= _compose();
+
+  String _compose() {
     final List<({int index, MapEntry<String, String> entry})> ordered =
         <({int index, MapEntry<String, String> entry})>[
           for (int i = 0; i < _entries.length; i++)

@@ -13,8 +13,11 @@ final class Stylesheet {
   Stylesheet();
 
   /// The declarations of every class, in the order the classes were first asked for.
-  final List<({String className, CssDeclarations declarations})> _rules =
-      <({String className, CssDeclarations declarations})>[];
+  ///
+  /// A map rather than a list: a rendering asks for a class once per node, and finding out
+  /// whether it already has one must not be a scan of every look a big page has. Insertion
+  /// order is the order the rules are written in, which is what a `LinkedHashMap` gives.
+  final Map<String, CssDeclarations> _rules = <String, CssDeclarations>{};
 
   /// The state rules, in the order their classes were asked for.
   final List<CssRule> _states = <CssRule>[];
@@ -49,16 +52,12 @@ final class Stylesheet {
     String? key,
   }) {
     final String className = classNameFor(kind, key ?? declarations.text);
-    final bool known = _rules.any(
-      (({String className, CssDeclarations declarations}) rule) =>
-          rule.className == className,
-    );
 
-    if (known) {
+    if (_rules.containsKey(className)) {
       return className;
     }
 
-    _rules.add((className: className, declarations: declarations));
+    _rules[className] = declarations;
     _revision++;
 
     if (states != null) {
@@ -81,13 +80,12 @@ final class Stylesheet {
   String get css {
     final StringBuffer buffer = StringBuffer();
 
-    for (final ({String className, CssDeclarations declarations}) rule
-        in _rules) {
-      if (rule.declarations.isEmpty) {
+    for (final MapEntry<String, CssDeclarations> rule in _rules.entries) {
+      if (rule.value.isEmpty) {
         continue;
       }
 
-      buffer.writeln('.${rule.className}{${rule.declarations.text}}');
+      buffer.writeln('.${rule.key}{${rule.value.text}}');
     }
 
     for (final CssRule rule in _states) {
