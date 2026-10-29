@@ -8,9 +8,9 @@
 ///
 /// The site itself is one page — [buildSitePage] — of three bands: the hero, which makes the
 /// claim, gives the three reasons for it and settles it with the same tree drawn twice; the
-/// Material catalogue; and the vocabulary, which draws the four nodes the two above never
-/// showed and names them. Its sections are node trees too, so the site is drawn with the
-/// library it documents.
+/// vocabulary, which draws the four nodes the hero never named and takes them apart; and the
+/// Material catalogue, which closes the page with the design system all of it is drawn with.
+/// Its sections are node trees too, so the site is drawn with the library it documents.
 ///
 /// The host is what a node cannot be: a surface and the way a link opens. Each host
 /// of the example is one small file for exactly that reason.

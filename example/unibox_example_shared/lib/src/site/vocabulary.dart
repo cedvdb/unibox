@@ -4,12 +4,12 @@ import 'package:unibox_material/unibox_material.dart';
 import '../theme.dart';
 import 'section.dart';
 
-/// The closing band: the nodes this page had not drawn yet, once, as one card.
+/// The second band: the nodes the page had not drawn yet, once, as one card.
 ///
-/// The hero and the catalogue between them draw seven of the eleven nodes, and a
-/// reader could finish the page without learning that a picture, a stack or a child
-/// placed at an offset exists. The four that were missing are the four easiest to
-/// miss, because none of them is a word: they are the parts a card is made of.
+/// The hero frames a whole tree, so it says what the page claims and never which parts the
+/// claim is made of: a picture, a stack, a child placed at an offset and a field with no
+/// chrome are the four the page had not drawn, and they are the four easiest to miss
+/// because none of them is a word. They are the parts a card is made of.
 ///
 /// So the band is one small card, and the same card taken apart. The picture is not a
 /// screenshot of the card — it *is* the list beside it, which is the whole of what the
@@ -19,8 +19,8 @@ UINode buildVocabularySection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
   final MaterialPalette palette = ExamplePalette.materialFor(seed);
 
   return siteBand(
-    // A tint, so the page closes rather than runs into the footer: the catalogue above
-    // it is the surface colour, and the last band is the one that sums it up.
+    // A tint, so the band stands apart from the two bands around it: the claim above it
+    // and the catalogue below it are both the surface colour.
     background: palette.surfaceContainer,
     vertical: 80,
     child: Box(
