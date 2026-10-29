@@ -395,6 +395,45 @@ outlives every node — it passes it into the node as a parameter, the way the e
 passes the form a static document starts with. What it must not do is keep a value
 the tree could have kept: that is the drift the model exists to prevent.
 
+## A page that becomes the application
+
+Two files, one on each side. The server writes a document; the application reads what the
+reader did before it existed.
+
+```dart
+// the server, or a build step
+final String page = toDocument(
+  ListingsPage(listings),
+  title: 'Apartments',
+  takeover: const Takeover(boot: '../../flutter/app.js'),
+);
+```
+
+```dart
+// the application
+void main() => runApp(
+  ExampleApp(
+    offsets: scrollOffsetsFromPage(),   // where a region was scrolled to
+    presses: pressesFromPage(),         // what was pressed
+  ),
+);
+```
+
+- **`toDocument` is synchronous and needs no framework.** It writes one `<style>`, the head and the
+tree; it runs in a build step, a CLI or a server.
+- **`Takeover` is one argument, not three.** It prefetches the bundle, places the recorders before
+  the boot, and starts the boot on a signal. Do not assemble those by hand: swapping `prefetch` and
+  `scripts` ships a page that boots on a cold cache.
+- **A scrolling region needs a `key`.** The recorder writes `data-unibox-key`, and the application
+  finds the region by that key. Without one there is nothing to replay.
+- **The scroll comes back as the controller's initial position**, so a region is in place at the
+  first layout; a record whose key is not the box is ignored.
+- **A press is data and is answered once.** `FlutterStateful(presses: …)` replays it against the
+  first view it builds, which is where the callbacks exist. A key that matches no node, two nodes
+  or a node with no behaviour is dropped — never fire whatever is nearby.
+- **Do not expect a string to run a callback.** A document carries text, not closures: a press is
+  replayed by the application, not by the page, and a link is followed by the browser.
+
 ## Before you return the code
 
 - The file that holds the tree imports `package:unibox_core/unibox_core.dart` — and

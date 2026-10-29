@@ -73,7 +73,7 @@ final class BoxPress {
 ///
 /// A key is unique among the siblings of one node, so a page that has to find one element again
 /// gives it a key that is unique in the document. A tree drawn twice on one page therefore
-/// answers twice — [replayPress] refuses that rather than guessing which one was pressed.
+/// answers twice — [replayPresses] refuses that rather than guessing which one was pressed.
 List<UINode> nodesKeyed(UINode tree, Object key) {
   final List<UINode> found = <UINode>[];
 

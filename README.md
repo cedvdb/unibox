@@ -102,15 +102,57 @@ The handover is a repaint, because Flutter can only draw into a canvas — expec
 flash. That is a fine trade when the page really is the app and the visitor is about to
 use it.
 
-### The server writes a document
+### The page is only a document
 
-The same tree is exported as HTML and CSS and made interactive by one small bundle
-redrawn from that tree — a press, a field, a dialog. **No Flutter on that page at all**,
-so a phone downloads a page and a script instead of an application. The document a
-crawler reads and the document a visitor uses are one and the same.
+The same tree is written as HTML and CSS by `unibox_html` and **stays that**: nothing boots over
+it, and the only script it carries is optional. That is the strategy for a page whose job is to
+be read — this site's own `/` — and it needs no server process either, because a document is a
+string: a build step writes the files, a static host serves them.
 
-That is what this site does: `/` is this strategy, one tree per band; `/web/listings/` is
-the left half of the picture above and `/flutter/listings/` the right half.
+The document that a crawler reads and the document a reader gets are then the same file, which is
+the whole point: at `/`, one tree per band, three bands, one page.
+
+### The handover, in code
+
+Two lines, one on each side. The server needs a `Takeover`, the application needs the record it
+leaves:
+
+```dart
+// the server: a document, and the bundle prefetched behind it
+final String page = toDocument(
+  ListingsPage(listings),
+  title: 'Apartments',
+  takeover: const Takeover(boot: '../../flutter/app.js'),
+);
+```
+
+```dart
+// the application: what the page recorded, read where a host does its other reads
+void main() => runApp(
+  ExampleApp(
+    offsets: scrollOffsetsFromPage(),   // where each region was scrolled to
+    presses: pressesFromPage(),         // what was pressed, on which element and where
+  ),
+);
+```
+
+`Takeover` is one argument because it is one decision: the bundle is prefetched, the two recorders
+travel with the boot, and the boot starts on a signal. Written by hand it was three arguments in
+two spellings, and swapping two of them shipped a page that booted on a cold cache.
+
+**The scroll comes back** as the scroll view's *initial* position, so a region is in place at the
+first layout rather than after a correction, and a rebuild does not move the reader back. A record
+whose key is not this box is ignored: moving whichever region happens to scroll is how the wrong
+list jumps.
+
+**A press is data, and it is answered once.** `FlutterStateful(presses: …)` replays them against
+the first view the node builds, which is the only place their callbacks exist — a view is a
+function of the store, and the store is created when the widget mounts. A key that matches no
+node, two nodes, or a node with no behaviour is dropped rather than guessed at: firing whatever is
+nearby is how the wrong control goes off.
+
+What the record cannot do is make a document interactive on its own. It carries a reader's
+*intent* across the handover; the application is still what answers it.
 
 ### What stays Flutter
 
@@ -148,6 +190,7 @@ the catalogue, every component written as markup.
 - [How it works](#how-it-works)
 - [Two ways to serve a tree](#two-ways-to-serve-a-tree)
 - [Quick start](#quick-start)
+- [The handover](#the-handover-in-code)
 - [The nodes](#the-nodes)
 - [Colours](#colours)
 - [Typography](#typography)
@@ -168,8 +211,9 @@ dependencies:
   unibox_core:
     path: ../unibox/packages/unibox_core
   unibox_flutter:
-  unibox_html:               # the web: a document a crawler can read
     path: ../unibox/packages/unibox_flutter
+  unibox_html:               # the web: a document a crawler can read
+    path: ../unibox/packages/unibox_html
   unibox_material:           # optional: the Material 3 type scale
     path: ../unibox/packages/unibox_material
 ```

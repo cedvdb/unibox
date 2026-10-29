@@ -259,6 +259,16 @@ tool/site.sh --base=/unibox/ --url=https://cedvdb.github.io/unibox/
 | `/flutter/listings/`, `/flutter/signup/` | The same example, built by Flutter — the right frame |
 | `/flutter/app.js` | The loader a document boots the application through, with the base path `flutter_bootstrap.js` cannot know |
 
+### See the handover
+
+`/web/listings/` is a document until a reader asks. Open it, scroll the list, and press a
+listing: the ink shows the press, and the application boots on that signal — it then starts where
+the page was scrolled, not at the top. `/flutter/listings/` is the same screen built by Flutter and
+served as its own route, which is what the right frame shows.
+
+Two commands prove it without a reader: `tool/boot_check.sh build/site` asks a browser whether the
+document becomes the application, and `tool/boot_time.dart` says how long that took in real time.
+
 `build/site/version.txt` names the commit the site was built from. A deploy is not
 instant and is not always the one it looks like — one publication here shipped the
 previous build while its script was current — so `curl …/unibox/version.txt` answers

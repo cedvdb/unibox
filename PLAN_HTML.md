@@ -248,7 +248,7 @@ What the takeover still lacks, what is clumsy to wire, and what the documents do
   long it took, because `--virtual-time-budget` makes `performance.now()` virtual. A real number
   needs a browser driven over the DevTools protocol in real time, which `dart:io`'s WebSocket can
   do.
-- [ ] **6. The documents.** `README.md` gains the shape token, the client side (document, takeover,
+- [x] **6. The documents.** `README.md` gains the shape token, the client side (document, takeover,
   scroll and click replay) and the new packages in its tables; `packages/unibox_html/README.md` the
   same from its own side; `AI_INSTRUCTIONS.md` the takeover recipe; the changelogs the four bullets.
 
