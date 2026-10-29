@@ -215,6 +215,8 @@ void main() {
         'Text fields',
         'Cards and tiles',
         'Navigation bar',
+        'Tabs',
+        'Pages',
         'Dialog',
         'Type scale',
         'Colour roles',

@@ -662,6 +662,18 @@ class FlutterBoxState extends State<FlutterBox> {
     return KeyEventResult.handled;
   }
 
+  /// The Flutter role of a box's [role], or `null` when Flutter names it as a flag instead.
+  ///
+  /// Only two are named: a tab and the set it belongs to. The rest are announced by the flags below
+  /// — `button`, `link`, `header`, `checked`, `toggled` — which is what a screen reader listens for.
+  SemanticsRole? _roleOf(core.BoxRole role) {
+    return switch (role) {
+      core.BoxRole.tab => SemanticsRole.tab,
+      core.BoxRole.tablist => SemanticsRole.tabBar,
+      _ => null,
+    };
+  }
+
   /// The Flutter role of [element], or `null` when Flutter has no counterpart.
   ///
   /// Flutter's accessibility tree has no landmarks: a screen reader on a phone
@@ -722,7 +734,11 @@ class FlutterBoxState extends State<FlutterBox> {
       // A reader can move the focus here, which is what a native control offers and
       // what the `Focus` widget above no longer states for it.
       onFocus: focusable ? _focusNode.requestFocus : null,
-      role: _semanticsRole(semantics?.element ?? core.BoxElement.div),
+      // A tab and its set are roles Flutter has its own names for, and it checks that a tab lives in
+      // a tab bar: taking the element's role first would have hidden that from it.
+      role:
+          _roleOf(role) ??
+          _semanticsRole(semantics?.element ?? core.BoxElement.div),
       expanded: semantics?.expanded,
       // `aria-current` has no Flutter counterpart; the closest thing a phone
       // reader understands is that this box is the selected item of a set.

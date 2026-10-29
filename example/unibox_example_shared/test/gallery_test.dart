@@ -35,9 +35,13 @@ void main() {
           .where((Box box) => box.overflow == Overflow.scroll)
           .toList();
 
-      expect(scrollers, hasLength(2));
+      // Two rows of chips, and the pager — which is a scrolling box that settles rather than a row
+      // that overflows, so it is counted here for a different reason.
+      expect(scrollers, hasLength(3));
       expect(_textsIn(scrollers.first), contains('Two rooms'));
-      expect(_textsIn(scrollers.last), contains('Garden'));
+      expect(_textsIn(scrollers[1]), contains('Garden'));
+      expect(scrollers.last.snap, ScrollSnap.page);
+      expect(_textsIn(scrollers.last), contains('Three'));
     });
 
     test(

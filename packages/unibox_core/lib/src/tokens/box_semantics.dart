@@ -25,13 +25,29 @@ enum BoxRole {
   link,
 
   /// A heading; structural, so it is not focusable.
-  heading;
+  heading,
+
+  /// One tab of a [tablist]: the only role whose meaning is a set's.
+  ///
+  /// A screen reader announces which of the set is chosen, which is
+  /// [BoxSemantics.selected] and `aria-selected` on the web, and Flutter has the same role for it.
+  /// The keys that move between tabs belong to the set, not to this box.
+  tab,
+
+  /// The set a group of [tab] boxes belongs to.
+  ///
+  /// Structural: a container, so it is not focusable and takes no press.
+  tablist;
 
   /// Whether the role is something the user can act on.
   ///
   /// Those roles make a box keyboard focusable, [heading] and [none] do not.
   bool get isInteractive =>
-      this == button || this == checkbox || this == switch_ || this == link;
+      this == button ||
+      this == checkbox ||
+      this == switch_ ||
+      this == link ||
+      this == tab;
 }
 
 /// Which item of a set a box currently is, for a navigation.

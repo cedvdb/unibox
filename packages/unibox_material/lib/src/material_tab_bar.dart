@@ -65,8 +65,9 @@ enum MaterialTabVariant {
 /// is what lets a bar sit above a page that swaps, above a pager, or beside a preview — the
 /// choice is the tree's state in every case.
 ///
-/// A tab is a *selected button* rather than a `role="tab"`: the model names no tab role yet,
-/// and inventing one on one target only would be the drift the contract exists to prevent.
+/// A tab says `role="tab"` inside a `role="tablist"`, and which of the set is chosen travels as
+/// `selected` — `aria-selected` on the web and Flutter's own selected flag. It is not a button:
+/// a button does something, and this one is one of a set.
 final class MaterialTabBar extends Box {
   /// Creates a bar of [tabs], with [selected] drawn as the chosen one.
   ///
@@ -85,6 +86,9 @@ final class MaterialTabBar extends Box {
          direction: Axis.horizontal,
          crossAlign: CrossAlign.start,
          width: double.infinity,
+         // The set the tabs belong to. A reader is told it has entered a tab bar, which is what makes
+         // the tabs inside it mean "one of these" rather than several buttons.
+         semantics: const BoxSemantics(role: BoxRole.tablist),
          shadow: BoxShadow(
            color: palette?.outlineVariant ?? const BoxColor(0xFFD6C2C5),
            offsetY: 1,
@@ -151,8 +155,10 @@ final class MaterialTabBar extends Box {
             children: <UINode>[?tab.icon, tab.label],
           ),
           semantics: BoxSemantics(
-            role: BoxRole.button,
+            role: BoxRole.tab,
             label: tab.semanticsLabel,
+            // Which of the set is chosen: `aria-selected` on the web, and Flutter's own selected
+            // flag, which is what a screen reader announces for a tab.
             selected: selected,
           ),
         ),

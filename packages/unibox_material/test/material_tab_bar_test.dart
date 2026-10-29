@@ -44,7 +44,7 @@ void main() {
         ],
         selected: selected,
         variant: variant,
-        onSelect: presses == null ? null : presses.add,
+        onSelect: presses?.add,
       );
     }
 
@@ -109,8 +109,11 @@ void main() {
       );
     });
 
-    test('is a selected button for a screen reader', () {
+    test('is a tab of a tablist for a screen reader, one of them chosen', () {
+      // A tab is not a button: a reader is told which of a set is chosen, which a button cannot say.
       final MaterialTabBar tabs = bar(selected: 1);
+
+      expect(tabs.semantics?.role, BoxRole.tablist);
       final List<bool?> selected = <bool?>[];
 
       for (final Box tab in _tabBoxes(tabs)) {
@@ -120,7 +123,7 @@ void main() {
           well.viewFor(store.state, store),
         ).whereType<Box>()) {
           if (box.semantics?.selected != null) {
-            expect(box.semantics!.role, BoxRole.button);
+            expect(box.semantics!.role, BoxRole.tab);
             selected.add(box.semantics!.selected);
           }
         }

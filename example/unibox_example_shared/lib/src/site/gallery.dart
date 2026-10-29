@@ -73,6 +73,22 @@ UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
         ),
         _section(
           palette,
+          'Tabs',
+          _tabs(palette),
+          note:
+              'A tab bar over three pages: the bar says which tab is chosen and the '
+              'node draws that page.',
+        ),
+        _section(
+          palette,
+          'Pages',
+          _pager(palette),
+          note:
+              'A scrolling box that settles: `snap: ScrollSnap.page` moves one child at '
+              'a time. Swipe it sideways.',
+        ),
+        _section(
+          palette,
           'Dialog',
           DialogDemo(seed: seed),
           note: 'An OverlayNode: in the tree only while it is open.',
@@ -500,6 +516,87 @@ UINode _removableView(Set<String> chips, ChipsStore store) {
           style: MaterialTypography.labelLarge.copyWith(
             color: const BoxColor.role(MaterialColorRole.onSurfaceVariant),
           ),
+        ),
+    ],
+  );
+}
+
+/// Three tabs over three pages.
+///
+/// `MaterialTabs` is a `StatefulNode`: the bar reports a press, the store keeps the index, and the
+/// view draws the page of the chosen tab. The roles are the model's — `tablist` around `tab`s, one
+/// of them `selected` — so a screen reader hears a set rather than three buttons.
+UINode _tabs(MaterialPalette palette) {
+  return MaterialTabs(
+    palette: palette,
+    tabs: const <MaterialTab>[
+      MaterialTab(label: TextNode('Overview')),
+      MaterialTab(label: TextNode('Listings')),
+      MaterialTab(label: TextNode('Reviews')),
+    ],
+    pages: <UINode>[
+      _page(palette, 'Six flats, from the same tree.'),
+      _page(palette, 'A map beside them on a wide screen.'),
+      _page(palette, 'What the tenants said.'),
+    ],
+  );
+}
+
+/// One page of the tab demo: a line of text on the surface the band is drawn on.
+UINode _page(MaterialPalette palette, String text) {
+  return Box(
+    width: double.infinity,
+    padding: const BoxSpacing.all(20),
+    children: <UINode>[
+      TextNode(
+        text,
+        style: MaterialTypography.bodyMedium.copyWith(
+          color: palette.onSurfaceVariant,
+        ),
+      ),
+    ],
+  );
+}
+
+/// A pager: a horizontal scrolling box that settles on a child instead of between two.
+///
+/// The box is exactly one page wide, which is the contract `ScrollSnap.page` states — a page is a
+/// child the size of the box. Stated that way, the two targets agree for a reason rather than by
+/// luck: CSS snaps to the child's own `scroll-snap-align` edge, and Flutter's page physics snaps to
+/// the viewport's, which is the same edge when the two are the same width.
+UINode _pager(MaterialPalette palette) {
+  const double page = 240;
+  const double height = 120;
+
+  return Box(
+    width: page,
+    height: height,
+    direction: Axis.horizontal,
+    overflow: Overflow.scroll,
+    snap: ScrollSnap.page,
+    borderRadius: 12,
+    children: <UINode>[
+      for (final (int index, String caption) in <String>[
+        'One',
+        'Two',
+        'Three',
+      ].indexed)
+        Box(
+          width: page,
+          height: height,
+          padding: const BoxSpacing.all(16),
+          backgroundColor: index.isEven
+              ? palette.secondaryContainer
+              : palette.surfaceContainerHigh,
+          crossAlign: CrossAlign.center,
+          children: <UINode>[
+            TextNode(
+              caption,
+              style: MaterialTypography.headlineSmall.copyWith(
+                color: palette.onSecondaryContainer,
+              ),
+            ),
+          ],
         ),
     ],
   );
