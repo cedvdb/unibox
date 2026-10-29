@@ -77,19 +77,10 @@ final html = toDocument(page, title: 'Apartments');  // the web reads it as a pa
 Two functions, one tree. `toWidget()` builds the widgets; `toDocument()` writes the page and its
 head. Which one you call is the only decision, and the tree is the same either way.
 
-Three rules keep the two drawings equal:
-
-- **The model decides the defaults.** A box with no direction is a column, a text with no size is
-  16, and both targets are told so. Their own defaults disagree — 14 pixels of black in Flutter,
-  16 of `canvastext` in a browser — so neither is allowed to answer.
-- **A renderer only translates.** One file per node, no knowledge of the other target, and a token
-  means the same value on both sides.
-- **A test compares the two.** [`unibox_testing`](packages/unibox_testing) records what each token
-  looks like; both suites read that appearance back out of their own output, so a renderer that
-  drifts fails its own test.
-
-Neither target wraps the other: on a phone the tree is Flutter widgets, in a browser it is markup
-and CSS, and there is no WebView between them.
+Two things keep the two equal: the model states every default — an unset direction is a column, an
+unset text size is 16 — so neither target answers with its own; and a test compares what each
+renderer produced, so one that drifts fails instead of shipping. Neither wraps the other either: on
+a phone the tree is Flutter widgets, in a browser markup and CSS, with no WebView between them.
 
 What the description does *not* contain is what only your application knows — how wide the window
 is, what a tap does, what the document is called. Those are the host's; see
