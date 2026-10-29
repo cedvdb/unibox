@@ -136,6 +136,7 @@ ElementPlan _planBox(core.Box box, Stylesheet sheet, PlanOptions options) {
     declarations,
     states: (String name) => <CssRule>[
       ...stateRules(box, name),
+      ...snapRules(name, style),
       ...thresholdRules(
         name,
         from: style.visibleFrom,

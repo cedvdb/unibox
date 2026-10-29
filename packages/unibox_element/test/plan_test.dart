@@ -67,6 +67,37 @@ void main() {
       expect(cell.attributes, isNot(contains('data-unibox-node')));
     });
 
+    test('a pager snaps to its children, and says so on the container', () {
+      // `scroll-snap-align` belongs to the child, so the box that settles writes it for the
+      // children it lays out — the one place a parent can describe its own children.
+      final Stylesheet sheet = Stylesheet();
+      final ElementPlan plan = planNode(
+        const core.Box(
+          direction: core.Axis.horizontal,
+          overflow: core.Overflow.scroll,
+          snap: core.ScrollSnap.page,
+        ),
+        sheet,
+      );
+
+      expect(
+        sheet.css,
+        contains('scroll-snap-type:x mandatory'),
+        reason: 'the axis is the box direction, not a second parameter',
+      );
+      expect(
+        sheet.css,
+        contains('.${plan.className} > *{scroll-snap-align:start}'),
+      );
+    });
+
+    test('a box that does not snap writes nothing about snapping', () {
+      final Stylesheet sheet = Stylesheet();
+      planNode(const core.Box(overflow: core.Overflow.scroll), sheet);
+
+      expect(sheet.css, isNot(contains('scroll-snap')));
+    });
+
     test('a look is one class however many elements wear it', () {
       final Stylesheet sheet = Stylesheet();
       final ElementPlan one = planNode(

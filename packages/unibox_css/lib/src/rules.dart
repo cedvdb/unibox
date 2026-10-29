@@ -100,6 +100,24 @@ List<CssRule> stateRules(core.Box box, String className) {
 ///
 /// `from` is the width the box starts being drawn at, `until` the width it stops at: the two
 /// together are a band, and either alone is a floor or a ceiling.
+/// The rule that makes a pager's children the stops it settles on.
+///
+/// `scroll-snap-align` belongs to the child, and the parent's class is the only thing this
+/// renderer can select it by: the children of a pager are the tree's own children, in the
+/// order the box lays them out, so `> *` names exactly the pages.
+List<CssRule> snapRules(String className, core.BoxStyle style) {
+  if (style.snap != core.ScrollSnap.page) {
+    return const <CssRule>[];
+  }
+
+  return <CssRule>[
+    CssRule(
+      selector: '.$className > *',
+      declarations: CssDeclarations()..add('scroll-snap-align', 'start'),
+    ),
+  ];
+}
+
 List<CssRule> thresholdRules(
   String className, {
   required double? from,

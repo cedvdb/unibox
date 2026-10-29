@@ -139,6 +139,17 @@ String cssOverflow(core.Overflow overflow) => switch (overflow) {
   core.Overflow.scroll => 'auto',
 };
 
+/// How a scrolling box settles, as `scroll-snap-type`, or `null` for a box that does not.
+///
+/// The axis is the box's own, which is why this is a function of the style rather than of the
+/// token alone: a row of pages pages sideways and a column of pages pages down, and CSS wants
+/// that axis written out.
+String? cssScrollSnap(core.ScrollSnap? snap, core.Axis axis) => switch (snap) {
+  null || core.ScrollSnap.none => null,
+  core.ScrollSnap.page =>
+    axis == core.Axis.horizontal ? 'x mandatory' : 'y mandatory',
+};
+
 /// A model [core.FontWeight] as the number CSS wants.
 ///
 /// The model names four weights and CSS accepts any hundreds value; the number is

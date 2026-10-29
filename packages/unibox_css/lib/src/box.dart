@@ -142,6 +142,10 @@ CssDeclarations boxDeclarations(
 
   declarations
     ..addIf('overflow', overflow == null ? null : cssOverflow(overflow))
+    ..addIf(
+      'scroll-snap-type',
+      cssScrollSnap(style.snap, style.resolvedDirection),
+    )
     ..addIf('opacity', opacity == null ? null : cssNumber(opacity))
     ..addIf('transform', cssTransform(style.transform));
 

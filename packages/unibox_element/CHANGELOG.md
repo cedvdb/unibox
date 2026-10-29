@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- A snapping box writes the rule that makes its children the stops: `.class > *`
+  `{scroll-snap-align: start}`, alongside the state and threshold rules of the same class.
+
 - A shaped box is planned as an `<svg>` layer over it, first among its children: one `<path>`
   whose outline is the shape, stretched to the box rather than fitted inside it, and the
   `clipPath` definition the box's rule points at when it clips its content. The layer is absolute

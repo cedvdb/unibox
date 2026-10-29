@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- A pager as `scroll-snap-type` on the box and `scroll-snap-align: start` on the children
+  it lays out, which is the one place a parent can describe its own children.
+
 - A new package, and the one place the web's CSS is written down. A token becomes a
   declaration here rather than in a renderer, so `unibox_html` and any renderer built
   on a web framework produce the same text for the same tree — which is what keeps a
