@@ -190,6 +190,23 @@ const List<BoxCase> boxCases = <BoxCase>[
     ),
   ),
   BoxCase(
+    description: 'moves the box by a multiple of its own width',
+    box: core.Box(
+      transform: core.BoxTransform(fractionX: 1.5),
+      children: _children,
+    ),
+    // A fraction is a translate of the box's own size, which is how a tab indicator moves one
+    // tab: `translate(150%, 0%)`, not `translate(150px, 0px)`.
+    expected: BoxAppearance(transform: core.BoxTransform(fractionX: 1.5)),
+  ),
+  BoxCase(
+    description: 'takes a share of the width it is given',
+    box: core.Box(widthFraction: 0.5, children: _children),
+    // A share rather than a length: `width: 50%` is the statement a box makes when the number is
+    // the layout's business, and it wins over a stated width.
+    expected: BoxAppearance(widthFraction: 0.5),
+  ),
+  BoxCase(
     description: 'stretches the box on one axis and not the other',
     box: core.Box(
       transform: core.BoxTransform(scaleX: 0.4),
@@ -232,6 +249,7 @@ const List<BoxCase> boxCases = <BoxCase>[
       margin: core.BoxSpacing.all(6),
       width: 320,
       height: 96,
+      widthFraction: 0.75,
       backgroundColor: core.BoxColor.white,
       borderRadius: 10,
       border: core.BoxBorder(color: _line),
@@ -240,7 +258,7 @@ const List<BoxCase> boxCases = <BoxCase>[
         curve: core.BoxCurve.easeIn,
       ),
       opacity: 0.75,
-      transform: core.BoxTransform(scale: 1.25, scaleY: 0.8),
+      transform: core.BoxTransform(scale: 1.25, scaleY: 0.8, fractionY: 0.25),
       children: _children,
     ),
     expected: BoxAppearance(
@@ -250,8 +268,8 @@ const List<BoxCase> boxCases = <BoxCase>[
       gap: 8,
       padding: core.BoxSpacing.symmetric(horizontal: 18, vertical: 12),
       margin: core.BoxSpacing.all(6),
-      width: 320,
       height: 96,
+      widthFraction: 0.75,
       backgroundColor: core.BoxColor.white,
       borderRadius: 10,
       borderWidth: 1,
@@ -259,7 +277,7 @@ const List<BoxCase> boxCases = <BoxCase>[
       transitionDuration: Duration(milliseconds: 120),
       transitionCurve: core.BoxCurve.easeIn,
       opacity: 0.75,
-      transform: core.BoxTransform(scaleX: 1.25, scaleY: 1),
+      transform: core.BoxTransform(scaleX: 1.25, scaleY: 1, fractionY: 0.25),
     ),
   ),
 ];

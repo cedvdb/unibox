@@ -27,15 +27,17 @@ List<String> _texts(UINode root) =>
         .toList();
 
 /// The boxes a bar lays out, one per tab.
-List<Box> _tabBoxes(MaterialTabBar bar) => bar.children.cast<Box>().toList();
+List<Box> _tabBoxes(MaterialTabBar bar) =>
+    ((bar.children.single as StackNode).children.first as Box).children
+        .cast<Box>()
+        .toList();
 
-/// The well of [tab], which fills it.
-MaterialInkWell _wellOf(Box tab) =>
-    (tab.children.single as StackNode).children.first as MaterialInkWell;
+/// The well of [tab], which is the tab.
+MaterialInkWell _wellOf(Box tab) => tab.children.single as MaterialInkWell;
 
-/// The indicator of [tab], laid over the well's bottom edge.
-PositionedNode _indicatorOf(Box tab) =>
-    (tab.children.single as StackNode).children.last as PositionedNode;
+/// The one indicator of [bar], laid over the row's bottom edge.
+PositionedNode _indicatorOf(MaterialTabBar bar) =>
+    (bar.children.single as StackNode).children.last as PositionedNode;
 
 void main() {
   group('MaterialTabBar', () {
@@ -56,34 +58,24 @@ void main() {
       );
     }
 
-    test('draws every tab, and the indicator under the chosen one only', () {
+    test('draws every tab, and one indicator a share wide, moved to the chosen one', () {
       final MaterialTabBar tabs = bar(selected: 1);
 
       expect(_texts(tabs), <String>['Overview', 'Listings', 'Reviews']);
 
-      // Every tab carries the indicator and only one shows it, because an element that appears and
-      // disappears cannot be eased: the underline fades between tabs.
-      final List<Box> indicators = <Box>[
-        for (final Box tab in _tabBoxes(tabs)) _indicatorOf(tab).child as Box,
-      ];
+      // One element for the whole bar rather than one per tab: a share of the width, moved by a
+      // multiple of *its own* width, which is a whole tab per step and needs nobody to measure one.
+      final Box indicator = _indicatorOf(tabs).child as Box;
 
-      expect(indicators, hasLength(3));
-      expect(indicators.map((Box box) => box.backgroundColor), <BoxColor?>[
-        const BoxColor(0xFF8C4A5D),
-        const BoxColor(0xFF8C4A5D),
-        const BoxColor(0xFF8C4A5D),
-      ]);
-      expect(indicators.map((Box box) => box.opacity), <double?>[0, 1, 0]);
+      expect(indicator.widthFraction, closeTo(1 / 3, 1e-9));
+      expect(indicator.transform?.fractionX, 1);
+      expect(indicator.height, MaterialTabBar.indicatorHeight);
+      expect(indicator.backgroundColor, isNotNull);
       expect(
-        indicators.every((Box box) => box.transition != null),
-        isTrue,
-        reason: 'the fade is what makes it a change rather than a redraw',
-      );
-      expect(
-        indicators.every(
-          (Box box) => box.height == MaterialTabBar.indicatorHeight,
-        ),
-        isTrue,
+        indicator.transition?.parts.single.properties,
+        <BoxProperty>{BoxProperty.transform},
+        reason:
+            'the transform is what slides, and a transition is what eases it',
       );
     });
 

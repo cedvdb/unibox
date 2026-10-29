@@ -37,6 +37,7 @@ BoxAppearance boxAppearanceIn(String html) {
     padding: _spacingOf(declarations['padding']),
     margin: _spacingOf(declarations['margin']),
     width: _lengthOf(declarations['width']),
+    widthFraction: _fractionOf(declarations['width']),
     height: _lengthOf(declarations['height']),
     backgroundColor: colorOf(declarations['background-color']),
     borderRadius: radius.radius,
@@ -106,13 +107,36 @@ Map<String, String> _declarationsOf(String text) {
 
 double? _numberOf(String? value) => value == null ? null : double.parse(value);
 
+/// A percentage of the parent read back out of CSS, or `null` when the value is not one.
+///
+/// `50%` is a fraction of the parent and `50px` is a length: the same property and two different
+/// statements, so the reader tells them apart by the unit.
+double? _fractionOf(String? value) {
+  if (value == null || !value.endsWith('%')) {
+    return null;
+  }
+
+  final double fraction =
+      double.tryParse(value.substring(0, value.length - 1))! / 100;
+
+  // `100%` is how the model writes "the space available", which is a length and not a share. The
+  // two statements render the same, so the reader reports the one the model calls a size.
+  return fraction == 1 ? null : fraction;
+}
+
 /// A CSS length as the model writes it: pixels, or the space available.
 double? _lengthOf(String? value) {
   if (value == null) {
     return null;
   }
 
-  return value == '100%' ? double.infinity : _pixelsOf(value);
+  // `100%` is the space available; any other percentage is a share, which is a different token and
+  // is read by `_fractionOf`. A length is neither, so it is parsed only when it is a length.
+  if (value == '100%') {
+    return double.infinity;
+  }
+
+  return value.endsWith('%') ? null : _pixelsOf(value);
 }
 
 double _pixelsOf(String value) =>
@@ -233,14 +257,20 @@ core.BoxColor? colorOf(String? value) {
   );
 }
 
-/// A transform as CSS writes it: translate, rotate, scale.
+/// A transform as CSS writes it: translate, rotate, scale — with a percentage translate when the
+/// model states a fraction of the box's own size, which is a second function and not the same one.
 core.BoxTransform? _transformOf(String? value) {
   if (value == null) {
     return null;
   }
 
+  final RegExpMatch? fraction = RegExp(
+    r'translate\((-?[0-9.]+)%, (-?[0-9.]+)%\)',
+  ).firstMatch(value);
+  final RegExpMatch? pixels = RegExp(
+    r'translate\((-?[0-9.]+)(?:px)?, (-?[0-9.]+)(?:px)?\)',
+  ).firstMatch(value);
   final RegExpMatch? match = RegExp(
-    r'translate\((-?[0-9.]+)(?:px)?, (-?[0-9.]+)(?:px)?\) '
     r'rotate\((-?[0-9.]+)deg\) scale\((-?[0-9.]+), (-?[0-9.]+)\)',
   ).firstMatch(value);
 
@@ -249,11 +279,13 @@ core.BoxTransform? _transformOf(String? value) {
   }
 
   return core.BoxTransform(
-    offsetX: double.parse(match.group(1)!),
-    offsetY: double.parse(match.group(2)!),
-    rotation: double.parse(match.group(3)!),
-    scaleX: double.parse(match.group(4)!),
-    scaleY: double.parse(match.group(5)!),
+    offsetX: pixels == null ? 0 : double.parse(pixels.group(1)!),
+    offsetY: pixels == null ? 0 : double.parse(pixels.group(2)!),
+    fractionX: fraction == null ? 0 : double.parse(fraction.group(1)!) / 100,
+    fractionY: fraction == null ? 0 : double.parse(fraction.group(2)!) / 100,
+    rotation: double.parse(match.group(1)!),
+    scaleX: double.parse(match.group(2)!),
+    scaleY: double.parse(match.group(3)!),
   );
 }
 

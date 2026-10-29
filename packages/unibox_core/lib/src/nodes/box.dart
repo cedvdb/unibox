@@ -52,6 +52,8 @@ class Box extends UINode {
     this.page,
     this.width,
     this.height,
+    this.widthFraction,
+    this.heightFraction,
     this.minWidth,
     this.maxWidth,
     this.minHeight,
@@ -139,6 +141,15 @@ class Box extends UINode {
 
   /// The height in logical pixels, or `double.infinity` to expand.
   final double? height;
+
+  /// The width as a fraction of the parent's, or `null` for a stated one.
+  ///
+  /// This is the size that can be stated without knowing a number: a share of a row, one tab of
+  /// a bar. It wins over [width], and `validateTree` reports the two together.
+  final double? widthFraction;
+
+  /// The height as a fraction of the parent's, or `null` for a stated one.
+  final double? heightFraction;
 
   /// The minimum width in logical pixels.
   final double? minWidth;
@@ -331,6 +342,8 @@ class Box extends UINode {
     page: page,
     width: width,
     height: height,
+    widthFraction: widthFraction,
+    heightFraction: heightFraction,
     minWidth: minWidth,
     maxWidth: maxWidth,
     minHeight: minHeight,

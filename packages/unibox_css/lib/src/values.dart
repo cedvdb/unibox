@@ -267,6 +267,10 @@ String cssCorners(core.BoxBorderRadius corners) =>
 /// scale — because CSS only interpolates two transforms function by function when the
 /// lists match. `transform-origin` is not written: CSS centres a transform by default
 /// and the Flutter renderer turns and scales about the middle of the box too.
+/// A fraction of the parent, as CSS writes it: `0.5` becomes `50%`.
+String? cssFraction(double? fraction) =>
+    fraction == null ? null : '${cssNumber(fraction * 100)}%';
+
 String? cssTransform(core.BoxTransform? transform) {
   if (transform == null || transform.isIdentity) {
     return null;
@@ -277,9 +281,21 @@ String? cssTransform(core.BoxTransform? transform) {
   final String x = cssNumber(transform.scale * transform.scaleX);
   final String y = cssNumber(transform.scale * transform.scaleY);
 
-  return 'translate(${cssPixels(transform.offsetX)}, '
-      '${cssPixels(transform.offsetY)}) '
-      'rotate(${cssNumber(transform.rotation)}deg) scale($x, $y)';
+  // Two translate functions where both kinds are stated, which is how CSS composes them: the
+  // pixels land first, then the multiple of the box's own size. One function could not say both.
+  final bool hasPixels = transform.offsetX != 0 || transform.offsetY != 0;
+  final bool hasFractions =
+      transform.fractionX != 0 || transform.fractionY != 0;
+
+  return <String>[
+    if (hasPixels)
+      'translate(${cssPixels(transform.offsetX)}, '
+          '${cssPixels(transform.offsetY)})',
+    if (hasFractions)
+      'translate(${cssNumber(transform.fractionX * 100)}%, '
+          '${cssNumber(transform.fractionY * 100)}%)',
+    'rotate(${cssNumber(transform.rotation)}deg) scale($x, $y)',
+  ].join(' ');
 }
 
 /// The CSS property of every look, in the order a transition lists them.

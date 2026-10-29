@@ -237,6 +237,7 @@ Box(
 | Parameter | Type | Default | Meaning |
 | --- | --- | --- | --- |
 | `width`, `height` | `double?` | content size | Logical pixels. `double.infinity` fills the space the parent gives. |
+| `widthFraction`, `heightFraction` | `double?` | none | A share of the parent rather than a number of pixels: `0.5` is half of it. This is the size a box can state without knowing one — a share of a row, one tab of a bar — and it wins over `width`/`height`, which `validateTree` reports if a box states both. |
 | `minWidth`, `maxWidth`, `minHeight`, `maxHeight` | `double?` | none | Bounds the box keeps even when its content wants otherwise. |
 | `padding` | `BoxSpacing?` | none | Space inside the box, around its children. |
 | `margin` | `BoxSpacing?` | none | Space outside the box. |
@@ -252,7 +253,7 @@ Box(
 | `shadow` | `BoxShadow?` | none | Drop shadow: colour, offset, blur, spread. |
 | `shape` | `BoxShape?` | the rectangle | The outline the box is painted in, instead of its rectangle: a path in a view box, stretched to the box. The background fills it, the `border` is drawn along it, and the children are clipped to it when the box also says `overflow: Overflow.hidden`. See [shapes](#shapes). |
 | `opacity` | `double?` | solid | `0` (invisible) to `1` (solid). The box keeps its room either way. |
-| `transform` | `BoxTransform?` | none | Moves, turns or scales the box about its centre (`scale`, `rotation` in degrees, `offsetX`, `offsetY`). It paints differently without taking different room, so text inside never reflows. |
+| `transform` | `BoxTransform?` | none | Moves, turns or scales the box about its centre (`scale`, `rotation` in degrees, `offsetX`/`offsetY` in pixels, `fractionX`/`fractionY` in multiples of the box's own size). The fractions are the offsets that need no measurement — one tab, half a width — and they compose with the pixels. It paints differently without taking different room, so text inside never reflows. |
 | `transition` | `BoxTransition?` | none | How long a change of the paint, the opacity or the transform takes, and how it eases. See [motion](#motion). |
 
 **Interaction**

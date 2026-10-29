@@ -35,6 +35,7 @@ final class BoxAppearance {
     this.margin,
     this.width,
     this.height,
+    this.widthFraction,
     this.backgroundColor,
     this.borderRadius,
     this.corners,
@@ -67,6 +68,9 @@ final class BoxAppearance {
   /// The width of the box in logical pixels, or `double.infinity` when it fills
   /// the space its parent gives it.
   final double? width;
+
+  /// The width as a fraction of the parent's, or `null` when it is stated in pixels.
+  final double? widthFraction;
 
   /// The height of the box in logical pixels, or `double.infinity` when it fills
   /// the space its parent gives it.
@@ -146,6 +150,7 @@ final class BoxAppearance {
       expected.margin ?? core.BoxSpacing.zero,
     );
     compare('width', width, expected.width);
+    compare('widthFraction', widthFraction, expected.widthFraction);
     compare('height', height, expected.height);
     compare('backgroundColor', backgroundColor, expected.backgroundColor);
     compare('borderRadius', borderRadius ?? 0, expected.borderRadius ?? 0);

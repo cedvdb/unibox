@@ -60,7 +60,10 @@ BoxAppearance appearanceOf(WidgetTester tester) {
     // size look identical anyway.
     padding: paddings.isEmpty ? null : _spacingOf(paddings.last),
     margin: paddings.length > 1 ? _spacingOf(paddings.first) : null,
-    width: sized?.width,
+    width: _fractionalWidthBefore(parts, contentIndex) == null
+        ? sized?.width
+        : null,
+    widthFraction: _fractionalWidthBefore(parts, contentIndex),
     height: sized?.height,
     backgroundColor: background == null
         ? null
@@ -256,6 +259,13 @@ core.BoxCurve _curveOf(Curve curve) {
 /// angle between that vector and the x axis. An identity matrix is reported as no
 /// transform, because the two paint the same box.
 core.BoxTransform? _transformBefore(List<Element> parts, int end) {
+  final double fractionX = _fractionalTranslation(parts, end, horizontal: true);
+  final double fractionY = _fractionalTranslation(
+    parts,
+    end,
+    horizontal: false,
+  );
+
   for (var index = 0; index < end; index++) {
     final Widget widget = parts[index].widget;
     if (widget is Transform) {
@@ -271,11 +281,33 @@ core.BoxTransform? _transformBefore(List<Element> parts, int end) {
         ),
         offsetX: _rounded(matrix.entry(0, 3)),
         offsetY: _rounded(matrix.entry(1, 3)),
+        fractionX: fractionX,
+        fractionY: fractionY,
       );
       return transform.isIdentity ? null : transform;
     }
   }
   return null;
+}
+
+/// A translation of the box by its own size, which `FractionalTranslation` is.
+///
+/// Flutter keeps it out of the matrix, as CSS keeps it out of a pixel translate: the two are
+/// different statements about the same offset, so the suite reads them separately.
+double _fractionalTranslation(
+  List<Element> parts,
+  int end, {
+  required bool horizontal,
+}) {
+  for (var index = 0; index < end; index++) {
+    final Widget widget = parts[index].widget;
+    if (widget is FractionalTranslation) {
+      return _rounded(
+        horizontal ? widget.translation.dx : widget.translation.dy,
+      );
+    }
+  }
+  return 0;
 }
 
 /// An opacity of `1` reads as no opacity.
@@ -311,6 +343,20 @@ double? _opacityBefore(List<Element> parts, int end) {
     }
     if (widget is Opacity) {
       return _opacityValue(widget.opacity);
+    }
+  }
+  return null;
+}
+
+/// The share of the parent the renderer gave this node, if the node declares one.
+///
+/// A fraction and a length are the same property in CSS and two different widgets here, so the
+/// suite reads them as two facts: `FractionallySizedBox` is the share.
+double? _fractionalWidthBefore(List<Element> parts, int end) {
+  for (var index = 0; index < end; index++) {
+    final Widget widget = parts[index].widget;
+    if (widget is FractionallySizedBox && widget.widthFactor != null) {
+      return widget.widthFactor;
     }
   }
   return null;

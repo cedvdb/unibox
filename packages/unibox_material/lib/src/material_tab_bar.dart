@@ -83,8 +83,7 @@ final class MaterialTabBar extends Box {
     MaterialPalette? palette,
     super.margin,
   }) : super(
-         direction: Axis.horizontal,
-         crossAlign: CrossAlign.start,
+         height: tabHeight,
          width: double.infinity,
          // The set the tabs belong to. A reader is told it has entered a tab bar, which is what makes
          // the tabs inside it mean "one of these" rather than several buttons.
@@ -95,15 +94,48 @@ final class MaterialTabBar extends Box {
            blurRadius: 0,
          ),
          children: <UINode>[
-           for (int index = 0; index < tabs.length; index++)
-             _tab(
-               tabs[index],
-               selected: index == selected,
-               variant: variant,
-               indicator: indicator ?? palette?.primary ?? _baselinePrimary,
-               palette: palette,
-               onTap: onSelect == null ? null : () => onSelect(index),
-             ),
+           StackNode(
+             children: <UINode>[
+               Box(
+                 direction: Axis.horizontal,
+                 width: double.infinity,
+                 height: tabHeight,
+                 children: <UINode>[
+                   for (int index = 0; index < tabs.length; index++)
+                     _tab(
+                       tabs[index],
+                       selected: index == selected,
+                       variant: variant,
+                       palette: palette,
+                       onTap: onSelect == null ? null : () => onSelect(index),
+                     ),
+                 ],
+               ),
+               // One indicator, one share of the bar wide, moved by a multiple of its own width:
+               // that is a whole tab per step, so `selected` places it without anyone measuring a
+               // tab. The transform is what a transition eases, so it slides rather than jumps.
+               PositionedNode(
+                 alignment: BoxAlignment.bottomCenter,
+                 child: Box(
+                   widthFraction: 1 / tabs.length,
+                   height: indicatorHeight,
+                   backgroundColor:
+                       indicator ?? palette?.primary ?? _baselinePrimary,
+                   transform: BoxTransform(fractionX: selected.toDouble()),
+                   transition: const BoxTransition(
+                     duration: Duration(milliseconds: 250),
+                     curve: BoxCurve.easeOut,
+                     parts: <BoxTransitionPart>[
+                       BoxTransitionPart(
+                         properties: <BoxProperty>{BoxProperty.transform},
+                         duration: Duration(milliseconds: 250),
+                       ),
+                     ],
+                   ),
+                 ),
+               ),
+             ],
+           ),
          ],
        );
 
@@ -121,7 +153,6 @@ final class MaterialTabBar extends Box {
     MaterialTab tab, {
     required bool selected,
     required MaterialTabVariant variant,
-    required BoxColor? indicator,
     required MaterialPalette? palette,
     required TapCallback? onTap,
   }) {
@@ -129,71 +160,41 @@ final class MaterialTabBar extends Box {
         ? (selected ? _baselinePrimary : const BoxColor(0xFF514346))
         : (selected ? palette.primary : palette.onSurfaceVariant);
 
-    // The well fills the tab: 48 pixels tall and as wide as the share, with the indicator laid
-    // over its bottom edge rather than stacked under it. Material tints *the tab* and draws the
-    // indicator on top of the tint, and a column of two children got that wrong in both
-    // directions — the well was as wide as its label, and the bottom three pixels were outside
-    // the thing a pointer could reach.
+    // The tab is the well, filling all 48 pixels and the whole share: Material tints the tab, and a
+    // column that held the well above an indicator strip made the tint as wide as its label and
+    // left the bottom three pixels outside the thing a pointer could reach.
     return Box(
       flex: variant == MaterialTabVariant.primary ? 1 : null,
       height: tabHeight,
       crossAlign: CrossAlign.stretch,
       children: <UINode>[
-        StackNode(
-          children: <UINode>[
-            MaterialInkWell(
-              onTap: onTap,
-              width: double.infinity,
-              height: tabHeight,
-              mainAlign: MainAlign.center,
-              crossAlign: CrossAlign.center,
-              padding: BoxSpacing.symmetric(
-                horizontal: variant == MaterialTabVariant.primary ? 8 : 16,
-              ),
-              // The label belongs to the caller, so its colour is inherited rather than reached
-              // into: a box hands its `textStyle` down to the texts inside it, which is the
-              // model's copy of CSS font inheritance.
-              child: Box(
-                gap: 4,
-                crossAlign: CrossAlign.center,
-                textStyle: MaterialTypography.titleSmall.copyWith(
-                  color: labelColour,
-                ),
-                children: <UINode>[?tab.icon, tab.label],
-              ),
-              semantics: BoxSemantics(
-                role: BoxRole.tab,
-                label: tab.semanticsLabel,
-                // Which of the set is chosen: `aria-selected` on the web, and Flutter's own
-                // selected flag, which is what a screen reader announces for a tab.
-                selected: selected,
-              ),
+        MaterialInkWell(
+          onTap: onTap,
+          width: double.infinity,
+          height: tabHeight,
+          mainAlign: MainAlign.center,
+          crossAlign: CrossAlign.center,
+          padding: BoxSpacing.symmetric(
+            horizontal: variant == MaterialTabVariant.primary ? 8 : 16,
+          ),
+          // The label belongs to the caller, so its colour is inherited rather than reached into:
+          // a box hands its `textStyle` down to the texts inside it, which is the model's copy of
+          // CSS font inheritance.
+          child: Box(
+            gap: 4,
+            crossAlign: CrossAlign.center,
+            textStyle: MaterialTypography.titleSmall.copyWith(
+              color: labelColour,
             ),
-            // Drawn on every tab and only visible on one, because an element that appears and
-            // disappears cannot be eased: the underline fades between tabs. It does not slide,
-            // and that is the honest limit of what a tree can say — a slide needs the width of
-            // the tabs beside this one, which is the layout's to know and not the node's.
-            PositionedNode(
-              alignment: BoxAlignment.bottomCenter,
-              child: Box(
-                width: double.infinity,
-                height: indicatorHeight,
-                backgroundColor: indicator,
-                opacity: selected ? 1 : 0,
-                // A transition names the looks it eases, and this box paints one: the underline.
-                transition: BoxTransition(
-                  duration: const Duration(milliseconds: 150),
-                  curve: BoxCurve.easeOut,
-                  parts: const <BoxTransitionPart>[
-                    BoxTransitionPart(
-                      properties: <BoxProperty>{BoxProperty.opacity},
-                      duration: Duration(milliseconds: 150),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+            children: <UINode>[?tab.icon, tab.label],
+          ),
+          semantics: BoxSemantics(
+            role: BoxRole.tab,
+            label: tab.semanticsLabel,
+            // Which of the set is chosen: `aria-selected` on the web, and Flutter's own selected
+            // flag, which is what a screen reader announces for a tab.
+            selected: selected,
+          ),
         ),
       ],
     );

@@ -512,6 +512,11 @@ application wants when the page is its own node — above a pager, above a page 
 beside a preview. A *primary* bar distributes its tabs across the width and a *secondary*
 one packs them to the start at their own width.
 
+Its indicator is one element, a share of the bar wide, moved by a multiple of its own width —
+so it slides between tabs with a `transform` a transition eases, and nobody has to measure a
+tab. A *secondary* bar keeps an even share for the same reason: an indicator under a label's
+text would be the one thing here that needs a measurement the tree cannot make.
+
 It does not page between tabs: a swipe needs a controlled scroll position, and the model
 reports an offset (`Box.onScroll`) without setting one. The pager is `Box(snap:
 ScrollSnap.page)`, which pages by drag; a tab press swaps the page instead of sliding to it.

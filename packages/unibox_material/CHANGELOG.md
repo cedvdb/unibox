@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- The tab bar's indicator is one element, a share of the width, moved by a fraction of itself — so it
+  **slides** to the chosen tab and a transition eases it, instead of appearing under one tab and not
+  the other. It is a `transform`, which both targets already animate.
+- A tab's tint covers the whole tab. It used to cover the label and stop above the indicator's three
+  pixels: the tab laid the well and the indicator out as two children of a column, and a column hugs
+  its content. Material tints the tab and draws the indicator over the tint.
+
 - `MaterialTabBar` and `MaterialTabs`: Material 3 tabs — primary (evenly distributed) or
   secondary (as wide as their labels) — with the indicator under the chosen tab and, in
   `MaterialTabs`, the page of that tab drawn under it. A tab press swaps the page rather

@@ -411,11 +411,27 @@ class FlutterBoxState extends State<FlutterBox> {
     core.BoxTransform transform,
     _Timing? timing,
   ) {
+    // The fraction is a translation of the box by its own size, which Flutter keeps out of the
+    // matrix: `FractionalTranslation` is that, and CSS writes the same thing as a percentage.
+    Widget fractioned(Widget inner, core.BoxTransform value) {
+      if (value.fractionX == 0 && value.fractionY == 0) {
+        return inner;
+      }
+
+      return FractionalTranslation(
+        translation: Offset(value.fractionX, value.fractionY),
+        child: inner,
+      );
+    }
+
     if (timing == null) {
-      return Transform(
-        transform: toMatrix4(transform),
-        alignment: Alignment.center,
-        child: child,
+      return fractioned(
+        Transform(
+          transform: toMatrix4(transform),
+          alignment: Alignment.center,
+          child: child,
+        ),
+        transform,
       );
     }
 
@@ -425,10 +441,13 @@ class FlutterBoxState extends State<FlutterBox> {
       curve: timing.curve,
       builder:
           (BuildContext context, core.BoxTransform animated, Widget? inner) =>
-              Transform(
-                transform: toMatrix4(animated),
-                alignment: Alignment.center,
-                child: inner,
+              fractioned(
+                Transform(
+                  transform: toMatrix4(animated),
+                  alignment: Alignment.center,
+                  child: inner,
+                ),
+                animated,
               ),
       child: child,
     );
@@ -607,6 +626,16 @@ class FlutterBoxState extends State<FlutterBox> {
       result = SizedBox(
         width: style.width,
         height: style.height,
+        child: result,
+      );
+    }
+
+    // A fraction of the space offered, which is the one size a box can state without knowing
+    // one: a share of a row, one tab of a bar. It wins over a stated size, as CSS does.
+    if (style.widthFraction != null || style.heightFraction != null) {
+      result = FractionallySizedBox(
+        widthFactor: style.widthFraction,
+        heightFactor: style.heightFraction,
         child: result,
       );
     }

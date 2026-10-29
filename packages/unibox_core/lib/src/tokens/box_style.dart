@@ -41,6 +41,8 @@ final class BoxStyle {
     this.page,
     this.width,
     this.height,
+    this.widthFraction,
+    this.heightFraction,
     this.minWidth,
     this.maxWidth,
     this.minHeight,
@@ -119,6 +121,20 @@ final class BoxStyle {
 
   /// The height in logical pixels, or `double.infinity` to expand.
   final double? height;
+
+  /// The width as a fraction of the parent's, or `null` for a stated width.
+  ///
+  /// `1` is the whole of it, `0.5` half. This is the size a box can state without knowing a
+  /// number: a share of a row, a column of a grid of shares. Material's tab indicator is one
+  /// share of the bar, which is a fraction rather than a pixel count because the bar's width is
+  /// the layout's business.
+  ///
+  /// It wins over [width], and `validateTree` reports the two together, because a box that is
+  /// told both has been told two things.
+  final double? widthFraction;
+
+  /// The height as a fraction of the parent's, or `null` for a stated height.
+  final double? heightFraction;
 
   /// The minimum width in logical pixels.
   final double? minWidth;
@@ -260,6 +276,8 @@ final class BoxStyle {
       page: page,
       width: width,
       height: height,
+      widthFraction: widthFraction,
+      heightFraction: heightFraction,
       minWidth: minWidth,
       maxWidth: maxWidth,
       minHeight: minHeight,
@@ -298,6 +316,8 @@ final class BoxStyle {
     int? page,
     double? width,
     double? height,
+    double? widthFraction,
+    double? heightFraction,
     double? minWidth,
     double? maxWidth,
     double? minHeight,
@@ -328,6 +348,8 @@ final class BoxStyle {
       page: page ?? this.page,
       width: width ?? this.width,
       height: height ?? this.height,
+      widthFraction: widthFraction ?? this.widthFraction,
+      heightFraction: heightFraction ?? this.heightFraction,
       minWidth: minWidth ?? this.minWidth,
       maxWidth: maxWidth ?? this.maxWidth,
       minHeight: minHeight ?? this.minHeight,
@@ -373,6 +395,8 @@ final class BoxStyle {
       page: other.page ?? page,
       width: other.width ?? width,
       height: other.height ?? height,
+      widthFraction: other.widthFraction ?? widthFraction,
+      heightFraction: other.heightFraction ?? heightFraction,
       minWidth: other.minWidth ?? minWidth,
       maxWidth: other.maxWidth ?? maxWidth,
       minHeight: other.minHeight ?? minHeight,
@@ -407,6 +431,8 @@ final class BoxStyle {
       other.page == page &&
       other.width == width &&
       other.height == height &&
+      other.widthFraction == widthFraction &&
+      other.heightFraction == heightFraction &&
       other.minWidth == minWidth &&
       other.maxWidth == maxWidth &&
       other.minHeight == minHeight &&
@@ -438,6 +464,8 @@ final class BoxStyle {
     page,
     width,
     height,
+    widthFraction,
+    heightFraction,
     minWidth,
     maxWidth,
     minHeight,
@@ -468,6 +496,8 @@ final class BoxStyle {
       if (snap != null) 'snap: $snap',
       if (page != null) 'page: $page',
       if (width != null) 'width: $width',
+      if (widthFraction != null) 'widthFraction: $widthFraction',
+      if (heightFraction != null) 'heightFraction: $heightFraction',
       if (height != null) 'height: $height',
       if (minWidth != null) 'minWidth: $minWidth',
       if (maxWidth != null) 'maxWidth: $maxWidth',

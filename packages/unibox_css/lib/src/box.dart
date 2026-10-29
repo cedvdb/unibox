@@ -93,8 +93,18 @@ CssDeclarations boxDeclarations(
   }
 
   declarations
-    ..addIf('width', cssLength(style.width))
-    ..addIf('height', cssLength(style.height))
+    // A fraction wins over a stated size: the two say the same thing, and `validateTree` reports
+    // the box that says both.
+    ..addIf('width', cssFraction(style.widthFraction))
+    ..addIf('height', cssFraction(style.heightFraction))
+    ..addIf(
+      'width',
+      style.widthFraction == null ? cssLength(style.width) : null,
+    )
+    ..addIf(
+      'height',
+      style.heightFraction == null ? cssLength(style.height) : null,
+    )
     ..addIf('min-width', cssLength(style.minWidth))
     ..addIf('min-height', cssLength(style.minHeight))
     ..addIf('max-width', cssLength(style.maxWidth))

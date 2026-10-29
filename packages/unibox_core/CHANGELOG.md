@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- `BoxTransform.fractionX` and `BoxTransform.fractionY`: move a box by a multiple of its own size,
+  which is the offset that needs no measurement — a tab indicator one tab wide moves a whole tab per
+  step. They compose with `offsetX`/`offsetY` rather than replacing them.
+- `BoxStyle.widthFraction` and `heightFraction`: a share of the parent instead of a number of pixels,
+  so one element can be `1/count` of the row it sits in. A share wins over a stated size, and
+  `validateTree` reports a box that states both.
+
 - `Box.snap`: a scrolling box can settle on a child instead of wherever the gesture ended,
   with `ScrollSnap.page` — a pager, a carousel, a wizard step, along the box's own
   direction. `validateTree` reports a snap on a box that cannot scroll.
