@@ -69,7 +69,7 @@ final class MaterialTabsStore extends StateStore<MaterialTabsState> {
 /// **What it is not.** It does not page: a swipe between tabs needs a controlled scroll
 /// position, which the model does not state yet (`Box.onScroll` reports an offset; nothing
 /// sets one). A tab press therefore swaps the page rather than sliding to it, which is honest
-/// about what a document can do and leaves the pager in [`Box.snap`].
+/// about what a document can do and leaves the pager in [Box.snap].
 final class MaterialTabs
     extends StatefulNode<MaterialTabsState, MaterialTabsStore> {
   /// Creates tabs over [pages], one per [MaterialTab].
