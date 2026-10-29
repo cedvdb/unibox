@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `Box.onScroll` is bound to the element's own `scroll` event and reports `scrollTop` or
+  `scrollLeft`, chosen by the box's direction. A document rendered without a runtime has no
+  scroll report — the callback is behaviour, and a static page has none.
+
 - `DomView.adopt(tree, root)`: draws a tree into the markup a server already wrote, keeping
   the elements rather than replacing them, so a reader who has scrolled or focused a field
   keeps their place and the page a crawler reads stays the page a reader uses.

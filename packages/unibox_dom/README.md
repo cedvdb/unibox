@@ -35,6 +35,15 @@ same tags, same classes — so there is nothing to reconcile.
 `render(tree)` swaps the tree of a view that is already drawing, which is what a palette
 change is: the plan differs only in the custom properties the roles resolve to.
 
+## Behaviour
+
+A callback is an event listener on the element the node became, bound when the element is built
+and removed when it is replaced — a press is `click`, a hover is `pointerenter` and
+`pointerleave`, and `onScroll` is the element's own `scroll`, read as `scrollTop` or
+`scrollLeft` depending on the box's direction. `scroll` does not bubble, so a scrollable nested
+in another reports only to its own box, which is the rule Flutter reaches with a notification's
+depth.
+
 ## How it updates
 
 A publish from a `StatefulNode`'s store re-plans **that node's subtree** and patches it in

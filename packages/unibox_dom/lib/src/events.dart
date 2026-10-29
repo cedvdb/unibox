@@ -49,6 +49,20 @@ List<void Function()> bindNode(core.UINode node, web.Element element) {
         _bindActivationKey(on, box.onTap!);
       }
 
+      if (box.onScroll case final core.ScrollCallback onScroll) {
+        // `scroll` does not bubble, so a scrollable nested in this element never reaches this
+        // listener: the nested box reports its own offset to its own callback, exactly as
+        // Flutter's notification depth does.
+        final bool horizontal =
+            box.computedStyle.resolvedDirection == core.Axis.horizontal;
+
+        on('scroll', (web.Event event) {
+          onScroll(
+            (horizontal ? element.scrollLeft : element.scrollTop).toDouble(),
+          );
+        });
+      }
+
       if (box.onHover case final core.HoverCallback onHover) {
         // `enter` and `leave` rather than `over` and `out`: those two fire for every child the
         // pointer crosses, so a control made of several boxes would report a hover dozens of times
