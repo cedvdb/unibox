@@ -88,7 +88,24 @@ is, what a tap does, what the document is called. Those are the host's; see
 
 ## Serving a tree
 
-Two ways, and the difference is what answers a press.
+Two ways, and the difference is what answers a press. Both exist because the two shapes of
+application are not the same problem, and picking the wrong one costs more than it saves.
+
+**The handover is the cheap one.** You render the first screen a visitor lands on — the page a
+crawler reads — and stop there: Flutter boots into it and draws everything after that, including
+the dialogs, the forms and the screens behind the ones you indexed. Nothing has to be rewritten in
+Unibox to get started, because the tree you already have is the application; only the landing
+screen, the one that has to be found, is described twice, and the visible cost is one repaint.
+
+**The page drawing itself is the independent one.** Nothing of Flutter is loaded, no binary is
+fetched and there is no handover to reason about: the document is the application, its script is
+small enough to be a rounding error next to an engine, and the whole deployment is a folder of
+files any static host can serve. It costs the one thing the handover gives away — every
+interaction you want has to exist as a node, so a dialog is a node in the tree rather than a
+widget only the app can draw.
+
+So: hand over when the app already exists and a page or two has to be findable, and let the page
+draw itself when the page is the product.
 
 ### The server writes the document, and Flutter takes it over
 

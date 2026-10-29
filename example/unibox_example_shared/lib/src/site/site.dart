@@ -7,6 +7,7 @@ import '../theme.dart';
 import 'gallery.dart';
 import 'hero.dart';
 import 'section.dart';
+import 'ways.dart';
 
 /// The repository, which the header and the footer point at.
 const String repositoryUrl = 'https://github.com/cedvdb/unibox';
@@ -20,9 +21,11 @@ const String repositoryUrl = 'https://github.com/cedvdb/unibox';
 /// take a reader to, so a static document loses nothing it had.
 ///
 /// The order is the argument. The hero makes the claim and settles it in the same band,
-/// with two live renderings of one tree; the catalogue shows the design system both
-/// sides are drawn with. A reader who stops after the frames has still seen the claim
-/// answered.
+/// with two live renderings of one tree; the ways band answers the question the frames
+/// leave open — which of the two ways to deploy — and names what each costs; the catalogue
+/// shows the design system both sides are drawn with. A reader who stops after the frames
+/// has still seen the claim answered, and one who stops after the ways knows which of them
+/// applies to their application.
 UINode buildSitePage({
   required ShowcaseFrame frame,
   ExampleSeed seed = ExampleSeed.defaultSeed,
@@ -46,6 +49,7 @@ UINode buildSitePage({
         semantics: const BoxSemantics(element: BoxElement.main),
         children: <UINode>[
           buildHeroSection(frame: frame, seed: seed),
+          buildWaysSection(seed: seed),
           buildMaterialSection(seed: seed),
         ],
       ),
