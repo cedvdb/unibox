@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:material_color_utilities/material_color_utilities.dart';
 import 'package:unibox_core/unibox_core.dart';
 
@@ -326,7 +328,34 @@ final class MaterialPalette {
   /// Every role is present, including the four state layers, which is what makes
   /// `BoxColor.role(MaterialColorRole.primary)` resolve in a component without the
   /// component knowing which palette is in force.
+  /// The scheme these roles are painted in, read from [surface].
+  ///
+  /// The relative luminance of the colour a page is painted on: a surface above half the scale is
+  /// a light scheme, which is Material's own dividing line between the two. Deriving it means the
+  /// `color-scheme` a document states cannot disagree with the colours the document draws.
+  BoxColorScheme get colorScheme =>
+      _luminance(surface) > 0.5 ? BoxColorScheme.light : BoxColorScheme.dark;
+
+  /// The relative luminance of [color], as WCAG defines it.
+  static double _luminance(BoxColor color) {
+    double channel(int value) {
+      final double unit = value / 255;
+
+      return unit <= 0.03928
+          ? unit / 12.92
+          : math.pow((unit + 0.055) / 1.055, 2.4).toDouble();
+    }
+
+    return 0.2126 * channel(color.red) +
+        0.7152 * channel(color.green) +
+        0.0722 * channel(color.blue);
+  }
+
   UniboxTheme get theme => UniboxTheme(
+    // The palette is what knows whether it is a dark one: `fromSeed(isDark:)`, `light` and `dark`
+    // decide it at construction, and a surface is the role whose tone states it. Read back from
+    // the values rather than stored, so a palette cannot claim one scheme and paint another.
+    colorScheme: colorScheme,
     colors: <MaterialColorRole, BoxColor>{
       MaterialColorRole.primary: primary,
       MaterialColorRole.onPrimary: onPrimary,

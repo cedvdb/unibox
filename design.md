@@ -709,3 +709,42 @@ What that buys, stated as the invariants the feature has to keep:
 - The key is not a semantic and not a look: no class, no rule, no element, nothing read
   back, and two elements with the same look keep sharing one class while carrying
   different keys — the same argument §5.16 makes for the name.
+
+### 5.19 A locale is an input, and the host chooses it
+
+- The model holds strings, and a string is a value like a colour: copy is decided where
+  the tree is built. What it refuses is an ambient lookup. `Localizations.of` reads a
+  `BuildContext`, and `toDocument` renders a tree with no context, no binding and no
+  second frame — a tree that reads the locale is a tree that cannot be a page. The
+  pattern is therefore one builder called once per language, not one page that swaps its
+  text: `UINode buildPage({required SiteCopy copy, required SiteRoutes routes})`.
+- The copy is a `const` instance per locale, not a `Map` of keys. A missing key in a map
+  is a blank on one page at runtime; a missing `required` field is a compile error in
+  every language, which is the whole reason a translated page starts as a class.
+- Copy and routes travel together and come from one tag. The bug a localised site
+  actually has is a page in one language whose links, canonical or `alternates` point at
+  another — so a builder takes the editions it needs from a single value, never a `String`
+  from one place and a path from another.
+- The address is the source of truth, because a crawler sends no `Accept-Language` and
+  keeps no cookie: `/de/apartments/` is the German page, and a language switch is a `LinkNode`
+  to the other address — followable, crawlable and shareable, the same shape the example's
+  palette picker uses to be a page a crawler can reach. A state in a store is the honest
+  answer for a language change inside an application; a link is the honest answer for a
+  page that has to be found.
+- One document per locale, and each one states its own three facts: `lang` for the
+  language it is written in, `canonical` for its own address, and `alternates` for the
+  whole set, itself included. `hreflang` is the only thing that tells a search engine three
+  pages of translated text are one page in three languages rather than three pages
+  competing for one query.
+- Beyond one page, `.arb` and `intl` belong to the application. `intl` is a pure Dart
+  package, so the no-dependency rule — which binds `unibox_core` — leaves a consumer free
+  to use it; plurals, number and date formats and collation are exactly the things a
+  renderer must not pick an implementation of, because it would have to pick one on both
+  targets. The model's share of localisation is what a translated page still has to say
+  correctly: real strings, `alt` text, `BoxSemantics.label`, and headings at the level the
+  page's structure asks for.
+- What the model deliberately does not grow: a `locale` on a node (a language is a document
+  fact, §5.6, and a node is a region of a document), a mutable current locale (one build
+  step writes every language in one process, so a global would make output depend on write
+  order), and a key catalogue in core (a key map gives up the compiler's help and would be
+  the first dependency the model cannot have).

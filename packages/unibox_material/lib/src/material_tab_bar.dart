@@ -95,6 +95,11 @@ final class MaterialTabBar extends Box {
   }) : super(
          height: tabHeight,
          width: double.infinity,
+         // The row fills the bar, and it only can if the bar hands its width down: a box
+         // starts its children by default, so the layer inside was as wide as the tabs it
+         // held — 210 pixels of a 1080 pixel bar, packed at the left, with a "share" of the
+         // bar that was really a share of the three labels.
+         crossAlign: CrossAlign.stretch,
          // The set the tabs belong to. A reader is told it has entered a tab bar, which is what makes
          // the tabs inside it mean "one of these" rather than several buttons.
          semantics: const BoxSemantics(role: BoxRole.tablist),
@@ -125,9 +130,14 @@ final class MaterialTabBar extends Box {
                // A primary bar's tabs are the same width, so one indicator can be a share of the
                // bar and moved by a multiple of its own width: a whole tab per step, placed by
                // `selected` alone. The transform is what a transition eases, so it slides.
+               //
+               // It starts at the *start* edge, not the centre: an aligned child fills the stack
+               // and the alignment places it, so a centred indicator already sits half a bar along
+               // and every step is then one tab too far — the underline of a three-tab bar landed
+               // under the second tab while the first was chosen.
                if (variant == MaterialTabVariant.primary)
                  PositionedNode(
-                   alignment: BoxAlignment.bottomCenter,
+                   alignment: BoxAlignment.bottomStart,
                    child: Box(
                      widthFraction: 1 / tabs.length,
                      height: indicatorHeight,

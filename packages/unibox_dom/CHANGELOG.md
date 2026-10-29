@@ -9,6 +9,15 @@
 - A keyed list is matched through an index rather than by asking every element for its key, and an
   adopted page is walked once rather than once per element: both were quadratic, and both happen
   where the page is biggest.
+- A publish no longer dies on a shaped box: the class is written as an attribute, because an
+  `<svg>`'s `className` is an object rather than a string, which threw and left the pass half
+  applied.
+
+- The view writes its stylesheet *beside* the one a document was served with instead of over it.
+  Adoption keeps elements it never planned — a shape's `<svg>` layer and its `<path>` are invented
+  by the plan, not by the tree — so writing over the served rules deleted the `fill` and `stroke`
+  they were painted by, and an SVG with no `fill` is black: the example's progress ring and its
+  badges came out as black discs.
 
 - A store stays with the element that drew it. A repaint of a `StatefulNode` plans its view from
   the node's own address in the tree, so the components inside it keep their stores — and their

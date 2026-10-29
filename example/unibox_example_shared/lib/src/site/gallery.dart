@@ -571,19 +571,20 @@ final class TabsDemo extends StatefulNode<TabsDemoState, TabsDemoStore> {
   TabsDemo._({required super.view}) : super(create: TabsDemoStore.new);
 }
 
-/// Which tab is chosen, and how wide one page is.
+/// Which tab is chosen, and how wide the tab view is.
 ///
 /// The width is state because it is what turns an offset into a page: a pager reports pixels, and
-/// the bar speaks in indices, so something has to know the divisor. Here, because the demo draws
-/// pages of a fixed size.
+/// the bar speaks in indices, so something has to know the divisor. Here, because the demo draws a
+/// table of a fixed size — the bar, the pager and every page are the same width, which is what puts
+/// the page under the tab that shows it and leaves no strip of view narrower than the bar above it.
 final class TabsDemoState {
-  /// Creates a state showing page [selected], with pages [pageWidth] wide.
-  const TabsDemoState({this.selected = 0, this.pageWidth = 240});
+  /// Creates a state showing page [selected], in a view [pageWidth] wide.
+  const TabsDemoState({this.selected = 0, this.pageWidth = 720});
 
   /// The index of the chosen tab, which is also the page the pager shows.
   final int selected;
 
-  /// How wide one page is, in logical pixels.
+  /// How wide one page, and the bar above it, is in logical pixels.
   final double pageWidth;
 
   @override
@@ -600,15 +601,26 @@ final class TabsDemoState {
 }
 
 /// The store of [TabsDemo]: one index, from a press or from a swipe.
+///
+/// It holds the two directions apart, because the pager and the bar are wired to each other. A
+/// press chooses a page and the pager *slides* to it, reporting every offset on the way; read as
+/// choices, those offsets send the bar back to where the slide started, and the tab that was
+/// pressed never appears chosen. So a press leaves a marker behind, and the offsets of the slide
+/// it asked for are ignored until the pager arrives. A swipe sets no marker — every offset a
+/// reader makes is theirs.
 final class TabsDemoStore extends StateStore<TabsDemoState> {
   /// Creates the store on page 0.
   TabsDemoStore() : super(const TabsDemoState());
 
+  /// The page a press sent the pager to, while it is still on its way there.
+  int? _sent;
+
   /// Chooses the tab at [index].
-  void choose(int index) => state = TabsDemoState(
-    selected: index.clamp(0, 2),
-    pageWidth: state.pageWidth,
-  );
+  void choose(int index) {
+    final int chosen = index.clamp(0, 2);
+    _sent = chosen;
+    _select(chosen);
+  }
 
   /// Follows the reader's swipe: the offset becomes the page it landed on.
   ///
@@ -616,11 +628,26 @@ final class TabsDemoStore extends StateStore<TabsDemoState> {
   /// page settles on it: the bar should say where the pager came to rest, not where it started.
   void scrolledTo(double offset) {
     final int index = (offset / state.pageWidth).round();
+    final int? sent = _sent;
+
+    if (sent != null) {
+      // Still arriving where a press sent it: an offset between two pages says nothing about
+      // what the reader wants, and the one that reaches the page hands the pager back.
+      if (index == sent) {
+        _sent = null;
+      }
+
+      return;
+    }
 
     if (index != state.selected) {
-      choose(index);
+      _select(index);
     }
   }
+
+  /// Shows the page at [index] without claiming the pager is on its way there.
+  void _select(int index) =>
+      state = TabsDemoState(selected: index, pageWidth: state.pageWidth);
 }
 
 /// The bar, then the pager both are looking at.
@@ -636,7 +663,11 @@ UINode _tabsView(
   ];
 
   return Box(
-    width: double.infinity,
+    // The bar is as wide as the page under it, which is the width the demo states: a page has to
+    // be a number in the tree for the pager to land on one, so the bar is given that number too
+    // rather than the whole section. Stretched instead, the bar was 1080 pixels and the page 720,
+    // and the view under the tabs read as a narrower strip than the row above it.
+    width: state.pageWidth,
     gap: 16,
     children: <UINode>[
       MaterialTabBar(
@@ -672,11 +703,17 @@ UINode _tabsView(
   );
 }
 
-/// One page of the tab demo: a line of text on the surface the band is drawn on.
+/// One page of the tab demo: a line of text on a surface of its own.
+///
+/// It paints a fill and a hairline rather than sitting on whatever is behind it, because a page
+/// whose extent is invisible is a page a reader cannot place: the outline says where the view
+/// under the tabs begins and ends, and shows that it is exactly as wide as the row above it.
 UINode _page(MaterialPalette palette, String text) {
   return Box(
     width: double.infinity,
     padding: const BoxSpacing.all(20),
+    backgroundColor: palette.surfaceContainerLow,
+    border: BoxBorder(color: palette.outlineVariant),
     children: <UINode>[
       TextNode(
         text,
@@ -1016,23 +1053,27 @@ UINode _dialogView(bool open, DialogDemoStore store, MaterialPalette palette) {
     maxColumns: 3,
     gap: 24,
     children: <UINode>[
-      Box(
-        backgroundColor: palette.primary,
-        borderRadius: 20,
-        children: <UINode>[
-          MaterialInkWell(
-            onTap: store.open,
-            borderRadius: 20,
-            ink: palette.onPrimary,
-            padding: const BoxSpacing.symmetric(horizontal: 20, vertical: 10),
-            child: TextNode(
-              'Delete listing',
-              style: MaterialTypography.labelLarge.copyWith(
-                color: palette.onPrimary,
+      // At its own size, like every control on this page: a grid item fills its track, and
+      // this button without a wrapper became a banner whose tint was wider than its label.
+      _natural(
+        Box(
+          backgroundColor: palette.primary,
+          borderRadius: 20,
+          children: <UINode>[
+            MaterialInkWell(
+              onTap: store.open,
+              borderRadius: 20,
+              ink: palette.onPrimary,
+              padding: const BoxSpacing.symmetric(horizontal: 20, vertical: 10),
+              child: TextNode(
+                'Delete listing',
+                style: MaterialTypography.labelLarge.copyWith(
+                  color: palette.onPrimary,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       Box(
         width: double.infinity,

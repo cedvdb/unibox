@@ -250,6 +250,8 @@ logical pixels. `design.md` §5.15 holds the reasoning; these are the pieces.
 
 - [x] Task 144: A shape can be a line, and the ends of a line can be capped. `BoxShape.arc` states an arc as a *sweep* — a fraction of a turn, clockwise from twelve o'clock — drawn on a centreline inset by half the stroke, as an **open** path; `BoxBorder.cap` states `butt`, `round` or `square` for where such a line ends, carried to the web as `--unibox-shape-stroke-cap` on the box's rule and `stroke-linecap` on the path's class, and to Flutter as `Paint.strokeCap` through `toStrokeCap`. `validateTree` reports a cap on a rectangle, where no target draws one. With those two the Material ring is one stroked circle with rounded ends instead of a filled band with radial cuts — the shape was right and the paint was wrong — and its sweep is a number, which is what a value, a state or a later timeline can move without either renderer learning what an indicator is.
 
+- [x] Task 145: The site ends on the vocabulary it is built from. The hero and the catalogue between them draw seven of the eleven nodes, and a reader could finish the page without learning that a picture, a stack or a child placed at an offset exists — the four that were missing are the four that are easiest to miss, because none of them is a word. So the page closes with one listing card drawn from exactly those four (`ImageNode` with the photograph it is, `StackNode` with a `PositionedNode` pinning a price to its corner, a bare `TextInputNode` with no chrome), beside the same card taken apart: a two-column list of the nodes and what each carries, indented by depth, its name column a fixed width so the tokens line up. That pairing is the claim of the whole page at the scale of one component — the picture is not a screenshot of the card, it *is* the list, which is why a card here is text a crawler reads rather than an image of text it cannot. Three things the band is not: a tile per primitive (a box does not look like anything, so nine of them would be a catalogue of nothing), a fifth `h2` above the catalogue (the catalogue is what the last band sums up, not the other way round), and a walk of its own tree (a page that printed its own tree would say what the code does rather than what a reader is meant to take from it). The band is tinted (`surfaceContainer`) so the page closes rather than runs into the footer, and it is a `GridNode` of two tracks, so a phone gets the card above the list instead of two columns of eight characters.
+
 ## Decisions
 
 - **License:** MIT, at the root and in every package.
@@ -365,7 +367,10 @@ Deliberately out of scope for this pass, with the reason they were left:
   mirrors rows and flips `start`/`end`, so it changes the layout. But both platforms
   already resolve a logical direction natively — `Directionality` in Flutter, `dir` on
   the web — so setting it is a host duty like the font file, and the tree only has to
-  speak logical tokens. A `BoxTheme` in core would be worse: `onPrimary` and
+  speak logical tokens. The one document fact of a localised site that no host can
+  supply from outside the API is the set of translations: `hreflang` belongs to the
+  page, so it landed as `toDocument(alternates:)` (§5.19) instead of waiting for a
+  node. A `BoxTheme` in core would be worse: `onPrimary` and
   `outline` are Material's words, and a design system is a package of values
   (`unibox_material`), not a concept the model has to carry. The outward projection
   that a core theme would have needed — `ThemeData` on one side, CSS variables on the

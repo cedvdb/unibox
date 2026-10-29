@@ -7,6 +7,7 @@ import '../theme.dart';
 import 'gallery.dart';
 import 'hero.dart';
 import 'section.dart';
+import 'vocabulary.dart';
 
 /// The repository, which the header and the footer point at.
 const String repositoryUrl = 'https://github.com/cedvdb/unibox';
@@ -47,6 +48,10 @@ UINode buildSitePage({
         children: <UINode>[
           buildHeroSection(frame: frame, seed: seed),
           buildMaterialSection(seed: seed),
+          // The page ends on the vocabulary itself: every band above is drawn from
+          // these eleven nodes, and the last one says so by drawing the four it had
+          // not shown and naming them.
+          buildVocabularySection(seed: seed),
         ],
       ),
       _footer(palette),

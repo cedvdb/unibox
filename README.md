@@ -35,6 +35,7 @@ expected appearance holds both renderers to the same answer.
 - [Quick start](#quick-start)
 - [Flutter hydrates it](#flutter-hydrates-it--the-least-to-change)
 - [The DOM hydrates itself](#the-dom-hydrates-itself--nothing-of-flutter)
+- [In several languages](#in-several-languages--one-document-per-language)
 - [The nodes](#the-nodes)
 - [Colours](#colours)
 - [Typography](#typography)
@@ -151,6 +152,32 @@ A dialog, a filter, a reorder — each works without Flutter. A widget Flutter a
 the app, and neither way asks you to rewrite the rest: the screens that do not have to be found stay
 ordinary Flutter, untouched.
 
+### In several languages — one document per language
+
+A localised site is the same builder called with the copy of each language, each written to its own
+address, each document naming the whole set:
+
+```dart
+for (final SiteEdition edition in SiteEdition.all) {
+  final String page = toDocument(
+    buildListingsPage(edition.copy),
+    title: edition.copy.title,
+    lang: edition.tag,
+    canonical: edition.url('apartments'),
+    alternates: SiteEdition.alternates('apartments'),
+  );
+  File('site/${edition.tag}/apartments/index.html').writeAsStringSync(page);
+}
+```
+
+`lang` says which language the page is written in; `alternates` says which other addresses carry the
+same page, so a search engine pairs the translations instead of keeping one and hiding the rest. The
+locale comes from the address rather than a cookie or `Accept-Language`, because a crawler sends
+neither, and a language switch is a [link](#linknode) to the other address — followable by a reader
+and by a crawler. Copy stays a value passed into the tree (`SiteCopy.de`), so a string a language is
+missing is a compile error; an `.arb` catalogue, plurals and date formats live in the application's
+own package, which the tree never sees.
+
 ## Quick start
 
 The packages are not on pub.dev yet (`publish_to: none` keeps them off until a
@@ -231,6 +258,7 @@ Box(
 | `flex` | `int?` | none | Share of the free space this box takes inside its parent: `flex: 1` is an `Expanded` in Flutter and `flex-grow: 1` on the web. |
 | `overflow` | `Overflow?` | visible | `hidden` clips the content, `scroll` makes the box scroll along its direction. |
 | `snap` | `ScrollSnap?` | none | Where a scrolling box comes to rest. `page` makes it a pager: it moves one child at a time along its own direction and settles on a child rather than between two. It needs `overflow: Overflow.scroll`; `validateTree` reports a snap on a box that cannot scroll. |
+| `page` | `int?` | none | The page a snapping box shows, counted along its direction: how a pager is *told* where to go, as a position rather than a controller. It moves the box when it changes, so a tree drawn twice with the same page leaves the reader alone. Only meaningful with `snap: ScrollSnap.page`. |
 
 **Size**
 
@@ -264,7 +292,7 @@ Box(
 | `onTapDown` | `TapDownCallback?` | none | A press lands: where it landed inside the box and what pressed it (touch, mouse, pen, keyboard). It fires before `onTap`, which is what an effect that starts at the pointer needs. |
 | `onLongPress` | `LongPressCallback?` | none | Pressed and held. |
 | `onHover` | `HoverCallback?` | none | Pointer entered or left the box. |
-| `onScroll` | `ScrollCallback?` | none | The box scrolled, with how far its content has moved along its main axis. Only a box with `overflow: Overflow.scroll` reports it, and only for its own scrolling — a scrollable nested inside it reports to its own box. It is what lets a header fold as the list under it moves. |
+| `onScroll` | `ScrollCallback?` | none | The box scrolled, with how far its content has moved along its main axis. Only a box with `overflow: Overflow.scroll` reports it, and only for its own scrolling — a scrollable nested inside it reports to its own box. It is what lets a header fold as the list under it moves. A box that states `page` *and* listens to `onScroll` is wired to itself: the move it was told to make reports every offset on the way, so the callback has to tell those from the reader's own scrolling. The example's tabs demo does it with one field, and the difference is visible: a pager sliding to a page a press chose reports 0, its whole width, then the page. |
 | `enabled` | `bool` | `true` | A disabled box keeps its layout, drops its callbacks, leaves the tab order and is announced as disabled. |
 | `semantics` | `BoxSemantics?` | none | What the box *is* for a screen reader: role, label, state, element. |
 | `stateStyles` | `Map<BoxState, BoxStyle>?` | none | Looks for `hover`, `focus`, `pressed` and `disabled`, layered over the resting one. |
@@ -748,9 +776,30 @@ toDocument(page, theme: theme);      // writes :root and points the rules at it
 | one theme value | the tree, the host's CSS (`var(--unibox-color-primary)`) and the app's `ColorScheme` all read the same palette |
 | the web writes `var()` | a host stylesheet or a `prefers-color-scheme: dark` block outranks the tree without touching it |
 | literals still work | a page that needs no theme never needs one, and a role with no theme is reported by name |
+| `colorScheme` | the theme says whether it is a light or a dark one, and a document states it as `color-scheme` — so the browser paints its scrollbars and its caret to match the page rather than the reader's system |
 
 `validateTree(root, theme: theme)` reports a role the theme does not define, so a
 missing colour is a message with a name in it rather than a blank box.
+
+**Light unless stated.** `UniboxTheme.colorScheme` defaults to `light`, and
+`MaterialPalette.theme` fills it in from the palette's own surface, so
+`MaterialPalette.dark` writes `color-scheme: dark` without anyone saying it twice.
+No renderer reads `prefers-color-scheme` or a platform's brightness on its own:
+following the reader is a host's decision, made by installing the theme it chose.
+A host that wants it writes one block, with every role rather than a handful:
+
+```css
+@media (prefers-color-scheme: dark) {
+  :root { /* MaterialPalette.fromSeed(seed, isDark: true).theme */ }
+}
+```
+
+and in Flutter, two lines where the theme is installed:
+
+```dart
+final bool dark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+renderFlutter(page, theme: dark ? MaterialPalette.darkTheme : MaterialPalette.lightTheme);
+```
 
 ## Typography
 
@@ -905,6 +954,7 @@ to the host that draws it.
 | **State**: the values of a form, which page is open, what a tap does | Nodes are immutable and hold no values. A callback is a `void Function()` the host implements, and the host re-renders with new nodes. |
 | **The surface**: window size, safe areas, scroll position | A description does not know how large the window is. A responsive page takes the answer as a parameter, and each host produces it its own way. |
 | **The document**: title, language, description, canonical url, structured data | Those describe a page, not a region of one. The Flutter host gives them to its `MaterialApp`, the web host to `toDocument`. |
+| **The language**: which copy the page is written in, and the addresses of its translations | Copy is a string, so it is built into the tree as a value like a colour; the locale is the host's, because a crawler can only read it from the address. A tree that read `Localizations` could not be rendered as a document at all. |
 | **The fonts** | A font file is an asset of the application, and it has to be the same file on both sides. |
 | **Effects with no common description** | That is what [`EmbedNode`](#embednode) is for. |
 
@@ -1042,7 +1092,8 @@ package. `tool/maintenance.sh` is the slower, monthly pass: the same gate with t
 the performance budget, the site build and the numbers this page quotes.
 
 `tool/site.sh` builds the site: one page at `/` — the claim, the example drawn by both
-renderers side by side, and the Material catalogue the page is built with — plus the
+renderers side by side, the Material catalogue the page is built with, and the vocabulary
+that closes it — plus the
 example itself at `/web/` and its Flutter build at `/flutter/`. Every band of the page
 is a node tree: the two frames of the comparison are the one thing the model cannot
 describe, and they arrive through `EmbedNode`.

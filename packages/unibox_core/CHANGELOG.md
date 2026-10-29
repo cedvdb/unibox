@@ -6,6 +6,10 @@
   resolving a style. A renderer asks it of every child of every box to know which box a container
   query measures, and answering that by merging every bag was work per node for a question about
   two tokens.
+- `UniboxTheme.colorScheme` (`BoxColorScheme.light` or `dark`, light unless stated): the scheme a
+  theme's values are painted in. It is not a preference — it is the fact a `color-scheme`
+  declaration states, so the browser paints its own chrome to match the page. No renderer reads
+  the reader's preference on its own.
 
 - `BoxTransform.fractionX` and `BoxTransform.fractionY`: move a box by a multiple of its own size,
   which is the offset that needs no measurement — a tab indicator one tab wide moves a whole tab per

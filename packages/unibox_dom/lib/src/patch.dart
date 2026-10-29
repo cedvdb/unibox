@@ -254,12 +254,16 @@ ElementPlan _planOf(web.Element element, Map<String, ElementPlan> before) {
 void _patchSelf(web.Element element, ElementPlan previous, ElementPlan next) {
   final String? className = next.className;
 
+  // The `class` **attribute**, not the `className` property: on an `<svg>` — the layer a
+  // `BoxShape` paints — that property is an `SVGAnimatedString` object rather than a string, so
+  // reading it threw and a publish that reached a shaped box died before it finished. An
+  // attribute is a string on every element, which is why the plan writes one.
   if (className == null) {
     if (element.hasAttribute('class')) {
       element.removeAttribute('class');
     }
-  } else if (element.className != className) {
-    element.className = className;
+  } else if (element.getAttribute('class') != className) {
+    element.setAttribute('class', className);
   }
 
   for (final String name in previous.attributes.keys) {

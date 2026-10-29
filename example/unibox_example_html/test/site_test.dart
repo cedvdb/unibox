@@ -27,6 +27,17 @@ void main() {
       expect(html, contains('<main'));
     });
 
+    test('draws the vocabulary as a picture and as the list of it', () {
+      final String html = buildSiteDocument();
+
+      // The last band: one card, drawn from the nodes the page had not shown, and the
+      // same card taken apart as text — which is the argument of the whole site.
+      expect(html, contains('The whole vocabulary'));
+      expect(html, contains('alt="A living room'));
+      expect(html, contains('placeholder="Search the listings"'));
+      expect(html, contains('PositionedNode'));
+    });
+
     test('moves the two arrows, three passes and then still', () {
       // The arrows are the one part of the page whose reason is motion, and the motion is the
       // site's: a key is the hook it names them by, so no class is invented for a look only

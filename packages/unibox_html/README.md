@@ -15,6 +15,7 @@ command line tool, and, for a host whose backend is not Dart, compiled to JavaSc
 | --- | --- |
 | a tree as a fragment | `toHtml()` |
 | a tree as a page | `toDocument(title: …, lang: …)` — the fragment, a `<head>` and the stylesheet |
+| a page in one language of several | `toDocument(lang: …, alternates: …)` — the language it is written in, and the `hreflang` links that pair it with its translations |
 | a page an application takes over | `toDocument(takeover: Takeover(boot: …))` — the bundle prefetched, the recorders, the boot on a signal |
 | what a document is | a snapshot of a state: initial state, overlays open, no listeners |
 
@@ -36,6 +37,42 @@ attribute because an unescaped one is how a `class` becomes an `onload`.
 `isRiskyUrl` is public so that a validator can report a tree carrying a script URL instead
 of only patching it: a URL comes from data, and a `javascript:` href is a script that runs
 when a reader clicks.
+
+## A page in one language of several
+
+A localised page is not a second tree. The copy is a `String` the way a colour is a `BoxColor`, so
+it is an argument of the builder, and the document is written once per language:
+
+```dart
+UINode buildListingsPage(SiteCopy copy, SiteRoutes routes) => …;
+
+final String page = toDocument(
+  buildListingsPage(SiteCopy.de, SiteRoutes.de),
+  title: SiteCopy.de.title,
+  lang: 'de',
+  canonical: 'https://example.com/de/apartments/',
+  alternates: <String, String>{
+    'de': 'https://example.com/de/apartments/',
+    'en': 'https://example.com/apartments/',
+    'x-default': 'https://example.com/apartments/',
+  },
+);
+```
+
+| The document states | With |
+| --- | --- |
+| the language it is written in | `lang:` — one document per language, not one page that swaps its text |
+| the other languages of the same page | `alternates:` — the `hreflang` links, the whole set on every page of it |
+| the address of this page | `canonical:` — per language, or two translations compete as one |
+| the language a reader gets | the address (`/de/…`): a crawler sends no `Accept-Language` and keeps no cookie |
+| a language switch | a `LinkNode` to the other address, which is followable and crawlable like any other link |
+
+`toDocument` translates nothing: it writes the strings it is given and states which language they
+are written in. A catalogue — `.arb`, plurals, dates, numbers, collation — belongs to the
+application, which may depend on `intl`; a tree that read the locale from its context could not be
+a document at all, because a document is rendered with no context. That costs the copy nothing:
+because it arrives as a value, a string the translation is missing is a compile error in every
+language rather than a blank on one page.
 
 ## The element plan
 

@@ -129,7 +129,20 @@ host that renders it.
     node needs `unibox_dom`'s `events.dart` to know it. A component whose control answers in the app and
     not on the page is that gap, and it is silent — nothing throws.
 
-14. **Do not invent a parameter.** If it is not in the README tables or in
+14. **A pager you tell a page to, you must not listen to.** `Box(page: …)` moves the box, and
+    `Box(onScroll: …)` reports every offset of that move: read as the reader's, they undo the
+    press that started it, and the tab a reader chose never appears chosen. Keep the two apart
+    — a field naming the page you sent it to, cleared when the offset arrives there — or keep
+    one direction only.
+
+15. **Copy is a value, and the locale is an argument.** The tree holds strings, so a
+    translation is another call of the same builder: pass a `const` copy object
+    (`SiteCopy.de`) into it and never read `Localizations.of(context)` inside it. A tree
+    that reads the locale from a context cannot be rendered as a document — `toDocument`
+    runs with no context — so the app's language would then decide whether the page can
+    exist at all.
+
+16. **Do not invent a parameter.** If it is not in the README tables or in
     `packages/unibox_core/lib/src/`, it does not exist. For anything the model cannot
     express, use an `EmbedNode` with one implementation per renderer, or ask.
 
@@ -185,6 +198,7 @@ host that renders it.
 | `Theme.of(context).colorScheme.primary` | `MaterialPalette.light.primary` (or `dark`), or `MaterialPalette.fromSeed(brand).primary`, passed into the tree |
 | `ColorScheme.fromSeed(seedColor:, brightness:)` | `MaterialPalette.fromSeed(seed, isDark: true)`, whose roles are the ones that scheme answers |
 | `MediaQuery`, `LayoutBuilder` | host work: measure there and pass the answer in |
+| `Localizations.of(context).title`, an `.arb` lookup in the tree | `SiteCopy.de.title` — a `const` value per language, passed into the builder; the host chooses which one from the address |
 | a third party widget | an `EmbedNode` that carries that `Widget` in `implementations` |
 | reading a rendered page in an inspector | every element carries `data-unibox-node="spot-card"`; a keyed node also carries `data-unibox-key="<key>"` when the key is a `String` or an `int`; name a node with `debugLabel`, never with `key` |
 
@@ -210,6 +224,7 @@ host that renders it.
 | `:hover`, `:focus-visible`, `:active` | `stateStyles` / `hoverStyle` with a `BoxState` key |
 | `@media (min-width: 900px)` | host work: Flutter measures, the web host uses CSS |
 | `<input>`, `<textarea>` | `TextInputNode`, `TextInputNode(multiline: true)` |
+| `<html lang="de">`, `<link rel="alternate" hreflang="en">`, a `/de/…` prefix | `toDocument(lang: 'de', alternates: {'de': …, 'en': …})` — one document per language, the locale taken from the address |
 
 ## A component, end to end
 
@@ -437,6 +452,63 @@ tree; it runs in a build step, a CLI or a server.
   or a node with no behaviour is dropped — never fire whatever is nearby.
 - **Do not expect a string to run a callback.** A document carries text, not closures: a press is
   replayed by the application, not by the page, and a link is followed by the browser.
+
+## A page in more than one language
+
+The tree holds strings, so a translation is another value of the same builder — never an ambient
+lookup.
+
+```dart
+// site_copy.dart — one const value per language, in your own package
+abstract final class SiteCopy {
+  const SiteCopy({required this.title, required this.cta});
+
+  final String title;
+  final String cta;
+
+  static const SiteCopy en = SiteCopy(title: 'Apartments', cta: 'See the listings');
+  static const SiteCopy de = SiteCopy(title: 'Wohnungen', cta: 'Zu den Angeboten');
+
+  static SiteCopy of(String tag) => switch (tag.split('-').first) {
+    'de' => de,
+    _ => en,
+  };
+}
+
+// the builder takes the copy, so a missing string is a compile error in every language
+UINode buildListingsPage(SiteCopy copy) => … TextNode(copy.title) …
+```
+
+- **Pass the locale in; do not read it.** `Localizations.of(context)` needs a `BuildContext`, and
+  `toDocument` renders with none — it is synchronous and framework-free. A tree that reads the
+  locale can only ever be a widget, so the app's language decides whether the page exists.
+- **A `const` class per language beats a `Map<String, String>`.** A missing key in a map is a blank
+  on one page at runtime; a missing `required` field is a compile error in every language. Move to
+  `.arb` and `intl` (plurals, dates, numbers, collation) when the catalogue outgrows a file — in
+  your package, never in the tree.
+- **Ship the copy and the routes together.** A German page whose links and canonical still point at
+  the English addresses is the bug localised sites actually have: take both from the language tag.
+- **The address is the locale.** `/de/…`, not a cookie or `Accept-Language`, because a crawler
+  sends neither. A language switch is a `LinkNode` to the other address — followable and crawlable
+  like any other link — and a language change inside the app is a `Store` publish.
+- **One document per language, each naming the whole set.** `lang` is what it is written in,
+  `canonical` is its own address, and `alternates` are the others:
+
+  ```dart
+  final String page = toDocument(
+    buildListingsPage(SiteCopy.de),
+    title: SiteCopy.de.title,
+    lang: 'de',
+    canonical: 'https://example.com/de/apartments/',
+    alternates: <String, String>{
+      'de': 'https://example.com/de/apartments/',
+      'en': 'https://example.com/apartments/',
+      'x-default': 'https://example.com/apartments/',
+    },
+  );
+  ```
+
+  Without `alternates` a search engine sees translated copies of one page and keeps one of them.
 
 ## Before you return the code
 

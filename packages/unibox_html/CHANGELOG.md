@@ -4,6 +4,12 @@
 
 - A tree is written into one buffer instead of one per element, so its text is written once rather
   than copied once per ancestor: a deeply nested page no longer costs its own depth squared.
+- `toDocument(alternates: …)`: the `hreflang` links that pair a page with its translations.
+  A localised site is the same builder called with another value, and a translated copy of a
+  page is not a competitor — it is the same page in another language — but a search engine can
+  only know that if every page of the set names the whole set, itself included. `lang` states
+  the language the page is written in, `alternates` names the rest, and a url still goes
+  through `safeUrl`: a locale is assembled from an address, never typed by hand.
 
 - `HtmlEmbed`, the door for markup the model does not describe: a web component, a
   `<video>`, a chart from another package. It is written verbatim rather than escaped,

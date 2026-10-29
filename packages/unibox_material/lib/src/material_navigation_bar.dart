@@ -182,6 +182,17 @@ final class MaterialNavigationBar extends Box {
     ],
   );
 
+  /// How long a hover takes to appear, and to leave.
+  ///
+  /// Material fades a hover state layer over 50 milliseconds (`InkResponse`'s own
+  /// `hoverDuration` default) and a press over 200, while the indicator keeps the slow
+  /// 500 millisecond stretch. A hover is therefore minutes away from being instantaneous and
+  /// nothing like a selection, which is why the two layers carry two transitions.
+  static const BoxTransition hoverTransition = BoxTransition(
+    duration: Duration(milliseconds: 50),
+    curve: BoxCurve.easeOut,
+  );
+
   /// How wide the pill is, as a share of its own width, where it is not chosen.
   ///
   /// Material starts the stretch at four tenths and stops drawing it altogether once
@@ -318,15 +329,25 @@ final class MaterialNavigationBar extends Box {
     );
   }
 
-  /// The indicator: the colour pill, and the ink well with the icon in it.
+  /// The indicator: the colour pill, the hover layer over it, and the ink well with the
+  /// icon in it.
   ///
-  /// Two layers, in the order Material paints them. The **colour** is the pill's fill and
-  /// the only part that arrives — it fades in and stretches sideways out of the icon when
-  /// its destination becomes the chosen one. The **well** sits over the colour with the
-  /// icon as its content, so its hover layer is a full-size pill whatever state the fill
-  /// is in, a press spreads ink across the pill over the colour it is settling to, and the
-  /// icon is always drawn: an earlier shape faded the whole indicator, and an unselected
-  /// destination lost its picture with it.
+  /// Three layers, in the order Material paints them, and the order is the behaviour.
+  ///
+  /// 1. **The colour** arrives: it fades in over 100 milliseconds and stretches sideways
+  ///    out of the icon over 500 when its destination becomes the chosen one. Nothing else
+  ///    touches it, so a hover does not stretch a pill that is not being chosen.
+  /// 2. **The hover layer** fades in over 50 milliseconds *over* the colour, which is what
+  ///    makes a hovered destination that is also chosen keep its colour and gain a tint
+  ///    rather than trade one for the other.
+  /// 3. **The well** carries the icon and the splash: a press inks the pill and leaves no
+  ///    tint of its own, so the reader sees ink, then the indicator settling into its new
+  ///    colour.
+  ///
+  /// The icon is inside the well and not a layer above it because a press has to reach the
+  /// well: a text hit-tests as opaque, so a picture floating over the pill swallowed the
+  /// press and the ripple never started. The icon is drawn by the layer that does not fade,
+  /// which is why an unselected destination keeps its picture when its pill is invisible.
   ///
   /// The icon is inside the well and not a layer above it because a press has to reach the
   /// well: a text hit-tests as opaque, so a picture floating over the pill swallowed the
@@ -348,26 +369,30 @@ final class MaterialNavigationBar extends Box {
       width: indicatorWidth,
       height: indicatorHeight,
       children: <UINode>[
+        // What a selection paints: the colour pill, which fades and stretches out of the
+        // icon. Only a chosen destination has one.
         Box(
           width: indicatorWidth,
           height: indicatorHeight,
           borderRadius: indicatorHeight / 2,
-          // A hovered destination wears Material's state layer where the chosen one
-          // wears its indicator, and both are the pill: the layer is a tint of the
-          // surface, so no icon of the bar is drawn over it.
-          backgroundColor: selected
-              ? color
-              : hovered
+          backgroundColor: selected ? color : null,
+          opacity: selected ? 1 : 0,
+          transform: BoxTransform(scaleX: selected ? 1 : _indicatorRestScale),
+          transition: indicatorTransition,
+        ),
+        // What a hover paints: Material's state layer, in the pill's shape and over the
+        // indicator, so a hovered destination that is also chosen keeps its colour and gains
+        // a tint instead of trading one for the other. It does not stretch: nothing is
+        // arriving, the pointer is simply somewhere.
+        Box(
+          width: indicatorWidth,
+          height: indicatorHeight,
+          borderRadius: indicatorHeight / 2,
+          backgroundColor: hovered
               ? const BoxColor.role(MaterialColorRole.hoverLayer)
               : null,
-          opacity: selected || hovered ? 1 : 0,
-          // Sideways only: Material stretches the pill out of the icon at its own
-          // height. A hover arrives at full width instead, because nothing is
-          // stretching: the layer simply appears under the pointer.
-          transform: BoxTransform(
-            scaleX: selected || hovered ? 1 : _indicatorRestScale,
-          ),
-          transition: indicatorTransition,
+          opacity: hovered ? 1 : 0,
+          transition: hoverTransition,
         ),
         MaterialInkWell(
           onTap: onTap,
@@ -376,9 +401,12 @@ final class MaterialNavigationBar extends Box {
           borderRadius: indicatorHeight / 2,
           ink: ink,
           padding: BoxSpacing.zero,
-          // The pill is what a hover lights, and the destination reports the hover: a
-          // tint of the well would be a second one over the same shape.
+          // The tints are the two layers above, and the press is the splash alone — which
+          // is what Material's navigation destination does: its highlight colour is
+          // transparent, so a press shows ink inside the pill and then the indicator
+          // settling into its new colour, with no grey flash in between.
           hoverStyle: const BoxStyle(backgroundColor: BoxColor.transparent),
+          pressedStyle: const BoxStyle(backgroundColor: BoxColor.transparent),
           transition: transition ?? MaterialInkWell.defaultTransition,
           semantics: const BoxSemantics(hidden: true),
           child: Box(

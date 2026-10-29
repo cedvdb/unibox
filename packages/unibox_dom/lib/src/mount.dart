@@ -6,6 +6,20 @@ import 'package:web/web.dart' as web;
 import 'events.dart';
 import 'patch.dart';
 
+/// The attribute that marks a stylesheet as this library's own.
+const String _cssAttribute = 'data-unibox-css';
+
+/// The value that marks the sheet a *runtime* wrote, apart from the one a document was served
+/// with.
+///
+/// The two must not share an element, because adoption keeps elements it never planned: a
+/// `BoxShape`'s `<svg>` layer and its `<path>` are invented by the plan rather than by the tree, so
+/// no node pairs with them and no class of theirs is registered here. Writing this view's sheet
+/// over the served one therefore deleted the rules those adopted elements were painted by — a
+/// shaped box lost its `fill` and `stroke` and fell back to SVG's initial black, which turned a
+/// progress ring into a black disc.
+const String _clientSheet = 'client';
+
 /// A tree drawn into a page, with the stores it created still running.
 ///
 /// Created by [DomView.mount]: it plans the tree with this target's stylesheet, writes the
@@ -168,7 +182,7 @@ final class DomView {
       if (_style == null) {
         final web.HTMLStyleElement created =
             web.document.createElement('style') as web.HTMLStyleElement
-              ..setAttribute('data-unibox-css', '');
+              ..setAttribute(_cssAttribute, _clientSheet);
         web.document.head!.append(created);
         _style = created;
       }
@@ -177,7 +191,7 @@ final class DomView {
       // Marked as the tree's stylesheet either way, so an adoption later rewrites this element
       // instead of adding a second copy of the same rules — and so a reader can find it.
       _style = web.document.createElement('style') as web.HTMLStyleElement
-        ..setAttribute('data-unibox-css', '');
+        ..setAttribute(_cssAttribute, _clientSheet);
       web.document.head!.append(_style!);
       _host.replaceChildren(_element!);
     }
@@ -463,7 +477,8 @@ bool _sameBuild() {
 /// The stylesheet a document wrote, if it is there, so a client rewrites it instead of adding a
 /// second copy of the same rules.
 web.HTMLStyleElement? _stylesheetIn(web.Element? head) =>
-    head?.querySelector('style[data-unibox-css]') as web.HTMLStyleElement?;
+    head?.querySelector('style[$_cssAttribute="$_clientSheet"]')
+        as web.HTMLStyleElement?;
 
 /// One planning pass: the stylesheet it builds, the node each plan came from, and the element each
 /// plan became.

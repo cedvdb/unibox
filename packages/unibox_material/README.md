@@ -512,9 +512,17 @@ application wants when the page is its own node — above a pager, above a page 
 beside a preview. A *primary* bar distributes its tabs across the width and a *secondary*
 one packs them to the start at their own width.
 
-Its indicator is one element, a share of the bar wide, moved by a multiple of its own width —
-so it slides between tabs with a `transform` a transition eases, and nobody has to measure a
-tab. That is the *primary* bar, whose tabs are equal shares by definition.
+A bar is as wide as its parent and hands that width down, so a primary tab is a third of a
+three-tab bar: the width of a tab is the bar's, and the bar's is the parent's. Give it a
+narrower parent to make the tabs tighter, which is also the only lever — the bar states
+`width: double.infinity` and takes no width of its own.
+
+Its indicator is one element, a share of the bar wide, laid from the start edge and moved by a
+multiple of its own width — so it slides between tabs with a `transform` a transition eases, and
+nobody has to measure a tab. That is the *primary* bar, whose tabs are equal shares by
+definition. It begins at the start edge rather than the centre: an aligned child fills the
+layer and the alignment places it, so a centred indicator is already half a bar along and every
+step after that lands one tab too far.
 
 A *secondary* bar packs its tabs to the start and gives each one its label's width, so a share
 would land under no tab at all. Each tab carries its own underline instead, pinned across the
@@ -718,9 +726,12 @@ MaterialNavigationBar(
 | indicator | 64 by 32 at radius 16, `secondaryContainer`, behind the chosen icon |
 | label | `labelMedium`: `onSurface` when chosen, `onSurfaceVariant` when not |
 | ink | the label's own colour, from where the press landed |
+| hover layer | `hoverLayer` in the pill's shape, faded over 50ms — `InkResponse`'s own hover duration |
+| press | the splash alone: the indicator's highlight colour is transparent in Material, so a press inks the pill and then the pill settles into its new colour |
 
-Each destination is a `Box` around a `MaterialInkWell`, so the tint and the ink
-cover the whole share rather than the label, and the pill is filled only while the
+Each destination is a `Box` whose share is the control — a hover anywhere in it lights
+the pill inside it — and the pill itself is three layers: the indicator colour, the hover
+layer over it, and an ink well carrying the icon. The pill is filled only while the
 destination is the chosen one. The 12 pixels above the pill, the 4 between it and
 the label, and the 16 below add up to the bar's 80 with `labelMedium`'s 16 pixel
 line box — which is why a destination needs no height of its own and both targets
@@ -760,16 +771,39 @@ where Flutter flips a differently shaped curve. The label changes colour at once
 icon swaps rather than cross-fading, because a text colour is not a paint a transition
 eases and the icon is the caller's node.
 
-**The ink and the hover layer are the indicator's.** A destination is one control — a box
-over the whole share, which is what a finger presses and what a reader hears — and inside
-it the indicator is two layers: the **colour pill** (64 by 32, radius 16) and, over it, an
-ink well of the same size with the icon as its content. So a hover tints the pill and not
-the share around it, a press spreads ink across the pill over the colour it is settling
-to, and the icon is drawn in every state — the colour is the only thing that fades and
-stretches as a destination becomes the chosen one. That is the arrangement Flutter draws:
-its ink is confined by `_IndicatorInkWell.getRectCallback` to the indicator's rect, and its
-ripple is an ink feature above the indicator, under the icon.
+**Three layers in the pill, and the order is the behaviour.** A destination is one control
+— a box over the whole share, which is what a finger presses and what a reader hears — and
+inside it the indicator is three layers, which is the arrangement Flutter draws:
 
+1. **the colour**, 64 by 32 at radius 16, which fades in over 100ms and stretches sideways
+   out of the icon over 500 as a destination becomes the chosen one;
+2. **the hover layer** over it, faded over 50ms — a hover is not a selection, so it neither
+   stretches nor waits for one, and a hovered destination that is *also* chosen keeps its
+   colour and gains a tint instead of trading one for the other;
+3. **an ink well** carrying the icon, whose tints are transparent and whose splash is the
+   press: Material gives a navigation destination a transparent highlight colour, so a
+   press shows ink inside the pill and then the indicator settling into its new colour, with
+   no grey flash in between.
+
+Flutter confines the ink with `_IndicatorInkWell.getRectCallback` to the indicator's rect,
+and its ripple is an ink feature above the indicator and under the icon — the same three
+layers, painted in the same order.
+
+**The hover needs the runtime today, and what is missing is a token, not a stylesheet.**
+The pointer is over the **share** and the tint is in the **pill**, and CSS says that in one
+line — `.share:hover .pill { background-color: … }`. What the model cannot say is that the
+two are related: a `stateStyles` entry describes the box it is on, and nothing in the tree
+means *while I am hovered, a descendant of mine paints*. So the renderer has no rule to
+write, and it will not guess which of a box's children should change — a look that a
+renderer invents is the drift the contract exists to prevent. Where a runtime is present —
+Flutter, or `unibox_dom` in a browser — the destination keeps the hover in its store and
+the pill lights; a document with no runtime draws the pill for the chosen destination only.
+
+Closing the gap is a small feature and not a trick: a box states *which* descendant wears
+its state, the plan emits `.share:hover .pill` after both classes exist (the parent is
+planned before its children, so this is a second pass), and Flutter answers the same
+declaration from its own hover state — which would also let this component drop its store,
+because a hover is the host's interaction and not the tree's state.
 Two things keep the press single. The pill answers a press itself and its click stops
 there — the innermost control wins, which is Flutter's gesture arena — so `onSelect` is
 called once whichever layer the press landed on. And the label is a layer that takes no
