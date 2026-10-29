@@ -33,7 +33,8 @@ expected appearance holds both renderers to the same answer.
 - [How it works](#how-it-works)
 - [Serving a tree](#serving-a-tree)
 - [Quick start](#quick-start)
-- [The handover](#the-handover-in-code)
+- [Flutter takes the page over](#flutter-takes-the-page-over--the-least-to-change)
+- [The page draws itself](#the-page-draws-itself--nothing-of-flutter)
 - [The nodes](#the-nodes)
 - [Colours](#colours)
 - [Typography](#typography)
@@ -88,90 +89,101 @@ is, what a tap does, what the document is called. Those are the host's; see
 
 ## Serving a tree
 
-Two ways, and the difference is what answers a press. Both exist because the two shapes of
-application are not the same problem, and picking the wrong one costs more than it saves.
+A Flutter screen is a canvas: to a crawler, a link preview and a reader without JavaScript it is
+nothing at all. Unibox renders the tree as a page first, so **what a search engine reads is the
+page a visitor lands on** — and there is no second design to keep in step with the app.
 
-**The handover is the cheap one.** You render the first screen a visitor lands on — the page a
-crawler reads — and stop there: Flutter boots into it and draws everything after that, including
-the dialogs, the forms and the screens behind the ones you indexed. Nothing has to be rewritten in
-Unibox to get started, because the tree you already have is the application; only the landing
-screen, the one that has to be found, is described twice, and the visible cost is one repaint.
+Two ways to put that page online. They differ in one thing: how much of your application the tree
+has to describe.
 
-**The page drawing itself is the independent one.** Nothing of Flutter is loaded, no binary is
-fetched and there is no handover to reason about: the document is the application, its script is
-small enough to be a rounding error next to an engine, and the whole deployment is a folder of
-files any static host can serve. It costs the one thing the handover gives away — every
-interaction you want has to exist as a node, so a dialog is a node in the tree rather than a
-widget only the app can draw.
+| | **Flutter takes the page over** | **The page draws itself** |
+| --- | --- | --- |
+| What the visitor gets | the document, then the same screen from the app | the document, made live by a small Dart bundle |
+| What you describe in Unibox | the screen a visitor lands on | every screen that must work without Flutter |
+| What you ship | the Flutter build you already have | a folder of files — any static host serves it |
+| The trade | one repaint at handover | no engine, but a dialog is a node, not a widget |
 
-So: hand over when the app already exists and a page or two has to be findable, and let the page
-draw itself when the page is the product.
+Both are optional, both are per screen, and neither asks you to relearn Flutter: the screens that
+do not have to be found stay ordinary Flutter, untouched.
 
-### The server writes the document, and Flutter takes it over
+### Flutter takes the page over — the least to change
 
-The server renders the tree as a **read-only page** — HTML and CSS, every word and link in it,
-which is what a crawler reads and what a visitor sees before anything loads. The Flutter app then
-boots into that page and draws the same screen from the same tree, so the visitor gets one screen
-rather than two versions of one.
+This is the one to reach for when the application already exists. You describe **one screen** — the
+one that has to be findable — and stop. Flutter boots into the page it was served and draws
+everything after it: the dialogs, the forms, the list behind the list, all of it ordinary Flutter
+as you write it today.
 
-The handover is a repaint, because Flutter draws into a canvas: expect a brief flash. That is a
-fine trade when the page really is the app and the visitor is about to use it.
-
-**Two things cross the handover**, so a reader does not start again:
-
-- **The scroll.** Every region the tree keyed records where it was scrolled to, and the scroll view
-  that carries the same key starts at that offset as its *initial* position — in place at the first
-  layout, not after a correction, and a rebuild does not move the reader back. A record for another
-  key is ignored: moving whichever region happens to scroll is how the wrong list jumps.
-- **The presses.** The page records what was pressed, on which element and where, and the app
-  replays them against the first view the node builds — the only place their callbacks exist,
-  because a view is a function of the store that is created when the widget mounts. A press whose
-  key matches no node, two nodes, or a node with no behaviour is dropped rather than guessed at:
-  firing whatever is nearby is how the wrong control goes off.
-
-Two lines, one on each side:
+So the cost is one screen of Unibox, not a rewrite. A settings page, a checkout, a dashboard: none
+of them move.
 
 ```dart
-// the server: a document, and the bundle prefetched behind it
+// the server: a document, and the app prefetched behind it
 final String page = toDocument(
   ListingsPage(listings),
-  title: 'Apartments',
+  title: 'Apartments in Amsterdam',
+  description: 'Six flats, one screen, drawn twice.',
   takeover: const Takeover(boot: '../../flutter/app.js'),
 );
 ```
+
+The bundle is prefetched while the reader reads and started at their first intent — a pointer that
+moves, a press, a key — and never while the page is still painting, so deferring costs nothing and
+the largest paint is never competed with.
+
+**Nothing the reader did is lost in the swap.** Two things cross the handover:
+
+- **Where they were.** Every keyed scroll region records its offset, and the matching scroll view
+  starts there as its *initial* position — right at the first layout, not a correction afterwards,
+  and a rebuild never yanks them back to the top.
+- **What they pressed.** The page records the press, its element and its position, and the app
+  replays it against the first view the node builds — the only place that callback exists.
 
 ```dart
 // the application: what the page recorded, read where a host does its other reads
 void main() => runApp(
   ExampleApp(
-    offsets: scrollOffsetsFromPage(),   // where each region was scrolled to
-    presses: pressesFromPage(),         // what was pressed, on which element and where
+    offsets: scrollOffsetsFromPage(),
+    presses: pressesFromPage(),
   ),
 );
 ```
 
-`Takeover` is one argument because it is one decision: the bundle is prefetched, the two recorders
-travel with the boot, and the boot starts on a signal. Written by hand it was three arguments in
-two spellings, and swapping two of them shipped a page that booted on a cold cache.
+The handover itself is a repaint, because Flutter draws into a canvas: a brief flash is the honest
+price of it, and it is the reason the next way exists. Nothing of it is on the critical path — the
+page is complete before the app is asked for, so the visitor reads immediately and the app arrives
+behind them.
 
-What the record cannot do is make a document interactive on its own. It carries a reader's *intent*
-across the handover; the application is still what answers it.
+### The page draws itself — nothing of Flutter
 
-### The page draws itself
+Same tree, written by `unibox_html` and made live by `unibox_dom`: one small bundle, compiled from
+Dart with `dart compile js`, that **adopts** the markup the server wrote — the same elements, the
+same classes — and keeps it in step with the stores the tree created.
 
-The same tree is written by `unibox_html` and made live by `unibox_dom`: one small bundle, compiled
-from Dart with `dart compile js`, which **adopts** the markup the server wrote — the same elements,
-the same classes — and keeps it in step with the stores the tree created. A press runs the same Dart
-closure the Flutter host would have run, and there is no engine on the page.
+A press runs the same Dart closure Flutter would have run. There is no engine, no binary, no
+handover, and no flash: the page a crawler reads and the page a reader acts on are one document.
 
-Because it adopts rather than repaints, a reader who has already scrolled keeps their place, and the
-page a crawler reads and the page a reader uses are one file. Without the script it is still a
-document: the markup stands on its own and nothing in it needs the runtime, which is also why a
-static host can serve it — a document is a string, and a build step writes the files.
+**The size is the argument.** This site's whole client — the renderer, the stores, and the trees of
+the pages on it — is 67 KB gzipped. The same site's Flutter build is 718 KB before it downloads
+Canvaskit.
 
-Only the screens that have to be found need either way. The rest of an application stays ordinary
-Flutter, screen for screen: a settings page or an internal tool gains nothing from being
-indexable, and nothing here asks it to change.
+That is what you deploy:
+
+```dart
+// a build step: documents, plus one bundle next to them
+for (final Listing listing in listings) {
+  File('build/site/${listing.slug}/index.html')
+    ..createSync(recursive: true)
+    ..writeAsStringSync(toDocument(ListingPage(listing), title: listing.title));
+}
+```
+
+```shell
+dart compile js -O2 -o build/site/app.js web/main.dart   # the whole runtime
+```
+
+A dialog, a filter, a reorder: each is a node in the tree, so each works without Flutter — which is
+also the cost. Nothing here can invent an interaction, and a widget only the app can draw stays in
+the app.
 
 ## Quick start
 
