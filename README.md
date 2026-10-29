@@ -33,8 +33,8 @@ expected appearance holds both renderers to the same answer.
 - [How it works](#how-it-works)
 - [Serving a tree](#serving-a-tree)
 - [Quick start](#quick-start)
-- [Flutter takes the page over](#flutter-takes-the-page-over--the-least-to-change)
-- [The page draws itself](#the-page-draws-itself--nothing-of-flutter)
+- [Flutter hydrates it](#flutter-hydrates-it--the-least-to-change)
+- [The DOM hydrates itself](#the-dom-hydrates-itself--nothing-of-flutter)
 - [The nodes](#the-nodes)
 - [Colours](#colours)
 - [Typography](#typography)
@@ -90,56 +90,37 @@ is, what a tap does, what the document is called. Those are the host's; see
 ## Serving a tree
 
 A Flutter screen is a canvas: to a crawler, a link preview and a reader without JavaScript it is
-nothing at all. Unibox renders the tree as a page first, so **what a search engine reads is the
-page a visitor lands on** — and there is no second design to keep in step with the app.
+nothing at all. Unibox renders the tree as a page first — real text, real links, real headings — so
+**what a search engine reads is the page a visitor lands on**.
 
-Two ways to put that page online. They differ in one thing: how much of your application the tree
-has to describe.
+The page is the same either way. What differs is what brings it to life.
 
-| | **Flutter takes the page over** | **The page draws itself** |
+| | **Flutter hydrates it** | **The DOM hydrates itself** |
 | --- | --- | --- |
-| What the visitor gets | the document, then the same screen from the app | the document, made live by a small Dart bundle |
-| What you describe in Unibox | the screen a visitor lands on | every screen that must work without Flutter |
+| The page becomes | the app, repainted into a canvas | the same elements, made live |
+| What you write in Unibox | the screen a visitor lands on | every screen that must work without Flutter |
 | What you ship | the Flutter build you already have | a folder of files — any static host serves it |
-| The trade | one repaint at handover | no engine, but a dialog is a node, not a widget |
+| What it costs | one repaint when the app arrives | every interaction is a node |
 
-Both are optional, both are per screen, and neither asks you to relearn Flutter: the screens that
-do not have to be found stay ordinary Flutter, untouched.
+### Flutter hydrates it — the least to change
 
-### Flutter takes the page over — the least to change
-
-This is the one to reach for when the application already exists. You describe **one screen** — the
-one that has to be findable — and stop. Flutter boots into the page it was served and draws
-everything after it: the dialogs, the forms, the list behind the list, all of it ordinary Flutter
-as you write it today.
-
-So the cost is one screen of Unibox, not a rewrite. A settings page, a checkout, a dashboard: none
-of them move.
+Reach for this when the application already exists. You describe **one screen**, the one that has to
+be findable, and stop: Flutter boots into the page it was served and draws everything after it —
+the dialogs, the forms, the list behind the list — as ordinary Flutter, exactly as you write it
+today.
 
 ```dart
-// the server: a document, and the app prefetched behind it
 final String page = toDocument(
   ListingsPage(listings),
   title: 'Apartments in Amsterdam',
-  description: 'Six flats, one screen, drawn twice.',
   takeover: const Takeover(boot: '../../flutter/app.js'),
 );
 ```
 
-The bundle is prefetched while the reader reads and started at their first intent — a pointer that
-moves, a press, a key — and never while the page is still painting, so deferring costs nothing and
-the largest paint is never competed with.
-
-**Nothing the reader did is lost in the swap.** Two things cross the handover:
-
-- **Where they were.** Every keyed scroll region records its offset, and the matching scroll view
-  starts there as its *initial* position — right at the first layout, not a correction afterwards,
-  and a rebuild never yanks them back to the top.
-- **What they pressed.** The page records the press, its element and its position, and the app
-  replays it against the first view the node builds — the only place that callback exists.
+The visitor does not start again in the swap. The page records where they scrolled and what they
+pressed; the app opens at that scroll and replays the press.
 
 ```dart
-// the application: what the page recorded, read where a host does its other reads
 void main() => runApp(
   ExampleApp(
     offsets: scrollOffsetsFromPage(),
@@ -148,42 +129,26 @@ void main() => runApp(
 );
 ```
 
-The handover itself is a repaint, because Flutter draws into a canvas: a brief flash is the honest
-price of it, and it is the reason the next way exists. Nothing of it is on the critical path — the
-page is complete before the app is asked for, so the visitor reads immediately and the app arrives
-behind them.
+The app downloads while they read and starts at their first intent, never mid-paint, so the page is
+finished before the engine is asked for. The handover itself is a repaint, and a brief flash is the
+honest price of it.
 
-### The page draws itself — nothing of Flutter
+### The DOM hydrates itself — nothing of Flutter
 
 Same tree, written by `unibox_html` and made live by `unibox_dom`: one small bundle, compiled from
-Dart with `dart compile js`, that **adopts** the markup the server wrote — the same elements, the
-same classes — and keeps it in step with the stores the tree created.
+Dart, that **adopts** the markup the server wrote — the same elements, the same classes — and keeps
+it in step with the stores the tree created. A press runs the same Dart closure Flutter would have
+run. No engine, no repaint, no flash.
 
-A press runs the same Dart closure Flutter would have run. There is no engine, no binary, no
-handover, and no flash: the page a crawler reads and the page a reader acts on are one document.
+**The size is the argument:** this site's whole client, renderer and stores and trees included, is
+67 KB gzipped. Its Flutter build is 718 KB before Canvaskit.
 
-**The size is the argument.** This site's whole client — the renderer, the stores, and the trees of
-the pages on it — is 67 KB gzipped. The same site's Flutter build is 718 KB before it downloads
-Canvaskit.
+The cost is the mirror image. An interaction has to exist as a node, so a dialog is a node in the
+tree rather than a widget only the app can draw.
 
-That is what you deploy:
-
-```dart
-// a build step: documents, plus one bundle next to them
-for (final Listing listing in listings) {
-  File('build/site/${listing.slug}/index.html')
-    ..createSync(recursive: true)
-    ..writeAsStringSync(toDocument(ListingPage(listing), title: listing.title));
-}
-```
-
-```shell
-dart compile js -O2 -o build/site/app.js web/main.dart   # the whole runtime
-```
-
-A dialog, a filter, a reorder: each is a node in the tree, so each works without Flutter — which is
-also the cost. Nothing here can invent an interaction, and a widget only the app can draw stays in
-the app.
+A dialog, a filter, a reorder — each works without Flutter. A widget Flutter alone can draw stays in
+the app, and neither way asks you to rewrite the rest: the screens that do not have to be found stay
+ordinary Flutter, untouched.
 
 ## Quick start
 
