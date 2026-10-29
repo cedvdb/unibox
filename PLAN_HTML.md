@@ -248,7 +248,7 @@ declarations replace its background, border, radius and shadow with the layer's 
   conformance suite gains a shaped case of its own, since the appearance table cannot read an
   outline back.
 - [x] **4. Verify the merge**: seven suites, `dart doc`, and the shape on the example's page.
-- [ ] **5. Land it**: fast-forward `feat/unibox-html` onto `merge-main-wip` and delete the
+- [x] **5. Land it**: fast-forward `feat/unibox-html` onto `merge-main-wip` and delete the
   working branch.
 
 ### The boot's base path, and how it was proved's base path, and how it was proved
