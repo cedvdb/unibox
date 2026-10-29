@@ -230,6 +230,7 @@ Box(
 | `gap` | `double?` | none | Space between two children. For space at the edges, use `padding`. |
 | `flex` | `int?` | none | Share of the free space this box takes inside its parent: `flex: 1` is an `Expanded` in Flutter and `flex-grow: 1` on the web. |
 | `overflow` | `Overflow?` | visible | `hidden` clips the content, `scroll` makes the box scroll along its direction. |
+| `snap` | `ScrollSnap?` | none | Where a scrolling box comes to rest. `page` makes it a pager: it moves one child at a time along its own direction and settles on a child rather than between two. It needs `overflow: Overflow.scroll`; `validateTree` reports a snap on a box that cannot scroll. |
 
 **Size**
 

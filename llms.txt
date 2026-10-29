@@ -64,9 +64,9 @@ coding agent needs are in [AGENTS.md](AGENTS.md), and a human contributing needs
   roles as `MaterialPalette` (`light`/`dark`, or grown from one seed colour with
   `fromSeed` and its `MaterialSchemeVariant`), and the components built on the nodes
   the renderers already draw — `MaterialCard`, `MaterialListTile`, `MaterialButton`,
-  `MaterialChip`, `MaterialSegmentedButton`, `MaterialNavigationBar`, `MaterialIcon`,
-  `MaterialInkWell`, `MaterialTextField`, `MaterialDialog`,
-  `MaterialBottomSheet` — optional and pure Dart, for a tree that wants Material on both
+  `MaterialChip`, `MaterialSegmentedButton`, `MaterialTabBar`, `MaterialTabs`,
+  `MaterialNavigationBar`, `MaterialIcon`, `MaterialInkWell`, `MaterialTextField`,
+  `MaterialDialog`, `MaterialBottomSheet` — optional and pure Dart, for a tree that wants Material on both
   targets.
 
 ## Working on the repository
