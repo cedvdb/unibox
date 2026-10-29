@@ -80,20 +80,18 @@ every colour of the page is read out of the palette Material grows from it
 the card, the page, the text, the muted text and the border. A tree holds no colour of
 its own: it names roles, and the theme the host installs answers them.
 
-That is what makes the picker possible. It is one builder — `seedPicker` — used
-twice, because the two places teach different halves of the same thing:
+That is what makes the picker possible. It is one builder — `seedPicker` — and it sits
+beside the name in both headers: the example's navigation bar and the site's header. A
+palette is the whole page, so it is chosen where the page begins — a row of dots next to
+the wordmark — rather than above the catalogue that explains it further down.
 
-- **Above the example's navigation bar**: choosing a seed redraws the page you are
-  on, so the interesting part is how quickly it happens. Each swatch is a link to
-  *this page* with `?seed=<name>`, and the host answers the address its own way.
-- **In the Material catalogue**: the page that documents the design system picks the
-  seed the design system is documented in, and every specimen, swatch and hex under
-  the picker follows it.
+Each swatch is a link to *the page it is on* with `?seed=<name>`, and every colour of the
+page answers it, because the tree names roles and the host answers them with a theme.
 
 | Host | What `?seed=rose` means |
 | --- | --- |
 | Flutter | its link policy reads the address, installs the rose palette and redraws. Nothing loads, and the page keeps its store: the dialog stays open, the filter stays chosen |
-| Jaspr | the browser follows the link, `main.client.js` reads the address and renders the root with that palette, because a static document was rendered before the reader clicked |
+| The site | the browser follows the link, `main.client.js` reads the address and renders the root with that palette, because a static document was rendered before the reader clicked |
 
 The catalogue's own page carries the seed one step further: each showcase frame is a
 document of its own, so the seed travels into its address too

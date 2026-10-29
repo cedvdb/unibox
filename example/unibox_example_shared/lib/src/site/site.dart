@@ -1,6 +1,7 @@
 import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_material/unibox_material.dart';
 
+import '../seed_picker.dart';
 import '../theme.dart';
 
 import 'gallery.dart';
@@ -36,7 +37,7 @@ UINode buildSitePage({
       BoxTextStyle(color: palette.onSurface),
     ),
     children: <UINode>[
-      _header(palette),
+      _header(palette, seed),
       // The bands are the content of the page, so the web renders a `<main>`
       // around them: a landmark is what a reader can jump to, and it says which
       // region the header and the footer are not.
@@ -58,7 +59,7 @@ UINode buildSitePage({
 /// It is a `header` landmark and its link is a `LinkNode`, so the page keeps its
 /// outline and a reader without JavaScript can still follow it. The hairline is a
 /// shadow with no blur, because a `BoxBorder` draws on all four sides.
-UINode _header(MaterialPalette palette) {
+UINode _header(MaterialPalette palette, ExampleSeed seed) {
   return Box(
     width: double.infinity,
     backgroundColor: palette.surface,
@@ -73,9 +74,22 @@ UINode _header(MaterialPalette palette) {
           mainAlign: MainAlign.spaceBetween,
           crossAlign: CrossAlign.center,
           children: <UINode>[
-            LinkNode(
-              './',
-              child: TextNode('Unibox', style: MaterialTypography.titleMedium),
+            Box(
+              direction: Axis.horizontal,
+              crossAlign: CrossAlign.center,
+              gap: 20,
+              children: <UINode>[
+                LinkNode(
+                  './',
+                  child: TextNode(
+                    'Unibox',
+                    style: MaterialTypography.titleMedium,
+                  ),
+                ),
+                // The palette the page is drawn with, beside the name it belongs to:
+                // a reader changes the whole page, not the catalogue at the bottom of it.
+                seedPicker(current: seed),
+              ],
             ),
             Box(
               direction: Axis.horizontal,

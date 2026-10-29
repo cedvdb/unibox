@@ -2,7 +2,6 @@ import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_material/unibox_material.dart';
 
 import '../icons.dart';
-import '../seed_picker.dart';
 import '../theme.dart';
 import 'section.dart';
 
@@ -25,10 +24,8 @@ UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
       width: double.infinity,
       gap: 48,
       children: <UINode>[
-        // The catalogue is the one place a reader can change the design system it
-        // documents: every swatch, every specimen and every hex below follows the
-        // seed, because all of them are read out of the palette it grew.
-        seedPicker(current: seed),
+        // The palette the catalogue documents is chosen in the page's header, and every
+        // specimen and hex below follows the seed it names.
         siteHeading(
           palette,
           title: 'Material 3, as values and nodes',

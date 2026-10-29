@@ -8,8 +8,9 @@ import 'theme.dart';
 /// carries the name of the palette it selects, so a reader who cannot see the colour
 /// is told which one it is and which one is in force.
 ///
-/// The example page puts it above its navigation bar and the catalogue puts it above
-/// its specimens: one builder, so the two cannot drift into two different pickers.
+/// It carries no width, no background and no padding, because where it sits is the
+/// page's: the header places it beside the name, and a band of its own would push the
+/// name off the row it belongs to.
 ///
 /// A swatch is a link to the page it is on with `?seed=<name>` in the address. The
 /// address is what a browser follows, so a document can be rendered in any palette
@@ -24,12 +25,8 @@ import 'theme.dart';
 UINode seedPicker({required ExampleSeed current}) {
   return Box(
     direction: Axis.horizontal,
-    mainAlign: MainAlign.center,
     crossAlign: CrossAlign.center,
-    width: double.infinity,
     gap: 8,
-    padding: const BoxSpacing.symmetric(horizontal: 24, vertical: 8),
-    backgroundColor: const BoxColor.role(ExampleColor.panel),
     textStyle: ExampleType.muted,
     children: <UINode>[
       for (final ExampleSeed seed in ExampleSeed.values)

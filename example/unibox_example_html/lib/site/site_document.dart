@@ -21,16 +21,19 @@ import 'iframe_node.dart';
 /// `unibox-build`. A tab opened before a deploy and the deployed page look the same, down to a
 /// layout the new build has already fixed, so the one thing that separates them is a fact
 /// carried by the document itself.
-String buildSiteDocument({String? build}) {
+String buildSiteDocument({
+  ExampleSeed seed = ExampleSeed.defaultSeed,
+  String? build,
+}) {
   return toDocument(
-    sitePageTree(),
+    sitePageTree(seed: seed),
     title: 'Unibox — one tree, two renderers',
     description:
         'Describe a screen once, in plain Dart, and draw it twice: Flutter widgets '
         'in an app and HTML with CSS in a browser. The Material 3 type scale, the '
         'colour roles and the components, as values and nodes.',
     meta: <String, String>{'unibox-build': ?build},
-    theme: siteTheme,
+    theme: siteThemeFor(seed),
     head: <String>['<style>${fontFaceCss('')}$siteCss</style>'],
     // A site a crawler reads is a document: the recorders are what a reader who interacts
     // with the catalogue leaves behind, and nothing here starts an application.
@@ -49,14 +52,31 @@ String buildSiteDocument({String? build}) {
 /// A frame is the one thing the model cannot describe, so the same node arrives in both: the document
 /// writes it as markup a crawler can follow, and the client builds the identical element from the
 /// identical payload.
-core.UINode sitePageTree() => buildSitePage(
-  frame: ({required String src, required String title}) =>
-      IframeNode(src: src, title: title),
-);
+core.UINode sitePageTree({ExampleSeed seed = ExampleSeed.defaultSeed}) =>
+    buildSitePage(
+      seed: seed,
+      frame: ({required String src, required String title}) =>
+          IframeNode(src: src, title: title),
+    );
 
 /// The palette the site is drawn with, in the document and in the browser.
-core.UniboxTheme get siteTheme =>
-    ExamplePalette.themeFor(ExampleSeed.defaultSeed);
+///
+/// The header's picker is a row of links to `?seed=<name>`, so the palette a reader chose is in
+/// the address: the export writes the default one, and the runtime asks the address which one to
+/// draw. Nothing else about the page changes — the tree names roles, and a theme is what answers
+/// them.
+core.UniboxTheme siteThemeFor(ExampleSeed seed) =>
+    ExamplePalette.themeFor(seed);
+
+/// The palette a query string names, or the default one.
+///
+/// A location's `search` arrives with its `?`, which `Uri.splitQueryString` does not expect: it
+/// would read the key as `?seed` and answer with the default palette.
+ExampleSeed seedFromQuery(String search) => ExampleSeed.fromName(
+  Uri.splitQueryString(
+    search.startsWith('?') ? search.substring(1) : search,
+  )['seed'],
+);
 
 /// The rules that describe the surface of the site rather than its tree.
 ///

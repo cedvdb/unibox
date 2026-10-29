@@ -1,5 +1,6 @@
 import 'package:unibox_dom/unibox_dom.dart';
 import 'package:unibox_example_html/site/site_document.dart';
+import 'package:unibox_example_shared/unibox_example_shared.dart';
 import 'package:web/web.dart' as web;
 
 /// The page a reader can act on, without Flutter.
@@ -20,5 +21,12 @@ void main() {
     return;
   }
 
-  DomView.adopt(sitePageTree(), root, theme: siteTheme);
+  // The palette a reader chose is in the address, because the picker is a row of links: the
+  // export writes the default one, and this is what answers the address with another. The
+  // rendered tree differs only in the roles it resolves, so adopting it patches the custom
+  // properties and the few elements that name a colour directly — the page a reader is looking
+  // at stays the page they were looking at.
+  final ExampleSeed seed = seedFromQuery(web.window.location.search);
+
+  DomView.adopt(sitePageTree(seed: seed), root, theme: siteThemeFor(seed));
 }

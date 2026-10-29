@@ -71,6 +71,33 @@ void main() {
       );
     });
 
+    test('offers the palettes in the header, beside the name', () {
+      // Six dots next to the wordmark: a palette is the whole page, so it is chosen where
+      // the page begins rather than above the catalogue that explains it.
+      final List<UINode> page = _flatten(buildSitePage(frame: _frame)).toList();
+      final List<LinkNode> swatches = page
+          .whereType<LinkNode>()
+          .where((LinkNode link) => link.url.startsWith('?seed='))
+          .toList();
+
+      expect(swatches, hasLength(ExampleSeed.values.length));
+      expect(
+        _flatten(
+          page.firstWhere(
+            (UINode node) =>
+                node is Box && node.semantics?.element == BoxElement.header,
+          ),
+        ).whereType<TextNode>().map((TextNode text) => text.text),
+        contains('Unibox'),
+      );
+
+      final Box rose =
+          swatches.firstWhere((LinkNode link) => link.url == '?seed=rose').child
+              as Box;
+
+      expect(rose.border?.width, 2, reason: 'the palette in force is ringed');
+    });
+
     test('frames the same screen in both renderings', () {
       final UINode page = buildSitePage(frame: _frame);
       final List<Object?> frames = <Object?>[
