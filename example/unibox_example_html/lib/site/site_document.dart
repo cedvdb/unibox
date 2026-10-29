@@ -1,3 +1,4 @@
+import 'package:unibox_core/unibox_core.dart' as core;
 import 'package:unibox_example_shared/unibox_example_shared.dart';
 import 'package:unibox_html/unibox_html.dart';
 
@@ -22,25 +23,40 @@ import 'iframe_node.dart';
 /// carried by the document itself.
 String buildSiteDocument({String? build}) {
   return toDocument(
-    buildSitePage(
-      frame: ({required String src, required String title}) =>
-          IframeNode(src: src, title: title),
-    ),
+    sitePageTree(),
     title: 'Unibox — one tree, two renderers',
     description:
         'Describe a screen once, in plain Dart, and draw it twice: Flutter widgets '
         'in an app and HTML with CSS in a browser. The Material 3 type scale, the '
         'colour roles and the components, as values and nodes.',
     meta: <String, String>{'unibox-build': ?build},
-    theme: ExamplePalette.themeFor(ExampleSeed.defaultSeed),
+    theme: siteTheme,
     head: <String>['<style>${fontFaceCss('')}$siteCss</style>'],
     // A site a crawler reads is a document: the recorders are what a reader who interacts
     // with the catalogue leaves behind, and nothing here starts an application.
     scripts: <DocumentScript>[
+      // The recorders first: they are what a reader who acts before the client arrives leaves behind.
       DocumentScript.inline(body: '$pressScript\n$scrollScript'),
+      // Then the rendering that makes the page interactive without Flutter: the catalogue's chips,
+      // its segmented button and its dialog, drawn from the same tree by the same stores.
+      DocumentScript(src: 'web/main.client.js'),
     ],
   );
 }
+
+/// The site as one tree, built by the document and adopted by the client.
+///
+/// A frame is the one thing the model cannot describe, so the same node arrives in both: the document
+/// writes it as markup a crawler can follow, and the client builds the identical element from the
+/// identical payload.
+core.UINode sitePageTree() => buildSitePage(
+  frame: ({required String src, required String title}) =>
+      IframeNode(src: src, title: title),
+);
+
+/// The palette the site is drawn with, in the document and in the browser.
+core.UniboxTheme get siteTheme =>
+    ExamplePalette.themeFor(ExampleSeed.defaultSeed);
 
 /// The rules that describe the surface of the site rather than its tree.
 ///

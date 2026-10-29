@@ -117,6 +117,11 @@ done
 # the site rather than inside it: the folder is published exactly as it is.
 printf '%s' "$base" >"$(dirname "$site")/.unibox-site-base"
 
+step 'Compiling the client rendering'
+# One file, compiled from the same package the documents are written from: the site's interactive
+# layer is the tree itself, not a second description of it.
+dart compile js -O4 example/unibox_example_html/web/main.client.dart -o "$site/web/main.client.js"
+
 step 'Writing robots, sitemap and .nojekyll' 
 cat >"$site/robots.txt" <<'ROBOTS'
 # The Flutter build is a canvas with no text of its own for a crawler to read; the

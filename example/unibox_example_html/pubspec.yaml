@@ -9,9 +9,11 @@ environment:
 
 dependencies:
   unibox_core: ^0.1.0
+  unibox_dom: ^0.1.0
   unibox_example_shared: ^0.1.0
   unibox_html: ^0.1.0
   unibox_material: ^0.1.0
+  web: ^1.1.1
 
 dev_dependencies:
   lints: ^6.1.0

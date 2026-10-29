@@ -152,7 +152,7 @@ String toDocument(
     buffer.write('<link rel="prefetch" href="${safeUrl(url)}" as="script">');
   }
 
-  buffer.write('<style>${rendered.css}</style>');
+  buffer.write('<style data-unibox-css>${rendered.css}</style>');
 
   // Markup the host owns and the model does not describe: the `@font-face` rules of the
   // asset it ships, a dark-mode block, a structured-data script. Written verbatim, so it is

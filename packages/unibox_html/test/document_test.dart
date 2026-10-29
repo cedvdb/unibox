@@ -80,9 +80,11 @@ void main() {
 
     test('puts the stylesheet in the head, so nothing flashes unstyled', () {
       final String html = toDocument(const core.Box());
-      final int style = html.indexOf('<style>');
+      final int style = html.indexOf('<style data-unibox-css>');
       final int body = html.indexOf('<body>');
 
+      // The attribute is what a client looks for: it rewrites this stylesheet instead of adding a
+      // second copy of the same rules when it adopts the page.
       expect(style, isNot(-1));
       expect(style, lessThan(body));
     });

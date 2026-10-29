@@ -35,6 +35,24 @@ final class DomView {
     return view;
   }
 
+  /// Draws [tree] over the elements a server already wrote, and keeps them.
+  ///
+  /// This is what a page and a client are for: the document a crawler read and the page a reader
+  /// acts on are the same elements. Nothing is rebuilt — the plans are compared and only what
+  /// differs is touched — so a reader who has scrolled, focused a field or selected text keeps all
+  /// three, and there is no flash of a page drawn a second time.
+  static DomView adopt(
+    core.UINode tree,
+    web.Element root, {
+    core.UniboxTheme? theme,
+  }) {
+    final DomView view = DomView._(root.parentElement ?? root, tree, theme)
+      .._element = root;
+    view._paint();
+
+    return view;
+  }
+
   final web.Element _host;
   final core.UniboxTheme? _theme;
   final Map<String, _Mount> _mounts = <String, _Mount>{};
@@ -111,8 +129,29 @@ final class DomView {
     final _Pass pass = _Pass(this);
     final ElementPlan next = pass.planTree(_tree);
 
-    if (_element case final web.Element current when _plan != null) {
-      _element = patchElement(current, _plan!, next, onBuilt: pass.record);
+    if (_element case final web.Element current) {
+      // The first pass of an adoption has an element but no plan: the server's markup is the
+      // previous state, and its plan is the one this tree describes now, so the two are compared
+      // from the top and only what differs is written.
+      _element = patchElement(
+        current,
+        _plan ??
+            ElementPlan(
+              tag: next.tag,
+              className: current.className.isEmpty ? null : current.className,
+            ),
+        next,
+        onBuilt: pass.record,
+      );
+      _style = _stylesheetIn(web.document.head);
+
+      if (_style == null) {
+        final web.HTMLStyleElement created =
+            web.document.createElement('style') as web.HTMLStyleElement;
+        web.document.head!.append(created);
+        _style = created;
+      }
+
       _style!.textContent = pass.css(_theme);
     } else {
       _element = buildElement(next, onBuilt: pass.record);
@@ -176,6 +215,11 @@ final class DomView {
     }
   }
 }
+
+/// The stylesheet a document wrote, if it is there, so a client rewrites it instead of adding a
+/// second copy of the same rules.
+web.HTMLStyleElement? _stylesheetIn(web.Element? head) =>
+    head?.querySelector('style[data-unibox-css]') as web.HTMLStyleElement?;
 
 /// One planning pass: the stylesheet it builds, the node each plan came from, and the element each
 /// plan became.
