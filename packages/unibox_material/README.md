@@ -512,9 +512,17 @@ application wants when the page is its own node — above a pager, above a page 
 beside a preview. A *primary* bar distributes its tabs across the width and a *secondary*
 one packs them to the start at their own width.
 
-Its indicator is one element, a share of the bar wide, moved by a multiple of its own width —
-so it slides between tabs with a `transform` a transition eases, and nobody has to measure a
-tab. That is the *primary* bar, whose tabs are equal shares by definition.
+A bar is as wide as its parent and hands that width down, so a primary tab is a third of a
+three-tab bar: the width of a tab is the bar's, and the bar's is the parent's. Give it a
+narrower parent to make the tabs tighter, which is also the only lever — the bar states
+`width: double.infinity` and takes no width of its own.
+
+Its indicator is one element, a share of the bar wide, laid from the start edge and moved by a
+multiple of its own width — so it slides between tabs with a `transform` a transition eases, and
+nobody has to measure a tab. That is the *primary* bar, whose tabs are equal shares by
+definition. It begins at the start edge rather than the centre: an aligned child fills the
+layer and the alignment places it, so a centred indicator is already half a bar along and every
+step after that lands one tab too far.
 
 A *secondary* bar packs its tabs to the start and gives each one its label's width, so a share
 would land under no tab at all. Each tab carries its own underline instead, pinned across the

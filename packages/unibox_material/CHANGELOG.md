@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- A **primary** tab bar's indicator sits under the tab that is chosen. It was laid from the
+  centre of the bar and then moved one share per tab, so with three tabs the underline showed
+  the *second* one while the first was chosen — and the third tab's underline ran off the end.
+  It is laid from the start edge now, which is what makes `selected` alone place it.
+- A **primary** bar hands its width down to its row of tabs, so a tab takes its share of the
+  bar instead of hugging its label. The layer inside started rather than stretched, and a
+  percentage inside a layer with no width resolves against its content: a 1080 pixel bar held
+  210 pixels of tabs bunched at the left, and the indicator's share of the bar was really a
+  share of the three labels.
+
 - The navigation bar's pill answers a hover and a selection with two speeds, the way Material
   does: a hover fades a state layer over the pill in 50ms and never stretches it, while a
   selection keeps the 100ms fade and 500ms sideways stretch. A hovered destination that is

@@ -129,6 +129,11 @@ void main() {
         isTrue,
         reason: 'a secondary tab is as wide as its label',
       );
+
+      // A share of the bar is only a share of the bar if the bar hands its width down: a box
+      // starts its children by default, so the row was as wide as the three labels and a
+      // 1080 pixel bar held 210 pixels of tabs bunched at the left.
+      expect(bar().crossAlign, CrossAlign.stretch);
     });
 
     test('is a tab of a tablist for a screen reader, one of them chosen', () {
@@ -204,8 +209,10 @@ void main() {
         );
       }
 
-      // And the bar keeps the one indicator it moves instead.
-      expect(_indicatorOf(bar()).alignment, BoxAlignment.bottomCenter);
+      // And the bar keeps the one indicator it moves instead, from the start edge: a centred
+      // indicator is a share too far along, which is what put the underline under the second
+      // tab while the first was chosen.
+      expect(_indicatorOf(bar()).alignment, BoxAlignment.bottomStart);
     });
   });
 }

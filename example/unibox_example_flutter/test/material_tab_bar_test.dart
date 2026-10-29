@@ -168,4 +168,58 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('puts the indicator under the chosen tab, from the start edge', (
+    WidgetTester tester,
+  ) async {
+    final Finder indicator = find.byWidgetPredicate(
+      (Widget widget) =>
+          widget is FlutterBox && widget.box.widthFraction != null,
+    );
+    final double share = 600 / 3;
+
+    // Pump one bar first: the bar's own rect is the origin every step is measured from.
+    await pumpBar(tester, bar(variant: MaterialTabVariant.primary));
+
+    final Rect barBox = tester.getRect(
+      find.byWidgetPredicate(
+        (Widget widget) => widget is FlutterBox && widget.box is MaterialTabBar,
+      ),
+    );
+
+    for (final (int chosen, String label) in <(int, String)>[
+      (0, 'Overview'),
+      (1, 'Listings'),
+      (2, 'Reviews'),
+    ]) {
+      selected = chosen;
+      await pumpBar(tester, bar(variant: MaterialTabVariant.primary));
+      // The move is what a transition eases, so the indicator arrives a frame later.
+      await tester.pump(const Duration(milliseconds: 400));
+
+      // A share wide, laid from the start edge, and moved by a multiple of its own width:
+      // the first tab's underline begins where the bar begins, and each step is one share.
+      // Centred instead, every one of them was a tab too far along — the underline of a
+      // three-tab bar sat under the second tab while the first was chosen.
+      expect(tester.getSize(indicator).width, closeTo(share, 1));
+      expect(tester.getTopLeft(indicator).dx, closeTo(barBox.left, 1));
+
+      final Finder move = find.descendant(
+        of: indicator,
+        matching: find.byType(FractionalTranslation),
+      );
+      // A move by nothing is no move at all, so the first tab's indicator wears no wrapper.
+      final double along = move.evaluate().isEmpty
+          ? 0
+          : tester.widget<FractionalTranslation>(move).translation.dx;
+
+      expect(
+        along,
+        closeTo(chosen.toDouble(), 1e-9),
+        reason: 'the underline of "$label" is $chosen shares along',
+      );
+    }
+
+    expect(tester.takeException(), isNull);
+  });
 }
