@@ -139,5 +139,5 @@ and 2.0x, where they were at 2.5x and 9.6x.
   `packages/unibox_dom/test/stateful_test.dart` and `adopt_test.dart`, and the two the tests
   cannot observe — a query per element, a key list squared — are one lookup each now.
 
-The bytes and the class counts are identical before and after, which is the point: none of
-this changed what a renderer produces.
+The bytes and the class counts are identical before and after: none of this changed what a
+renderer produces.
