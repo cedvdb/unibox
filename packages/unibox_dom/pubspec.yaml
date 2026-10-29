@@ -19,7 +19,7 @@ dependencies:
   unibox_core: ^0.1.0
   unibox_css: ^0.1.0
   unibox_element: ^0.1.0
-  web: ^1.1.1
+  web: ^1.1.2
 
 dev_dependencies:
   lints: ^6.1.0
