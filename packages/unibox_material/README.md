@@ -493,6 +493,29 @@ needs.
 
 ## The segmented button
 
+`MaterialTabBar` is one row of tabs with an indicator under the chosen one, and
+`MaterialTabs` is that bar with the page of the chosen tab under it: a `StatefulNode`
+whose store holds the index, so a press swaps the page on both targets.
+
+```dart
+MaterialTabs(
+  tabs: const <MaterialTab>[
+    MaterialTab(label: TextNode('Overview')),
+    MaterialTab(label: TextNode('Listings')),
+  ],
+  pages: <UINode>[overview, listings],
+)
+```
+
+The bar on its own takes `selected` and `onSelect` and draws no page, which is what an
+application wants when the page is its own node — above a pager, above a page that swaps,
+beside a preview. A *primary* bar distributes its tabs across the width and a *secondary*
+one packs them to the start at their own width.
+
+It does not page between tabs: a swipe needs a controlled scroll position, and the model
+reports an offset (`Box.onScroll`) without setting one. The pager is `Box(snap:
+ScrollSnap.page)`, which pages by drag; a tab press swaps the page instead of sliding to it.
+
 `MaterialSegmentedButton` is two to five choices in one divided pill.
 
 ```dart

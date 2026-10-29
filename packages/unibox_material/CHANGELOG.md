@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `MaterialTabBar` and `MaterialTabs`: Material 3 tabs — primary (evenly distributed) or
+  secondary (as wide as their labels) — with the indicator under the chosen tab and, in
+  `MaterialTabs`, the page of that tab drawn under it. A tab press swaps the page rather
+  than sliding between pages: a controlled scroll position is not in the model yet.
+
 - `MaterialProgressRing` is drawn the way Material 3 draws it: one arc **stroked** in a
   colour, with `round` caps, instead of a filled band whose ends were radial cuts. The outline
   is `BoxShape.arc` — a centreline inset by half the stroke, so the stroke meets the box's

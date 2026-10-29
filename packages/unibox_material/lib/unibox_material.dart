@@ -55,3 +55,5 @@ export 'src/material_segmented_button.dart';
 export 'src/material_text_field.dart';
 export 'src/material_type_role.dart';
 export 'src/material_typography.dart';
+export 'src/material_tab_bar.dart';
+export 'src/material_tabs.dart';
