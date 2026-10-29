@@ -1,7 +1,6 @@
 # Maintaining Unibox
 
-The repository is built to be maintained by one person with a spare hour a month, and by
-an assistant working inside the same rules. This page is that hour: what runs on its own,
+The repository is built to be assisted with AI for maintenance. This page describes what runs on its own,
 what a human decides, and what to do when something is red.
 
 If you are an assistant asked to do maintenance work, read [`AGENTS.md`](AGENTS.md) first
