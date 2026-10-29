@@ -7,11 +7,20 @@ name: Review
 # is allowed, and this decides whether a maintainer should look harder. A green gate outranks a
 # comment written here.
 #
-# The call is one HTTPS request to an OpenAI-compatible endpoint, which is what keeps the reviewer
-# out of a vendor: `deepseek-chat` by default, and `vars.REVIEW_ENDPOINT` / `vars.REVIEW_MODEL` point
-# it at another provider, or at a local model on a self-hosted runner. It is deliberately not an
-# agent — it reads the diff and nothing else, which is all the six questions need, and an agent that
-# could open files would notice a little more and cost a lot more.
+# The call is one HTTPS request to an OpenAI-compatible endpoint, so the reviewer is not tied to a
+# vendor. Gemini Flash is the default because its free tier costs nothing and this job does not need
+# a better model: bounded criteria, a capped diff, one fixed output shape, no tool use.
+#
+# `vars.REVIEW_ENDPOINT` and `vars.REVIEW_MODEL` override both. These are known to work, and every
+# one of them takes the same `Authorization: Bearer <key>` header:
+#
+#   Gemini      https://generativelanguage.googleapis.com/v1beta/openai/chat/completions
+#   DeepSeek    https://api.deepseek.com/chat/completions          (deepseek-chat)
+#   OpenRouter  https://openrouter.ai/api/v1/chat/completions      (whatever it lists)
+#   Ollama      http://localhost:11434/v1/chat/completions         (a self-hosted runner)
+#
+# It is deliberately not an agent — it reads the diff and nothing else, which is all the six
+# questions need, and an agent that could open files would notice a little more and cost a lot more.
 #
 # Two limits, both deliberate:
 #
@@ -64,8 +73,8 @@ jobs:
         if: steps.configured.outputs.yes == 'true'
         env:
           KEY: ${{ secrets.REVIEW_API_KEY }}
-          ENDPOINT: ${{ vars.REVIEW_ENDPOINT || 'https://api.deepseek.com/chat/completions' }}
-          MODEL: ${{ vars.REVIEW_MODEL || 'deepseek-chat' }}
+          ENDPOINT: ${{ vars.REVIEW_ENDPOINT || 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions' }}
+          MODEL: ${{ vars.REVIEW_MODEL || 'gemini-3.8-flash' }}
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
         run: |
