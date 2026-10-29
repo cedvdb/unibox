@@ -35,11 +35,8 @@ ElementPlan _planOf(
   final core.TextInputNode field => _planTextInput(field, sheet),
   final core.EmbedNode embed => (options.embed ?? _noEmbed)(embed),
   final core.OverlayNode overlay => _planOverlay(overlay, sheet, options),
-  final core.StatefulNode<Object, core.Store<Object>> stateful => _planStateful(
-    stateful,
-    sheet,
-    options,
-  ),
+  final core.StatefulNode<Object, core.Store<Object>> stateful =>
+    (options.stateful ?? _planFirstState)(stateful, sheet, options),
   _ => throw UnsupportedError(
     'No HTML renderer for ${node.runtimeType} yet: this target draws $supportedNodes.',
   ),
@@ -61,7 +58,12 @@ typedef PlanEmbed = ElementPlan Function(core.EmbedNode node);
 /// presence in the tree is the state, and this only decides whether a page draws it.
 final class PlanOptions {
   /// Creates the options of a rendering.
-  const PlanOptions({this.showOverlays = false, this.embed, this.onPlanned});
+  const PlanOptions({
+    this.showOverlays = false,
+    this.embed,
+    this.onPlanned,
+    this.stateful,
+  });
 
   /// Whether an overlay in the tree is drawn rather than hidden.
   final bool showOverlays;
@@ -75,6 +77,13 @@ final class PlanOptions {
   /// to build, the node says what the element does (a press, a change), and only a renderer with a
   /// runtime can run it. A string renderer passes nothing and the callback never fires.
   final void Function(ElementPlan plan, core.UINode node)? onPlanned;
+
+  /// How to plan a stateful node, or `null` for a snapshot of its first state.
+  ///
+  /// A document passes nothing: it reads one state and writes it. A renderer with a runtime passes
+  /// a function that keeps the store alive, subscribes to it and plans the view again on every
+  /// publish — the client's answer to what `FlutterStateful` does in Flutter.
+  final PlanStateful? stateful;
 }
 
 /// What this renderer draws so far, named for the message a missing one prints.
@@ -530,7 +539,7 @@ ElementPlan _planOverlay(
 /// starts the work an application would — a request, a timer, a subscription. The tree
 /// is a function of the state, so this is exactly the state a reader arriving for the
 /// first time sees.
-ElementPlan _planStateful(
+ElementPlan _planFirstState(
   core.StatefulNode<Object, core.Store<Object>> node,
   Stylesheet sheet,
   PlanOptions options,
@@ -539,6 +548,20 @@ ElementPlan _planStateful(
 
   return planNode(node.viewFor(store.state, store), sheet, options: options);
 }
+
+/// How a renderer plans a stateful node.
+///
+/// The default is the snapshot a document needs: create the store, read the state it starts with,
+/// plan that and drop the store. A renderer with a runtime keeps the store instead — it subscribes
+/// to it and plans again whenever it publishes — which is why the decision is a parameter of the
+/// call and not a method on the node: the node is a description, and how long a store lives is a
+/// fact about the target that draws it.
+///
+typedef PlanStateful = ElementPlan Function(
+  core.StatefulNode<Object, core.Store<Object>> node,
+  Stylesheet sheet,
+  PlanOptions options,
+);
 
 /// An embed no renderer was given a plan for.
 ElementPlan _noEmbed(core.EmbedNode node) => throw UnsupportedError(
