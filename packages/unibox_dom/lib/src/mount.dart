@@ -55,6 +55,7 @@ final class DomView {
 
   final web.Element _host;
   final core.UniboxTheme? _theme;
+  final Stylesheet _sheet = Stylesheet();
   final Map<String, _Mount> _mounts = <String, _Mount>{};
   final Map<web.Element, List<void Function()>> _listeners =
       <web.Element, List<void Function()>>{};
@@ -126,7 +127,7 @@ final class DomView {
 
   /// One pass: plan, patch, bind, and release the stores nothing holds any more.
   void _paint() {
-    final _Pass pass = _Pass(this);
+    final _Pass pass = _Pass(this, _sheet);
     final ElementPlan next = pass.planTree(_tree);
 
     if (_element case final web.Element current) {
@@ -163,7 +164,74 @@ final class DomView {
 
     _plan = next;
     _bindAll(pass, next);
+    _syncElements(pass);
     _sweep(pass.visited);
+  }
+
+  /// Re-renders one stateful node's subtree, and nothing else.
+  ///
+  /// The boundary's element is patched, never replaced: a browser works out a click from the
+  /// element it saw pressed, so a renderer that rewrites that element between the press and its
+  /// release turns every press into a lost click.
+  void _repaintBoundary(_Mount mount) {
+    if (_disposed) {
+      return;
+    }
+
+    final web.Element? element = mount.element;
+    final ElementPlan? plan = mount.plan;
+
+    if (element == null || plan == null) {
+      // Published before this node was drawn: the pass in flight will draw the state it holds.
+      _dirty = true;
+
+      return;
+    }
+
+    // A mount inside this subtree that the new view no longer holds is gone from the page, so its
+    // store has to stop doing whatever it was doing.
+    // `contains` is true of the element itself, so the boundary's own mount is not in this list: a
+    // store released here would be disposed by its own publish.
+    final List<String> inside = <String>[
+      for (final MapEntry<String, _Mount> entry in _mounts.entries)
+        if (!identical(entry.value, mount))
+          if (entry.value.element case final web.Element child
+              when element.contains(child))
+            entry.key,
+    ];
+
+    final _Pass pass = _Pass(this, _sheet);
+    final ElementPlan next = planNode(
+      mount.node.viewFor(mount.store.state, mount.store),
+      _sheet,
+      options: pass.options,
+    );
+
+    mount.element = patchElement(element, plan, next, onBuilt: pass.record);
+    mount.plan = next;
+    mount.element = pass.built[next] ?? mount.element;
+    _style?.textContent = documentCss(_sheet, theme: _theme);
+
+    _bindAll(pass, next);
+    _syncElements(pass);
+
+    for (final String slot in inside) {
+      if (!pass.visited.contains(slot)) {
+        _mounts.remove(slot)?.release();
+      }
+    }
+  }
+
+  /// Points every mount the last pass drew at the element it is drawn by now.
+  void _syncElements(_Pass pass) {
+    for (final String slot in pass.visited) {
+      final _Mount? mount = _mounts[slot];
+      final ElementPlan? plan = mount?.plan;
+
+      if (mount != null && plan != null) {
+        mount.element = pass.built[plan] ?? mount.element;
+      }
+    }
   }
 
   /// Attaches the behaviour of every node in [plan] to the element it became.
@@ -224,10 +292,10 @@ web.HTMLStyleElement? _stylesheetIn(web.Element? head) =>
 /// One planning pass: the stylesheet it builds, the node each plan came from, and the element each
 /// plan became.
 final class _Pass {
-  _Pass(this._view);
+  _Pass(this._view, this.sheet);
 
   final DomView _view;
-  final Stylesheet sheet = Stylesheet();
+  final Stylesheet sheet;
   final Map<ElementPlan, core.UINode> nodes =
       Map<ElementPlan, core.UINode>.identity();
   final Map<ElementPlan, web.Element> built =
@@ -240,18 +308,18 @@ final class _Pass {
   final List<String> _path = <String>[''];
   final List<int> _counts = <int>[0];
 
-  ElementPlan planTree(core.UINode tree) => planNode(
-    tree,
-    sheet,
-    options: PlanOptions(
-      // A runtime is present, so an overlay in the tree is a dialog the reader can see and close;
-      // a document hides it because nothing there can ask for it.
-      showOverlays: true,
-      embed: (core.EmbedNode embed) => planEmbed(embed, sheet),
-      onPlanned: (ElementPlan plan, core.UINode node) =>
-          nodes.putIfAbsent(plan, () => node),
-      stateful: _planStateful,
-    ),
+  ElementPlan planTree(core.UINode tree) =>
+      planNode(tree, sheet, options: options);
+
+  /// The questions this target answers when planning: a runtime is present, so an overlay in the
+  /// tree is a dialog a reader can see and close, and a stateful node keeps its store instead of
+  /// being read once.
+  PlanOptions get options => PlanOptions(
+    showOverlays: true,
+    embed: (core.EmbedNode embed) => planEmbed(embed, sheet),
+    onPlanned: (ElementPlan plan, core.UINode node) =>
+        nodes.putIfAbsent(plan, () => node),
+    stateful: _planStateful,
   );
 
   String css(core.UniboxTheme? theme) => documentCss(sheet, theme: theme);
@@ -274,11 +342,14 @@ final class _Pass {
     _counts.add(0);
 
     try {
-      return planNode(
+      final ElementPlan plan = planNode(
         node.viewFor(mount.store.state, mount.store),
         sheet,
         options: options,
       );
+      mount.plan = plan;
+
+      return plan;
     } finally {
       _path.removeLast();
       _counts.removeLast();
@@ -297,7 +368,7 @@ final class _Pass {
 /// A store, the node that draws it, and the subscription that keeps the page up to date.
 final class _Mount {
   _Mount(this.node, DomView view) : store = node.createStore() {
-    _changed = view._repaint;
+    _changed = () => view._repaintBoundary(this);
     store.addListener(_changed);
     // `onMount` is what starts the work a component does when it appears. A publish from it is
     // queued by the view rather than drawn in the middle of the first pass.
@@ -307,6 +378,12 @@ final class _Mount {
   core.StatefulNode<Object, core.Store<Object>> node;
   final core.Store<Object> store;
   late final void Function() _changed;
+
+  /// The plan of the view this node drew, and the element it became: the boundary a publish
+  /// re-renders. A ripple publishes sixty times a second, and a page re-planned on each of those
+  /// would put a whole page's patching between a press and its release.
+  ElementPlan? plan;
+  web.Element? element;
 
   void release() {
     store.onUnmount();

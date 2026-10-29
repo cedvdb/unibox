@@ -56,38 +56,52 @@ web.Element patchElement(
 /// Patches [parent]'s children from [previous] to [next].
 ///
 /// A child that is still there is patched where it stands, so an element keeps its identity — and
-/// therefore its focus, its caret, its scroll and the listeners attached to it. Matching is by
-/// `key` first, because a key is a statement about identity; without one, an element is matched by
-/// its position and kind, which is what an unkeyed list means on every other target.
+/// therefore its focus, its caret, its scroll and the listeners attached to it. That is not a
+/// nicety: a browser decides whether a press became a click by comparing the element it saw pressed
+/// with the one it sees released, so rebuilding the element under a pointer turns every press into
+/// a click that never happens.
+///
+/// Matching is by `key` first, because a key is a statement about identity. The rest is matched from
+/// **both ends**: a tree that inserts a child at the front — an ink drop, a spinner, a badge — keeps
+/// everything after it, and matching from the end is what sees that. Whatever is left is matched by
+/// position and kind, and whatever is still left is new.
 void patchChildren(
   web.Element parent,
   ElementPlan previous,
   ElementPlan next, {
   void Function(ElementPlan plan, web.Element element)? onBuilt,
 }) {
-  // `children` holds elements by definition, which is why this needs no type test: the plan
-  // builds nothing else.
-  final List<web.Element> existing = <web.Element>[
+  // `children` holds elements by definition, which is why this needs no type test: the plan builds
+  // nothing else.
+  final List<web.Element?> pool = <web.Element?>[
     for (int i = 0; i < parent.children.length; i++)
       if (parent.children.item(i) case final web.Node node) node as web.Element,
   ];
-  final List<web.Element?> pool = List<web.Element?>.of(existing);
   final List<ElementPlan> before = previous.children;
+  final List<web.Element?> matched = List<web.Element?>.filled(
+    next.children.length,
+    null,
+  );
+
+  _matchKeys(next.children, pool, matched);
+  _matchEnds(next.children, pool, matched);
+  _matchStarts(next.children, pool, matched);
+
   final List<web.Element> built = <web.Element>[];
 
   for (int i = 0; i < next.children.length; i++) {
     final ElementPlan plan = next.children[i];
-    final int match = _match(pool, plan, before, i);
+    final web.Element? existing = matched[i];
 
-    if (match < 0) {
-      built.add(buildElement(plan, onBuilt: onBuilt));
-      continue;
-    }
-
-    final web.Element element = pool[match]!;
-    pool[match] = null;
     built.add(
-      patchElement(element, _planOf(element, before), plan, onBuilt: onBuilt),
+      existing == null
+          ? buildElement(plan, onBuilt: onBuilt)
+          : patchElement(
+              existing,
+              _planOf(existing, before),
+              plan,
+              onBuilt: onBuilt,
+            ),
     );
   }
 
@@ -110,32 +124,91 @@ void patchChildren(
   }
 }
 
-/// The index in [pool] that [plan] continues, or `-1` when it is a new element.
-int _match(
+/// Matches children that state a key, wherever they moved to.
+void _matchKeys(
+  List<ElementPlan> plans,
   List<web.Element?> pool,
-  ElementPlan plan,
-  List<ElementPlan> before,
-  int index,
+  List<web.Element?> matched,
 ) {
-  final String? key = plan.attributes['data-unibox-key'];
+  for (int i = 0; i < plans.length; i++) {
+    final String? key = plans[i].attributes['data-unibox-key'];
 
-  if (key != null) {
-    for (int i = 0; i < pool.length; i++) {
-      if (pool[i]?.getAttribute('data-unibox-key') == key) {
-        return i;
+    if (key == null) {
+      continue;
+    }
+
+    for (int j = 0; j < pool.length; j++) {
+      if (pool[j]?.getAttribute('data-unibox-key') == key) {
+        matched[i] = pool[j];
+        pool[j] = null;
+
+        break;
       }
     }
   }
+}
 
-  if (index < pool.length) {
-    final web.Element? candidate = pool[index];
+/// Matches from the end: a child inserted at the front leaves everything after it where it was.
+void _matchEnds(
+  List<ElementPlan> plans,
+  List<web.Element?> pool,
+  List<web.Element?> matched,
+) {
+  int plan = plans.length - 1;
+  int element = pool.length - 1;
 
-    if (candidate != null && candidate.tagName.toLowerCase() == plan.tag) {
-      return index;
+  while (plan >= 0 && element >= 0) {
+    if (matched[plan] != null) {
+      plan--;
+
+      continue;
     }
-  }
 
-  return -1;
+    final web.Element? candidate = pool[element];
+
+    if (candidate == null ||
+        candidate.tagName.toLowerCase() != plans[plan].tag) {
+      return;
+    }
+
+    matched[plan] = candidate;
+    pool[element] = null;
+    plan--;
+    element--;
+  }
+}
+
+/// Matches the rest from the front, by position and kind.
+void _matchStarts(
+  List<ElementPlan> plans,
+  List<web.Element?> pool,
+  List<web.Element?> matched,
+) {
+  int element = 0;
+
+  for (int plan = 0; plan < plans.length; plan++) {
+    if (matched[plan] != null) {
+      continue;
+    }
+
+    while (element < pool.length && pool[element] == null) {
+      element++;
+    }
+
+    if (element >= pool.length) {
+      return;
+    }
+
+    final web.Element? candidate = pool[element];
+
+    if (candidate != null &&
+        candidate.tagName.toLowerCase() == plans[plan].tag) {
+      matched[plan] = candidate;
+      pool[element] = null;
+    }
+
+    element++;
+  }
 }
 
 /// The plan an element in [before] was built from, by its key or by its place.

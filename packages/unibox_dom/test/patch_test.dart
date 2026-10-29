@@ -103,6 +103,38 @@ void main() {
       view.dispose();
     });
 
+    test('keeps what follows a child inserted at the front', () {
+      // The ink drop case: a press publishes a layer that goes in front of the content, and the
+      // content has to stay the element it was — a press whose element is rebuilt never becomes a
+      // click, because a browser compares the element it saw pressed with the one it sees released.
+      final DomView view = DomView.mount(
+        const core.Box(children: <core.UINode>[core.TextNode('content')]),
+        host(),
+      );
+      final web.Element content = view.element.querySelector('span')!;
+
+      view.render(
+        const core.Box(
+          children: <core.UINode>[
+            core.TextNode('drop'),
+            core.TextNode('content'),
+          ],
+        ),
+      );
+
+      final List<web.Element> spans = <web.Element>[
+        for (int i = 0; i < view.element.children.length; i++)
+          view.element.children.item(i)!,
+      ];
+      expect(spans.map((web.Element e) => e.textContent), <String>[
+        'drop',
+        'content',
+      ]);
+      expect(identical(spans.last, content), isTrue);
+
+      view.dispose();
+    });
+
     test('keeps a field, its value and its focus', () {
       final DomView view = DomView.mount(
         const core.TextInputNode(value: 'ada', key: 'email'),

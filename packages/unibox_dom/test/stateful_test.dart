@@ -170,6 +170,31 @@ void main() {
       view.dispose();
     });
 
+    test('keeps the pressed element alive while the press is publishing', () {
+      // The bug this exists for: a press that publishes (an ink drop, a spinner) used to re-render
+      // the page between `pointerdown` and `click`, so the browser delivered the click to an element
+      // that no longer existed and nothing happened. A boundary is patched, never replaced.
+      final web.HTMLDivElement element = host();
+      final DomView view = DomView.mount(Press(), element);
+      final web.Element root = at(element, 'root');
+
+      root.dispatchEvent(
+        web.PointerEvent('pointerdown', web.PointerEventInit(bubbles: true)),
+      );
+
+      // The press published: a drop is in front of the label now.
+      expect(element.querySelectorAll('[data-unibox-key="drop0"]').length, 1);
+      expect(identical(at(element, 'root'), root), isTrue);
+
+      root.dispatchEvent(
+        web.MouseEvent('click', web.MouseEventInit(bubbles: true)),
+      );
+
+      expect(textAt(element, 'label'), 'presses 1');
+
+      view.dispose();
+    });
+
     test('follows a link only when the tree says what a press means', () {
       bool followed = false;
       final web.HTMLDivElement element = host();
@@ -194,4 +219,39 @@ void main() {
       view.dispose();
     });
   });
+}
+
+/// A component that publishes *during* a press, the way the ink well does: a drop appears before
+/// the press ends, and the drop has to take its place without the pressed element being rebuilt.
+final class PressStore extends core.StateStore<int> {
+  PressStore() : super(0);
+
+  int drops = 0;
+
+  void down() {
+    drops++;
+    state = state + 100;
+  }
+
+  void press() => state = state + 1;
+}
+
+final class Press extends core.StatefulNode<int, PressStore> {
+  Press()
+    : super(
+        create: PressStore.new,
+        view: (int state, PressStore store) => core.Box(
+          key: 'root',
+          direction: core.Axis.vertical,
+          onTapDown: (core.BoxTapEvent event) => store.down(),
+          onTap: store.press,
+          children: <core.UINode>[
+            // A layer the press adds in front of everything, which is what shifts the content of
+            // an ink well: an element inserted before another must not rebuild it.
+            for (int i = 0; i < state ~/ 100; i++)
+              core.Box(key: 'drop$i', children: const <core.UINode>[]),
+            core.TextNode('presses ${state % 100}', key: 'label'),
+          ],
+        ),
+      );
 }
