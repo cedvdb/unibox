@@ -324,12 +324,15 @@ Deliberately out of scope for this pass, with the reason they were left:
   bundle for pages that render today without one. `@material/web` is also in
   maintenance mode pending new maintainers. The embed door stays open per component,
   for the behaviour-heavy and unportable ones.
-- `Box.onScroll` and scroll position *out of* a tree: needs a shared scroll model that
-  neither `SingleChildScrollView` nor the browser state exposes the same way. What has
-  landed is the other direction — a page records where it was scrolled and a takeover
-  starts there (the key attribute, and `scrollScript` in `unibox_html`) — because
-  a position read *before* the tree is drawn is a value the host can pass in, while a
-  position reported *while* it scrolls is a callback neither host spells the same way.
+- ~~`Box.onScroll`~~ landed once the objection stopped holding. It was deferred because
+  "a position reported while it scrolls is a callback neither host spells the same way" —
+  and the two hosts do differ at the edges (an iOS bounce reports negative pixels, a
+  browser clamps at zero), but the *value* they report is one number along one axis, which
+  is what a tree can carry: `ScrollMetrics.pixels` there, `scrollTop`/`scrollLeft` here,
+  with the axis known from the box's own direction. What stays approximate is the
+  overscroll at either end, and that is recorded in the renderer READMEs rather than
+  hidden. The other direction — a page records where it was scrolled and a takeover starts
+  there — stays as it was.
 - A focus frame around a field: the browser's native ring is stripped (it sits
   inside the padding of the box around the field), so a focused field only shows
   its caret. Drawing a frame from the tree needs a `focus-within` state — Flutter

@@ -262,6 +262,7 @@ Box(
 | `onTapDown` | `TapDownCallback?` | none | A press lands: where it landed inside the box and what pressed it (touch, mouse, pen, keyboard). It fires before `onTap`, which is what an effect that starts at the pointer needs. |
 | `onLongPress` | `LongPressCallback?` | none | Pressed and held. |
 | `onHover` | `HoverCallback?` | none | Pointer entered or left the box. |
+| `onScroll` | `ScrollCallback?` | none | The box scrolled, with how far its content has moved along its main axis. Only a box with `overflow: Overflow.scroll` reports it, and only for its own scrolling — a scrollable nested inside it reports to its own box. It is what lets a header fold as the list under it moves. |
 | `enabled` | `bool` | `true` | A disabled box keeps its layout, drops its callbacks, leaves the tab order and is announced as disabled. |
 | `semantics` | `BoxSemantics?` | none | What the box *is* for a screen reader: role, label, state, element. |
 | `stateStyles` | `Map<BoxState, BoxStyle>?` | none | Looks for `hover`, `focus`, `pressed` and `disabled`, layered over the resting one. |
