@@ -110,6 +110,7 @@ jobs:
           unibox_css
           unibox_element
           unibox_html
+          unibox_dom
           unibox_flutter
           PACKAGES
 

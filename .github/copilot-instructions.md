@@ -12,7 +12,7 @@ In short:
 - Every presentational change lands on both targets, pinned by a case in
   `packages/unibox_testing`. Neither renderer may fall back to its host's
   default for a token the model leaves unset.
-- `tool/verify.sh` is the gate: format check, `dart analyze`, nine test suites,
+- `tool/verify.sh` is the gate: format check, `dart analyze`, every test suite,
   and with `--docs` the API docs, which fail on a warning.
 - Conventional Commits, one verified change per commit. No version bumps, no
   publishing, and nothing from the `Deferred` section of `TASK_PLAN.md` unless

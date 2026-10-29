@@ -960,9 +960,10 @@ written inline.
 | `packages/unibox_css` | The token-to-CSS mapping and the class hash the web renders from. |
 | `packages/unibox_element` | The element plan: what each node becomes. |
 | `packages/unibox_html` | The web renderer: `toHtml(node)` and `toDocument(node)`. |
+| `packages/unibox_dom` | The client renderer: `DomView.adopt(tree, root)` keeps the markup a server wrote and patches it as the stores publish. |
 | `packages/unibox_testing` | The tables both renderers are tested against. Development only, not published. |
 | `packages/unibox_material` | The Material 3 type scale, the colour roles as a theme — the baseline scheme written down, or a palette grown from one seed colour — and the components built from them (card, list tile, button, chip, segmented button, ink well, text field, icon, check mark, navigation bar, dialog, bottom sheet). Optional: no renderer depends on it. |
-| `example/` | The example — a listings page and a sign-up dialog, one node tree — and the site: one page of two bands, with the example drawn by both renderers in the first. |
+| `example/` | The example — a listings page and a sign-up dialog, one node tree — and the site: one page of four bands, with the example drawn by both renderers in the first. |
 
 Dependencies point one way: both renderers depend on `unibox_core`, never the other
 way around, which is what keeps the description available to a third renderer.
@@ -1031,7 +1032,7 @@ dart analyze                                     # static analysis everywhere
 documents — words, headings, links, fields and bytes — so the claim can be re-run rather than
 taken on trust.
 
-`tool/verify.sh` runs the format check, the analysis and all eleven suites in that
+`tool/verify.sh` runs the format check, the analysis and every suite in that
 order, which is the command to reach for before a commit; `--fast` stops after the
 analysis, `--fix` formats the tree first and `--docs` adds the API docs of every
 package. `tool/maintenance.sh` is the slower, monthly pass: the same gate with the docs,
@@ -1049,7 +1050,7 @@ Source: **GitHub Actions** (see
 [`example/README.md`](example/README.md#the-static-site)).
 
 The workspace targets Dart `^3.13.0`. Continuous integration runs the format check,
-`dart analyze`, all eleven suites, `dart doc` for each package and the performance
+`dart analyze`, every suite, `dart doc` for each package and the performance
 budget on every push and pull request (see
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)).
 

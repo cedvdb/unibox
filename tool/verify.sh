@@ -86,7 +86,7 @@ fi
 if [ "$build_docs" -eq 1 ]; then
   # dartdoc reports a problem as a warning and still exits 0, which is why CI
   # reads the log as well; a public member without a doc comment has to fail here.
-  for package in unibox_core unibox_testing unibox_material unibox_css unibox_element unibox_html unibox_flutter; do
+  for package in unibox_core unibox_testing unibox_material unibox_css unibox_element unibox_html unibox_dom unibox_flutter; do
     step "Documenting $package"
     output="$(mktemp -d)/docs"
     log="$(mktemp)"

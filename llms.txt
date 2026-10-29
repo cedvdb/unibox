@@ -2,19 +2,21 @@
 
 > One immutable Dart description of a screen, drawn by Flutter and rendered as HTML a crawler can read.
 
-Unibox is a Dart 3.13 workspace of six packages. `packages/unibox_core` holds the
-node tree and the design tokens and has no dependencies at all; `packages/unibox_css`
-holds the CSS the web renders from, `packages/unibox_html` writes a document from the
-tree, and `packages/unibox_flutter` draws it as widgets; `packages/unibox_testing`
-holds the tables of expected presentation that both renderer suites are checked
-against, so the two renderings cannot drift apart silently; and
-`packages/unibox_material` turns the Material 3 type scale into the same tokens and
-builds its first two components on `Box`, for an application that wants Material on
-both targets.
+Unibox is a Dart 3.13 workspace of eight packages, in one direction only: the model,
+then the web, then the widgets. `packages/unibox_core` holds the node tree and the design
+tokens and has no dependencies at all. The web renderer is two packages, so that a second
+web renderer stays possible: `packages/unibox_css` turns a token into declarations and
+`packages/unibox_element` turns a node into an element plan, before anyone writes it.
+`packages/unibox_html` writes that plan as a document, and `packages/unibox_dom` adopts
+that document in a browser and keeps it in step with the stores the tree created.
+`packages/unibox_flutter` draws the same tree as widgets. `packages/unibox_testing` holds
+the tables of expected presentation that the renderer suites are checked against, so the
+renderings cannot drift apart silently. `packages/unibox_material` turns the Material 3
+type scale and colour roles into the same tokens and builds its components on `Box`.
 
-Paths in this file are relative to the repository root. This is an index: the rules
-a coding agent needs are in [AGENTS.md](AGENTS.md), and every other document
-assumes you have read the README's node sections.
+Paths in this file are relative to the repository root. This is an index: the rules a
+coding agent needs are in [AGENTS.md](AGENTS.md), and a human contributing needs
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Start here
 
@@ -22,7 +24,7 @@ assumes you have read the README's node sections.
   rules, repository map, commands, and the touch points for a token, a node type,
   a parity fix or an example change.
 - [README.md](README.md): the user guide. One section per node, with the parameter
-  tables, typography, motion, semantics, and what the host owns.
+  tables, typography, motion, semantics, serving a tree, and what the host owns.
 - [design.md](design.md): why the model looks like this — defaults, precedence,
   dimensions, parity, interaction, non-goals, compatibility.
 
@@ -32,44 +34,61 @@ assumes you have read the README's node sections.
   Unibox translation table, a complete component, a stateful page with a dialog and
   a checklist, written to be pasted into an assistant's context by someone writing
   application code.
+- [example/unibox_example_shared/lib/](example/unibox_example_shared/lib/): a complete
+  application as one `StatefulNode` — navigation bar, list, form, dialog — in plain
+  Dart. The arrangement to copy for a real application.
 
 ## Packages
 
 - [unibox_core](packages/unibox_core/README.md): the model — nodes, tokens,
   defaults, validation. Pure Dart; never imports `dart:ui`, Flutter or a web framework.
-- [unibox_flutter](packages/unibox_flutter/README.md): the Flutter renderer
-  (`renderFlutter`, `node.toWidget()`), node by node, with what differs from the web.
-- [unibox_css](packages/unibox_css/README.md): the CSS the web renders from,
-  a token as a declaration, and the canonical text a class name is hashed from.
-  Pure Dart, no dependencies.
+- [unibox_css](packages/unibox_css/README.md): the CSS the web renders from, a token as a
+  declaration, the four state rules, the `:root` theme, and the canonical text a class
+  name is hashed from. Pure Dart, no dependencies.
 - [unibox_element](packages/unibox_element/README.md): the element plan — what each node
-  becomes, before anyone writes it — and the stylesheet that gives every look its class. Shared
-  by every web renderer. Pure Dart.
+  becomes, before anyone writes it — and the stylesheet that gives every look its class.
+  Shared by every web renderer. Pure Dart.
 - [unibox_html](packages/unibox_html/README.md): the web renderer — a tree as a
   document a search engine can read, with no framework and no runtime. Pure Dart, no
   dependencies.
+- [unibox_dom](packages/unibox_dom/README.md): the client renderer — adopts the markup the
+  server wrote and patches it as the stores publish, so a page is interactive without
+  Flutter.
+- [unibox_flutter](packages/unibox_flutter/README.md): the Flutter renderer
+  (`renderFlutter`, `node.toWidget()`), node by node, with what differs from the web.
 - [unibox_testing](packages/unibox_testing/README.md): the presentation contract —
   `BoxAppearance` + `boxCases`, `TextAppearance` + `textCases`, `OverlayAppearance`
   + `overlayCases` — and the line between "the same" and "close enough". Test only.
 - [unibox_material](packages/unibox_material/README.md): the Material 3 type roles
   as `BoxTextStyle` values (`MaterialTypography`, `MaterialTypeRole`), the colour
   roles as `MaterialPalette` (`light`/`dark`, or grown from one seed colour with
-  `fromSeed` and its `MaterialSchemeVariant`), and six components built on the nodes
-  the renderers already draw — `MaterialCard`, `MaterialListTile`, `MaterialInkWell`,
-  `MaterialTextField`, `MaterialDialog`, `MaterialBottomSheet` — optional and pure
-  Dart, for a tree that wants Material on both targets.
+  `fromSeed` and its `MaterialSchemeVariant`), and the components built on the nodes
+  the renderers already draw — `MaterialCard`, `MaterialListTile`, `MaterialButton`,
+  `MaterialChip`, `MaterialSegmentedButton`, `MaterialNavigationBar`, `MaterialIcon`,
+  `MaterialInkWell`, `MaterialTextField`, `MaterialDialog`,
+  `MaterialBottomSheet` — optional and pure Dart, for a tree that wants Material on both
+  targets.
 
 ## Working on the repository
 
+- [CONTRIBUTING.md](CONTRIBUTING.md): setup, the fast loop, what "done" means for a token
+  or a node, the commit convention, and what is out of scope.
+- [MAINTENANCE.md](MAINTENANCE.md): what runs on its own (CI, the weekly gate,
+  Dependabot), the monthly hour, what a human decides, and the prompt that hands a
+  maintenance task to an assistant.
 - [tool/verify.sh](tool/verify.sh): format check, analysis and the test
   suites, the way CI runs them. `--fast` skips the suites, `--docs` adds `dart doc`.
-- [.github/workflows/ci.yml](.github/workflows/ci.yml): what continuous integration
+- [tool/maintenance.sh](tool/maintenance.sh): the slower monthly pass — the gate with the
+  docs, the performance budget, the site build and the numbers the README quotes.
+- [.github/workflows/ci.yml](.github/workflows/ci.yml), and
+  [.github/workflows/weekly.yml](.github/workflows/weekly.yml) for the scheduled gate:
+  what continuous integration
   actually runs, including the docs job that fails on a `dart doc` warning.
 - [TASK_PLAN.md](TASK_PLAN.md): what is built, the decisions taken, and the
   `Deferred` list that is deliberately out of scope.
 - [RELEASE.md](RELEASE.md): the human release checklist. CI never publishes.
-- [example/README.md](example/README.md): the two pages shared by a Flutter app and
-  a static site, and how each host answers what a tree cannot know.
+- [example/README.md](example/README.md): the example's trees, the two hosts, and how a
+  document and a Flutter app are built from them.
 
 ## Optional
 
@@ -77,7 +96,11 @@ assumes you have read the README's node sections.
   the enabled lints.
 - [packages/unibox_core/CHANGELOG.md](packages/unibox_core/CHANGELOG.md),
   [packages/unibox_flutter/CHANGELOG.md](packages/unibox_flutter/CHANGELOG.md),
-  [packages/unibox_html/CHANGELOG.md](packages/unibox_html/CHANGELOG.md): the unreleased
+  [packages/unibox_html/CHANGELOG.md](packages/unibox_html/CHANGELOG.md),
+  [packages/unibox_dom/CHANGELOG.md](packages/unibox_dom/CHANGELOG.md): the unreleased
   changes, which is where a new token is described for the user.
+- [PLAN_HTML.md](PLAN_HTML.md): the plan the web renderer was built from, kept as a
+  record. It is history, not instructions — where it disagrees with the code, the code
+  wins.
 - [example/unibox_example_shared/lib/](example/unibox_example_shared/lib/): the
   example trees as plain Dart, the arrangement to copy for a real application.

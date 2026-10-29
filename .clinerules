@@ -19,7 +19,7 @@ What is not negotiable:
 4. **Defaults belong to the model, not to a host.** An unset token resolves in core
    (`BoxStyle.resolvedDirection`, `BoxTextStyle.defaults`, `ImageNode.resolvedFit`).
 5. **Verify before every commit.** `tool/verify.sh` runs the format check,
-   `dart analyze` and the eight test suites; `--docs` adds `dart doc`, which fails
+   `dart analyze` and every test suite; `--docs` adds `dart doc`, which fails
    on a warning.
 6. **Conventional Commits**, one verified change per commit
    (`feat(core): ...`, `fix(flutter): ...`, `test(conformance): ...`, `docs: ...`).

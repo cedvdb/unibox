@@ -65,12 +65,16 @@ so the packages share one resolution.
 | Also build the API docs | `tool/verify.sh --docs` |
 | One suite, the fast loop | `(cd packages/unibox_html && dart test)` |
 
-The six suites, exactly as CI runs them:
+Every suite, exactly as CI runs them — one command per directory, in dependency order:
 
 ```shell
 (cd packages/unibox_core && dart test)
 (cd packages/unibox_testing && dart test)
 (cd packages/unibox_material && dart test)
+(cd packages/unibox_css && dart test)
+(cd packages/unibox_element && dart test)
+(cd packages/unibox_html && dart test)
+(cd packages/unibox_dom && dart test -p chrome)
 (cd packages/unibox_flutter && flutter test)
 (cd example/unibox_example_shared && dart test)
 (cd example/unibox_example_html && dart test)
@@ -344,6 +348,7 @@ and two when each side is independently reviewable.
 | Which Material type role should I use? | [`packages/unibox_material/README.md`](packages/unibox_material/README.md) |
 | What has to look the same on both? | [`packages/unibox_testing/README.md`](packages/unibox_testing/README.md) |
 | What is built, and what was deferred? | [`TASK_PLAN.md`](TASK_PLAN.md) |
+| How do I build an application with this, as an assistant? | [`AI_INSTRUCTIONS.md`](AI_INSTRUCTIONS.md) — the consumer-facing file, written to be pasted into a context |
 | How do I contribute? | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
 | What does maintenance look like, and what runs on its own? | [`MAINTENANCE.md`](MAINTENANCE.md) |
 | How is a release cut? | [`RELEASE.md`](RELEASE.md) |

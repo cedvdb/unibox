@@ -12,7 +12,7 @@ routine below, and stop where it says a human decides.
 
 | | |
 | --- | --- |
-| `ci.yml` | format, analysis, all eleven suites, the API docs and the performance budget, on every push and pull request |
+| `ci.yml` | format, analysis, every suite, the API docs and the performance budget, on every push and pull request |
 | `weekly.yml` | the same gate on a cold cache, every Monday — because a dependency, Chrome or a cached artefact can break a green branch with no commit behind it |
 | `pages.yml` | rebuilds and publishes the site on every push to `main` |
 | `dependabot.yml` | one grouped pull request a week for dependencies, one a month for actions; each runs the full gate like any other change |
