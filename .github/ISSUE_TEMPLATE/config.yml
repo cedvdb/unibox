@@ -1,0 +1,15 @@
+blank_issues_enabled: false
+
+contact_links:
+  - name: Read the guide first
+    url: https://github.com/cedvdb/unibox#readme
+    about: One section per node, with the parameter tables. A parameter that is in neither the README nor `unibox_core/lib/src/` does not exist.
+  - name: Using Unibox with an AI assistant
+    url: https://github.com/cedvdb/unibox/blob/main/AI_INSTRUCTIONS.md
+    about: The file to paste into an assistant's context before asking it for a Unibox tree.
+  - name: How to contribute
+    url: https://github.com/cedvdb/unibox/blob/main/CONTRIBUTING.md
+    about: Setup, the verify loop, what "done" means, and the file-by-file recipes.
+  - name: What is deliberately not built
+    url: https://github.com/cedvdb/unibox/blob/main/TASK_PLAN.md
+    about: The `Deferred` section lists what was left out on purpose, with the reason next to each item.

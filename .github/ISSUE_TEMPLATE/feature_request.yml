@@ -1,0 +1,68 @@
+name: Feature or new node
+description: A node, a token, or a capability the model does not have yet.
+title: 'feat: '
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Every addition is paid for on **both** targets, in the appearance table, in the
+        docs and in a changelog. That is why this asks what the thing *is* before what it
+        looks like: a token is cheap, a node type is not, and a construct only one
+        renderer can honour is usually a validation rule rather than a feature.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What can you not draw today
+      description: >
+        The screen you are trying to build and the tree you end up with. A workaround you
+        already have is useful: it says how much the addition is worth.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of addition is this
+      options:
+        - A token (a value `Box` or `BoxTextStyle` should carry)
+        - A node type (a new shape of tree)
+        - A parameter on an existing node
+        - A design-system role or component (`unibox_material`)
+        - Something on the web only (a document concern, client behaviour)
+    validations:
+      required: true
+
+  - type: textarea
+    id: shape
+    attributes:
+      label: What it would look like
+      description: >
+        The API you would write as a user — a constructor call is worth a page of prose.
+        If it is close to something that exists, say what is missing from it.
+      render: dart
+      placeholder: |
+        Box(elevation: 3)
+    validations:
+      required: true
+
+  - type: textarea
+    id: targets
+    attributes:
+      label: How each target would draw it
+      description: >
+        Flutter's equivalent and the CSS equivalent, if you know them. If one target
+        cannot express it, that is the interesting part of the issue — say it here.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before posting
+      options:
+        - label: I searched the issues for the same request
+          required: true
+        - label: I read the closest node's section in `README.md`
+          required: true

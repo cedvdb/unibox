@@ -44,6 +44,7 @@ expected appearance holds both renderers to the same answer.
 - [How the two renderers stay in step](#how-the-two-renderers-stay-in-step)
 - [Packages](#packages)
 - [Building with an AI assistant](#building-with-an-ai-assistant)
+- [Development](#development)
 
 ## Why this exists
 
@@ -1046,13 +1047,15 @@ Pages on every push to `main`, which needs one setting first: Settings → Pages
 Source: **GitHub Actions** (see
 [`example/README.md`](example/README.md#the-static-site)).
 
-The workspace targets Dart `^3.13.0`. Continuous
-integration runs the format check, `dart analyze`, the seven test suites and
-`dart doc` for each package on every push (see
+The workspace targets Dart `^3.13.0`. Continuous integration runs the format check,
+`dart analyze`, all eleven suites, `dart doc` for each package and the performance
+budget on every push and pull request (see
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)).
 
 Where to read more:
 
+- [CONTRIBUTING.md](CONTRIBUTING.md) — setup, the verify loop, what "done" means for a
+  token or a node, and the commit convention.
 - [AGENTS.md](AGENTS.md) — the working rules for a coding agent: the guardrails, the
   repository map, the verification command and the touch points for a change that
   spans core and both renderers.

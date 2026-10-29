@@ -1,0 +1,81 @@
+name: Bug report
+description: A tree did not draw the way the model says it should, or a renderer disagreed with the table.
+title: 'bug: '
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A report is fastest when it carries the tree, the two outputs and the version.
+        If this is a **parity** issue — Flutter and the web disagree — say so, because
+        the fix starts in `packages/unibox_testing`, not in a renderer.
+
+  - type: textarea
+    id: tree
+    attributes:
+      label: The tree
+      description: The smallest node tree that shows it.
+      render: dart
+      placeholder: |
+        Box(
+          padding: const BoxSpacing.all(16),
+          borderRadius: 12,
+          children: <UINode>[TextNode('Hello')],
+        )
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+      description: >
+        What the README or `packages/unibox_core/lib/src/` says should happen. A
+        parameter that is in neither does not exist, which is worth saying here — it
+        may be a docs bug rather than a renderer bug.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened
+      description: >
+        For Flutter, the widget or the layout error. For the web, the element and the
+        declarations it was given — `toHtml(tree)` output is ideal, since it is the whole
+        evidence.
+      render: text
+    validations:
+      required: true
+
+  - type: dropdown
+    id: target
+    attributes:
+      label: Which target
+      multiple: true
+      options:
+        - Flutter (`unibox_flutter`)
+        - The document (`unibox_html`)
+        - The runtime (`unibox_dom`)
+        - Both, differently (a parity bug)
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: The git commit or the package version you were on.
+      placeholder: main@a1b2c3d
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before posting
+      options:
+        - label: I read the node's section in `README.md`
+          required: true
+        - label: This is not on the `Deferred` list in `TASK_PLAN.md`
+          required: false

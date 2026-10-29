@@ -1,0 +1,61 @@
+name: Parity report
+description: Flutter and the web draw the same tree differently. The table says they should not.
+title: 'parity: '
+labels: [parity]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Parity is a contract, not an opinion: `packages/unibox_testing` records what a
+        token is supposed to look like, and both renderer suites read that table back out
+        of their own output. So the useful report names **the token**, and shows what each
+        target produced for it.
+
+  - type: input
+    id: token
+    attributes:
+      label: The token or node
+      description: The parameter that disagrees — `borderRadius`, `letterSpacing`, `overflow`, …
+      placeholder: borderRadius
+    validations:
+      required: true
+
+  - type: textarea
+    id: flutter
+    attributes:
+      label: What Flutter draws
+      description: The relevant property of the widget, or a screenshot with the value labelled.
+    validations:
+      required: true
+
+  - type: textarea
+    id: web
+    attributes:
+      label: What the web draws
+      description: >
+        The declaration the class was given — from `toHtml(tree)`, which prints the
+        stylesheet next to the markup.
+      render: css
+      placeholder: |
+        .unibox-box-1f3c9a7b { border-radius: 12px }
+    validations:
+      required: true
+
+  - type: input
+    id: case
+    attributes:
+      label: The case in `unibox_testing`
+      description: Which case covers it, or "none" — a token with no case is a bug in itself.
+      placeholder: theRounded box case
+    validations:
+      required: false
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Which one is right
+      description: >
+        The expected value, and where it comes from: the model's default in core, the
+        README table, or Material's own specification.
+    validations:
+      required: true
