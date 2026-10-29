@@ -72,17 +72,25 @@ jobs:
           path: build/site
           retention-days: 7
 
+      # The environment protects `github-pages`, so only the default branch may deploy to it.
+      # Checked here rather than left to the deploy job, which would fail a second later with
+      # "branch is not allowed" and turn a useful build into a red run.
+      - name: Note where a branch run stops
+        if: steps.pages.outputs.enabled == 'true' && github.ref != format('refs/heads/{0}', github.event.repository.default_branch)
+        run: |
+          echo "::notice title=Not a deploy::This run built the site from \`${GITHUB_REF_NAME}\`. Pages publishes the default branch, so the deploy is skipped and the site is attached to this run as an artifact."
+
       - uses: actions/configure-pages@v5
-        if: steps.pages.outputs.enabled == 'true'
+        if: steps.pages.outputs.enabled == 'true' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
       - uses: actions/upload-pages-artifact@v3
-        if: steps.pages.outputs.enabled == 'true'
+        if: steps.pages.outputs.enabled == 'true' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
         with:
           path: build/site
 
   deploy:
     name: Deploy
     needs: build
-    if: needs.build.outputs.pages == 'true'
+    if: needs.build.outputs.pages == 'true' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     runs-on: ubuntu-latest
     environment:
       name: github-pages

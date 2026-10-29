@@ -32,17 +32,20 @@ cleanup() {
 }
 trap cleanup EXIT
 
-printf '\n==> Exporting the pages\n'
-dart run example/unibox_example_flutter/bin/export.dart "$WORK/web"
+printf '\n==> Writing the documents\n'
+dart run example/unibox_example_site/bin/build_site.dart --out="$WORK"
 
-printf '\n==> Serving %s on %s\n' "$WORK/web" "$PORT"
-python3 -m http.server "$PORT" --directory "$WORK/web" >/dev/null 2>&1 &
+# The site's routes, which is where the example lives: `web/listings/` and `web/signup/`.
+printf '\n==> Serving %s on %s\n' "$WORK" "$PORT"
+python3 -m http.server "$PORT" --directory "$WORK" >/dev/null 2>&1 &
 SERVER=$!
 sleep 1
 
 status=0
 
-for page in listings signup; do
+for page in web/listings web/signup; do
+  # The route is a path; the files are named after it without the slash.
+  name="${page//\//-}"
   printf '\n==> Measuring %s\n' "$page"
 
   for run in $(seq 1 "$RUNS"); do
@@ -51,7 +54,7 @@ for page in listings signup; do
     # and a gate nobody waits for is a gate nobody runs.
     if ! npx --yes lighthouse@12 "http://127.0.0.1:$PORT/$page/" \
       --output json \
-      --output-path "$WORK/$page-$run.json" \
+      --output-path "$WORK/$name-$run.json" \
       --only-categories=performance \
       --chrome-flags="--headless=new --no-sandbox --disable-gpu" >/dev/null 2>&1; then
       printf 'lighthouse failed to measure the %s page\n' "$page" >&2
@@ -59,7 +62,7 @@ for page in listings signup; do
     fi
   done
 
-  if ! python3 tool/lighthouse_budget.py "$page" "$WORK"/"$page"-*.json; then
+  if ! python3 tool/lighthouse_budget.py "$page" "$WORK"/"$name"-*.json; then
     status=1
   fi
 done
