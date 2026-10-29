@@ -50,7 +50,7 @@ void main() {
       expect(html, contains('title="Flutter"'));
       expect(html, contains('title="HTML and CSS"'));
       expect(html, contains('src="web/listings/'));
-      expect(html, contains('src="flutter/listings/'));
+      expect(html, contains('src="web/takeover/'));
     });
 
     test('gives each frame the box the tree drew, and no grip', () {

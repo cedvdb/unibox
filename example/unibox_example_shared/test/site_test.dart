@@ -128,7 +128,7 @@ void main() {
         frames,
         containsAll(<Object?>[
           'web/listings/?seed=rose',
-          'flutter/listings/?seed=rose',
+          'web/takeover/?seed=rose',
         ]),
       );
     });
@@ -169,7 +169,7 @@ void main() {
         sources,
         containsAll(<Object?>[
           'web/listings/?seed=rose',
-          'flutter/listings/?seed=rose',
+          'web/takeover/?seed=rose',
         ]),
       );
     });

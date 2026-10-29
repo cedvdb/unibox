@@ -26,6 +26,9 @@ void main(List<String> arguments) {
   _write(out, 'index.html', buildSiteDocument(build: build));
 
   _write(out, 'web/listings/index.html', buildExampleDocument(build: build));
+  // The same tree, the other way to make it interactive: HTML first, Flutter when touched. It is what
+  // the comparison's right frame shows, and the only page of the three that downloads an engine.
+  _write(out, 'web/takeover/index.html', buildTakeoverDocument(build: build));
 }
 
 /// Writes [document] to [path] below [out].

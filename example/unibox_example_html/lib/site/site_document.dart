@@ -34,7 +34,10 @@ String buildSiteDocument({
         'colour roles and the components, as values and nodes.',
     meta: <String, String>{'unibox-build': ?build, 'unibox-page': 'site'},
     theme: siteThemeFor(seed),
-    head: <String>['<style>${fontFaceCss('')}$siteCss</style>'],
+    head: <String>[
+      fontPreloadLinks(''),
+      '<style>${fontFaceCss('')}$siteCss</style>',
+    ],
     // A site a crawler reads is a document: the recorders are what a reader who interacts
     // with the catalogue leaves behind, and nothing here starts an application.
     scripts: <DocumentScript>[

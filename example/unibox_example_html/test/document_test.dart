@@ -57,7 +57,7 @@ void main() {
 
         for (final String weight in <String>['400', '500', '600', '700']) {
           expect(html, contains('font-weight: $weight;'));
-          expect(html, contains('roboto-$weight.ttf'));
+          expect(html, contains('roboto-$weight.woff2'));
         }
       },
     );

@@ -27,12 +27,31 @@ import json
 import statistics
 import sys
 
-BUDGET = {
-    "performance": 95,
-    "largest-contentful-paint": 2000,
-    "cumulative-layout-shift": 0.02,
-    "total-blocking-time": 50,
+# Two kinds of page, because they are two different promises.
+#
+# A *document* promises what this repository exists for: a page a crawler reads and a reader uses,
+# with nothing running until something is asked of it. It is held to the numbers the plan states.
+#
+# A page that *becomes an application* promises something smaller: the markup arrives first — so the
+# largest paint is real text, not a canvas — and what it costs afterwards is what an engine costs.
+# The budget is a floor rather than an aspiration: it catches a regression to "a blank canvas for
+# five seconds" without pretending a page that loads two megabytes is as fast as one that does not.
+BUDGETS = {
+    "document": {
+        "performance": 95,
+        "largest-contentful-paint": 2000,
+        "cumulative-layout-shift": 0.02,
+        "total-blocking-time": 50,
+    },
+    "application": {
+        "performance": 55,
+        "largest-contentful-paint": 4500,
+        "cumulative-layout-shift": 0.02,
+        "total-blocking-time": 700,
+    },
 }
+
+BUDGET = BUDGETS["document"]
 
 
 def measure(path):
@@ -48,7 +67,10 @@ def measure(path):
 
 
 def main():
-    page, reports = sys.argv[1], sys.argv[2:]
+    global BUDGET
+
+    page, kind, reports = sys.argv[1], sys.argv[2], sys.argv[3:]
+    BUDGET = BUDGETS[kind]
     runs = [measure(path) for path in reports]
     median = {name: statistics.median([run[name] for run in runs]) for name in BUDGET}
     failures = []

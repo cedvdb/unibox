@@ -48,7 +48,9 @@ else
   dart run example/unibox_example_html/bin/build_site.dart --out="$WORK"
 fi
 
-# The site's route, which is where the example lives: `web/listings/`.
+# Each page with the kind of promise it makes: a document is held to what the plan states, and a page
+# that becomes an application to a floor — see `tool/lighthouse_budget.py` for why there are two.
+pages="web/listings:document :application"
 printf '\n==> Serving %s on %s\n' "$WORK" "$PORT"
 python3 -m http.server "$PORT" --directory "$WORK" >/dev/null 2>&1 &
 SERVER=$!
@@ -56,26 +58,42 @@ sleep 1
 
 status=0
 
-for page in web/listings; do
-  # The route is a path; the files are named after it without the slash.
-  name="${page//\//-}"
-  printf '\n==> Measuring %s\n' "$page"
+# Warm `npx` once: it resolves the package on every call otherwise, which is seconds per measurement.
+npx --yes lighthouse@12 --version >/dev/null 2>&1 || true
 
-  for run in $(seq 1 "$RUNS"); do
+# Unquoted on purpose: the list is space separated, one page and its kind per item.
+for entry in $pages; do
+  page="${entry%%:*}"
+  kind="${entry##*:}"
+  # The route is a path; the files are named after it without the slash.
+  name="${page//\//-}@${kind}"
+  url="http://127.0.0.1:$PORT/${page:+$page/}"
+  printf '\n==> Measuring %s as a %s\n' "${page:-the front page}" "$kind"
+
+  # Three samples for a promise, one for a floor: the document has to land inside 95 every time, the
+  # application page only has to stay off the floor, and run-to-run spread on this machine is a third
+  # of the score.
+  runs="$RUNS"
+  [ "$kind" = application ] && runs=1
+
+  for run in $(seq 1 "$runs"); do
+    # A profile per run: Chrome attaches to a running instance without one, and then the second run
+    # waits for a browser the first is still using — a gate that hangs is a gate somebody removes.
     # `--only-categories=performance` is not a shortcut: the accessibility and best-practice
     # audits walk the whole tree and turn a twenty second measurement into a minute and a half,
     # and a gate nobody waits for is a gate nobody runs.
-    if ! npx --yes lighthouse@12 "http://127.0.0.1:$PORT/$page/" \
+    if ! npx --yes lighthouse@12 "$url" \
       --output json \
       --output-path "$WORK/$name-$run.json" \
       --only-categories=performance \
-      --chrome-flags="--headless=new --no-sandbox --disable-gpu" >/dev/null 2>&1; then
+      --chrome-flags="--headless=new --no-sandbox --disable-gpu --user-data-dir=$WORK/chrome-$name-$run" \
+      >/dev/null 2>&1; then
       printf 'lighthouse failed to measure the %s page\n' "$page" >&2
       exit 1
     fi
   done
 
-  if ! python3 tool/lighthouse_budget.py "$page" "$WORK"/"$name"-*.json; then
+  if ! python3 tool/lighthouse_budget.py "$page" "$kind" "$WORK"/"$name"-*.json; then
     status=1
   fi
 done

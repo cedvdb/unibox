@@ -37,7 +37,10 @@ String buildExampleDocument({String? build}) {
         'listings alone on a narrow one, from the same node tree.',
     meta: <String, String>{'unibox-build': ?build, 'unibox-page': 'example'},
     theme: ExamplePalette.themeFor(ExampleSeed.defaultSeed),
-    head: <String>['<style>${fontFaceCss('../../')}$pageCss</style>'],
+    head: <String>[
+      fontPreloadLinks('../../'),
+      '<style>${fontFaceCss('../../')}$pageCss</style>',
+    ],
     // A document that runs itself rather than one that becomes an application. The client renderer
     // adopts this markup and keeps it: a reader acts on real elements — the same ones a crawler
     // read — and Flutter is nowhere on the page. That is the difference worth showing, and it is
@@ -48,6 +51,27 @@ String buildExampleDocument({String? build}) {
       // this document is one directory down from the file `tool/site.sh` compiles.
       DocumentScript(src: '../main.client.js'),
     ],
+  );
+}
+
+/// The same tree, as a document an application takes over.
+///
+/// This is the other way to make a page interactive, and the one the comparison's right frame shows:
+/// the document paints first — a crawler reads it, and so does a reader — and Flutter starts on the
+/// first sign of a reader, or when the browser is idle. Nobody has to touch the frame to see the
+/// application, and what that costs the host page is what a takeover costs: the frame arrives as
+/// markup and becomes an engine, which is the trade the whole library is about.
+String buildTakeoverDocument({String? build}) {
+  return toDocument(
+    ExamplePageNode(),
+    title: 'Apartments, taken over by Flutter — Unibox',
+    description:
+        'The same node tree as the document beside it, first as HTML and then, when a '
+        'reader touches it, as the Flutter application.',
+    meta: <String, String>{'unibox-build': ?build, 'unibox-page': 'none'},
+    theme: ExamplePalette.themeFor(ExampleSeed.defaultSeed),
+    head: <String>['<style>${fontFaceCss('../../')}$pageCss</style>'],
+    takeover: const Takeover(boot: boot),
   );
 }
 

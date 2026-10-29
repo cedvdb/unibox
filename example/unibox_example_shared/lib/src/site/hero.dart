@@ -136,7 +136,7 @@ UINode _diagram(
             label: 'Flutter',
             note: 'the same tree as widgets, in the app',
             flowKey: 'hero-flow-flutter',
-            src: 'flutter/listings/?seed=${seed.name}',
+            src: 'web/takeover/?seed=${seed.name}',
             frame: frame,
           ),
         ],

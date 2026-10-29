@@ -72,8 +72,9 @@ void main() {
     });
 
     test('names two kinds of page, in order of eagerness', () {
-      // Two, not three: a page that must not boot unbidden ships no script, and an
-      // interaction that must work without the application is a link or a form.
+      // `immediately` for a screen nobody arrives at by accident, `onPointer` for everything else:
+      // a pointer moving is the earliest honest sign of a reader, and the idle fallback catches the
+      // one who only reads — which is what a page that shows an application has to answer to.
       expect(BootPolicy.values, <BootPolicy>[
         BootPolicy.immediately,
         BootPolicy.onPointer,

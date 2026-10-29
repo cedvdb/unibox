@@ -75,6 +75,9 @@ step 'Assembling the site'
 mkdir -p "$site/flutter" "$site/assets/fonts"
 # The same four faces the Flutter app bundles, so a weight is drawn on both sides.
 cp example/unibox_example_flutter/assets/fonts/*.ttf "$site/assets/fonts/"
+# The web faces: `woff2`, subsetted to the Latin range, six times smaller than the `ttf` Flutter
+# draws with. A page and an app ship the same four weights, in the format each can use.
+cp example/unibox_example_html/assets/fonts/*.woff2 "$site/assets/fonts/"
 cp -R example/unibox_example_flutter/build/web/. "$site/flutter/"
 
 # The loader a document anywhere on the site can boot the application through.

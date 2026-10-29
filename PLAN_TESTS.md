@@ -70,6 +70,28 @@ The two costs are separable and both ours:
    rewrite a stylesheet whose text it has just read. A later publish patches from the plan as it
    does now — and a stale page is still corrected by the first publish.
 
+### What the second fix did: the fonts were the paint
+
+After adoption stopped rendering, TBT fell to 12–18 ms and CLS stayed 0 — and first paint was still
+5.4 seconds. The cause was not the client, the CSS or the stylesheet: it was **496 kB of `truetype`**
+(4 × 124 kB) behind a 46 kB document. Under a phone's network that is seconds of download before text
+settles, and every `@font-face` waited for the stylesheet to be parsed before it was even discovered.
+
+| | performance | FCP | LCP | TBT |
+| --- | ---: | ---: | ---: | ---: |
+| before | 63 | 5.38 s | 6.56 s | 12 ms |
+| `woff2`, subsetted to Latin, two preloaded | **88** | **1.35 s** | 3.91 s | 17 ms |
+
+The four faces went from 496 kB to 80 kB (`pyftsubset --flavor=woff2`, Latin range), the documents
+`preload` the two weights that paint above the fold — with `crossorigin`, or the file is fetched twice
+— and Flutter keeps the `ttf` files it draws with. What is left of LCP is the listing photograph, a
+third party's asset: that one is content, and bundling it is a decision about this example, not about
+the renderer.
+
+**And wasm?** No. TBT is the number a compiler shows up in, and it is 12–18 ms; `dart2wasm` would add
+a larger download and a streaming compile to a page whose problem was 400 kB of fonts. The lever was
+the bytes, not the machine code.
+
 ### What the first fix did
 
 Adoption no longer renders: the client pairs the tree's nodes with the page's labelled elements,
