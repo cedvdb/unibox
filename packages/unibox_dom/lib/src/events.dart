@@ -34,9 +34,7 @@ List<void Function()> bindNode(core.UINode node, web.Element element) {
           final web.PointerEvent pointer = event as web.PointerEvent;
           onTapDown(
             core.BoxTapEvent(
-              // The local coordinate, which is the one both hosts can produce exactly: where the
-              // box sits on the page is the host's fact, not the node's.
-              position: core.BoxPoint(pointer.offsetX, pointer.offsetY),
+              position: _positionIn(element, pointer),
               pointer: _kindOf(pointer),
             ),
           );
@@ -128,6 +126,19 @@ void _bindLongPress(
     event.preventDefault();
     event.stopPropagation();
   });
+}
+
+/// Where [event] landed, in the coordinates of [element] — the box the listener is on.
+///
+/// Not `offsetX`/`offsetY`: those are measured from the edge of the *event target*, and a press on a
+/// label inside a button reports a point near that label, not near the button. A ripple would start
+/// at the top of the control instead of under the finger. `clientX`/`clientY` are viewport
+/// coordinates, so subtracting the element's own rectangle gives the box-local point both targets can
+/// produce exactly — where the box sits on the page is the host's fact, not the node's.
+core.BoxPoint _positionIn(web.Element element, web.PointerEvent event) {
+  final web.DOMRect rect = element.getBoundingClientRect();
+
+  return core.BoxPoint(event.clientX - rect.left, event.clientY - rect.top);
 }
 
 /// The pointer a press came from, as far as the model names them.

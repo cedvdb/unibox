@@ -195,6 +195,46 @@ void main() {
       view.dispose();
     });
 
+    test('measures a press from the box, not from what it hit', () {
+      // A press lands on whatever is under the pointer — usually a label inside the control — and
+      // `offsetX` is measured from that label's edge. A ripple built from it starts at the top of
+      // the control instead of under the finger, which is exactly what a segmented button showed.
+      final List<core.BoxTapEvent> events = <core.BoxTapEvent>[];
+      final web.HTMLDivElement element = host();
+      final DomView view = DomView.mount(
+        core.Box(
+          width: 200,
+          height: 100,
+          padding: core.BoxSpacing.all(20),
+          onTapDown: events.add,
+          children: <core.UINode>[const core.TextNode('Label')],
+        ),
+        element,
+      );
+
+      final web.Element box = element.children.item(0)!;
+      final web.Element label = box.querySelector('span')!;
+      final web.DOMRect rect = box.getBoundingClientRect();
+
+      // The point is over the label, 50 across and 30 down from the box's own corner.
+      label.dispatchEvent(
+        web.PointerEvent(
+          'pointerdown',
+          web.PointerEventInit(
+            bubbles: true,
+            clientX: (rect.left + 50).round(),
+            clientY: (rect.top + 30).round(),
+          ),
+        ),
+      );
+
+      expect(events, hasLength(1));
+      expect(events.single.position.x, closeTo(50, 0.5));
+      expect(events.single.position.y, closeTo(30, 0.5));
+
+      view.dispose();
+    });
+
     test('follows a link only when the tree says what a press means', () {
       bool followed = false;
       final web.HTMLDivElement element = host();
