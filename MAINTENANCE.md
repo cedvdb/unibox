@@ -83,12 +83,14 @@ The task form — [`.github/ISSUE_TEMPLATE/maintenance_task.yml`](.github/ISSUE_
 touches, the package, and the line that has to pass. A task that cannot name its recipe is not
 scoped yet, which is the useful thing to learn before it is handed over rather than after.
 
-The labels, once per repository:
+The labels this repository uses, once per repository. An issue form that names a label GitHub does
+not have applies nothing and says nothing, which is how `parity` went unapplied until someone looked:
 
 ```shell
 gh label create agent-ready --description 'Scoped, no decision left: an assistant can land it' --color 0e8a16
 gh label create agent-blocked --description 'A human decides: release, dependency, package, public spelling, Deferred' --color b60205
 gh label create maintenance --description 'Keeping the repository what its documentation says it is' --color fbca04
+gh label create parity --description 'Flutter and the web draw the same tree differently' --color 5319e7
 ```
 
 And then the list you work from, in the order it was written:
