@@ -47,16 +47,6 @@ expected appearance holds both renderers to the same answer.
 - [Building with an AI assistant](#building-with-an-ai-assistant)
 - [Development](#development)
 
-## Why this exists
-
-A search engine, a link preview and a reader whose JavaScript failed all see the same thing in
-a Flutter screen: nothing. Flutter draws into a canvas, so there is no text to index — and the
-usual fix is to write that page again as HTML, then keep two designs in step, which drift the
-week after they are written.
-
-Unibox removes the second design: the screen is written once, as a tree, and that tree is both
-the document and the application.
-
 ## How it works
 
 A screen is a `Box` with children. Each child is another node — a text, an image, a link, a grid,
@@ -77,25 +67,22 @@ runApp(MaterialApp(home: page.toWidget()));           // Flutter draws it as wid
 final html = toDocument(page, title: 'Apartments');  // the web reads it as a page
 ```
 
-Two functions, one tree. `toWidget()` builds the widgets; `toDocument()` writes the page and its
-head. Which one you call is the only decision, and the tree is the same either way.
+`toWidget()` builds the widgets; `toDocument()` writes the page and its head. Which one you call
+is the only decision.
 
-Two things keep the two equal: the model states every default — an unset direction is a column, an
-unset text size is 16 — so neither target answers with its own; and a test compares what each
-renderer produced, so one that drifts fails instead of shipping. Neither wraps the other either: on
-a phone the tree is Flutter widgets, in a browser markup and CSS, with no WebView between them.
+The two stay equal because the model states every default — an unset direction is a column, an
+unset text size is 16 — so neither target answers with its own, and because a test compares what
+each renderer produced. Neither wraps the other: on a phone the tree is Flutter widgets, in a
+browser markup and CSS, with no WebView between them.
 
-What the description does *not* contain is what only your application knows — how wide the window
-is, what a tap does, what the document is called. Those are the host's; see
-[what the host owns](#what-the-host-owns).
+How wide the window is, what a tap does and what the document is called cannot come from the
+tree: only the application knows them. See [what the host owns](#what-the-host-owns).
 
 ## Serving a tree
 
-A Flutter screen is a canvas: to a crawler, a link preview and a reader without JavaScript it is
-nothing at all. Unibox renders the tree as a page first — real text, real links, real headings — so
-**what a search engine reads is the page a visitor lands on**.
-
-The page is the same either way. What differs is what brings it to life.
+Unibox renders the tree as a page first — real text, real links, real headings — so what a search
+engine reads is the page a visitor lands on. What brings that page to life is the application's
+decision.
 
 | | **Flutter hydrates it** | **The DOM hydrates itself** |
 | --- | --- | --- |
@@ -131,26 +118,22 @@ void main() => runApp(
 );
 ```
 
-The app downloads while they read and starts at their first intent, never mid-paint, so the page is
-finished before the engine is asked for. The handover itself is a repaint, and a brief flash is the
-honest price of it.
+The app downloads while they read and starts at their first intent, so the page is finished before
+the engine is asked for. The handover is one repaint, and a brief flash comes with it.
 
 ### The DOM hydrates itself — nothing of Flutter
 
 Same tree, written by `unibox_html` and made live by `unibox_dom`: one small bundle, compiled from
 Dart, that **adopts** the markup the server wrote — the same elements, the same classes — and keeps
-it in step with the stores the tree created. A press runs the same Dart closure Flutter would have
-run. No engine, no repaint, no flash.
+it in step with the stores the tree created. A press runs the same Dart closure Flutter would run,
+with no engine and no repaint.
 
-**The size is the argument:** this site's whole client, renderer and stores and trees included, is
-67 KB gzipped. Its Flutter build is 718 KB before Canvaskit.
+This site's whole client — renderer, stores and trees — is 67 KB gzipped. Its Flutter build is
+718 KB before Canvaskit.
 
-The cost is the mirror image. An interaction has to exist as a node, so a dialog is a node in the
-tree rather than a widget only the app can draw.
-
-A dialog, a filter, a reorder — each works without Flutter. A widget Flutter alone can draw stays in
-the app, and neither way asks you to rewrite the rest: the screens that do not have to be found stay
-ordinary Flutter, untouched.
+The cost is the converse: an interaction has to exist as a node, so a dialog is a node in the tree
+rather than a widget only the app can draw. A filter and a reorder are nodes too. What Flutter
+alone can draw stays in the app, and the screens that do not have to be found stay ordinary Flutter.
 
 ### In several languages — one document per language
 
@@ -962,8 +945,8 @@ The one thing a host does not choose is the name on each element: the web render
 always writes `data-unibox-node="…"` on the elements a node drew, because a name
 carries no look and an inspector without it reads a page of hashes. The name is a
 literal a node states (`box`, `text`, `material-card`), never its type — a compiled
-build mangles class names, so a derived one reads `minified:-s`. Flutter has no DOM to
-write it in, which is the whole reason the two targets stay apart here.
+build mangles class names, so a derived one reads `minified:-s`. Flutter has no DOM,
+so there the name is not written at all.
 
 The example shows the first two in practice: a `StatefulWidget` and a
 `StatefulComponent` hold the same form state and pass it into the same tree.
@@ -991,18 +974,16 @@ to the text engine, and a browser is not Skia. What is promised is the layout, t
 sizes, the spacing, the typography and a line box of exactly `fontSize * lineHeight`
 on both sides.
 
-One consequence is easy to miss: a **weight is only as real as the family's faces**.
-Both renderers ask for the same `font-weight`, but if the family has no face at that
-weight a browser synthesises one and Skia snaps to the nearest it has — from a
-different family, if the two hosts were never given the same files. `semiBold` is the
-one that shows it first. Ship the same font to both, as the example does, and the
-weights agree.
+A **weight is only as real as the family's faces**. Both renderers ask for the same
+`font-weight`, but if the family has no face at that weight a browser synthesises one and
+Skia snaps to the nearest it has — from a different family, if the two hosts were never
+given the same files. `semiBold` is the one that shows it first. Ship the same font to
+both, as the example does, and the weights agree.
 
-One more thing is shared on purpose: where the values go. The web renderer writes
-every distinct look once, as a class rule in a single `<style>`, and puts the class
-on the element — so six rows that look alike cost one declaration, and a host can
-outrank any of it with its own stylesheet or a custom property. Nothing in a tree is
-written inline.
+Where the values go is shared on purpose. The web renderer writes every distinct look once,
+as a class rule in a single `<style>`, and puts the class on the element — so six rows that
+look alike cost one declaration, and a host can outrank any of it with its own stylesheet or
+a custom property. Nothing in a tree is written inline.
 
 ## Packages
 
@@ -1020,13 +1001,10 @@ written inline.
 
 Dependencies point one way: both renderers depend on `unibox_core`, never the other
 way around, which is what keeps the description available to a third renderer.
-`unibox_material` depends on `unibox_core` and on Material's own colour algorithm — a
-pure Dart package of algorithms, with no widget layer — as well and sits beside the
-renderers
-rather than under them: a tree imports it for its type, its palette and its
-components, and the
-renderers never see it, so a tree that uses it is drawn by the same two renderers
-as one that does not.
+`unibox_material` depends on `unibox_core` and on Material's own colour algorithm — a pure
+Dart package, with no widget layer — and sits beside the renderers rather than under them:
+a tree imports it for its type, its palette and its components, and the renderers never see
+it, so a tree that uses it is drawn by the same two renderers as one that does not.
 
 **Imports.** `unibox_core` declares `Axis`, `BoxBorder`, `BoxShadow`, `TextOverflow`,
 `TextAlign` and `FontWeight`, which Flutter also declares. Next to
@@ -1055,9 +1033,7 @@ host that renders it.
 
 This page is the second file: the parameter tables an assistant needs when the
 instruction file is not enough. The two are the ground truth, together with
-`packages/unibox_core/lib/src/` — a parameter that is in none of them does not exist,
-which is the single most useful thing to tell an assistant about a library it has
-never seen.
+`packages/unibox_core/lib/src/`: a parameter that is in none of them does not exist.
 
 ## Development
 
@@ -1122,6 +1098,8 @@ Where to read more:
   reads files rather than links.
 - [design.md](design.md) — why the model looks like this: the rules behind the
   defaults, the naming, the non-goals, and what was deliberately left out.
+- [PERFORMANCE.md](PERFORMANCE.md) — what a page with thousands of nodes costs, the three
+  shapes `tool/scale.sh` measures, and the baseline CI holds them to.
 - [TASK_PLAN.md](TASK_PLAN.md) — what is done, what is next, and what was deliberately
   left out.
 - [RELEASE.md](RELEASE.md) — the checklist for cutting a release, including the one
