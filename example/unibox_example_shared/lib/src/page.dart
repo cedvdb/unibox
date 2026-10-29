@@ -70,7 +70,7 @@ Box buildExamplePage({
   required void Function(ExamplePage page) onNavigate,
   required UINode page,
   OverlayNode? dialog,
-  ExampleSeed seed = ExampleSeed.blue,
+  ExampleSeed seed = ExampleSeed.defaultSeed,
 }) {
   return Box(
     direction: Axis.vertical,

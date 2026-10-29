@@ -19,6 +19,10 @@ void main() {
       expect(ExampleSeed.fromName(null), ExampleSeed.values.first);
       expect(ExampleSeed.fromName('nonsense'), ExampleSeed.values.first);
       expect(ExampleSeed.fromName('green'), ExampleSeed.green);
+      // The branding is a decision, so it is pinned: rose is what the example is
+      // drawn with, and it is the first swatch of the row.
+      expect(ExampleSeed.defaultSeed, ExampleSeed.rose);
+      expect(ExampleSeed.values.first, ExampleSeed.defaultSeed);
     });
 
     test('paints each swatch with the accent its seed grows', () {
@@ -142,7 +146,7 @@ void main() {
       expect(
         ExamplePalette.themeFor(ExampleSeed.blue)
             .resolve(const BoxColor.role(MaterialColorRole.surface)),
-        ExamplePalette.material.surface,
+        ExamplePalette.materialFor(ExampleSeed.blue).surface,
         reason: 'a Material component keeps the colour its palette states',
       );
     });

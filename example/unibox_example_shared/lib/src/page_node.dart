@@ -22,7 +22,7 @@ final class ExamplePageNode extends StatefulNode<ExampleState, ExampleStore> {
   /// passes the same value to both.
   factory ExamplePageNode({
     SignupFormState initialForm = const SignupFormState(),
-    ExampleSeed seed = ExampleSeed.blue,
+    ExampleSeed seed = ExampleSeed.defaultSeed,
     Object? key,
   }) {
     return ExamplePageNode._(
@@ -43,7 +43,7 @@ final class ExamplePageNode extends StatefulNode<ExampleState, ExampleStore> {
 UINode exampleView({
   required ExampleState state,
   required ExampleStore store,
-  ExampleSeed seed = ExampleSeed.blue,
+  ExampleSeed seed = ExampleSeed.defaultSeed,
 }) {
   return buildExamplePage(
     current: state.current,

@@ -43,7 +43,7 @@ class ExampleApp extends StatefulWidget {
   /// [seed] is the palette it starts in, which the picker then replaces.
   const ExampleApp({
     super.key,
-    this.seed = ExampleSeed.blue,
+    this.seed = ExampleSeed.defaultSeed,
     this.offsets = const <BoxScrollOffset>[],
     this.presses = const <BoxPress>[],
   });

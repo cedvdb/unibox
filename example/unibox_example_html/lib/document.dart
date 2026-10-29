@@ -36,7 +36,7 @@ String buildExampleDocument({String? build}) {
         'Six apartments with a map beside the listings on a wide screen and the '
         'listings alone on a narrow one, from the same node tree.',
     meta: <String, String>{'unibox-build': ?build},
-    theme: ExamplePalette.themeFor(ExampleSeed.blue),
+    theme: ExamplePalette.themeFor(ExampleSeed.defaultSeed),
     head: <String>['<style>${fontFaceCss('../../')}$pageCss</style>'],
     // One argument: the bundle is prefetched, the recorders travel with the boot, and the boot
     // waits for a signal. The example is the application's front door, so the default policy fits.

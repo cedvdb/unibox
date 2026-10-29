@@ -73,7 +73,8 @@ the state the application starts in.
 
 ## One seed, six palettes
 
-The example is branded with a single colour. `ExampleSeed.blue` is `#2D6CF3`, and
+The example is branded with a single colour. `ExampleSeed.defaultSeed` is `rose`, a
+pink at `#B3265E`, and
 every colour of the page is read out of the palette Material grows from it
 (`MaterialPalette.fromSeed`) — the accent, the tint behind the open navigation item,
 the card, the page, the text, the muted text and the border. A tree holds no colour of
@@ -102,8 +103,9 @@ around them, and one page is never two palettes.
 Three things are worth knowing about the result:
 
 - **The accent is quieter than the seed.** `tonalSpot` is Material You's own scheme,
-  and it spends a saturated brand colour on a palette of low chroma: the vivid
-  `#2D6CF3` becomes `#4A5C92`. That is the algorithm being faithful to Material
+  and it spends a saturated brand colour on a palette of low chroma: the pink
+  `#B3265E` becomes `#8C4A5D`, a dusty one. That is the algorithm being faithful to
+  Material
   rather than to the seed, and `MaterialSchemeVariant.fidelity` is the dial that keeps
   the brand's own chroma instead. The swatches show the accent each seed *grows*, for
   the same reason: a picker painted with the seeds would promise colours the page does
