@@ -100,6 +100,55 @@ void main() {
       meta.remove();
     });
 
+    test('leaves the stylesheet the page was served with alone', () {
+      // A `BoxShape`'s `<svg>` layer and its `<path>` are invented by the plan rather than by the
+      // tree, so adoption pairs no node with them and no class of theirs is ever registered here.
+      // A view that wrote its own sheet *over* the served one therefore deleted the rules those
+      // adopted elements were painted by, and an SVG with no `fill` is black: the example's
+      // progress ring and its badges came out as black discs.
+      const core.UINode tree = core.Box(
+        key: 'shaped',
+        width: 96,
+        height: 96,
+        shape: core.BoxShape.circle,
+        border: core.BoxBorder(width: 8, color: core.BoxColor.black),
+      );
+      final String served = toDocument(tree);
+      final String css = RegExp(
+        r'<style data-unibox-css>(.*?)</style>',
+        dotAll: true,
+      ).firstMatch(served)!.group(1)!;
+      final web.HTMLStyleElement stylesheet =
+          web.document.createElement('style') as web.HTMLStyleElement
+            ..setAttribute('data-unibox-css', '')
+            ..textContent = css;
+      web.document.head!.append(stylesheet);
+
+      final web.HTMLDivElement element = host()
+        ..innerHTML = servedMarkup(tree).toJS;
+      final DomView view = DomView.adopt(tree, element.children.item(0)!);
+
+      // A publish is what rewrites a sheet, so the pass has to be forced: adoption alone writes
+      // nothing, which is the whole point of the fast path.
+      view.render(tree);
+
+      expect(
+        stylesheet.textContent,
+        css,
+        reason: 'the served rules are untouched',
+      );
+      expect(
+        web.document.head!.querySelectorAll('style[data-unibox-css]').length,
+        2,
+        reason: 'the view writes beside the served sheet, not over it',
+      );
+      // The class the adopted path wears is still defined by one of the two sheets.
+      expect(documentOf(view), contains('unibox-shape-path'));
+
+      view.dispose();
+      stylesheet.remove();
+    });
+
     test('keeps the focus a reader already had', () {
       // The reason adoption is judged on scroll and focus rather than on markup: the reader was here
       // first. Nothing is rebuilt on the fast path, so both survive untouched rather than restored.
