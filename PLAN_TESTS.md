@@ -251,6 +251,21 @@ the same behaviour as well as the same appearance.
 **Done when.** Each passes for the Flutter renderer, and a deliberately broken binding fails it
 (checked by hand).
 
+## T5. Reassessed: nothing missing, and my count was wrong
+
+This task was written on a miscount — 11 tests against the client's 67. The Flutter suite has **217**:
+`box_widget_test.dart` alone has 34, and the two behaviours I named as missing are already there:
+`interaction_state_test.dart` has a *keyboard activation* group (`activates a focused box with enter`,
+and Space on the way up), and `stateful_node_test.dart` has `mounts the store once and disposes it on
+unmount`.
+
+What is genuinely client-only stays client-only: a long press swallowing its click, a hover reported
+from a share, adoption of markup a server wrote. None of those has a Flutter counterpart to hold to —
+Flutter has no server markup to adopt, and its gestures are its own widgets' business, tested by Flutter.
+
+So: **no tests added, and a wrong claim corrected.** A plan that lists a task because a number looked
+small should say so when the number turns out to be the alphabet, not the count.
+
 ## T6. The rule that keeps this from drifting again
 
 **Now.** Three of the bugs found while wiring the client were "a callback in the model that no
