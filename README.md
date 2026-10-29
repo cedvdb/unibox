@@ -748,9 +748,30 @@ toDocument(page, theme: theme);      // writes :root and points the rules at it
 | one theme value | the tree, the host's CSS (`var(--unibox-color-primary)`) and the app's `ColorScheme` all read the same palette |
 | the web writes `var()` | a host stylesheet or a `prefers-color-scheme: dark` block outranks the tree without touching it |
 | literals still work | a page that needs no theme never needs one, and a role with no theme is reported by name |
+| `colorScheme` | the theme says whether it is a light or a dark one, and a document states it as `color-scheme` — so the browser paints its scrollbars and its caret to match the page rather than the reader's system |
 
 `validateTree(root, theme: theme)` reports a role the theme does not define, so a
 missing colour is a message with a name in it rather than a blank box.
+
+**Light unless stated.** `UniboxTheme.colorScheme` defaults to `light`, and
+`MaterialPalette.theme` fills it in from the palette's own surface, so
+`MaterialPalette.dark` writes `color-scheme: dark` without anyone saying it twice.
+No renderer reads `prefers-color-scheme` or a platform's brightness on its own:
+following the reader is a host's decision, made by installing the theme it chose.
+A host that wants it writes one block, with every role rather than a handful:
+
+```css
+@media (prefers-color-scheme: dark) {
+  :root { /* MaterialPalette.fromSeed(seed, isDark: true).theme */ }
+}
+```
+
+and in Flutter, two lines where the theme is installed:
+
+```dart
+final bool dark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+renderFlutter(page, theme: dark ? MaterialPalette.darkTheme : MaterialPalette.lightTheme);
+```
 
 ## Typography
 

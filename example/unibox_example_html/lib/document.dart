@@ -87,18 +87,17 @@ String buildTakeoverDocument({String? build}) {
 /// stack is written raw because a comma separated list is a CSS construct, while a
 /// `BoxTextStyle.fontFamily` names one family, which Flutter and CSS both understand alike.
 ///
-/// The dark block is the host's last word: the tree says "the canvas role", and this says what
-/// that role is worth in a dark browser. Nothing in the tree changes, which is the point of
-/// writing roles as custom properties.
+/// The page is **light, whatever the reader's system says**, and the document states that as
+/// `color-scheme` — the theme carries it, and the browser paints its scrollbars, its caret and the
+/// canvas before the sheet applies to match. A light page in a dark-mode browser is otherwise
+/// given dark scrollbars and a white caret.
+///
+/// Following the reader is a host's decision and this example does not make it, because the page
+/// is drawn twice — once as a document, once by Flutter — and two frames that disagree about the
+/// scheme break the one claim the page makes. A host that does want it writes one block,
+/// `@media (prefers-color-scheme: dark) { :root { … } }`, filled from
+/// `MaterialPalette.fromSeed(seed, isDark: true)` with **every** role: the handful this file used
+/// to override painted Material's light roles on a near-black canvas.
 const String pageCss = '''
 html, body { height: 100%; margin: 0 }
-body { font-family: UniboxText, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --unibox-color-canvas: #101216;
-    --unibox-color-panel: #1a1d24;
-    --unibox-color-text: #e9eaee;
-    --unibox-color-muted: #a2a8b4;
-    --unibox-color-border: #2c313a;
-  }
-}''';
+body { font-family: UniboxText, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif }''';
