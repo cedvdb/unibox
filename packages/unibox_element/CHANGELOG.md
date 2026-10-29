@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- A document states the scheme of the theme it drew, as `color-scheme` in its `:root` block.
+
 - A snapping box writes the rule that makes its children the stops: `.class > *`
   `{scroll-snap-align: start}`, alongside the state and threshold rules of the same class.
 

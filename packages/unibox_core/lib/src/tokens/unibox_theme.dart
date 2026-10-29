@@ -26,9 +26,39 @@ import 'box_color.dart';
 /// The Flutter renderer resolves each role while it builds the widget tree. Both read
 /// the same value, which is what stops the palette from being a third copy of the
 /// design system.
+/// The scheme a theme's values are painted in.
+///
+/// It is not a preference: it is the fact a `color-scheme` declaration states, so the chrome the
+/// tree does not draw — scrollbars, the caret, the canvas before the stylesheet applies, a
+/// `<select>` popup — is painted to match the page rather than to match the reader's operating
+/// system. A light page in a dark-mode browser otherwise gets dark scrollbars and a white caret,
+/// which is the one place a system preference legitimately leaked into a tree that never asked
+/// for it.
+///
+/// The default is [light], which is what values making no claim about their own brightness
+/// imply. No renderer ever reads `prefers-color-scheme` or a platform's brightness on its own: a
+/// host that wants to follow the reader picks a theme, and says which one it installed.
+enum BoxColorScheme {
+  /// Light surfaces, dark ink.
+  light,
+
+  /// Dark surfaces, light ink.
+  dark,
+}
+
 final class UniboxTheme {
-  /// Creates a theme from [colors].
-  const UniboxTheme({this.colors = const <Enum, BoxColor>{}});
+  /// Creates a theme from [colors], painted in [colorScheme].
+  const UniboxTheme({
+    this.colors = const <Enum, BoxColor>{},
+    this.colorScheme = BoxColorScheme.light,
+  });
+
+  /// The scheme these values are painted in.
+  ///
+  /// A theme that states nothing is [BoxColorScheme.light], because light is what values with no
+  /// brightness claim imply — and a dark palette answers [BoxColorScheme.dark], so the host that
+  /// installs one never writes the fact twice.
+  final BoxColorScheme colorScheme;
 
   /// The colour of every role, keyed by the role itself.
   ///
@@ -80,7 +110,10 @@ final class UniboxTheme {
 
     // This theme wins a role both define: it is the page's own vocabulary, and the
     // other is lending the roles the page does not name.
-    return UniboxTheme(colors: <Enum, BoxColor>{...other.colors, ...colors});
+    return UniboxTheme(
+      colors: <Enum, BoxColor>{...other.colors, ...colors},
+      colorScheme: colorScheme,
+    );
   }
 
   /// The CSS custom property a colour role is written as: `--unibox-color-primary`.

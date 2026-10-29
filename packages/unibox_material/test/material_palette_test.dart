@@ -3,6 +3,31 @@ import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_material/unibox_material.dart';
 
 void main() {
+  group('the scheme', () {
+    test('is read from the surface a palette paints on', () {
+      expect(MaterialPalette.light.colorScheme, BoxColorScheme.light);
+      expect(MaterialPalette.dark.colorScheme, BoxColorScheme.dark);
+    });
+
+    test('follows the seed when a palette is grown from one', () {
+      const BoxColor seed = BoxColor(0xFF8C4A5D);
+
+      expect(MaterialPalette.fromSeed(seed).colorScheme, BoxColorScheme.light);
+      expect(
+        MaterialPalette.fromSeed(seed, isDark: true).colorScheme,
+        BoxColorScheme.dark,
+      );
+    });
+
+    test('is what the theme it builds states', () {
+      // The palette is the one that knows, so a host that installs `darkTheme` never writes the
+      // fact twice — and a document writes `color-scheme: dark` from the theme alone.
+      expect(MaterialPalette.light.theme.colorScheme, BoxColorScheme.light);
+      expect(MaterialPalette.dark.theme.colorScheme, BoxColorScheme.dark);
+      expect(MaterialPalette.lightTheme.colorScheme, BoxColorScheme.light);
+    });
+  });
+
   group('MaterialPalette', () {
     test('states a Material 3 baseline light scheme', () {
       const MaterialPalette palette = MaterialPalette.light;

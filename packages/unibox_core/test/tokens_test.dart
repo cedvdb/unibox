@@ -389,6 +389,30 @@ void main() {
     });
   });
 
+  group('UniboxTheme', () {
+    test('is light unless its values say otherwise', () {
+      // Light is what a theme that makes no claim about its own brightness implies, and no
+      // renderer reads the reader's preference on its own.
+      expect(const UniboxTheme().colorScheme, BoxColorScheme.light);
+      expect(
+        const UniboxTheme(colorScheme: BoxColorScheme.dark).colorScheme,
+        BoxColorScheme.dark,
+      );
+    });
+
+    test('keeps its scheme when another theme lends it roles', () {
+      const UniboxTheme dark = UniboxTheme(colorScheme: BoxColorScheme.dark);
+
+      expect(dark.merge(const UniboxTheme()).colorScheme, BoxColorScheme.dark);
+      // And the other way round: the theme whose roles win states the scheme.
+      expect(
+        UniboxTheme.none.merge(dark).colorScheme,
+        BoxColorScheme.light,
+        reason: 'an empty theme has no claim to lend',
+      );
+    });
+  });
+
   group('BoxTextStyle', () {
     test('starts empty', () {
       expect(const BoxTextStyle().isEmpty, isTrue);

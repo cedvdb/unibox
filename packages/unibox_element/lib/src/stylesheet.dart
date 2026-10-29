@@ -108,7 +108,12 @@ String documentCss(Stylesheet sheet, {core.UniboxTheme? theme}) {
   final CssDeclarations root = defaultTypographyDeclarations();
 
   if (theme != null) {
-    root.addAllIn(themeDeclarations(theme));
+    root
+      // What the theme says it is, so the browser paints the chrome the tree does not draw —
+      // scrollbars, the caret, the canvas before this stylesheet applies — in the same scheme.
+      // Without it a light page in a dark-mode browser gets dark scrollbars and a white caret.
+      ..add('color-scheme', theme.colorScheme.name)
+      ..addAllIn(themeDeclarations(theme));
   }
 
   return ':root{${root.text}}${sheet.css}';
