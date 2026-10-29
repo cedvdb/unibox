@@ -267,6 +267,35 @@ class Box extends UINode {
   /// from 600 up to, but not including, 900.
   final double? visibleUntil;
 
+  /// Whether this box is drawn at only some widths, on either side of a band.
+  ///
+  /// Read from the tokens without resolving the style. A renderer asks this of every child of
+  /// every box — a box that holds a threshold is the box a container query measures — and
+  /// resolving a style merges every bag and the flat parameters into a fresh one, for a
+  /// question about two tokens. Merging can add a threshold and never take one away, so the
+  /// answer is whether any of the bags, or the flat parameter, states one.
+  bool get hasThreshold {
+    if (visibleFrom != null || visibleUntil != null) {
+      return true;
+    }
+
+    bool states(BoxStyle? style) =>
+        style != null &&
+        (style.visibleFrom != null || style.visibleUntil != null);
+
+    if (states(_style)) {
+      return true;
+    }
+
+    for (final BoxStyle bag in styles) {
+      if (states(bag)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   /// Sugar for `stateStyles: {BoxState.hover: hoverStyle}`. An entry in
   /// [stateStyles] wins over this one.
   final BoxStyle? hoverStyle;

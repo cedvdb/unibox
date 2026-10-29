@@ -108,10 +108,7 @@ ElementPlan _planBox(core.Box box, Stylesheet sheet, PlanOptions options) {
       box.stateStyle(core.BoxState.pressed) != null;
 
   final bool holdsThreshold = box.children.any(
-    (core.UINode child) =>
-        child is core.Box &&
-        (child.computedStyle.visibleFrom != null ||
-            child.computedStyle.visibleUntil != null),
+    (core.UINode child) => child is core.Box && child.hasThreshold,
   );
   final CssDeclarations declarations = boxDeclarations(
     style,
@@ -148,7 +145,10 @@ ElementPlan _planBox(core.Box box, Stylesheet sheet, PlanOptions options) {
   return ElementPlan(
     tag: element.name,
     className: className,
-    attributes: <String, String>{...boxAttributes(box), ...nodeAttributes(box)},
+    // Only the attributes that are actually written: a box carries a role, a label, a key or
+    // nothing, and spreading two maps into a third for every box on the page is a map nobody
+    // reads.
+    attributes: boxAttributes(box)..addAll(nodeAttributes(box)),
     children: <ElementPlan>[
       // A shape is painted by a layer of its own, which comes first so the content sits over
       // it — and behind it in `z-index`, since the layer is absolutely positioned.
