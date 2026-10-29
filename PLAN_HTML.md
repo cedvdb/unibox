@@ -247,7 +247,7 @@ declarations replace its background, border, radius and shadow with the layer's 
 - [x] **3. `unibox_html`**: the writer needs nothing — the plan holds the layer — but the
   conformance suite gains a shaped case of its own, since the appearance table cannot read an
   outline back.
-- [ ] **4. Verify the merge**: seven suites, `dart doc`, and the shape on the example's page.
+- [x] **4. Verify the merge**: seven suites, `dart doc`, and the shape on the example's page.
 - [ ] **5. Land it**: fast-forward `feat/unibox-html` onto `merge-main-wip` and delete the
   working branch.
 
