@@ -64,6 +64,11 @@ dart analyze || fail 'dart analyze'
 step 'Checking the documentation'
 python3 tool/check_docs.py || fail 'tool/check_docs.py'
 
+# The checkers are code too, and were the only code here without tests: a gate that silently stops
+# gating is worse than no gate, because the green tick is a lie.
+step 'Checking the gates'
+python3 tool/gate_tests.py || fail 'tool/gate_tests.py'
+
 if [ "$run_tests" -eq 1 ]; then
   # `dart test` for the pure Dart packages, `flutter test` for the two that build
   # widgets. The order is the dependency order CI uses.

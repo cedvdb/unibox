@@ -288,6 +288,31 @@ component that relied on it, and a renderer that bound nothing — silent, becau
   happens when a callback is missing from it;
 - **`AI_INSTRUCTIONS.md`** rule 13, in one line, for whoever is writing application code.
 
+## T7. Done: the two gaps that were still open
+
+**The planner's precedence rules.** `packages/unibox_element/test/precedence_test.dart` asks the
+question the model documents and nothing asked directly: a flat parameter over a style bag, a later
+bag over an earlier one, a state over the resting look, the model's default where nothing is set. The
+conformance tables hold the *result* of that rule to one appearance, but they ask it of a tree that
+states each token once — so the rule itself was untested, and it is the rule a caller relies on.
+
+Writing it corrected three of my own assumptions: four equal sides are written `4px`, not
+`4px 4px 4px 4px`; the model's `MainAlign.start` becomes CSS `start`, not `flex-start`; and an empty
+hover style still writes its structural rule (it carries no paint, which is what the test now says).
+
+**The gates had no tests.** `tool/gate_tests.py` hands each checker the case it exists to refuse and
+the case it must accept: a document naming a file that is not in the build, a document under its word
+floor, a page whose *median* is outside its budget, a baseline that got worse. `lighthouse_budget`
+gained an `evaluate()` because its only entry point was `main`, and a decision that can only be taken
+by printing cannot be tested.
+
+It runs in `tool/verify.sh` and in CI's analyze job, so every pull request checks the checkers.
+
+**One correction to the audit.** `ci.yml` *does* run a performance job on pull requests — I said it
+only ran on deploys. But it measured documents written into a temporary directory, where the front
+page's takeover frame has no engine to load, so its application budget passed without measuring
+anything. It now builds the site and measures it, the same way the deploy does.
+
 ---
 
 ## Order

@@ -77,27 +77,43 @@ def measure(path):
     return measured
 
 
-def main():
-    global BUDGET
+def evaluate(kind, runs):
+    """Which audits of [runs] are outside the budget for [kind], and every line to print.
 
-    page, kind, reports = sys.argv[1], sys.argv[2], sys.argv[3:]
-    BUDGET = BUDGETS[kind]
-    runs = [measure(path) for path in reports]
-    median = {name: statistics.median([run[name] for run in runs]) for name in BUDGET}
+    The decision and the printing are kept apart so the decision can be tested: a gate whose only
+    entry point is `main` cannot be handed a page that should fail.
+    """
+    budget = BUDGETS[kind]
+    median = {name: statistics.median([run[name] for run in runs]) for name in budget}
     failures = []
+    lines = []
 
-    print(f"  {len(runs)} run(s), median")
-
-    for audit, limit in BUDGET.items():
+    for audit, limit in budget.items():
         actual = median[audit]
         inside = actual >= limit if audit == "performance" else actual <= limit
-        print(f"  {'ok  ' if inside else 'FAIL'} {audit}: {actual:.2f} (budget {limit})")
+        lines.append((audit, actual, limit, inside))
 
         if not inside:
             failures.append(audit)
 
+    return failures, lines
+
+
+def main():
+    page, kind, reports = sys.argv[1], sys.argv[2], sys.argv[3:]
+    runs = [measure(path) for path in reports]
+    failures, lines = evaluate(kind, runs)
+
+    print(f"  {len(runs)} run(s), median")
+
+    for audit, actual, limit, inside in lines:
+        print(f"  {'ok  ' if inside else 'FAIL'} {audit}: {actual:.2f} (budget {limit})")
+
     if failures:
-        print(f"\n{page}: {', '.join(failures)} outside the budget", file=sys.stderr)
+        print(
+            f"\n{page}: {', '.join(failures)} outside the budget",
+            file=sys.stderr,
+        )
         return 1
 
     return 0

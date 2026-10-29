@@ -33,6 +33,8 @@ jobs:
         run: dart analyze
       - name: Check that the documentation points at files that exist
         run: python3 tool/check_docs.py
+      - name: Check the gates themselves
+        run: python3 tool/gate_tests.py
 
   test:
     name: Test
@@ -130,5 +132,9 @@ jobs:
         run: flutter pub get
       # Lighthouse starts a browser and takes a few minutes, which is why it is a job of its
       # own rather than a step in the fast loop. A page outside its budget fails the build.
-      - name: Measure the exported pages
-        run: tool/lighthouse.sh
+      #
+      # It measures the *site*, not documents written into a temporary directory: the front page
+      # embeds the takeover, so a documents-only build has a frame whose engine does not exist and
+      # the application budget passes without measuring anything.
+      - name: Measure the site against its budgets
+        run: tool/performance.sh
