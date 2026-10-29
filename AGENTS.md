@@ -63,6 +63,8 @@ so the packages share one resolution.
 | Format check and analysis only | `tool/verify.sh --fast` |
 | Rewrite formatting, then verify | `tool/verify.sh --fix` |
 | Also build the API docs | `tool/verify.sh --docs` |
+| Every number: budgets, boot to frame, bytes | `tool/performance.sh` |
+| Accept today's numbers as the baseline | `tool/performance.sh --update` |
 | One suite, the fast loop | `(cd packages/unibox_html && dart test)` |
 | The monthly pass: gate, budget, site, the quoted numbers | `tool/maintenance.sh` |
 | Does the index point at files that exist? | `python3 tool/check_docs.py` |

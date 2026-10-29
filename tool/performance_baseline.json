@@ -1,0 +1,24 @@
+{
+  "pages": {
+    "front": {
+      "cumulative-layout-shift": 0.0,
+      "first-contentful-paint": 901.3,
+      "largest-contentful-paint": 2251.3,
+      "performance": 90.0,
+      "total-blocking-time": 332.5
+    },
+    "web-listings": {
+      "cumulative-layout-shift": 0.0,
+      "first-contentful-paint": 1051.9,
+      "largest-contentful-paint": 2336.9,
+      "performance": 98.0,
+      "total-blocking-time": 17
+    }
+  },
+  "sizes": {
+    "client": 75871,
+    "document": 5854,
+    "fonts": 73356,
+    "photos": 60657
+  }
+}

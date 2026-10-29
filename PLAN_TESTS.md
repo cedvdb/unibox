@@ -141,6 +141,26 @@ bundle (65 kB gzipped) and the 20 kB of CSS re-downloaded in every page.
 **Done when** the front page is back inside the budget of T1 with the frames and the client in
 place, and the two fixes are separately committed and measured.
 
+## T1. Done: one command, four measurements, a baseline
+
+`tool/performance.sh` builds the site, measures both kinds of page against their budgets, boots the
+takeover in a real browser, and prints the bytes; `--update` accepts the numbers as the baseline in
+`tool/performance_baseline.json`. It runs in the deploy and in `tool/maintenance.sh`, so the answer to
+"did the Flutter upgrade make this slower" is one command and a diff, not a memory.
+
+What it says today:
+
+| | performance | FCP | LCP | TBT | CLS |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `/web/listings/` — a document | **98** | 1.05 s | 2.34 s | 17 ms | 0 |
+| `/` — a page that becomes Flutter | **90** | 0.90 s | 2.25 s | 333 ms | 0 |
+
+boot to first frame **278 ms** · bytes, gzipped: document 5.8 kB, client 75.9 kB, fonts 73.4 kB,
+photos 60.7 kB.
+
+The front page reaching 90 is the takeover frame doing what a takeover does: HTML first (FCP 0.9 s),
+then the engine (TBT 333 ms). It is the honest number for "a page that loads an application".
+
 ## T2. A gate that the documents still crawl
 
 **Now.** Nothing checks that an exported page is still *readable as a document*. A renderer change

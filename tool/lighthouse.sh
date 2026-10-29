@@ -98,6 +98,12 @@ for entry in $pages; do
   fi
 done
 
+# A caller that keeps the numbers (`tool/performance.sh`) points this at a directory.
+if [ -n "${REPORTS:-}" ]; then
+  mkdir -p "$REPORTS"
+  cp "$WORK"/*.json "$REPORTS"/
+fi
+
 if [ "$status" -ne 0 ]; then
   printf '\n==> FAILED: a page is outside its performance budget\n' >&2
   exit 1

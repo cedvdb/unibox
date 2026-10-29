@@ -20,8 +20,8 @@ step() {
 step 'The gate, with the API docs'
 tool/verify.sh --docs
 
-step 'The performance budget'
-tool/lighthouse.sh
+step 'The numbers: budgets, boot and bytes'
+tool/performance.sh
 
 step 'The site'
 tool/site.sh

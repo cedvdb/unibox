@@ -56,6 +56,11 @@ jobs:
       - name: Check that the client answers a press
         run: tool/dom_check.sh build/site
 
+      # The numbers, against the budgets — and against `tool/performance_baseline.json`, so a slow
+      # drift that stays inside a budget is still named in the log.
+      - name: Measure the pages against their budgets
+        run: tool/performance.sh build/site
+
       # A workflow cannot enable Pages with the repository token: `configure-pages`
       # needs an administrator to have turned it on first. Detect that instead of
       # failing, so the build keeps its value and the run link explains the next step.
