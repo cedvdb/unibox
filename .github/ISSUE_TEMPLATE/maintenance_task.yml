@@ -89,7 +89,7 @@ body:
             Nothing in it needs a human decision: no release, no new dependency, no new
             workspace package, and no public spelling removed.
           required: true
-        - label: It is not on the `Deferred` list in `TASK_PLAN.md`.
+        - label: It is not one of the non-goals in `design.md` §5.6.
           required: true
         - label: >-
             It is one change. If it is not, split it and open the second issue as well.

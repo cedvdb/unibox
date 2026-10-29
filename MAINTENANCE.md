@@ -65,7 +65,7 @@ These are not automatable, and an assistant should stop and ask rather than deci
 - **Removing something a user can see** — a node, a token, a public spelling. While the
   library is unreleased a rename is allowed; say so in the changelog, and say what
   replaced it.
-- **The `Deferred` list**, unless a human asks for an item by name.
+- **A non-goal** in [`design.md`](design.md#56-non-goals), unless a human asks for it by name.
 
 ## The queue
 
@@ -74,8 +74,8 @@ Everything above happens when you look. The queue is what happens when you don't
 An issue is **`agent-ready`** when a competent contributor — or an assistant — could finish it from
 the issue text and [`AGENTS.md`](AGENTS.md) alone: one change, one package, no decision left to make.
 Anything held up by a decision is **`agent-blocked`**, and the decisions are the list above:
-releasing, a new dependency, a new workspace package, removing a public spelling, and the `Deferred`
-items.
+releasing, a new dependency, a new workspace package, removing a public spelling, and a non-goal in
+[`design.md`](design.md#56-non-goals).
 
 The task form — [`.github/ISSUE_TEMPLATE/maintenance_task.yml`](.github/ISSUE_TEMPLATE/maintenance_task.yml)
 — is what makes an issue ready: it asks for the recipe (A to H) that names the files the change
@@ -87,7 +87,7 @@ not have applies nothing and says nothing, which is how `parity` went unapplied 
 
 ```shell
 gh label create agent-ready --description 'Scoped, no decision left: an assistant can land it' --color 0e8a16
-gh label create agent-blocked --description 'A human decides: release, dependency, package, public spelling, Deferred' --color b60205
+gh label create agent-blocked --description 'A human decides: release, dependency, package, public spelling, a non-goal' --color b60205
 gh label create maintenance --description 'Keeping the repository what its documentation says it is' --color fbca04
 gh label create parity --description 'Flutter and the web draw the same tree differently' --color 5319e7
 ```

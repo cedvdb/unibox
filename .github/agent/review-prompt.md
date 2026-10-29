@@ -40,8 +40,8 @@ give the evidence — a file and a line, or the absence you looked for. Then sto
 5. **Nothing unrelated.** Reformatted files, a rename the change did not need, a new dependency, a
    moved file that the change did not require. House rule: unrelated cleanup hides the real diff.
 
-6. **A human decides.** Does the diff touch `publish_to`, a version number, the `Deferred` section
-   of `TASK_PLAN.md`, a new workspace package, or a public spelling that was removed? Any of those
+6. **A human decides.** Does the diff touch `publish_to`, a version number, a non-goal in
+   `design.md` §5.6, a new workspace package, or a public spelling that was removed? Any of those
    is `not ok` here, whatever the tests say: they are in the "what a human decides" list of
    `MAINTENANCE.md` and need a maintainer's answer, not a reviewer's.
 
