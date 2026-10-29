@@ -183,6 +183,10 @@ Box buildApartmentsPage({
         children: <UINode>[
           // The list scrolls under the button rather than with it.
           Box(
+            // A key is how a page that was scrolled before the application arrived is put back
+            // where the reader left it: the document writes it, and the app finds the region by
+            // it. One region per page, so the key is unique in the document.
+            key: 'listings',
             width: double.infinity,
             height: double.infinity,
             direction: Axis.vertical,

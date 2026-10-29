@@ -233,7 +233,7 @@ than an assumption.
 
 What the takeover still lacks, what is clumsy to wire, and what the documents do not yet say.
 
-- [ ] **1. Key the example's scroll regions.** The recorder reads `data-unibox-key`, and no
+- [x] **1. Key the example's scroll regions.** The recorder reads `data-unibox-key`, and no
   scrolling box in the example has one: the record is empty, so scroll replay cannot work end to
   end. `apartments.dart` and the two in `gallery.dart`.
 - [ ] **2. A takeover in one argument.** `toDocument` takes `prefetch`, `scripts` and a policy, and

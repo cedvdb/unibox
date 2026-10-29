@@ -412,6 +412,7 @@ UINode _chips() {
         // Four chips need more than one cell of this grid holds on a phone, and a
         // chip is a control with a fixed size: the row scrolls rather than pushing
         // the page sideways.
+        key: 'catalogue-chips',
         overflow: Overflow.scroll,
         children: <UINode>[
           MaterialChip(
@@ -487,6 +488,7 @@ UINode _removableView(Set<String> chips, ChipsStore store) {
     gap: 8,
     // Two pills and their crosses are wider than a phone's cell, so the row scrolls
     // instead of widening the page.
+    key: 'catalogue-pills',
     overflow: Overflow.scroll,
     children: <UINode>[
       for (final String chip in chips)
