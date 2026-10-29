@@ -20,32 +20,10 @@ expected appearance holds both renderers to the same answer.
 
 ## Features
 
-**The description**
-
-- 🧩 **One tree, two renderings** — the same immutable nodes become Flutter widgets in an app and HTML with CSS in a browser.
-- 🎨 **Tokens, not pixels** — colour, spacing, border, shadow, radius, typography, transform and transition, resolved by the model so neither target can invent a default.
-- 📐 **Layout that answers its own width** — `visibleFrom` / `visibleUntil` compile to container queries, so a band that folds is one tree rather than one per breakpoint.
-
-**The document** — what a crawler, a link preview and a reader without JavaScript get
-
-- 🔍 **Real markup** — headings, `<a href>`, `<img alt>`, landmarks, `role` and `aria-*`, all taken from the tree.
-- 📄 **`toHtml` / `toDocument`** — one function, pure Dart, no framework and no runtime: it runs in a server, a build step or a CLI.
-- ⚡ **Nothing to hydrate** — the page is finished HTML; the scripts it may carry are optional, and a page without them still reads and scrolls.
-- 🧾 **A page, not a region** — title, description, canonical url, Open Graph, structured data and the scripts, stated by the host.
-
-**The takeover** — the Flutter application boots into the page it was served
-
-- ⬇️ **Prefetched quietly** — the bundle downloads at a low priority while the reader reads, so a boot that waits is never a boot on a cold cache.
-- 👆 **Boots on intent** — a pointer that moves, a press, a key or a focus, and never before the first paint; `BootPolicy` names the two kinds of page: the page that is the application, and its front door.
-- 🔁 **One boot** — a second intent during the download does not start a second application.
-- 📜 **The scroll comes back** — every keyed region starts at the offset the page recorded, as the scroll view's initial position, so nothing jumps.
-- 🖐 **The presses survive** — the page records what was pressed, on which element and where, and answers `window.unibox.takePressed()` for the application to replay.
-
-**Kept honest**
-
-- 🧪 **One table of appearance** — `unibox_testing` holds both renderers to the same expected presentation, read back out of each one's output.
-- 📦 **No dependencies below the renderers** — the tree, the element plan, the CSS and the HTML renderer are pure Dart, and the tree never imports a platform.
-- 🧱 **Material 3 as values** — an optional package with the type scale, the colour roles and the components, drawn by both renderers rather than by a third runtime.
+- 🧩 **One tree, two renderings** — the same nodes are Flutter widgets in the app and HTML with CSS in the browser, so the design is written once.
+- 🔍 **A page a search engine reads** — real text, headings, links, `alt`, landmarks and metadata: what a crawler, a link preview and a reader without JavaScript see is the page itself.
+- 🖐 **The app takes the page over** — Flutter boots into the document it was served, prefetched while the reader reads and started at their first intent, with the scroll and the presses the page recorded handed back to it.
+- 🟩 **Rendered from Node too** — pure Dart with no dependencies, so a document is produced in a server, a build step, a CLI, or compiled to JavaScript for a backend that is not Dart.
 
 ## Why this exists
 
