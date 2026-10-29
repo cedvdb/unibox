@@ -9,6 +9,23 @@ Out of scope: new features, new packages, and anything in `PLAN_HTML.md`'s Defer
 
 ---
 
+## Where the plan stands
+
+Reassessed after T1a. Two things changed under it: adoption no longer renders at all, and the
+example's page stopped being a Flutter takeover — it is a document that runs itself. Both were found
+by *doing* the plan, and both change what the rest is worth.
+
+| | task | state |
+| --- | --- | --- |
+| T1a | adoption binds instead of rendering | **done** for the bind half (TBT 840 → 591 ms); the Flutter frame still loads unprompted, and the numbers need re-measuring now that the left frame is a document |
+| **T0** | **the client check covers every interactive page** | **new, next** — the `../main.client.js` 404 in the example document was invisible to every gate, because `tool/dom_check.sh` only pressed a control on `/` |
+| T1 | Lighthouse budget in CI | waiting on the re-measure |
+| T2 | the documents still crawl | not started |
+| T3 | the client's untested bindings | not started |
+| T4 | adoption keeps focus and scroll | *mostly free now*: the fast path does not touch the DOM, so both survive by construction — the test is worth having, the work is not |
+| T5 | Flutter's thin behaviour coverage | not started |
+| T6 | the rule in the docs | not started |
+
 ## T1. The Lighthouse budget runs in CI
 
 **Now.** `tool/lighthouse.sh` measures both exported documents against a budget (median of three
@@ -146,5 +163,5 @@ that must hear about a new callback. `AI_INSTRUCTIONS.md` says the same in one l
 
 ## Order
 
-T1a → T1 → T2 → T3 → T4 → T5 → T6. One commit each, `tool/verify.sh` before each, and a deploy dispatch
+T0 → T1a(rest) → T1 → T2 → T3 → T4 → T5 → T6. One commit each, `tool/verify.sh` before each, and a deploy dispatch
 after T1 and T2 so the new gates are proven on the path that matters rather than only locally.
