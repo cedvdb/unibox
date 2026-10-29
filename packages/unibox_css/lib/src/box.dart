@@ -248,5 +248,13 @@ CssDeclarations shapeDeclarations(core.BoxStyle style, core.BoxShape shape) {
     ..addIf(
       '--unibox-shape-stroke-width',
       strokeReference == null ? null : cssPixels(border!.width),
+    )
+    // Only a non-default cap is written: `butt` is what the path already declares, and a
+    // property that repeats a default is a declaration nothing reads.
+    ..addIf(
+      '--unibox-shape-stroke-cap',
+      border != null && border.cap != core.BoxStrokeCap.butt
+          ? border.cap.name
+          : null,
     );
 }

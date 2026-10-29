@@ -98,6 +98,41 @@ void main() {
       expect(declarations.has('border-radius'), isFalse);
     });
 
+    test('carries the cap of an arc to the layer', () {
+      // An arc is stroked, and its two ends are the ends of the stroke: the cap is what makes
+      // Material's rounded ends reach the path at all.
+      final CssDeclarations capped = boxDeclarations(
+        const core.BoxStyle(
+          shape: core.BoxShape(
+            viewBoxWidth: 10,
+            viewBoxHeight: 10,
+            commands: <core.BoxPathCommand>[
+              core.BoxPathMoveTo(5, 0),
+              core.BoxPathArcTo(5, 10, radiusX: 5, radiusY: 5),
+            ],
+          ),
+          border: core.BoxBorder(
+            width: 2,
+            color: core.BoxColor.white,
+            cap: core.BoxStrokeCap.round,
+          ),
+        ),
+      );
+      final CssDeclarations square = boxDeclarations(
+        const core.BoxStyle(
+          border: core.BoxBorder(
+            width: 2,
+            color: core.BoxColor.white,
+            cap: core.BoxStrokeCap.square,
+          ),
+        ),
+      );
+
+      expect(capped['--unibox-shape-stroke-cap'], 'round');
+      // A rectangle has no ends, so no cap is written for it.
+      expect(square.has('--unibox-shape-stroke-cap'), isFalse);
+    });
+
     test('keeps the layer inside itself', () {
       // An absolutely positioned layer with `z-index: -1` would otherwise fall behind an
       // ancestor's background.

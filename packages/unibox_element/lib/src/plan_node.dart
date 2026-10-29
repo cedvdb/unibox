@@ -593,7 +593,10 @@ ElementPlan _planShape(core.BoxShape shape, Stylesheet sheet) {
   final CssDeclarations path = CssDeclarations()
     ..add('fill', 'var(--unibox-shape-fill, none)')
     ..add('stroke', 'var(--unibox-shape-stroke, none)')
-    ..add('stroke-width', 'var(--unibox-shape-stroke-width, 0)');
+    ..add('stroke-width', 'var(--unibox-shape-stroke-width, 0)')
+    // The end of an arc: `butt` is CSS's own default, so the reference costs nothing until a
+    // border states a cap, and it keeps one class for every cap a state rule can switch.
+    ..add('stroke-linecap', 'var(--unibox-shape-stroke-cap, butt)');
 
   return ElementPlan(
     tag: 'svg',
