@@ -69,6 +69,7 @@ so the packages share one resolution.
 | One suite, the fast loop | `(cd packages/unibox_html && dart test)` |
 | The monthly pass: gate, budget, site, the quoted numbers | `tool/maintenance.sh` |
 | Does the index point at files that exist? | `python3 tool/check_docs.py` |
+| Has every token a decided place in the table? | `python3 tool/surface_check.py` |
 
 Every suite, exactly as CI runs them — one command per directory, in dependency order:
 
@@ -90,6 +91,16 @@ Every suite, exactly as CI runs them — one command per directory, in dependenc
 widgets. A single suite is the loop while you work; `tool/verify.sh` is the gate
 before a commit, and `dart analyze` is strict here (`strict-casts`,
 `strict-inference`, `strict-raw-types`), so an untyped `dynamic` will not pass.
+
+### If the gate fails before your first edit
+
+`tool/verify.sh` prints the Flutter it is running and compares it with
+`.flutter-version`, the one file the workflows read too. When they disagree it stops
+before anything else, because that failure says nothing about the change in front of
+you: say so and stop. Never edit `environment.sdk`, `.flutter-version` or a workflow
+to make a local run pass, and never widen a budget or a check to silence a red step —
+a gate somebody loosens is worse than no gate, because the green tick that follows is
+a lie.
 
 ## The rules that are not negotiable
 
@@ -296,7 +307,9 @@ renderer that bound nothing — so the control looked alive in Flutter and did n
   type belongs in backticks, not brackets.
 - A new or changed token has a contract case and is in the "every token at once"
   case; a new construct has a validation rule; a new node has a test on both
-  targets.
+  targets. `tool/surface_check.py` enforces the first half by name: a token that
+  reaches `box_style.dart` without a field in `BoxAppearance`, and without a reason
+  in that script's classified map, fails the gate.
 - Every public member has a doc comment, and the docs that describe the changed
   behaviour are updated in the same commit.
 - Each `CHANGELOG.md` touched has a bullet under `## Unreleased`, written as what

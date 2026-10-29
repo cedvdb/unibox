@@ -33,9 +33,10 @@ flutter pub get          # one resolution: it is a Dart workspace
 tool/verify.sh           # format, analysis, every suite
 ```
 
-CI uses Flutter 3.47.5 stable; an older `dart` will fail on the language version in
-`pubspec.yaml`. Nothing else is required — no code generation, no build step, no
-services.
+CI uses Flutter 3.47.5 stable, and that number is written in one file, `.flutter-version`,
+which the workflows and `tool/verify.sh` both read — so the gate tells you when your SDK is
+the problem instead of letting you chase a failure that is not there. Nothing else is
+required — no code generation, no build step, no services.
 
 ## The loop
 
@@ -52,6 +53,12 @@ of `` `Box` `` is the usual cause.
 The fast loop also runs `python3 tool/check_docs.py`, which fails when a document links to
 a file that is not there or a package is missing its README or changelog. If you moved a
 file, that check tells you what still says the old name.
+
+And `python3 tool/surface_check.py`, which is the rule that used to live in a reviewer's
+head: every token in `box_style.dart` and `box_text_style.dart` must be either a field of
+the appearance table or a line in that script's classified map saying why it is not, and
+every callback on a node must be reached by both renderers. A token that arrives without a
+decision turns the gate red — which is the decision being asked for, not a rejection.
 
 ## What "done" means
 
@@ -108,6 +115,12 @@ In a pull request, the checklist in the template is the definition of done above
 reviewer looks for, in order: **does it land on both targets**, is there a case in the
 table, does the diff contain anything the change did not need. Unrelated reformatting or
 renaming hides the real diff and will be asked to move to its own commit.
+
+A pull request also gets one comment from an assistant reading it against
+[`AGENTS.md`](AGENTS.md), through the six questions in
+[`.github/agent/review-prompt.md`](.github/agent/review-prompt.md). That is a second reader,
+not a gate: it approves nothing, blocks nothing and pushes nothing, and a green
+`tool/verify.sh` outranks anything it says.
 
 While the library is unreleased, a rename or a removal is allowed — say so in the
 changelog, and say what replaced it.

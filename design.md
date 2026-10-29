@@ -167,7 +167,7 @@ never inherited (CSS does not inherit them either).
   sits inside the padding and the border of the box that wraps it, so keeping it
   paints a second frame inside the one the tree asked for. Dropping it leaves the
   caret as the only cue, which is the one thing both targets draw, and it is
-  listed under Deferred because a field cannot be given a frame by the tree yet.
+  left out for the reason given below: a field cannot be given a frame by the tree yet.
 - A state rule may only contribute the tokens of its state. The browser layers
   `:hover` over the resting rule exactly like the Flutter renderer merges a
   state style, so a state rule that restated the layout would reset it.
@@ -407,8 +407,8 @@ never inherited (CSS does not inherit them either).
   pending request, a result, an error — is therefore an ordinary tree that the
   renderers, `validateTree` and the conformance table already handle. A view draws
   no overlay: a dialog is not part of the model yet, and adding one is a decision
-  about the view's shape and each renderer's modal layer, recorded in the Deferred
-  list.
+  about the view's shape and each renderer's modal layer, which §5.13 answered by making
+  an overlay a node.
 - A store is pure Dart, in the core. `StateStore` keeps its own listener list and
   a guarded `state` setter, so the model keeps its promise of no package
   dependencies and one store still runs in Flutter, in a browser and in a

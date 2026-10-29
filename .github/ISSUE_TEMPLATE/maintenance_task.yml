@@ -1,0 +1,96 @@
+name: Maintenance task
+description: A scoped change an assistant can land from this issue alone, without a decision in it.
+title: 'maintenance: '
+labels: [maintenance]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This form exists so that work can happen without the maintainer driving every step.
+        It asks for the one thing that makes that possible: **which procedure the change
+        follows**, because `AGENTS.md` already names the files each kind of change touches.
+
+        A task that cannot name its recipe is not scoped yet, and belongs in a feature
+        request until it can.
+
+  - type: dropdown
+    id: recipe
+    attributes:
+      label: The recipe in `AGENTS.md`
+      description: >-
+        The letter, from the "How a change lands" section. It is the file list the change
+        touches, and the reason this form can be handed over as it stands.
+      options:
+        - A — a layout or paint token on `Box`
+        - B — a typography token
+        - C — a node type
+        - D — a difference between the two renderers
+        - E — the example
+        - F — a stateful node
+        - G — an overlay
+        - H — a callback on a node
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: The package that owns the change
+      description: The commit scope, which is also the package the change starts in.
+      options:
+        - unibox_core
+        - unibox_testing
+        - unibox_css
+        - unibox_element
+        - unibox_html
+        - unibox_dom
+        - unibox_flutter
+        - unibox_material
+        - example
+        - the documentation only
+    validations:
+      required: true
+
+  - type: textarea
+    id: change
+    attributes:
+      label: What changes
+      description: >-
+        One paragraph, written as what is different for someone using the library — not which
+        files move. Small enough to land as one commit.
+    validations:
+      required: true
+
+  - type: input
+    id: acceptance
+    attributes:
+      label: How it is known to be done
+      description: >-
+        The line that has to pass. Usually `tool/verify.sh`; add `--docs` when a public member
+        or a README moves.
+      placeholder: tool/verify.sh
+      value: tool/verify.sh
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: readiness
+    attributes:
+      label: Is it ready to be handed over?
+      description: >-
+        All four have to be true before the `agent-ready` label goes on. One that is not is
+        the answer to why the task is still yours.
+      options:
+        - label: >-
+            A competent contributor could finish this from this issue and `AGENTS.md` alone,
+            with no decision left to make. (This is the `agent-ready` label.)
+          required: true
+        - label: >-
+            Nothing in it needs a human decision: no release, no new dependency, no new
+            workspace package, and no public spelling removed.
+          required: true
+        - label: It is not one of the non-goals in `design.md` §5.6.
+          required: true
+        - label: >-
+            It is one change. If it is not, split it and open the second issue as well.
+          required: true

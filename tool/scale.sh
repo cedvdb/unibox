@@ -32,7 +32,7 @@ for argument in "$@"; do
   esac
 done
 
-report="$(mktemp -t unibox-scale)"
+report="$(mktemp -t unibox-scale.XXXXXX)"
 trap 'rm -f "$report"' EXIT
 
 printf '\n==> Measuring three shapes of tree\n'
