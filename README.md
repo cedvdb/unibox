@@ -24,8 +24,10 @@ expected appearance holds both renderers to the same answer.
 - 🔍 **A page a search engine reads** — real text, headings, links, `alt`, landmarks and metadata: what a crawler, a link preview and a reader without JavaScript see is the page itself.
 - 🖐 **The app takes the page over** — Flutter boots into the document it was served, prefetched while the reader reads and started at their first intent, with the scroll and the presses the page recorded handed back to it.
 - 🟩 **Rendered from Node too** — pure Dart with no dependencies, so a document is produced in a server, a build step, a CLI, or compiled to JavaScript for a backend that is not Dart.
-
-Behind those four: 🎨 every value is a token the model resolves, so neither target can fall back to its own default · 📐 `visibleFrom` / `visibleUntil` compile to container queries, so a band that folds is one tree rather than one per breakpoint · 🧪 one table of appearance, read back out of each renderer's own output · 🧱 Material 3 as a package of values, not a third runtime.
+- 🎨 **Tokens, not defaults** — colour, spacing, border, shadow, radius, typography, transform and transition are values the model resolves, so neither target can fall back to its own.
+- 📐 **One tree per band, not per breakpoint** — `visibleFrom` / `visibleUntil` compile to container queries, so a layout that folds stays one description.
+- 🧪 **Parity tested, not promised** — `unibox_testing` holds both renderers to one table of expected appearance, read back out of each one's own output.
+- 🧱 **Material 3 as values** — the type scale, the colour roles and the components as an optional package, drawn by both renderers rather than by a third runtime.
 
 ## Contents
 
