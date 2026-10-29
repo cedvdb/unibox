@@ -78,7 +78,21 @@ Box buildExamplePage({
     height: double.infinity,
     backgroundColor: const BoxColor.role(ExampleColor.canvas),
     children: <UINode>[
-      seedPicker(current: seed),
+      // The palette picker is a band of its own above the bar: it belongs to the whole page
+      // rather than to any destination, and a strip of white with room around it says so.
+      Box(
+        width: double.infinity,
+        padding: const BoxSpacing.symmetric(horizontal: 24, vertical: 14),
+        backgroundColor: BoxColors.white,
+        // The same hairline the bar under it has: two white strips one above the other read
+        // as one bar without it, and the palette belongs to the page, not to the bar.
+        shadow: const BoxShadow(
+          color: BoxColor(0x14000000),
+          offsetY: 1,
+          blurRadius: 0,
+        ),
+        children: <UINode>[seedPicker(current: seed)],
+      ),
       _navigationBar(current: current, onNavigate: onNavigate),
       page,
       ?dialog,

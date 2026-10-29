@@ -37,7 +37,11 @@ UINode buildHeroSection({
     child: Box(
       width: double.infinity,
       gap: 44,
-      children: <UINode>[_claim(palette), _comparison(palette, frame, seed)],
+      children: <UINode>[
+        _claim(palette),
+        _reasons(palette),
+        _comparison(palette, frame, seed),
+      ],
     ),
   );
 }
@@ -85,6 +89,68 @@ UINode _claim(MaterialPalette palette) {
         'The page a search engine reads and the screen in your app, from one '
         'Dart tree — so there is no second design to keep in step.',
         style: MaterialTypography.titleMedium.copyWith(
+          color: palette.onSurfaceVariant,
+        ),
+      ),
+    ],
+  );
+}
+
+/// Why the library exists, in three lines: the argument the frames underneath settle.
+///
+/// They sit in the hero rather than in a band of their own because a page that argues for
+/// itself has one place to argue: a reader who scrolls past the claim meets the three
+/// reasons and then the evidence, without a section that repeats the claim in three cards.
+/// Each line is one reason a reader would give for adopting it, not one feature of the
+/// model — a feature list is what the catalogue further down is for.
+UINode _reasons(MaterialPalette palette) {
+  return GridNode(
+    minItemWidth: 280,
+    maxColumns: 3,
+    gap: 24,
+    children: <UINode>[
+      _reason(
+        palette,
+        title: 'One tree',
+        line:
+            'The screen is written once: Flutter draws it in the app, HTML and CSS '
+            'draw it in the browser.',
+      ),
+      _reason(
+        palette,
+        title: 'Found, not crawled hollow',
+        line:
+            'Real text, real links, real headings. What a crawler reads is the page a '
+            'reader lands on, not a canvas and a title.',
+      ),
+      _reason(
+        palette,
+        title: 'Deploy it your way',
+        line:
+            'Flutter can take the page over, or the page can run on its own — no engine, '
+            'and a bundle you can measure in kilobytes.',
+      ),
+    ],
+  );
+}
+
+/// One reason: a line to remember, and the sentence that earns it.
+UINode _reason(
+  MaterialPalette palette, {
+  required String title,
+  required String line,
+}) {
+  return Box(
+    width: double.infinity,
+    gap: 6,
+    children: <UINode>[
+      TextNode(
+        title,
+        style: MaterialTypography.titleSmall.copyWith(color: palette.primary),
+      ),
+      TextNode(
+        line,
+        style: MaterialTypography.bodyMedium.copyWith(
           color: palette.onSurfaceVariant,
         ),
       ),

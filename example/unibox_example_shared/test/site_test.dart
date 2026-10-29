@@ -117,32 +117,28 @@ void main() {
       );
     });
 
-    test('answers which way to deploy between the claim and the catalogue', () {
-      // The frames say the tree is drawn twice; the ways band says what that costs to
-      // deploy, and the catalogue is the evidence underneath both.
+    test('argues in the hero, then shows what it is made of', () {
+      // One place to argue: the reasons sit under the claim and above the frames that settle
+      // them, and the catalogue comes after both.
       final List<Box> bands = buildSitePage(frame: _frame).children
           .whereType<Box>()
           .toList();
-      final List<String> headings = _flatten(bands[1])
+      final List<String> hero = _flatten(bands[1])
           .whereType<TextNode>()
           .map((TextNode text) => text.text)
           .toList();
 
+      expect(hero, contains('One tree'));
+      expect(hero, contains('Found, not crawled hollow'));
+      expect(hero, contains('Deploy it your way'));
+      // The claim, then the reasons, then the evidence — the order a reader reads it in.
       expect(
-        headings,
-        containsAll(<String>[
-          'The same tree, drawn twice',
-          'Two ways to serve one tree',
-          'Material 3, as values and nodes',
-        ]),
+        hero.indexOf('Describe a screen once.'),
+        lessThan(hero.indexOf('One tree')),
       );
       expect(
-        headings.indexOf('The same tree, drawn twice'),
-        lessThan(headings.indexOf('Two ways to serve one tree')),
-      );
-      expect(
-        headings.indexOf('Two ways to serve one tree'),
-        lessThan(headings.indexOf('Material 3, as values and nodes')),
+        hero.indexOf('One tree'),
+        lessThan(hero.indexOf('The same tree, drawn twice')),
       );
     });
 

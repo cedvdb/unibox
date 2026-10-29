@@ -13,7 +13,7 @@ catalogue the whole thing is built with.
 
 | Package | Role |
 | --- | --- |
-| `unibox_example_shared` | The example as one node (`ExamplePageNode`, with `ExampleState` and `ExampleStore`) and the parts it is built from (`buildExamplePage`, `buildApartmentsPage`, `buildSignupDialog`); the site as one node (`buildSitePage`) and its three bands (`buildHeroSection` — the claim and the comparison under it —, `buildWaysSection` and `buildMaterialSection`); plus the palette. The listings are a `GridNode` of `MaterialCard`s, so the example also shows the design-system package. Pure Dart, no renderer. |
+| `unibox_example_shared` | The example as one node (`ExamplePageNode`, with `ExampleState` and `ExampleStore`) and the parts it is built from (`buildExamplePage`, `buildApartmentsPage`, `buildSignupDialog`); the site as one node (`buildSitePage`) and its two bands (`buildHeroSection` — the claim, the three reasons and the comparison under them — and `buildMaterialSection`); plus the palette. The listings are a `GridNode` of `MaterialCard`s, so the example also shows the design-system package. Pure Dart, no renderer. |
 | `unibox_example_flutter` | Flutter host: one file (`lib/main.dart`) — the surface and the link policy. |
 | `unibox_example_html` | HTML host: the site's document, the example's document, the shipped font faces, the one `<iframe>` node the comparison needs, and the build script — no page trees, which live in the shared package. |
 
@@ -216,24 +216,23 @@ recognisably the same page.
 
 ## The site is one page
 
-`buildSitePage` is the whole site: a header, three bands and a footer, in the order
-the argument needs.
+`buildSitePage` is the whole site: a header, two bands and a footer, in the order the
+argument needs.
 
 | Band | What it says |
 | --- | --- |
 | the hero | the claim — *describe a screen once* — and, in the same band, the claim answered: the example in two frames, the page on the left, the Flutter build on the right, each resizable |
-| *Two ways to serve one tree* | the decision the claim leaves open: Flutter takes the page over (the least to change) or the page draws itself (nothing of Flutter) — each card naming what it costs |
 | *Material 3, as values and nodes* | the catalogue: every component first, then the type scale and the colour roles those components name |
 
 The frames are the claim's evidence, so they sit in the band that makes it: a reader
 scrolls from the sentence to the two renderings it is about, and meets each rendering's
-name once. The ways band comes next, because *does it work* and *what do I deploy* are
-the two questions a reader has in that order. The catalogue comes last, because the
+name once. The three reasons sit inside the hero, under the claim: one place to argue,
+and the frames underneath are the proof of each. The catalogue comes last, because the
 design system is how the evidence is drawn, not what it says. Every band is a node tree — the frames are the only thing the
 model cannot describe, and they arrive through `ShowcaseFrame`/`EmbedNode`.
 
-There is one `h1` (the claim), an `h2` for each section after it — the comparison, the two
-ways and the catalogue — and an `h3` per block of the catalogue, so the outline a crawler and
+There is one `h1` (the claim), an `h2` for each section after it — the comparison, then the
+catalogue — and an `h3` per block of the catalogue, so the outline a crawler and
 a screen reader build the page from is the outline a reader sees. The header and the
 footer are landmarks, the links are real `LinkNode`s, and the page needs no route: a
 reader scrolls from the claim to the evidence, which is a thing a static document can do
