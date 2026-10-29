@@ -41,9 +41,19 @@ with their target.
 | `backgroundColor`, `borderRadius`, `border`, `shadow` | `DecoratedBox` with a `BoxDecoration` |
 | `overflow: Overflow.hidden`         | `ClipRect`, inside the decoration so the shadow survives |
 | `PositionedNode.alignment`          | `Positioned.fill` around an `Align`                 |
+| `shape`                            | `CustomPaint` with a `Path`: the fill, then the border as a stroke along it |
+| `shape` + `overflow: Overflow.hidden` | `ClipPath` to the same path                       |
 | `overflow: Overflow.scroll`         | `SingleChildScrollView`                             |
 | `onTap` / `onLongPress`             | `GestureDetector`                                   |
 | `onHover` / `hoverStyle`            | `MouseRegion` and the hovered token set             |
+
+A `shape` is painted through a `CustomPaint` and built with `pathOf(shape, size)`:
+the commands become a `Path`, so the same value draws the same silhouette at any
+size, and the stroke is centred on the outline (half of it therefore lies outside a
+box whose outline touches its edge, as it does in the browser). `ClipPath` clips the
+pointer as well as the paint, so a shaped box that also says `overflow:
+Overflow.hidden` answers only inside its outline — a browser answers for the whole
+rectangle, which is one of the differences hit testing already had.
 
 `width`/`height: double.infinity` expands to fill the available space. Inside a
 flex parent the expanding child is wrapped in an `Expanded` (using `flex`, or
@@ -65,12 +75,23 @@ it. Nothing in this section changes a pixel.
 | `BoxSemantics.element` = `main`, `nav`, `header`, `footer`, `aside`, `section`, `article`, `figure` | nothing: Flutter's accessibility tree has no landmarks, and a phone reader navigates by headings and reading order |
 | `BoxSemantics.role` | `button`, `link`, `header`, `checked`/`toggled` and the focused flag of `Semantics` |
 | `BoxSemantics.expanded` / `.selected` | `Semantics.expanded` / `Semantics.selected` |
+| `BoxSemantics.pressed` | `Semantics.toggled`, which is also what a `switch_`'s `checked` becomes |
 | `BoxSemantics.hidden` | `Semantics.hidden`, and the box is never focusable |
 | `BoxSemantics.liveRegion` | `Semantics.liveRegion` |
 | `BoxSemantics.label` | `Semantics.label`, with the contents excluded so the two cannot drift |
 | `BoxSemantics.current` | `selected: true`: Flutter has no `aria-current`, so the current item is announced as the selected item of a set |
+| `Box.onLongPress` | `Semantics.onLongPress`: an action a reader can invoke, which is what a native `InkWell` offers. The web has no equivalent, so the web README records the difference |
 | `TextInputNode.required` / `.invalid` | `Semantics.isRequired` / `Semantics.validationResult` |
 | `TextInputNode.description` | `Semantics.hint`, announced after the label |
+
+**One node per control.** A box that can be pressed is described by one `Semantics`
+node carrying its role, its name and its action, the way Flutter's own buttons are:
+the `Focus` widget around it is built with `includeSemantics: false`, and the focus
+itself is stated by the box. A `Focus` that describes itself makes a node of its own
+*inside* the control, and the label and the tap action merge into that one — so an
+enabled button read as "Save" with a tap action and no role at all, while the role sat
+on an empty parent. A disabled button, having no action to merge, was the only one
+announced correctly.
 
 ## Text mapping
 
@@ -319,7 +340,9 @@ animated versions take over (`TweenAnimationBuilder` over `BoxTransform`,
 state that introduces a scale would start from the end value instead of easing.
 
 The parts of a transform are interpolated one by one, not as one matrix: a matrix lerp
-would shrink a box that only turns. Layout never animates, and neither does the border
+would shrink a box that only turns. `scaleX` and `scaleY` multiply `scale` into the two
+axes of that matrix, so a box can stretch sideways at its own height — which is how
+Material's navigation indicator grows out of its icon. Layout never animates, and neither does the border
 width: a state that moves the box changes the widget tree instead, which is what both
 targets do when a layout change has to be animated by the host.
 

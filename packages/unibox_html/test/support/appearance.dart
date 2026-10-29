@@ -241,7 +241,7 @@ core.BoxTransform? _transformOf(String? value) {
 
   final RegExpMatch? match = RegExp(
     r'translate\((-?[0-9.]+)(?:px)?, (-?[0-9.]+)(?:px)?\) '
-    r'rotate\((-?[0-9.]+)deg\) scale\((-?[0-9.]+)\)',
+    r'rotate\((-?[0-9.]+)deg\) scale\((-?[0-9.]+), (-?[0-9.]+)\)',
   ).firstMatch(value);
 
   if (match == null) {
@@ -252,7 +252,8 @@ core.BoxTransform? _transformOf(String? value) {
     offsetX: double.parse(match.group(1)!),
     offsetY: double.parse(match.group(2)!),
     rotation: double.parse(match.group(3)!),
-    scale: double.parse(match.group(4)!),
+    scaleX: double.parse(match.group(4)!),
+    scaleY: double.parse(match.group(5)!),
   );
 }
 

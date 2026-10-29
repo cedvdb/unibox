@@ -148,6 +148,7 @@ final class BoxSemantics {
     this.checked,
     this.expanded,
     this.selected,
+    this.pressed,
     this.hidden = false,
     this.liveRegion = false,
     this.current,
@@ -178,6 +179,19 @@ final class BoxSemantics {
 
   /// Whether the item this box is is the selected one of a set, as a tab is.
   final bool? selected;
+
+  /// Whether this box is a toggle button that is on, as a filter chip is.
+  ///
+  /// It is [selected]'s sibling for the one control the two are not
+  /// interchangeable on: `aria-selected` belongs to an *option*, a tab, a row or a
+  /// grid cell, so a browser ignores it on a `button` — which is what a chip and a
+  /// segment are. A toggle button states its own state with `aria-pressed`, and
+  /// Flutter announces the same thing as `toggled`, so a chosen chip says "pressed"
+  /// on both targets instead of saying nothing on the web.
+  ///
+  /// It belongs with [BoxRole.button]; the state is the button's, not the
+  /// container's.
+  final bool? pressed;
 
   /// Whether the box is hidden from assistive technologies.
   ///
@@ -215,6 +229,7 @@ final class BoxSemantics {
     bool? checked,
     bool? expanded,
     bool? selected,
+    bool? pressed,
     bool? hidden,
     bool? liveRegion,
     BoxCurrent? current,
@@ -226,6 +241,7 @@ final class BoxSemantics {
       checked: checked ?? this.checked,
       expanded: expanded ?? this.expanded,
       selected: selected ?? this.selected,
+      pressed: pressed ?? this.pressed,
       hidden: hidden ?? this.hidden,
       liveRegion: liveRegion ?? this.liveRegion,
       current: current ?? this.current,
@@ -241,6 +257,7 @@ final class BoxSemantics {
       other.checked == checked &&
       other.expanded == expanded &&
       other.selected == selected &&
+      other.pressed == pressed &&
       other.hidden == hidden &&
       other.liveRegion == liveRegion &&
       other.current == current;
@@ -253,6 +270,7 @@ final class BoxSemantics {
     checked,
     expanded,
     selected,
+    pressed,
     hidden,
     liveRegion,
     current,
@@ -267,6 +285,7 @@ final class BoxSemantics {
       if (checked != null) 'checked: $checked',
       if (expanded != null) 'expanded: $expanded',
       if (selected != null) 'selected: $selected',
+      if (pressed != null) 'pressed: $pressed',
       if (hidden) 'hidden: $hidden',
       if (liveRegion) 'liveRegion: $liveRegion',
       if (current != null) 'current: $current',

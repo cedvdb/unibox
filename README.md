@@ -1,23 +1,22 @@
 # Unibox
 
-Describe a screen once, in plain Dart, and draw it twice: as Flutter widgets in an
-app, and as HTML with CSS in a browser.
+A search engine, a link preview and a reader whose JavaScript failed all see the same
+thing in a Flutter screen: nothing. Flutter draws into a canvas, so there is no text to
+index and no link to follow. The usual fix is to write that page again in HTML, and then
+to keep two designs in step — which, a week later, they are not.
 
-```dart
-const greeting = Box(
-  padding: BoxSpacing.all(16),
-  backgroundColor: BoxColor.white,
-  borderRadius: 12,
-  children: <UINode>[
-    TextNode('Hello', fontSize: 24, fontWeight: FontWeight.bold),
-    TextNode('Drawn by Flutter and by the browser.'),
-  ],
-);
-```
+Unibox removes the second design. A screen is one immutable Dart tree:
+[`unibox_flutter`](packages/unibox_flutter) draws it as widgets,
+[`unibox_html`](packages/unibox_html) renders it as a document a crawler reads, and one table of
+expected appearance holds both renderers to the same answer.
 
-One description, two renderers. Layout, spacing, colours, typography and the
-accessibility tree are written once; each target draws them with its own
-primitives, and a test suite holds both to the same expected result.
+<p align="center">
+  <img src="docs/showcase.jpg" alt="The same apartment listings screen drawn twice, side by side: on the left the page built as HTML and CSS, on the right the same node tree built by Flutter. Both show the same search bar, the same filters, the same cards and the same prices." width="960">
+</p>
+
+<p align="center">
+  <sub>One tree, drawn twice: <code>/web/listings/</code> on the left, <code>/flutter/listings/</code> on the right.</sub>
+</p>
 
 ## Features
 
@@ -50,43 +49,104 @@ primitives, and a test suite holds both to the same expected result.
 
 ## Why this exists
 
-A search engine, a link preview and a reader whose JavaScript failed all see the same thing in
-a Flutter screen: nothing. Flutter draws into a canvas, so there is no text to index. The usual
-fix is to write that page again as HTML, and then keep two designs in step — which drift the
-week after they are written.
+## How it works
 
-Unibox removes the second design: the screen is written once, as a tree, and the tree is both
-the page and the app.
+A screen is a tree of eleven immutable node types — boxes and texts, images, links,
+stacks, grids, inputs, overlays, state, embeds — whose style values are `const` objects of
+their own. Nothing in the description names a framework: no widget, no HTML tag.
 
-## How a page is served
+```dart
+final page = Box(
+  gap: 12,
+  padding: BoxSpacing.all(16),
+  children: <UINode>[
+    TextNode('Apartments', fontSize: 24, fontWeight: FontWeight.bold),
+    GridNode(minItemWidth: 380, children: listings),
+  ],
+);
 
-`unibox_html` renders the tree to HTML and CSS, and a server or a build step writes it as a
-document. That document is what a crawler reads and what a reader sees before anything runs.
-The Flutter application then takes it over and draws the same tree as widgets.
+runApp(MaterialApp(home: renderFlutter(page)));          // Flutter: widgets
+final html = toDocument(page, title: 'Apartments');     // the web: a document
+```
 
-Two things cross the handover, so a reader does not start again:
+Three rules keep the two drawings the same screen:
 
-- **The scroll.** A box the tree keyed writes that key on its element (`data-unibox-key`); the
-  page records where each one was scrolled to; and the scroll view that carries the same key
-  starts at that offset, as its initial position, before the first frame.
-- **The presses.** The page records what was pressed, on which element and where, and answers
-  `window.unibox.takePressed()`. Replaying that record into the application's callbacks is the
-  application's to do — it is the one part that needs to know what a press means.
+- **Defaults belong to the model.** An unset `direction` is a column and unset text is
+  `BoxTextStyle.defaults`, because the hosts disagree about the answer — 14 logical
+  pixels of black in Flutter, 16 pixels of `canvastext` in a browser.
+- **A renderer is thin, and knows nothing of the other.** One file per node, and a token
+  means the same value on both sides.
+- **Parity is tested, not promised.** [`unibox_testing`](packages/unibox_testing) writes
+  down what each token looks like, both suites read that appearance back out of their own
+  output, and a renderer that drifts fails its own suite.
 
-The application is prefetched while the reader reads and boots at the first sign of them — a
-pointer that moves, a press, a key — so a reader who only reads never downloads it.
+Neither target wraps the other. On a phone the tree is drawn by Flutter's own widgets, in
+a browser the same tree is markup and CSS: there is no WebView in the arrangement, and no
+second document to keep in step.
 
-<p align="center">
-  <img src="docs/hero.svg" alt="One immutable Dart node tree on the left, a fork into two panels showing the same card drawn by Flutter's widget tree and rendered as HTML and CSS." width="900">
-</p>
+What the description does *not* contain is what only a host can know: how wide the window
+is, what a tap does, and what the surrounding document is called — see
+[what the host owns](#what-the-host-owns).
 
-What the description does *not* contain is what only a host can know: how big the
-window is, what happens when the user taps, and what the surrounding document is
-called. Those belong to the host — see [what the host owns](#what-the-host-owns).
+## Two ways to serve a tree
 
-- [Features](#features)
-- [Why this exists](#why-this-exists)
-- [How a page is served](#how-a-page-is-served)
+### The server renders it, the Flutter app takes over
+
+The server renders the tree as a **read-only page** — HTML and CSS, every word and link
+in it, which is what a crawler reads and what a visitor sees before anything loads. The
+Flutter app then takes that page over and draws the same screen from the same tree. The
+visitor gets one screen, not two versions of it: the markup and the app come from one
+description, so they cannot disagree.
+
+The handover is a repaint, because Flutter can only draw into a canvas — expect a brief
+flash. That is a fine trade when the page really is the app and the visitor is about to
+use it.
+
+### The server writes a document
+
+The same tree is exported as HTML and CSS and made interactive by one small bundle
+redrawn from that tree — a press, a field, a dialog. **No Flutter on that page at all**,
+so a phone downloads a page and a script instead of an application. The document a
+crawler reads and the document a visitor uses are one and the same.
+
+That is what this site does: `/` is this strategy, one tree per band; `/web/listings/` is
+the left half of the picture above and `/flutter/listings/` the right half.
+
+### What stays Flutter
+
+Only the screens that have to be found need either strategy. The rest of an application
+stays ordinary Flutter, screen for screen: a settings page or an internal tool gains
+nothing from being indexable, and nothing here asks it to change.
+
+A page that has to work on a phone is written to fold rather than to a fixed width:
+`GridNode` drops columns as the window narrows, and every page of this site fits a
+375-pixel screen.
+
+### What a crawler sees
+
+The same screen, built twice by `tool/site.sh`. `tool/seo_report.py` counts what a
+search engine reads, so the numbers can be re-run rather than taken on trust:
+
+```shell
+tool/site.sh
+python3 tool/seo_report.py build/site
+```
+
+| Document | Words | `h1` | `h2` | Links | Fields | Bytes |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| HTML `/` | 465 | 1 | 2 | 10 | 2 | 138 927 |
+| HTML `/web/listings/` | 132 | 1 | 0 | 1 | 0 | 60 563 |
+| HTML `/web/signup/` | 149 | 1 | 1 | 3 | 2 | 70 275 |
+| **Flutter `/flutter/listings/`** | **4** | **0** | **0** | **0** | **0** | **772** |
+
+The last row is the point. The Flutter build of the screen in the picture is a document
+with a `<title>` and a canvas host: four words, no heading, no link, nothing to index.
+`/web/listings/` is that same screen as a tree, and it is the same Dart. The first row is
+this site as one page — 433 words of text, an `h1`, an `h2` for the comparison and one for
+the catalogue, every component written as markup.
+
+- [How it works](#how-it-works)
+- [Two ways to serve a tree](#two-ways-to-serve-a-tree)
 - [Quick start](#quick-start)
 - [The nodes](#the-nodes)
 - [Colours](#colours)
@@ -108,9 +168,8 @@ dependencies:
   unibox_core:
     path: ../unibox/packages/unibox_core
   unibox_flutter:
-    path: ../unibox/packages/unibox_flutter
   unibox_html:               # the web: a document a crawler can read
-    path: ../unibox/packages/unibox_html
+    path: ../unibox/packages/unibox_flutter
   unibox_material:           # optional: the Material 3 type scale
     path: ../unibox/packages/unibox_material
 ```
@@ -196,6 +255,7 @@ Box(
 | `borderRadius` | `double?` | square | Corner radius in logical pixels, the same on all four. |
 | `corners` | `BoxBorderRadius?` | square | The radius of each corner, for a box that is not round on all four — a filled text field rounds its top and leaves the bottom square. Takes precedence over `borderRadius`. |
 | `shadow` | `BoxShadow?` | none | Drop shadow: colour, offset, blur, spread. |
+| `shape` | `BoxShape?` | the rectangle | The outline the box is painted in, instead of its rectangle: a path in a view box, stretched to the box. The background fills it, the `border` is drawn along it, and the children are clipped to it when the box also says `overflow: Overflow.hidden`. See [shapes](#shapes). |
 | `opacity` | `double?` | solid | `0` (invisible) to `1` (solid). The box keeps its room either way. |
 | `transform` | `BoxTransform?` | none | Moves, turns or scales the box about its centre (`scale`, `rotation` in degrees, `offsetX`, `offsetY`). It paints differently without taking different room, so text inside never reflows. |
 | `transition` | `BoxTransition?` | none | How long a change of the paint, the opacity or the transform takes, and how it eases. See [motion](#motion). |
@@ -250,6 +310,59 @@ A child that fills the width needs a parent that offers one: `width: double.infi
 takes the space it is given, and a browser can only resolve `100%` against a parent
 that has a width — so inside a column that hugs its content, state
 `crossAlign: CrossAlign.stretch` on the column and the two targets agree.
+
+#### Shapes
+
+A box can be painted in an outline that is not a rectangle. The outline is a
+`BoxShape`: a path in a **view box**, so the same value draws the same silhouette at
+40 pixels and at 400.
+
+```dart
+const BoxShape hexagon = BoxShape(
+  viewBoxWidth: 100,
+  viewBoxHeight: 100,
+  commands: <BoxPathCommand>[
+    BoxPathMoveTo(50, 0),
+    BoxPathLineTo(93, 25),
+    BoxPathLineTo(93, 75),
+    BoxPathLineTo(50, 100),
+    BoxPathLineTo(7, 75),
+    BoxPathLineTo(7, 25),
+    BoxPathClose(),
+  ],
+);
+
+Box(width: 40, height: 40, shape: hexagon, backgroundColor: BoxColor.white)
+```
+
+The commands are the ones SVG's `d` attribute has — `M`, `L`, `C`, `Q`, `A` and `Z`
+— and every renderer has a method for each, so neither parses what the other wrote.
+The model ships two values over that vocabulary, because two shapes are asked for far
+more often than the rest: `BoxShape.circle`, and `BoxShape.ring`:
+
+```dart
+// A track: the band between the edge and a circle 12 units inside it.
+Box(width: 96, height: 96, shape: BoxShape.ring(thickness: 12), backgroundColor: grey)
+
+// A value over it: the same ring, a fraction of a turn, clockwise from twelve
+// o'clock. Two boxes, one shape each — no stroke, no image, no canvas.
+Box(width: 96, height: 96, shape: BoxShape.ring(thickness: 12, sweep: 0.42), backgroundColor: accent)
+```
+
+Four things follow from a shape:
+
+- **The fill is the shape.** `backgroundColor` fills the path rather than the
+  rectangle, and `border` is a stroke along the same path.
+- **`fillRule` decides what is inside.** `BoxFillRule.evenOdd` punches a hole: two
+  circles become a ring, which is how a progress ring is drawn without a stroke
+  token of its own.
+- **Layout does not change.** Children are laid out in the same rectangle as before,
+  which is what puts a label inside the hole of a ring; `overflow: Overflow.hidden`
+  is what clips them to the outline.
+- **A shape paints; it does not cast.** It has no shadow (put the shadow on the box
+  around it) and it does not ease (there are no numbers to interpolate between two
+  outlines). `validateTree` reports a shaped box that also names a shadow or a
+  corner radius, because a box has one outline.
 
 ### TextNode
 
@@ -549,8 +662,8 @@ final class InkRipple extends EmbedNode {
 | `implementations` | `List<Object>` | required | The payloads, one per renderer. A renderer accepts a `Widget`/`Component`, or a builder of one that wraps the child. |
 | `child` | `UINode?` | none | The content the implementations wrap, for effects. |
 
-Two conveniences cover the single-implementation case: `FlutterWidgetNode(widget)` in
-`unibox_flutter` and `HtmlEmbed(markup)` in `unibox_html`.
+Two conveniences cover the single-implementation case: `FlutterWidgetNode(widget)`
+in `unibox_flutter` and `HtmlEmbed(markup)` in `unibox_html`.
 
 **Worth knowing.** The payloads are platform values, so the node is usually
 declared where both types are visible, or it takes its half through a parameter its
@@ -673,9 +786,10 @@ A scale can be written by hand, as the example does, or taken ready made:
 scale as `const BoxTextStyle` values (`MaterialTypography.titleLarge`,
 `MaterialTypography.bodyMedium`, ...), the colour roles as a `MaterialPalette` value —
 written down for the baseline scheme, or grown from one brand colour with
-`MaterialPalette.fromSeed` — and twelve components built from the same tokens: a card,
+`MaterialPalette.fromSeed` — and fourteen components built from the same tokens: a card,
 a list tile, a button, a chip, a segmented button, an ink well, a text field, an icon,
-Material's drawn tick, a navigation bar, a dialog and a bottom sheet. It is optional
+Material's drawn tick, a navigation bar, a progress ring and its spinner, a dialog
+and a bottom sheet. It is optional
 and pure Dart, and the
 renderers do not know it exists — a tree that uses it is drawn by the same two
 renderers as one that does not.
@@ -757,6 +871,7 @@ Box(
 | `element` | `div`, `main`, `nav`, `header`, `footer`, `aside`, `section`, `article`, `form`, `figure`, `figcaption`, `ul`, `ol`, `li`: the element a box renders as on the web. |
 | `label` | The name announced instead of the contents. |
 | `checked`, `expanded`, `selected` | `aria-checked`, `aria-expanded`, `aria-selected`, and the same state in Flutter. |
+| `pressed` | `aria-pressed` on a toggle button — a chip, a segment — and Flutter's `toggled`. It is not `selected`: a browser only honours `aria-selected` on an option, a tab, a row or a grid cell, so a button that carried it announced nothing. |
 | `hidden` | `aria-hidden`: the box keeps its look but leaves the accessibility tree and the tab order. |
 | `liveRegion` | `aria-live`: a change inside is announced, which is how a form reports a result without moving the focus. |
 | `current` | `aria-current` (`page`, `step`, `location`): the item of a navigation the reader is on. Flutter has no counterpart, so it announces the box as the selected item of a set. |
@@ -765,6 +880,12 @@ Box(
 the same level announced in Flutter. Landmarks (`main`, `nav`, ...) exist only on the
 web; Flutter's accessibility tree has no landmarks, so there they stay ordinary
 containers.
+
+A control is **one node** for a reader: its role, its name and its action together, on
+both targets — the button flag does not sit on a parent while the tap action sits on a
+child, which is a shape a reader cannot use. A long press is the one action the two
+trees do not share: Flutter offers it (`Semantics.onLongPress`, as a native `InkWell`
+does) and a browser has no equivalent, so on the web a hold is a pointer gesture.
 
 ## What the host owns
 
@@ -786,21 +907,6 @@ literal a node states (`box`, `text`, `material-card`), never its type — a com
 build mangles class names, so a derived one reads `minified:-s`. Flutter has no DOM to
 write it in, which is the whole reason the two targets stay apart here.
 
-A keyed node's identity is written beside it, as `data-unibox-key="…"`, when the key is
-a `String` or an `int`. That is the one identity a page needs to find an element again
-after it stops being static: a document that a reader scrolled, or a control they
-pressed, before Flutter arrived can name what it was looking at, and the app that takes
-over can answer for it. It is not an `id` — a key is unique among the siblings of one
-node, an `id` has to be unique in the document, and a host can style an `id` — and any
-other key stays a `ValueKey` and nothing more, because an instance hash says one thing
-to the server and another to the browser.
-
-The web renderer also puts the recorder above the tree: it reads the offset of every
-keyed element and answers `window.uniboxScroll.take()`, which is what a Flutter host asks
-when it takes the page over, since the app paints into a canvas that cannot inherit the
-browser's scroll position. A document that will never be taken over says
-`recordScroll: false` and stays script-free.
-
 The example shows the first two in practice: a `StatefulWidget` and a
 `StatefulComponent` hold the same form state and pass it into the same tree.
 
@@ -821,24 +927,6 @@ Three mechanisms, all of them tested:
    node outside a stack, a link inside a link, a scrolling box that also distributes
    its children, a list item outside a list, an embed with nothing to draw, and a
    transition that changes nothing.
-
-The same tree, built twice by `tool/site.sh` and counted by `tool/seo_report.py`, so the numbers
-can be re-run rather than taken on trust:
-
-```shell
-python3 tool/seo_report.py build/site
-```
-
-| Document | Words | `h1` | `h2` | Links | Fields | Bytes |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| HTML `/` | 492 | 1 | 2 | 9 | 2 | 129 767 |
-| HTML `/web/listings/` | 132 | 1 | 0 | 1 | 0 | 60 510 |
-| HTML `/web/signup/` | 149 | 1 | 1 | 3 | 2 | 70 216 |
-| **Flutter `/flutter/listings/`** | **4** | **0** | **0** | **0** | **0** | **772** |
-
-The last row is the reason for the package: the Flutter build of that screen is a document
-with a `<title>` and a canvas host, four words and nothing to index. The rows above it are the
-same screen as a tree.
 
 What is *not* promised is the pixels: glyph shapes, hinting and line breaking belong
 to the text engine, and a browser is not Skia. What is promised is the layout, the
@@ -864,10 +952,12 @@ written inline.
 | --- | --- |
 | `packages/unibox_core` | The nodes, the style values and the validation. No dependencies outside the Dart SDK. |
 | `packages/unibox_flutter` | The Flutter renderer: `renderFlutter(node)` and `node.toWidget()`. |
-
+| `packages/unibox_css` | The token-to-CSS mapping and the class hash the web renders from. |
+| `packages/unibox_element` | The element plan: what each node becomes. |
+| `packages/unibox_html` | The web renderer: `toHtml(node)` and `toDocument(node)`. |
 | `packages/unibox_testing` | The tables both renderers are tested against. Development only, not published. |
 | `packages/unibox_material` | The Material 3 type scale, the colour roles as a theme — the baseline scheme written down, or a palette grown from one seed colour — and the components built from them (card, list tile, button, chip, segmented button, ink well, text field, icon, check mark, navigation bar, dialog, bottom sheet). Optional: no renderer depends on it. |
-| `example/` | The example — a listings page and a sign-up dialog, one node tree — and the site: one page of three bands, with the example drawn by both renderers in the middle one. |
+| `example/` | The example — a listings page and a sign-up dialog, one node tree — and the site: one page of two bands, with the example drawn by both renderers in the first. |
 
 Dependencies point one way: both renderers depend on `unibox_core`, never the other
 way around, which is what keeps the description available to a third renderer.
@@ -922,13 +1012,16 @@ dart analyze                                     # static analysis everywhere
 (cd packages/unibox_core && dart test)
 (cd packages/unibox_testing && dart test)
 (cd packages/unibox_material && dart test)
+(cd packages/unibox_css && dart test)
+(cd packages/unibox_element && dart test)
+(cd packages/unibox_html && dart test)
 (cd packages/unibox_flutter && flutter test)
 (cd example/unibox_example_shared && dart test)
 (cd example/unibox_example_site && dart test)
 (cd example/unibox_example_flutter && flutter test)
 ```
 
-`tool/verify.sh` runs the format check, the analysis and all six suites in that
+`tool/verify.sh` runs the format check, the analysis and all seven suites in that
 order, which is the command to reach for before a commit; `--fast` stops after the
 analysis, `--fix` formats the tree first and `--docs` adds the API docs of every
 package.
@@ -945,7 +1038,7 @@ Source: **GitHub Actions** (see
 [`example/README.md`](example/README.md#the-static-site)).
 
 The workspace targets Dart `^3.13.0`. Continuous
-integration runs the format check, `dart analyze`, the six test suites and
+integration runs the format check, `dart analyze`, the seven test suites and
 `dart doc` for each package on every push (see
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml)).
 
@@ -968,6 +1061,8 @@ Where to read more:
   [core](packages/unibox_core/README.md),
   [material](packages/unibox_material/README.md),
   [flutter](packages/unibox_flutter/README.md),
+  [css](packages/unibox_css/README.md), [element](packages/unibox_element/README.md),
+  [html](packages/unibox_html/README.md),
   [conformance](packages/unibox_testing/README.md).
 
 ## License

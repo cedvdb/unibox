@@ -140,7 +140,7 @@ Box buildSignupCard({
     padding: const BoxSpacing.all(24),
     backgroundColor: const BoxColor.role(ExampleColor.panel),
     borderRadius: 16,
-    border: BoxBorder(color: ExamplePalette.border),
+    border: BoxBorder(color: BoxColor.role(ExampleColor.border)),
     // The dialog's own elevation, not a shadow written here: a surface that is raised
     // by hand is the fourth shadow in a page that has three, and the one that drifts.
     shadow: MaterialDialog.elevation,
@@ -203,7 +203,7 @@ UINode _closeRow(TapCallback onDismiss) {
           semantics: const BoxSemantics(role: BoxRole.button, label: 'Close'),
           stateStyles: <BoxState, BoxStyle>{
             BoxState.hover: BoxStyle(
-              backgroundColor: ExamplePalette.accentSurface,
+              backgroundColor: BoxColor.role(ExampleColor.accentSurface),
             ),
           },
           children: <UINode>[TextNode('Close', style: ExampleType.nav)],
@@ -222,7 +222,7 @@ UINode _closeRow(TapCallback onDismiss) {
 ///
 /// [error] is the host's answer about the value, and drawing it here is what makes
 /// an invalid field *look* invalid: the border and the message turn to
-/// [ExamplePalette.danger] the moment the state says so, and the row appears and
+/// [BoxColor.role(ExampleColor.danger)] the moment the state says so, and the row appears and
 /// disappears with it, so a keystroke that fixes the address takes the message away.
 UINode _field(TextInputNode node, {String? error}) {
   // The wrapper is always there, with the message row as its second child or not
@@ -235,10 +235,12 @@ UINode _field(TextInputNode node, {String? error}) {
       Box(
         width: double.infinity,
         padding: const BoxSpacing.symmetric(horizontal: 12, vertical: 10),
-        backgroundColor: ExamplePalette.panel,
+        backgroundColor: BoxColor.role(ExampleColor.panel),
         borderRadius: 10,
         border: BoxBorder(
-          color: error == null ? ExamplePalette.border : ExamplePalette.danger,
+          color: error == null
+              ? BoxColor.role(ExampleColor.border)
+              : BoxColor.role(ExampleColor.danger),
         ),
         children: <UINode>[node],
       ),
@@ -248,7 +250,10 @@ UINode _field(TextInputNode node, {String? error}) {
           children: <UINode>[
             TextNode(
               error,
-              style: BoxTextStyle(fontSize: 12, color: ExamplePalette.danger),
+              style: BoxTextStyle(
+                fontSize: 12,
+                color: BoxColor.role(ExampleColor.danger),
+              ),
             ),
           ],
         ),
@@ -268,7 +273,7 @@ UINode _banner() {
       Box(
         width: double.infinity,
         height: 88,
-        backgroundColor: ExamplePalette.accent,
+        backgroundColor: BoxColor.role(ExampleColor.accent),
         borderRadius: 12,
       ),
       PositionedNode(left: 16, bottom: 8, child: _avatarChip()),
@@ -285,12 +290,12 @@ UINode _avatarChip() {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: ExamplePalette.panel,
-    border: BoxBorder(width: 4, color: ExamplePalette.accent),
+    backgroundColor: BoxColor.role(ExampleColor.panel),
+    border: BoxBorder(width: 4, color: BoxColor.role(ExampleColor.accent)),
     textStyle: BoxTextStyle(
       fontSize: 20,
       fontWeight: FontWeight.bold,
-      color: ExamplePalette.accent,
+      color: BoxColor.role(ExampleColor.accent),
     ),
     children: <UINode>[const TextNode('AL')],
   );
@@ -344,13 +349,13 @@ UINode _newsletterRow(SignupFormState state, TapCallback onToggle) {
         height: 24,
         borderRadius: 6,
         backgroundColor: state.newsletter
-            ? ExamplePalette.accent
-            : ExamplePalette.panel,
+            ? BoxColor.role(ExampleColor.accent)
+            : BoxColor.role(ExampleColor.panel),
         border: BoxBorder(
           width: 2,
           color: state.newsletter
-              ? ExamplePalette.accent
-              : ExamplePalette.border,
+              ? BoxColor.role(ExampleColor.accent)
+              : BoxColor.role(ExampleColor.border),
         ),
         children: <UINode>[
           if (state.newsletter)
@@ -358,7 +363,7 @@ UINode _newsletterRow(SignupFormState state, TapCallback onToggle) {
               '✓',
               fontSize: 12,
               fontWeight: FontWeight.bold,
-              color: ExamplePalette.panel,
+              color: BoxColor.role(ExampleColor.panel),
             ),
         ],
       ),
@@ -387,23 +392,25 @@ UINode _footer(SignupFormState state, TapCallback onSubmit) {
         width: double.infinity,
         padding: const BoxSpacing.symmetric(horizontal: 18, vertical: 12),
         borderRadius: 10,
-        backgroundColor: ExamplePalette.accent,
+        backgroundColor: BoxColor.role(ExampleColor.accent),
         textStyle: ExampleType.button,
         transition: ExampleType.transition,
         stateStyles: <BoxState, BoxStyle>{
-          BoxState.hover: BoxStyle(backgroundColor: ExamplePalette.accentHover),
+          BoxState.hover: BoxStyle(
+            backgroundColor: BoxColor.role(ExampleColor.accentHover),
+          ),
           // Pressed, the button gives a little: the scale is painted, so nothing
           // around it moves and the label does not reflow.
           BoxState.pressed: BoxStyle(
-            backgroundColor: ExamplePalette.accentPressed,
+            backgroundColor: BoxColor.role(ExampleColor.accentPressed),
             transform: BoxTransform(scale: 0.98),
           ),
           BoxState.focus: BoxStyle(
-            border: BoxBorder(color: ExamplePalette.text),
+            border: BoxBorder(color: BoxColor.role(ExampleColor.text)),
           ),
           BoxState.disabled: BoxStyle(
-            backgroundColor: ExamplePalette.border,
-            textStyle: BoxTextStyle(color: ExamplePalette.muted),
+            backgroundColor: BoxColor.role(ExampleColor.border),
+            textStyle: BoxTextStyle(color: BoxColor.role(ExampleColor.muted)),
           ),
         },
         semantics: BoxSemantics(role: BoxRole.button, label: 'Create account'),
@@ -430,12 +437,15 @@ UINode? _status(SignupFormState state) {
   if (state.submitted) {
     return Box(
       padding: const BoxSpacing.all(12),
-      backgroundColor: ExamplePalette.successSurface,
+      backgroundColor: BoxColor.role(ExampleColor.successSurface),
       borderRadius: 10,
       // A live region, so a screen reader announces the confirmation when it
       // appears instead of leaving the reader to go looking for it.
       semantics: const BoxSemantics(liveRegion: true),
-      textStyle: BoxTextStyle(fontSize: 13, color: ExamplePalette.success),
+      textStyle: BoxTextStyle(
+        fontSize: 13,
+        color: BoxColor.role(ExampleColor.success),
+      ),
       children: <UINode>[
         TextNode(
           'Thanks, ${state.name.trim()}! '

@@ -3,6 +3,7 @@ import 'box_border.dart';
 import 'box_color.dart';
 import 'box_border_radius.dart';
 import 'box_shadow.dart';
+import 'box_shape.dart';
 import 'box_spacing.dart';
 import 'box_text_style.dart';
 import 'box_transform.dart';
@@ -49,6 +50,7 @@ final class BoxStyle {
     this.corners,
     this.border,
     this.shadow,
+    this.shape,
     this.textStyle,
     this.transition,
     this.opacity,
@@ -138,6 +140,14 @@ final class BoxStyle {
 
   /// The drop shadow painted behind the box.
   final BoxShadow? shadow;
+
+  /// The outline the box is painted in, instead of its rectangle.
+  ///
+  /// Unset means the box is a rectangle, which is what [borderRadius] and
+  /// [corners] round. A shape takes over the outline: the background fills it, the
+  /// [border] is drawn along it, and [borderRadius] and [corners] no longer apply —
+  /// `validateTree` reports a box that states both, because a box has one outline.
+  final BoxShape? shape;
 
   // Typography.
 
@@ -236,12 +246,16 @@ final class BoxStyle {
       margin: margin,
       backgroundColor: background == null ? null : theme.resolve(background),
       borderRadius: borderRadius,
+      corners: corners,
       border: border?.resolve(theme),
       shadow: shadow?.resolve(theme),
+      shape: shape,
       textStyle: textStyle?.resolve(theme),
       transition: transition,
       opacity: opacity,
       transform: transform,
+      visibleFrom: visibleFrom,
+      visibleUntil: visibleUntil,
     );
   }
 
@@ -271,6 +285,7 @@ final class BoxStyle {
     BoxBorderRadius? corners,
     BoxBorder? border,
     BoxShadow? shadow,
+    BoxShape? shape,
     BoxTextStyle? textStyle,
     BoxTransition? transition,
     double? opacity,
@@ -298,6 +313,7 @@ final class BoxStyle {
       corners: corners ?? this.corners,
       border: border ?? this.border,
       shadow: shadow ?? this.shadow,
+      shape: shape ?? this.shape,
       textStyle: textStyle ?? this.textStyle,
       transition: transition ?? this.transition,
       opacity: opacity ?? this.opacity,
@@ -340,6 +356,7 @@ final class BoxStyle {
       corners: other.corners ?? corners,
       border: other.border ?? border,
       shadow: other.shadow ?? shadow,
+      shape: other.shape ?? shape,
       textStyle: textStyle?.merge(other.textStyle) ?? other.textStyle,
       transition: other.transition ?? transition,
       opacity: other.opacity ?? opacity,
@@ -371,6 +388,7 @@ final class BoxStyle {
       other.corners == corners &&
       other.border == border &&
       other.shadow == shadow &&
+      other.shape == shape &&
       other.textStyle == textStyle &&
       other.transition == transition &&
       other.opacity == opacity &&
@@ -399,6 +417,7 @@ final class BoxStyle {
     corners,
     border,
     shadow,
+    shape,
     textStyle,
     transition,
     opacity,
@@ -427,6 +446,7 @@ final class BoxStyle {
       if (corners != null) 'corners: $corners',
       if (border != null) 'border: $border',
       if (shadow != null) 'shadow: $shadow',
+      if (shape != null) 'shape: $shape',
       if (textStyle != null) 'textStyle: $textStyle',
       if (transition != null) 'transition: $transition',
       if (opacity != null) 'opacity: $opacity',

@@ -5,30 +5,57 @@ import '../theme.dart';
 
 import 'section.dart';
 
-/// The first band: what the library is, what it buys, and the claim drawn once.
+/// A frame of the comparison: the node that draws [src], which the host supplies.
 ///
-/// It is a sales page, so it does one thing: say what the library is for, show the
-/// claim rather than describe it, and offer the two places to look. The copy is set
-/// large and the room around it is wide, because that is what makes a page of plain
-/// boxes read as a modern one — scale and space, not a second set of colours.
-UINode buildHeroSection() {
-  final MaterialPalette palette = ExamplePalette.material;
+/// A frame is an `EmbedNode` — an `<iframe>` on the web — which is the one thing this
+/// tree cannot describe, so it arrives as a builder instead of as an import.
+typedef ShowcaseFrame = UINode Function({
+  required String src,
+  required String title,
+});
+
+/// The first band: what the library is, what it buys, and the claim drawn twice.
+///
+/// The claim and its evidence share one band because, split in two, they said the same
+/// thing twice: the claim ended in a picture of two cards captioned *the web* and
+/// *Flutter*, and the band under it drew those same two cards for real, under the same
+/// two captions. A reader now meets the claim and the rendering that settles it in one
+/// scroll, and each of the two names is on the page once.
+///
+/// The copy above the frames is set large and the room around it is wide, because that
+/// is what makes a page of plain boxes read as a modern one — scale and space, not a
+/// second set of colours.
+UINode buildHeroSection({
+  required ShowcaseFrame frame,
+  ExampleSeed seed = ExampleSeed.blue,
+}) {
+  final MaterialPalette palette = ExamplePalette.materialFor(seed);
 
   return siteBand(
     background: palette.surface,
     vertical: 88,
-    child: GridNode(
-      minItemWidth: 400,
-      maxColumns: 2,
-      gap: 56,
-      children: <UINode>[_sell(palette), _renderingPair(palette)],
+    child: Box(
+      width: double.infinity,
+      gap: 44,
+      children: <UINode>[_claim(palette), _comparison(palette, frame, seed)],
     ),
   );
 }
 
-/// The claim, the two ways in, and the one line of proof under them.
-UINode _sell(MaterialPalette palette) {
+/// The measure the band's copy is set to.
+///
+/// One measure, and every text block in the band ends on it: the claim at 57 pixels
+/// breaks where a line is worth reading, the paragraph under it ends where the headline
+/// does, and the comparison's heading is the same column rather than a second layout.
+/// Without it the band is four blocks with four right edges, which reads as two
+/// sections that were stapled together.
+const double _copyMeasure = 640;
+
+/// The claim, on the one measure the rest of the band's copy shares.
+UINode _claim(MaterialPalette palette) {
   return Box(
+    width: double.infinity,
+    maxWidth: _copyMeasure,
     gap: 24,
     children: <UINode>[
       Box(
@@ -54,141 +81,116 @@ UINode _sell(MaterialPalette palette) {
         style: MaterialTypography.displayLarge,
         headingLevel: 1,
       ),
+      TextNode(
+        'The page a search engine reads and the screen in your app, from one '
+        'Dart tree — so there is no second design to keep in step.',
+        style: MaterialTypography.titleMedium.copyWith(
+          color: palette.onSurfaceVariant,
+        ),
+      ),
+    ],
+  );
+}
+
+/// The claim settled: the same node tree in two frames, side by side.
+///
+/// Two frames rather than two links, because the point is the comparison: resize the
+/// window and both answer the same breakpoint, on the same node tree. The heading and
+/// the captions are boxes and texts like everything else here; the frames are the one
+/// thing the model cannot describe, so they arrive through [ShowcaseFrame].
+UINode _comparison(
+  MaterialPalette palette,
+  ShowcaseFrame frame,
+  ExampleSeed seed,
+) {
+  return Box(
+    width: double.infinity,
+    gap: 20,
+    children: <UINode>[
+      // A label for the frames, not a second title: the band makes one claim, and this
+      // says what is drawn under it. It stays an `h2` so the page keeps its outline and
+      // a crawler keeps its heading — it is set small because the next heading down the
+      // page is a real section.
+      TextNode(
+        'The same tree, drawn twice',
+        style: MaterialTypography.titleMedium,
+        headingLevel: 2,
+      ),
+      GridNode(
+        minItemWidth: 380,
+        maxColumns: 2,
+        gap: 20,
+        children: <UINode>[
+          _panel(
+            title: 'HTML and CSS — the document',
+            src: 'web/listings/?seed=${seed.name}',
+            palette: palette,
+            frame: frame,
+          ),
+          _panel(
+            title: 'Flutter — the same tree',
+            src: 'flutter/listings/?seed=${seed.name}',
+            palette: palette,
+            frame: frame,
+          ),
+        ],
+      ),
+      // Two footnotes, read after the evidence: how to use the frames, and what the
+      // page is made of. There is no link here — the example is shown in the frames and
+      // nowhere else.
       Box(
-        maxWidth: 560,
+        gap: 6,
         children: <UINode>[
           TextNode(
-            'The page a search engine reads and the screen in your app, from one '
-            'Dart tree — so there is no second design to keep in step.',
-            style: MaterialTypography.titleMedium.copyWith(
+            'Drag a frame narrower: both answer the same breakpoint.',
+            style: MaterialTypography.labelSmall.copyWith(
+              color: palette.onSurfaceVariant,
+            ),
+          ),
+          TextNode(
+            'Pure Dart · the core has no dependencies · both renderers measured '
+            'against one table',
+            style: MaterialTypography.labelSmall.copyWith(
               color: palette.onSurfaceVariant,
             ),
           ),
         ],
       ),
-      // A grid rather than a row: two buttons of this length do not fit a phone
-      // side by side, and a grid stacks them instead of overflowing.
-      GridNode(
-        minItemWidth: 180,
-        maxColumns: 2,
-        gap: 12,
-        children: <UINode>[
-          _natural(
-            LinkNode(
-              'web/listings/',
-              child: MaterialButton.filled(
-                label: const TextNode('Open the example'),
-                onTap: () {},
-              ),
-            ),
-          ),
-          _natural(
-            LinkNode(
-              'flutter/listings/',
-              child: MaterialButton.outlined(
-                label: const TextNode('The Flutter build'),
-                onTap: () {},
-              ),
-            ),
-          ),
-        ],
-      ),
-      TextNode(
-        'Pure Dart · the core has no dependencies · both renderers measured '
-        'against one table',
-        style: MaterialTypography.labelSmall.copyWith(
-          color: palette.onSurfaceVariant,
-        ),
-      ),
     ],
   );
 }
 
-/// The claim as a picture: one tree, and two cards drawn from it.
+/// One half of the comparison: a caption and the frame.
 ///
-/// The two cards are the same nodes twice — the words differ only in the caption —
-/// because that is the whole pitch, and a diagram that said it in more shapes would
-/// be a second thing to keep in step with the first.
-UINode _renderingPair(MaterialPalette palette) {
+/// There is no link beside the caption: the frame is the only way the example is
+/// reached from this page, and the page it draws is not a destination of its own.
+UINode _panel({
+  required String title,
+  required String src,
+  required MaterialPalette palette,
+  required ShowcaseFrame frame,
+}) {
   return Box(
-    backgroundColor: palette.surfaceContainerLow,
-    borderRadius: 28,
-    padding: const BoxSpacing.all(20),
-    gap: 14,
-    children: <UINode>[
-      Box(
-        direction: Axis.horizontal,
-        mainAlign: MainAlign.spaceBetween,
-        crossAlign: CrossAlign.center,
-        children: <UINode>[
-          TextNode('One tree', style: MaterialTypography.labelLarge),
-          Box(
-            padding: const BoxSpacing.symmetric(horizontal: 8, vertical: 2),
-            borderRadius: 8,
-            backgroundColor: palette.secondaryContainer,
-            children: <UINode>[
-              TextNode(
-                'Dart',
-                style: MaterialTypography.labelSmall.copyWith(
-                  color: palette.onSecondaryContainer,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-      _rendering('HTML and CSS — the document', palette),
-      _rendering('Flutter — the same tree', palette),
-    ],
-  );
-}
-
-/// One rendering of the card: a caption, a picture, and a line of listing.
-UINode _rendering(String caption, MaterialPalette palette) {
-  return Box(
-    // The width the panel gives it, so the picture below has something definite to
-    // fill: a box that hugs its content inside a column that hugs its content is a
-    // percentage width with no answer on the web.
     width: double.infinity,
-    backgroundColor: palette.surfaceContainerLowest,
-    borderRadius: 18,
-    border: BoxBorder(color: palette.outlineVariant),
-    padding: const BoxSpacing.all(14),
-    gap: 8,
+    gap: 10,
     children: <UINode>[
       TextNode(
-        caption,
-        style: MaterialTypography.labelMedium.copyWith(
+        title,
+        style: MaterialTypography.labelLarge.copyWith(
           color: palette.onSurfaceVariant,
         ),
       ),
-      // The photo of the card, as a block: the example's cards show a real image,
-      // and a hero that fetched one would be a network request before a word was
-      // read.
+      // A frame needs a height of its own: it is a window, not a paragraph, and an
+      // iframe with no height is a sliver.
       Box(
         width: double.infinity,
-        height: 56,
-        borderRadius: 12,
-        backgroundColor: palette.surfaceContainerHigh,
-      ),
-      TextNode('Sunny flat, 62 m²', style: MaterialTypography.titleSmall),
-      TextNode(
-        '€1 850 a month · 2 rooms',
-        style: MaterialTypography.bodySmall.copyWith(
-          color: palette.onSurfaceVariant,
-        ),
+        height: 560,
+        borderRadius: 18,
+        overflow: Overflow.hidden,
+        border: BoxBorder(color: palette.outlineVariant),
+        backgroundColor: palette.surface,
+        children: <UINode>[frame(src: src, title: title)],
       ),
     ],
   );
 }
-
-/// Keeps [child] at its own size inside a grid track.
-///
-/// A track is as wide as its column and a box inside one fills that width, which
-/// turns a pill into a banner; a row lays the control out at its natural size on
-/// both targets and leaves the rest of the track empty.
-UINode _natural(UINode child) => Box(
-  direction: Axis.horizontal,
-  crossAlign: CrossAlign.center,
-  children: <UINode>[child],
-);

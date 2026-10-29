@@ -41,6 +41,7 @@ export 'src/tokens/box_colors.dart';
 export 'src/tokens/box_border_radius.dart';
 export 'src/tokens/box_semantics.dart';
 export 'src/tokens/box_shadow.dart';
+export 'src/tokens/box_shape.dart';
 export 'src/tokens/box_spacing.dart';
 export 'src/tokens/box_style.dart';
 export 'src/tokens/box_text_style.dart';

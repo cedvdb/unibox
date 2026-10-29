@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- `MaterialChip` and `MaterialSegmentedButton` state their choice with
+  `BoxSemantics.pressed` rather than `selected`: both are toggle buttons, and a browser
+  ignores `aria-selected` on a button, so the chosen chip and the chosen segment were
+  announced as plain buttons on the web. `MaterialNavigationBar` keeps `current` alone,
+  which is the state a navigation item has.
+
 - `MaterialChip`'s target is 48 pixels around a pill that still paints 32. Material states
   one target for a touch screen and a 32 pixel chip is below it; the pill is centred in the
   room and the tints stay on the pill, so hovering the extra eight pixels takes the press
@@ -11,10 +17,18 @@
   `fill` and `border` put the surface on the well, under a layer of tints of its own, and
   `tapTargetHeight` adds room a finger can hit without painting it. A well with neither is
   the one box it has always been, so every other component is unchanged.
-- `MaterialNavigationBar`'s indicator arrives: the pill is drawn at every destination and
-  the chosen one fades in and grows out of its icon over `indicatorTransition` (500ms,
-  `easeInOut`). The model eases paint and not layout, so the pill does not travel between
-  destinations; the label still changes colour at once and the icon still swaps.
+- `MaterialNavigationBar`'s indicator arrives the way Flutter draws it: stretched sideways
+  out of the icon from 40% of its width over 500ms and faded over 100ms —
+  `indicatorTransition`'s two parts — and it is the *only* thing that tints or inks. The
+  pill is the colour, an ink well over it and the icon inside that well, all inside the
+  destination's target: a hover tints the pill, a press leaves ink across it over the
+  colour it settles to, and the icon is drawn whatever the state — fading the fill used to
+  fade the picture with it. The destination around it is the control, and a click on the
+  pill stops there. `BoxTransform` grew `scaleX`/`scaleY` for that sideways stretch, which one factor
+  cannot say. The pill does not travel *along* the bar (that needs the width of its
+  neighbours) and the icon still swaps rather than cross-fading. A destination announces
+  `aria-current="page"` and no longer `aria-selected`: the latter is not valid on a
+  button, and Flutter reads `current` as its selected state anyway.
 
 - `MaterialNavigationBar`: Material 3's navigation bar — three to five destinations in
   one 80 pixel row on the new `surfaceContainer` role, an equal share each, the chosen
@@ -121,6 +135,13 @@
   trailing part sits at the edge instead of beside the text.
 - `MaterialTextField` stretches across the width it is given, so a web page draws it
   as wide as the Flutter one instead of as wide as its label.
+
+- `MaterialProgressRing` and `MaterialSpinner`: Material 3's circular progress
+  indicator. The ring is two boxes painted in `BoxShape.ring` — the track, and the value
+  as a sector of the same band — so no renderer knows what a progress indicator is; the
+  value is clamped rather than refused. The spinner is that ring at three quarters of a
+  turn, rotated one step per frame by a `MaterialSpinStore`, whose sixty steps repeat
+  after one turn so a page settles instead of growing a class a frame.
 - `MaterialTextField` and `MaterialBottomSheet` draw Material's shape: round at the
   top, square where they meet the line or the edge, now that the model has a
   corner token.

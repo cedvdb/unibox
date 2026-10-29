@@ -510,7 +510,7 @@ MaterialSegmentedButton(
 | --- | --- |
 | height, radius | 40, and 20: a full round |
 | container | a 1 pixel `outline` line, `overflow: hidden` so a chosen fill is cut to the rounded ends it reaches |
-| chosen | a `secondaryContainer` fill, an `onSecondaryContainer` label, a check, and `selected` for a screen reader |
+| chosen | a `secondaryContainer` fill, an `onSecondaryContainer` label, a check, and `pressed` for a screen reader |
 | check | 18 pixels, a `MaterialCheckMark`, in place of the chosen segment's icon; `showSelectedIcon: false` keeps the icon |
 | icon | `iconSize` = 18, 8 from the label and 12 from the segment's edge |
 | label | `labelLarge`, `onSurface` or `onSecondaryContainer` |
@@ -628,7 +628,10 @@ a box inside it — is what made a hand-built chip tint 14 pixels past itself. T
 clips to the radius, so the ink of a press stays inside too.
 
 A chip is a control: it announces itself as a button when it can be pressed, and says
-whether it is chosen, which is a state a screen reader hears rather than a colour.
+whether it is on — `pressed`, which a screen reader announces and a browser writes as
+`aria-pressed`. It is not `selected`: `aria-selected` is only honoured on an option, a
+tab, a row or a grid cell, so a button that carried it said nothing about its state on
+the web, and said "selected" on a phone — one control described two ways.
 
 **What stays approximate.** A chosen filter chip shows a check mark in Material; here the
 check is `leading`, because a chip carries whatever node the caller gives it.
@@ -697,24 +700,47 @@ up.
 
 **What it announces.** Each destination is a button that says whether it is chosen
 and, when it is, that it is the current page — `aria-current="page"` on the web,
-the selected item of a set in Flutter. The bar itself is a `nav` landmark on the
-web, which Flutter's screen readers have no counterpart for. A tab strip's arrow
-keys are deliberately not modelled (`BoxRole` has no tab, for the reason
-[TASK_PLAN](../../TASK_PLAN.md) records), so the role is a button.
+the selected item of a set in Flutter. That is the *only* state it sets: `aria-selected`
+belongs to options, tabs and rows and not to a button, and Flutter already reads
+`current` as the selected state, so one fact reaches both targets and neither is told
+something invalid. The bar itself is a `nav` landmark on the web, which Flutter's screen
+readers have no counterpart for. A tab strip's arrow keys are deliberately not modelled
+(`BoxRole` has no tab, for the reason [TASK_PLAN](../../TASK_PLAN.md) records), so the
+role is a button.
 
 **Where it sits is the tree's business**, and so is the safe area: the bar is a row
 that fills the width and states its height, and being at the bottom is a
 `PositionedNode` at the bottom of a `StackNode`, or the last row of a full height
 column.
 
-**The pill arrives.** A chosen destination's indicator fades in and grows out of its
-icon over `MaterialNavigationBar.indicatorTransition` (500ms, `easeInOut`), because the
-pill is drawn at every destination and a switch changes its look rather than inserting
-a node: the model eases paint and never layout, which is also why the pill does not
-travel between destinations — a slide would need the width of its neighbours. The label
-changes colour at once and the icon swaps rather than cross-fading, since a text colour
-is not a paint a transition eases and the icon is the caller's node. The bar does not
-hide as the page scrolls: that is scroll state, which the model does not have.
+**The pill arrives, the way Flutter draws it.** The chosen destination's indicator is
+stretched sideways out of its icon — `scaleX` from 40% to full, at its own height — over
+500ms, and faded over 100ms, which is `MaterialNavigationBar.indicatorTransition`'s two
+parts: the fade is the base speed and the stretch its own (`BoxTransitionPart`). The pill
+is in the tree at every destination and only its look changes, so a switch never inserts a
+node; the model eases paint and never layout, which is also why the pill does not travel
+*along* the bar between destinations. Two approximations: `easeOut` is the closest curve
+the model shares with CSS to Material's emphatic easing, and the reverse uses the same one
+where Flutter flips a differently shaped curve. The label changes colour at once, and the
+icon swaps rather than cross-fading, because a text colour is not a paint a transition
+eases and the icon is the caller's node.
+
+**The ink and the hover layer are the indicator's.** A destination is one control — a box
+over the whole share, which is what a finger presses and what a reader hears — and inside
+it the indicator is two layers: the **colour pill** (64 by 32, radius 16) and, over it, an
+ink well of the same size with the icon as its content. So a hover tints the pill and not
+the share around it, a press spreads ink across the pill over the colour it is settling
+to, and the icon is drawn in every state — the colour is the only thing that fades and
+stretches as a destination becomes the chosen one. That is the arrangement Flutter draws:
+its ink is confined by `_IndicatorInkWell.getRectCallback` to the indicator's rect, and its
+ripple is an ink feature above the indicator, under the icon.
+
+Two things keep the press single. The pill answers a press itself and its click stops
+there — the innermost control wins, which is Flutter's gesture arena — so `onSelect` is
+called once whichever layer the press landed on. And the label is a layer that takes no
+pointer, so a press on it reaches the destination under it; that press selects without
+ink, which is the one place this differs from Flutter, where a ripple starts anywhere in
+destination and is still drawn inside the indicator.
 
 ## The dialog and the bottom sheet
 
@@ -804,7 +830,7 @@ at 40, and a tick drawn at a seventh of its box — nearly twice Material's weig
 what makes a hand-tuned one read as a pen stroke beside Material's type.
 
 It takes no semantics: it is decoration beside a label, and the control it sits in says
-what is chosen through its own `selected`.
+what is chosen through its own `pressed`.
 
 ## Elevation
 
@@ -826,6 +852,43 @@ keeps `MaterialCard`, `MaterialDialog` and `MaterialBottomSheet` in step: an app
 replaces one level replaces it on every surface that uses it. How a shadow is
 *blurred* is outside the parity contract — a browser and Skia rasterise it
 differently — so a level states the shape of the shadow, not a pixel promise.
+
+## The circular progress indicator
+
+`MaterialProgressRing` is a ring and the part of it that is done: two boxes, each
+painted in a `BoxShape.ring`, one over the other.
+
+```dart
+MaterialProgressRing(value: 0.42, size: 48, thickness: 4, label: '42% complete')
+```
+
+| Token | Value |
+| --- | --- |
+| indicator / track | `primary`, and `surfaceContainerHighest` |
+| size, thickness | 48 and 4, Material's touch target and its stroke |
+| value | a fraction of a turn, clamped: `-0.2` draws no value, `1.4` draws a closed ring |
+
+Nothing about it is a renderer feature. The track is a ring, the value is a sector of
+that ring, and both are paths a box can be painted in, so the component is three
+nodes — the two rings and the stack between them — and the two targets agree because
+they draw the same shape. A ring states its thickness in pixels by writing the shape
+in a grid as wide as the box, which is why `thickness: 4` is four pixels at every size.
+
+**The value is data, not a timeline.** Moving a ring is a store publishing a new
+value; the component draws whatever it is given. When the value is not known it is
+`MaterialSpinner`: the same ring at three quarters of a turn, rotated one step per
+frame by a `MaterialSpinStore`.
+
+```dart
+MaterialSpinner(size: 48, thickness: 4, label: 'Loading')
+```
+
+The turn is a sequence of steps rather than a curve, and the sweep does not breathe
+the way Material's does: a shape cannot be eased, because two outlines have no numbers
+between them, and the model has no keyframe timeline. Sixty steps of six degrees
+repeat after one turn, so on the web the sheet stops growing after the first
+revolution. A renderer that cannot react never calls `onMount`, so a server export
+shows a still ring.
 
 ## Fidelity
 
@@ -899,6 +962,8 @@ value the model could carry:
 | modal entrance and exit transitions | the same missing timeline |
 | `ColorScheme` and CSS custom properties | the two wirings an application owns, described in Task 96 of `TASK_PLAN.md`. A palette *is* generated here (`MaterialPalette.fromSeed`), and installing it on the host stays the application's job |
 | the icon font and its subset | a host asset: declared in `fonts:` or with an `@font-face`, and subset by the Flutter build |
+| Material's breathing spinner | a rotating arc of a fixed sweep: a sweep that grows and shrinks needs a keyframe timeline |
+| a `progressbar` role with its bounds | `BoxSemantics` has no progress role yet, so a ring announces its label as text |
 | chips, menus, navigation | not built; each is a component, not a decision |
 
 ## License

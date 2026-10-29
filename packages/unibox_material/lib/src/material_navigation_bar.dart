@@ -86,11 +86,14 @@ final class MaterialNavigationDestination {
 /// It adds no safe area inset either: the host that knows the window insets pads
 /// it, because the model has no notion of a device.
 ///
-/// **What it announces.** Each destination is a button that says whether it is the
-/// chosen one and, when it is, that it is the current page — which a browser writes
-/// as `aria-current="page"` and a phone reads as the selected item of a set. The bar
-/// itself is a `nav` landmark on the web. A tab strip's arrow keys and roving focus
-/// are not modelled, which is why the role is a button and not a tab.
+/// **What it announces.** Each destination is a button that says, when it is the
+/// chosen one, that it is the current page — which a browser writes as
+/// `aria-current="page"` and a phone reads as the selected item of a set.
+/// `selected` is deliberately not set as well: `aria-selected` is valid on options,
+/// tabs and rows and not on a button, and Flutter already reads `current` as the
+/// selected state, so one fact reaches both targets. The bar itself is a `nav`
+/// landmark on the web. A tab strip's arrow keys and roving focus are not modelled,
+/// which is why the role is a button and not a tab.
 ///
 /// **What Material draws that this still does not.** The label fades between its two
 /// colours where the pill fades and grows, and the icon swaps rather than cross-fading:
@@ -157,21 +160,32 @@ final class MaterialNavigationBar extends Box {
 
   /// How a chosen destination's pill arrives.
   ///
-  /// Material fades the indicator in and grows it out of the icon, over half a second;
-  /// the model eases paint — opacity and transform — and never layout, so the pill is
-  /// drawn at every destination and a switch is a change of look. The curve is the
-  /// closest of the five the model has to Material's emphatic easing.
+  /// Flutter animates the destination over 500ms with `easeInOutCubicEmphasized`,
+  /// stretching the indicator **sideways** from 40% of its width, and fades it over
+  /// 100ms whenever the animation changes direction. Those two speeds are what the
+  /// parts below say: the fade is the base, the stretch its own part.
   ///
-  /// The icon itself does not cross-fade: it is the caller's node, and a destination
-  /// that wants a filled glyph while it is chosen passes a
-  /// [MaterialNavigationDestination.selectedIcon].
+  /// Two approximations, both because of what the model has: `easeOut` is the
+  /// closest of the five curves it shares with CSS to Material's emphatic easing, and
+  /// the reverse curve is the same one flipped where Flutter uses a differently
+  /// shaped one on the way back.
   static const BoxTransition indicatorTransition = BoxTransition(
-    duration: Duration(milliseconds: 500),
-    curve: BoxCurve.easeInOut,
+    duration: Duration(milliseconds: 100),
+    curve: BoxCurve.easeOut,
+    parts: <BoxTransitionPart>[
+      BoxTransitionPart(
+        properties: <BoxProperty>{BoxProperty.transform},
+        duration: Duration(milliseconds: 500),
+        curve: BoxCurve.easeOut,
+      ),
+    ],
   );
 
-  /// How much smaller the pill is while its destination is not the chosen one.
-  static const double _indicatorRestScale = 0.85;
+  /// How wide the pill is, as a share of its own width, where it is not chosen.
+  ///
+  /// Material starts the stretch at four tenths and stops drawing it altogether once
+  /// the destination is dismissed; the opacity above is what hides the sliver.
+  static const double _indicatorRestScale = 0.4;
 
   /// The colour the icon of the chosen destination is drawn in, inside its pill.
   ///
@@ -207,7 +221,19 @@ final class MaterialNavigationBar extends Box {
   /// The space between the indicator pill and the label.
   static const double _labelGap = 4;
 
-  /// One destination: the pill, the label, and a well over the whole share.
+  /// One destination: a target the whole share presses, an indicator that is the only
+  /// thing which tints and inks, and a label above the ink.
+  ///
+  /// This is the arrangement Material draws, read from Flutter: the destination is one
+  /// control, the ink and the hover layer are the **indicator's** — a 64 by 32 pill, not
+  /// the share — and the ripple is painted over the pill's fill rather than behind it.
+  /// The pill is a [MaterialInkWell] of its own for that reason, with its own `fill` so
+  /// the tints sit above the colour instead of replacing it.
+  ///
+  /// Two things keep the press single. The pill's click stops there, which is what
+  /// Flutter's gesture arena does — the innermost control wins — so `onSelect` is called
+  /// once whichever layer the press landed on. And the label is a layer that takes no
+  /// pointer, so a press on it reaches the target under it.
   static UINode _destination({
     required MaterialNavigationDestination destination,
     required bool selected,
@@ -218,6 +244,10 @@ final class MaterialNavigationBar extends Box {
     required BoxTransition? transition,
   }) {
     final BoxColor foreground = _foregroundOf(selected);
+    // The filled glyph Material pairs with an outlined one, when the caller has both.
+    final UINode? icon = selected
+        ? destination.selectedIcon ?? destination.icon
+        : destination.icon;
 
     // The role and the colour are stated once on the box around the label, because
     // typography is the one thing a box passes down.
@@ -225,58 +255,87 @@ final class MaterialNavigationBar extends Box {
       BoxTextStyle(color: foreground),
     );
 
-    return MaterialInkWell(
-      onTap: onTap,
+    return Box(
       width: double.infinity,
-      // A definite height, not `double.infinity`: a box that fills its share
-      // vertically cannot say so in Flutter, where a flex hands its children an
-      // unbounded main axis. The bar states the height, and the share inherits it.
       height: barHeight,
-      padding: _itemPadding,
-      ink: ink ?? foreground,
-      transition: transition ?? MaterialInkWell.defaultTransition,
+      // The whole share is the control, and the one thing a reader hears.
+      onTap: onTap,
+      textStyle: style,
       semantics: BoxSemantics(
         role: BoxRole.button,
         label: destination.semanticsLabel,
-        selected: selected,
-        // The destination that is chosen is the page being read, which is what a
-        // nav item means by current.
+        // The chosen destination is the page being read — `aria-current="page"` on the
+        // web, the selected state of a set in Flutter.
         current: selected ? BoxCurrent.page : null,
       ),
-      child: Box(
-        width: double.infinity,
-        gap: _labelGap,
-        crossAlign: CrossAlign.center,
-        textStyle: style,
-        children: <UINode>[
-          _indicator(
-            icon: selected
-                ? destination.selectedIcon ?? destination.icon
-                : destination.icon,
-            selected: selected,
-            color: indicatorColor,
-          ),
-          Box(children: <UINode>[destination.label]),
-        ],
-      ),
+      children: <UINode>[
+        StackNode(
+          width: double.infinity,
+          height: barHeight,
+          children: <UINode>[
+            // The indicator, centred on the share and as far from the top as the icon
+            // is: the slot the icon sits in.
+            PositionedNode(
+              left: 0,
+              right: 0,
+              top: _itemPadding.top,
+              child: Box(
+                direction: Axis.horizontal,
+                mainAlign: MainAlign.center,
+                children: <UINode>[
+                  _indicator(
+                    icon: icon,
+                    selected: selected,
+                    color: indicatorColor,
+                    onTap: onTap,
+                    ink: ink ?? foreground,
+                    transition: transition,
+                  ),
+                ],
+              ),
+            ),
+            // The label, under the indicator and above its ink. A layer takes no
+            // pointer, so a press here is the target's.
+            PositionedNode(
+              left: 0,
+              right: 0,
+              top: _itemPadding.top + indicatorHeight + _labelGap,
+              child: Box(
+                direction: Axis.horizontal,
+                mainAlign: MainAlign.center,
+                children: <UINode>[destination.label],
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
-  /// The pill behind a destination's icon, filled only while it is chosen.
+  /// The indicator: the colour pill, and the ink well with the icon in it.
   ///
-  /// The pill is in the tree at every destination and only its look changes, so a
-  /// switch of destination is the pill fading in and growing out of the icon rather
-  /// than a node appearing. The model eases paint and never layout, so a pill that
-  /// *slid* between destinations is not on the table: that would need the width of its
-  /// neighbours, which a tree does not know.
+  /// Two layers, in the order Material paints them. The **colour** is the pill's fill and
+  /// the only part that arrives — it fades in and stretches sideways out of the icon when
+  /// its destination becomes the chosen one. The **well** sits over the colour with the
+  /// icon as its content, so its hover layer is a full-size pill whatever state the fill
+  /// is in, a press spreads ink across the pill over the colour it is settling to, and the
+  /// icon is always drawn: an earlier shape faded the whole indicator, and an unselected
+  /// destination lost its picture with it.
   ///
-  /// The icon is a sibling painted above the pill, so the fade belongs to the pill and
-  /// not to the picture the caller gave. A destination without an icon keeps its empty
-  /// pill, which is what keeps the labels of a bar in line.
+  /// The icon is inside the well and not a layer above it because a press has to reach the
+  /// well: a text hit-tests as opaque, so a picture floating over the pill swallowed the
+  /// press and the ripple never started.
+  ///
+  /// The well is the pill's control: it answers a press itself and its click stops
+  /// there, so a press on the pill does not also reach the destination. A reader hears
+  /// the destination, not the pill, which is why the well's semantics are hidden.
   static UINode _indicator({
     required UINode? icon,
     required bool selected,
     required BoxColor color,
+    required TapCallback onTap,
+    required BoxColor ink,
+    required BoxTransition? transition,
   }) {
     return StackNode(
       width: indicatorWidth,
@@ -288,11 +347,28 @@ final class MaterialNavigationBar extends Box {
           borderRadius: indicatorHeight / 2,
           backgroundColor: selected ? color : null,
           opacity: selected ? 1 : 0,
-          transform: BoxTransform(scale: selected ? 1 : _indicatorRestScale),
+          // Sideways only: Material stretches the pill out of the icon at its own
+          // height.
+          transform: BoxTransform(scaleX: selected ? 1 : _indicatorRestScale),
           transition: indicatorTransition,
         ),
-        if (icon != null)
-          PositionedNode(alignment: BoxAlignment.center, child: icon),
+        MaterialInkWell(
+          onTap: onTap,
+          width: indicatorWidth,
+          height: indicatorHeight,
+          borderRadius: indicatorHeight / 2,
+          ink: ink,
+          padding: BoxSpacing.zero,
+          transition: transition ?? MaterialInkWell.defaultTransition,
+          semantics: const BoxSemantics(hidden: true),
+          child: Box(
+            width: indicatorWidth,
+            height: indicatorHeight,
+            mainAlign: MainAlign.center,
+            crossAlign: CrossAlign.center,
+            children: <UINode>[?icon],
+          ),
+        ),
       ],
     );
   }

@@ -73,9 +73,11 @@ final class RecordingHost {
     ExamplePage current = ExamplePage.apartments,
     UINode? page,
     OverlayNode? dialog,
+    ExampleSeed seed = ExampleSeed.blue,
   }) {
     return buildExamplePage(
       current: current,
+      seed: seed,
       onNavigate: navigations.add,
       page: page ?? buildApartmentsPage(),
       dialog: dialog,

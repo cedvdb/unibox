@@ -22,6 +22,7 @@ Flutter or the web renderer. Renderers live in `unibox_flutter`, `unibox_css` an
 | `StateStore`      | the ready made `Store`: one state value and its listeners     |
 | `BoxColor`, `BoxColors`, `BoxSpacing`, `BoxBorder`, `BoxShadow` | visual tokens            |
 | `BoxAlignment`    | where a child sits in a stack cell: nine positions                        |
+| `BoxShape`, `BoxPathCommand`, `BoxFillRule` | an outline a box is painted in            |
 | `BoxStyle`        | a bundle of every layout and visual token                     |
 | `BoxTextStyle`    | a bundle of typography tokens                                 |
 
@@ -55,6 +56,7 @@ and the difference would show:
 | `ImageNode.fit` | `ImageFit.scaleDown` (`ImageNode.resolvedFit`), i.e. `BoxFit.scaleDown` and `object-fit: scale-down` |
 | `TextInputNode` chrome | none on either target: no border, padding, background, focus ring or resize grip, and the typography of the tree |
 | `StackNode` clipping | none, and a child that is not positioned keeps its own size |
+| `Box.shape` | the rectangle: a box paints its border box, and a corner radius rounds it |
 | `LinkNode` styling | the typography of its box: no link colour, no underline |
 
 What is left to the host, because only the host can answer it: the font family (a
@@ -130,7 +132,7 @@ A node says what it is as well as how it looks, and none of it changes a pixel:
 | `TextNode.headingLevel` | the text is a heading of level 1 to 6: `<h1>`–`<h6>` on the web, `Semantics(header: true, headingLevel: n)` in Flutter |
 | `BoxSemantics.element` | the element the box becomes: `div`, `main`, `nav`, `header`, `footer`, `aside`, `section`, `article`, `form`, `figure`, `ul`, `ol` or `li` |
 | `BoxSemantics.role` | the ARIA role of a hand drawn control: button, checkbox, switch, link or heading |
-| `BoxSemantics.expanded`, `.selected`, `.hidden`, `.liveRegion` | the state a reader announces and a browser exposes as `aria-expanded`, `aria-selected`, `aria-hidden` and `aria-live` |
+| `BoxSemantics.expanded`, `.selected`, `.pressed`, `.hidden`, `.liveRegion` | the state a reader announces and a browser exposes as `aria-expanded`, `aria-selected`, `aria-pressed`, `aria-hidden` and `aria-live` |
 | `BoxSemantics.current` | which item of a set the box is: `aria-current` (`BoxCurrent.page`, `.step`, `.location`) |
 | `TextInputNode.required`, `.invalid`, `.description` | what the form needs from a field and why a value was rejected: `aria-required`, `aria-invalid`, `aria-description` on the web and the same state in Flutter |
 | `BoxSemantics.label` | the name to announce instead of the contents |

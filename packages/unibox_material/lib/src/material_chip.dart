@@ -27,8 +27,8 @@ import 'material_typography.dart';
 /// given; unselected it has an `outline` line and the quieter `onSurfaceVariant` label.
 ///
 /// A chip is a control, so it announces itself as a button when it can be pressed,
-/// and says whether it is chosen: `selected` is the pressed state a screen reader
-/// hears, not a colour.
+/// and says whether it is on: `pressed` is the state a screen reader hears — "pressed"
+/// or "not pressed", `aria-pressed` in a browser — and not a colour.
 ///
 /// **What it can carry.** [leading] is a node before the label — where Material puts a
 /// check on a chosen filter chip — and `trailing` is one after it. [onRemove] adds the
@@ -86,7 +86,7 @@ final class MaterialChip extends Box {
              transition: transition ?? MaterialInkWell.defaultTransition,
              semantics: onTap == null
                  ? null
-                 : BoxSemantics(role: BoxRole.button, selected: selected),
+                 : BoxSemantics(role: BoxRole.button, pressed: selected),
              child: _content(
                label: label,
                leading: leading,

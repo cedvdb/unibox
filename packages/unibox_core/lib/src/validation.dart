@@ -13,6 +13,7 @@ import 'tokens/box_border.dart';
 import 'tokens/box_color.dart';
 import 'tokens/box_semantics.dart';
 import 'tokens/box_shadow.dart';
+import 'tokens/box_shape.dart';
 import 'tokens/box_style.dart';
 import 'tokens/box_transition.dart';
 import 'tokens/unibox_theme.dart';
@@ -224,6 +225,54 @@ void _validate(
               'shape: keep corners when the four differ.',
         ),
       );
+    }
+
+    final BoxShape? shape = style.shape;
+
+    if (shape != null) {
+      if (style.borderRadius != null || style.corners != null) {
+        issues.add(
+          TreeIssue(
+            node: node,
+            message:
+                'A box declares both a shape and a corner radius, and a box has '
+                'one outline: a shape is the outline, so drop borderRadius and '
+                'corners.',
+          ),
+        );
+      }
+
+      if (style.shadow != null) {
+        issues.add(
+          TreeIssue(
+            node: node,
+            message:
+                'A shaped box cannot cast a shadow: the model has no shadow of a '
+                'shape. Put the shadow on the box around it.',
+          ),
+        );
+      }
+
+      if (shape.isEmpty) {
+        issues.add(
+          TreeIssue(
+            node: node,
+            message: 'A shape with no command paints nothing: give it at least a move.',
+          ),
+        );
+      }
+
+      if (shape.viewBoxWidth <= 0 || shape.viewBoxHeight <= 0) {
+        issues.add(
+          TreeIssue(
+            node: node,
+            message:
+                'A shape is drawn in a ${shape.viewBoxWidth} by '
+                '${shape.viewBoxHeight} view box, and both sides have to be more '
+                'than zero for the outline to have a size.',
+          ),
+        );
+      }
     }
 
     for (final double radius in style.corners?.radii ?? const <double>[]) {

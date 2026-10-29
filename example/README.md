@@ -13,7 +13,7 @@ catalogue the whole thing is built with.
 
 | Package | Role |
 | --- | --- |
-| `unibox_example_shared` | The example as one node (`ExamplePageNode`, with `ExampleState` and `ExampleStore`) and the parts it is built from (`buildExamplePage`, `buildApartmentsPage`, `buildSignupDialog`); the site as one node (`buildSitePage`) and its three bands (`buildHeroSection`, `buildShowcaseSection`, `buildMaterialSection`); plus the palette. The listings are a `GridNode` of `MaterialCard`s, so the example also shows the design-system package. Pure Dart, no renderer. |
+| `unibox_example_shared` | The example as one node (`ExamplePageNode`, with `ExampleState` and `ExampleStore`) and the parts it is built from (`buildExamplePage`, `buildApartmentsPage`, `buildSignupDialog`); the site as one node (`buildSitePage`) and its two bands (`buildHeroSection` — the claim and the comparison under it — and `buildMaterialSection`); plus the palette. The listings are a `GridNode` of `MaterialCard`s, so the example also shows the design-system package. Pure Dart, no renderer. |
 | `unibox_example_flutter` | Flutter host: one file (`lib/main.dart`) — the surface and the link policy. |
 | `unibox_example_site` | the document renderer host: the site's document, the example's document, the shipped font faces, the one `<iframe>` node the comparison needs, and the build script — no page trees, which live in the shared package. |
 
@@ -71,14 +71,33 @@ the listings document is the one that can be read without dismissing anything, a
 form
 is its own url.
 
-## One seed, one palette
+## One seed, six palettes
 
-The example is branded with a single colour. `ExamplePalette.seed` is `#2D6CF3`, and
-every other colour is read out of the palette Material grows from it
+The example is branded with a single colour. `ExampleSeed.blue` is `#2D6CF3`, and
+every colour of the page is read out of the palette Material grows from it
 (`MaterialPalette.fromSeed`) — the accent, the tint behind the open navigation item,
-the card, the page, the text, the muted text, the border and the error. Nothing else
-in the example is a hex value, so a different brand is a different seed and no other
-line changes.
+the card, the page, the text, the muted text and the border. A tree holds no colour of
+its own: it names roles, and the theme the host installs answers them.
+
+That is what makes the picker possible. It is one builder — `seedPicker` — used
+twice, because the two places teach different halves of the same thing:
+
+- **Above the example's navigation bar**: choosing a seed redraws the page you are
+  on, so the interesting part is how quickly it happens. Each swatch is a link to
+  *this page* with `?seed=<name>`, and the host answers the address its own way.
+- **In the Material catalogue**: the page that documents the design system picks the
+  seed the design system is documented in, and every specimen, swatch and hex under
+  the picker follows it.
+
+| Host | What `?seed=rose` means |
+| --- | --- |
+| Flutter | its link policy reads the address, installs the rose palette and redraws. Nothing loads, and the page keeps its store: the dialog stays open, the filter stays chosen |
+| Jaspr | the browser follows the link, `main.client.js` reads the address and renders the root with that palette, because a static document was rendered before the reader clicked |
+
+The catalogue's own page carries the seed one step further: each showcase frame is a
+document of its own, so the seed travels into its address too
+(`web/listings/?seed=rose`). A reseed therefore reaches the frames with the page
+around them, and one page is never two palettes.
 
 Three things are worth knowing about the result:
 
@@ -86,21 +105,23 @@ Three things are worth knowing about the result:
   and it spends a saturated brand colour on a palette of low chroma: the vivid
   `#2D6CF3` becomes `#4A5C92`. That is the algorithm being faithful to Material
   rather than to the seed, and `MaterialSchemeVariant.fidelity` is the dial that keeps
-  the brand's own chroma instead — a second palette is one argument away.
+  the brand's own chroma instead. The swatches show the accent each seed *grows*, for
+  the same reason: a picker painted with the seeds would promise colours the page does
+  not use.
 - **The two states of the accent are the palette's own layers.** Material paints a
   hover as 8% of `onSurface` over a fill; a box paints one opaque colour, so the
   example mixes that layer into the accent. The opacities stay in the palette rather
   than in the example.
 - **The confirmation is a second seed.** Material's roles carry an error and no
   success, so `#15803D` seeds a small palette of its own and the message takes its
-  green from that.
+  green from that. It is the same green under all six brand seeds, because a
+  confirmation is a convention and not a brand.
 
-The values are `final` and not `const`, which is the one cost of the change: a
-palette grown from a seed is computed when the page is built, so the styles that name
-its colours are computed too, and a few `const` nodes became plain ones. What the tree
-still does is name roles — `BoxColor.role(ExampleColor.canvas)` — and the theme, which
-now carries both the example's vocabulary and Material's, answers them once for the
-whole page.
+The one thing the picker cannot do is change a page that was written before the
+reader clicked and is never redrawn: without the client runtime, a document keeps the
+palette the build rendered it with, which is the default seed. Everything else — the
+store that survives a reseed in Flutter, the frames that follow the page, the hexes
+in the catalogue — is the address doing its job.
 
 ## One font, one set of weights
 
@@ -194,25 +215,26 @@ recognisably the same page.
 
 ## The site is one page
 
-`buildSitePage` is the whole site: a header, three bands and a footer, in the order
+`buildSitePage` is the whole site: a header, two bands and a footer, in the order
 the argument needs.
 
 | Band | What it says |
 | --- | --- |
-| the hero | the claim — *describe a screen once* — with the two ways in, and the claim drawn as one tree above two cards |
-| *the same tree, drawn twice* | the example in two frames: the the document renderer page on the left, the Flutter build on the right, each resizable |
+| the hero | the claim — *describe a screen once* — and, in the same band, the claim answered: the example in two frames, the page on the left, the Flutter build on the right, each resizable |
 | *Material 3, as values and nodes* | the catalogue: every component first, then the type scale and the colour roles those components name |
 
-The comparison comes before the catalogue on purpose: the claim is that the two
-renderings agree, so a reader should meet the evidence before the design system the
-evidence is drawn with. Every band is a node tree — the frames are the only thing the
+The frames are the claim's evidence, so they sit in the band that makes it: a reader
+scrolls from the sentence to the two renderings it is about, and meets each rendering's
+name once. The catalogue comes after, because the design system is how the evidence is
+drawn, not what it says. Every band is a node tree — the frames are the only thing the
 model cannot describe, and they arrive through `ShowcaseFrame`/`EmbedNode`.
 
-There is one `h1` (the claim), an `h2` per band and an `h3` per block of the
-catalogue, so the outline a crawler and a screen reader build the page from is the
-outline a reader sees. The header and the footer are landmarks, the links are real
-`LinkNode`s, and the page needs no route: a reader scrolls from the claim to the
-evidence, which is a thing a static document can do without a click.
+There is one `h1` (the claim), an `h2` for each section after it — the comparison and
+then the catalogue — and an `h3` per block of the catalogue, so the outline a crawler and
+a screen reader build the page from is the outline a reader sees. The header and the
+footer are landmarks, the links are real `LinkNode`s, and the page needs no route: a
+reader scrolls from the claim to the evidence, which is a thing a static document can do
+without a click.
 
 The example itself is not a page of the site any more. Its two documents —
 `build/site/web/listings/index.html` and `build/site/web/signup/index.html` — exist
@@ -231,7 +253,7 @@ tool/site.sh --base=/unibox/ --url=https://cedvdb.github.io/unibox/
 
 | Path | What it is |
 | --- | --- |
-| `/` | The site: the claim, the comparison and the catalogue, as one page |
+| `/` | The site: the claim and its comparison, then the catalogue, as one page |
 | `/web/listings/` | The example as a document — the left frame, and the page the app takes over |
 | `/web/signup/` | The same page with the sign-up dialog over it |
 | `/flutter/listings/`, `/flutter/signup/` | The same example, built by Flutter — the right frame |
@@ -360,10 +382,11 @@ The document also arrives with what a search engine reads before any script runs
 attributes as markup, and a `robots.txt` next to it. A sitemap would need the address
 the page is served from, so `tool/site.sh --url=…` writes one when it is given it.
 
-The page's links are real: the header, the hero and the footer are `LinkNode`s and the
-frames are `<iframe>`s, so a crawler follows all of them without JavaScript. Inside the
-frame the example carries one more: its bar is a `<nav>` whose destination is an
-`<a href>` naming the document that draws it. The sign-up control is not a link — it
+The page's links are real: the header and the footer are `LinkNode`s and the frames are
+`<iframe>`s, so a crawler follows all of them without JavaScript. Nothing links to the
+example itself — it is drawn in the frames, and it is not a destination of this page.
+Inside the frame the example carries one more: its bar is a `<nav>` whose destination is
+an `<a href>` naming the document that draws it. The sign-up control is not a link — it
 opens a dialog over the page — so a crawler sees the two documents of the example and
 one link between them. A page that has to be found makes sense as a `LinkNode` with a
 real url — which is the router work `TASK_PLAN.md` lists as deferred.

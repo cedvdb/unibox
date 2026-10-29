@@ -15,6 +15,21 @@
 
 ## 0.1.0
 
+- A pressable box is one semantics node carrying its role, its name and its action, as
+  Flutter's own buttons are. The `Focus` widget around it described itself, which made a
+  node inside the control that took the label and the tap action: an *enabled* button was
+  read as "Save" with no role at all, while its role sat on an empty parent, and only a
+  disabled one — with no action to merge into — was announced as the button it is.
+- A box with an `onLongPress` announces it as `Semantics.onLongPress`, which is what a
+  native `InkWell` offers: a "hold to delete" row is now findable and invokable by a
+  reader. A browser has no such action, so the web renderer stays quiet about it and its
+  README records the difference.
+
+- A box whose semantics state `pressed` is announced as toggled, which is what Flutter
+  calls the state a browser writes as `aria-pressed`. A toggle button — a filter chip, a
+  segment — used to be announced as the selected item of a set instead, so the two
+  targets described the same control two ways.
+
 - A box whose only child is a `StackNode` now places what the layer draws by its own
   `mainAlign` and `crossAlign`: the stack still fills the box, because an aligned
   `PositionedNode` needs a bounded main axis, and the pair becomes the stack's own
@@ -35,6 +50,10 @@
   aligned child fills the stack and sits where the alignment says.
 
 - A text input resolves a colour role in its `placeholderStyle` against the theme, like the colour of any other text; it threw before.
+
+- A shaped box is drawn with a `CustomPaint` over `pathOf(shape, size)`: the fill is
+  the path, the border is a stroke along it, and `overflow: hidden` clips through a
+  `ClipPath`. `pathOf` is exported for a host that draws a shape itself.
 - A `BoxBorderRadius` becomes `BorderRadius.only`, so a box that rounds only two corners
   draws the same shape it does on the web.
 

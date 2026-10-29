@@ -393,6 +393,62 @@ void main() {
     });
   });
 
+  group('shapes', () {
+    const BoxShape hexagon = BoxShape(
+      viewBoxWidth: 100,
+      viewBoxHeight: 100,
+      commands: <BoxPathCommand>[BoxPathMoveTo(0, 0), BoxPathClose()],
+    );
+
+    test('accepts a shaped box that names no rectangle', () {
+      expect(validateTree(const Box(shape: hexagon)), isEmpty);
+    });
+
+    test('reports a shape and a corner radius together', () {
+      final List<TreeIssue> issues = validateTree(
+        const Box(shape: hexagon, borderRadius: 8),
+      );
+
+      expect(issues.single.message, contains('one outline'));
+    });
+
+    test('reports a shape and a shadow, which the model cannot draw', () {
+      final List<TreeIssue> issues = validateTree(
+        const Box(shape: hexagon, shadow: BoxShadow()),
+      );
+
+      expect(issues.single.message, contains('shadow'));
+    });
+
+    test('reports a shape with no command', () {
+      final List<TreeIssue> issues = validateTree(
+        const Box(
+          shape: BoxShape(
+            viewBoxWidth: 10,
+            viewBoxHeight: 10,
+            commands: <BoxPathCommand>[],
+          ),
+        ),
+      );
+
+      expect(issues.single.message, contains('no command'));
+    });
+
+    test('reports a view box with no size', () {
+      final List<TreeIssue> issues = validateTree(
+        const Box(
+          shape: BoxShape(
+            viewBoxWidth: 0,
+            viewBoxHeight: 100,
+            commands: <BoxPathCommand>[BoxPathMoveTo(0, 0), BoxPathClose()],
+          ),
+        ),
+      );
+
+      expect(issues.single.message, contains('view box'));
+    });
+  });
+
   group('visibility', () {
     test('accepts a threshold inside a box', () {
       expect(

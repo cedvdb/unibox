@@ -185,7 +185,8 @@ void main() {
             offsetY: 4,
           ),
         ),
-        'translate(8px, 4px) rotate(45deg) scale(1.2)',
+        // Two factors, one per axis: a control can grow sideways at its full height.
+        'translate(8px, 4px) rotate(45deg) scale(1.2, 1.2)',
       );
     });
 

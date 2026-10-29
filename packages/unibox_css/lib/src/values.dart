@@ -261,10 +261,14 @@ String? cssTransform(core.BoxTransform? transform) {
     return null;
   }
 
+  // The two axes are separate, and each multiplies the one factor: a control can grow
+  // sideways at its full height, which a single `scale` cannot say.
+  final String x = cssNumber(transform.scale * transform.scaleX);
+  final String y = cssNumber(transform.scale * transform.scaleY);
+
   return 'translate(${cssPixels(transform.offsetX)}, '
       '${cssPixels(transform.offsetY)}) '
-      'rotate(${cssNumber(transform.rotation)}deg) '
-      'scale(${cssNumber(transform.scale)})';
+      'rotate(${cssNumber(transform.rotation)}deg) scale($x, $y)';
 }
 
 /// The CSS property of every look, in the order a transition lists them.

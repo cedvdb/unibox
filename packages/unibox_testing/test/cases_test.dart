@@ -76,7 +76,7 @@ void main() {
           'transitionCurve': (actual: core.BoxCurve.easeIn, expected: null),
           'opacity': (actual: 0.75, expected: null),
           'transform': (
-            actual: const core.BoxTransform(scale: 1.25),
+            actual: const core.BoxTransform(scaleX: 1.25, scaleY: 1),
             expected: null,
           ),
         },

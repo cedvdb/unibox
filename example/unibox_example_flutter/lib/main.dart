@@ -10,6 +10,7 @@ const String fontFamily = 'UniboxText';
 void main() => runApp(
   ExampleApp(
     signupOpen: signupOpenFromUrl(),
+    seed: seedFromUrl(),
     // Where the page was scrolled to before the application existed. The document
     // recorded it and the script left it on `window.unibox`; every other platform
     // answers with nothing, because there is no page in front of it.
@@ -25,29 +26,66 @@ void main() => runApp(
 /// export, starts with the dialog closed.
 bool signupOpenFromUrl() => Uri.base.pathSegments.contains('signup');
 
+/// The palette the page starts in, read from `?seed=<name>` the way the site reads it.
+///
+/// The picker is a row of links, so the choice travels as an address on both targets:
+/// the browser loads the page with it, and this host reads it here once and then
+/// answers the same addresses in [ExampleApp] without loading anything.
+ExampleSeed seedFromUrl() =>
+    ExampleSeed.fromName(Uri.base.queryParameters['seed']);
+
 /// The Flutter host of the shared page.
 ///
 /// The page is one node — [ExamplePageNode] — so this file is only what a node
 /// cannot know: the surface the tree is drawn on, the theme its colour roles name,
 /// and what following a link means. [FlutterStateful] creates the page's store,
-/// subscribes to it, disposes it and installs the theme, so the host holds no state
-/// and no scope of its own.
-class ExampleApp extends StatelessWidget {
+/// subscribes to it, disposes it and installs the theme.
+///
+/// The seed is the one piece of state this host keeps. A palette is a theme, a theme
+/// is installed by the host, and the tree only names roles — so choosing a seed is a
+/// rebuild of this widget with another theme, and the page's own store (the dialog,
+/// the filter, the fields) stays where it was.
+class ExampleApp extends StatefulWidget {
   /// Creates the example application.
   ///
   /// [signupOpen] is for the static site, where a document starts in the state the
-  /// destination names instead of waiting for a click.
+  /// destination names instead of waiting for a click. [seed] is the palette it
+  /// starts in, which the picker then replaces.
   const ExampleApp({
     super.key,
     this.signupOpen = false,
+    this.seed = ExampleSeed.blue,
     this.offsets = const <BoxScrollOffset>[],
   });
 
   /// Whether the sign-up dialog is open on the first frame.
   final bool signupOpen;
 
+  /// The palette the page is drawn with on the first frame.
+  final ExampleSeed seed;
+
   /// Where each region of the page was scrolled to, before the application arrived.
   final List<BoxScrollOffset> offsets;
+
+  @override
+  State<ExampleApp> createState() => _ExampleAppState();
+}
+
+class _ExampleAppState extends State<ExampleApp> {
+  late ExampleSeed _seed = widget.seed;
+
+  /// What following a link means here: a seed is a palette, so it is a rebuild;
+  /// anything else is a destination this host does not serve, and it says so.
+  void _open(String url) {
+    final String? name = Uri.tryParse(url)?.queryParameters['seed'];
+
+    if (name == null) {
+      debugPrint('Following $url');
+      return;
+    }
+
+    setState(() => _seed = ExampleSeed.fromName(name));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,14 +99,16 @@ class ExampleApp extends StatelessWidget {
         // Read once, as the controller's initial position, so a region is where the
         // reader left it at the first layout rather than after a correction.
         body: UniboxScrollScope(
-          offsets: offsets,
+          offsets: widget.offsets,
           child: FlutterLinkScope(
-            open: (String url) => debugPrint('Following $url'),
+            open: _open,
             // The theme answers the colour roles the page names; the component
-            // installs it, so the host states it once and cannot forget a scope.
+            // installs it, so the host states it once and cannot forget a scope. The
+            // node is told the same seed, because the picker marks which one is in
+            // force — and two places saying it is the only way the mark can lie.
             child: FlutterStateful(
-              node: ExamplePageNode(signupOpen: signupOpen),
-              theme: ExamplePalette.theme,
+              node: ExamplePageNode(signupOpen: widget.signupOpen, seed: _seed),
+              theme: ExamplePalette.themeFor(_seed),
             ),
           ),
         ),

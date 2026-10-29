@@ -16,9 +16,18 @@ void main() {
 
   MaterialNavigationBar bar() => MaterialNavigationBar(
     destinations: const <MaterialNavigationDestination>[
-      MaterialNavigationDestination(label: TextNode('Listings')),
-      MaterialNavigationDestination(label: TextNode('Map')),
-      MaterialNavigationDestination(label: TextNode('Saved')),
+      MaterialNavigationDestination(
+        label: TextNode('Listings'),
+        icon: TextNode('L'),
+      ),
+      MaterialNavigationDestination(
+        label: TextNode('Map'),
+        icon: TextNode('M'),
+      ),
+      MaterialNavigationDestination(
+        label: TextNode('Saved'),
+        icon: TextNode('S'),
+      ),
     ],
     selected: 0,
     onSelect: (int index) => pressed = index,
@@ -74,6 +83,40 @@ void main() {
     expect(centres[0], closeTo(60, 1));
     expect(centres[1], closeTo(180, 1));
     expect(centres[2], closeTo(300, 1));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('inks a press on the indicator, not one on the label', (
+    WidgetTester tester,
+  ) async {
+    await pumpBar(tester);
+
+    final int before = tester.widgetList(find.byType(Positioned)).length;
+
+    // A press on the label is the destination's: it selects, and paints no ink, because
+    // the ink and the hover layer belong to the indicator — which is where Material
+    // draws both.
+    await tester.tap(find.text('Map'));
+    await tester.pump();
+
+    expect(pressed, 1);
+    expect(tester.widgetList(find.byType(Positioned)).length, before);
+
+    // A press on the indicator leaves a drop, and the drop fades by itself.
+    await tester.tap(find.text('M'));
+    await tester.pump();
+
+    expect(
+      tester.widgetList(find.byType(Positioned)).length,
+      before + 1,
+      reason: 'the press starts a drop of ink inside the pill',
+    );
+    expect(pressed, 1, reason: 'the pill selects its own destination, once');
+
+    await tester.pump(materialInkDuration + const Duration(milliseconds: 100));
+    await tester.pump();
+
+    expect(tester.widgetList(find.byType(Positioned)).length, before);
     expect(tester.takeException(), isNull);
   });
 

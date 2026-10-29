@@ -14,6 +14,21 @@
   the name of one node. A key that has to be found again should be unique in the
   document and not only among its siblings; that is a fact about the tree a host builds,
   and the class says so rather than pretending to enforce it.
+- `Box.onLongPress` says in its doc what each target does with it: the Flutter renderer
+  hands it to a screen reader as an action, and a browser has no equivalent, so on the
+  web a hold is a pointer gesture and a control only a hold reaches needs a visible
+  target or a label that says what the hold does.
+
+- `BoxSemantics.pressed` is the state of a toggle button: `aria-pressed` on the web and
+  Flutter's `toggled`. It is not `selected`, and the difference is not cosmetic —
+  `aria-selected` is only honoured on an option, a tab, a row or a grid cell, so a
+  button that carried it announced its state to nobody. A chip and a segment are
+  toggle buttons, and they say so now.
+
+- `BoxTransform` takes `scaleX` and `scaleY`, so a box can stretch on one axis and keep
+  its size on the other. They multiply `scale` rather than replacing it, and both targets
+  paint the result with the same matrix: Material's navigation indicator grows sideways
+  out of its icon at its own height, which one factor cannot say.
 
 ## 0.1.0
 
@@ -27,6 +42,21 @@
   floating control needs: the child fills the stack and the alignment puts it at the
   bottom centre of any surface. `validateTree` reports an alignment and an offset on
   one node, since the child fills the stack when it is aligned.
+
+- `BoxShape`: a box can be painted in an outline instead of a rectangle — a path in a
+  view box, in the command vocabulary of SVG's `d` (`M`, `L`, `C`, `Q`, `A`, `Z`) with
+  a fill rule. The background fills the path, the border is a stroke along it, layout
+  is untouched and `overflow: hidden` clips the children to it. `BoxFillRule.evenOdd`
+  turns two circles into a ring. `BoxShape.circle` and `BoxShape.ring(thickness:,
+  sweep:)` state the two outlines people ask for — a ring is two circles under the
+  even-odd rule, and a partial one is a single subpath of that band, so a progress
+  indicator is two boxes rather than new geometry. A shape is not eased and casts no
+  shadow, and
+  `validateTree` reports it next to a corner radius, a shadow, an empty command list
+  or a view box with no size.
+- `BoxStyle.resolve` carries every token through, not only the ones a theme resolves:
+  a themed box used to lose `corners`, `visibleFrom` and `visibleUntil` on the way to
+  Flutter while the web kept them.
 
 - `BoxBorderRadius` and `BoxStyle.corners`: the radius of each corner, so a box can be
   round at the top and square at the bottom — Material's filled text field and its

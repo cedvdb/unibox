@@ -92,6 +92,15 @@ ElementPlan _planBox(core.Box box, Stylesheet sheet, PlanOptions options) {
     element: element,
   );
 
+  // A shaped box paints its background and border in a path, and this plan has no `clip-path`
+  // for one: reported rather than drawn as the rectangle it is not.
+  if (style.shape != null) {
+    throw UnsupportedError(
+      'A box that wears a shape needs an SVG clip path, which this renderer does not write '
+      'yet: ${box.debugName}.',
+    );
+  }
+
   // Mobile first: a box that only appears above a width starts hidden, and the container
   // query below brings it back. A browser without container queries then draws the narrow
   // layout rather than a broken wide one.

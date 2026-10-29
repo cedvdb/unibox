@@ -168,6 +168,90 @@ void main() {
     });
   });
 
+  group('a button', () {
+    testWidgets('is one node: its role, its name and its action', (
+      tester,
+    ) async {
+      final SemanticsHandle handle = tester.ensureSemantics();
+
+      await pumpNode(
+        tester,
+        core.Box(
+          onTap: () {},
+          semantics: const core.BoxSemantics(role: core.BoxRole.button),
+          children: <core.UINode>[const core.TextNode('Save')],
+        ),
+      );
+
+      final SemanticsData data = dataOf(tester, find.byKey(nodeKey));
+
+      // One node, not two. The `Focus` widget used to describe itself, which made a
+      // node of its own *inside* this one, and the label and the tap action merged
+      // into that: a screen reader read "Save" with the action and without the role,
+      // while the role sat on an empty parent. A native button is one node, and so is
+      // this one now.
+      expect(data.flagsCollection.isButton, isTrue);
+      expect(data.label, 'Save');
+      expect(data.hasAction(SemanticsAction.tap), isTrue);
+      expect(data.hasAction(SemanticsAction.focus), isTrue);
+
+      handle.dispose();
+    });
+
+    testWidgets('says when it is disabled, and takes no press', (tester) async {
+      final SemanticsHandle handle = tester.ensureSemantics();
+      int presses = 0;
+
+      await pumpNode(
+        tester,
+        core.Box(
+          enabled: false,
+          onTap: () => presses++,
+          semantics: const core.BoxSemantics(role: core.BoxRole.button),
+          children: <core.UINode>[const core.TextNode('Save')],
+        ),
+      );
+
+      final SemanticsData data = dataOf(tester, find.byKey(nodeKey));
+
+      expect(data.flagsCollection.isButton, isTrue);
+      expect(data.flagsCollection.isEnabled, Tristate.isFalse);
+      expect(
+        data.hasAction(SemanticsAction.tap),
+        isFalse,
+        reason: 'a disabled box runs nothing',
+      );
+
+      await tester.tap(find.text('Save'), warnIfMissed: false);
+      expect(presses, 0);
+
+      handle.dispose();
+    });
+
+    testWidgets('announces a long press, which is an action of its own', (
+      tester,
+    ) async {
+      final SemanticsHandle handle = tester.ensureSemantics();
+
+      await pumpNode(
+        tester,
+        core.Box(
+          onLongPress: () {},
+          children: <core.UINode>[const core.TextNode('Hold to delete')],
+        ),
+      );
+
+      final SemanticsData data = dataOf(tester, find.byKey(nodeKey));
+
+      // What a native `InkWell` offers a reader. The box is not a button: nothing here
+      // runs on `Enter`, and a keyboard cannot hold a key.
+      expect(data.hasAction(SemanticsAction.longPress), isTrue);
+      expect(data.flagsCollection.isButton, isFalse);
+
+      handle.dispose();
+    });
+  });
+
   group('accessibility state', () {
     testWidgets('reports an expanded, selected and live box', (tester) async {
       final SemanticsHandle handle = tester.ensureSemantics();
@@ -191,6 +275,56 @@ void main() {
       expect(data.flagsCollection.isSelected != Tristate.none, isTrue);
       expect(data.flagsCollection.isSelected == Tristate.isTrue, isTrue);
       expect(data.flagsCollection.isLiveRegion, isTrue);
+
+      handle.dispose();
+    });
+
+    testWidgets('reports a toggle button as toggled, not selected', (
+      tester,
+    ) async {
+      final SemanticsHandle handle = tester.ensureSemantics();
+
+      await pumpNode(
+        tester,
+        core.Box(
+          onTap: () {},
+          semantics: const core.BoxSemantics(
+            role: core.BoxRole.button,
+            pressed: true,
+          ),
+          children: <core.UINode>[core.TextNode('Two rooms')],
+        ),
+      );
+
+      final SemanticsData data = dataOf(tester, find.byKey(nodeKey));
+
+      // The state the web writes as `aria-pressed` is Flutter's `toggled`; a button
+      // is not an item of a set, so `selected` stays unset.
+      expect(data.flagsCollection.isToggled, Tristate.isTrue);
+      expect(data.flagsCollection.isSelected, Tristate.none);
+
+      handle.dispose();
+    });
+
+    testWidgets('reports a box that is not pressed as off', (tester) async {
+      final SemanticsHandle handle = tester.ensureSemantics();
+
+      await pumpNode(
+        tester,
+        core.Box(
+          onTap: () {},
+          semantics: const core.BoxSemantics(
+            role: core.BoxRole.button,
+            pressed: false,
+          ),
+          children: <core.UINode>[core.TextNode('Studio')],
+        ),
+      );
+
+      expect(
+        dataOf(tester, find.byKey(nodeKey)).flagsCollection.isToggled,
+        Tristate.isFalse,
+      );
 
       handle.dispose();
     });

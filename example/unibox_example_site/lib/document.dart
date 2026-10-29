@@ -35,7 +35,7 @@ String buildExampleDocument({
     meta: <String, String>{if (build != null) 'unibox-build': build},
     // A document has no click, so the page that exists to show the dialog says so.
     showOverlays: page == ExamplePage.signup,
-    theme: ExamplePalette.theme,
+    theme: ExamplePalette.themeFor(ExampleSeed.blue),
     head: <String>['<style>${fontFaceCss('../../')}$pageCss</style>'],
     prefetch: <String>[boot],
     scripts: <DocumentScript>[

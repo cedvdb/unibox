@@ -1,5 +1,6 @@
 import 'package:unibox_core/unibox_core.dart';
 
+import 'seed_picker.dart';
 import 'theme.dart';
 
 /// What the bar can ask for: the page, and the sign-up form.
@@ -74,6 +75,7 @@ Box buildExamplePage({
   required void Function(ExamplePage page) onNavigate,
   required UINode page,
   OverlayNode? dialog,
+  ExampleSeed seed = ExampleSeed.blue,
 }) {
   return Box(
     direction: Axis.vertical,
@@ -81,6 +83,7 @@ Box buildExamplePage({
     height: double.infinity,
     backgroundColor: const BoxColor.role(ExampleColor.canvas),
     children: <UINode>[
+      seedPicker(current: seed),
       _navigationBar(current: current, onNavigate: onNavigate),
       page,
       ?dialog,
@@ -186,7 +189,9 @@ UINode _navigationItem(
       mainAlign: MainAlign.center,
       padding: const BoxSpacing.symmetric(horizontal: 12, vertical: 6),
       borderRadius: 8,
-      backgroundColor: current ? ExamplePalette.accentSurface : null,
+      backgroundColor: current
+          ? BoxColor.role(ExampleColor.accentSurface)
+          : null,
       textStyle: current ? ExampleType.navCurrent : ExampleType.nav,
       semantics: BoxSemantics(
         role: BoxRole.link,
@@ -195,7 +200,9 @@ UINode _navigationItem(
         current: current ? BoxCurrent.page : null,
       ),
       stateStyles: <BoxState, BoxStyle>{
-        BoxState.hover: BoxStyle(backgroundColor: ExamplePalette.accentSurface),
+        BoxState.hover: BoxStyle(
+          backgroundColor: BoxColor.role(ExampleColor.accentSurface),
+        ),
       },
       transition: ExampleType.transition,
       children: <UINode>[TextNode(page.label)],
@@ -220,12 +227,16 @@ UINode _signUp({required TapCallback onTap}) {
     mainAlign: MainAlign.center,
     padding: const BoxSpacing.symmetric(horizontal: 14, vertical: 8),
     borderRadius: 8,
-    backgroundColor: ExamplePalette.accent,
+    backgroundColor: BoxColor.role(ExampleColor.accent),
     textStyle: ExampleType.button,
     semantics: const BoxSemantics(role: BoxRole.button),
     stateStyles: <BoxState, BoxStyle>{
-      BoxState.hover: BoxStyle(backgroundColor: ExamplePalette.accentHover),
-      BoxState.pressed: BoxStyle(backgroundColor: ExamplePalette.accentPressed),
+      BoxState.hover: BoxStyle(
+        backgroundColor: BoxColor.role(ExampleColor.accentHover),
+      ),
+      BoxState.pressed: BoxStyle(
+        backgroundColor: BoxColor.role(ExampleColor.accentPressed),
+      ),
     },
     transition: ExampleType.transition,
     children: <UINode>[TextNode(ExamplePage.signup.label)],

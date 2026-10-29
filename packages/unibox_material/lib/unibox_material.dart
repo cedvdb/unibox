@@ -49,6 +49,7 @@ export 'src/material_ink_well.dart';
 export 'src/material_list_tile.dart';
 export 'src/material_navigation_bar.dart';
 export 'src/material_palette.dart';
+export 'src/material_progress_ring.dart';
 export 'src/material_scheme_variant.dart';
 export 'src/material_segmented_button.dart';
 export 'src/material_text_field.dart';

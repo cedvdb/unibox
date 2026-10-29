@@ -6,6 +6,7 @@ import 'package:unibox_core/unibox_core.dart' as core;
 
 import 'keys.dart';
 import 'render.dart';
+import 'shape.dart';
 import 'stack_node.dart';
 import 'text_style_scope.dart';
 import 'scroll_scope.dart';
@@ -67,6 +68,7 @@ class FlutterBoxState extends State<FlutterBox> {
   @override
   void dispose() {
     _scroll?.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -104,6 +106,16 @@ class FlutterBoxState extends State<FlutterBox> {
     );
   }
 
+  /// The keyboard focus of this box, when it is focusable.
+  ///
+  /// The box states its own focusable and focused flags to a screen reader, so the
+  /// [Focus] widget around it must not state them again: a `Focus` that describes
+  /// itself is a semantics node of its own, and the label and the tap action merged
+  /// into *that* node instead of the one carrying the button role — which is how an
+  /// enabled button came to be announced as plain text with a tap action, and a
+  /// disabled one, with no action to merge into, as the button it is.
+  final FocusNode _focusNode = FocusNode(debugLabel: 'unibox-box');
+
   @override
   Widget build(BuildContext context) {
     final core.Box box = widget.box;
@@ -136,13 +148,16 @@ class FlutterBoxState extends State<FlutterBox> {
       content = Padding(padding: toEdgeInsets(padding), child: content);
     }
 
+    final core.BoxShape? shape = style.shape;
+
     // A scrolling box already clips its own viewport, but squarely: it needs an
     // explicit clip only when the box is rounded, so that the content is cut to the
     // radius the way CSS cuts it.
     final double radius = style.borderRadius ?? 0;
     final bool clipsContent =
         style.overflow == core.Overflow.hidden ||
-        (style.overflow == core.Overflow.scroll && radius > 0);
+        (style.overflow == core.Overflow.scroll &&
+            (radius > 0 || shape != null));
 
     // The clip goes *inside* the decoration, not around it. CSS cuts a box's content
     // to its radius and never its own `box-shadow`, which paints outside the border
@@ -152,9 +167,28 @@ class FlutterBoxState extends State<FlutterBox> {
       content = _clipTo(content, style);
     }
 
-    final BoxDecoration? decoration = toDecoration(style);
-    if (decoration != null) {
-      content = _decorated(decoration, _paintTiming(style.transition), content);
+    // A shape replaces the rectangle the decoration would paint: the same box, drawn
+    // as its outline. It goes where the decoration goes — around the clipped content
+    // — so the fill is behind the children, the way CSS paints a background behind
+    // content, and the clip still cuts them to the same path.
+    if (shape != null) {
+      content = CustomPaint(
+        painter: UniboxShapePainter(
+          shape: shape,
+          fill: style.backgroundColor,
+          border: style.border,
+        ),
+        child: content,
+      );
+    } else {
+      final BoxDecoration? decoration = toDecoration(style);
+      if (decoration != null) {
+        content = _decorated(
+          decoration,
+          _paintTiming(style.transition),
+          content,
+        );
+      }
     }
 
     content = _applyDimensions(content, style);
@@ -236,6 +270,12 @@ class FlutterBoxState extends State<FlutterBox> {
   /// would be rounded in the browser and square in Flutter. The radius is the one
   /// the box paints with, so the clip and the decoration can never disagree.
   Widget _clipTo(Widget child, core.BoxStyle style) {
+    final core.BoxShape? shape = style.shape;
+
+    if (shape != null) {
+      return ClipPath(clipper: UniboxShapeClipper(shape), child: child);
+    }
+
     final double? radius = style.borderRadius;
 
     if (radius == null || radius <= 0) {
@@ -538,6 +578,10 @@ class FlutterBoxState extends State<FlutterBox> {
 
     if (focusable) {
       result = Focus(
+        focusNode: _focusNode,
+        // The box describes its own focus to a reader; a second description here
+        // would be a node of its own and split the control in two.
+        includeSemantics: false,
         onFocusChange: _setFocused,
         onKeyEvent: _handleKeyEvent,
         child: result,
@@ -613,12 +657,19 @@ class FlutterBoxState extends State<FlutterBox> {
   /// A plain enabled container is left untouched: an extra `Semantics` node on
   /// every box would only make the tree harder to read. A box with a description
   /// or a disabled state gets one, and so does a focusable box, which needs the
-  /// focused flag to be announced.
+  /// focused flag to be announced — and so does one with a long press, because a
+  /// long press is an *action*: Flutter's own `InkWell` hands it to a reader the same
+  /// way, and without it a "hold to delete" row is a control a screen reader cannot
+  /// find. The web has no equivalent action, which is why `Box.onLongPress` is
+  /// documented there as a pointer affordance.
   Widget _describeToSemantics(Widget content, core.Box box) {
     final core.BoxSemantics? semantics = box.semantics;
     final bool focusable = box.isFocusable && box.enabled;
+    final core.LongPressCallback? longPress = box.enabled
+        ? box.onLongPress
+        : null;
 
-    if (semantics == null && box.enabled) {
+    if (semantics == null && box.enabled && longPress == null) {
       return content;
     }
 
@@ -627,7 +678,7 @@ class FlutterBoxState extends State<FlutterBox> {
     final String? label = semantics?.label;
 
     return Semantics(
-      container: semantics != null,
+      container: semantics != null || longPress != null,
       // A label replaces the contents, so the accessible name cannot drift
       // away from what the screen reader reads.
       excludeSemantics: label != null,
@@ -635,11 +686,16 @@ class FlutterBoxState extends State<FlutterBox> {
       link: role == core.BoxRole.link,
       header: role == core.BoxRole.heading,
       checked: role == core.BoxRole.checkbox ? checked : null,
-      toggled: role == core.BoxRole.switch_ ? checked : null,
+      // A switch is on or off, and so is a toggle button: Flutter states both with
+      // `toggled`, and the web with `aria-checked` and `aria-pressed` respectively.
+      toggled: role == core.BoxRole.switch_ ? checked : semantics?.pressed,
       label: label,
       enabled: box.enabled,
       focusable: focusable,
       focused: focusable ? _focused : null,
+      // A reader can move the focus here, which is what a native control offers and
+      // what the `Focus` widget above no longer states for it.
+      onFocus: focusable ? _focusNode.requestFocus : null,
       role: _semanticsRole(semantics?.element ?? core.BoxElement.div),
       expanded: semantics?.expanded,
       // `aria-current` has no Flutter counterpart; the closest thing a phone
@@ -648,6 +704,7 @@ class FlutterBoxState extends State<FlutterBox> {
           semantics?.selected ?? (semantics?.current == null ? null : true),
       hidden: semantics?.hidden ?? false,
       liveRegion: semantics?.liveRegion ?? false,
+      onLongPress: longPress,
       child: content,
     );
   }

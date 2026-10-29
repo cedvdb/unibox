@@ -35,126 +35,165 @@ enum ExampleColor {
 
   /// The colour of borders.
   border,
+
+  /// The colour of a field that is wrong, and of the message under it.
+  danger,
+
+  /// The colour of the confirmation message.
+  success,
+
+  /// The background of the confirmation message.
+  successSurface,
 }
 
-/// The palette of the example, grown from one seed.
+/// The seeds the example can be drawn with.
 ///
-/// The example is branded with a single colour. Material's colour algorithm turns
-/// that colour into the twenty roles, and the roles the example names of its own —
-/// its accent, its borders, its success — are read out of the palette it grows, so
-/// [ExamplePalette.seed] is the only colour written down in this file and a
-/// different brand is a different seed.
-///
-/// The values are `final` and not `const`, because a palette grown from a seed is
-/// computed once when the page is built rather than typed into the source. That is
-/// the price of one seed instead of twenty hex values, and it is why the styles
-/// below are `final` too.
-abstract final class ExamplePalette {
-  /// The one colour the example is branded with.
-  static const BoxColor seed = BoxColor.rgb(0x2D, 0x6C, 0xF3);
+/// One colour each: Material's algorithm grows the rest of the palette from it, so
+/// the accent, the cards, the page and the muted text all change together. [blue] is
+/// the seed the example is branded with unless the address asks for another one
+/// (`?seed=green`), and the order of this enum is the order the picker draws them in.
+enum ExampleSeed {
+  /// The blue the example has always been branded with.
+  blue('Blue', BoxColor.rgb(0x2D, 0x6C, 0xF3)),
 
+  /// A violet, close to Material's own baseline seed.
+  violet('Violet', BoxColor.rgb(0x67, 0x50, 0xA4)),
+
+  /// A teal: a green that leans to the blue side.
+  teal('Teal', BoxColor.rgb(0x00, 0x6D, 0x77)),
+
+  /// A leaf green.
+  green('Green', BoxColor.rgb(0x2E, 0x7D, 0x32)),
+
+  /// An amber, the warmest of the six.
+  amber('Amber', BoxColor.rgb(0xA8, 0x60, 0x00)),
+
+  /// A rose, for a page whose accent is a warning as much as an invitation.
+  rose('Rose', BoxColor.rgb(0xB3, 0x26, 0x5E));
+
+  const ExampleSeed(this.label, this.color);
+
+  /// The name of the seed in the picker.
+  final String label;
+
+  /// The colour the palette is grown from.
+  final BoxColor color;
+
+  /// The accent this seed grows, which is what its swatch is painted with.
+  ///
+  /// The swatches show the *result*, not the seed: the tonal spot scheme lowers a
+  /// saturated colour's chroma, and a picker that showed the seed would promise a
+  /// colour the page will not use.
+  BoxColor get accent => ExamplePalette.materialFor(this).primary;
+
+  /// The seed [name] names, or [blue] when the address names none of them.
+  ///
+  /// An address is written by hand as often as by the picker, so a name the example
+  /// does not know falls back to the one it is branded with instead of failing.
+  static ExampleSeed fromName(String? name) {
+    for (final ExampleSeed seed in values) {
+      if (seed.name == name) {
+        return seed;
+      }
+    }
+    return blue;
+  }
+}
+
+/// The palettes of the example, one per seed.
+///
+/// A seed is one colour; Material's algorithm turns it into the twenty roles, and the
+/// roles the example names of its own — its accent, its panel, its success — are read
+/// out of that palette. [themeFor] is therefore the whole vocabulary in one call: a
+/// tree names [ExampleColor]s, and the theme answers them with the palette of the seed
+/// the page was drawn with.
+///
+/// The tree never holds a colour of its own, which is what makes the picker possible:
+/// choosing another seed rebuilds nothing, it installs another theme.
+abstract final class ExamplePalette {
   /// The seed of the confirmation message.
   ///
   /// Material's roles carry an error and no success, so the example seeds a palette
-  /// of its own for the second one: the same call, another colour.
+  /// of its own for the second one: the same call, another colour, and the same
+  /// palette for every brand seed — a confirmation is a convention, not a brand.
   static const BoxColor successSeed = BoxColor.rgb(0x15, 0x80, 0x3D);
 
-  /// The palette the page is drawn with.
-  ///
-  /// `tonalSpot` is Material You's own scheme and it spends a saturated brand
-  /// colour on a low chroma palette, so the accent below is quieter than the seed.
-  /// [MaterialSchemeVariant.fidelity] would keep the seed's own chroma instead.
-  static final MaterialPalette material = MaterialPalette.fromSeed(seed);
-
   /// The palette the confirmation message is drawn with.
-  static final MaterialPalette confirmation = MaterialPalette.fromSeed(
+  static final MaterialPalette _confirmation = MaterialPalette.fromSeed(
     successSeed,
   );
 
-  /// The values of [ExampleColor], as one theme both hosts hand to the renderer.
+  /// The palette each seed grows, computed once.
   ///
-  /// This is the single place the example's colours are read: the tree names a
-  /// role, the web renderer writes the theme into `:root`, and the Flutter
-  /// renderer resolves the same map. A host that wants a dark page overrides the
-  /// variables or passes another theme; it does not touch the tree.
+  /// `tonalSpot` is Material You's own scheme and it spends a saturated brand colour
+  /// on a low chroma palette, which is why a swatch is painted with `primary` and not
+  /// with the seed: the page uses the palette, not the colour that asked for it.
+  /// [MaterialSchemeVariant.fidelity] would keep the seed's own chroma instead.
+  static final Map<ExampleSeed, MaterialPalette> _material =
+      <ExampleSeed, MaterialPalette>{
+        for (final ExampleSeed seed in ExampleSeed.values)
+          seed: MaterialPalette.fromSeed(seed.color),
+      };
+
+  /// The themes, one per seed, computed once so a redraw reuses the same values.
+  static final Map<ExampleSeed, UniboxTheme> _themes =
+      <ExampleSeed, UniboxTheme>{
+        for (final MapEntry<ExampleSeed, MaterialPalette> entry
+            in _material.entries)
+          entry.key: _themeOf(entry.value),
+      };
+
+  /// The palette [seed] grows.
+  static MaterialPalette materialFor(ExampleSeed seed) => _material[seed]!;
+
+  /// The default seed's palette, which is what the site's catalogue is drawn with.
   ///
-  /// The page also uses components from `unibox_material`, which name
-  /// `MaterialColorRole`s of their own, so the generated scheme is merged in: two
-  /// vocabularies, one theme, and the roles the example defines still win.
-  static final UniboxTheme theme = UniboxTheme(
-    colors: <ExampleColor, BoxColor>{
-      ExampleColor.accent: accent,
-      ExampleColor.accentHover: accentHover,
-      ExampleColor.accentPressed: accentPressed,
-      ExampleColor.accentSurface: accentSurface,
-      ExampleColor.panel: panel,
-      ExampleColor.canvas: canvas,
-      ExampleColor.text: text,
-      ExampleColor.muted: muted,
-      ExampleColor.border: border,
-    },
-  ).merge(material.theme);
+  /// The catalogue is written by the build and shows the palette the example is
+  /// branded with; the picker reseeds the example page itself — the documents the
+  /// showcase embeds — so the page inside a frame and the page around it are never
+  /// two palettes of one page.
+  static final MaterialPalette material = materialFor(ExampleSeed.blue);
 
-  /// The accent of the banner, the button and the checkbox.
-  static final BoxColor accent = material.primary;
-
-  /// The accent while the pointer is over the button.
+  /// The values of [ExampleColor] for [seed], as the theme a host installs.
   ///
-  /// Material paints a hover as a translucent layer over the fill, and a box paints
-  /// one opaque colour, so the layer the palette states is mixed into the accent.
-  static final BoxColor accentHover = _paintedOver(accent, material.hoverLayer);
+  /// The example's own roles are answered here, and the palette Material grew is
+  /// merged in behind them, so the components of `unibox_material` resolve their
+  /// `MaterialColorRole`s in the same theme: two vocabularies, one theme, and the
+  /// roles the example defines still win.
+  static UniboxTheme themeFor(ExampleSeed seed) => _themes[seed]!;
 
-  /// The accent while the button is pressed.
-  static final BoxColor accentPressed = _paintedOver(
-    accent,
-    material.pressedLayer,
-  );
+  /// Builds the theme of one generated palette.
+  static UniboxTheme _themeOf(MaterialPalette material) {
+    final BoxColor accent = material.primary;
 
-  /// The tint behind the navigation item that is open.
-  ///
-  /// Material's own indicator for a chosen destination is the secondary container,
-  /// and it is the right role here for a second reason: it stays a container
-  /// whatever variant the seed is spent on, while the primary container can be the
-  /// seed itself.
-  static final BoxColor accentSurface = material.secondaryContainer;
-
-  /// The background of a raised panel: a card, the navigation bar, a field — and the
-  /// white that contrasts with [accent], which is why a button's label is drawn in it.
-  ///
-  /// It is not named `surface`, because `unibox_material` already has a role with that
-  /// name and both vocabularies share one `:root` block on the web: two roles writing
-  /// `--unibox-color-surface` would leave one of them silently unused there while
-  /// Flutter resolved both, which is exactly the divergence the roles exist to prevent.
-  static final BoxColor panel = material.surfaceContainerLowest;
-
-  /// The color of the page behind the card.
-  ///
-  /// A container tone rather than the surface itself, because the example paints
-  /// white cards on it: Material's ladder puts the page at `surface` and a panel a
-  /// step above it at `surfaceContainerLowest`, and the example reads better with
-  /// the two the other way round.
-  static final BoxColor canvas = material.surfaceContainerLow;
-
-  /// The default text color.
-  static final BoxColor text = material.onSurface;
-
-  /// The color of supporting text.
-  static final BoxColor muted = material.onSurfaceVariant;
-
-  /// The color of borders, and of the button while it is not ready.
-  static final BoxColor border = material.outlineVariant;
-
-  /// The color of a field that is wrong, and of the message under it.
-  ///
-  /// Error is the one accent Material derives without the seed, because a failure
-  /// is a convention rather than a brand.
-  static final BoxColor danger = material.error;
-
-  /// The color of the confirmation message.
-  static final BoxColor success = confirmation.primary;
-
-  /// The background of the confirmation message.
-  static final BoxColor successSurface = confirmation.secondaryContainer;
+    return UniboxTheme(
+      colors: <ExampleColor, BoxColor>{
+        // The accent of the button, the banner and the checkbox, and the two states
+        // Material paints as a translucent layer over it — mixed in, because a box
+        // paints one opaque colour.
+        ExampleColor.accent: accent,
+        ExampleColor.accentHover: _paintedOver(accent, material.hoverLayer),
+        ExampleColor.accentPressed: _paintedOver(accent, material.pressedLayer),
+        // Material's own indicator for a chosen destination, and the one container
+        // that stays a container whatever variant the seed is spent on.
+        ExampleColor.accentSurface: material.secondaryContainer,
+        // The white a card, the bar and a field are painted with — and the colour a
+        // button's label is drawn in, because it contrasts with the accent.
+        ExampleColor.panel: material.surfaceContainerLowest,
+        // A container tone rather than the surface itself: the example paints white
+        // cards, and Material's ladder puts the page one step below a panel.
+        ExampleColor.canvas: material.surfaceContainerLow,
+        ExampleColor.text: material.onSurface,
+        ExampleColor.muted: material.onSurfaceVariant,
+        ExampleColor.border: material.outlineVariant,
+        // Error is the one accent Material derives without the seed, because a
+        // failure is a convention rather than a brand.
+        ExampleColor.danger: material.error,
+        ExampleColor.success: _confirmation.primary,
+        ExampleColor.successSurface: _confirmation.secondaryContainer,
+      },
+    ).merge(material.theme);
+  }
 
   /// The tint of the square that stands in for the photo of a listing.
   ///
@@ -219,71 +258,71 @@ abstract final class ExampleType {
   ///
   /// This is the style a page installs, so everything below it inherits the
   /// line height and only overrides size, weight and colour.
-  static final BoxTextStyle body = BoxTextStyle(
+  static const BoxTextStyle body = BoxTextStyle(
     fontSize: 14,
-    color: ExamplePalette.text,
+    color: BoxColor.role(ExampleColor.text),
     lineHeight: lineHeight,
   );
 
   /// Supporting text, such as hints and the status line.
-  static final BoxTextStyle muted = BoxTextStyle(
+  static const BoxTextStyle muted = BoxTextStyle(
     fontSize: 13,
-    color: ExamplePalette.muted,
+    color: BoxColor.role(ExampleColor.muted),
   );
 
   /// The title of a card or of a page.
-  static final BoxTextStyle title = BoxTextStyle(
+  static const BoxTextStyle title = BoxTextStyle(
     fontSize: 22,
     fontWeight: FontWeight.bold,
-    color: ExamplePalette.text,
+    color: BoxColor.role(ExampleColor.text),
   );
 
   /// The name of the example, at the start of the navigation bar.
-  static final BoxTextStyle brand = BoxTextStyle(
+  static const BoxTextStyle brand = BoxTextStyle(
     fontSize: 16,
     fontWeight: FontWeight.bold,
-    color: ExamplePalette.text,
+    color: BoxColor.role(ExampleColor.text),
   );
 
   /// A navigation item that is not open.
-  static final BoxTextStyle nav = BoxTextStyle(
+  static const BoxTextStyle nav = BoxTextStyle(
     fontSize: 14,
     fontWeight: FontWeight.medium,
-    color: ExamplePalette.muted,
+    color: BoxColor.role(ExampleColor.muted),
   );
 
   /// The navigation item that is open.
-  static final BoxTextStyle navCurrent = BoxTextStyle(
+  static const BoxTextStyle navCurrent = BoxTextStyle(
     fontSize: 14,
     fontWeight: FontWeight.semiBold,
-    color: ExamplePalette.accent,
+    color: BoxColor.role(ExampleColor.accent),
   );
 
   /// The label of the primary button.
-  static final BoxTextStyle button = BoxTextStyle(
+  static const BoxTextStyle button = BoxTextStyle(
     fontSize: 14,
     fontWeight: FontWeight.semiBold,
-    color: ExamplePalette.panel,
+    color: BoxColor.role(ExampleColor.panel),
   );
 
   /// The link under the button.
-  static final BoxTextStyle link = BoxTextStyle(
+  static const BoxTextStyle link = BoxTextStyle(
     fontSize: 14,
     fontWeight: FontWeight.medium,
-    color: ExamplePalette.accent,
+    color: BoxColor.role(ExampleColor.accent),
   );
 
   /// The name of a listing.
-  static final BoxTextStyle listingName = BoxTextStyle(
+  static const BoxTextStyle listingName = BoxTextStyle(
     fontSize: 16,
     fontWeight: FontWeight.semiBold,
-    color: ExamplePalette.text,
+    color: BoxColor.role(ExampleColor.text),
   );
 
   /// The rent of a listing.
-  static final BoxTextStyle listingPrice = BoxTextStyle(
+  static const BoxTextStyle listingPrice = BoxTextStyle(
     fontSize: 14,
     fontWeight: FontWeight.semiBold,
-    color: ExamplePalette.accent,
+    color: BoxColor.role(ExampleColor.accent),
   );
 }
