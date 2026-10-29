@@ -600,15 +600,26 @@ final class TabsDemoState {
 }
 
 /// The store of [TabsDemo]: one index, from a press or from a swipe.
+///
+/// It holds the two directions apart, because the pager and the bar are wired to each other. A
+/// press chooses a page and the pager *slides* to it, reporting every offset on the way; read as
+/// choices, those offsets send the bar back to where the slide started, and the tab that was
+/// pressed never appears chosen. So a press leaves a marker behind, and the offsets of the slide
+/// it asked for are ignored until the pager arrives. A swipe sets no marker — every offset a
+/// reader makes is theirs.
 final class TabsDemoStore extends StateStore<TabsDemoState> {
   /// Creates the store on page 0.
   TabsDemoStore() : super(const TabsDemoState());
 
+  /// The page a press sent the pager to, while it is still on its way there.
+  int? _sent;
+
   /// Chooses the tab at [index].
-  void choose(int index) => state = TabsDemoState(
-    selected: index.clamp(0, 2),
-    pageWidth: state.pageWidth,
-  );
+  void choose(int index) {
+    final int chosen = index.clamp(0, 2);
+    _sent = chosen;
+    _select(chosen);
+  }
 
   /// Follows the reader's swipe: the offset becomes the page it landed on.
   ///
@@ -616,11 +627,26 @@ final class TabsDemoStore extends StateStore<TabsDemoState> {
   /// page settles on it: the bar should say where the pager came to rest, not where it started.
   void scrolledTo(double offset) {
     final int index = (offset / state.pageWidth).round();
+    final int? sent = _sent;
+
+    if (sent != null) {
+      // Still arriving where a press sent it: an offset between two pages says nothing about
+      // what the reader wants, and the one that reaches the page hands the pager back.
+      if (index == sent) {
+        _sent = null;
+      }
+
+      return;
+    }
 
     if (index != state.selected) {
-      choose(index);
+      _select(index);
     }
   }
+
+  /// Shows the page at [index] without claiming the pager is on its way there.
+  void _select(int index) =>
+      state = TabsDemoState(selected: index, pageWidth: state.pageWidth);
 }
 
 /// The bar, then the pager both are looking at.

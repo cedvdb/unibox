@@ -231,6 +231,7 @@ Box(
 | `flex` | `int?` | none | Share of the free space this box takes inside its parent: `flex: 1` is an `Expanded` in Flutter and `flex-grow: 1` on the web. |
 | `overflow` | `Overflow?` | visible | `hidden` clips the content, `scroll` makes the box scroll along its direction. |
 | `snap` | `ScrollSnap?` | none | Where a scrolling box comes to rest. `page` makes it a pager: it moves one child at a time along its own direction and settles on a child rather than between two. It needs `overflow: Overflow.scroll`; `validateTree` reports a snap on a box that cannot scroll. |
+| `page` | `int?` | none | The page a snapping box shows, counted along its direction: how a pager is *told* where to go, as a position rather than a controller. It moves the box when it changes, so a tree drawn twice with the same page leaves the reader alone. Only meaningful with `snap: ScrollSnap.page`. |
 
 **Size**
 
@@ -264,7 +265,7 @@ Box(
 | `onTapDown` | `TapDownCallback?` | none | A press lands: where it landed inside the box and what pressed it (touch, mouse, pen, keyboard). It fires before `onTap`, which is what an effect that starts at the pointer needs. |
 | `onLongPress` | `LongPressCallback?` | none | Pressed and held. |
 | `onHover` | `HoverCallback?` | none | Pointer entered or left the box. |
-| `onScroll` | `ScrollCallback?` | none | The box scrolled, with how far its content has moved along its main axis. Only a box with `overflow: Overflow.scroll` reports it, and only for its own scrolling — a scrollable nested inside it reports to its own box. It is what lets a header fold as the list under it moves. |
+| `onScroll` | `ScrollCallback?` | none | The box scrolled, with how far its content has moved along its main axis. Only a box with `overflow: Overflow.scroll` reports it, and only for its own scrolling — a scrollable nested inside it reports to its own box. It is what lets a header fold as the list under it moves. A box that states `page` *and* listens to `onScroll` is wired to itself: the move it was told to make reports every offset on the way, so the callback has to tell those from the reader's own scrolling. The example's tabs demo does it with one field, and the difference is visible: a pager sliding to a page a press chose reports 0, its whole width, then the page. |
 | `enabled` | `bool` | `true` | A disabled box keeps its layout, drops its callbacks, leaves the tab order and is announced as disabled. |
 | `semantics` | `BoxSemantics?` | none | What the box *is* for a screen reader: role, label, state, element. |
 | `stateStyles` | `Map<BoxState, BoxStyle>?` | none | Looks for `hover`, `focus`, `pressed` and `disabled`, layered over the resting one. |

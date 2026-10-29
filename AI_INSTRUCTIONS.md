@@ -129,7 +129,13 @@ host that renders it.
     node needs `unibox_dom`'s `events.dart` to know it. A component whose control answers in the app and
     not on the page is that gap, and it is silent — nothing throws.
 
-14. **Do not invent a parameter.** If it is not in the README tables or in
+14. **A pager you tell a page to, you must not listen to.** `Box(page: …)` moves the box, and
+    `Box(onScroll: …)` reports every offset of that move: read as the reader's, they undo the
+    press that started it, and the tab a reader chose never appears chosen. Keep the two apart
+    — a field naming the page you sent it to, cleared when the offset arrives there — or keep
+    one direction only.
+
+15. **Do not invent a parameter.** If it is not in the README tables or in
     `packages/unibox_core/lib/src/`, it does not exist. For anything the model cannot
     express, use an `EmbedNode` with one implementation per renderer, or ask.
 
