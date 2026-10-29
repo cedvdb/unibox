@@ -127,8 +127,8 @@ jobs:
           unibox_flutter
           PACKAGES
 
-  performance:
-    name: Performance budget
+  site:
+    name: The site
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -142,11 +142,29 @@ jobs:
           cache: true
       - name: Resolve the workspace
         run: flutter pub get
-      # Lighthouse starts a browser and takes a few minutes, which is why it is a job of its
-      # own rather than a step in the fast loop. A page outside its budget fails the build.
+
+      # The build comes first and every check reads what it produced, so a failure names the thing
+      # that broke: a site that does not build is not a page that crawls badly.
+      #
+      # This is the sequence `pages.yml` runs before it publishes, in that order, and running it here
+      # is the point: a change that would break the published site then fails on the pull request
+      # that made it, instead of on `main` afterwards, where the only thing left to do is revert.
+      # The three checks read the same build, so they cost seconds; the build itself was already
+      # being paid for by the budget below.
+      - name: Build the site
+        run: tool/site.sh
+      - name: Check that the document boots
+        run: tool/boot_check.sh build/site
+      - name: Check that the documents still crawl
+        run: python3 tool/doc_check.py build/site
+      - name: Check that the client answers a press
+        run: tool/dom_check.sh build/site
+
+      # Lighthouse starts a browser and takes a few minutes, which is why it is the last step of a job
+      # of its own rather than part of the fast loop. A page outside its budget fails the build.
       #
       # It measures the *site*, not documents written into a temporary directory: the front page
       # embeds the takeover, so a documents-only build has a frame whose engine does not exist and
       # the application budget passes without measuring anything.
-      - name: Measure the site against its budgets
-        run: tool/performance.sh
+      - name: Measure the pages against their budgets
+        run: tool/performance.sh build/site
