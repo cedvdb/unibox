@@ -19,10 +19,15 @@ web.HTMLDivElement host() {
 /// exactly as it describes what the string renderer did. That is the point of reading the output
 /// rather than the plan — a class with no rule, or a rule the browser never receives, fails here.
 String documentOf(DomView view) {
-  final web.Element? style = web.document.head!.querySelector(
+  // Every unibox sheet in the page, in order: a view that adopted a document leaves the served
+  // one in place and writes its own beside it, and an adopted element may be painted by either.
+  final web.NodeList styles = web.document.head!.querySelectorAll(
     'style[data-unibox-css]',
   );
-  final String css = style?.textContent ?? '';
+  final StringBuffer css = StringBuffer();
+  for (int i = 0; i < styles.length; i++) {
+    css.writeln(styles.item(i)!.textContent);
+  }
   final String markup = (view.element.outerHTML as JSString).toDart;
 
   return '<style>$css</style>$markup';

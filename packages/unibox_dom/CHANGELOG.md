@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- A publish no longer dies on a shaped box: the class is written as an attribute, because an
+  `<svg>`'s `className` is an object rather than a string, which threw and left the pass half
+  applied.
+
+- The view writes its stylesheet *beside* the one a document was served with instead of over it.
+  Adoption keeps elements it never planned — a shape's `<svg>` layer and its `<path>` are invented
+  by the plan, not by the tree — so writing over the served rules deleted the `fill` and `stroke`
+  they were painted by, and an SVG with no `fill` is black: the example's progress ring and its
+  badges came out as black discs.
+
 - `Box.onScroll` is bound to the element's own `scroll` event and reports `scrollTop` or
   `scrollLeft`, chosen by the box's direction. A document rendered without a runtime has no
   scroll report — the callback is behaviour, and a static page has none.
