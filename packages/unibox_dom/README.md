@@ -44,6 +44,17 @@ and removed when it is replaced — a press is `click`, a hover is `pointerenter
 in another reports only to its own box, which is the rule Flutter reaches with a notification's
 depth.
 
+## A callback has one place on the web
+
+A node states its behaviour as a callback, and `lib/src/events.dart` is the file that turns one into a
+listener: `Box.onTap`, `onTapDown`, `onLongPress`, `onHover`, `onScroll` and the keyboard; a link's
+`onTap`; a field's `onChanged`, `onSubmitted` and `onFocusChanged`; an overlay's `onDismiss`, bound to
+its barrier and nowhere else.
+
+**That file is the whole list.** A callback the model declares and this file does not bind is a control
+that looks alive in Flutter and does nothing on a page — which happened to `Box.onHover`, and left the
+navigation bar's pill unlit until somebody noticed. `AGENTS.md` recipe H is the check list.
+
 ## How it updates
 
 A publish from a `StatefulNode`'s store re-plans **that node's subtree** and patches it in

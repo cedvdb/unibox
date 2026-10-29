@@ -277,6 +277,17 @@ that must hear about a new callback. `AI_INSTRUCTIONS.md` says the same in one l
 
 **Done when.** The docs say it, and `tool/check_docs.py` still passes.
 
+## T6. Done: the rule, in the three places it has to be
+
+Three of the bugs found while writing the client were one mistake: a callback the model declared, a
+component that relied on it, and a renderer that bound nothing — silent, because nothing throws.
+
+- **`AGENTS.md` recipe H** — a callback on a node is not finished until every renderer binds it and each
+  target has a test that it runs, and one that it does not run when it should not;
+- **`packages/unibox_dom/README.md`** names `lib/src/events.dart` as the whole list, and says what
+  happens when a callback is missing from it;
+- **`AI_INSTRUCTIONS.md`** rule 13, in one line, for whoever is writing application code.
+
 ---
 
 ## Order

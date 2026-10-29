@@ -125,7 +125,11 @@ host that renders it.
     `String` or an `int` and keep it unique when something outside the tree has to find
     that element again — a control that a page should be able to press on the app's
     behalf, a box that scrolls.
-13. **Do not invent a parameter.** If it is not in the README tables or in
+13. **A callback is half a feature.** A `Box(onTap: …)` in Flutter binds itself; on the web the same
+    node needs `unibox_dom`'s `events.dart` to know it. A component whose control answers in the app and
+    not on the page is that gap, and it is silent — nothing throws.
+
+14. **Do not invent a parameter.** If it is not in the README tables or in
     `packages/unibox_core/lib/src/`, it does not exist. For anything the model cannot
     express, use an `EmbedNode` with one implementation per renderer, or ask.
 

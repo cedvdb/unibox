@@ -258,6 +258,21 @@ cannot catch.
    application to take it over, or `unibox_dom` when it exists.
 5. Docs: the state section of `README.md` and the core README, plus the changelogs.
 
+### H. A callback on a node
+
+A callback is not finished when the model has it. Three of the bugs found while writing the client were
+one mistake in three places: a callback the model declared, a component that relied on it, and a
+renderer that bound nothing — so the control looked alive in Flutter and did nothing on the web.
+
+1. `packages/unibox_core/lib/src/callbacks.dart` and the node that carries it.
+2. Every renderer binds it: `packages/unibox_flutter/lib/src/<node>.dart` for the app, and
+   `packages/unibox_dom/lib/src/events.dart` for the web — the one file a new callback has to reach on a
+   page. `Box.onHover` was dead for a day because it did not.
+3. A test on each target that the callback runs, and one that it does *not* run when it should not — a
+   long press swallowing its click, a modified click left to the browser.
+4. `packages/unibox_testing` only if the page looks different for it; a callback that changes no pixels
+   has no place in the appearance table.
+
 ### G. An overlay
 
 1. `packages/unibox_core/lib/src/nodes/overlay_node.dart` — the node and its
