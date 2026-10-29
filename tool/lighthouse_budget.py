@@ -43,8 +43,11 @@ BUDGETS = {
         # image. LCP is the same paint only until a listing photo is the largest thing on screen,
         # which it is on this example — so it is held to a line that leaves room for one photograph
         # over a phone's network, and FCP is the one that catches a renderer that got slower.
-        "first-contentful-paint": 1200,
-        "largest-contentful-paint": 3000,
+        # A floor taken on a shared runner rather than on a laptop: the first CI run measured 1546 ms
+        # for a page that measures 1052 ms here, and a gate that fails because the machine is slower
+        # is a gate somebody turns off. It still catches the 5.4 s this page once had.
+        "first-contentful-paint": 1800,
+        "largest-contentful-paint": 3200,
         "cumulative-layout-shift": 0.02,
         "total-blocking-time": 50,
     },
