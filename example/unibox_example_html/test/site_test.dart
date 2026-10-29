@@ -27,6 +27,20 @@ void main() {
       expect(html, contains('<main'));
     });
 
+    test('moves the two arrows, three passes and then still', () {
+      // The arrows are the one part of the page whose reason is motion, and the motion is the
+      // site's: a key is the hook it names them by, so no class is invented for a look only
+      // this page has. Three passes rather than a loop, and nothing at all for a reader who
+      // asked their system for less motion.
+      final String html = buildSiteDocument();
+
+      expect(html, contains('@keyframes unibox-flow'));
+      expect(html, contains('[data-unibox-key="hero-flow-html"]'));
+      expect(html, contains('[data-unibox-key="hero-flow-flutter"]'));
+      expect(html, contains('prefers-reduced-motion: reduce'));
+      expect(html, contains('animation: unibox-flow'));
+    });
+
     test('frames the same screen in both branches of the diagram', () {
       final String html = buildSiteDocument();
 

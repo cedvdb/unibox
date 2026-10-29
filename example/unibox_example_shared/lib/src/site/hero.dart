@@ -127,6 +127,7 @@ UINode _diagram(
             palette,
             label: 'HTML and CSS',
             note: 'a document a crawler reads and a reader can act on',
+            flowKey: 'hero-flow-html',
             src: 'web/listings/?seed=${seed.name}',
             frame: frame,
           ),
@@ -134,6 +135,7 @@ UINode _diagram(
             palette,
             label: 'Flutter',
             note: 'the same tree as widgets, in the app',
+            flowKey: 'hero-flow-flutter',
             src: 'flutter/listings/?seed=${seed.name}',
             frame: frame,
           ),
@@ -194,6 +196,7 @@ UINode _branch(
   required String label,
   required String note,
   required String src,
+  required String flowKey,
   required ShowcaseFrame frame,
 }) {
   return Box(
@@ -207,8 +210,12 @@ UINode _branch(
         direction: Axis.horizontal,
         mainAlign: MainAlign.center,
         children: <UINode>[
+          // Keyed, because the site's stylesheet is what moves it: the arrow is the one thing
+          // on the page whose `why` is motion, and a key is the hook a host already has for
+          // naming an element without adding a class the model does not carry.
           TextNode(
             '↓',
+            key: flowKey,
             style: MaterialTypography.titleLarge.copyWith(
               color: palette.primary,
             ),

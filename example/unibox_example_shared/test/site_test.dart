@@ -72,6 +72,21 @@ void main() {
       );
     });
 
+    test('keys the two arrows of the diagram, so the site can move them', () {
+      // The page draws the diagram; the stylesheet names the arrows by their keys, because a
+      // key is what a tree already carries and a class is not in the model.
+      final List<TextNode> arrows = _flatten(buildSitePage(frame: _frame))
+          .whereType<TextNode>()
+          .where((TextNode text) => text.key != null)
+          .toList();
+
+      expect(arrows.map((TextNode arrow) => arrow.key), <Object?>[
+        'hero-flow-html',
+        'hero-flow-flutter',
+      ]);
+      expect(arrows.every((TextNode arrow) => arrow.text == '↓'), isTrue);
+    });
+
     test('offers the palettes in the header, beside the name', () {
       // Six dots next to the wordmark: a palette is the whole page, so it is chosen where
       // the page begins rather than above the catalogue that explains it.
