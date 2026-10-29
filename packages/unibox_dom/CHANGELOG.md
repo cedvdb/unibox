@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- The page's stylesheet is written only when a publish has added a rule. A store that publishes
+  every frame — an ink ripple, a spinner — used to re-serialise and hand the browser a sheet that
+  could not have changed, which made the browser re-parse every rule on the page sixty times a
+  second.
+- A keyed list is matched through an index rather than by asking every element for its key, and an
+  adopted page is walked once rather than once per element: both were quadratic, and both happen
+  where the page is biggest.
+
 - A store stays with the element that drew it. A repaint of a `StatefulNode` plans its view from
   the node's own address in the tree, so the components inside it keep their stores — and their
   elements — while their parent publishes: a ripple is drawn under the control that was pressed

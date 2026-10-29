@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `Box.hasThreshold`: whether a box is drawn at only some widths, read from the tokens without
+  resolving a style. A renderer asks it of every child of every box to know which box a container
+  query measures, and answering that by merging every bag was work per node for a question about
+  two tokens.
+
 - `BoxTransform.fractionX` and `BoxTransform.fractionY`: move a box by a multiple of its own size,
   which is the offset that needs no measurement — a tab indicator one tab wide moves a whole tab per
   step. They compose with `offsetX`/`offsetY` rather than replacing them.

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- The stylesheet finds a look's class by looking it up: a rendering asks for a class once per node,
+  and asking was a scan of every look the page had, which made a page whose styling varies with its
+  data cost more than its size. `Stylesheet.revision` says whether the sheet has changed since a
+  renderer last wrote it into a page.
+
 - A snapping box writes the rule that makes its children the stops: `.class > *`
   `{scroll-snap-align: start}`, alongside the state and threshold rules of the same class.
 

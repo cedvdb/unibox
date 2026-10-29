@@ -65,6 +65,8 @@ so the packages share one resolution.
 | Also build the API docs | `tool/verify.sh --docs` |
 | Every number: budgets, boot to frame, bytes | `tool/performance.sh` |
 | Accept today's numbers as the baseline | `tool/performance.sh --update` |
+| A big page: plan, stylesheet and text, against a baseline | `tool/scale.sh` |
+| Accept a new scale baseline, after reading the table | `tool/scale.sh --update` |
 | One suite, the fast loop | `(cd packages/unibox_html && dart test)` |
 | The monthly pass: gate, budget, site, the quoted numbers | `tool/maintenance.sh` |
 | Does the index point at files that exist? | `python3 tool/check_docs.py` |
@@ -367,6 +369,7 @@ and two when each side is independently reviewable.
 | Which Material type role should I use? | [`packages/unibox_material/README.md`](packages/unibox_material/README.md) |
 | What has to look the same on both? | [`packages/unibox_testing/README.md`](packages/unibox_testing/README.md) |
 | What is built, and what was deferred? | [`TASK_PLAN.md`](TASK_PLAN.md) |
+| What does a page with thousands of nodes cost? | [`PLAN_PERFORMANCE.md`](PLAN_PERFORMANCE.md) — the shapes measured and the baseline `tool/scale.sh` holds them to |
 | How do I build an application with this, as an assistant? | [`AI_INSTRUCTIONS.md`](AI_INSTRUCTIONS.md) — the consumer-facing file, written to be pasted into a context |
 | How do I contribute? | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
 | What does maintenance look like, and what runs on its own? | [`MAINTENANCE.md`](MAINTENANCE.md) |

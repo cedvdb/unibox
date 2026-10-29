@@ -14,8 +14,8 @@ twelve nodes and a page with twelve thousand are the same size to Lighthouse and
 be further apart in the pipeline.
 
 So there was no answer to "does a big page cost what it should", and no guard against a
-change that made it cost more. The review that produced this file found four places where
-the answer was no — two of them quadratic.
+change that made it cost more. The review that produced this file found six places where the
+answer was no, and what each of them cost is measured below.
 
 ## What is measured
 
@@ -39,7 +39,7 @@ three things a runner can be trusted to answer:
 1. **Exact facts.** Class count and byte count per shape, equal to the baseline. These are
    deterministic — same tree, same bytes — so a change in either is a change in what the
    renderer produces, and it has to be looked at.
-2. **Shape.** `time(2N) ≤ 3 × time(N)` per shape and per stage. A ratio measured on one
+2. **Shape.** `time(2N) ≤ 2.6 × time(N)` per shape and per stage. A ratio measured on one
    machine in one run is worth more than an absolute time across machines, and it is
    exactly the question: linear work doubles when the input doubles, quadratic work
    quadruples.
@@ -124,20 +124,44 @@ flat parameters into a fresh `BoxStyle`, so half of that work is allocated and d
 
 Each is one commit. `P1` first, because it is the guard the rest are measured against.
 
-| # | Task | Where |
-| --- | --- | --- |
-| P1 | The benchmark, its baseline, its gate and its CI job | `packages/unibox_html/tool/bench.dart`, `tool/scale.sh`, `tool/scale_check.py`, `tool/gate_tests.py`, `.github/workflows/ci.yml` |
-| P2 | A publish that changes no class leaves the stylesheet alone (F1) | `packages/unibox_dom/lib/src/mount.dart` |
-| P3 | Adoption queries the DOM once (F2) | `packages/unibox_dom/lib/src/mount.dart` |
-| P4 | `CssDeclarations.text` is computed once; `Stylesheet` indexes by class (F3) | `packages/unibox_css`, `packages/unibox_element` |
-| P5 | The emitter writes into one buffer (F4) | `packages/unibox_html/lib/src/write.dart` |
-| P6 | Keyed matching indexes both sides (F5) | `packages/unibox_dom/lib/src/patch.dart` |
-| P7 | A box resolves its style once, and a child's threshold is read without one (F6) | `packages/unibox_element/lib/src/plan_node.dart` |
+| # | Task | Where | Done |
+| --- | --- | --- | --- |
+| P1 | The benchmark, its baseline, its gate and its CI job | `packages/unibox_html/tool/bench.dart`, `tool/scale.sh`, `tool/scale_check.py`, `tool/gate_tests.py`, `.github/workflows/ci.yml` | yes |
+| P2 | A publish that changes no class leaves the stylesheet alone (F1) | `packages/unibox_dom/lib/src/mount.dart` | yes |
+| P3 | Adoption queries the DOM once (F2) | `packages/unibox_dom/lib/src/mount.dart` | yes |
+| P4 | `CssDeclarations.text` is computed once; `Stylesheet` indexes by class (F3) | `packages/unibox_css`, `packages/unibox_element` | yes |
+| P5 | The emitter writes into one buffer (F4) | `packages/unibox_html/lib/src/write.dart` | yes |
+| P6 | Keyed matching indexes both sides (F5) | `packages/unibox_dom/lib/src/patch.dart` | yes |
+| P7 | A box resolves its style once, and a child's threshold is read without one (F6) | `packages/unibox_element/lib/src/plan_node.dart` | yes |
 
 Acceptance for every one of them: the suite of the package it touches passes, `tool/verify.sh`
-passes, and `tool/scale.sh` reports the same bytes and class counts as before -- a
+passes, and `tool/scale.sh` reports the same bytes and class counts as before — a
 performance change that changes the output is a bug, not a faster renderer.
 
-The expected end state, from the numbers above: the distinct-look plan collapses onto the
-shared-look curve, the deep chain's write drops from 17.0 ms to well under a millisecond,
-and every shape passes the ratio guard with the margin the guard's 3x allows.
+## What it costs now
+
+Measured after the fixes, on the same machine, with the same benchmark:
+
+| Shape | nodes | classes | plan | css | write |
+| --- | --- | --- | --- | --- | --- |
+| shared look | 6,001 | 4 | 9.8 ms | 0.1 ms | 10.1 ms |
+| shared look | 12,001 | 4 | 14.5 ms | 0.0 ms | 20.6 ms |
+| distinct looks | 6,001 | 1,503 | 9.4 ms | 0.4 ms | 10.6 ms |
+| distinct looks | 12,001 | 3,003 | 19.5 ms | 0.7 ms | 22.2 ms |
+| deep chain | 801 | 2 | 3.1 ms | 0.0 ms | 1.0 ms |
+| deep chain | 1,601 | 2 | 4.2 ms | 0.0 ms | 2.0 ms |
+
+Doubling the tree now doubles every stage: the two shapes that broke the rule are at 2.1x
+and 2.0x, where they were at 2.5x and 9.6x.
+
+- **F3**: 41 ms → 19.5 ms to plan 12,001 nodes with 3,003 distinct looks, and 13.8 ms → 0.7 ms
+  to serialise their stylesheet, because a class's declarations are sorted and joined once
+  rather than twice and the sheet is indexed by class instead of scanned.
+- **F4**: 20 ms → 2.0 ms to write a chain of 1,601 boxes, at the same bytes.
+- **F1**, **F2**, **F5**, **F6** are on the DOM side or are smaller, and the benchmark cannot
+  see them: a browser is what pays. F1 and F2 are pinned by the tests in
+  `packages/unibox_dom/test/stateful_test.dart` and `adopt_test.dart`, and the two the tests
+  cannot observe — a query per element, a key list squared — are one lookup each now.
+
+The bytes and the class counts are identical before and after, which is the point: none of
+this changed what a renderer produces.

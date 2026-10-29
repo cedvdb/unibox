@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- A tree is written into one buffer instead of one per element, so its text is written once rather
+  than copied once per ancestor: a deeply nested page no longer costs its own depth squared.
+
 - `HtmlEmbed`, the door for markup the model does not describe: a web component, a
   `<video>`, a chart from another package. It is written verbatim rather than escaped,
   which is the point of the node and the whole risk of it — a `String` this target trusts,
