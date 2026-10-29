@@ -1092,7 +1092,8 @@ package. `tool/maintenance.sh` is the slower, monthly pass: the same gate with t
 the performance budget, the site build and the numbers this page quotes.
 
 `tool/site.sh` builds the site: one page at `/` — the claim, the example drawn by both
-renderers side by side, and the Material catalogue the page is built with — plus the
+renderers side by side, the Material catalogue the page is built with, and the vocabulary
+that closes it — plus the
 example itself at `/web/` and its Flutter build at `/flutter/`. Every band of the page
 is a node tree: the two frames of the comparison are the one thing the model cannot
 describe, and they arrive through `EmbedNode`.

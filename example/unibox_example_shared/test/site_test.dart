@@ -225,6 +225,49 @@ void main() {
       ]);
     });
 
+    test(
+      'draws the nodes the rest of the page never shows, and names them',
+      () {
+        // The hero frames a tree and the catalogue draws components; four nodes were never
+        // drawn as themselves, so the last band is where a reader meets them — and the
+        // list beside the card is what names them, because a picture has no words.
+        final List<UINode> page = _flatten(buildSitePage(frame: _frame))
+            .toList();
+        final Set<String> words = page
+            .whereType<TextNode>()
+            .map((TextNode text) => text.text)
+            .toSet();
+
+        expect(
+          page.whereType<TextInputNode>().where(
+            (TextInputNode input) => input.placeholder == 'Search the listings',
+          ),
+          hasLength(1),
+        );
+        expect(page.whereType<StackNode>(), isNotEmpty);
+        expect(page.whereType<PositionedNode>(), isNotEmpty);
+        expect(page.whereType<ImageNode>(), isNotEmpty);
+        expect(
+          words,
+          containsAll(<String>[
+            'ImageNode',
+            'StackNode',
+            'PositionedNode',
+            'TextInputNode',
+          ]),
+        );
+      },
+    );
+
+    test('gives the picture words, so a reader who cannot see it is told', () {
+      final ImageNode picture = _flatten(buildVocabularySection())
+          .whereType<ImageNode>()
+          .single;
+
+      expect(picture.src, endsWith('.jpg'));
+      expect(picture.alt, isNotEmpty);
+    });
+
     test('describes the page as a document', () {
       final UINode page = buildSitePage(frame: _frame);
       final List<BoxElement> landmarks = <BoxElement>[

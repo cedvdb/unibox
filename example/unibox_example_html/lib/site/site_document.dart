@@ -7,8 +7,8 @@ import 'iframe_node.dart';
 
 /// The document the site is served as.
 ///
-/// One page, three bands — the claim, the comparison, the catalogue — so there is one title and
-/// one description, and they describe the whole of it.
+/// One page, four bands — the claim, the comparison, the catalogue, the vocabulary — so there is
+/// one title and one description, and they describe the whole of it.
 ///
 /// The page is longer than a viewport, so nothing here gives it the height of one: it scrolls,
 /// and its bands paint their own backgrounds down its whole length. The body margin is removed
