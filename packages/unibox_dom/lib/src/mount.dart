@@ -76,6 +76,12 @@ final class DomView {
   web.HTMLStyleElement? _style;
   ElementPlan? _plan;
   web.Element? _element;
+
+  /// The sheet's revision when the page's stylesheet was last written, so a publish that
+  /// added no rule does not serialise and re-parse the whole of it.
+  ///
+  /// `-1` is "nothing has been written": a fresh view writes once, whatever the sheet says.
+  int _cssRevision = -1;
   bool _drawing = false;
   bool _dirty = false;
   bool _disposed = false;
@@ -166,23 +172,40 @@ final class DomView {
         web.document.head!.append(created);
         _style = created;
       }
-
-      _style!.textContent = pass.css(_theme);
     } else {
       _element = buildElement(next, onBuilt: pass.record);
       // Marked as the tree's stylesheet either way, so an adoption later rewrites this element
       // instead of adding a second copy of the same rules — and so a reader can find it.
       _style = web.document.createElement('style') as web.HTMLStyleElement
-        ..setAttribute('data-unibox-css', '')
-        ..textContent = pass.css(_theme);
+        ..setAttribute('data-unibox-css', '');
       web.document.head!.append(_style!);
       _host.replaceChildren(_element!);
     }
+
+    _writeCss();
 
     _plan = next;
     _bindAll(pass, next);
     _syncElements(pass);
     _sweep(pass.visited);
+  }
+
+  /// Writes the stylesheet into the page, unless the page already has this revision of it.
+  ///
+  /// A store that publishes every frame — an ink ripple, a spinner — publishes sixty times a
+  /// second, and between two of those publishes the tree is the same and so is every class: the
+  /// sheet cannot have changed. Serialising a few thousand rules and handing them to the browser
+  /// makes it throw away and re-parse all of them, which is the most expensive thing a publish
+  /// could do and the one thing it never needs to.
+  void _writeCss() {
+    final web.HTMLStyleElement? style = _style;
+
+    if (style == null || _cssRevision == _sheet.revision) {
+      return;
+    }
+
+    _cssRevision = _sheet.revision;
+    style.textContent = documentCss(_sheet, theme: _theme);
   }
 
   /// Pairs the tree's nodes with the page's elements and binds what they do.
@@ -293,7 +316,7 @@ final class DomView {
     );
     mount.plan = next;
     mount.element = pass.built[next] ?? mount.element;
-    _style?.textContent = documentCss(_sheet, theme: _theme);
+    _writeCss();
 
     _bindAll(pass, next);
     _syncElements(pass);
@@ -483,8 +506,6 @@ final class _Pass {
         nodes.putIfAbsent(plan, () => node),
     stateful: _planStateful,
   );
-
-  String css(core.UniboxTheme? theme) => documentCss(sheet, theme: theme);
 
   /// Collects the nodes of [tree] in the order their elements appear, expanding stateful nodes.
   ///

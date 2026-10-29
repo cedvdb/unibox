@@ -19,6 +19,17 @@ final class Stylesheet {
   /// The state rules, in the order their classes were asked for.
   final List<CssRule> _states = <CssRule>[];
 
+  /// How many times a rule has been added, which is what tells a renderer whether the
+  /// stylesheet it wrote into the page is still the one this sheet describes.
+  ///
+  /// A renderer that repaints on every publish — an ink ripple publishes sixty times a
+  /// second — asks this before it serialises the sheet, because serialising a few thousand
+  /// rules and handing them to a browser is the most expensive thing a publish can do, and
+  /// between two publishes of the same tree it cannot have changed.
+  int get revision => _revision;
+
+  int _revision = 0;
+
   /// How many distinct looks the rendering has, which is its CSS cost.
   int get length => _rules.length;
 
@@ -48,9 +59,15 @@ final class Stylesheet {
     }
 
     _rules.add((className: className, declarations: declarations));
+    _revision++;
 
     if (states != null) {
-      _states.addAll(states(className));
+      final List<CssRule> added = states(className);
+
+      if (added.isNotEmpty) {
+        _states.addAll(added);
+        _revision++;
+      }
     }
 
     return className;
