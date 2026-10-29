@@ -7,12 +7,14 @@ name: Review
 # is allowed, and this decides whether a maintainer should look harder. A green gate outranks a
 # comment written here.
 #
-# The call is one HTTPS request to an OpenAI-compatible endpoint, so the reviewer is not tied to a
-# vendor. Gemini Flash is the default because its free tier costs nothing and this job does not need
-# a better model: bounded criteria, a capped diff, one fixed output shape, no tool use.
+# The call is one HTTPS request to an OpenAI-compatible endpoint. Gemini Flash is the default
+# because its free tier costs nothing and this job does not need a better model: bounded criteria, a
+# capped diff, one fixed output shape, no tool use. The secret carries the provider's name —
+# `secrets.GEMINI_API_KEY` — because that is where a reader has to go to find it; pointing the
+# reviewer somewhere else means changing that one line as well as the endpoint.
 #
-# `vars.REVIEW_ENDPOINT` and `vars.REVIEW_MODEL` override both. These are known to work, and every
-# one of them takes the same `Authorization: Bearer <key>` header:
+# `vars.REVIEW_ENDPOINT` and `vars.REVIEW_MODEL` override the endpoint and the model. These are
+# known to work, and every one of them takes the same `Authorization: Bearer <key>` header:
 #
 #   Gemini      https://generativelanguage.googleapis.com/v1beta/openai/chat/completions
 #   DeepSeek    https://api.deepseek.com/chat/completions          (deepseek-chat)
@@ -27,7 +29,7 @@ name: Review
 #   * A pull request from a fork cannot read a repository secret, so a stranger's change is not
 #     reviewed. `pull_request_target` would fix that and would also hand the secret to code from the
 #     fork. Do not.
-#   * Without `secrets.REVIEW_API_KEY` the job still runs, says so in the log, and does nothing: a
+#   * Without `secrets.GEMINI_API_KEY` the job still runs, says so in the log, and does nothing: a
 #     repository without a key is a repository that verifies exactly as it did before.
 
 on:
@@ -56,13 +58,13 @@ jobs:
       - name: Is a reviewer configured?
         id: configured
         env:
-          KEY: ${{ secrets.REVIEW_API_KEY }}
+          KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           if [ -n "${KEY}" ]; then
             echo 'yes=true' >> "$GITHUB_OUTPUT"
           else
             echo 'yes=false' >> "$GITHUB_OUTPUT"
-            echo '::notice title=No reviewer configured::Set REVIEW_API_KEY to have every pull request read against .github/agent/review-prompt.md. The checks still run.'
+            echo '::notice title=No reviewer configured::Set GEMINI_API_KEY to have every pull request read against .github/agent/review-prompt.md. The checks still run.'
           fi
 
       # The prompt is a file, so there is one copy of it and it reads as prose. The diff is gathered
@@ -72,7 +74,7 @@ jobs:
         id: ask
         if: steps.configured.outputs.yes == 'true'
         env:
-          KEY: ${{ secrets.REVIEW_API_KEY }}
+          KEY: ${{ secrets.GEMINI_API_KEY }}
           ENDPOINT: ${{ vars.REVIEW_ENDPOINT || 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions' }}
           MODEL: ${{ vars.REVIEW_MODEL || 'gemini-3.8-flash' }}
           GH_TOKEN: ${{ github.token }}
