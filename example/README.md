@@ -387,8 +387,8 @@ example itself — it is drawn in the frames, and it is not a destination of thi
 Inside the frame the example carries one more: its bar is a `<nav>` whose destination is
 an `<a href>` naming the document that draws it. The sign-up control is not a link — it
 opens a dialog over the page — so a crawler sees one document of the example and the one
-link into it. A page that has to be found makes sense as a `LinkNode` with a
-real url — which is the router work `TASK_PLAN.md` lists as deferred.
+link into it. A page that has to be found makes sense as a `LinkNode` with a real url,
+which is the router work this project has deliberately not built.
 
 The static export is the document on its own: the markup, the stylesheet with its state rules
 and its container queries, and nothing that answers a press. What answers them is the client

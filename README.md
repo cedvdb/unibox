@@ -1100,8 +1100,6 @@ Where to read more:
   defaults, the naming, the non-goals, and what was deliberately left out.
 - [PERFORMANCE.md](PERFORMANCE.md) — what a page with thousands of nodes costs, the three
   shapes `tool/scale.sh` measures, and the baseline CI holds them to.
-- [TASK_PLAN.md](TASK_PLAN.md) — what is done, what is next, and what was deliberately
-  left out.
 - [RELEASE.md](RELEASE.md) — the checklist for cutting a release, including the one
   step that is a human decision (`publish_to: none` off).
 - [example/README.md](example/README.md) — the page, the dialog, how they are

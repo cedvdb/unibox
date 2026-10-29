@@ -751,8 +751,7 @@ belongs to options, tabs and rows and not to a button, and Flutter already reads
 `current` as the selected state, so one fact reaches both targets and neither is told
 something invalid. The bar itself is a `nav` landmark on the web, which Flutter's screen
 readers have no counterpart for. A tab strip's arrow keys are deliberately not modelled
-(`BoxRole` has no tab, for the reason [TASK_PLAN](../../TASK_PLAN.md) records), so the
-role is a button.
+(`BoxRole` has no tab), so the role is a button.
 
 **Where it sits is the tree's business**, and so is the safe area: the bar is a row
 that fills the width and states its height, and being at the bottom is a
@@ -1031,7 +1030,7 @@ value the model could carry:
 | the floating label | an animation the model has no triggered timeline for |
 | the caret, the selection and the focus ring | the platform draws them for the input node |
 | modal entrance and exit transitions | the same missing timeline |
-| `ColorScheme` and CSS custom properties | the two wirings an application owns, described in Task 96 of `TASK_PLAN.md`. A palette *is* generated here (`MaterialPalette.fromSeed`), and installing it on the host stays the application's job |
+| `ColorScheme` and CSS custom properties | the two wirings an application owns. A palette *is* generated here (`MaterialPalette.fromSeed`), and installing it on the host stays the application's job |
 | the icon font and its subset | a host asset: declared in `fonts:` or with an `@font-face`, and subset by the Flutter build |
 | Material's breathing spinner | a rotating arc of a fixed sweep: a sweep that grows and shrinks needs a keyframe timeline |
 | a `progressbar` role with its bounds | `BoxSemantics` has no progress role yet, so a ring announces its label as text |

@@ -14,5 +14,4 @@ The three rules that are broken most often:
 - `tool/verify.sh` runs what CI runs: the format check, `dart analyze` and every suite.
   A `dart doc` warning also fails CI, so every public member keeps a doc comment.
 
-Do not publish, bump a version, or implement anything from the `Deferred` section
-of [TASK_PLAN.md](TASK_PLAN.md) unless asked.
+Do not publish or bump a version unless asked.

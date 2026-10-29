@@ -89,8 +89,6 @@ coding agent needs are in [AGENTS.md](AGENTS.md), and a human contributing needs
   [.github/workflows/weekly.yml](.github/workflows/weekly.yml) for the scheduled gate:
   what continuous integration
   actually runs, including the docs job that fails on a `dart doc` warning.
-- [TASK_PLAN.md](TASK_PLAN.md): what is built, the decisions taken, and the
-  `Deferred` list that is deliberately out of scope.
 - [RELEASE.md](RELEASE.md): the human release checklist. CI never publishes.
 - [example/README.md](example/README.md): the example's trees, the two hosts, and how a
   document and a Flutter app are built from them.

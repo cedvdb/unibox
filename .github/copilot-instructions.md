@@ -14,6 +14,5 @@ In short:
   default for a token the model leaves unset.
 - `tool/verify.sh` is the gate: format check, `dart analyze`, every test suite,
   and with `--docs` the API docs, which fail on a warning.
-- Conventional Commits, one verified change per commit. No version bumps, no
-  publishing, and nothing from the `Deferred` section of `TASK_PLAN.md` unless
-  asked.
+- Conventional Commits, one verified change per commit. No version bumps and no
+  publishing unless asked.

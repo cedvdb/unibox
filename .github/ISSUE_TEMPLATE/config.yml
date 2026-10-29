@@ -10,6 +10,3 @@ contact_links:
   - name: How to contribute
     url: https://github.com/cedvdb/unibox/blob/main/CONTRIBUTING.md
     about: Setup, the verify loop, what "done" means, and the file-by-file recipes.
-  - name: What is deliberately not built
-    url: https://github.com/cedvdb/unibox/blob/main/TASK_PLAN.md
-    about: The `Deferred` section lists what was left out on purpose, with the reason next to each item.

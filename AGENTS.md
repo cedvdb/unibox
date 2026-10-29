@@ -48,7 +48,6 @@ guide is [`README.md`](README.md).
 | `example/unibox_example_flutter/`, `example/unibox_example_html/` | hosts: the surface, the link policy, and the documents — never layout or state | the surface, a link or a document changes |
 | `README.md`, `design.md`, package READMEs | the user guide, the reasoning, the per-target mapping tables | public API or behaviour changes |
 | `AI_INSTRUCTIONS.md` | the consumer-facing counterpart: rules and a translation table for an assistant writing application code | a parameter is renamed or a default changes |
-| `TASK_PLAN.md` | what was built, why, and what was deliberately deferred | rarely: record a decision, not a task |
 | `RELEASE.md` | the release checklist | never automatically; it is a human procedure |
 
 ## Commands
@@ -339,9 +338,6 @@ and two when each side is independently reviewable.
 
 ## Out of scope
 
-- **The `Deferred` section of [`TASK_PLAN.md`](TASK_PLAN.md).** Those items were
-  left out on purpose, with the reason written next to them. Implement one only
-  when a human asks for it by name.
 - **Releasing.** Do not bump a version, close a changelog or remove
   `publish_to: none`. [`RELEASE.md`](RELEASE.md) is a human checklist; CI never
   publishes.
@@ -368,7 +364,6 @@ and two when each side is independently reviewable.
 | How does a node own state? | [`packages/unibox_core/README.md#state`](packages/unibox_core/README.md#state) |
 | Which Material type role should I use? | [`packages/unibox_material/README.md`](packages/unibox_material/README.md) |
 | What has to look the same on both? | [`packages/unibox_testing/README.md`](packages/unibox_testing/README.md) |
-| What is built, and what was deferred? | [`TASK_PLAN.md`](TASK_PLAN.md) |
 | What does a page with thousands of nodes cost? | [`PERFORMANCE.md`](PERFORMANCE.md) — the shapes measured and the baseline `tool/scale.sh` holds them to |
 | How do I build an application with this, as an assistant? | [`AI_INSTRUCTIONS.md`](AI_INSTRUCTIONS.md) — the consumer-facing file, written to be pasted into a context |
 | How do I contribute? | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
