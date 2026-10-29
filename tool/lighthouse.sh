@@ -8,7 +8,8 @@
 # export and fails a budget rather than printing a report.
 #
 # Usage:
-#   tool/lighthouse.sh                 measure the exported pages
+#   tool/lighthouse.sh                 write the documents and measure them
+#   tool/lighthouse.sh build/site      measure a site that is already built
 #   PORT=9000 tool/lighthouse.sh       serve on another port
 #
 # Needs `dart`, `python3` and `node` (Lighthouse runs through `npx`). It is not part of
@@ -32,8 +33,20 @@ cleanup() {
 }
 trap cleanup EXIT
 
-printf '\n==> Writing the documents\n'
-dart run example/unibox_example_html/bin/build_site.dart --out="$WORK"
+# A directory given as the first argument is a site that is already built — in continuous
+# integration that is the one the deploy will publish: the same files, the client included.
+if [ -n "${1:-}" ]; then
+  if [ ! -d "$1" ]; then
+    printf 'Not a directory: %s\n' "$1" >&2
+    exit 2
+  fi
+
+  printf '\n==> Measuring the site at %s\n' "$1"
+  cp -R "$1"/. "$WORK"/
+else
+  printf '\n==> Writing the documents\n'
+  dart run example/unibox_example_html/bin/build_site.dart --out="$WORK"
+fi
 
 # The site's route, which is where the example lives: `web/listings/`.
 printf '\n==> Serving %s on %s\n' "$WORK" "$PORT"

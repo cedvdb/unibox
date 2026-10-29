@@ -25,6 +25,37 @@ it can (checked locally, not committed).
 
 **Cost.** ~3 minutes of CI on the deploy path; a Chrome install (`ubuntu-latest` has one).
 
+## T1a. The front page stopped being fast, and this gate is what found it
+
+**Found while doing T1.** Measuring the built site, instead of documents written into a temp
+directory, gave these numbers on the front page (`/`), all under Lighthouse's mobile profile:
+
+| what was served | performance | LCP | TBT |
+| --- | ---: | ---: | ---: |
+| the document alone, before the client and the frames existed | 100 | 0.9 s | 0 ms |
+| today, everything | **56** | **4.3 s** | **840 ms** |
+| with the client's `<script>` removed | 50 | 5.1 s | 816 ms |
+| with the frames' `src` removed | 70 | 3.8 s | 550 ms |
+
+The two costs are separable and both ours:
+
+1. **The comparison frames load a whole second document, and one of them boots Flutter.** The hero
+   puts two live frames above the fold; the right one is the application, so a visit to a marketing
+   page pays two megabytes before reading a word. `loading="lazy"` does not help when the frame is
+   already in view.
+   *Fix:* the right frame loads on request — a placeholder that says «start the Flutter rendering»
+   and swaps its `src` on a press. The comparison stays one gesture away and the front page stops
+   being an application.
+2. **The client re-plans and patches a page the server already wrote.** On adoption nothing differs,
+   so the work is all comparison: a plan for every node, an attribute check for every element, and
+   a stylesheet rewritten with identical text. Under throttling that is most of a second.
+   *Fix:* an adoption binds behaviour and keeps the tree's plan; it does not patch, and it does not
+   rewrite a stylesheet whose text it has just read. A later publish patches from the plan as it
+   does now — and a stale page is still corrected by the first publish.
+
+**Done when** the front page is back inside the budget of T1 with the frames and the client in
+place, and the two fixes are separately committed and measured.
+
 ## T2. A gate that the documents still crawl
 
 **Now.** Nothing checks that an exported page is still *readable as a document*. A renderer change
@@ -92,5 +123,5 @@ that must hear about a new callback. `AI_INSTRUCTIONS.md` says the same in one l
 
 ## Order
 
-T1 → T2 → T3 → T4 → T5 → T6. One commit each, `tool/verify.sh` before each, and a deploy dispatch
+T1a → T1 → T2 → T3 → T4 → T5 → T6. One commit each, `tool/verify.sh` before each, and a deploy dispatch
 after T1 and T2 so the new gates are proven on the path that matters rather than only locally.
