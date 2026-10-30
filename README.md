@@ -321,10 +321,23 @@ platform does", so `gap` and the alignments work in every box. Nothing is inheri
 from a box to its children except typography: a box never pushes its padding, gap or
 alignment down.
 
-A child that fills the width needs a parent that offers one: `width: double.infinity`
-takes the space it is given, and a browser can only resolve `100%` against a parent
-that has a width — so inside a column that hugs its content, state
-`crossAlign: CrossAlign.stretch` on the column and the two targets agree.
+**The two defaults that cost an afternoon.** Both are the same on both targets, and
+both are the opposite of what an instinct says:
+
+- **The cross axis starts; it does not stretch.** `crossAlign` is `start`, where a
+  CSS flex container defaults to `stretch`. A column therefore hugs each child to its
+  own content, and a band does not reach the page width on its own. A band that must
+  span says `crossAlign: CrossAlign.stretch` on the column that holds it. A child
+  that fills needs that too: `width: double.infinity` takes the space it is given,
+  and a browser resolves `100%` against a parent that has a width.
+- **A row is as wide as its content.** A horizontal box is a `Row` with
+  `mainAxisSize: min` — a CSS flex row whose container hugs — so a row with
+  `mainAlign: spaceBetween` distributes nothing unless its parent gave it a width.
+  A row that must distribute is inside a box that did: `crossAlign:
+  CrossAlign.stretch` on the column around it, or a `width`.
+
+So the recipe, in one line: **a band that must span says `crossAlign:
+CrossAlign.stretch`, and a row that must distribute is inside one that did.**
 
 #### Shapes
 

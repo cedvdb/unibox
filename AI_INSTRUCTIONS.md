@@ -89,9 +89,21 @@ host that renders it.
 3. **Flat parameters beat style bags.** `Box.computedStyle` merges `style`
    (deprecated) → `styles` left to right → the flat parameters. A state style
    (`hoverStyle`, `stateStyles`) overlays the resting one; `disabled` overlays all.
-4. **A box is a column by default.** `direction` unset means `Axis.vertical`, and
-   `mainAlign` and `crossAlign` default to `start` — not Flutter's `center` cross
-   alignment and not CSS's `stretch`. Say what you mean.
+4. **A box is a column by default, and it hugs.** `direction` unset means
+   `Axis.vertical`, and `mainAlign` and `crossAlign` default to `start` — not Flutter's
+   `center` cross alignment and not CSS's `stretch`. Two consequences are worth
+   reading twice, because both fail silently:
+
+   - a column hugs every child to its content, so a band does not reach the page width
+     until the column says `crossAlign: CrossAlign.stretch` — and a
+     `width: double.infinity` inside it needs that too, or the two targets disagree
+     about a `100%` with no parent width;
+   - a horizontal box is a `Row(mainAxisSize: min)`, so `mainAlign: spaceBetween`
+     distributes nothing unless the parent gave the row a width. A row that must
+     distribute is inside a column that stretches, or has a `width`.
+
+   Say what you mean: `direction`, `crossAlign: CrossAlign.stretch` on a band, and a
+   width on a row that distributes.
 5. **Dimensions are `double?` in logical pixels.** `double.infinity` fills the space
    the parent gives; `flex: 1` is the `Expanded` spelling. `gap` is the space between
    children, `padding` the space inside, `margin` the space outside.
