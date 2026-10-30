@@ -391,7 +391,7 @@ void main() {
         overflow: Overflow.scroll,
         padding: BoxSpacing.all(8),
         border: BoxBorder(width: 1),
-        shadow: BoxShadow(),
+        shadows: <BoxShadow>[BoxShadow()],
         textStyle: BoxTextStyle(fontSize: 16),
       );
 
@@ -890,7 +890,10 @@ void main() {
     });
 
     test('is reachable from the flat parameter, and that wins', () {
-      const Box box = Box(visibleFrom: 600, style: BoxStyle(visibleFrom: 2000));
+      const Box box = Box(
+        visibleFrom: 600,
+        styles: <BoxStyle>[BoxStyle(visibleFrom: 2000)],
+      );
 
       expect(box.computedStyle.visibleFrom, 600);
     });

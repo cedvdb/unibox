@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- `MaterialElevation` states Flutter's own shadows, all three layers of each. A level was a
+  reading of Material's two-layer specification at 15% black; every level is now an entry of the
+  framework's `kElevationToShadow` — the umbra at 20%, the penumbra at 14% and the ambient layer
+  at 12% that reads as height — so a card casts exactly the shadow a Flutter card casts.
+  `MaterialCard.elevatedShadow` is `elevatedShadows` now, and every component passes the list a
+  box takes.
+- The catalogue in the example shows a card at each of the first three heights, on the surface
+  tone Material pairs with it, beside the outlined and the filled card.
+
 - A **primary** tab bar's indicator sits under the tab that is chosen. It was laid from the
   centre of the bar and then moved one share per tab, so with three tabs the underline showed
   the *second* one while the first was chosen — and the third tab's underline ran off the end.

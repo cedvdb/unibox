@@ -49,12 +49,6 @@ abstract class EmbedNode extends UINode {
   /// can draw, and reports the node when it finds none or when it finds two.
   List<Object> get implementations;
 
-  /// The single implementation of a node that only carries one.
-  @Deprecated(
-    'Use implementations: an embed may carry one implementation per renderer.',
-  )
-  Object get payload => implementations.first;
-
   @override
   List<UINode> get children =>
       child == null ? const <UINode>[] : <UINode>[child!];

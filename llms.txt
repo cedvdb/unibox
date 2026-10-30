@@ -76,10 +76,12 @@ coding agent needs are in [AGENTS.md](AGENTS.md), and a human contributing needs
 - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md): the Contributor Covenant in short, and where a
   report goes.
 - [MAINTENANCE.md](MAINTENANCE.md): what runs on its own (CI, the weekly gate,
-  Dependabot), the monthly hour, what a human decides, and the prompt that hands a
+  Dependabot), the monthly pass, what a human decides, and the prompt that hands a
   maintenance task to an assistant.
 - [tool/verify.sh](tool/verify.sh): format check, analysis and the test
-  suites, the way CI runs them. `--fast` skips the suites, `--docs` adds `dart doc`.
+  suites, the way CI runs them; it reads `.flutter-version` first, and stops when the
+  machine's Flutter is not the one the repository is developed against. `--fast` skips the
+  suites, `--docs` adds `dart doc`.
 - [tool/scale.sh](tool/scale.sh): the synthetic benchmark — a page with thousands of
   nodes, planned and written — and `tool/scale_check.py`, which holds it to the
   baseline in `tool/scale_baseline.json`. Runs in CI.
@@ -89,8 +91,14 @@ coding agent needs are in [AGENTS.md](AGENTS.md), and a human contributing needs
   [.github/workflows/weekly.yml](.github/workflows/weekly.yml) for the scheduled gate:
   what continuous integration
   actually runs, including the docs job that fails on a `dart doc` warning.
-- [TASK_PLAN.md](TASK_PLAN.md): what is built, the decisions taken, and the
-  `Deferred` list that is deliberately out of scope.
+- [.github/workflows/review.yml](.github/workflows/review.yml) and
+  [.github/agent/review-prompt.md](.github/agent/review-prompt.md): the second reader — every
+  pull request is read against `AGENTS.md` and answered in one comment. It approves nothing.
+- [tool/surface_check.py](tool/surface_check.py): every token has a place in the appearance table
+  or a reason in the script's map, and every callback is reached by both renderers.
+- [.github/ISSUE_TEMPLATE/maintenance_task.yml](.github/ISSUE_TEMPLATE/maintenance_task.yml): the
+  form that makes an issue `agent-ready` — the recipe, the package, the line that has to pass.
+  [MAINTENANCE.md](MAINTENANCE.md#the-queue) says what the labels mean.
 - [RELEASE.md](RELEASE.md): the human release checklist. CI never publishes.
 - [example/README.md](example/README.md): the example's trees, the two hosts, and how a
   document and a Flutter app are built from them.

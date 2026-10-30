@@ -14,6 +14,7 @@ final class Apartment {
   const Apartment({
     required this.name,
     required this.district,
+    required this.city,
     required this.rooms,
     required this.area,
     required this.rent,
@@ -27,6 +28,13 @@ final class Apartment {
 
   /// The part of the city it stands in.
   final String district;
+
+  /// The capital it stands in.
+  ///
+  /// A site that only ever shows one city is a site about that city, so the list spans
+  /// six capitals and the city is data like the district: the lines that count them are
+  /// computed from this field rather than written into a sentence.
+  final String city;
 
   /// How many rooms it has.
   final int rooms;
@@ -61,17 +69,20 @@ final class Apartment {
   String get priceLine => '€$rent';
 
   /// Where it is, the way a listing says it.
-  String get locationLine => '$district · Brussels';
+  String get locationLine => '$district · $city';
 }
 
-/// The listings the example shows.
+/// The listings the example shows: one flat per capital, six of them in all.
 ///
 /// More of them than fit on a normal window, which is the point: the page
-/// scrolls under the navigation bar instead of growing the page.
+/// scrolls under the navigation bar instead of growing the page. Every capital is a
+/// euro country, so one currency is honest for the lot, and each street is named in the
+/// language of the city it is in.
 const List<Apartment> exampleApartments = <Apartment>[
   Apartment(
-    name: 'Via Bellavista 12',
-    district: 'Saint-Gilles',
+    name: 'Rue de Turenne 12',
+    district: 'Le Marais',
+    city: 'Paris',
     rooms: 3,
     area: 84,
     rent: 1850,
@@ -80,8 +91,9 @@ const List<Apartment> exampleApartments = <Apartment>[
     badge: 'New',
   ),
   Apartment(
-    name: 'Corso Umberto 4',
-    district: 'Ixelles',
+    name: 'Oranienstraße 4',
+    district: 'Kreuzberg',
+    city: 'Berlin',
     rooms: 2,
     area: 61,
     rent: 1240,
@@ -90,8 +102,9 @@ const List<Apartment> exampleApartments = <Apartment>[
     badge: '4.5',
   ),
   Apartment(
-    name: 'Piazza della Scala 7',
-    district: 'Centre',
+    name: 'Rua da Bica 7',
+    district: 'Alfama',
+    city: 'Lisbon',
     rooms: 1,
     area: 44,
     rent: 980,
@@ -100,8 +113,9 @@ const List<Apartment> exampleApartments = <Apartment>[
     badge: '4.8',
   ),
   Apartment(
-    name: 'Vicolo del Forno 3',
-    district: 'Anderlecht',
+    name: 'Kirchengasse 3',
+    district: 'Neubau',
+    city: 'Vienna',
     rooms: 4,
     area: 112,
     rent: 2400,
@@ -110,8 +124,9 @@ const List<Apartment> exampleApartments = <Apartment>[
     badge: 'New',
   ),
   Apartment(
-    name: 'Lungomare 21',
-    district: 'Schaerbeek',
+    name: 'Calle de la Palma 9',
+    district: 'Malasaña',
+    city: 'Madrid',
     rooms: 2,
     area: 70,
     rent: 1420,
@@ -120,8 +135,9 @@ const List<Apartment> exampleApartments = <Apartment>[
     badge: '4.2',
   ),
   Apartment(
-    name: 'Salita San Marco 9',
-    district: 'Forest',
+    name: 'Via della Scala 7',
+    district: 'Trastevere',
+    city: 'Rome',
     rooms: 3,
     area: 95,
     rent: 2100,
@@ -130,6 +146,14 @@ const List<Apartment> exampleApartments = <Apartment>[
     badge: '4.9',
   ),
 ];
+
+/// The capitals the example's listings stand in, once each, in the order it names them.
+///
+/// The two lines that describe the list count its cities through this rather than
+/// repeating a number: a seventh capital changes the page without changing a word of it.
+List<String> get exampleCapitals => <String>{
+  for (final Apartment apartment in exampleApartments) apartment.city,
+}.toList();
 
 /// How a page of listings is drawn.
 ///
@@ -321,7 +345,7 @@ UINode _searchBar() {
         flex: 1,
         children: <UINode>[
           TextNode(
-            'Brussels · two rooms · under €2 000',
+            '${exampleCapitals.length} capitals · two rooms · under €2 000',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: MaterialTypography.bodyLarge.merge(
@@ -451,7 +475,7 @@ UINode _mapButton() {
   return Box(
     visibleUntil: 900,
     margin: const BoxSpacing.only(bottom: 24),
-    shadow: MaterialElevation.level3,
+    shadows: MaterialElevation.level3,
     borderRadius: 16,
     backgroundColor: const BoxColor.role(MaterialColorRole.primaryContainer),
     children: <UINode>[
@@ -473,10 +497,10 @@ UINode _mapButton() {
   );
 }
 
-/// The line above the listings: how many there are.
+/// The line above the listings: how many there are, and in how many capitals.
 UINode _resultLine() {
   return TextNode(
-    '${exampleApartments.length} apartments in Brussels',
+    '${exampleApartments.length} apartments in ${exampleCapitals.length} capitals',
     style: ExampleType.muted,
   );
 }
@@ -613,12 +637,13 @@ UINode _card(Apartment apartment, String photoPrefix, {bool ahead = false}) {
   );
 }
 
-/// The map: a rounded panel with roads, districts and the price of three flats.
+/// The map: a rounded panel with roads, the capitals the flats stand in and the price of
+/// three of them.
 ///
 /// It is drawn from nodes rather than embedded, which is the honest thing for an
 /// example: a real map is a third-party embed, and this one shows the shape of a
-/// map — a surface, a few roads as thin rotated boxes, district names and price
-/// pins place by place — without a key, a script or a network call.
+/// map — a surface, a few roads as thin rotated boxes, a city with the price of a flat
+/// in it, place by place — without a key, a script or a network call.
 UINode _map() {
   const BoxColor plot = BoxColor(0xFFE7EFE4);
 
@@ -695,11 +720,11 @@ UINode _map() {
               transform: const BoxTransform(rotation: 6),
             ),
           ),
-          // The districts, the way a map names them.
-          _mapLabel('Saint-Gilles', left: 24, top: 24),
-          _mapLabel('Ixelles', left: 210, top: 120),
-          _mapLabel('Centre', left: 40, top: 250),
-          _mapLabel('Forest', left: 190, top: 360),
+          // The capitals, the way a map names them, each beside what a flat costs there.
+          _mapLabel('Paris', left: 24, top: 24),
+          _mapLabel('Berlin', left: 210, top: 120),
+          _mapLabel('Lisbon', left: 40, top: 250),
+          _mapLabel('Rome', left: 190, top: 360),
           // What the flats cost, pinned where they are.
           _pricePin('€1850', left: 96, top: 92),
           _pricePin('€1240', left: 232, top: 208),
@@ -710,7 +735,7 @@ UINode _map() {
   );
 }
 
-/// A district name on the map.
+/// A city name on the map.
 UINode _mapLabel(String name, {required double left, required double top}) {
   return PositionedNode(
     left: left,

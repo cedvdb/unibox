@@ -45,7 +45,7 @@ final class MaterialBottomSheet extends OverlayNode {
            gap: 16,
            width: double.infinity,
            maxWidth: maxWidth,
-           shadow: _elevation,
+           shadows: _elevation,
            children: <UINode>[
              Box(
                mainAlign: MainAlign.center,
@@ -96,7 +96,7 @@ final class MaterialBottomSheet extends OverlayNode {
        );
 
   /// Elevation level one, cast upward: the sheet rises from the bottom edge.
-  static const BoxShadow _elevation = MaterialElevation.sheet;
+  static const List<BoxShadow> _elevation = MaterialElevation.sheet;
 
   /// The name this node answers to in an inspector.
   ///

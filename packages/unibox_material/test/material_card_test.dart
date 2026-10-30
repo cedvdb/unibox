@@ -16,18 +16,21 @@ void main() {
         const BoxColor.role(MaterialColorRole.surfaceContainerLow),
       );
       expect(card.borderRadius, 12);
-      expect(card.shadow, MaterialCard.elevatedShadow);
+      expect(card.shadows, MaterialCard.elevatedShadows);
       expect(card.border, isNull);
       expect(card.textStyle, MaterialTypography.bodyMedium);
       expect(card.children, isEmpty);
     });
 
-    test('draws the shade of elevation level one', () {
-      const shadow = MaterialCard.elevatedShadow;
+    test('draws the three layers of elevation level one', () {
+      const List<BoxShadow> shadows = MaterialCard.elevatedShadows;
 
-      expect(shadow.offsetY, 1);
-      expect(shadow.blurRadius, 3);
-      expect(shadow.color.opacity, closeTo(0.15, 0.01));
+      // Flutter's `kElevationToShadow[1]`: an umbra under the edge, its penumbra and
+      // the wide ambient layer that reads as height.
+      expect(shadows, hasLength(3));
+      expect(shadows.first.spreadRadius, -1);
+      expect(shadows.last.blurRadius, 3);
+      expect(shadows.last.color.opacity, closeTo(0.12, 0.01));
     });
 
     test('keeps the children it is given, in order', () {
@@ -45,7 +48,7 @@ void main() {
         padding: BoxSpacing.all(8),
         color: BoxColors.lightGrey,
         borderRadius: 0,
-        shadow: null,
+        shadows: null,
         border: BoxBorder(),
         textStyle: BoxTextStyle(fontSize: 12),
       );
@@ -53,7 +56,7 @@ void main() {
       expect(card.computedStyle.padding, const BoxSpacing.all(8));
       expect(card.computedStyle.backgroundColor, BoxColors.lightGrey);
       expect(card.computedStyle.borderRadius, 0);
-      expect(card.computedStyle.shadow, isNull);
+      expect(card.computedStyle.shadows, isNull);
       expect(card.computedStyle.border, const BoxBorder());
       expect(card.computedStyle.textStyle, const BoxTextStyle(fontSize: 12));
     });
@@ -103,7 +106,7 @@ void main() {
         card.backgroundColor,
         const BoxColor.role(MaterialColorRole.surfaceContainerLow),
       );
-      expect(card.shadow, MaterialCard.elevatedShadow);
+      expect(card.shadows, MaterialCard.elevatedShadows);
       expect(card.border, isNull);
     });
 
@@ -114,7 +117,7 @@ void main() {
         card.backgroundColor,
         const BoxColor.role(MaterialColorRole.surfaceContainerHighest),
       );
-      expect(card.shadow, isNull);
+      expect(card.shadows, isNull);
     });
 
     test('outlined is the surface with an outline variant border', () {
@@ -124,7 +127,7 @@ void main() {
         card.backgroundColor,
         const BoxColor.role(MaterialColorRole.surface),
       );
-      expect(card.shadow, isNull);
+      expect(card.shadows, isNull);
       expect(
         card.border?.color,
         const BoxColor.role(MaterialColorRole.outlineVariant),

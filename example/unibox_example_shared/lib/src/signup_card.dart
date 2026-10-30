@@ -143,7 +143,7 @@ Box buildSignupCard({
     border: BoxBorder(color: BoxColor.role(ExampleColor.border)),
     // The dialog's own elevation, not a shadow written here: a surface that is raised
     // by hand is the fourth shadow in a page that has three, and the one that drifts.
-    shadow: MaterialDialog.elevation,
+    shadows: MaterialDialog.elevation,
     children: <UINode>[
       _banner(),
       _closeRow(onDismiss),

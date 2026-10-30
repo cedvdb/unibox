@@ -187,14 +187,14 @@ ImageProvider<Object> toImageProvider(String src) {
 BoxDecoration? toDecoration(core.BoxStyle style) {
   final core.BoxBorder? border = style.border;
   final bool hasBorder = border != null && border.isVisible;
-  final core.BoxShadow? shadow = style.shadow;
+  final List<core.BoxShadow>? shadows = style.shadows;
   final double? borderRadius = style.borderRadius;
   final core.BoxBorderRadius? corners = style.corners;
   final core.BoxColor? backgroundColor = style.backgroundColor;
 
   if (backgroundColor == null &&
       !hasBorder &&
-      shadow == null &&
+      (shadows == null || shadows.isEmpty) &&
       borderRadius == null &&
       corners == null) {
     return null;
@@ -210,7 +210,9 @@ BoxDecoration? toDecoration(core.BoxStyle style) {
         : borderRadius == null
         ? null
         : BorderRadius.circular(borderRadius),
-    boxShadow: shadow == null ? null : <BoxShadow>[toBoxShadow(shadow)],
+    boxShadow: shadows == null || shadows.isEmpty
+        ? null
+        : shadows.map(toBoxShadow).toList(growable: false),
   );
 }
 

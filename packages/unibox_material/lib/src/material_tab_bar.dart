@@ -103,11 +103,13 @@ final class MaterialTabBar extends Box {
          // The set the tabs belong to. A reader is told it has entered a tab bar, which is what makes
          // the tabs inside it mean "one of these" rather than several buttons.
          semantics: const BoxSemantics(role: BoxRole.tablist),
-         shadow: BoxShadow(
-           color: palette?.outlineVariant ?? const BoxColor(0xFFD6C2C5),
-           offsetY: 1,
-           blurRadius: 0,
-         ),
+         shadows: <BoxShadow>[
+           BoxShadow(
+             color: palette?.outlineVariant ?? const BoxColor(0xFFD6C2C5),
+             offsetY: 1,
+             blurRadius: 0,
+           ),
+         ],
          children: <UINode>[
            StackNode(
              children: <UINode>[

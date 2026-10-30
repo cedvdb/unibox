@@ -51,7 +51,7 @@ final class MaterialDialog extends OverlayNode {
            gap: 16,
            minWidth: minWidth,
            maxWidth: maxWidth,
-           shadow: elevation,
+           shadows: elevation,
            children: <UINode>[
              TextNode(title, style: _titleStyle()),
              if (content != null)
@@ -62,7 +62,7 @@ final class MaterialDialog extends OverlayNode {
        );
 
   /// Material's level-three elevation: the shadow a dialog is raised by.
-  static const BoxShadow elevation = MaterialElevation.level3;
+  static const List<BoxShadow> elevation = MaterialElevation.level3;
 
   /// The title: the headline role, in the on-surface colour.
   static BoxTextStyle _contentStyle() => MaterialTypography.bodyMedium.merge(

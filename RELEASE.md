@@ -74,8 +74,8 @@ dart analyze
 
 ## Version policy
 
-`design.md` §5.7 has the rules: additions are minor, renames and removals are
-breaking and keep the old spelling as a deprecated forwarding member for at least
-one minor release. Every published change is listed in the package `CHANGELOG.md`:
+`design.md` §5.7 has the rules: additions are minor, and renames and removals are
+breaking and made outright — the one consumer is this repository, so there is no old
+spelling to keep. Every published change is listed in the package `CHANGELOG.md`:
 before the first release the section describes the package as a whole, and after it
 each release gets its own section.

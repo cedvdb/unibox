@@ -38,7 +38,6 @@ DOCUMENTS = [
     'CLAUDE.md',
     'design.md',
     'RELEASE.md',
-    'TASK_PLAN.md',
     INDEX,
 ]
 

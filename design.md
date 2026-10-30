@@ -51,7 +51,7 @@ All nodes extend `abstract class UINode`.
    - **Dimensions:** `width`, `height`, `minWidth`, `maxWidth`, `minHeight`, `maxHeight` (`double?`).
    - **Visuals:** `padding`, `margin`, `backgroundColor`, `borderRadius` (`double?`), `corners`
      (`BoxBorderRadius?` — the four radii, for a shape that is not round everywhere), `border`,
-     `shadow`.
+     `shadows`.
    - **Actions:** `onTap`, `onLongPress`, `onHover`.
    - **Tokens/Overrides:** Optional `style: BoxStyle?` and `hoverStyle: BoxStyle?`.
    - `computedStyle`: Helper that overlays explicit flat parameters onto `style`.
@@ -175,7 +175,7 @@ never inherited (CSS does not inherit them either).
   sits inside the padding and the border of the box that wraps it, so keeping it
   paints a second frame inside the one the tree asked for. Dropping it leaves the
   caret as the only cue, which is the one thing both targets draw, and it is
-  listed under Deferred because a field cannot be given a frame by the tree yet.
+  left out for the reason given below: a field cannot be given a frame by the tree yet.
 - A state rule may only contribute the tokens of its state. The browser layers
   `:hover` over the resting rule exactly like the Flutter renderer merges a
   state style, so a state rule that restated the layout would reset it.
@@ -299,8 +299,10 @@ never inherited (CSS does not inherit them either).
 
 ### 5.7 Compatibility
 - Additions (new optional parameters, new nodes, new tokens) are minor.
-- Renames and removals are breaking: keep the old name as a deprecated
-  forwarding constructor or getter for at least one minor release.
+- Renames and removals are breaking, and are made outright: this library has one
+  consumer, the repository itself, so an old spelling is not kept as a deprecated
+  forwarding member. The change lands on every call site here and there is nothing
+  else holding the old name.
 - Every published change is listed in the package `CHANGELOG.md`.
 
 ### 5.8 Structure and semantics
@@ -438,8 +440,8 @@ never inherited (CSS does not inherit them either).
   pending request, a result, an error — is therefore an ordinary tree that the
   renderers, `validateTree` and the conformance table already handle. A view draws
   no overlay: a dialog is not part of the model yet, and adding one is a decision
-  about the view's shape and each renderer's modal layer, recorded in the Deferred
-  list.
+  about the view's shape and each renderer's modal layer, which §5.13 answered by making
+  an overlay a node.
 - A store is pure Dart, in the core. `StateStore` keeps its own listener list and
   a guarded `state` setter, so the model keeps its promise of no package
   dependencies and one store still runs in Flutter, in a browser and in a

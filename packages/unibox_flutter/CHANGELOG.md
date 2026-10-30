@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- A box's shadows become one entry of the decoration's `boxShadow` per layer, so the elevation a
+  design system states as three shadows is painted as three instead of one.
+
 - `GridNode` honours `Box.gridSpan`: a card that names several tracks is given that
   many alongside a `SizedBox` gutter, and a span that does not fit what is left of a
   row starts the next one — the placement `auto-flow: row` gives on the web. Both
@@ -21,7 +24,6 @@
   tree built from colour roles. It forwarded nothing before, which meant validation
   rejected every themed tree with the role in the message and the extension the README
   leads with could not be used on the trees it advertises.
-
 - `snap: ScrollSnap.page` is `PageScrollPhysics` on the box's scroll view, so a drag that
   ends between two children comes to rest on one.
 

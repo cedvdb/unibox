@@ -22,8 +22,9 @@ void main() {
   group('Apartment', () {
     test('summarises itself for the card', () {
       const Apartment apartment = Apartment(
-        name: 'Via Bellavista 12',
-        district: 'Saint-Gilles',
+        name: 'Rue de Turenne 12',
+        district: 'Le Marais',
+        city: 'Paris',
         rooms: 3,
         area: 84,
         rent: 1850,
@@ -33,7 +34,21 @@ void main() {
 
       expect(apartment.summary, '3 rooms · 84 m²');
       expect(apartment.priceLine, '€1850');
-      expect(apartment.locationLine, 'Saint-Gilles · Brussels');
+      expect(apartment.locationLine, 'Le Marais · Paris');
+    });
+
+    test('puts the listings in six different capitals', () {
+      // One city is a site about that city: the point of the list is that the same tree
+      // serves every capital, so a repeated one would be a data mistake.
+      expect(exampleCapitals, hasLength(exampleApartments.length));
+      expect(exampleCapitals, <String>[
+        'Paris',
+        'Berlin',
+        'Lisbon',
+        'Vienna',
+        'Madrid',
+        'Rome',
+      ]);
     });
 
     test('gives every listing in the example its own name', () {
@@ -143,7 +158,7 @@ void main() {
       expect(row.crossAlign, CrossAlign.center);
       expect(pill.visibleUntil, 900);
       expect(pill.margin, const BoxSpacing.only(bottom: 24));
-      expect(pill.shadow, MaterialElevation.level3);
+      expect(pill.shadows, MaterialElevation.level3);
       expect(
         validateTree(page, theme: ExamplePalette.themeFor(ExampleSeed.blue)),
         isEmpty,

@@ -86,8 +86,8 @@ host that renders it.
 2. **The node names are not Flutter's.** `TextNode`, not `Text`; `ImageNode`, not
    `Image`; `StackNode`, `PositionedNode`, `LinkNode`. `Box` keeps its bare name
    because Flutter has no `Box`.
-3. **Flat parameters beat style bags.** `Box.computedStyle` merges `style`
-   (deprecated) → `styles` left to right → the flat parameters. A state style
+3. **Flat parameters beat style bags.** `Box.computedStyle` merges `styles`
+   left to right, then the flat parameters. A state style
    (`hoverStyle`, `stateStyles`) overlays the resting one; `disabled` overlays all.
 4. **A box is a column by default, and it hugs.** `direction` unset means
    `Axis.vertical`, and `mainAlign` and `crossAlign` default to `start` — not Flutter's
@@ -178,7 +178,7 @@ host that renders it.
 | `Color.fromRGBO(r, g, b, opacity)` | `BoxColor.rgba(r, g, b, alpha)` — its alpha is `0`–`255`, or `BoxColor.rgb(r, g, b).withOpacity(0.5)` |
 | `EdgeInsets.all(16)` | `BoxSpacing.all(16)` (`.symmetric`, `.only`, `.zero`) |
 | `BoxDecoration(color:, border:, borderRadius:)` | `backgroundColor`, `border`, `borderRadius` |
-| `BoxShadow(color:, offset:, blurRadius:, spreadRadius:)` | `shadow: BoxShadow(...)` — same names |
+| `BoxShadow(color:, offset:, blurRadius:, spreadRadius:)` | `shadows: <BoxShadow>[BoxShadow(...)]` — same names, and a list because an elevation is several layers |
 | `Text('Hi', style: TextStyle(…))` | `TextNode('Hi', fontSize:, fontWeight:, color:, lineHeight:)` |
 | `TextStyle.height` | `lineHeight`, a **multiple** of the font size (`1.5`, not `24`) |
 | `TextStyle.decoration`, `TextDecoration.lineThrough`, `decorationColor` | `decoration: TextDecoration.lineThrough`, `decorationColor:`, `decorationThickness:` — `none`, `lineThrough`, `underline`; `overline` has no Flutter counterpart |
@@ -229,7 +229,7 @@ host that renders it.
 | `padding` / `margin` | `padding` / `margin` (`BoxSpacing`) |
 | `background-color` / `border-radius` | `backgroundColor` / `borderRadius` |
 | `border: 1px solid #e5e7eb` | `border: BoxBorder(color: BoxColor.rgb(0xE5, 0xE7, 0xEB))` |
-| `box-shadow` / `opacity` | `shadow` / `opacity` |
+| `box-shadow` / `opacity` | `shadows` / `opacity` |
 | `transform: scale(…)` | `transform: BoxTransform(scale: …)` |
 | `color`, `font-size`, `font-weight`, `line-height`, `letter-spacing` | the same tokens on `TextNode` or `BoxTextStyle` |
 | `text-decoration: underline`, `text-decoration-color` | `decoration: TextDecoration.underline`, `decorationColor:` — `none`, `lineThrough`, `underline`; `double`, `wavy` and `overline` are not in the model, because Flutter draws one solid line and has no overline |
@@ -263,11 +263,9 @@ UINode pricingCard({
     backgroundColor: BoxColor.white,
     borderRadius: 16,
     border: BoxBorder(color: BoxColor.rgb(0xE5, 0xE7, 0xEB)),
-    shadow: BoxShadow(
-      color: BoxColor(0x14000000),
-      offsetY: 6,
-      blurRadius: 16,
-    ),
+    shadows: <BoxShadow>[
+      BoxShadow(color: BoxColor(0x14000000), offsetY: 6, blurRadius: 16),
+    ],
     // Inherited by every text below it, the way a font property is in CSS.
     textStyle: BoxTextStyle(
       fontSize: 15,

@@ -63,7 +63,9 @@ UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
           palette,
           'Cards and tiles',
           _cards(palette),
-          note: 'A surface, and a row that says who it is.',
+          note:
+              'Three heights on the surface Material tints to match, the two other '
+              'shapes a card comes in, and a row that says who it is.',
         ),
         _section(
           palette,
@@ -885,25 +887,61 @@ UINode _fields(MaterialPalette palette) {
   );
 }
 
-/// A card with a call to action, and two tiled rows.
+/// Three cards climbing the elevation scale, the two other shapes a card comes in,
+/// and two tiled rows.
+///
+/// Material states elevation twice over: the shadow a surface casts and the tone it
+/// is tinted with. A shadow alone is 12% black over a few pixels, so a card raised on
+/// the page's own tone reads as flat; each height here takes the pair Material pairs —
+/// `level1` on `surfaceContainerLow`, `level2` on `surfaceContainer`, `level3` on
+/// `surfaceContainerHigh` — which is what makes the climb visible, and what Flutter's
+/// own card does with its tint.
 UINode _cards(MaterialPalette palette) {
   return GridNode(
-    minItemWidth: 320,
-    maxColumns: 2,
+    minItemWidth: 300,
+    maxColumns: 3,
     gap: 24,
     children: <UINode>[
-      MaterialCard(
+      _heightCard(
+        palette,
+        title: 'Level 1',
+        note: 'surfaceContainerLow',
+        shadows: MaterialElevation.level1,
+        surface: palette.surfaceContainerLow,
+      ),
+      _heightCard(
+        palette,
+        title: 'Level 2',
+        note: 'surfaceContainer',
+        shadows: MaterialElevation.level2,
+        surface: palette.surfaceContainer,
+      ),
+      _heightCard(
+        palette,
+        title: 'Level 3',
+        note: 'surfaceContainerHigh',
+        shadows: MaterialElevation.level3,
+        surface: palette.surfaceContainerHigh,
+      ),
+      // The two shapes a card comes in besides the raised one: a line instead of a
+      // shadow, and a tone with neither.
+      MaterialCard.outlined(
         width: double.infinity,
         gap: 8,
+        color: palette.surface,
         children: <UINode>[
-          TextNode('Order summary', style: MaterialTypography.titleLarge),
-          TextNode(
-            'Two nights, one room. Check-in on Friday.',
-            style: MaterialTypography.bodyMedium.copyWith(
-              color: palette.onSurfaceVariant,
-            ),
-          ),
+          TextNode('Outlined', style: MaterialTypography.titleMedium),
+          _cardNote(palette, 'surface · outlineVariant'),
           MaterialButton.filled(label: const TextNode('Confirm'), onTap: () {}),
+        ],
+      ),
+      MaterialCard.filled(
+        width: double.infinity,
+        gap: 8,
+        color: palette.surfaceContainerHighest,
+        children: <UINode>[
+          TextNode('Filled', style: MaterialTypography.titleMedium),
+          _cardNote(palette, 'surfaceContainerHighest'),
         ],
       ),
       Box(
@@ -948,6 +986,34 @@ UINode _cards(MaterialPalette palette) {
     ],
   );
 }
+
+/// One card of the elevation row: the level it is raised to, the tone Material pairs
+/// with it, and the pair written on the card so the catalogue can be read.
+UINode _heightCard(
+  MaterialPalette palette, {
+  required String title,
+  required String note,
+  required List<BoxShadow> shadows,
+  required BoxColor surface,
+}) {
+  return MaterialCard(
+    width: double.infinity,
+    gap: 8,
+    shadows: shadows,
+    color: surface,
+    children: <UINode>[
+      TextNode(title, style: MaterialTypography.titleMedium),
+      _cardNote(palette, note),
+    ],
+  );
+}
+
+/// The line under a card's name: what the card is made of, in the roles the catalogue
+/// is drawn with.
+UINode _cardNote(MaterialPalette palette, String text) => TextNode(
+  text,
+  style: MaterialTypography.bodySmall.copyWith(color: palette.onSurfaceVariant),
+);
 
 /// The choice of the segmented demo: which segment is on.
 final class SegmentedStore extends StateStore<int> {

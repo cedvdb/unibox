@@ -45,7 +45,7 @@ import 'material_typography.dart';
 final class MaterialCard extends Box {
   /// Creates a card, with the tokens Material gives one.
   ///
-  /// `padding`, `color`, `borderRadius`, `shadow`, `border` and `textStyle` are
+  /// `padding`, `color`, `borderRadius`, `shadows`, `border` and `textStyle` are
   /// the card's own defaults; every one is a parameter so an application can
   /// theme them without giving up the card. So is `crossAlign`, and it stretches:
   /// a card's content spans the card, which is what Material's own card does, and
@@ -73,7 +73,7 @@ final class MaterialCard extends Box {
     super.onTap,
     super.onLongPress,
     super.onHover,
-    super.shadow = elevatedShadow,
+    super.shadows = elevatedShadows,
     super.border,
     BoxSpacing padding = const BoxSpacing.all(16),
     BoxColor color = _elevatedSurface,
@@ -114,7 +114,7 @@ final class MaterialCard extends Box {
     LongPressCallback? onLongPress,
     HoverCallback? onHover,
     BoxColor? color,
-    BoxShadow? shadow,
+    List<BoxShadow>? shadows,
     BoxBorder? border,
     double borderRadius = 12,
     BoxTextStyle? textStyle,
@@ -144,7 +144,7 @@ final class MaterialCard extends Box {
          color:
              color ??
              const BoxColor.role(MaterialColorRole.surfaceContainerHighest),
-         shadow: shadow,
+         shadows: shadows,
          border: border,
        );
 
@@ -175,7 +175,7 @@ final class MaterialCard extends Box {
     LongPressCallback? onLongPress,
     HoverCallback? onHover,
     BoxColor? color,
-    BoxShadow? shadow,
+    List<BoxShadow>? shadows,
     BoxBorder? border,
     double borderRadius = 12,
     BoxTextStyle? textStyle,
@@ -203,7 +203,7 @@ final class MaterialCard extends Box {
          borderRadius: borderRadius,
          textStyle: textStyle ?? _bodyOn(),
          color: color ?? const BoxColor.role(MaterialColorRole.surface),
-         shadow: shadow,
+         shadows: shadows,
          border:
              border ??
              BoxBorder(
@@ -237,7 +237,7 @@ final class MaterialCard extends Box {
     LongPressCallback? onLongPress,
     HoverCallback? onHover,
     BoxColor? color,
-    BoxShadow? shadow,
+    List<BoxShadow>? shadows,
     BoxBorder? border,
     double borderRadius = 12,
     BoxTextStyle? textStyle,
@@ -267,7 +267,7 @@ final class MaterialCard extends Box {
          color:
              color ??
              const BoxColor.role(MaterialColorRole.surfaceContainerLow),
-         shadow: shadow ?? elevatedShadow,
+         shadows: shadows ?? elevatedShadows,
          border: border,
        );
 
@@ -284,15 +284,16 @@ final class MaterialCard extends Box {
     MaterialColorRole.surfaceContainerLow,
   );
 
-  /// The drop shadow of elevation level one, the level Material gives a resting
+  /// The drop shadows of elevation level one, the level Material gives a resting
   /// card.
   ///
-  /// It is [MaterialElevation.level1] under the name a card reads best: one scale,
-  /// so a card, a dialog and a sheet cannot drift into three different shadows. How
-  /// a shadow is blurred is outside the parity contract — a browser and Skia
-  /// rasterise it differently — so the value states the shape of the shadow rather
-  /// than a pixel promise.
-  static const BoxShadow elevatedShadow = MaterialElevation.level1;
+  /// It is [MaterialElevation.level1] under the name a card reads best: one scale, so a
+  /// card, a dialog and a sheet cannot drift into three different shadows. The three
+  /// layers are Flutter's own, so a card drawn from this tree sits at the height a card
+  /// in a Flutter application does; how a shadow is *blurred* is still outside the parity
+  /// contract — a browser and Skia rasterise it differently — so the value states the
+  /// shape of the shadow, not a pixel promise.
+  static const List<BoxShadow> elevatedShadows = MaterialElevation.level1;
 
   /// The name this node answers to in an inspector.
   ///

@@ -70,7 +70,7 @@ void main() {
       final String html = buildExampleDocument();
 
       // The dialog's copy is not here: the form is only in the tree while it is open.
-      expect(html, contains('Via Bellavista 12'));
+      expect(html, contains('Rue de Turenne 12'));
       expect(html, contains('data-unibox-node="text"'));
     });
 
@@ -80,7 +80,7 @@ void main() {
       final String html = buildExampleDocument();
 
       expect(html, isNot(contains('role="dialog"')));
-      expect(html, contains('Via Bellavista 12'));
+      expect(html, contains('Rue de Turenne 12'));
     });
 
     test('marks the page title as a heading', () {

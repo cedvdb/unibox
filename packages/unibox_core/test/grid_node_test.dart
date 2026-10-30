@@ -65,10 +65,7 @@ void main() {
         minItemWidth: 280,
         maxColumns: 3,
         gap: 16,
-        children: <UINode>[
-          Box(height: 40),
-          Box(height: 40, gridSpan: 2),
-        ],
+        children: <UINode>[Box(height: 40), Box(height: 40, gridSpan: 2)],
       );
 
       expect(grid.spanOf(0, 3), 1);
@@ -152,10 +149,7 @@ void main() {
           const GridNode(
             minItemWidth: 280,
             maxColumns: 3,
-            children: <UINode>[
-              Box(height: 40),
-              Box(height: 40, gridSpan: 2),
-            ],
+            children: <UINode>[Box(height: 40), Box(height: 40, gridSpan: 2)],
           ),
         ),
         isEmpty,

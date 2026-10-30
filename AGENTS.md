@@ -48,7 +48,6 @@ guide is [`README.md`](README.md).
 | `example/unibox_example_flutter/`, `example/unibox_example_html/` | hosts: the surface, the link policy, and the documents — never layout or state | the surface, a link or a document changes |
 | `README.md`, `design.md`, package READMEs | the user guide, the reasoning, the per-target mapping tables | public API or behaviour changes |
 | `AI_INSTRUCTIONS.md` | the consumer-facing counterpart: rules and a translation table for an assistant writing application code | a parameter is renamed or a default changes |
-| `TASK_PLAN.md` | what was built, why, and what was deliberately deferred | rarely: record a decision, not a task |
 | `RELEASE.md` | the release checklist | never automatically; it is a human procedure |
 
 ## Commands
@@ -70,6 +69,7 @@ so the packages share one resolution.
 | One suite, the fast loop | `(cd packages/unibox_html && dart test)` |
 | The monthly pass: gate, budget, site, the quoted numbers | `tool/maintenance.sh` |
 | Does the index point at files that exist? | `python3 tool/check_docs.py` |
+| Has every token a decided place in the table? | `python3 tool/surface_check.py` |
 
 Every suite, exactly as CI runs them — one command per directory, in dependency order:
 
@@ -92,6 +92,16 @@ widgets. A single suite is the loop while you work; `tool/verify.sh` is the gate
 before a commit, and `dart analyze` is strict here (`strict-casts`,
 `strict-inference`, `strict-raw-types`), so an untyped `dynamic` will not pass.
 
+### If the gate fails before your first edit
+
+`tool/verify.sh` prints the Flutter it is running and compares it with
+`.flutter-version`, the one file the workflows read too. When they disagree it stops
+before anything else, because that failure says nothing about the change in front of
+you: say so and stop. Never edit `environment.sdk`, `.flutter-version` or a workflow
+to make a local run pass, and never widen a budget or a check to silence a red step —
+a gate somebody loosens is worse than no gate, because the green tick that follows is
+a lie.
+
 ## The rules that are not negotiable
 
 1. **`unibox_core` stays pure Dart.** No `dart:ui`, no Flutter, no web framework, and no
@@ -102,8 +112,8 @@ before a commit, and `dart analyze` is strict here (`strict-casts`,
    `ImageNode.resolvedFit`) and both renderers use it. Never fall back to a host
    default: Flutter's 14px text and the browser's 16px are exactly the drift the
    model exists to prevent.
-3. **Flat parameters win over style bags.** `Box.computedStyle` merges `style`
-   (deprecated) → `styles` left to right → the flat parameters. A state style
+3. **Flat parameters win over style bags.** `Box.computedStyle` merges `styles`
+   left to right, then the flat parameters. A state style
    overlays the resting one, and `disabled` overlays every state.
 4. **No platform chrome.** Neither renderer keeps the decoration its host adds to
    a control: not Material's field underline, not the browser's input border,
@@ -297,7 +307,9 @@ renderer that bound nothing — so the control looked alive in Flutter and did n
   type belongs in backticks, not brackets.
 - A new or changed token has a contract case and is in the "every token at once"
   case; a new construct has a validation rule; a new node has a test on both
-  targets.
+  targets. `tool/surface_check.py` enforces the first half by name: a token that
+  reaches `box_style.dart` without a field in `BoxAppearance`, and without a reason
+  in that script's classified map, fails the gate.
 - Every public member has a doc comment, and the docs that describe the changed
   behaviour are updated in the same commit.
 - Each `CHANGELOG.md` touched has a bullet under `## Unreleased`, written as what
@@ -339,9 +351,6 @@ and two when each side is independently reviewable.
 
 ## Out of scope
 
-- **The `Deferred` section of [`TASK_PLAN.md`](TASK_PLAN.md).** Those items were
-  left out on purpose, with the reason written next to them. Implement one only
-  when a human asks for it by name.
 - **Releasing.** Do not bump a version, close a changelog or remove
   `publish_to: none`. [`RELEASE.md`](RELEASE.md) is a human checklist; CI never
   publishes.
@@ -350,9 +359,9 @@ and two when each side is independently reviewable.
   other renderer.
 - **A new workspace package** without listing it in the root `pubspec.yaml`
   workspace and in CI.
-- **Breaking a public spelling.** Additions are minor; a rename or a removal keeps
-  the old spelling as a deprecated forwarding member for at least one minor
-  release (`design.md` §5.7).
+- **Breaking a public spelling.** Additions are minor; a rename or a removal is made
+  outright — there is one consumer, this repository, so no deprecated forwarding
+  member is kept (`design.md` §5.7).
 - **Unrelated cleanups.** A commit that reformats, renames or refactors something
   the change did not need makes the review harder and hides the real diff.
 
@@ -368,7 +377,6 @@ and two when each side is independently reviewable.
 | How does a node own state? | [`packages/unibox_core/README.md#state`](packages/unibox_core/README.md#state) |
 | Which Material type role should I use? | [`packages/unibox_material/README.md`](packages/unibox_material/README.md) |
 | What has to look the same on both? | [`packages/unibox_testing/README.md`](packages/unibox_testing/README.md) |
-| What is built, and what was deferred? | [`TASK_PLAN.md`](TASK_PLAN.md) |
 | What does a page with thousands of nodes cost? | [`PERFORMANCE.md`](PERFORMANCE.md) — the shapes measured and the baseline `tool/scale.sh` holds them to |
 | How do I build an application with this, as an assistant? | [`AI_INSTRUCTIONS.md`](AI_INSTRUCTIONS.md) — the consumer-facing file, written to be pasted into a context |
 | How do I contribute? | [`CONTRIBUTING.md`](CONTRIBUTING.md) |

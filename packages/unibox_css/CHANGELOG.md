@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- A box's shadows are written as one comma separated `box-shadow` list, in the order the model
+  states them, so the three layers of an elevation are three declarations CSS paints at once. A
+  shadow whose colour is a role keeps its custom property, which the old single-shadow path could
+  only do when the whole shadow was a role.
+
 - `Box.gridSpan` is written `grid-column: span n` on the card, so a banner can take
   several of the tracks the grid laid out. It is a declaration on the child and not
   on the grid, and a browser clamps it to the count the width gives.
@@ -12,7 +17,6 @@
 
 - `FontWeight.light` is written `font-weight: 300`, so a light label is no longer
   written as a normal one.
-
 - A look's declarations are sorted and joined once, and kept: a class name and the rule it becomes
   read the same text, and a page with thousands of nodes read it thousands of times.
 

@@ -20,7 +20,7 @@ void main() {
     ) async {
       await pumpApp(tester);
 
-      expect(find.text('Via Bellavista 12'), findsOneWidget);
+      expect(find.text('Rue de Turenne 12'), findsOneWidget);
       expect(find.text('Join Unibox'), findsNothing);
       expect(find.byType(TextField), findsNothing);
       expect(tester.takeException(), isNull);
@@ -48,7 +48,7 @@ void main() {
         ExamplePalette.materialFor(ExampleSeed.blue).primary,
       );
       // Nothing navigated: the page is still the one the reader was on.
-      expect(find.text('Via Bellavista 12'), findsOneWidget);
+      expect(find.text('Rue de Turenne 12'), findsOneWidget);
     });
 
     testWidgets('opens the sign-up dialog from the bar', (tester) async {
@@ -76,7 +76,7 @@ void main() {
       await tester.pump();
 
       expect(find.text('Join Unibox'), findsNothing);
-      expect(find.text('Via Bellavista 12'), findsOneWidget);
+      expect(find.text('Rue de Turenne 12'), findsOneWidget);
     });
 
     testWidgets('fills the surface the window gives it', (tester) async {
@@ -177,7 +177,7 @@ void main() {
         await closeDialog(tester);
 
         expect(find.text('Join Unibox'), findsNothing);
-        expect(find.text('Via Bellavista 12'), findsOneWidget);
+        expect(find.text('Rue de Turenne 12'), findsOneWidget);
         expect(find.byType(TextField), findsNothing);
       });
 
@@ -204,13 +204,13 @@ void main() {
         await pumpApp(tester, surface: const Size(500, 800));
 
         expect(tester.takeException(), isNull);
-        expect(find.text('Via Bellavista 12'), findsOneWidget);
+        expect(find.text('Rue de Turenne 12'), findsOneWidget);
         expect(find.text('€1850'), findsOneWidget);
 
         final Rect card = tester.getRect(
           find
               .ancestor(
-                of: find.text('Via Bellavista 12'),
+                of: find.text('Rue de Turenne 12'),
                 matching: find.byType(FlutterBox),
               )
               .last,
@@ -225,7 +225,7 @@ void main() {
 
         final double bar = tester.getTopLeft(find.text('Unibox')).dy;
         final double before = tester
-            .getTopLeft(find.text('Via Bellavista 12'))
+            .getTopLeft(find.text('Rue de Turenne 12'))
             .dy;
 
         await tester.drag(
@@ -235,7 +235,7 @@ void main() {
         await tester.pump();
 
         expect(
-          tester.getTopLeft(find.text('Via Bellavista 12')).dy,
+          tester.getTopLeft(find.text('Rue de Turenne 12')).dy,
           lessThan(before),
         );
         // The navigation belongs to the frame, not to the page that scrolls.

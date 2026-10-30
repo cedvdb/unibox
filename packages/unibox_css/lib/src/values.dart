@@ -193,14 +193,23 @@ String cssBorder(core.BoxBorder border) =>
 
 /// A model [core.BoxShadow] as CSS writes one shadow.
 ///
-/// Offset, blur, spread, colour — the order CSS reads them in.
+/// Offset, blur, spread, colour — the order CSS reads them in. A role colour is written
+/// as its custom property, so a shadow follows the theme the way a fill does.
 String cssBoxShadow(core.BoxShadow shadow) => <String>[
   cssPixels(shadow.offsetX),
   cssPixels(shadow.offsetY),
   cssPixels(shadow.blurRadius),
   cssPixels(shadow.spreadRadius),
-  cssColor(shadow.color),
+  cssColorOrRole(shadow.color),
 ].join(' ');
+
+/// The shadows of a box as CSS writes a `box-shadow` list.
+///
+/// One shadow per entry, comma separated, in the order the model states them — which is
+/// the order CSS paints them in, the first on top. An elevation is several layers in
+/// Material and in Flutter, so a box that writes one shadow is the special case here.
+String cssBoxShadows(List<core.BoxShadow> shadows) =>
+    shadows.map(cssBoxShadow).join(', ');
 
 /// A font family as CSS writes it: one family, quoted.
 ///
@@ -340,7 +349,7 @@ const Map<core.BoxProperty, String> transitionedProperties =
       core.BoxProperty.backgroundColor: 'background-color',
       core.BoxProperty.borderColor: 'border-color',
       core.BoxProperty.borderRadius: 'border-radius',
-      core.BoxProperty.shadow: 'box-shadow',
+      core.BoxProperty.shadows: 'box-shadow',
       core.BoxProperty.opacity: 'opacity',
       core.BoxProperty.transform: 'transform',
     };

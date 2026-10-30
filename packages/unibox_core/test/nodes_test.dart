@@ -387,13 +387,6 @@ void main() {
       expect(node.child, child);
       expect(node.children, <UINode>[child]);
     });
-
-    test('still answers payload for a node that carries one', () {
-      const node = _FakeEmbed(<Object>['widget']);
-
-      // ignore: deprecated_member_use_from_same_package
-      expect(node.payload, 'widget');
-    });
   });
 }
 

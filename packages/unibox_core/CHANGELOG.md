@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- `Box.style` and `EmbedNode.payload` are gone, and no compatibility member replaces them:
+  a bag is a list (`styles:`), and an embed states `implementations`. The library has one
+  consumer — this repository — so a removed spelling is rewritten rather than forwarded.
+- A box states its **shadows** as a list, not one shadow: `Box(shadows: <BoxShadow>[…])` and
+  `BoxStyle.shadows`. An elevation is three layers in Material and in Flutter — an umbra, a
+  penumbra and an ambient blur — and a single `BoxShadow` could only ever state one of them. The
+  first entry paints on top, as it does in CSS, the transition part is `BoxProperty.shadows`, and
+  a style compares the list by value so two boxes that state the same layers are the same box.
+
 - `Box.gridSpan`, and `GridNode.spanOf` / `GridNode.spanWidthFor`: a card says how
   many columns it covers, so a banner that interrupts a card grid is one grid with
   one spanning child instead of two grids that agree on a column count. A span wider
@@ -19,7 +28,6 @@
   typeset at 300 — the light end of Material 3's scale — came out at 400 on both
   targets. The five weights the model names, and the ones it leaves out, are stated
   in `design.md` §2.
-
 - `Box.hasThreshold`: whether a box is drawn at only some widths, read from the tokens without
   resolving a style. A renderer asks it of every child of every box to know which box a container
   query measures, and answering that by merging every bag was work per node for a question about

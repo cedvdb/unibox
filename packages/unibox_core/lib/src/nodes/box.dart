@@ -33,7 +33,7 @@ import 'ui_node.dart';
 ///   direction: Axis.vertical,
 ///   gap: 8,
 ///   padding: BoxSpacing.all(16),
-///   style: BoxStyle(backgroundColor: BoxColor.white),
+///   styles: <BoxStyle>[BoxStyle(backgroundColor: BoxColor.white)],
 ///   children: [TextNode('Hello')],
 /// );
 /// ```
@@ -65,7 +65,7 @@ class Box extends UINode {
     this.borderRadius,
     this.corners,
     this.border,
-    this.shadow,
+    this.shadows,
     this.shape,
     this.textStyle,
     this.transition,
@@ -74,8 +74,6 @@ class Box extends UINode {
     this.visibleFrom,
     this.visibleUntil,
     this.styles = const <BoxStyle>[],
-    // ignore: deprecated_member_use_from_same_package
-    @Deprecated('Use styles: a list of bags, merged in order.') this._style,
     this.hoverStyle,
     this.stateStyles,
     this.enabled = true,
@@ -203,8 +201,12 @@ class Box extends UINode {
   /// The border painted around the box.
   final BoxBorder? border;
 
-  /// The drop shadow painted behind the box.
-  final BoxShadow? shadow;
+  /// The drop shadows painted behind the box, in paint order.
+  ///
+  /// A list rather than one shadow, because a design system states an elevation as
+  /// several layers and each of them is a shadow: Material's level one is a tight umbra,
+  /// a penumbra and a wide ambient layer, and a browser paints all three.
+  final List<BoxShadow>? shadows;
 
   /// The outline the box is painted in, instead of its rectangle.
   ///
@@ -257,12 +259,6 @@ class Box extends UINode {
   /// ```
   final List<BoxStyle> styles;
 
-  /// A single bag, merged before [styles].
-  @Deprecated('Use styles: a list of bags, merged in order.')
-  BoxStyle? get style => _style;
-
-  final BoxStyle? _style;
-
   /// Tokens applied while the box is hovered, overriding the base style.
   ///
   /// The narrowest layout box, in logical pixels, that draws this box.
@@ -295,10 +291,6 @@ class Box extends UINode {
     bool states(BoxStyle? style) =>
         style != null &&
         (style.visibleFrom != null || style.visibleUntil != null);
-
-    if (states(_style)) {
-      return true;
-    }
 
     for (final BoxStyle bag in styles) {
       if (states(bag)) {
@@ -397,7 +389,7 @@ class Box extends UINode {
     borderRadius: borderRadius,
     corners: corners,
     border: border,
-    shadow: shadow,
+    shadows: shadows,
     shape: shape,
     textStyle: textStyle,
     transition: transition,
@@ -409,10 +401,10 @@ class Box extends UINode {
 
   /// The resolved style of this box in its resting state.
   ///
-  /// [style] provides the defaults, every flat parameter that is not `null`
-  /// overrides the matching token.
+  /// [styles] provide the defaults, merged left to right, and every flat parameter
+  /// that is not `null` overrides the matching token.
   BoxStyle get computedStyle {
-    BoxStyle result = _style ?? const BoxStyle();
+    BoxStyle result = const BoxStyle();
 
     for (final BoxStyle bag in styles) {
       result = result.merge(bag);

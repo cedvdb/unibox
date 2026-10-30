@@ -44,6 +44,32 @@ fail() {
   exit 1
 }
 
+# The version is written in one file — `.flutter-version`, which the workflows read too — so a
+# local run and a CI run cannot disagree about it. This is checked before anything else because of
+# the failure it prevents: a tree that is green in CI and red on a laptop sends a reader after a
+# bug that does not exist, and the cheapest wrong fix available to anyone, human or assistant, is
+# to loosen `environment.sdk` until the red goes away.
+#
+# The version is read out of wherever it appears in the output rather than off the first line: the
+# tool prints "Building flutter tool..." or a lock message first when it is busy, and a check that
+# answered "no Flutter" for that would send the reader after the wrong thing entirely.
+step 'Checking the Flutter version'
+expected_flutter="$(tr -d '[:space:]' < .flutter-version)"
+version_output="$(flutter --version 2>&1 || true)"
+actual_flutter="$(grep -oE '[0-9]+\.[0-9]+\.[0-9]+' <<< "$version_output" | head -n 1 || true)"
+if [ -z "$actual_flutter" ]; then
+  printf '  `flutter --version` printed nothing this check could read:\n\n%s\n\n' "$version_output" >&2
+  fail 'could not read a Flutter version — is the Flutter tool installed and on PATH?'
+fi
+if [ "$actual_flutter" != "$expected_flutter" ]; then
+  printf '  .flutter-version says %s; this machine has %s\n' \
+    "$expected_flutter" "$actual_flutter" >&2
+  printf '  That is the environment, not your change. Install %s; do not edit the SDK constraint.\n' \
+    "$expected_flutter" >&2
+  fail "the Flutter version (expected $expected_flutter, from .flutter-version)"
+fi
+printf '  %s\n' "$actual_flutter"
+
 step 'Resolving the workspace'
 flutter pub get || fail 'flutter pub get'
 
@@ -63,6 +89,12 @@ dart analyze || fail 'dart analyze'
 # that is gone.
 step 'Checking the documentation'
 python3 tool/check_docs.py || fail 'tool/check_docs.py'
+
+# The table is checked from the inside by `test/cases_test.dart`; this checks it from the outside, and
+# it is the check a reviewer used to supply. A token that reaches the source without a place in the
+# table is a token neither renderer suite compares -- and an assistant adding one will not notice.
+step 'Checking the surface'
+python3 tool/surface_check.py || fail 'tool/surface_check.py'
 
 # The checkers are code too, and were the only code here without tests: a gate that silently stops
 # gating is worse than no gate, because the green tick is a lie.

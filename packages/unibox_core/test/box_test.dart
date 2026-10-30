@@ -48,7 +48,7 @@ void main() {
         padding: BoxSpacing.all(12),
         backgroundColor: BoxColor.white,
       );
-      const box = Box(style: style);
+      const box = Box(styles: <BoxStyle>[style]);
 
       expect(box.computedStyle, style);
     });
@@ -62,7 +62,7 @@ void main() {
         width: 100,
       );
       const box = Box(
-        style: style,
+        styles: <BoxStyle>[style],
         direction: Axis.horizontal,
         gap: 24,
         backgroundColor: BoxColor.black,
@@ -98,7 +98,7 @@ void main() {
         backgroundColor: BoxColor.black,
         borderRadius: 6,
         border: BoxBorder(width: 2),
-        shadow: BoxShadow(),
+        shadows: <BoxShadow>[BoxShadow()],
       );
 
       final computed = box.computedStyle;
@@ -121,23 +121,23 @@ void main() {
       expect(computed.backgroundColor, BoxColor.black);
       expect(computed.borderRadius, 6);
       expect(computed.border, const BoxBorder(width: 2));
-      expect(computed.shadow, const BoxShadow());
+      expect(computed.shadows, const <BoxShadow>[BoxShadow()]);
     });
 
     test('does not mutate the style it resolves', () {
       const style = BoxStyle(gap: 8);
-      const box = Box(style: style, gap: 16);
+      const box = Box(styles: <BoxStyle>[style], gap: 16);
 
       box.computedStyle;
 
       expect(style.gap, 8);
-      expect(box.style, same(style));
+      expect(box.styles.single, same(style));
     });
 
     test('hover style overlays the resting style', () {
       const style = BoxStyle(backgroundColor: BoxColor.white, borderRadius: 4);
       const hoverStyle = BoxStyle(backgroundColor: BoxColor.black);
-      const box = Box(style: style, hoverStyle: hoverStyle);
+      const box = Box(styles: <BoxStyle>[style], hoverStyle: hoverStyle);
 
       expect(box.hasHoverStyle, isTrue);
       expect(box.computedStyle.backgroundColor, BoxColor.white);
@@ -158,9 +158,11 @@ void main() {
     test('resolves its typography from the style and the flat tokens', () {
       const box = Box(
         textStyle: BoxTextStyle(color: BoxColor.black),
-        style: BoxStyle(
-          textStyle: BoxTextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
+        styles: <BoxStyle>[
+          BoxStyle(
+            textStyle: BoxTextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ],
       );
 
       expect(box.computedTextStyle.fontSize, 16);
@@ -330,14 +332,15 @@ void main() {
       expect(box.computedStyle.backgroundColor, BoxColor.transparent);
     });
 
-    test('merges the older single bag before the list', () {
-      // ignore: deprecated_member_use_from_same_package
+    test('merges the bags left to right, the last one winning', () {
       const Box box = Box(
-        style: BoxStyle(backgroundColor: BoxColor.white),
-        styles: <BoxStyle>[BoxStyle(backgroundColor: BoxColor.black)],
+        styles: <BoxStyle>[
+          BoxStyle(backgroundColor: BoxColor.white),
+          BoxStyle(backgroundColor: BoxColor.black),
+        ],
       );
 
-      expect(box.styles, hasLength(1));
+      expect(box.styles, hasLength(2));
       expect(box.computedStyle.backgroundColor, BoxColor.black);
     });
 
@@ -350,11 +353,6 @@ void main() {
       expect(const Box(visibleUntil: 900).hasThreshold, isTrue);
       expect(
         const Box(styles: <BoxStyle>[BoxStyle(visibleFrom: 600)]).hasThreshold,
-        isTrue,
-      );
-      // ignore: deprecated_member_use_from_same_package
-      expect(
-        const Box(style: BoxStyle(visibleUntil: 900)).hasThreshold,
         isTrue,
       );
     });

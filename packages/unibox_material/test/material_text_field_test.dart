@@ -142,7 +142,7 @@ void main() {
       expect(inputOf(wrong).invalid, isTrue);
       expect(messageOf(wrong), 'Enter an address with an @');
       expect(
-        fillOf(wrong).shadow?.color,
+        fillOf(wrong).shadows?.single.color,
         const BoxColor.role(MaterialColorRole.error),
       );
 
@@ -191,25 +191,25 @@ void main() {
       );
 
       expect(
-        fillOf(treeOf(field)).shadow?.color,
+        fillOf(treeOf(field)).shadows?.single.color,
         const BoxColor.role(MaterialColorRole.onSurfaceVariant),
       );
       expect(
-        fillOf(treeOf(field, focused: true)).shadow?.color,
+        fillOf(treeOf(field, focused: true)).shadows?.single.color,
         const BoxColor.role(MaterialColorRole.primary),
       );
       expect(
-        fillOf(treeOf(field, typed: '')).shadow?.color,
+        fillOf(treeOf(field, typed: '')).shadows?.single.color,
         const BoxColor.role(MaterialColorRole.error),
       );
       expect(
-        fillOf(treeOf(field, typed: '', focused: true)).shadow?.color,
+        fillOf(treeOf(field, typed: '', focused: true)).shadows?.single.color,
         const BoxColor.role(MaterialColorRole.error),
       );
       // Focused, the line is two pixels: the offset is what thickens it.
-      expect(fillOf(treeOf(field)).shadow?.offsetY, 1);
-      expect(fillOf(treeOf(field, focused: true)).shadow?.offsetY, 2);
-      expect(fillOf(treeOf(field)).shadow?.blurRadius, 0);
+      expect(fillOf(treeOf(field)).shadows?.single.offsetY, 1);
+      expect(fillOf(treeOf(field, focused: true)).shadows?.single.offsetY, 2);
+      expect(fillOf(treeOf(field)).shadows?.single.blurRadius, 0);
     });
 
     test('typesets the value with the body role, in the on-surface colour', () {
@@ -223,7 +223,7 @@ void main() {
       expect(fillOf(treeOf(MaterialTextField())).opacity, isNull);
       expect(fillOf(treeOf(MaterialTextField(enabled: false))).opacity, 0.38);
       expect(
-        fillOf(treeOf(MaterialTextField())).hoverStyle?.shadow?.color,
+        fillOf(treeOf(MaterialTextField())).hoverStyle?.shadows?.single.color,
         const BoxColor.role(MaterialColorRole.onSurface),
       );
       expect(

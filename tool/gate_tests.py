@@ -23,6 +23,7 @@ import doc_check
 import lighthouse_budget
 import performance_report
 import scale_check
+import surface_check
 
 PASSED = []
 FAILED = []
@@ -143,6 +144,60 @@ def test_performance_report():
               sizes['document'] == len(gzip.compress(b'x' * 1000, 6)), str(sizes))
 
 
+def test_surface_check():
+    """The rule a reviewer remembers and an assistant does not: a token with no case is not finished."""
+    with tempfile.TemporaryDirectory() as work:
+
+        def write(relative, body):
+            path = os.path.join(work, relative)
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            open(path, 'w').write(body)
+
+        write('packages/unibox_core/lib/src/tokens/box_style.dart',
+              'class BoxStyle {\n  final double? gap;\n  final double? wiggle;\n}\n')
+        write('packages/unibox_testing/lib/src/appearance.dart',
+              'class BoxAppearance {\n  final double? gap;\n}\n')
+        write('packages/unibox_core/lib/src/tokens/box_text_style.dart',
+              'class BoxTextStyle {\n  final double? fontSize;\n}\n')
+        write('packages/unibox_testing/lib/src/text_appearance.dart',
+              'class TextAppearance {\n  final double? fontSize;\n}\n')
+        write('packages/unibox_core/lib/src/nodes/box.dart',
+              'class Box {\n  final TapCallback? onTap;\n}\n')
+        write('packages/unibox_flutter/lib/src/box.dart', 'void build() => box.onTap?.call();\n')
+        write('packages/unibox_dom/lib/src/events.dart', 'void bind() => box.onTap?.call();\n')
+
+        refused = surface_check.findings(work)
+        check('surface_check refuses a token nobody classified',
+              any('wiggle' in problem for problem in refused), str(refused))
+        check('surface_check accepts a token the table carries',
+              not any('`gap`' in problem for problem in refused), str(refused))
+        check('surface_check accepts a callback both targets reach',
+              not any('onTap' in problem for problem in refused), str(refused))
+
+        # The bug it exists for: `Box.onHover` was declared, used by a component, and bound by
+        # nothing for a day, with every suite green.
+        write('packages/unibox_dom/lib/src/events.dart', '// nothing is bound here\n')
+        unbound = surface_check.findings(work)
+        check('surface_check refuses a callback the web never binds',
+              any('onTap' in problem for problem in unbound), str(unbound))
+
+        # A reason written down once is what the red asks for, and it is what the map is for.
+        surface_check.CLASSIFIED['BoxStyle']['wiggle'] = 'a fixture, not a real token'
+        try:
+            classified = surface_check.findings(work)
+            check('surface_check accepts the same token once it has a reason',
+                  not any('wiggle' in problem for problem in classified), str(classified))
+        finally:
+            del surface_check.CLASSIFIED['BoxStyle']['wiggle']
+
+        # And a reason that outlives its token is the same lie in the other direction.
+        surface_check.CLASSIFIED['BoxStyle']['departed'] = 'a token that is not in the file'
+        try:
+            stale = surface_check.findings(work)
+            check('surface_check refuses a reason for a token that is gone',
+                  any('departed' in problem for problem in stale), str(stale))
+        finally:
+            del surface_check.CLASSIFIED['BoxStyle']['departed']
 def test_scale_check():
     """A shape that stops being linear is refused, and a shape that is linear is not."""
     baseline = {
@@ -200,6 +255,7 @@ def main():
     test_lighthouse_budget()
     test_performance_report()
     test_scale_check()
+    test_surface_check()
 
     for name in PASSED:
         print(f'  ok   {name}')

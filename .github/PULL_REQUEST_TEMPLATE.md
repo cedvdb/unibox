@@ -26,8 +26,7 @@ say what you did on the other side. -->
 - [ ] A new or changed token has a case in `unibox_testing` **and** a place in the
       "every token at once" case
 - [ ] Both renderers draw it, and a test on each target says so
-- [ ] No version bump, no `publish_to` change, nothing from the `Deferred` section of
-      `TASK_PLAN.md`
+- [ ] No version bump and no `publish_to` change
 
 ## Notes for the reviewer
 
