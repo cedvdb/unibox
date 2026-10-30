@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- `Box.style` and `EmbedNode.payload` are gone, and no compatibility member replaces them:
+  a bag is a list (`styles:`), and an embed states `implementations`. The library has one
+  consumer — this repository — so a removed spelling is rewritten rather than forwarded.
 - A box states its **shadows** as a list, not one shadow: `Box(shadows: <BoxShadow>[…])` and
   `BoxStyle.shadows`. An elevation is three layers in Material and in Flutter — an umbra, a
   penumbra and an ambient blur — and a single `BoxShadow` could only ever state one of them. The

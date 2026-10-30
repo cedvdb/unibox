@@ -268,8 +268,10 @@ never inherited (CSS does not inherit them either).
 
 ### 5.7 Compatibility
 - Additions (new optional parameters, new nodes, new tokens) are minor.
-- Renames and removals are breaking: keep the old name as a deprecated
-  forwarding constructor or getter for at least one minor release.
+- Renames and removals are breaking, and are made outright: this library has one
+  consumer, the repository itself, so an old spelling is not kept as a deprecated
+  forwarding member. The change lands on every call site here and there is nothing
+  else holding the old name.
 - Every published change is listed in the package `CHANGELOG.md`.
 
 ### 5.8 Structure and semantics

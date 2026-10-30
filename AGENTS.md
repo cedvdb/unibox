@@ -112,8 +112,8 @@ a lie.
    `ImageNode.resolvedFit`) and both renderers use it. Never fall back to a host
    default: Flutter's 14px text and the browser's 16px are exactly the drift the
    model exists to prevent.
-3. **Flat parameters win over style bags.** `Box.computedStyle` merges `style`
-   (deprecated) → `styles` left to right → the flat parameters. A state style
+3. **Flat parameters win over style bags.** `Box.computedStyle` merges `styles`
+   left to right, then the flat parameters. A state style
    overlays the resting one, and `disabled` overlays every state.
 4. **No platform chrome.** Neither renderer keeps the decoration its host adds to
    a control: not Material's field underline, not the browser's input border,
@@ -359,9 +359,9 @@ and two when each side is independently reviewable.
   other renderer.
 - **A new workspace package** without listing it in the root `pubspec.yaml`
   workspace and in CI.
-- **Breaking a public spelling.** Additions are minor; a rename or a removal keeps
-  the old spelling as a deprecated forwarding member for at least one minor
-  release (`design.md` §5.7).
+- **Breaking a public spelling.** Additions are minor; a rename or a removal is made
+  outright — there is one consumer, this repository, so no deprecated forwarding
+  member is kept (`design.md` §5.7).
 - **Unrelated cleanups.** A commit that reformats, renames or refactors something
   the change did not need makes the review harder and hides the real diff.
 

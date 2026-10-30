@@ -83,8 +83,8 @@ host that renders it.
 2. **The node names are not Flutter's.** `TextNode`, not `Text`; `ImageNode`, not
    `Image`; `StackNode`, `PositionedNode`, `LinkNode`. `Box` keeps its bare name
    because Flutter has no `Box`.
-3. **Flat parameters beat style bags.** `Box.computedStyle` merges `style`
-   (deprecated) → `styles` left to right → the flat parameters. A state style
+3. **Flat parameters beat style bags.** `Box.computedStyle` merges `styles`
+   left to right, then the flat parameters. A state style
    (`hoverStyle`, `stateStyles`) overlays the resting one; `disabled` overlays all.
 4. **A box is a column by default.** `direction` unset means `Axis.vertical`, and
    `mainAlign` and `crossAlign` default to `start` — not Flutter's `center` cross

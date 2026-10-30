@@ -368,10 +368,12 @@ void main() {
 
     test('reads the tokens resolved from the style', () {
       const Box tree = Box(
-        style: BoxStyle(
-          overflow: Overflow.scroll,
-          mainAlign: MainAlign.spaceBetween,
-        ),
+        styles: <BoxStyle>[
+          BoxStyle(
+            overflow: Overflow.scroll,
+            mainAlign: MainAlign.spaceBetween,
+          ),
+        ],
       );
 
       expect(validateTree(tree).single.message, contains('spaceBetween'));
