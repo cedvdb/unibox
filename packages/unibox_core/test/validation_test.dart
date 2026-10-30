@@ -528,6 +528,101 @@ void main() {
       expect(issue.message, contains('flex: 1'));
     });
 
+    test('reports a full-width box inside a row that scrolls', () {
+      // The consumer's crash: a box that fills its width in a row that scrolls along it.
+      // Flutter throws `BoxConstraints forces an infinite width` during layout, and the
+      // browser resolves the same `100%` against the scrollport's content.
+      const Box tree = Box(
+        direction: Axis.horizontal,
+        overflow: Overflow.scroll,
+        children: <UINode>[Box(width: double.infinity, height: 40)],
+      );
+      final TreeIssue issue = validateTree(tree).single;
+
+      expect(issue.node, same(tree.children.single));
+      expect(issue.isError, isTrue);
+      expect(issue.message, contains('width: double.infinity'));
+      expect(issue.message, contains('Box'));
+      expect(issue.message, contains('scrolls along that axis'));
+    });
+
+    test('reports a full-height box inside a column that scrolls', () {
+      const Box tree = Box(
+        overflow: Overflow.scroll,
+        children: <UINode>[Box(height: double.infinity)],
+      );
+      final TreeIssue issue = validateTree(tree).single;
+
+      expect(issue.message, contains('height: double.infinity'));
+      expect(issue.message, contains('scrolls along that axis'));
+    });
+
+    test('reports a full-width box a flex parent passes no width to', () {
+      // The row is not scrolling itself; it was handed no end by the row above it, and a
+      // flex hands its children what it was handed.
+      const Box tree = Box(
+        direction: Axis.horizontal,
+        overflow: Overflow.scroll,
+        children: <UINode>[
+          Box(
+            direction: Axis.vertical,
+            children: <UINode>[Box(width: double.infinity)],
+          ),
+        ],
+      );
+      final TreeIssue issue = validateTree(tree)
+          .where((TreeIssue issue) => issue.message.contains('double.infinity'))
+          .single;
+
+      expect(issue.message, contains('no end on that axis'));
+    });
+
+    test('accepts a full-width box in a bounded parent', () {
+      const Box tree = Box(
+        direction: Axis.horizontal,
+        children: <UINode>[
+          Box(width: double.infinity),
+          Box(height: 20),
+        ],
+      );
+
+      expect(validateTree(tree), isEmpty);
+    });
+
+    test('accepts a finite box inside a row that scrolls', () {
+      const Box tree = Box(
+        direction: Axis.horizontal,
+        overflow: Overflow.scroll,
+        children: <UINode>[Box(width: 200, height: 40)],
+      );
+
+      expect(validateTree(tree), isEmpty);
+    });
+
+    test('accepts a full-height box in a row that scrolls across it', () {
+      // The axis is the whole rule: a row that scrolls gives its children no *width*, and
+      // the height is the row's own, which has an end.
+      const Box tree = Box(
+        direction: Axis.horizontal,
+        height: 40,
+        overflow: Overflow.scroll,
+        children: <UINode>[Box(width: 200, height: double.infinity)],
+      );
+
+      expect(validateTree(tree), isEmpty);
+    });
+
+    test('accepts a full-width box in a grid that has no width of its own', () {
+      // A grid gives every child a measured track whatever it was handed: the count comes
+      // from `minItemWidth` and the width from the tracks, so a card may fill its cell.
+      const GridNode tree = GridNode(
+        minItemWidth: 200,
+        children: <UINode>[Box(width: double.infinity, height: 40)],
+      );
+
+      expect(validateTree(tree), isEmpty);
+    });
+
     test('reports a baseline alignment on a column', () {
       // A baseline is a horizontal line: Flutter lays a column out as if the value
       // were start, and a browser shifts the children sideways. Nothing can draw both.

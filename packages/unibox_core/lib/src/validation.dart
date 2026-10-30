@@ -72,6 +72,9 @@ class TreeIssue {
 ///   navigates twice,
 /// * a box that scrolls along its main axis while distributing its children
 ///   with [Box.mainAlign], which pushes overflowing children out of reach,
+/// * a box that fills an axis it was given no end on — the width inside a row
+///   that scrolls along it, or inside any parent that hands the space on
+///   unbounded — which Flutter refuses at layout time,
 /// * a box that aligns on the baseline without a row to align, where the two
 ///   targets lay the children out differently,
 /// * an aspect ratio that cannot divide anything — a ratio next to a width and a
@@ -101,6 +104,10 @@ List<TreeIssue> validateTree(UINode root, {UniboxTheme? theme}) {
     inGrid: false,
     definiteHeight: null,
     decoratedAbove: false,
+    // The root is drawn on a surface the host gives it, so both axes have an end to
+    // reach: a root that fills its width is the ordinary case.
+    unboundedWidth: false,
+    unboundedHeight: false,
     issues: issues,
   );
   return issues;
@@ -262,7 +269,54 @@ void _validateDecoration(
   }
 }
 
+/// Records [node] if it fills an [axis] it was given no end on.
+///
+/// [size] is the box's own dimension on that axis, and [unbounded] says whether the space
+/// it was laid out in had an end there. `double.infinity` means "as much as I am handed",
+/// which is a promise a scroll view cannot keep: Flutter hands a scrolling box's children
+/// an infinite constraint, and a browser resolves the same `100%` against the content of
+/// the scrollport, so neither is the width the author meant.
+void _validateFilledAxis({
+  required Box node,
+  required UINode? parent,
+  required Axis axis,
+  required double? size,
+  required bool unbounded,
+  required List<TreeIssue> issues,
+}) {
+  if (size != double.infinity || !unbounded) {
+    return;
+  }
+
+  final String name = axis == Axis.horizontal ? 'width' : 'height';
+  final BoxStyle? parentStyle = parent is Box ? parent.computedStyle : null;
+  final bool scrolls =
+      parentStyle != null &&
+      parentStyle.overflow == Overflow.scroll &&
+      parentStyle.resolvedDirection == axis;
+
+  issues.add(
+    TreeIssue(
+      node: node,
+      severity: TreeIssueSeverity.error,
+      message:
+          'A ${node.runtimeType} fills its $name ($name: double.infinity) '
+          'inside a ${parent?.runtimeType ?? 'root'}, which offers it no $name '
+          'to fill: '
+          '${scrolls ? 'the parent scrolls along that axis, so its children are laid out with no end to reach' : 'the room it was given has no end on that axis, and it passes that on'}. '
+          'Flutter refuses the constraint at layout time and a browser resolves '
+          'the share against the wrong box. Give the box a $name, take the '
+          'infinity out, or bound the parent.',
+    ),
+  );
+}
+
 /// Walks [node] and records every issue of the subtree into [issues].
+///
+/// [unboundedWidth] and [unboundedHeight] say what room the node was given: a box that
+/// fills an axis it was handed no end on is the construct the last check below reports, and
+/// the two flags are what carry that fact down from the one node that creates it — a box
+/// that scrolls along the axis.
 void _validate(
   UINode node, {
   required UINode? parent,
@@ -271,6 +325,8 @@ void _validate(
   required bool inGrid,
   required double? definiteHeight,
   required bool decoratedAbove,
+  required bool unboundedWidth,
+  required bool unboundedHeight,
   required List<TreeIssue> issues,
 }) {
   _validateRoles(node, theme, issues);
@@ -373,6 +429,28 @@ void _validate(
         ),
       );
     }
+
+    // A box that fills an axis its parent gave it no end on is a constraint Flutter
+    // refuses at layout time — `BoxConstraints forces an infinite width` — and a browser
+    // resolves the same `100%` against a scrollport's content, so the two targets disagree
+    // about a tree that looks fine. The parent states it: it scrolls along that axis, or it
+    // is itself unbounded there and passes the unboundedness on.
+    _validateFilledAxis(
+      node: node,
+      parent: parent,
+      axis: Axis.horizontal,
+      size: style.width,
+      unbounded: unboundedWidth,
+      issues: issues,
+    );
+    _validateFilledAxis(
+      node: node,
+      parent: parent,
+      axis: Axis.vertical,
+      size: style.height,
+      unbounded: unboundedHeight,
+      issues: issues,
+    );
 
     // A ratio divides one side by the other, so it needs one side to divide. A box
     // that states both has already answered, and the ratio would be a third statement
@@ -939,6 +1017,12 @@ void _validate(
   }
 
   for (final UINode child in node.children) {
+    final (bool, bool) room = _roomForChild(
+      node,
+      unboundedWidth,
+      unboundedHeight,
+    );
+
     _validate(
       child,
       parent: node,
@@ -947,9 +1031,42 @@ void _validate(
       inGrid: inGrid || node is GridNode,
       definiteHeight: node is GridNode ? null : childDefiniteHeight,
       decoratedAbove: decoratedAbove || _drawsDecoration(node),
+      unboundedWidth: room.$1,
+      unboundedHeight: room.$2,
       issues: issues,
     );
   }
+}
+
+/// The room [node] gives its children: whether either axis of it has no end.
+///
+/// Two things unbind an axis. A box that scrolls along it is a viewport whose content is
+/// laid out in the scroll direction without a limit — the one place the model says so — and
+/// a box that was itself given no end on an axis passes it on, because a flex container
+/// hands its children the space it was handed. A grid is the exception: it gives every
+/// child a measured track whether or not its own width had an end, because the count and
+/// the width come from an arithmetic rule rather than from the parent.
+(bool, bool) _roomForChild(
+  UINode node,
+  bool unboundedWidth,
+  bool unboundedHeight,
+) {
+  if (node is GridNode) {
+    return (false, unboundedHeight);
+  }
+
+  if (node is! Box) {
+    return (unboundedWidth, unboundedHeight);
+  }
+
+  final BoxStyle style = node.computedStyle;
+  final bool scrolls = style.overflow == Overflow.scroll;
+  final Axis direction = style.resolvedDirection;
+
+  return (
+    unboundedWidth || (scrolls && direction == Axis.horizontal),
+    unboundedHeight || (scrolls && direction == Axis.vertical),
+  );
 }
 
 /// Whether [node] states a line across the text it holds.

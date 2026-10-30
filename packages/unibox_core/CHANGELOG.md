@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- `validateTree` reports a box that fills an axis it was handed no end on: a box with
+  `width: double.infinity` inside a row that scrolls along that axis, or inside any parent
+  the model leaves unbounded there. Flutter throws `BoxConstraints forces an infinite width`
+  at layout time and a browser resolves the same `100%` against the content of the
+  scrollport, so nothing warned while the tree was built and the two targets then disagreed
+  about a page that looked fine. The rule is the scroll along the main axis one's sibling:
+  the tree is reported while it is built, with the box and its parent named.
+
 - `Box.wrap` lets the children of a box flow onto another line when they do not fit, so a
   row of chips wraps instead of scrolling past the edge of a phone. `gap` is the space
   between two children and between two lines, and `mainAlign` and `crossAlign` keep the
