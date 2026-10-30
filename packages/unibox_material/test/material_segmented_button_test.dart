@@ -165,6 +165,43 @@ void main() {
       );
     });
 
+    test('lets a caller set the pill, its room, its type and its icon gap', () {
+      final MaterialSegmentedButton button = MaterialSegmentedButton(
+        segments: const <MaterialSegment>[
+          MaterialSegment(label: TextNode('List'), icon: TextNode('grid')),
+        ],
+        selected: 0,
+        onSelect: _select,
+        height: 48,
+        borderRadius: 24,
+        padding: const BoxSpacing.symmetric(horizontal: 20),
+        iconGap: 6,
+        labelStyle: MaterialTypography.labelMedium,
+      );
+      final Box segment = button.children.single as Box;
+      final Box pill = _wellBox(segment);
+      final Box content =
+          ((pill.children.single as StackNode).children.last as Box)
+                  .children
+                  .single
+              as Box;
+
+      expect(button.height, 48);
+      expect(button.borderRadius, 24);
+      expect(pill.height, 48);
+      expect(content.padding, const BoxSpacing.symmetric(horizontal: 20));
+      expect(
+        content.textStyle?.fontSize,
+        MaterialTypography.labelMedium.fontSize,
+      );
+      expect(
+        content.textStyle?.color,
+        const BoxColor.role(MaterialColorRole.onSecondaryContainer),
+      );
+      // The chosen segment shows the check, and the gap is the caller's.
+      expect((content.children.single as Box).gap, 6);
+    });
+
     test('draws a tree the model can validate', () {
       final MaterialSegmentedButton button = MaterialSegmentedButton(
         segments: _segments,

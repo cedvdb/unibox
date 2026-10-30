@@ -57,12 +57,21 @@ final class MaterialSegment {
 /// the model cannot say without an alpha role per token.
 final class MaterialSegmentedButton extends Box {
   /// Creates a segmented button with [segments], [selected] of them chosen.
+  ///
+  /// The measurements are parameters: [height] and [borderRadius] the pill, [padding]
+  /// the room around each segment's content, [iconGap] the space between a segment's
+  /// icon and its label, and [labelStyle] the type — the state still owns the colour.
   MaterialSegmentedButton({
     required List<MaterialSegment> segments,
     required int selected,
     required void Function(int index) onSelect,
     bool enabled = true,
     bool showSelectedIcon = true,
+    double height = controlHeight,
+    double borderRadius = radius,
+    BoxSpacing padding = _segmentPadding,
+    double iconGap = _iconGap,
+    BoxTextStyle labelStyle = MaterialTypography.labelLarge,
     // A width shares the segments equally; without one each hugs its label, because a
     // `flex` in an unbounded row is a layout error in Flutter.
     super.width,
@@ -70,12 +79,12 @@ final class MaterialSegmentedButton extends Box {
     BoxTransition? transition,
     super.key,
   }) : super(
-         height: controlHeight,
+         height: height,
          // A disabled segmented button fades as one control rather than greying each
          // segment: Material draws the label at 38%, and one opacity is what this
          // model can say without an alpha role per token.
          opacity: enabled ? null : 0.38,
-         borderRadius: radius,
+         borderRadius: borderRadius,
          border: _outline,
          overflow: Overflow.hidden,
          direction: Axis.horizontal,
@@ -89,6 +98,10 @@ final class MaterialSegmentedButton extends Box {
                enabled: enabled,
                showSelectedIcon: showSelectedIcon,
                equal: width != null,
+               height: height,
+               padding: padding,
+               iconGap: iconGap,
+               labelStyle: labelStyle,
                transition: transition,
                onTap: () => onSelect(i),
              ),
@@ -108,6 +121,12 @@ final class MaterialSegmentedButton extends Box {
   /// The space between that icon and the label.
   static const double _iconGap = 8;
 
+  /// The room Material gives a segment's content: 12 across, which is what an icon
+  /// and a label are inset by on each side of a segment.
+  static const BoxSpacing _segmentPadding = BoxSpacing.symmetric(
+    horizontal: 12,
+  );
+
   /// The line around the container, and between its segments.
   static const BoxBorder _outline = BoxBorder(
     color: BoxColor.role(MaterialColorRole.outline),
@@ -120,6 +139,10 @@ final class MaterialSegmentedButton extends Box {
     required bool enabled,
     required bool showSelectedIcon,
     required bool equal,
+    required double height,
+    required BoxSpacing padding,
+    required double iconGap,
+    required BoxTextStyle labelStyle,
     required BoxTransition? transition,
     required TapCallback onTap,
   }) {
@@ -144,10 +167,10 @@ final class MaterialSegmentedButton extends Box {
           onTap: onTap,
           enabled: enabled,
           ink: foreground,
-          // A height, not an infinity: the segment is already 40 pixels tall, and an
-          // infinite height inside a column is a constraint Flutter refuses.
+          // A height, not an infinity: the segment is already as tall as the control,
+          // and an infinite height inside a column is a constraint Flutter refuses.
           width: double.infinity,
-          height: controlHeight,
+          height: height,
           mainAlign: MainAlign.center,
           transition: transition ?? MaterialInkWell.defaultTransition,
           semantics: BoxSemantics(
@@ -156,13 +179,11 @@ final class MaterialSegmentedButton extends Box {
             pressed: selected,
           ),
           child: Box(
-            padding: const BoxSpacing.symmetric(horizontal: 12),
+            padding: padding,
             mainAlign: MainAlign.center,
             crossAlign: CrossAlign.center,
             width: double.infinity,
-            textStyle: MaterialTypography.labelLarge.merge(
-              BoxTextStyle(color: foreground),
-            ),
+            textStyle: labelStyle.merge(BoxTextStyle(color: foreground)),
             children: <UINode>[
               if (leading == null)
                 segment.label
@@ -170,7 +191,7 @@ final class MaterialSegmentedButton extends Box {
                 Box(
                   direction: Axis.horizontal,
                   crossAlign: CrossAlign.center,
-                  gap: _iconGap,
+                  gap: iconGap,
                   children: <UINode>[leading, segment.label],
                 ),
             ],

@@ -156,6 +156,31 @@ void main() {
       expect(_pressed, 1);
     });
 
+    test('lets a caller set the bar, the pill and the gaps', () {
+      final MaterialNavigationBar bar = MaterialNavigationBar(
+        destinations: _destinations,
+        selected: 0,
+        onSelect: _select,
+        height: 96,
+        indicatorWidth: 72,
+        indicatorHeight: 40,
+        itemPadding: const BoxSpacing(top: 16, bottom: 8),
+        labelGap: 6,
+      );
+      final List<UINode> layers = _layers(bar, 0).children;
+
+      expect(bar.height, 96);
+      // The destination and its stack are as tall as the bar, so nothing is left over.
+      expect(_destination(bar, 0).height, 96);
+      expect(_layers(bar, 0).height, 96);
+      expect(_colour(bar, 0).width, 72);
+      expect(_colour(bar, 0).height, 40);
+      expect(_colour(bar, 0).borderRadius, 20);
+      expect((layers.first as PositionedNode).top, 16);
+      // The label hangs under the pill by the gap the caller asked for.
+      expect((layers.last as PositionedNode).top, 16 + 40 + 6);
+    });
+
     test('paints the pill behind the chosen icon and no other', () {
       final MaterialNavigationBar bar = _bar(selected: 1);
 

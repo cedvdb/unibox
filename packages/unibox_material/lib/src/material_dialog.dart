@@ -30,6 +30,11 @@ import 'material_typography.dart';
 /// than measured, and the actions row does not wrap.
 final class MaterialDialog extends OverlayNode {
   /// Creates the dialog.
+  ///
+  /// The surface is the caller's to state: [color], [padding], [gap],
+  /// [borderRadius] and the bounds, and the action row's [actionGap] and
+  /// [actionMargin] with them, so a dialog can be tightened for a small screen
+  /// without a second component.
   MaterialDialog({
     super.key,
     required String title,
@@ -37,18 +42,22 @@ final class MaterialDialog extends OverlayNode {
     List<UINode> actions = const <UINode>[],
     super.onDismiss,
     super.barrierDismissible,
+    BoxColor color = _surface,
+    BoxSpacing padding = const BoxSpacing.all(24),
+    double gap = 16,
+    double borderRadius = 28,
     double minWidth = 280,
     double maxWidth = 560,
+    double actionGap = 8,
+    BoxSpacing actionMargin = const BoxSpacing.only(top: 8),
   }) : super(
          barrierColor: const BoxColor.role(MaterialColorRole.scrim),
          alignment: OverlayAlignment.center,
          child: Box(
-           backgroundColor: const BoxColor.role(
-             MaterialColorRole.surfaceContainerHigh,
-           ),
-           borderRadius: 28,
-           padding: const BoxSpacing.all(24),
-           gap: 16,
+           backgroundColor: color,
+           borderRadius: borderRadius,
+           padding: padding,
+           gap: gap,
            minWidth: minWidth,
            maxWidth: maxWidth,
            shadows: elevation,
@@ -56,10 +65,20 @@ final class MaterialDialog extends OverlayNode {
              TextNode(title, style: _titleStyle()),
              if (content != null)
                Box(textStyle: _contentStyle(), children: <UINode>[content]),
-             if (actions.isNotEmpty) _ActionRow(actions: actions),
+             if (actions.isNotEmpty)
+               _ActionRow(
+                 actions: actions,
+                 gap: actionGap,
+                 margin: actionMargin,
+               ),
            ],
          ),
        );
+
+  /// The surface Material raises a dialog on.
+  static const BoxColor _surface = BoxColor.role(
+    MaterialColorRole.surfaceContainerHigh,
+  );
 
   /// Material's level-three elevation: the shadow a dialog is raised by.
   static const List<BoxShadow> elevation = MaterialElevation.level3;
@@ -84,15 +103,18 @@ final class MaterialDialog extends OverlayNode {
 
 /// The actions of a dialog or a sheet: a row packed against its end.
 final class _ActionRow extends Box {
-  _ActionRow({required List<UINode> actions})
-    : super(
-        direction: Axis.horizontal,
-        mainAlign: MainAlign.end,
-        gap: 8,
-        margin: const BoxSpacing.only(top: 8),
-        textStyle: MaterialTypography.labelLarge.merge(
-          BoxTextStyle(color: const BoxColor.role(MaterialColorRole.primary)),
-        ),
-        children: actions,
-      );
+  _ActionRow({
+    required List<UINode> actions,
+    required double gap,
+    required BoxSpacing margin,
+  }) : super(
+         direction: Axis.horizontal,
+         mainAlign: MainAlign.end,
+         gap: gap,
+         margin: margin,
+         textStyle: MaterialTypography.labelLarge.merge(
+           BoxTextStyle(color: const BoxColor.role(MaterialColorRole.primary)),
+         ),
+         children: actions,
+       );
 }

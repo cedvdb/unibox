@@ -14,6 +14,32 @@
   same height and compares the pixels, rather than comparing the list with a table.
   `MaterialCard.elevatedShadow` is `elevatedShadows` now, and every component passes the
   list a box takes.
+- A text button is 40 pixels tall, like the other three shapes. It painted 36: Material's
+  40 is a minimum size, and the text shape's 12 by 8 of room added up to less than that
+  while the three filled shapes reached it with 20 by 10. All four now paint the same
+  height, so a row of them lines up.
+- Every button carries Material's minimum of 64 by 40, and its label is centred in the
+  fill: a button pinned with `width:` used to draw its label against the left edge. The
+  minimum is the caller's to move with the new `minWidth` and `height`, and `iconGap` and
+  `border` are new too — the space between an icon and its label, and the line around an
+  outlined button.
+- The three filled shapes pad 24 across, which is Material's own, instead of 20. The text
+  shape keeps 12, and neither number is fixed: `padding` replaces it.
+- `MaterialButton.tonal`, `.outlined` and `.text` take `onLongPress`, `onHover` and
+  `transition`. Only the filled constructor did, so a named shape silently dropped a
+  long press and a hover the model and both renderers support.
+- The spacing of every component is a parameter. `MaterialChip` takes `padding`, `height`,
+  `tapTargetHeight`, `borderRadius`, `gap`, `labelStyle` and `onHover`;
+  `MaterialListTile` takes `textGap`; `MaterialSegmentedButton` takes `height`,
+  `borderRadius`, `padding`, `iconGap` and `labelStyle`; `MaterialTabBar` takes `height`,
+  `indicatorHeight`, `tabPadding`, `labelGap` and `labelStyle`;
+  `MaterialNavigationBar` takes `height`, `indicatorWidth`, `indicatorHeight`,
+  `itemPadding` and `labelGap`; `MaterialTextField` takes `contentPadding` and
+  `messageGap`; and `MaterialDialog` and `MaterialBottomSheet` take `color`, `padding`,
+  `gap`, `borderRadius`, `actionGap` and `actionMargin`. Every default is the value the
+  component already drew, so nothing moves that a caller does not ask to move.
+- A bottom sheet's action row keeps the same 8 pixels above it that a dialog's does, so
+  the two read as one component at two edges.
 - The catalogue in the example shows a card at each of the first three heights, on the surface
   tone Material pairs with it, beside the outlined and the filled card.
 

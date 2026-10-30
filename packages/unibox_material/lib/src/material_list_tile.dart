@@ -47,9 +47,10 @@ import 'material_typography.dart';
 final class MaterialListTile extends Box {
   /// Creates a list tile around [title].
   ///
-  /// Every default is a parameter: the padding, the gap, the title and subtitle
-  /// styles, the minimum height and the ink are the tile's own tokens, so an
-  /// application can theme them without giving up the tile.
+  /// Every default is a parameter: the padding, the gap between the parts, the gap
+  /// between the title and its subtitle, the title and subtitle styles, the minimum
+  /// height and the ink are the tile's own tokens, so an application can theme them
+  /// without giving up the tile.
   ///
   /// `onTap` is read here instead of being passed straight through, because a
   /// tappable tile is what gets the button role — and the ink.
@@ -72,6 +73,7 @@ final class MaterialListTile extends Box {
     double? width,
     BoxSpacing padding = _padding,
     double gap = _gap,
+    double textGap = _textGap,
     BoxTextStyle? titleStyle,
     BoxTextStyle? subtitleStyle,
     BoxColor ink = MaterialInkWell.defaultInk,
@@ -99,7 +101,7 @@ final class MaterialListTile extends Box {
         Box(
           direction: Axis.vertical,
           flex: 1,
-          gap: _textGap,
+          gap: textGap,
           textStyle:
               titleStyle ??
               MaterialTypography.bodyLarge.merge(

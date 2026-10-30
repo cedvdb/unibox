@@ -102,6 +102,8 @@ final class _Field {
     required this.description,
     required this.borderRadius,
     required this.width,
+    required this.contentPadding,
+    required this.messageGap,
     required this.onChanged,
     required this.onSubmitted,
     required this.onFocusChanged,
@@ -123,6 +125,8 @@ final class _Field {
   final String? description;
   final double borderRadius;
   final double? width;
+  final BoxSpacing contentPadding;
+  final double messageGap;
   final void Function(String value)? onChanged;
   final void Function(String value)? onSubmitted;
   final void Function(bool focused)? onFocusChanged;
@@ -162,7 +166,9 @@ final class _Field {
 /// inside the control, so a press anywhere in the field focuses it. Padding on the
 /// box would sit outside the control's hit area on both targets — the difference
 /// between a field that feels like a field and one that only responds on its text
-/// line.
+/// line. [contentPadding] is the room at the sides of the label, the value and the
+/// message, so the three stay in one column when an application tightens a field to
+/// fit a narrow card.
 ///
 /// **The label has the two positions Material gives it.** While the field is empty
 /// and unfocused, the label *is* the line inside the field, at the value's size and
@@ -187,6 +193,10 @@ final class _Field {
 final class MaterialTextField
     extends StatefulNode<MaterialFieldState, MaterialFieldStore> {
   /// Creates the field.
+  ///
+  /// [contentPadding] is the room at the sides of the label, the value and the message —
+  /// the vertical rhythm is the field's own 56 pixels — and [messageGap] is the space
+  /// between the fill and the line under it.
   MaterialTextField({
     Object? key,
     String? value,
@@ -205,6 +215,8 @@ final class MaterialTextField
     String? description,
     double borderRadius = 4,
     double? width,
+    BoxSpacing contentPadding = _contentPadding,
+    double messageGap = 4,
     void Function(String value)? onChanged,
     void Function(String value)? onSubmitted,
     void Function(bool focused)? onFocusChanged,
@@ -226,6 +238,8 @@ final class MaterialTextField
            description: description,
            borderRadius: borderRadius,
            width: width,
+           contentPadding: contentPadding,
+           messageGap: messageGap,
            onChanged: onChanged,
            onSubmitted: onSubmitted,
            onFocusChanged: onFocusChanged,
@@ -240,6 +254,12 @@ final class MaterialTextField
         view: (MaterialFieldState state, MaterialFieldStore store) =>
             _fieldView(field, state, store),
       );
+
+  /// The room Material puts at the sides of a filled field's contents: the label, the
+  /// value and the message all start and end here, so the three line up.
+  static const BoxSpacing _contentPadding = BoxSpacing.symmetric(
+    horizontal: 16,
+  );
 }
 
 /// The field as one tree: the fill, the label, the input and the message.
@@ -264,7 +284,7 @@ UINode _fieldView(
 
   return Box(
     width: field.width,
-    gap: 4,
+    gap: field.messageGap,
     crossAlign: CrossAlign.stretch,
     children: <UINode>[
       Box(
@@ -298,7 +318,11 @@ UINode _fieldView(
             Box(
               // Eight pixels to the top of the fill, then the label's own line: the
               // value's row begins 24 pixels down, where Material puts it.
-              padding: const BoxSpacing.only(left: 16, right: 16, top: 8),
+              padding: BoxSpacing.only(
+                left: field.contentPadding.left,
+                right: field.contentPadding.right,
+                top: 8,
+              ),
               children: <UINode>[
                 TextNode(
                   field.label!,
@@ -326,10 +350,14 @@ UINode _fieldView(
             // with one line of body text; floated, the label has taken the top of
             // the fill and the value sits under it.
             padding: floats
-                ? const BoxSpacing.only(left: 16, right: 16, bottom: 8)
-                : const BoxSpacing.only(
-                    left: 16,
-                    right: 16,
+                ? BoxSpacing.only(
+                    left: field.contentPadding.left,
+                    right: field.contentPadding.right,
+                    bottom: 8,
+                  )
+                : BoxSpacing.only(
+                    left: field.contentPadding.left,
+                    right: field.contentPadding.right,
                     top: 16,
                     bottom: 16,
                   ),
@@ -347,7 +375,10 @@ UINode _fieldView(
       ),
       if (message != null)
         Box(
-          padding: const BoxSpacing.only(left: 16, right: 16),
+          padding: BoxSpacing.only(
+            left: field.contentPadding.left,
+            right: field.contentPadding.right,
+          ),
           children: <UINode>[
             TextNode(message, style: invalid ? _errorStyle() : _helperStyle()),
           ],

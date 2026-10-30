@@ -61,6 +61,25 @@ void main() {
       expect(messageOf(tree), 'We only use it for the receipt.');
     });
 
+    test('lets a caller tighten the room inside the field', () {
+      final Box tree = treeOf(
+        MaterialTextField(
+          label: 'Email',
+          value: 'ada@example.com',
+          helper: 'We only use it for the receipt.',
+          contentPadding: const BoxSpacing.symmetric(horizontal: 8),
+          messageGap: 2,
+        ),
+      );
+
+      // The label, the value and the message stay in one column at the width asked for.
+      expect((fillOf(tree).children.first as Box).padding?.left, 8);
+      expect(inputOf(tree).padding?.left, 8);
+      expect(inputOf(tree).padding?.right, 8);
+      expect((tree.children.last as Box).padding?.left, 8);
+      expect(tree.gap, 2);
+    });
+
     test('stretches to the width it is given, on the field and its wrapper', () {
       final Box tree = treeOf(MaterialTextField(label: 'Email'));
 

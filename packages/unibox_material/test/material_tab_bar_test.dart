@@ -95,6 +95,37 @@ void main() {
       );
     });
 
+    test('lets a caller set the tab, its room, its type and the indicator', () {
+      final MaterialTabBar tabs = MaterialTabBar(
+        tabs: const <MaterialTab>[
+          MaterialTab(label: TextNode('Overview'), icon: TextNode('list')),
+        ],
+        selected: 0,
+        height: 56,
+        indicatorHeight: 4,
+        tabPadding: const BoxSpacing.symmetric(horizontal: 20),
+        labelGap: 6,
+        labelStyle: MaterialTypography.labelLarge,
+      );
+      final Box tab = _tabBoxes(tabs).single;
+      final MaterialInkWell well = _wellOf(tab);
+      final Store<MaterialInkState> store = well.createStore();
+      final StackNode stack =
+          (well.viewFor(store.state, store) as Box).children.single
+              as StackNode;
+      store.dispose();
+      final Box content = stack.children.last as Box;
+      final Box label = content.children.single as Box;
+
+      expect(tabs.height, 56);
+      // The tab, its stack and its well are all as tall as the bar asked for.
+      expect(tab.height, 56);
+      expect((_indicatorOf(tabs).child as Box).height, 4);
+      expect(content.padding, const BoxSpacing.symmetric(horizontal: 20));
+      expect(label.gap, 6);
+      expect(label.textStyle?.fontSize, MaterialTypography.labelLarge.fontSize);
+    });
+
     test('reports which tab was pressed', () {
       // The well holds the callback, and the bar is what knows the index: a press on the
       // third tab arrives as `2`.

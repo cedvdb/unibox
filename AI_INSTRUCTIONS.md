@@ -200,11 +200,12 @@ host that renders it.
 | `Semantics(button: true, label:)` | `semantics: BoxSemantics(role: BoxRole.button, label: …)` |
 | `Semantics(button: true, toggled: true)`, `aria-pressed` | `semantics: BoxSemantics(role: BoxRole.button, pressed: true)` — a toggle button, which is what a chip and a segment are; `selected` is for the item of a set (an option, a tab) and a browser ignores it on a button |
 | `TextField` | `TextInputNode(value:, placeholder:, inputType:, onChanged:)`, or `MaterialTextField(label:, validator:, onChanged:)` for Material's frame, which validates itself once the field has been touched |
+| `FilledButton`, `TextButton`, `OutlinedButton`, `ElevatedButton` | `MaterialButton.filled(…)`, `.text(…)`, `.outlined(…)` or `.tonal(…)` — a label on a fill with the ink of a press; all four paint 40 tall and at least 64 wide, and `padding`, `height`, `minWidth` and `iconGap` restyle them |
 | `showDialog`, `Dialog` | `MaterialDialog(title:, content:, actions:, onDismiss:)` — an `OverlayNode`, not a call |
 | `showModalBottomSheet` | `MaterialBottomSheet(title:, content:, actions:)` — the same overlay at the bottom |
 | `SegmentedButton`, a `ToggleButtons` row | `MaterialSegmentedButton(segments:, selected:, onSelect:)` — one pill of equal segments, the chosen one filled |
 | `NavigationBar`, `BottomNavigationBar` | `MaterialNavigationBar(destinations:, selected:, onSelect:)` — one 80 pixel row of equal shares, the chosen destination on a `secondaryContainer` pill; where it sits is the tree's business, so being at the bottom is the last row of a column or a `PositionedNode` |
-| `Chip`, `FilterChip`, `ChoiceChip` | `MaterialChip(label:, selected:, leading:, onTap:)` — 32 pixels tall, an outline when unselected, the secondary container when chosen |
+| `Chip`, `FilterChip`, `ChoiceChip` | `MaterialChip(label:, selected:, leading:, onTap:)` — 32 pixels tall, an outline when unselected, the secondary container when chosen; `padding`, `height` and `gap` make a denser one |
 | `Icon(Icons.check)`, under a chosen chip or segment | `MaterialCheckMark(color:, size:)` — Material's tick drawn from two bars, no font asset needed |
 | `InkWell`, `InkResponse` | `MaterialInkWell(onTap:, borderRadius:, ink:, child:)` — a state layer plus the ink a press spreads; it paints no surface, so the filled box goes around it |
 | `StatefulWidget` + `setState` around a tree | `StatefulNode` + a `StateStore` |

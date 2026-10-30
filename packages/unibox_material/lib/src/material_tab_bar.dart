@@ -83,6 +83,11 @@ final class MaterialTabBar extends Box {
   ///
   /// [palette] answers the colour roles; without it the baseline light values are written
   /// out, exactly as [MaterialCard] does.
+  ///
+  /// The measurements are parameters: [height] of a tab, [tabPadding] the room inside
+  /// it, [labelGap] the space between a tab's icon and its label, [labelStyle] the type
+  /// of every label — the state still owns the colour — and [indicatorHeight] the strip
+  /// under the chosen one.
   MaterialTabBar({
     super.key,
     required List<MaterialTab> tabs,
@@ -91,9 +96,14 @@ final class MaterialTabBar extends Box {
     MaterialTabVariant variant = MaterialTabVariant.primary,
     BoxColor? indicator,
     MaterialPalette? palette,
+    double height = tabHeight,
+    double indicatorHeight = MaterialTabBar.indicatorHeight,
+    BoxSpacing? tabPadding,
+    double labelGap = _labelGap,
+    BoxTextStyle labelStyle = MaterialTypography.titleSmall,
     super.margin,
   }) : super(
-         height: tabHeight,
+         height: height,
          width: double.infinity,
          // The row fills the bar, and it only can if the bar hands its width down: a box
          // starts its children by default, so the layer inside was as wide as the tabs it
@@ -116,7 +126,7 @@ final class MaterialTabBar extends Box {
                Box(
                  direction: Axis.horizontal,
                  width: double.infinity,
-                 height: tabHeight,
+                 height: height,
                  children: <UINode>[
                    for (int index = 0; index < tabs.length; index++)
                      _tab(
@@ -125,6 +135,11 @@ final class MaterialTabBar extends Box {
                        variant: variant,
                        palette: palette,
                        indicator: _tint(palette, indicator),
+                       height: height,
+                       indicatorHeight: indicatorHeight,
+                       padding: tabPadding ?? _paddingFor(variant),
+                       labelGap: labelGap,
+                       labelStyle: labelStyle,
                        onTap: onSelect == null ? null : () => onSelect(index),
                      ),
                  ],
@@ -177,12 +192,30 @@ final class MaterialTabBar extends Box {
   /// How tall the indicator is, and therefore how much of the bottom of a tab it takes.
   static const double indicatorHeight = 3;
 
+  /// The space between a tab's icon and its label.
+  static const double _labelGap = 4;
+
+  /// The room a tab keeps inside itself.
+  ///
+  /// A primary tab is a share of the bar and only needs a little room around its label;
+  /// a secondary one is as wide as its label and takes Material's 16, which is what makes
+  /// a row of them read as separate targets.
+  static BoxSpacing _paddingFor(MaterialTabVariant variant) =>
+      BoxSpacing.symmetric(
+        horizontal: variant == MaterialTabVariant.primary ? 8 : 16,
+      );
+
   static UINode _tab(
     MaterialTab tab, {
     required bool selected,
     required MaterialTabVariant variant,
     required MaterialPalette? palette,
     required BoxColor indicator,
+    required double height,
+    required double indicatorHeight,
+    required BoxSpacing padding,
+    required double labelGap,
+    required BoxTextStyle labelStyle,
     required TapCallback? onTap,
   }) {
     final bool primary = variant == MaterialTabVariant.primary;
@@ -195,18 +228,18 @@ final class MaterialTabBar extends Box {
     // a box hands its `textStyle` down to the texts inside it, which is the model's copy of
     // CSS font inheritance.
     final Box label = Box(
-      gap: 4,
+      gap: labelGap,
       crossAlign: CrossAlign.center,
-      textStyle: MaterialTypography.titleSmall.copyWith(color: labelColour),
+      textStyle: labelStyle.copyWith(color: labelColour),
       children: <UINode>[?tab.icon, tab.label],
     );
 
-    // The tab is the well, filling all 48 pixels and the whole share: Material tints the tab, and a
-    // column that held the well above an indicator strip made the tint as wide as its label and
-    // left the bottom three pixels outside the thing a pointer could reach.
+    // The tab is the well, filling all its own pixels and the whole share: Material tints the
+    // tab, and a column that held the well above an indicator strip made the tint as wide as
+    // its label and left the bottom three pixels outside the thing a pointer could reach.
     return Box(
       flex: primary ? 1 : null,
-      height: tabHeight,
+      height: height,
       // A share cannot be split, so a primary tab stretches its well across its share; a secondary
       // tab is as wide as its label, which is what packing them to the start means.
       crossAlign: primary ? CrossAlign.stretch : CrossAlign.center,
@@ -214,13 +247,19 @@ final class MaterialTabBar extends Box {
         MaterialInkWell(
           onTap: onTap,
           width: primary ? double.infinity : null,
-          height: tabHeight,
+          height: height,
           mainAlign: MainAlign.center,
           crossAlign: CrossAlign.center,
-          padding: BoxSpacing.symmetric(horizontal: primary ? 8 : 16),
+          padding: padding,
           child: primary
               ? label
-              : _underlined(label, selected: selected, indicator: indicator),
+              : _underlined(
+                  label,
+                  selected: selected,
+                  indicator: indicator,
+                  height: height,
+                  indicatorHeight: indicatorHeight,
+                ),
           semantics: BoxSemantics(
             role: BoxRole.tab,
             label: tab.semanticsLabel,
@@ -246,12 +285,14 @@ final class MaterialTabBar extends Box {
     UINode label, {
     required bool selected,
     required BoxColor indicator,
+    required double height,
+    required double indicatorHeight,
   }) {
     return StackNode(
-      height: tabHeight,
+      height: height,
       children: <UINode>[
         Box(
-          height: tabHeight,
+          height: height,
           mainAlign: MainAlign.center,
           crossAlign: CrossAlign.center,
           children: <UINode>[label],

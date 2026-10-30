@@ -190,6 +190,24 @@ void main() {
       expect((_textColumn(tile).children.last as Box).textStyle?.fontSize, 12);
     });
 
+    test(
+      'keeps the title and the subtitle two pixels apart, or as close as asked',
+      () {
+        final MaterialListTile natural = MaterialListTile(
+          title: const TextNode('Ada Lovelace'),
+          subtitle: const TextNode('ada@example.com'),
+        );
+        final MaterialListTile tight = MaterialListTile(
+          title: const TextNode('Ada Lovelace'),
+          subtitle: const TextNode('ada@example.com'),
+          textGap: 0,
+        );
+
+        expect(_textColumn(natural).gap, 2);
+        expect(_textColumn(tight).gap, 0);
+      },
+    );
+
     test('is named for an inspector', () {
       expect(
         MaterialListTile(title: const TextNode('Ada')).debugName,

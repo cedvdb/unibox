@@ -25,6 +25,10 @@ import 'material_typography.dart';
 /// what [BoxBorderRadius] states.
 final class MaterialBottomSheet extends OverlayNode {
   /// Creates the sheet.
+  ///
+  /// The surface is the caller's to state, exactly as in [MaterialDialog]: [color],
+  /// [padding], [gap], [borderRadius] of the two upper corners, [maxWidth], and the
+  /// action row's [actionGap] and [actionMargin].
   MaterialBottomSheet({
     super.key,
     required String title,
@@ -32,17 +36,24 @@ final class MaterialBottomSheet extends OverlayNode {
     List<UINode> actions = const <UINode>[],
     super.onDismiss,
     super.barrierDismissible,
+    BoxColor color = _surface,
+    BoxSpacing padding = const BoxSpacing.all(24),
+    double gap = 16,
+    double borderRadius = 28,
     double maxWidth = 640,
+    double actionGap = 8,
+    BoxSpacing actionMargin = const BoxSpacing.only(top: 8),
   }) : super(
          barrierColor: const BoxColor.role(MaterialColorRole.scrim),
          alignment: OverlayAlignment.bottom,
          child: Box(
-           backgroundColor: const BoxColor.role(
-             MaterialColorRole.surfaceContainerLow,
+           backgroundColor: color,
+           corners: BoxBorderRadius(
+             topLeft: borderRadius,
+             topRight: borderRadius,
            ),
-           corners: const BoxBorderRadius(topLeft: 28, topRight: 28),
-           padding: const BoxSpacing.all(24),
-           gap: 16,
+           padding: padding,
+           gap: gap,
            width: double.infinity,
            maxWidth: maxWidth,
            shadows: _elevation,
@@ -83,7 +94,8 @@ final class MaterialBottomSheet extends OverlayNode {
                Box(
                  direction: Axis.horizontal,
                  mainAlign: MainAlign.end,
-                 gap: 8,
+                 gap: actionGap,
+                 margin: actionMargin,
                  textStyle: MaterialTypography.labelLarge.merge(
                    BoxTextStyle(
                      color: const BoxColor.role(MaterialColorRole.primary),
@@ -94,6 +106,11 @@ final class MaterialBottomSheet extends OverlayNode {
            ],
          ),
        );
+
+  /// The surface a sheet rises from: the low container tone, one step below a dialog.
+  static const BoxColor _surface = BoxColor.role(
+    MaterialColorRole.surfaceContainerLow,
+  );
 
   /// Elevation level one, cast upward: the sheet rises from the bottom edge.
   static const List<BoxShadow> _elevation = MaterialElevation.sheet;

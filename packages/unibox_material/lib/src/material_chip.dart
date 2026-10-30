@@ -38,24 +38,38 @@ import 'material_typography.dart';
 /// asset.
 final class MaterialChip extends Box {
   /// Creates a chip around [label].
+  ///
+  /// Every measurement Material gives a chip is a parameter, so an application can
+  /// tighten a row of chips without giving up the component: [padding] is the room
+  /// inside the pill, [height] the pill it paints (32 unless it says otherwise),
+  /// [tapTargetHeight] the room a finger gets around it (48), [gap] the space
+  /// between a node and the label, and [borderRadius] the corner. [labelStyle] and
+  /// [ink] are the type and the splash.
   MaterialChip({
     required UINode label,
     bool selected = false,
     UINode? leading,
     TapCallback? onTap,
+    HoverCallback? onHover,
     UINode? trailing,
     TapCallback? onRemove,
     bool enabled = true,
     BoxColor? ink,
+    double height = controlHeight,
+    double tapTargetHeight = minTapTarget,
+    double borderRadius = radius,
+    double gap = _nodeGap,
+    BoxSpacing? padding,
+    BoxTextStyle? labelStyle,
     super.margin,
     BoxTransition? transition,
     super.key,
   }) : super(
-         borderRadius: radius,
+         borderRadius: borderRadius,
          // The shape is the well's now, because the target is taller than it: the chip
          // is as tall as the finger it is aimed at, and paints the 32 pixel pill in the
          // middle of that.
-         minHeight: minTapTarget,
+         minHeight: tapTargetHeight,
          mainAlign: MainAlign.center,
          // A disabled chip fades rather than changing role: Material draws the label at
          // 38% and the line at 12%, and one opacity is what this model can say without
@@ -64,25 +78,30 @@ final class MaterialChip extends Box {
          children: <UINode>[
            MaterialInkWell(
              onTap: onTap,
+             onHover: onHover,
              enabled: enabled,
              // Material's 32: `labelLarge`'s 20 pixel line with six above and below,
              // held even when a leading or trailing glyph is taller than the line it
              // sits on. The 48 around it is the target, which is not paint: a chip
              // that painted 48 would be a chip Material does not have.
-             height: controlHeight,
-             tapTargetHeight: minTapTarget,
+             height: height,
+             tapTargetHeight: tapTargetHeight,
+             // A taller pill than the default still reads: the content is centred in
+             // it rather than pinned to its top.
+             mainAlign: MainAlign.center,
              fill: selected ? _selectedFill : null,
              border: selected ? null : _outline,
-             borderRadius: radius,
+             borderRadius: borderRadius,
              ink: ink ?? _inkOf(selected),
              // Material pads only the side a node sits on: 16 where the label meets
              // the edge, 8 where an 18 pixel glyph does, 8 between them.
-             padding: BoxSpacing.only(
-               left: leading == null ? 16 : _nodeInset,
-               right: (trailing == null && onRemove == null) ? 16 : _nodeInset,
-               top: 6,
-               bottom: 6,
-             ),
+             padding:
+                 padding ??
+                 _insetsFor(
+                   leading: leading,
+                   trailing: trailing,
+                   hasRemove: onRemove != null,
+                 ),
              transition: transition ?? MaterialInkWell.defaultTransition,
              semantics: onTap == null
                  ? null
@@ -90,6 +109,8 @@ final class MaterialChip extends Box {
              child: _content(
                label: label,
                leading: leading,
+               gap: gap,
+               labelStyle: labelStyle,
                selected: selected,
                trailing: onRemove == null ? trailing : null,
                remove: onRemove == null
@@ -126,6 +147,27 @@ final class MaterialChip extends Box {
   /// where the label reaches the edge.
   static const double _nodeInset = 8;
 
+  /// How far the label sits from the edge of a pill with no node on that side.
+  static const double _labelInset = 16;
+
+  /// The space between a node and the label when the chip is not told otherwise.
+  static const double _nodeGap = 8;
+
+  /// The room inside the pill: Material pads only the sides a node sits on.
+  ///
+  /// Six above and below is `labelLarge`'s 20 pixel line plus twelve inside the 32
+  /// pixel pill, which is what makes the default height and this room agree.
+  static BoxSpacing _insetsFor({
+    required UINode? leading,
+    required UINode? trailing,
+    required bool hasRemove,
+  }) => BoxSpacing.only(
+    left: leading == null ? _labelInset : _nodeInset,
+    right: (trailing == null && !hasRemove) ? _labelInset : _nodeInset,
+    top: 6,
+    bottom: 6,
+  );
+
   /// The size Material gives the node inside a chip.
   static const double iconSize = 18;
 
@@ -148,11 +190,12 @@ final class MaterialChip extends Box {
     required UINode? leading,
     required UINode? remove,
     required UINode? trailing,
+    required double gap,
+    required BoxTextStyle? labelStyle,
     required bool selected,
   }) {
-    final BoxTextStyle style = MaterialTypography.labelLarge.merge(
-      BoxTextStyle(color: _inkOf(selected)),
-    );
+    final BoxTextStyle style = (labelStyle ?? MaterialTypography.labelLarge)
+        .merge(BoxTextStyle(color: _inkOf(selected)));
     final UINode text = Box(textStyle: style, children: <UINode>[label]);
     final UINode? after = remove ?? trailing;
 
@@ -163,7 +206,7 @@ final class MaterialChip extends Box {
     return Box(
       direction: Axis.horizontal,
       crossAlign: CrossAlign.center,
-      gap: 8,
+      gap: gap,
       textStyle: style,
       children: <UINode>[?leading, label, ?after],
     );

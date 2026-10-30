@@ -64,6 +64,32 @@ void main() {
       expect(surface.maxWidth, 560);
     });
 
+    test('lets a caller set the surface, its room and its action row', () {
+      final surface = _surfaceOf(
+        MaterialDialog(
+          title: 'Hi',
+          actions: <UINode>[const TextNode('OK')],
+          color: const BoxColor.role(MaterialColorRole.surfaceContainerLowest),
+          padding: const BoxSpacing.all(16),
+          gap: 8,
+          borderRadius: 12,
+          actionGap: 4,
+          actionMargin: BoxSpacing.zero,
+        ),
+      );
+      final Box actions = surface.children.last as Box;
+
+      expect(
+        surface.backgroundColor,
+        const BoxColor.role(MaterialColorRole.surfaceContainerLowest),
+      );
+      expect(surface.padding, const BoxSpacing.all(16));
+      expect(surface.gap, 8);
+      expect(surface.borderRadius, 12);
+      expect(actions.gap, 4);
+      expect(actions.margin, BoxSpacing.zero);
+    });
+
     test('titles the surface with the headline role', () {
       final title =
           _surfaceOf(MaterialDialog(title: 'Hi')).children.first as TextNode;
@@ -117,6 +143,32 @@ void main() {
         'Two nights',
       );
       expect((children[3] as Box).mainAlign, MainAlign.end);
+    });
+
+    test('lets a caller set the surface, its corners and its action row', () {
+      final surface = _surfaceOf(
+        MaterialBottomSheet(
+          title: 'Filters',
+          actions: <UINode>[const TextNode('Apply')],
+          color: const BoxColor.role(MaterialColorRole.surfaceContainerHighest),
+          padding: const BoxSpacing.all(16),
+          gap: 8,
+          borderRadius: 16,
+          actionGap: 4,
+          actionMargin: BoxSpacing.zero,
+        ),
+      );
+      final Box actions = surface.children.last as Box;
+
+      expect(
+        surface.backgroundColor,
+        const BoxColor.role(MaterialColorRole.surfaceContainerHighest),
+      );
+      expect(surface.corners, const BoxBorderRadius(topLeft: 16, topRight: 16));
+      expect(surface.padding, const BoxSpacing.all(16));
+      expect(surface.gap, 8);
+      expect(actions.gap, 4);
+      expect(actions.margin, BoxSpacing.zero);
     });
   });
 }

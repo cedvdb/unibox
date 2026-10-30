@@ -108,6 +108,12 @@ final class MaterialNavigationBar extends Box {
   /// restyle it without giving up the component: the surface [color], the
   /// [indicatorColor] of the chosen destination, the [labelStyle] of every label,
   /// the [ink] a press leaves, and the [transition] that eases the tints.
+  ///
+  /// The spacing is too: [height] of the bar, [indicatorWidth] and [indicatorHeight]
+  /// of the pill, [itemPadding] the room above the pill and below the label, and
+  /// [labelGap] the space between the pill and the label. Their defaults add up to
+  /// Material's 80 — 12 + 32 + 4 + the label's 16 and the 16 below it — so a taller
+  /// bar is the caller's to fill.
   MaterialNavigationBar({
     required List<MaterialNavigationDestination> destinations,
     required int selected,
@@ -116,13 +122,18 @@ final class MaterialNavigationBar extends Box {
     BoxColor indicatorColor = _indicatorFill,
     BoxTextStyle labelStyle = MaterialTypography.labelMedium,
     BoxColor? ink,
+    double height = barHeight,
+    double indicatorWidth = MaterialNavigationBar.indicatorWidth,
+    double indicatorHeight = MaterialNavigationBar.indicatorHeight,
+    BoxSpacing itemPadding = _itemPadding,
+    double labelGap = _labelGap,
     BoxSemantics? semantics,
     super.margin,
     BoxTransition? transition,
     super.key,
   }) : super(
          width: double.infinity,
-         height: barHeight,
+         height: height,
          direction: Axis.horizontal,
          // Every destination is as tall as the bar, so its tint covers the whole
          // share of it rather than the label inside.
@@ -143,6 +154,11 @@ final class MaterialNavigationBar extends Box {
                    indicatorColor: indicatorColor,
                    labelStyle: labelStyle,
                    ink: ink,
+                   height: height,
+                   indicatorWidth: indicatorWidth,
+                   indicatorHeight: indicatorHeight,
+                   itemPadding: itemPadding,
+                   labelGap: labelGap,
                    transition: transition,
                  ),
                ],
@@ -255,6 +271,11 @@ final class MaterialNavigationBar extends Box {
     required BoxColor indicatorColor,
     required BoxTextStyle labelStyle,
     required BoxColor? ink,
+    required double height,
+    required double indicatorWidth,
+    required double indicatorHeight,
+    required BoxSpacing itemPadding,
+    required double labelGap,
     required BoxTransition? transition,
   }) {
     final BoxColor foreground = _foregroundOf(selected);
@@ -271,7 +292,7 @@ final class MaterialNavigationBar extends Box {
 
     return Box(
       width: double.infinity,
-      height: barHeight,
+      height: height,
       // The whole share is the control, and the one thing a reader hears.
       onTap: onTap,
       // Hover is reported from the share, because the pill it lights is a layer down.
@@ -287,14 +308,14 @@ final class MaterialNavigationBar extends Box {
       children: <UINode>[
         StackNode(
           width: double.infinity,
-          height: barHeight,
+          height: height,
           children: <UINode>[
             // The indicator, centred on the share and as far from the top as the icon
             // is: the slot the icon sits in.
             PositionedNode(
               left: 0,
               right: 0,
-              top: _itemPadding.top,
+              top: itemPadding.top,
               child: Box(
                 direction: Axis.horizontal,
                 mainAlign: MainAlign.center,
@@ -306,6 +327,8 @@ final class MaterialNavigationBar extends Box {
                     color: indicatorColor,
                     onTap: onTap,
                     ink: ink ?? foreground,
+                    width: indicatorWidth,
+                    height: indicatorHeight,
                     transition: transition,
                   ),
                 ],
@@ -316,7 +339,7 @@ final class MaterialNavigationBar extends Box {
             PositionedNode(
               left: 0,
               right: 0,
-              top: _itemPadding.top + indicatorHeight + _labelGap,
+              top: itemPadding.top + indicatorHeight + labelGap,
               child: Box(
                 direction: Axis.horizontal,
                 mainAlign: MainAlign.center,
@@ -363,18 +386,20 @@ final class MaterialNavigationBar extends Box {
     required BoxColor color,
     required TapCallback onTap,
     required BoxColor ink,
+    required double width,
+    required double height,
     required BoxTransition? transition,
   }) {
     return StackNode(
-      width: indicatorWidth,
-      height: indicatorHeight,
+      width: width,
+      height: height,
       children: <UINode>[
         // What a selection paints: the colour pill, which fades and stretches out of the
         // icon. Only a chosen destination has one.
         Box(
-          width: indicatorWidth,
-          height: indicatorHeight,
-          borderRadius: indicatorHeight / 2,
+          width: width,
+          height: height,
+          borderRadius: height / 2,
           backgroundColor: selected ? color : null,
           opacity: selected ? 1 : 0,
           transform: BoxTransform(scaleX: selected ? 1 : _indicatorRestScale),
@@ -385,9 +410,9 @@ final class MaterialNavigationBar extends Box {
         // a tint instead of trading one for the other. It does not stretch: nothing is
         // arriving, the pointer is simply somewhere.
         Box(
-          width: indicatorWidth,
-          height: indicatorHeight,
-          borderRadius: indicatorHeight / 2,
+          width: width,
+          height: height,
+          borderRadius: height / 2,
           backgroundColor: hovered
               ? const BoxColor.role(MaterialColorRole.hoverLayer)
               : null,
@@ -396,9 +421,9 @@ final class MaterialNavigationBar extends Box {
         ),
         MaterialInkWell(
           onTap: onTap,
-          width: indicatorWidth,
-          height: indicatorHeight,
-          borderRadius: indicatorHeight / 2,
+          width: width,
+          height: height,
+          borderRadius: height / 2,
           ink: ink,
           padding: BoxSpacing.zero,
           // The tints are the two layers above, and the press is the splash alone — which
@@ -410,8 +435,8 @@ final class MaterialNavigationBar extends Box {
           transition: transition ?? MaterialInkWell.defaultTransition,
           semantics: const BoxSemantics(hidden: true),
           child: Box(
-            width: indicatorWidth,
-            height: indicatorHeight,
+            width: width,
+            height: height,
             mainAlign: MainAlign.center,
             crossAlign: CrossAlign.center,
             children: <UINode>[?icon],
@@ -454,6 +479,11 @@ final class _DestinationNode extends StatefulNode<bool, _HoverStore> {
     required BoxColor indicatorColor,
     required BoxTextStyle labelStyle,
     required BoxColor? ink,
+    required double height,
+    required double indicatorWidth,
+    required double indicatorHeight,
+    required BoxSpacing itemPadding,
+    required double labelGap,
     required BoxTransition? transition,
     Object? key,
   }) {
@@ -470,6 +500,11 @@ final class _DestinationNode extends StatefulNode<bool, _HoverStore> {
             indicatorColor: indicatorColor,
             labelStyle: labelStyle,
             ink: ink,
+            height: height,
+            indicatorWidth: indicatorWidth,
+            indicatorHeight: indicatorHeight,
+            itemPadding: itemPadding,
+            labelGap: labelGap,
             transition: transition,
           ),
     );

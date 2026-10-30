@@ -365,6 +365,7 @@ conformance table already pins:
 | --- | --- | --- |
 | layout | a row, centred across, filling its width | a tile is one line of a list |
 | gap | `16` between the leading node, the text and the trailing node | Material's `horizontalTitleGap` |
+| title gap | `2` between the title and the subtitle, or `textGap` | Material stacks the two lines close, and a tile whose two lines are the same size wants no gap at all |
 | padding | `16` on the sides | the room Material gives a tile |
 | minHeight | `56` / `72`, or `48` / `64` when `dense` | Material's one line and two line heights |
 | title | `MaterialTypography.bodyLarge` | Material's title role |
@@ -420,13 +421,24 @@ its ink did not was a band with a pill at one end. Pass `width:` when a full-wid
 is what is wanted, and the fill takes exactly that.
 
 Shape and states are Material's: a radius of 20 (a full round on a 40 pixel height —
-`labelLarge`'s 20 pixel line plus ten above and below), 20 by 10 of room on the three
-filled shapes and 12 by 8 on the text one, and the button role whenever the button can
+`labelLarge`'s 20 pixel line plus ten above and below), 24 by 10 of room on the three
+filled shapes and 12 by 10 on the text one, and the button role whenever the button can
 be tapped, so it is focusable and activates on `Enter` and `Space`. `enabled: false`
 takes the ink away and leaves the button in place.
 
-An `icon` puts a node before the label, eight pixels away; `ink`, `borderRadius`,
-`padding` and `labelStyle` are parameters when a screen needs to differ.
+**All four carry the same minimum, 64 by 40.** The text shape is narrower than the
+others — 12 across rather than 24 — but it is the same height, so the four line up in a
+row; it used to be the only one that painted 36, because Material's 40 is a *minimum
+size* and not the sum of its padding. The label is centred in the fill, so a button
+pinned with `width:` centres its label rather than leaving it against the left edge, and
+`minWidth` and `height` are the caller's to lower or raise. A minimum outranks a size on
+both targets — `min-width` beats `width` in CSS and a `ConstrainedBox` clamps the same
+way in Flutter — so the two agree about what `width: 40` means.
+
+An `icon` puts a node before the label, `iconGap` pixels away (eight by default); `ink`,
+`borderRadius`, `padding`, `labelStyle` and `border` are parameters when a screen needs
+to differ, and all four constructors take `onTap`, `onLongPress`, `onHover` and
+`transition` — a named shape used to drop the last three.
 
 ## The ink well
 
@@ -517,6 +529,12 @@ three-tab bar: the width of a tab is the bar's, and the bar's is the parent's. G
 narrower parent to make the tabs tighter, which is also the only lever — the bar states
 `width: double.infinity` and takes no width of its own.
 
+The bar's measurements are parameters, and only one of them differs between the variants:
+a tab is 48 tall with 8 across inside, 4 between an icon and its label, 3 pixels of
+indicator. `height`, `tabPadding`, `labelGap`, `indicatorHeight` and `labelStyle` replace
+them — and `tabPadding` also settles the difference, because a secondary tab's default
+room is 16 rather than 8.
+
 Its indicator is one element, a share of the bar wide, laid from the start edge and moved by a
 multiple of its own width — so it slides between tabs with a `transform` a transition eases, and
 nobody has to measure a tab. That is the *primary* bar, whose tabs are equal shares by
@@ -551,7 +569,7 @@ MaterialSegmentedButton(
 
 | Token | Value |
 | --- | --- |
-| height, radius | 40, and 20: a full round |
+| height, radius | 40, and 20: a full round. `height`, `borderRadius`, `padding` (12 across each segment's content), `iconGap` (8) and `labelStyle` are parameters |
 | container | a 1 pixel `outline` line, `overflow: hidden` so a chosen fill is cut to the rounded ends it reaches |
 | chosen | a `secondaryContainer` fill, an `onSecondaryContainer` label, a check, and `pressed` for a screen reader |
 | check | 18 pixels, a `MaterialCheckMark`, in place of the chosen segment's icon; `showSelectedIcon: false` keeps the icon |
@@ -624,7 +642,9 @@ and invalid as it is typed, with no flag passing through the host.
 
 The line is a shadow with no blur, because `BoxBorder` draws all four sides and a
 filled field has none, and the value's padding lives on the input so a press anywhere
-in the fill focuses the field.
+in the fill focuses the field. `contentPadding` is the room at the sides of the label,
+the value and the message — the three stay in one column — and `messageGap` is the space
+between the fill and the line under it.
 
 **The label has Material's two positions.** Empty and unfocused, the label *is* the
 line inside the field: body size, `onSurfaceVariant`, drawn as the input's own hint so
@@ -653,12 +673,12 @@ MaterialChip(label: const TextNode('Studio'), onTap: filter)
 
 | Token | Value |
 | --- | --- |
-| height | `controlHeight` = 32 painted, in a target of `minTapTarget` = 48: the pill is centred in the room Material gives a finger, so an 18 pixel glyph can make neither a taller chip nor a smaller one |
-| radius | 8, the small shape of Material 3 |
+| height | `controlHeight` = 32 painted, in a target of `minTapTarget` = 48: the pill is centred in the room Material gives a finger, so an 18 pixel glyph can make neither a taller chip nor a smaller one. `height` and `tapTargetHeight` are parameters |
+| radius | 8, the small shape of Material 3, or `borderRadius` |
 | unselected | no fill, a 1 pixel `outline` line, `onSurfaceVariant` label |
 | selected | `secondaryContainer` fill, no line, `onSecondaryContainer` label |
-| room | 16 on a side the label reaches, 8 on a side a node sits (`iconSize` = 18), 8 between them — Material pads the side, not the chip |
-| label | `labelLarge`, `onSurfaceVariant` or `onSecondaryContainer` |
+| room | 16 on a side the label reaches, 8 on a side a node sits (`iconSize` = 18), 8 between them — Material pads the side, not the chip. `padding` replaces all of it and `gap` the space to a node |
+| label | `labelLarge`, `onSurfaceVariant` or `onSecondaryContainer`; a `labelStyle` replaces the type and the state keeps the colour |
 | hover, focus, press | `hoverLayer`, `focusLayer`, `pressedLayer` over the pill |
 | disabled | the pill at 38%, with no ink: Material draws the label at 38% and the line at 12%, and one opacity is what this model can say without an alpha role per token |
 | leading, trailing | a node before and after the label — a check, a folder, a cross |
@@ -728,6 +748,12 @@ MaterialNavigationBar(
 | ink | the label's own colour, from where the press landed |
 | hover layer | `hoverLayer` in the pill's shape, faded over 50ms — `InkResponse`'s own hover duration |
 | press | the splash alone: the indicator's highlight colour is transparent in Material, so a press inks the pill and then the pill settles into its new colour |
+| room | 12 above the pill, 4 between it and the label, 16 below |
+
+Every number in that table is a parameter — `height`, `indicatorWidth`,
+`indicatorHeight`, `itemPadding` and `labelGap` — so a bar with taller destinations, a
+wider pill or a different rhythm is the same component. Their defaults are the ones
+Material states, which is what makes them add up to the bar's 80.
 
 Each destination is a `Box` whose share is the control — a hover anywhere in it lights
 the pill inside it — and the pill itself is three layers: the indicator colour, the hover
@@ -839,9 +865,15 @@ MaterialBottomSheet(
 | barrier | `scrim`, dismissible by default | the same |
 | title | `headlineSmall` in `onSurface` | the same |
 | actions | a row against the end | the same |
+| room | 24 of padding, 16 between the parts, radius 28, 8 between the actions and 8 above them | the same, rounded at the top only |
 
-Material's modal entrance and exit transitions are not here, and the sheet's four
-corners are rounded because the model has one radius per box.
+Every number in the last row is a parameter: `color`, `padding`, `gap`, `borderRadius`,
+`actionGap` and `actionMargin` restyle the surface without a second component, which is
+what a dialog on a small screen needs. A sheet's action row now keeps the 8 pixels above
+it that a dialog's does, so the two read as one component at two edges.
+
+Material's modal entrance and exit transitions are not here, and the sheet rounds only
+its two upper corners because it rises from the edge.
 
 ## The icon
 

@@ -245,6 +245,55 @@ void main() {
       expect(_box(chip).semantics?.role, BoxRole.button);
     });
 
+    test('lets a caller set the room, the pill and the target', () {
+      final MaterialChip chip = MaterialChip(
+        label: const TextNode('Studio'),
+        padding: const BoxSpacing.all(4),
+        height: 40,
+        tapTargetHeight: 56,
+        borderRadius: 20,
+      );
+
+      // The room stays the well's, so a custom inset cannot spill a tint past the pill.
+      expect(_content(chip).padding, const BoxSpacing.all(4));
+      expect(_pill(chip).height, 40);
+      expect(_pill(chip).borderRadius, 20);
+      // The target is layout: the pill is centred in it, so a row of chips is this tall.
+      expect(_box(chip).height, 56);
+      expect(chip.minHeight, 56);
+    });
+
+    test('lets a caller type the label and space its nodes', () {
+      final MaterialChip chip = MaterialChip(
+        label: const TextNode('Two rooms'),
+        leading: const TextNode('check'),
+        gap: 4,
+        labelStyle: MaterialTypography.labelMedium,
+      );
+      final Box row = _content(chip).children.single as Box;
+
+      expect(row.gap, 4);
+      expect(row.textStyle?.fontSize, MaterialTypography.labelMedium.fontSize);
+      // The state still owns the colour: the caller's style is the type, not the ink.
+      expect(
+        row.textStyle?.color,
+        const BoxColor.role(MaterialColorRole.onSurfaceVariant),
+      );
+    });
+
+    test('passes a hover on, so a chip can do more than tint', () {
+      bool? hovered;
+      final MaterialChip chip = MaterialChip(
+        label: const TextNode('Studio'),
+        onTap: _tap,
+        onHover: (bool value) => hovered = value,
+      );
+
+      _box(chip).onHover!(true);
+
+      expect(hovered, isTrue);
+    });
+
     test('draws a tree the model can validate', () {
       final MaterialChip chip = MaterialChip(
         label: const TextNode('Studio'),

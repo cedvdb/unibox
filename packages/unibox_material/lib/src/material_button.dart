@@ -37,9 +37,22 @@ enum MaterialButtonVariant {
 /// starts where the press landed. Neither renderer has to know the name, and the
 /// class adds no token the conformance table does not already pin.
 ///
-/// The height is Material's 40: `labelLarge`'s 20 pixel line plus ten above and
-/// below. A disabled button is drawn at 38% and takes no ink, which is what the
-/// field does when it is disabled.
+/// **Every variant paints the same 40 pixels.** Material gives a button a minimum of
+/// 64 by 40, and 40 is `labelLarge`'s 20 pixel line with ten above and ten below. The
+/// three filled shapes state 24 across and that 10; the text shape is narrower, 12
+/// across, which is what makes it read as quieter than the ones that carry a fill —
+/// and its vertical room is the same ten, so it is the same height and a row of the
+/// four lines up. A disabled button is drawn at 38% and takes no ink, which is what
+/// the field does when it is disabled.
+///
+/// **Every measurement is a parameter.** `padding` is the room inside the fill,
+/// `iconGap` the space between `icon` and the label, `borderRadius` the corner,
+/// `minWidth` and `height` the size the fill may not go under, and `width` an exact
+/// one. A minimum outranks a size on both targets — `min-width` beats `width` in CSS,
+/// and a `ConstrainedBox` in Flutter clamps the same way — so `width: 40` on a button
+/// is 64 wide on both. The label is centred in whatever the fill turns out to be,
+/// which is what keeps a full-width button's label in the middle of it rather than
+/// against its left edge.
 ///
 /// **Every colour is a role**, so a dark theme restyles all four variants without a
 /// parameter: `primary`/`onPrimary` for [MaterialButtonVariant.filled],
@@ -59,8 +72,12 @@ final class MaterialButton extends Box {
     double borderRadius = _radius,
     BoxSpacing? padding,
     BoxTextStyle? labelStyle,
+    double iconGap = _iconGap,
+    BoxBorder? border,
     BoxSemantics? semantics,
     double? width,
+    double? height,
+    double minWidth = _minWidth,
     BoxSpacing? margin,
     BoxTransition? transition,
   }) => MaterialButton.variant(
@@ -76,8 +93,12 @@ final class MaterialButton extends Box {
     borderRadius: borderRadius,
     padding: padding,
     labelStyle: labelStyle,
+    iconGap: iconGap,
+    border: border,
     semantics: semantics,
     width: width,
+    height: height,
+    minWidth: minWidth,
     margin: margin,
     transition: transition,
   );
@@ -98,8 +119,12 @@ final class MaterialButton extends Box {
     double borderRadius = _radius,
     BoxSpacing? padding,
     BoxTextStyle? labelStyle,
+    double iconGap = _iconGap,
+    BoxBorder? border,
     BoxSemantics? semantics,
     double? width,
+    double? height,
+    double minWidth = _minWidth,
     BoxSpacing? margin,
     BoxTransition? transition,
   }) => MaterialButton(
@@ -114,8 +139,144 @@ final class MaterialButton extends Box {
     borderRadius: borderRadius,
     padding: padding,
     labelStyle: labelStyle,
+    iconGap: iconGap,
+    border: border,
     semantics: semantics,
     width: width,
+    height: height,
+    minWidth: minWidth,
+    margin: margin,
+    transition: transition,
+  );
+
+  /// A tonal button: the softer fill Material gives a secondary action.
+  factory MaterialButton.tonal({
+    Object? key,
+    required UINode label,
+    UINode? icon,
+    TapCallback? onTap,
+    LongPressCallback? onLongPress,
+    HoverCallback? onHover,
+    bool enabled = true,
+    BoxColor? ink,
+    double borderRadius = _radius,
+    BoxSpacing? padding,
+    BoxTextStyle? labelStyle,
+    double iconGap = _iconGap,
+    BoxBorder? border,
+    BoxSemantics? semantics,
+    double? width,
+    double? height,
+    double minWidth = _minWidth,
+    BoxSpacing? margin,
+    BoxTransition? transition,
+  }) => MaterialButton.variant(
+    MaterialButtonVariant.tonal,
+    key: key,
+    label: label,
+    icon: icon,
+    onTap: onTap,
+    onLongPress: onLongPress,
+    onHover: onHover,
+    enabled: enabled,
+    ink: ink,
+    borderRadius: borderRadius,
+    padding: padding,
+    labelStyle: labelStyle,
+    iconGap: iconGap,
+    border: border,
+    semantics: semantics,
+    width: width,
+    height: height,
+    minWidth: minWidth,
+    margin: margin,
+    transition: transition,
+  );
+
+  /// An outlined button: an action beside the filled ones, without weight.
+  factory MaterialButton.outlined({
+    Object? key,
+    required UINode label,
+    UINode? icon,
+    TapCallback? onTap,
+    LongPressCallback? onLongPress,
+    HoverCallback? onHover,
+    bool enabled = true,
+    BoxColor? ink,
+    double borderRadius = _radius,
+    BoxSpacing? padding,
+    BoxTextStyle? labelStyle,
+    double iconGap = _iconGap,
+    BoxBorder? border,
+    BoxSemantics? semantics,
+    double? width,
+    double? height,
+    double minWidth = _minWidth,
+    BoxSpacing? margin,
+    BoxTransition? transition,
+  }) => MaterialButton.variant(
+    MaterialButtonVariant.outlined,
+    key: key,
+    label: label,
+    icon: icon,
+    onTap: onTap,
+    onLongPress: onLongPress,
+    onHover: onHover,
+    enabled: enabled,
+    ink: ink,
+    borderRadius: borderRadius,
+    padding: padding,
+    labelStyle: labelStyle,
+    iconGap: iconGap,
+    border: border,
+    semantics: semantics,
+    width: width,
+    height: height,
+    minWidth: minWidth,
+    margin: margin,
+    transition: transition,
+  );
+
+  /// A text button: no fill and no line, the quietest action.
+  factory MaterialButton.text({
+    Object? key,
+    required UINode label,
+    UINode? icon,
+    TapCallback? onTap,
+    LongPressCallback? onLongPress,
+    HoverCallback? onHover,
+    bool enabled = true,
+    BoxColor? ink,
+    double borderRadius = _radius,
+    BoxSpacing? padding,
+    BoxTextStyle? labelStyle,
+    double iconGap = _iconGap,
+    BoxBorder? border,
+    BoxSemantics? semantics,
+    double? width,
+    double? height,
+    double minWidth = _minWidth,
+    BoxSpacing? margin,
+    BoxTransition? transition,
+  }) => MaterialButton.variant(
+    MaterialButtonVariant.text,
+    key: key,
+    label: label,
+    icon: icon,
+    onTap: onTap,
+    onLongPress: onLongPress,
+    onHover: onHover,
+    enabled: enabled,
+    ink: ink,
+    borderRadius: borderRadius,
+    padding: padding,
+    labelStyle: labelStyle,
+    iconGap: iconGap,
+    border: border,
+    semantics: semantics,
+    width: width,
+    height: height,
+    minWidth: minWidth,
     margin: margin,
     transition: transition,
   );
@@ -137,8 +298,12 @@ final class MaterialButton extends Box {
     double borderRadius = _radius,
     BoxSpacing? padding,
     BoxTextStyle? labelStyle,
+    double iconGap = _iconGap,
+    BoxBorder? border,
     BoxSemantics? semantics,
     double? width,
+    double? height,
+    double minWidth = _minWidth,
     BoxSpacing? margin,
     BoxTransition? transition,
   }) {
@@ -150,11 +315,14 @@ final class MaterialButton extends Box {
       key: key,
       label: label,
       fill: fill,
-      border: variant == MaterialButtonVariant.outlined
-          ? const BoxBorder(color: BoxColor.role(MaterialColorRole.outline))
-          : null,
+      // A line is what makes the outlined shape, and any shape may be given one.
+      border:
+          border ??
+          (variant == MaterialButtonVariant.outlined ? _outline : null),
       borderRadius: borderRadius,
       width: width,
+      height: height,
+      minWidth: minWidth,
       margin: margin,
       inkWell: MaterialInkWell(
         onTap: onTap,
@@ -169,6 +337,7 @@ final class MaterialButton extends Box {
         child: _labelOf(
           label: label,
           icon: icon,
+          gap: iconGap,
           style:
               labelStyle ??
               MaterialTypography.labelLarge.merge(
@@ -184,6 +353,8 @@ final class MaterialButton extends Box {
     super.margin,
     BoxBorder? border,
     double? width,
+    double? height,
+    double minWidth = _minWidth,
     required this.label,
     required UINode inkWell,
     BoxColor? fill,
@@ -199,6 +370,15 @@ final class MaterialButton extends Box {
          children: <UINode>[
            Box(
              width: width,
+             height: height,
+             // Material's minimum — a button is 64 by 40 whatever its label says —
+             // and a minimum outranks a size on both targets, so a 40 pixel button
+             // is still 64 wide. The label is centred in the result, which is what
+             // keeps a pinned width's label in the middle instead of at its left.
+             minWidth: minWidth,
+             minHeight: _height,
+             mainAlign: MainAlign.center,
+             crossAlign: CrossAlign.center,
              backgroundColor: fill,
              borderRadius: borderRadius,
              border: border,
@@ -207,106 +387,34 @@ final class MaterialButton extends Box {
          ],
        );
 
-  /// A tonal button: the softer fill Material gives a secondary action.
-  factory MaterialButton.tonal({
-    Object? key,
-    required UINode label,
-    UINode? icon,
-    TapCallback? onTap,
-    bool enabled = true,
-    BoxColor? ink,
-    double borderRadius = _radius,
-    BoxSpacing? padding,
-    BoxTextStyle? labelStyle,
-    BoxSemantics? semantics,
-    double? width,
-    BoxSpacing? margin,
-  }) => MaterialButton.variant(
-    MaterialButtonVariant.tonal,
-    key: key,
-    label: label,
-    icon: icon,
-    onTap: onTap,
-    enabled: enabled,
-    ink: ink,
-    borderRadius: borderRadius,
-    padding: padding,
-    labelStyle: labelStyle,
-    semantics: semantics,
-    width: width,
-    margin: margin,
-  );
-
-  /// An outlined button: an action beside the filled ones, without weight.
-  factory MaterialButton.outlined({
-    Object? key,
-    required UINode label,
-    UINode? icon,
-    TapCallback? onTap,
-    bool enabled = true,
-    BoxColor? ink,
-    double borderRadius = _radius,
-    BoxSpacing? padding,
-    BoxTextStyle? labelStyle,
-    BoxSemantics? semantics,
-    double? width,
-    BoxSpacing? margin,
-  }) => MaterialButton.variant(
-    MaterialButtonVariant.outlined,
-    key: key,
-    label: label,
-    icon: icon,
-    onTap: onTap,
-    enabled: enabled,
-    ink: ink,
-    borderRadius: borderRadius,
-    padding: padding,
-    labelStyle: labelStyle,
-    semantics: semantics,
-    width: width,
-    margin: margin,
-  );
-
-  /// A text button: no fill and no line, the quietest action.
-  factory MaterialButton.text({
-    Object? key,
-    required UINode label,
-    UINode? icon,
-    TapCallback? onTap,
-    bool enabled = true,
-    BoxColor? ink,
-    double borderRadius = _radius,
-    BoxSpacing? padding,
-    BoxTextStyle? labelStyle,
-    BoxSemantics? semantics,
-    double? width,
-    BoxSpacing? margin,
-  }) => MaterialButton.variant(
-    MaterialButtonVariant.text,
-    key: key,
-    label: label,
-    icon: icon,
-    onTap: onTap,
-    enabled: enabled,
-    ink: ink,
-    borderRadius: borderRadius,
-    padding: padding,
-    labelStyle: labelStyle,
-    semantics: semantics,
-    width: width,
-    margin: margin,
-  );
-
   /// The label the button draws.
   final UINode label;
 
+  /// The height every variant paints: `labelLarge`'s 20 pixel line with ten above
+  /// and below, which is Material's own 40 and the reason a text button and a
+  /// filled one line up in a row.
+  static const double _height = 40;
+
   /// The corner radius Material gives a button: a full round on a 40 pixel height.
   static const double _radius = 20;
+
+  /// The narrowest a button paints, whatever its label says: Material's minimum
+  /// width, so a short label is a 64 pixel target rather than a 30 pixel one.
+  static const double _minWidth = 64;
+
+  /// The space between the icon and the label: Material's own gap in a button.
+  static const double _iconGap = 8;
+
+  /// The line around an outlined button.
+  static const BoxBorder _outline = BoxBorder(
+    color: BoxColor.role(MaterialColorRole.outline),
+  );
 
   /// The label of the button, with [icon] beside it when there is one.
   static UINode _labelOf({
     required UINode label,
     required UINode? icon,
+    required double gap,
     required BoxTextStyle style,
   }) {
     // Typography is the one inherited axis, so the label's role and colour are
@@ -318,7 +426,7 @@ final class MaterialButton extends Box {
     return Box(
       direction: Axis.horizontal,
       crossAlign: CrossAlign.center,
-      gap: 8,
+      gap: gap,
       textStyle: style,
       children: <UINode>[icon, label],
     );
@@ -354,17 +462,23 @@ final class MaterialButton extends Box {
       };
 
   /// The room Material gives [variant] around its label.
+  ///
+  /// Twenty-four across on the three filled shapes is Material's own, and ten above
+  /// and below is the vertical half of its 40 pixel minimum — the label's line is 20,
+  /// so the two together are the height. The text shape is narrower, 12 across, which
+  /// is what makes it the quietest of the four; its vertical room is the same ten, so
+  /// it is the same 40 pixels tall and a row of all four lines up.
   static BoxSpacing _paddingOf(MaterialButtonVariant variant) =>
       switch (variant) {
         MaterialButtonVariant.filled ||
         MaterialButtonVariant.tonal ||
         MaterialButtonVariant.outlined => const BoxSpacing.symmetric(
-          horizontal: 20,
+          horizontal: 24,
           vertical: 10,
         ),
         MaterialButtonVariant.text => const BoxSpacing.symmetric(
           horizontal: 12,
-          vertical: 8,
+          vertical: 10,
         ),
       };
 

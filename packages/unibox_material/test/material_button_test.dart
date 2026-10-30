@@ -4,12 +4,26 @@ import 'package:unibox_material/unibox_material.dart';
 
 void _tap() {}
 
+void _longPress() {}
+
+void _hover(bool isHovered) {}
+
 /// The fill: the box inside the row that keeps the button at its natural size.
 Box _fill(MaterialButton button) => button.children.single as Box;
 
+/// The ink well inside the fill, which is what carries the room and the press.
+MaterialInkWell _well(MaterialButton button) =>
+    _fill(button).children.single as MaterialInkWell;
+
+/// The room the button keeps around its label: the box the well pads, inside its
+/// stack of ink.
+BoxSpacing? _padding(MaterialButton button) =>
+    ((_surface(button).children.single as StackNode).children.last as Box)
+        .padding;
+
 /// The surface the button's ink well draws for its resting state.
 Box _surface(MaterialButton button) {
-  final MaterialInkWell well = _fill(button).children.single as MaterialInkWell;
+  final MaterialInkWell well = _well(button);
   final Store<Object> store = well.createStore() as Store<Object>;
 
   return well.viewFor(store.state, store) as Box;
@@ -173,6 +187,112 @@ void main() {
       expect(row.gap, 8);
       expect(row.children, hasLength(2));
       expect(_labelNode(button), isA<TextNode>());
+    });
+
+    test('paints the same forty pixels whichever shape it is', () {
+      // Material's minimum height, and what makes a text button line up with a
+      // filled one in a row of actions. The line is the label role's own: 20 of
+      // `labelLarge`, plus ten above and ten below.
+      final double line =
+          MaterialTypography.labelLarge.fontSize! *
+          MaterialTypography.labelLarge.lineHeight!;
+
+      for (final MaterialButton button in <MaterialButton>[
+        MaterialButton(label: const TextNode('a')),
+        MaterialButton.tonal(label: const TextNode('b')),
+        MaterialButton.outlined(label: const TextNode('c')),
+        MaterialButton.text(label: const TextNode('d')),
+      ]) {
+        expect(_padding(button)!.vertical + line, 40);
+        expect(_fill(button).minHeight, 40);
+      }
+    });
+
+    test('keeps Material 24 across on the three filled shapes', () {
+      for (final MaterialButton button in <MaterialButton>[
+        MaterialButton(label: const TextNode('a')),
+        MaterialButton.tonal(label: const TextNode('b')),
+        MaterialButton.outlined(label: const TextNode('c')),
+      ]) {
+        expect(_padding(button)!.horizontal, 48);
+      }
+
+      // The quietest shape is narrower, and that is the only difference in its room.
+      expect(
+        _padding(MaterialButton.text(label: const TextNode('d'))),
+        const BoxSpacing.symmetric(horizontal: 12, vertical: 10),
+      );
+    });
+
+    test('is at least 64 wide, and centres its label in what it is given', () {
+      final MaterialButton natural = MaterialButton(
+        label: const TextNode('OK'),
+      );
+      final MaterialButton pinned = MaterialButton(
+        label: const TextNode('OK'),
+        width: 240,
+        height: 56,
+      );
+
+      expect(_fill(natural).minWidth, 64);
+      // A parent that stretches the row must not leave the label at the left of a
+      // wider fill: the box centres what the label sizes and the well centres itself.
+      expect(_fill(natural).mainAlign, MainAlign.center);
+      expect(_fill(natural).crossAlign, CrossAlign.center);
+      expect(_fill(pinned).width, 240);
+      expect(_fill(pinned).height, 56);
+    });
+
+    test('lets a caller say how far the icon sits from the label', () {
+      final Box row = _labelBox(
+        MaterialButton(
+          label: const TextNode('Delete'),
+          icon: const TextNode('x'),
+          iconGap: 12,
+        ),
+      );
+
+      expect(row.gap, 12);
+    });
+
+    test('lines an outlined button, and lets a caller redraw the line', () {
+      final MaterialButton outlined = MaterialButton.outlined(
+        label: const TextNode('Cancel'),
+      );
+      final MaterialButton drawn = MaterialButton.outlined(
+        label: const TextNode('Cancel'),
+        border: const BoxBorder(width: 2, color: BoxColors.red),
+      );
+
+      expect(
+        _fill(outlined).border,
+        const BoxBorder(color: BoxColor.role(MaterialColorRole.outline)),
+      );
+      expect(_fill(drawn).border?.width, 2);
+      expect(_fill(drawn).border?.color, BoxColors.red);
+    });
+
+    test('binds the long press and the hover on every shape', () {
+      for (final MaterialButton button in <MaterialButton>[
+        MaterialButton.tonal(
+          label: const TextNode('a'),
+          onLongPress: _longPress,
+          onHover: _hover,
+        ),
+        MaterialButton.outlined(
+          label: const TextNode('b'),
+          onLongPress: _longPress,
+          onHover: _hover,
+        ),
+        MaterialButton.text(
+          label: const TextNode('c'),
+          onLongPress: _longPress,
+          onHover: _hover,
+        ),
+      ]) {
+        expect(_surface(button).onLongPress, isNotNull);
+        expect(_surface(button).onHover, isNotNull);
+      }
     });
 
     test('lets a caller replace the ink, the radius and the room', () {
