@@ -6,11 +6,12 @@
 /// same node renders as Flutter widgets in `unibox_example_flutter` and as a document in
 /// `unibox_example_html`.
 ///
-/// The site itself is one page — [buildSitePage] — of three bands: the hero, which makes the
+/// The site itself is one page — [buildSitePage] — of four bands: the hero, which makes the
 /// claim, gives the three reasons for it and settles it with the same tree drawn twice; the
-/// vocabulary, which says a screen is containers, draws the four nodes the hero never named
-/// and takes them apart; and the Material catalogue, which closes the page with the design
-/// system all of it is drawn with.
+/// band that shows what a search engine is served and what the Flutter build does with the
+/// page afterwards; the vocabulary, which says a screen is containers, draws the four nodes
+/// the hero never named and takes them apart; and the Material catalogue, which closes the
+/// page with the design system all of it is drawn with.
 /// Its sections are node trees too, so the site is drawn with the library it documents.
 ///
 /// The host is what a node cannot be: a surface and the way a link opens. Each host
@@ -25,6 +26,7 @@ export 'src/page_state.dart';
 export 'src/signup_card.dart';
 export 'src/site/gallery.dart';
 export 'src/site/hero.dart';
+export 'src/site/indexable.dart';
 export 'src/site/section.dart';
 export 'src/site/site.dart';
 export 'src/site/vocabulary.dart';

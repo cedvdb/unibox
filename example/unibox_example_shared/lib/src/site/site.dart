@@ -6,14 +6,15 @@ import '../theme.dart';
 
 import 'gallery.dart';
 import 'hero.dart';
+import 'indexable.dart';
 import 'section.dart';
 import 'vocabulary.dart';
 
 /// The repository, which the header and the footer point at.
 const String repositoryUrl = 'https://github.com/cedvdb/unibox';
 
-/// The site as one page: the claim and the same screen drawn twice, then the values
-/// and nodes the whole thing is built from.
+/// The site as one page: the claim and the same screen drawn twice, the reason that
+/// matters to a search engine, then the values and nodes the whole thing is built from.
 ///
 /// It used to be three documents with a bar between them, and one page is the honest
 /// shape: a reader scrolls the claim and its evidence, and the evidence *is* the page.
@@ -21,10 +22,13 @@ const String repositoryUrl = 'https://github.com/cedvdb/unibox';
 /// take a reader to, so a static document loses nothing it had.
 ///
 /// The order is the argument. The hero makes the claim, gives the three reasons for it, and
-/// settles them with two live renderings of one tree; the vocabulary takes those renderings
-/// apart into the four nodes they never put a name to; and the catalogue closes the page with
-/// the design system every band above it is drawn with. A reader who stops after the hero has
-/// seen the argument and its evidence, which is the whole of what this page is for.
+/// settles them with two live renderings of one tree; the band under it answers what the
+/// HTML branch is for — a page a search engine can read — and says how little of an
+/// application has to change for that; the vocabulary takes those renderings apart into the
+/// four nodes they never put a name to; and the catalogue closes the page with the design
+/// system every band above it is drawn with. A reader who stops after the second band has
+/// seen the reason to adopt this and the evidence that it works, which is the whole of what
+/// this page is for.
 UINode buildSitePage({
   required ShowcaseFrame frame,
   ExampleSeed seed = ExampleSeed.defaultSeed,
@@ -48,6 +52,10 @@ UINode buildSitePage({
         semantics: const BoxSemantics(element: BoxElement.main),
         children: <UINode>[
           buildHeroSection(frame: frame, seed: seed),
+          // Directly under the claim: the HTML branch of the diagram is the reason most
+          // readers are here, so the band that shows what a crawler is served comes
+          // before the parts the page is made of.
+          buildIndexableSection(seed: seed),
           // The vocabulary follows the claim directly: the hero frames a whole tree, and
           // these are the nodes it never names — drawn once, as one card, and taken apart
           // in a list beside it.
@@ -163,8 +171,8 @@ UINode _footer(MaterialPalette palette) {
           gap: 8,
           children: <UINode>[
             TextNode(
-              'Unibox — one tree, two renderers. This page is drawn with the library '
-              'it documents.',
+              'Unibox — Flutter UI, searchable HTML. This page is drawn with the '
+              'library it documents.',
               style: MaterialTypography.labelMedium.copyWith(
                 color: palette.onSurfaceVariant,
               ),

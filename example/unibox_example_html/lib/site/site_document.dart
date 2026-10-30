@@ -7,8 +7,10 @@ import 'iframe_node.dart';
 
 /// The document the site is served as.
 ///
-/// One page, three bands — the claim with the comparison inside it, the vocabulary, the
-/// catalogue — so there is one title and one description, and they describe the whole of it.
+/// One page, four bands — the claim with the comparison inside it, what a crawler is
+/// served, the vocabulary, the catalogue — so there is one title and one description, and
+/// they describe the whole of it: the search engine reason first, because that is the
+/// reason a reader arrives from one.
 ///
 /// The page is longer than a viewport, so nothing here gives it the height of one: it scrolls,
 /// and its bands paint their own backgrounds down its whole length. The body margin is removed
@@ -27,11 +29,11 @@ String buildSiteDocument({
 }) {
   return toDocument(
     sitePageTree(seed: seed),
-    title: 'Unibox — one tree, two renderers',
+    title: 'Unibox — SEO-friendly Flutter Web without duplicating your UI',
     description:
-        'Describe a screen once, in plain Dart, and draw it twice: Flutter widgets '
-        'in an app and HTML with CSS in a browser. The Material 3 type scale, the '
-        'colour roles and the components, as values and nodes.',
+        'Flutter SEO without a second UI: build the interface once in Dart, serve it '
+        'as real HTML and CSS to a search engine, and draw it as Flutter widgets in '
+        'the app.',
     meta: <String, String>{'unibox-build': ?build, 'unibox-page': 'site'},
     theme: siteThemeFor(seed),
     head: <String>[

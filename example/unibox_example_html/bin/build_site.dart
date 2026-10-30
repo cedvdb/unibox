@@ -9,12 +9,13 @@ import 'package:unibox_example_html/site/site_document.dart';
 /// dart run bin/build_site.dart --out=build/site --build=$(git rev-parse HEAD)
 /// ```
 ///
-/// Two documents. `index.html` is the **site** — one page of three bands: the claim with the
-/// comparison inside it, the vocabulary that names the nodes the claim never drew, and the
-/// Material catalogue the page is drawn with, which closes it. `web/listings/` is the
-/// **example**: the same tree as the left frame of the comparison, and a takeover document — it
-/// prefetches the bundle `flutter build web` writes beside it and boots it when a reader arrives,
-/// so the page a crawler reads and the application a reader uses are one document.
+/// Two documents. `index.html` is the **site** — one page of four bands: the claim with the
+/// comparison inside it, the markup a search engine is served, the vocabulary that names the
+/// nodes the claim never drew, and the Material catalogue the page is drawn with, which closes
+/// it. `web/listings/` is the **example**: the same tree as the left frame of the comparison,
+/// and a takeover document — it prefetches the bundle `flutter build web` writes beside it and
+/// boots it when a reader arrives, so the page a crawler reads and the application a reader
+/// uses are one document.
 ///
 /// One document for the example, not one per state: the sign-up form is a dialog, and a dialog is
 /// not a page.

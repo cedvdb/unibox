@@ -51,13 +51,14 @@ void main() {
       // screen reader build the document from.
       expect(
         headings.where((String heading) => heading.startsWith('1|')),
-        <String>['1|Describe a screen once.'],
+        <String>['1|Flutter UI. Searchable HTML.'],
       );
       expect(
         headings,
         containsAll(<String>[
           '2|HTML and CSS',
           '2|Flutter',
+          '2|Make Flutter Web pages indexable',
           '2|Material 3, as values and nodes',
           '3|Type scale',
           '3|Navigation bar',
@@ -72,9 +73,10 @@ void main() {
       );
     });
 
-    test('puts the vocabulary under the claim, and the catalogue last', () {
-      // The order is the argument: the evidence, then the parts it is made of, then the
-      // design system all of it is drawn with. The catalogue is what the page closes on.
+    test('puts the indexable band under the claim, and the catalogue last', () {
+      // The order is the reason to adopt the library, then the parts the claim is made
+      // of, then the design system all of it is drawn with. The catalogue is what the
+      // page closes on.
       final List<String> bands = _headings(buildSitePage(frame: _frame))
           .where((String heading) => heading.startsWith('2|'))
           .toList();
@@ -82,10 +84,35 @@ void main() {
       expect(bands, <String>[
         '2|HTML and CSS',
         '2|Flutter',
+        '2|Make Flutter Web pages indexable',
         '2|Just boxes',
         '2|Material 3, as values and nodes',
       ]);
     });
+
+    test(
+      'shows the markup a crawler is served, and what Flutter does next',
+      () {
+        // The band exists for the reader who arrives from a search engine: the same screen
+        // written as a tree and served as markup, then the two facts that make it usable —
+        // the app takes the page over, and only the pages that have to be found change.
+        final List<String> words = <String>[
+          for (final UINode node in _flatten(buildSitePage(frame: _emptyFrame)))
+            if (node is TextNode) node.text,
+        ];
+
+        expect(words, contains('<h1>Apartments in Amsterdam</h1>'));
+        expect(words, contains('<a href="apartments/amsterdam">'));
+        expect(words, contains('class names elided'));
+        expect(
+          words,
+          containsAll(<String>[
+            'Flutter still takes the page over',
+            'Adopted one page at a time',
+          ]),
+        );
+      },
+    );
 
     test('names the two calls the taken apart card is for', () {
       // The band's claim is that a screen is containers; its evidence is the list of
@@ -179,14 +206,14 @@ void main() {
           if (node is TextNode) node.text,
       ];
 
-      expect(hero, contains('Describe a screen once.'));
+      expect(hero, contains('Flutter UI. Searchable HTML.'));
       expect(hero, contains('Unibox'));
       expect(hero, contains('HTML and CSS'));
       expect(hero, contains('Flutter'));
 
       // The claim, then the tree, then the branches: the diagram answers the headline.
       expect(
-        hero.indexOf('Describe a screen once.'),
+        hero.indexOf('Flutter UI. Searchable HTML.'),
         lessThan(hero.indexOf('Unibox')),
       );
       expect(hero.indexOf('Unibox'), lessThan(hero.indexOf('HTML and CSS')));
@@ -334,7 +361,7 @@ void main() {
           if (node is TextNode) node.text,
       ];
 
-      expect(texts, contains('Describe a screen once.'));
+      expect(texts, contains('Flutter UI. Searchable HTML.'));
       // The claim is drawn as well as written: both renderings are on the page.
       expect(texts, contains('HTML and CSS'));
       expect(texts, contains('Flutter'));

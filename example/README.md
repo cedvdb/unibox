@@ -14,7 +14,7 @@ with.
 
 | Package | Role |
 | --- | --- |
-| `unibox_example_shared` | The example as one node (`ExamplePageNode`, with `ExampleState` and `ExampleStore`) and the parts it is built from (`buildExamplePage`, `buildApartmentsPage`, `buildSignupDialog`); the site as one node (`buildSitePage`) and its three bands (`buildHeroSection` — the claim and the diagram under it — `buildVocabularySection` — the nodes the page had not drawn, beside the same card taken apart — and `buildMaterialSection` — the catalogue that closes it); plus the palette. The listings are a `GridNode` of `MaterialCard`s, so the example also shows the design-system package. Pure Dart, no renderer. |
+| `unibox_example_shared` | The example as one node (`ExamplePageNode`, with `ExampleState` and `ExampleStore`) and the parts it is built from (`buildExamplePage`, `buildApartmentsPage`, `buildSignupDialog`); the site as one node (`buildSitePage`) and its four bands (`buildHeroSection` — the claim and the diagram under it — `buildIndexableSection` — what a search engine is served, and what Flutter does with the page afterwards — `buildVocabularySection` — the nodes the page had not drawn, beside the same card taken apart — and `buildMaterialSection` — the catalogue that closes it); plus the palette. The listings are a `GridNode` of `MaterialCard`s, so the example also shows the design-system package. Pure Dart, no renderer. |
 | `unibox_example_flutter` | Flutter host: one file (`lib/main.dart`) — the surface and the link policy. |
 | `unibox_example_html` | HTML host: the site's document, the example's document, the shipped font faces, the one `<iframe>` node the comparison needs, and the build script — no page trees, which live in the shared package. |
 
@@ -223,18 +223,21 @@ recognisably the same page.
 
 ## The site is one page
 
-`buildSitePage` is the whole site: a header, three bands and a footer, in the order the
+`buildSitePage` is the whole site: a header, four bands and a footer, in the order the
 argument needs. It is published at <https://cedvdb.github.io/unibox/>.
 
 | Band | What it says |
 | --- | --- |
-| the hero | the claim — *describe a screen once* — and the diagram that answers it: one `Unibox` chip branching into **HTML and CSS** and **Flutter**, each branch carrying the live example it produces, so the page on the left and the Flutter build on the right are the two halves of the diagram rather than a comparison beside it |
+| the hero | the claim — *Flutter UI, searchable HTML* — and the diagram that answers it: one `Unibox` chip branching into **HTML and CSS** and **Flutter**, each branch carrying the live example it produces, so the page on the left and the Flutter build on the right are the two halves of the diagram rather than a comparison beside it |
+| *Make Flutter Web pages indexable* | what a search engine is actually served: the same screen as a Dart tree and as the markup it becomes — a real `h1`, real text and a link with an `href` — then the two facts the cards cannot show: Flutter takes the page over once the build arrives, and only the pages that have to be found need a tree |
 | *Just boxes* | what the whole vocabulary amounts to: a screen is containers, so the four nodes the page had not drawn yet — a picture, a stack, a child placed at an offset and a field with no chrome — sit as one listing card beside the same card taken apart node by node, under the two calls that tree is for, `node.toWidget()` and `node.toHtml()` |
 | *Material 3, as values and nodes* | the catalogue: every component first, then the type scale and the colour roles those components name |
 
 The frames are the claim's evidence, so they sit in the band that makes it: a reader
 scrolls from the sentence to the two renderings it is about, and meets each rendering's
-name once, and each name sits over the rendering it belongs to. The vocabulary comes next,
+name once, and each name sits over the rendering it belongs to. The indexable band comes
+next, because the HTML branch is the reason most readers are there: it shows what a crawler
+is served and how little of the application has to change for it. The vocabulary follows,
 because a frame draws a whole tree and never the parts it is made of: the four nodes the
 page had not drawn are the four a reader would otherwise never see named, and the card
 beside the list is not a screenshot of one — it *is* the list. The band closes on what that

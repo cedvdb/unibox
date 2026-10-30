@@ -10,10 +10,17 @@ void main() {
     test('is one page, with one title and one description', () {
       final String html = buildSiteDocument();
 
-      expect(html, contains('<title>Unibox — one tree, two renderers</title>'));
       expect(
         html,
-        contains('<meta name="description" content="Describe a screen once'),
+        contains(
+          '<title>Unibox — SEO-friendly Flutter Web without duplicating your UI</title>',
+        ),
+      );
+      expect(
+        html,
+        contains(
+          '<meta name="description" content="Flutter SEO without a second UI',
+        ),
       );
       expect(html, contains('<html lang="en">'));
     });
@@ -40,6 +47,21 @@ void main() {
       expect(html, contains('node.toWidget()'));
       expect(html, contains('node.toHtml()'));
     });
+
+    test(
+      'shows the markup a crawler is served, as text rather than a picture',
+      () {
+        final String html = buildSiteDocument();
+
+        // The band's evidence is a document quoted in the page, so the tags arrive escaped:
+        // a crawler indexing this site reads the same words a reader does, which is the
+        // claim the band is making in the first place.
+        expect(html, contains('Make Flutter Web pages indexable'));
+        expect(html, contains('&lt;h1&gt;Apartments in Amsterdam&lt;/h1&gt;'));
+        expect(html, contains('class names elided'));
+        expect(html, contains('Adopted one page at a time'));
+      },
+    );
 
     test('moves the two arrows, three passes and then still', () {
       // The arrows are the one part of the page whose reason is motion, and the motion is the

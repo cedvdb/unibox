@@ -21,6 +21,11 @@ typedef ShowcaseFrame = UINode Function({
 /// a stranger reads *one tree*, sees it split into HTML and Flutter, and can type into
 /// either half of the diagram to check that it is real.
 ///
+/// The claim leads with the reason someone goes looking for the library — a Flutter page
+/// that a search engine can read — and the architecture follows it as the answer. The
+/// diagram is the same claim drawn: the left branch is the markup a crawler is served, the
+/// right one the widgets the visitor uses, and both come from the one tree above them.
+///
 /// The copy above the diagram is set large and the room around it is wide, because that
 /// is what makes a page of plain boxes read as a modern one — scale and space, not a
 /// second set of colours.
@@ -65,7 +70,7 @@ UINode _claim(MaterialPalette palette) {
             backgroundColor: palette.secondaryContainer,
             children: <UINode>[
               TextNode(
-                'Dart · one tree · two renderers',
+                'Flutter SEO · one tree · two renderers',
                 style: MaterialTypography.labelMedium.copyWith(
                   color: palette.onSecondaryContainer,
                 ),
@@ -75,14 +80,14 @@ UINode _claim(MaterialPalette palette) {
         ],
       ),
       TextNode(
-        'Describe a screen once.',
+        'Flutter UI. Searchable HTML.',
         style: MaterialTypography.displayLarge,
         headingLevel: 1,
       ),
       TextNode(
-        'An immutable Dart tree. Flutter draws it as widgets; the web reads it '
-        'as HTML — real text, real links, real headings, so the page a visitor '
-        'lands on is the page a search engine ranks.',
+        'Build the interface once in Dart. Render it as Flutter widgets or as real '
+        'HTML and CSS — making your Flutter Web pages accessible to search engines '
+        'without maintaining a second UI.',
         style: MaterialTypography.titleMedium.copyWith(
           color: palette.onSurfaceVariant,
         ),
@@ -126,7 +131,7 @@ UINode _diagram(
           _branch(
             palette,
             label: 'HTML and CSS',
-            note: 'a document a crawler reads and a reader can act on',
+            note: 'the page a search engine reads: real text, real headings, real links',
             flowKey: 'hero-flow-html',
             src: 'web/listings/?seed=${seed.name}',
             frame: frame,
@@ -148,6 +153,13 @@ UINode _diagram(
         children: <UINode>[
           TextNode(
             'Narrow the window: both frames answer the same breakpoint.',
+            style: MaterialTypography.labelSmall.copyWith(
+              color: palette.onSurfaceVariant,
+            ),
+          ),
+          TextNode(
+            'Describe only the pages that have to be found: the rest of the '
+            'application stays ordinary Flutter.',
             style: MaterialTypography.labelSmall.copyWith(
               color: palette.onSurfaceVariant,
             ),
