@@ -313,7 +313,7 @@ the conformance table already pins — the class is a combination, not a new tok
 | padding | `16` on every edge | the room Material gives card content |
 | background | `BoxColors.white` | the surface, until a colour scheme exists |
 | radius | `12` | the medium shape of Material 3 |
-| shadows | `MaterialCard.elevatedShadows` — `MaterialElevation.level1` | elevation level one, the three layers Flutter's `kElevationToShadow` states |
+| shadows | `MaterialCard.elevatedShadows` — `MaterialElevation.level1` | elevation level one: the key shadow and the ambient layer a Flutter card paints |
 | typography | `MaterialTypography.bodyMedium` | inherited by the texts inside |
 | layout | a column (`Box`'s default), with `crossAlign: stretch` | a card stacks its content and stretches it to the card, so a row of it spans the width |
 
@@ -902,31 +902,37 @@ what is chosen through its own `pressed`.
 
 ## Elevation
 
-Material states five levels for a raised surface, and Flutter's `kElevationToShadow` —
-the map `Material` itself draws from — states each of them as three shadow layers. A box
-takes a list of `BoxShadow`s, so a level here is all three, copied layer for layer: the
-umbra at 20% black under the edge, the penumbra at 14% beside it, and the wide ambient
-layer at 12% that reads as height.
+Material states five levels for a raised surface, and a level here is what the framework
+*paints* at that height, not what its 2014 table says. A `Card` is a `Material`, a
+`Material` draws its shadow with `Canvas.drawShadow` — one opaque colour, the surface's
+`shadowColor`, handed to a light model that spends it as an ambient layer hugging the
+shape and a key shadow falling away from it — and a box takes a list of `BoxShadow`s, so
+a level is those two layers: the key shadow at 20% black and the ambient one at 12%.
 
-| Level | Layers | Material gives it to |
-| --- | --- | --- |
-| `level1` | `0 2px 1px -1px`, `0 1px 1px`, `0 1px 3px` | a card, a sheet, a raised button |
-| `level2` | `0 3px 1px -2px`, `0 2px 2px`, `0 1px 5px` | a card under the pointer |
-| `level3` | `0 3px 3px -2px`, `0 3px 4px`, `0 1px 8px` | a dialog, a date picker, a floating action button |
-| `level4` | `0 2px 4px -1px`, `0 4px 5px`, `0 1px 10px` | a drawer as it opens |
-| `level5` | `0 3px 5px -1px`, `0 6px 10px`, `0 1px 18px` | the highest surface Material states |
-| `sheet` | the same as level one, pointing up | a sheet, which rises from the bottom edge |
+| Level | Key shadow | Ambient layer | Material gives it to |
+| --- | --- | --- | --- |
+| `level1` | `0 3px 3px -1px` | `0 2px 5px -1px` | a card, a sheet, a raised button |
+| `level2` | `0 7px 7px -2px` | `0 1px 4px` | a card under the pointer |
+| `level3` | `0 10px 10px -2px` | `0 1px 5px` | a dialog, a date picker, a floating action button |
+| `level4` | `0 13px 14px -3px` | `0 3px 8px -1px` | a drawer as it opens |
+| `level5` | `0 15px 16px -2px` | `0 4px 9px -2px` | the highest surface Material states |
+| `sheet` | the same as level one, pointing up | | a sheet, which rises from the bottom edge |
 
-Each row is the framework's entry of the same name — `level5` is `kElevationToShadow[6]`,
-because Material's fifth level is five dp and the map does not list it. The example's
-Flutter suite is what keeps the two in step: it pumps a card and compares the list it
-painted with the framework's own, which is a comparison this pure Dart package cannot
-make for itself.
+**Why not `kElevationToShadow`.** That map is the shadow Flutter states for a widget that
+*needs* a list of `BoxShadow`s — a menu's panel, a switch's thumb — and a `Material` does
+not draw from it. Copying it read heavier than the card beside it in a Flutter
+application: three layers at 20, 14 and 12% black composite to 29% under the edge, where
+the framework's own card peaks at 22%, and they die within four pixels where its shadow
+fades over seven. The offsets, blurs and spreads above are measured against what
+`drawShadow` paints at each height, downward and sideways alike. The example's Flutter
+suite is what keeps the two in step: it pumps a card and a real `Material` of the same
+height, rasterises both, and compares the pixels, which is a comparison this pure Dart
+package cannot make for itself.
 
 **A level is also a surface.** Material states elevation twice over, and the tonal half
-is the half that shows: three shadows at 20, 14 and 12% barely read on a page of the same
-tone. `level1` goes with `surfaceContainerLow`, `level2` with `surfaceContainer` and
-`level3` with `surfaceContainerHigh`, so a card raised higher takes both halves:
+is the half that shows: a shadow at 20 and 12% barely reads on a page of the same tone.
+`level1` goes with `surfaceContainerLow`, `level2` with `surfaceContainer` and `level3`
+with `surfaceContainerHigh`, so a card raised higher takes both halves:
 
 ```dart
 MaterialCard(

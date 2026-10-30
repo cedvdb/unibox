@@ -318,9 +318,9 @@ void main() {
     });
 
     test('stack several shadows as one comma separated list', () {
-      // An elevation is three layers in Material and in Flutter, and CSS paints a list
-      // in the order it is written: the first entry ends up on top, which is why the
-      // model keeps the same order.
+      // An elevation is several layers, and CSS paints a list in the order it is
+      // written: the first entry ends up on top, which is why the model keeps the same
+      // order.
       expect(
         cssBoxShadows(const <core.BoxShadow>[
           core.BoxShadow(

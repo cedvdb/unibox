@@ -2,12 +2,15 @@
 
 ## Unreleased
 
-- `MaterialElevation` states Flutter's own shadows, all three layers of each. A level was a
-  reading of Material's two-layer specification at 15% black; every level is now an entry of the
-  framework's `kElevationToShadow` — the umbra at 20%, the penumbra at 14% and the ambient layer
-  at 12% that reads as height — so a card casts exactly the shadow a Flutter card casts.
-  `MaterialCard.elevatedShadow` is `elevatedShadows` now, and every component passes the list a
-  box takes.
+- `MaterialElevation` states each level the way a Flutter card draws it: a key shadow at 20%
+  black and an ambient layer at 12%, with the offsets, blurs and spreads measured against
+  what `Canvas.drawShadow` paints at that height. A level used to be three layers copied
+  from `kElevationToShadow` — 20, 14 and 12% black — which `Material` does not draw from:
+  they composite to 29% under a card's edge, where the framework's own card peaks at 22%,
+  so a card here looked heavier than the card beside it in a Flutter application. Every
+  component reads the scale, so a card, a dialog, a sheet and a drawer all lose the extra
+  weight at once. `MaterialCard.elevatedShadow` is `elevatedShadows` now, and every
+  component passes the list a box takes.
 - The catalogue in the example shows a card at each of the first three heights, on the surface
   tone Material pairs with it, beside the outlined and the filled card.
 

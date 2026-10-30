@@ -192,8 +192,8 @@ final class BoxStyle {
   /// The drop shadows painted behind the box, in paint order.
   ///
   /// A shadow is a list because a design system states one elevation as several
-  /// layers — Material's level one is a tight umbra, a penumbra and a wide ambient
-  /// layer — and a single [BoxShadow] could only ever state one of them. The first
+  /// layers — a card casts a key shadow and a wide ambient one — and a single
+  /// [BoxShadow] could only ever state one of them. The first
   /// entry paints on top, as it does in CSS.
   final List<BoxShadow>? shadows;
 

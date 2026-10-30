@@ -22,14 +22,15 @@ void main() {
       expect(card.children, isEmpty);
     });
 
-    test('draws the three layers of elevation level one', () {
+    test('draws the two layers of elevation level one', () {
       const List<BoxShadow> shadows = MaterialCard.elevatedShadows;
 
-      // Flutter's `kElevationToShadow[1]`: an umbra under the edge, its penumbra and
-      // the wide ambient layer that reads as height.
-      expect(shadows, hasLength(3));
+      // The framework's own card: a key shadow falling from the edge and the ambient
+      // layer under it. Both are listed, so a browser paints the same pair.
+      expect(shadows, hasLength(2));
       expect(shadows.first.spreadRadius, -1);
-      expect(shadows.last.blurRadius, 3);
+      expect(shadows.first.color.opacity, closeTo(0.2, 0.01));
+      expect(shadows.last.blurRadius, 5);
       expect(shadows.last.color.opacity, closeTo(0.12, 0.01));
     });
 

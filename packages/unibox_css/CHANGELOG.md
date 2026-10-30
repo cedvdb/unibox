@@ -3,7 +3,7 @@
 ## Unreleased
 
 - A box's shadows are written as one comma separated `box-shadow` list, in the order the model
-  states them, so the three layers of an elevation are three declarations CSS paints at once. A
+  states them, so the layers of an elevation are declarations CSS paints at once. A
   shadow whose colour is a role keeps its custom property, which the old single-shadow path could
   only do when the whole shadow was a role.
 
