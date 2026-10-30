@@ -47,6 +47,7 @@ class Box extends UINode {
     this.mainAlign,
     this.crossAlign,
     this.gap,
+    this.wrap,
     this.flex,
     this.gridSpan,
     this.overflow,
@@ -109,6 +110,25 @@ class Box extends UINode {
 
   /// Space between children in logical pixels.
   final double? gap;
+
+  /// Whether the children flow onto another line rather than off the end of the box.
+  ///
+  /// The box is still a flex container — the children are laid out along [direction] and
+  /// [gap] is the space between two of them — but a child that does not fit starts
+  /// another line instead of running past the edge. [gap] is the space between two lines
+  /// as well, so one number spaces a wrapped row in both directions, and [mainAlign] and
+  /// [crossAlign] distribute one line and place a child within it, which is what `Wrap`
+  /// and `flex-wrap: wrap` both mean.
+  ///
+  /// It is a token and not a `WrapNode` because it is the same element on the web: a
+  /// `display: flex` container with `flex-wrap: wrap`. A node of its own would be a
+  /// second name for one element, with its own plan and its own render path, and would
+  /// draw exactly what this draws.
+  ///
+  /// `crossAlign: CrossAlign.stretch`, `crossAlign: CrossAlign.baseline`, and a `flex` on
+  /// a child of a wrapping box cannot be honoured by both targets; [`validateTree`]
+  /// reports them instead of drawing one of them twice.
+  final bool? wrap;
 
   /// How much of the remaining space this box should take up.
   final int? flex;
@@ -383,6 +403,7 @@ class Box extends UINode {
     mainAlign: mainAlign,
     crossAlign: crossAlign,
     gap: gap,
+    wrap: wrap,
     flex: flex,
     gridSpan: gridSpan,
     overflow: overflow,

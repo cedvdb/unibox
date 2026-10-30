@@ -505,10 +505,14 @@ class FlutterBoxState extends State<FlutterBox> {
   }) {
     final core.Axis direction = style.resolvedDirection;
     final double? gap = style.gap;
+    final bool wrap = style.wrap ?? false;
+
+    // A wrapping box spaces its children itself, between two of them and between two
+    // lines, which a `Wrap` does with two numbers; a flex adds a spacer child instead.
     final List<Widget> children = <Widget>[];
 
     for (var index = 0; index < box.children.length; index++) {
-      if (index > 0 && gap != null && gap > 0) {
+      if (!wrap && index > 0 && gap != null && gap > 0) {
         children.add(
           direction == core.Axis.horizontal
               ? SizedBox(width: gap)
@@ -520,6 +524,7 @@ class FlutterBoxState extends State<FlutterBox> {
           box.children[index],
           direction,
           availableWidth: availableWidth,
+          flexible: !wrap,
         ),
       );
     }
@@ -529,6 +534,21 @@ class FlutterBoxState extends State<FlutterBox> {
     final MainAxisAlignment mainAxisAlignment = toMainAxisAlignment(
       style.mainAlign ?? core.MainAlign.start,
     );
+
+    // A wrap is its own layout widget: it breaks a run where CSS breaks a line, and it
+    // has no flex children, so a child that states a share is reported by `validateTree`.
+    if (wrap) {
+      return Wrap(
+        direction: toAxis(direction),
+        alignment: toWrapAlignment(style.mainAlign ?? core.MainAlign.start),
+        crossAxisAlignment:
+            toWrapCrossAlignment(crossAlign) ?? WrapCrossAlignment.start,
+        spacing: gap ?? 0,
+        runSpacing: gap ?? 0,
+        children: children,
+      );
+    }
+
     final CrossAxisAlignment crossAxisAlignment = toCrossAxisAlignment(
       crossAlign,
     );
@@ -582,10 +602,15 @@ class FlutterBoxState extends State<FlutterBox> {
 
   /// Renders [node] and makes it flexible along the parent's `direction` when it
   /// declares a [core.BoxStyle.flex] factor or an infinite main dimension.
+  ///
+  /// [flexible] is off for the child of a wrapping box, which has no flex children: a
+  /// `Wrap` lays each child out at its own size, so an `Expanded` in it is a Flutter
+  /// error rather than a share. `validateTree` reports that tree instead.
   Widget _buildChild(
     core.UINode node,
     core.Axis direction, {
     required double? availableWidth,
+    bool flexible = true,
   }) {
     final Widget child = renderNode(node, availableWidth: availableWidth);
 
@@ -616,6 +641,10 @@ class FlutterBoxState extends State<FlutterBox> {
     final bool hasFlex = flex != null && flex > 0;
 
     if (!expands && !hasFlex) {
+      return child;
+    }
+
+    if (!flexible) {
       return child;
     }
 

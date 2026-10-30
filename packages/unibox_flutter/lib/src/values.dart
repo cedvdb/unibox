@@ -53,6 +53,37 @@ CrossAxisAlignment toCrossAxisAlignment(core.CrossAlign align) {
 /// offers one baseline rather than a token one target could not honour.
 const TextBaseline uniboxTextBaseline = TextBaseline.alphabetic;
 
+/// Converts a Unibox [core.MainAlign] to the [WrapAlignment] of a wrapping box.
+///
+/// The six values are the same six: CSS distributes the children of *one line* with
+/// `justify-content`, and a `Wrap` distributes one run with this, so a wrapping box
+/// keeps the meaning the token already had.
+WrapAlignment toWrapAlignment(core.MainAlign align) {
+  return switch (align) {
+    core.MainAlign.start => WrapAlignment.start,
+    core.MainAlign.center => WrapAlignment.center,
+    core.MainAlign.end => WrapAlignment.end,
+    core.MainAlign.spaceBetween => WrapAlignment.spaceBetween,
+    core.MainAlign.spaceAround => WrapAlignment.spaceAround,
+    core.MainAlign.spaceEvenly => WrapAlignment.spaceEvenly,
+  };
+}
+
+/// Converts a Unibox [core.CrossAlign] to the [WrapCrossAlignment] of a wrapping box,
+/// or `null` for the two values a wrap cannot state.
+///
+/// `stretch` and `baseline` place a child against a line the flex layout has already
+/// stretched or measured across, which a `Wrap` does not do; `validateTree` reports both
+/// on a wrapping box rather than a renderer picking one and drifting from the browser.
+WrapCrossAlignment? toWrapCrossAlignment(core.CrossAlign align) {
+  return switch (align) {
+    core.CrossAlign.start => WrapCrossAlignment.start,
+    core.CrossAlign.center => WrapCrossAlignment.center,
+    core.CrossAlign.end => WrapCrossAlignment.end,
+    core.CrossAlign.stretch || core.CrossAlign.baseline => null,
+  };
+}
+
 /// Converts a Unibox [core.FontWeight] to a Flutter [FontWeight].
 FontWeight toFontWeight(core.FontWeight weight) {
   return switch (weight) {

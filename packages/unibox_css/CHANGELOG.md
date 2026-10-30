@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- A box that states `wrap: true` is a `flex-wrap: wrap` container whose lines are packed
+  from the start (`align-content: flex-start`), which is what a Flutter `Wrap` does with
+  its runs and not what a browser does by default.
+
 - A shadow's blur is written in the unit a browser reads, so a shadow is as wide on the page
   as it is in the app. Flutter reads a `BoxShadow.blurRadius` of `r` as a gaussian of
   `0.57735 * r + 0.5`, where CSS reads a `blur-radius` of `b` as a gaussian of `b / 2`;

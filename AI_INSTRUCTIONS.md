@@ -54,11 +54,11 @@ host that renders it.
 - `unibox_material` is optional: the fifteen Material type roles as `const`
   `BoxTextStyle` values, the colour roles as `MaterialPalette` (`light` and `dark`,
   each a `const` set of `BoxColor`s — or a palette grown from one brand colour with
-  `MaterialPalette.fromSeed(seed, variant:, isDark:, contrastLevel:)`), and fourteen
+  `MaterialPalette.fromSeed(seed, variant:, isDark:, contrastLevel:)`), and fifteen
   components built on nodes the
   renderers already draw — `MaterialCard`, `MaterialListTile`, `MaterialButton`,
-  `MaterialChip`, `MaterialSegmentedButton`, `MaterialNavigationBar` and `MaterialIcon`
-  are `Box` subclasses, `MaterialInkWell` and `MaterialTextField` are `StatefulNode`s
+  `MaterialIconButton`, `MaterialChip`, `MaterialSegmentedButton`, `MaterialNavigationBar`
+  and `MaterialIcon` are `Box` subclasses, `MaterialInkWell` and `MaterialTextField` are `StatefulNode`s
   (the ink a press spreads; the text, the focus and whether the field has been
   touched), `MaterialCheckMark` is a `StackNode` (Material's tick, drawn, so a
   chosen control needs no font), `MaterialProgressRing` is a `Box` and `MaterialSpinner`
@@ -196,6 +196,7 @@ host that renders it.
 | `ClipPath`, `ShapeBorder`, `clip-path` | `Box(shape: BoxShape(...))` — a path in a view box, which the fill, the border and (with `overflow: Overflow.hidden`) the clip all follow; `BoxFillRule.evenOdd` makes a ring |
 | `BorderRadius.vertical(top:)`, `BorderRadius.only(...)` | `corners: BoxBorderRadius(topLeft:, topRight:)` — a box that is not round on all four |
 | `SingleChildScrollView` | `Box(overflow: Overflow.scroll)` |
+| `Wrap` | `Box(wrap: true, gap:, mainAlign:, crossAlign:)` — `gap` is both the space between two children and between two lines, and the alignments keep their meaning per line, which is what `flex-wrap: wrap` does. A box cannot both wrap and scroll, a `flex` child cannot grow in a wrap, and a `crossAlign` of `stretch` or `baseline` means nothing in one: `validateTree` reports all three |
 | `Stack` + `Positioned` | `StackNode` + `PositionedNode` |
 | `Semantics(button: true, label:)` | `semantics: BoxSemantics(role: BoxRole.button, label: …)` |
 | `Semantics(button: true, toggled: true)`, `aria-pressed` | `semantics: BoxSemantics(role: BoxRole.button, pressed: true)` — a toggle button, which is what a chip and a segment are; `selected` is for the item of a set (an option, a tab) and a browser ignores it on a button |

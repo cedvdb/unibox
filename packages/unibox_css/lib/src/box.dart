@@ -64,6 +64,15 @@ CssDeclarations boxDeclarations(
 
   if (!declaredOnly) {
     declarations.add('display', 'flex');
+
+    if (style.wrap ?? false) {
+      declarations
+        ..add('flex-wrap', 'wrap')
+        // The lines are packed from the start of the box, which is what a Flutter `Wrap`
+        // does with its runs. A browser's `align-content: normal` stretches them over the
+        // height of the box instead, so a wrapped row in a tall box would sit in bands.
+        ..add('align-content', 'flex-start');
+    }
   }
 
   declarations

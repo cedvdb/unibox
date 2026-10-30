@@ -77,6 +77,9 @@ CLASSIFIED = {
         'shape': 'a path in a view box, which neither output hands back',
         'gridSpan': 'compared by `GridAppearance` in `grid_cases.dart`, because what decides whether '
         'a span is honoured is the grid the box sits in and not the box that states it',
+        'wrap': 'where a wrap breaks its lines depends on the width the box is drawn at, which the '
+        'appearance of one box at no particular width cannot carry; the node suites compare the '
+        'rows at a stated width instead',
         'textStyle': 'typography is compared through `TextAppearance`, not through a box',
         'transition': 'spread into `transitionDuration` and `transitionCurve`',
         'visibleFrom': 'the width a box is drawn at, and the appearance describes a box at no '

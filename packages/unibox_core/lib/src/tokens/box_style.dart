@@ -35,6 +35,7 @@ final class BoxStyle {
     this.mainAlign,
     this.crossAlign,
     this.gap,
+    this.wrap,
     this.flex,
     this.gridSpan,
     this.overflow,
@@ -89,8 +90,24 @@ final class BoxStyle {
   /// Alignment of the children along the cross axis.
   final CrossAlign? crossAlign;
 
-  /// Space between children in logical pixels.
+  /// Space between children in logical pixels, or between two lines of a [wrap]ping box.
   final double? gap;
+
+  /// Whether the children flow onto another line when they do not fit, instead of
+  /// running off the end of the box.
+  ///
+  /// A row of chips either scrolls — which hides the later ones — or wraps, which is
+  /// what a filter row wants on a phone. [gap] is both the space between two children on
+  /// a line and the space between two lines, and [mainAlign] and [crossAlign] keep their
+  /// meaning, per line: `mainAlign` distributes the children of one line, and `crossAlign`
+  /// places a child in its line's cross axis — which is what a `Wrap` and a
+  /// `flex-wrap: wrap` container each do.
+  ///
+  /// `crossAlign` of [CrossAlign.stretch] or [CrossAlign.baseline] has no meaning in a
+  /// wrap on both targets, `flex` on a child does not grow in Flutter's `Wrap`, and a box
+  /// that scrolls along its main axis cannot wrap, so `validateTree` reports all three
+  /// rather than drawing them two ways.
+  final bool? wrap;
 
   /// How much of the remaining space this box should take up.
   final int? flex;
@@ -347,6 +364,7 @@ final class BoxStyle {
     MainAlign? mainAlign,
     CrossAlign? crossAlign,
     double? gap,
+    bool? wrap,
     int? flex,
     int? gridSpan,
     Overflow? overflow,
@@ -381,6 +399,7 @@ final class BoxStyle {
       mainAlign: mainAlign ?? this.mainAlign,
       crossAlign: crossAlign ?? this.crossAlign,
       gap: gap ?? this.gap,
+      wrap: wrap ?? this.wrap,
       flex: flex ?? this.flex,
       gridSpan: gridSpan ?? this.gridSpan,
       overflow: overflow ?? this.overflow,
@@ -430,6 +449,7 @@ final class BoxStyle {
       mainAlign: other.mainAlign ?? mainAlign,
       crossAlign: other.crossAlign ?? crossAlign,
       gap: other.gap ?? gap,
+      wrap: other.wrap ?? wrap,
       flex: other.flex ?? flex,
       gridSpan: other.gridSpan ?? gridSpan,
       overflow: other.overflow ?? overflow,
@@ -468,6 +488,7 @@ final class BoxStyle {
       other.mainAlign == mainAlign &&
       other.crossAlign == crossAlign &&
       other.gap == gap &&
+      other.wrap == wrap &&
       other.flex == flex &&
       other.gridSpan == gridSpan &&
       other.overflow == overflow &&
@@ -503,6 +524,7 @@ final class BoxStyle {
     mainAlign,
     crossAlign,
     gap,
+    wrap,
     flex,
     gridSpan,
     overflow,
@@ -538,6 +560,7 @@ final class BoxStyle {
       if (mainAlign != null) 'mainAlign: $mainAlign',
       if (crossAlign != null) 'crossAlign: $crossAlign',
       if (gap != null) 'gap: $gap',
+      if (wrap != null) 'wrap: $wrap',
       if (flex != null) 'flex: $flex',
       if (gridSpan != null) 'gridSpan: $gridSpan',
       if (overflow != null) 'overflow: $overflow',

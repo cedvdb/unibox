@@ -766,6 +766,64 @@ void _validate(
         ),
       );
     }
+
+    // A wrap breaks the children into lines, and neither target does anything else the
+    // flex layout used to do across the whole box: `stretch` and `baseline` are stated per
+    // line by a browser and not at all by a Flutter `Wrap`, and a wrapping box cannot
+    // scroll along the axis its lines occupy.
+    if (style.wrap ?? false) {
+      final CrossAlign? crossAlignForWrap = style.crossAlign;
+
+      if (crossAlignForWrap == CrossAlign.stretch ||
+          crossAlignForWrap == CrossAlign.baseline) {
+        issues.add(
+          TreeIssue(
+            node: node,
+            severity: TreeIssueSeverity.error,
+            message:
+                'A box that wraps its children (wrap: true) cannot align them '
+                'with crossAlign: CrossAlign.${crossAlignForWrap!.name}: a '
+                'browser stretches or aligns the children of one line, while a '
+                'Flutter `Wrap` only starts, centres or ends them. Use start, '
+                'center or end.',
+          ),
+        );
+      }
+
+      if (style.overflow == Overflow.scroll) {
+        issues.add(
+          TreeIssue(
+            node: node,
+            severity: TreeIssueSeverity.error,
+            message:
+                'A box both wraps its children and scrolls along its main axis. '
+                'A browser wraps them inside the box, and Flutter hands a '
+                'wrapping box in a scroll view all the width it asks for, so it '
+                'never wraps and scrolls instead. Keep one of the two.',
+          ),
+        );
+      }
+    }
+
+    // A wrapping box is the one flex container whose children cannot share it: a
+    // `Wrap` lays every child out at its own size, so `flex` grows nothing on one
+    // target, and CSS grows the child across its line.
+    if (parent is Box &&
+        (parent.computedStyle.wrap ?? false) &&
+        (style.flex ?? 0) > 0) {
+      issues.add(
+        TreeIssue(
+          node: node,
+          severity: TreeIssueSeverity.error,
+          message:
+              'A box inside a wrapping box (wrap: true) states flex: '
+              '${style.flex}, and nothing can share a line that has not been '
+              'measured yet: a browser grows the child across its line and '
+              "Flutter's `Wrap` lays it out at its own size. Give the box a "
+              'width, or take it out of the wrap.',
+        ),
+      );
+    }
   }
 
   if (node is Box && node.semantics?.element == BoxElement.figcaption) {

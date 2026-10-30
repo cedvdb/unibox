@@ -320,7 +320,8 @@ Box(
 | `direction` | `Axis?` | column | `Axis.horizontal` is a row, `Axis.vertical` a column. |
 | `mainAlign` | `MainAlign?` | start | Distribution along the direction: `start`, `center`, `end`, `spaceBetween`, `spaceAround`, `spaceEvenly`. |
 | `crossAlign` | `CrossAlign?` | start | Alignment across the direction: `start`, `center`, `end`, `stretch`, `baseline`. A baseline is a horizontal line, so it is a row's alignment: a column that states one is reported by `validateTree`. |
-| `gap` | `double?` | none | Space between two children. For space at the edges, use `padding`. |
+| `gap` | `double?` | none | Space between two children, and between two lines of a wrapping box. For space at the edges, use `padding`. |
+| `wrap` | `bool?` | `false` | Whether a child that does not fit starts another line instead of running off the end. `gap` is the space between two lines as well, and `mainAlign` distributes one line while `crossAlign` places a child in it — what `Wrap` and `flex-wrap: wrap` each mean. A `stretch` or `baseline` cross alignment, a `flex` on a child, and a box that both wraps and scrolls are reported by `validateTree`, because the two targets cannot draw them the same way. |
 | `flex` | `int?` | none | Share of the free space this box takes inside its parent: `flex: 1` is an `Expanded` in Flutter and `flex-grow: 1` on the web. |
 | `gridSpan` | `int?` | one track | How many columns of a `GridNode` this box covers: a banner that interrupts a card grid states `2`, or more for a full row. Only a grid child has tracks, and `validateTree` reports it anywhere else. |
 | `overflow` | `Overflow?` | visible | `hidden` clips the content, `scroll` makes the box scroll along its direction. |

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- A box that states `wrap: true` renders as a `Wrap`: its children break into runs at the
+  width they are given, `gap` spaces a run and the runs, and `mainAlign` and `crossAlign`
+  distribute one run and place a child in it.
+
 - `Box.aspectRatio` becomes an `AspectRatio` inside the box's sizes, so a box that
   states a width and a ratio is given the height the ratio asks for — the same answer
   a browser gives `width` and `aspect-ratio` together. A box that states both a width

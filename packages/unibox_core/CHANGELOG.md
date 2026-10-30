@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- `Box.wrap` lets the children of a box flow onto another line when they do not fit, so a
+  row of chips wraps instead of scrolling past the edge of a phone. `gap` is the space
+  between two children and between two lines, and `mainAlign` and `crossAlign` keep the
+  meaning they have in a `Wrap` and in `flex-wrap: wrap` — one line's distribution, and a
+  child's place in its line. It is a token and not a `WrapNode` because it is the same
+  element on the web. `validateTree` reports the three constructs the two targets cannot
+  draw the same way: a `crossAlign` of stretch or baseline in a wrap, a `flex` on a child
+  of one, and a box that both wraps and scrolls.
+
 - `Box.aspectRatio` and `BoxStyle.aspectRatio` keep a box's shape — the width
   divided by the height — at whatever width the layout gives it, which is the one size
   that is neither a number of pixels nor a share of the parent: a thumbnail, an avatar

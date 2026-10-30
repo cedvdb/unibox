@@ -399,6 +399,25 @@ void main() {
       );
     });
 
+    test('merges a wrap like every other layout token', () {
+      // `false` is a statement and not the absence of one: a bag that says "this row
+      // does not wrap" has to be able to turn a wrap off, so the merge keeps it.
+      const BoxStyle wrapped = BoxStyle(wrap: true, gap: 8);
+      const BoxStyle single = BoxStyle(wrap: false);
+
+      expect(wrapped.merge(const BoxStyle()).wrap, isTrue);
+      expect(wrapped.merge(single).wrap, isFalse);
+      expect(single.merge(wrapped).wrap, isTrue);
+      expect(wrapped.copyWith().wrap, isTrue);
+      expect(wrapped, isNot(single));
+      expect(wrapped.toString(), contains('wrap: true'));
+      expect(
+        const Box(wrap: false, styles: <BoxStyle>[wrapped]).computedStyle.wrap,
+        isFalse,
+        reason: 'the flat parameter wins, as it does for every other token',
+      );
+    });
+
     test('implements value equality', () {
       const style = BoxStyle(
         direction: Axis.vertical,

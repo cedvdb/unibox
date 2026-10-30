@@ -457,6 +457,77 @@ void main() {
       expect(validateTree(tree), isEmpty);
     });
 
+    test('accepts a wrap that starts, centres or ends its children', () {
+      for (final CrossAlign align in <CrossAlign>[
+        CrossAlign.start,
+        CrossAlign.center,
+        CrossAlign.end,
+      ]) {
+        final Box tree = Box(
+          direction: Axis.horizontal,
+          wrap: true,
+          gap: 8,
+          crossAlign: align,
+          children: const <UINode>[TextNode('Garden'), TextNode('Balcony')],
+        );
+
+        expect(
+          validateTree(tree),
+          isEmpty,
+          reason: 'crossAlign: ${align.name}',
+        );
+      }
+    });
+
+    test('reports a wrap that stretches or baselines its children', () {
+      // A browser states both for the children of one line; a Flutter `Wrap` starts,
+      // centres or ends them and nothing else. One tree, two layouts.
+      for (final CrossAlign align in <CrossAlign>[
+        CrossAlign.stretch,
+        CrossAlign.baseline,
+      ]) {
+        final Box tree = Box(
+          direction: Axis.horizontal,
+          wrap: true,
+          crossAlign: align,
+          children: const <UINode>[TextNode('a')],
+        );
+        final List<TreeIssue> issues = validateTree(tree);
+
+        expect(
+          issues.map((TreeIssue issue) => issue.message).join(),
+          contains('CrossAlign.${align.name}'),
+          reason: 'a wrap cannot say ${align.name} on both targets',
+        );
+      }
+    });
+
+    test('reports a box that both wraps and scrolls', () {
+      const Box tree = Box(
+        direction: Axis.horizontal,
+        wrap: true,
+        overflow: Overflow.scroll,
+        children: <UINode>[TextNode('Garden')],
+      );
+      final TreeIssue issue = validateTree(tree).single;
+
+      expect(issue.isError, isTrue);
+      expect(issue.message, contains('wraps its children and scrolls'));
+    });
+
+    test('reports a flexible child of a wrapping box', () {
+      const Box tree = Box(
+        direction: Axis.horizontal,
+        wrap: true,
+        children: <UINode>[Box(flex: 1, height: 20)],
+      );
+      final TreeIssue issue = validateTree(tree).single;
+
+      expect(issue.node, same(tree.children.single));
+      expect(issue.isError, isTrue);
+      expect(issue.message, contains('flex: 1'));
+    });
+
     test('reports a baseline alignment on a column', () {
       // A baseline is a horizontal line: Flutter lays a column out as if the value
       // were start, and a browser shifts the children sideways. Nothing can draw both.

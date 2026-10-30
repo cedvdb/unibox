@@ -3,6 +3,44 @@ import 'package:unibox_core/unibox_core.dart' as core;
 import 'package:unibox_css/unibox_css.dart';
 
 void main() {
+  group('a box that wraps', () {
+    test('is a flex container whose lines break inside it', () {
+      final CssDeclarations declarations = boxDeclarations(
+        const core.BoxStyle(direction: core.Axis.horizontal, wrap: true),
+      );
+
+      expect(declarations.text, contains('flex-wrap:wrap'));
+      expect(
+        declarations.text,
+        contains('align-content:flex-start'),
+        reason:
+            'a browser stretches the lines over the box by default, and a '
+            'Flutter Wrap packs them from the start',
+      );
+    });
+
+    test('says nothing about a wrap a box does not state', () {
+      final CssDeclarations declarations = boxDeclarations(
+        const core.BoxStyle(direction: core.Axis.horizontal),
+      );
+
+      expect(declarations.text, isNot(contains('flex-wrap')));
+      expect(declarations.text, isNot(contains('align-content')));
+    });
+
+    test('leaves the wrap out of a state rule', () {
+      // A state rule restates only the tokens the state changes: a `:hover` that repeated
+      // the wrap would reset the resting layout, which is why the declarations of a state
+      // are written with `declaredOnly`.
+      final CssDeclarations declarations = boxDeclarations(
+        const core.BoxStyle(wrap: true),
+        declaredOnly: true,
+      );
+
+      expect(declarations.text, isNot(contains('flex-wrap')));
+    });
+  });
+
   group('a text', () {
     test('writes only the typography it states', () {
       expect(textDeclarations(const core.TextNode('Hi')).text, '');
