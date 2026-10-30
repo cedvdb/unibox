@@ -76,6 +76,9 @@ UINode _card(MaterialPalette palette) {
   return Box(
     crossAlign: CrossAlign.stretch,
     gap: 16,
+    // The card is a self contained composition, which is what an `article` is: it makes
+    // sense on its own, next to anything else on the page.
+    semantics: const BoxSemantics(element: BoxElement.article),
     children: <UINode>[
       // A field with no chrome of its own: the hint is the whole of what an empty one
       // says, and no browser draws its border, radius or focus ring around it.
@@ -241,17 +244,27 @@ UINode _tree(MaterialPalette palette) {
       // Room between the title and the first row: a gap on the column would space every
       // row as well, and a list is read as one object.
       const Box(height: 10),
-      _row(palette, 0, 'Box', 'crossAlign, gap'),
-      _row(palette, 1, 'TextInputNode', 'placeholder'),
-      _row(palette, 1, 'Box', 'radius, overflow'),
-      _row(palette, 2, 'StackNode', 'height'),
-      _row(palette, 3, 'ImageNode', 'src, alt, fit'),
-      _row(palette, 3, 'PositionedNode', 'top, right'),
-      _row(palette, 4, 'Box', 'radius, backgroundColor'),
-      _row(palette, 5, 'TextNode', 'labelLarge'),
-      _row(palette, 2, 'Box', 'padding, gap'),
-      _row(palette, 3, 'TextNode', 'titleMedium'),
-      _row(palette, 3, 'TextNode', 'bodySmall'),
+      // The rows are a list rather than a pile of rows: `ul` and `li` tell a screen
+      // reader how many items it is reading and a crawler that they belong together,
+      // and the dot each row draws stays a box, because a bullet is a shape here.
+      Box(
+        crossAlign: CrossAlign.stretch,
+        gap: 2,
+        semantics: const BoxSemantics(element: BoxElement.ul),
+        children: <UINode>[
+          _row(palette, 0, 'Box', 'crossAlign, gap'),
+          _row(palette, 1, 'TextInputNode', 'placeholder'),
+          _row(palette, 1, 'Box', 'radius, overflow'),
+          _row(palette, 2, 'StackNode', 'height'),
+          _row(palette, 3, 'ImageNode', 'src, alt, fit'),
+          _row(palette, 3, 'PositionedNode', 'top, right'),
+          _row(palette, 4, 'Box', 'radius, backgroundColor'),
+          _row(palette, 5, 'TextNode', 'labelLarge'),
+          _row(palette, 2, 'Box', 'padding, gap'),
+          _row(palette, 3, 'TextNode', 'titleMedium'),
+          _row(palette, 3, 'TextNode', 'bodySmall'),
+        ],
+      ),
     ],
   );
 }
@@ -267,6 +280,9 @@ UINode _row(MaterialPalette palette, int depth, String name, String carries) {
     crossAlign: CrossAlign.center,
     gap: 10,
     padding: BoxSpacing.only(left: depth * 16.0, top: 3, bottom: 3),
+    // One item of the list above: the web writes an `li`, and a screen reader says which
+    // item of how many it is reading.
+    semantics: const BoxSemantics(element: BoxElement.li),
     children: <UINode>[
       Box(
         width: 6,

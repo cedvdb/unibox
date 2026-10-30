@@ -146,33 +146,6 @@ UINode _diagram(
           ),
         ],
       ),
-      // Read after the evidence: what the two frames show, and what the page is made of.
-      // There is no link here — the example is shown in the frames and nowhere else.
-      Box(
-        gap: 6,
-        children: <UINode>[
-          TextNode(
-            'Narrow the window: both frames answer the same breakpoint.',
-            style: MaterialTypography.labelSmall.copyWith(
-              color: palette.onSurfaceVariant,
-            ),
-          ),
-          TextNode(
-            'Describe only the pages that have to be found: the rest of the '
-            'application stays ordinary Flutter.',
-            style: MaterialTypography.labelSmall.copyWith(
-              color: palette.onSurfaceVariant,
-            ),
-          ),
-          TextNode(
-            'Pure Dart · the core has no dependencies · every rendering measured '
-            'against one table of expected appearance',
-            style: MaterialTypography.labelSmall.copyWith(
-              color: palette.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
     ],
   );
 }

@@ -86,6 +86,8 @@ UINode _header(MaterialPalette palette, ExampleSeed seed) {
     children: <UINode>[
       siteBand(
         vertical: 14,
+        // The header is the landmark, so its band adds no section of its own.
+        element: BoxElement.div,
         child: Box(
           width: double.infinity,
           direction: Axis.horizontal,
@@ -166,6 +168,8 @@ UINode _footer(MaterialPalette palette) {
     children: <UINode>[
       siteBand(
         vertical: 28,
+        // The footer is the landmark, so its band adds no section of its own.
+        element: BoxElement.div,
         child: Box(
           width: double.infinity,
           gap: 8,

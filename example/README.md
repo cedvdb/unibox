@@ -235,7 +235,9 @@ argument needs. It is published at <https://cedvdb.github.io/unibox/>.
 
 The frames are the claim's evidence, so they sit in the band that makes it: a reader
 scrolls from the sentence to the two renderings it is about, and meets each rendering's
-name once, and each name sits over the rendering it belongs to. The indexable band comes
+name once, and each name sits over the rendering it belongs to. Every band is a `section`
+on the web, and so is every block of the catalogue under its `h3` — the page is a
+document, and the elements say where one part of it ends. The indexable band comes
 next, because the HTML branch is the reason most readers are there: it shows what a crawler
 is served and how little of the application has to change for it. The vocabulary follows,
 because a frame draws a whole tree and never the parts it is made of: the four nodes the

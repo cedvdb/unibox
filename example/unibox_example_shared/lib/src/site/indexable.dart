@@ -97,7 +97,7 @@ UINode buildIndexableSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
   );
 }
 
-/// One card of code: what holds it and what it is, then the lines themselves.
+/// One card of code: a `figure` whose caption names it, then the lines themselves.
 ///
 /// The lines are text, not a `pre`: a tree that printed its own source would be a
 /// picture of the implementation, while these are chosen to be read. Indentation is
@@ -116,12 +116,20 @@ UINode _code(
     padding: const BoxSpacing.all(22),
     crossAlign: CrossAlign.stretch,
     gap: 2,
+    // A sample with a caption is a `figure` in HTML, and the line above it is the
+    // `figcaption`: the web then says what the block is rather than that it is a box.
+    semantics: const BoxSemantics(element: BoxElement.figure),
     children: <UINode>[
-      TextNode(
-        title,
-        style: MaterialTypography.labelSmall.copyWith(
-          color: palette.onSurfaceVariant,
-        ),
+      Box(
+        semantics: const BoxSemantics(element: BoxElement.figcaption),
+        children: <UINode>[
+          TextNode(
+            title,
+            style: MaterialTypography.labelSmall.copyWith(
+              color: palette.onSurfaceVariant,
+            ),
+          ),
+        ],
       ),
       // Room between the caption and the first line: a gap on the column would space
       // every line as well, and code is read as one block.

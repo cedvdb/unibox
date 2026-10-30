@@ -330,6 +330,41 @@ void main() {
       expect(picture.alt, isNotEmpty);
     });
 
+    test('wraps every band in a section, and the catalogue blocks too', () {
+      // The page is a document, not a stack of layers: the content of `main` is four
+      // sections, and each block of the catalogue is a section of its own because each
+      // one has an `h3`. A band inside the header or the footer adds none, because the
+      // landmark is already there.
+      final List<UINode> page = _flatten(buildSitePage(frame: _frame)).toList();
+      final Box main = page.whereType<Box>().firstWhere(
+        (Box box) => box.semantics?.element == BoxElement.main,
+      );
+
+      expect(
+        main.children.whereType<Box>().map(
+          (Box band) => band.semantics?.element,
+        ),
+        <BoxElement>[
+          BoxElement.section,
+          BoxElement.section,
+          BoxElement.section,
+          BoxElement.section,
+        ],
+      );
+
+      final int blocks = page
+          .whereType<TextNode>()
+          .where((TextNode text) => text.headingLevel == 3)
+          .length;
+
+      expect(
+        page.whereType<Box>().where(
+          (Box box) => box.semantics?.element == BoxElement.section,
+        ),
+        hasLength(4 + blocks),
+      );
+    });
+
     test('describes the page as a document', () {
       final UINode page = buildSitePage(frame: _frame);
       final List<BoxElement> landmarks = <BoxElement>[

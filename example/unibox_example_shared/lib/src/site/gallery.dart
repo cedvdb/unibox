@@ -14,7 +14,9 @@ import 'section.dart';
 ///
 /// It is a band of the page rather than a page of its own: the heading names what
 /// the catalogue is, and each block under it is an `h3`, so the page still has one
-/// `h1` and three `h2`s above it.
+/// `h1` and four `h2`s above it. Each block is a `section` on the web, so the document
+/// says where one demonstration ends — the block has a heading of its own, which is
+/// exactly what makes it one.
 UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
   final MaterialPalette palette = ExamplePalette.materialFor(seed);
 
@@ -137,6 +139,9 @@ UINode _section(
   return Box(
     width: double.infinity,
     gap: 16,
+    // The block is a section: it has a heading of its own, so the web document — and a
+    // reader's outline of it — says where the demonstration starts and stops.
+    semantics: const BoxSemantics(element: BoxElement.section),
     // The blocks of a section fill it: a tile, a field or a row of chips is as wide
     // as the section, which is also what makes a `width: double.infinity` inside one
     // mean the same thing in Flutter and in a browser.

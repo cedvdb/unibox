@@ -12,17 +12,23 @@ const double siteMeasure = 1080;
 /// A band of the page: a full width background, and its content measured to
 /// [siteMeasure] and centred.
 ///
-/// The page is a column of bands — the claim, the vocabulary, the catalogue — so a
-/// band states its own background and its own vertical room, and nothing about where
-/// it sits.
+/// The page is a column of bands — the claim, the markup a crawler is served, the
+/// vocabulary, the catalogue — so a band states its own background and its own vertical
+/// room, and nothing about where it sits. On the web a band is a `section`: the page is
+/// a document, and sectioning content is how a crawler and a screen reader learn where
+/// one part of it ends and the next begins. A band that sits inside a landmark the tree
+/// already named — the header, the footer — passes [BoxElement.div], because a `section`
+/// in an element with no heading of its own only adds a box.
 UINode siteBand({
   required UINode child,
   BoxColor? background,
   double vertical = 72,
+  BoxElement element = BoxElement.section,
 }) {
   return Box(
     width: double.infinity,
     backgroundColor: background,
+    semantics: BoxSemantics(element: element),
     children: <UINode>[
       Box(
         width: double.infinity,

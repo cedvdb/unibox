@@ -63,6 +63,24 @@ void main() {
       },
     );
 
+    test('writes the structure as elements, not as a page of divs', () {
+      final String html = buildSiteDocument();
+
+      // Every band is a `section`, and so is every block of the catalogue — which is
+      // what makes the two counts agree: four bands, then one section per `h3`.
+      expect(
+        '<section'.allMatches(html).length,
+        4 + '<h3'.allMatches(html).length,
+      );
+      // The node list of the vocabulary is a list, the listing card an article, and each
+      // code sample a figure whose caption names it.
+      expect(html, contains('<ul'));
+      expect(html, contains('<li'));
+      expect(html, contains('<article'));
+      expect(html, contains('<figure'));
+      expect(html, contains('<figcaption'));
+    });
+
     test('moves the two arrows, three passes and then still', () {
       // The arrows are the one part of the page whose reason is motion, and the motion is the
       // site's: a key is the hook it names them by, so no class is invented for a look only
