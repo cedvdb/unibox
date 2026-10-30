@@ -41,6 +41,7 @@ BoxAppearance boxAppearanceIn(String html) {
     width: _lengthOf(declarations['width']),
     widthFraction: _fractionOf(declarations['width']),
     height: _lengthOf(declarations['height']),
+    aspectRatio: _numberOf(declarations['aspect-ratio']),
     backgroundColor: colorOf(declarations['background-color']),
     borderRadius: radius.radius,
     corners: radius.corners,

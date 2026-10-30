@@ -74,6 +74,8 @@ class TreeIssue {
 ///   with [Box.mainAlign], which pushes overflowing children out of reach,
 /// * a box that aligns on the baseline without a row to align, where the two
 ///   targets lay the children out differently,
+/// * an aspect ratio that cannot divide anything — a ratio next to a width and a
+///   height, or one that is not positive,
 /// * a list item whose parent is not a list, and a caption whose parent is not a
 ///   figure, both of which are invalid HTML and name nothing where they stand,
 /// * a grid span on a box that is not a grid child, and a span no track can hold,
@@ -370,6 +372,42 @@ void _validate(
               'Put the box in a GridNode, or drop the span.',
         ),
       );
+    }
+
+    // A ratio divides one side by the other, so it needs one side to divide. A box
+    // that states both has already answered, and the ratio would be a third statement
+    // about a box that has two.
+    final double? aspectRatio = style.aspectRatio;
+
+    if (aspectRatio != null) {
+      final bool dividesAWidth =
+          style.width != null || style.widthFraction != null;
+      final bool dividesAHeight =
+          style.height != null || style.heightFraction != null;
+
+      if (aspectRatio <= 0) {
+        issues.add(
+          TreeIssue(
+            node: node,
+            severity: TreeIssueSeverity.error,
+            message:
+                'A box states aspectRatio: $aspectRatio, and a ratio is one '
+                'positive number divided by another: `1.5` is three across for '
+                'every two down. Use a positive ratio, or leave it out.',
+          ),
+        );
+      } else if (dividesAWidth && dividesAHeight) {
+        issues.add(
+          TreeIssue(
+            node: node,
+            message:
+                'A box states aspectRatio: $aspectRatio as well as a width and a '
+                'height, so the ratio has nothing left to decide: both targets '
+                'keep the two sizes and ignore it. Drop the ratio, or drop one '
+                'of the two sides.',
+          ),
+        );
+      }
     }
 
     if (style.borderRadius != null && style.corners != null) {

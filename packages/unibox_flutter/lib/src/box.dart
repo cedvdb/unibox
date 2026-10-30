@@ -622,9 +622,18 @@ class FlutterBoxState extends State<FlutterBox> {
     return Expanded(flex: hasFlex ? flex : 1, child: child);
   }
 
-  /// Applies the fixed sizes and the min/max constraints of [style].
+  /// Applies the fixed sizes, the aspect ratio and the min/max constraints of [style].
   Widget _applyDimensions(Widget content, core.BoxStyle style) {
     Widget result = content;
+
+    // The ratio goes *inside* the sizes and not around them: a box that states a width
+    // hands the ratio a width to measure, and the ratio gives the height back. Wrapped
+    // the other way round it would be handed the same tight box the `SizedBox` made and
+    // could only keep it, which is what CSS does with a declared width and height too.
+    final double? aspectRatio = style.aspectRatio;
+    if (aspectRatio != null) {
+      result = AspectRatio(aspectRatio: aspectRatio, child: result);
+    }
 
     if (style.width != null || style.height != null) {
       result = SizedBox(

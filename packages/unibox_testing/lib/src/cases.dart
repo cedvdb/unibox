@@ -125,6 +125,14 @@ const List<BoxCase> boxCases = <BoxCase>[
     expected: BoxAppearance(height: 40),
   ),
   BoxCase(
+    description: 'keeps a shape whatever the width turns out to be',
+    // No width: the ratio is the statement, and the parent decides the side it
+    // divides. Both outputs read back what was declared, not the size this surface
+    // happened to give it.
+    box: core.Box(aspectRatio: 1.5, children: _children),
+    expected: BoxAppearance(aspectRatio: 1.5),
+  ),
+  BoxCase(
     description: 'paints the background colour behind the box',
     box: core.Box(backgroundColor: _blue, children: _children),
     expected: BoxAppearance(backgroundColor: _blue),
@@ -254,6 +262,9 @@ const List<BoxCase> boxCases = <BoxCase>[
   ),
   BoxCase(
     description: 'presents every token at once',
+    // A box that states a width, a height and a ratio is a box stated three times over,
+    // and `validateTree` says so when a tree does it: the case exists to hold every
+    // renderer to every token in one box, not to describe a coherent layout.
     box: core.Box(
       direction: core.Axis.horizontal,
       mainAlign: core.MainAlign.spaceBetween,
@@ -263,6 +274,7 @@ const List<BoxCase> boxCases = <BoxCase>[
       margin: core.BoxSpacing.all(6),
       width: 320,
       height: 96,
+      aspectRatio: 2,
       widthFraction: 0.75,
       backgroundColor: core.BoxColor.white,
       borderRadius: 10,
@@ -283,6 +295,7 @@ const List<BoxCase> boxCases = <BoxCase>[
       padding: core.BoxSpacing.symmetric(horizontal: 18, vertical: 12),
       margin: core.BoxSpacing.all(6),
       height: 96,
+      aspectRatio: 2,
       widthFraction: 0.75,
       backgroundColor: core.BoxColor.white,
       borderRadius: 10,

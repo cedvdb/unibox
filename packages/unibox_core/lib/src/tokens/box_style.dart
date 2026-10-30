@@ -42,6 +42,7 @@ final class BoxStyle {
     this.page,
     this.width,
     this.height,
+    this.aspectRatio,
     this.widthFraction,
     this.heightFraction,
     this.minWidth,
@@ -136,6 +137,19 @@ final class BoxStyle {
 
   /// The height in logical pixels, or `double.infinity` to expand.
   final double? height;
+
+  /// The width of the box divided by its height, or `null` for no ratio.
+  ///
+  /// `1.5` is three units across for every two down: a picture or a tile that keeps
+  /// its shape whatever the layout around it does. It is the one size that is not a
+  /// number of pixels and not a share of the parent — the box measures one side and
+  /// the ratio gives the other, which is what `AspectRatio` and `aspect-ratio` both do.
+  ///
+  /// It needs one side to measure against: a stated [width], a stated [height], a
+  /// [widthFraction], or a parent that fills one. A box that states a width *and* a
+  /// height has already answered, so the ratio can do nothing there and
+  /// `validateTree` reports the two.
+  final double? aspectRatio;
 
   /// The width as a fraction of the parent's, or `null` for a stated width.
   ///
@@ -340,6 +354,7 @@ final class BoxStyle {
     int? page,
     double? width,
     double? height,
+    double? aspectRatio,
     double? widthFraction,
     double? heightFraction,
     double? minWidth,
@@ -373,6 +388,7 @@ final class BoxStyle {
       page: page ?? this.page,
       width: width ?? this.width,
       height: height ?? this.height,
+      aspectRatio: aspectRatio ?? this.aspectRatio,
       widthFraction: widthFraction ?? this.widthFraction,
       heightFraction: heightFraction ?? this.heightFraction,
       minWidth: minWidth ?? this.minWidth,
@@ -421,6 +437,7 @@ final class BoxStyle {
       page: other.page ?? page,
       width: other.width ?? width,
       height: other.height ?? height,
+      aspectRatio: other.aspectRatio ?? aspectRatio,
       widthFraction: other.widthFraction ?? widthFraction,
       heightFraction: other.heightFraction ?? heightFraction,
       minWidth: other.minWidth ?? minWidth,
@@ -458,6 +475,7 @@ final class BoxStyle {
       other.page == page &&
       other.width == width &&
       other.height == height &&
+      other.aspectRatio == aspectRatio &&
       other.widthFraction == widthFraction &&
       other.heightFraction == heightFraction &&
       other.minWidth == minWidth &&
@@ -492,6 +510,7 @@ final class BoxStyle {
     page,
     width,
     height,
+    aspectRatio,
     widthFraction,
     heightFraction,
     minWidth,
@@ -525,9 +544,9 @@ final class BoxStyle {
       if (snap != null) 'snap: $snap',
       if (page != null) 'page: $page',
       if (width != null) 'width: $width',
-      if (widthFraction != null) 'widthFraction: $widthFraction',
-      if (heightFraction != null) 'heightFraction: $heightFraction',
       if (height != null) 'height: $height',
+      if (aspectRatio != null) 'aspectRatio: $aspectRatio',
+      if (widthFraction != null) 'widthFraction: $widthFraction',
       if (minWidth != null) 'minWidth: $minWidth',
       if (maxWidth != null) 'maxWidth: $maxWidth',
       if (minHeight != null) 'minHeight: $minHeight',

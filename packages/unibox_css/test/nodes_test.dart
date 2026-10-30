@@ -118,6 +118,24 @@ void main() {
 
       expect(declarations.text, isNot(contains('grid-column')));
     });
+
+    test('keeps a shape with a ratio, written as the number', () {
+      // `1.5` and not `3 / 2`: a browser divides the number, and both renderers have to
+      // spell the same statement for the class names to agree.
+      final CssDeclarations declarations = boxDeclarations(
+        const core.BoxStyle(aspectRatio: 1.5),
+      );
+
+      expect(declarations.text, contains('aspect-ratio:1.5'));
+    });
+
+    test('says nothing about a ratio a box does not state', () {
+      final CssDeclarations declarations = boxDeclarations(
+        const core.BoxStyle(),
+      );
+
+      expect(declarations.text, isNot(contains('aspect-ratio')));
+    });
   });
 
   group('a stack', () {

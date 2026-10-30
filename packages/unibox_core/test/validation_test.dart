@@ -482,6 +482,34 @@ void main() {
       expect(validateTree(tree), isEmpty);
     });
 
+    test('warns about a ratio next to a width and a height', () {
+      // Both sides are stated, so the ratio has nothing left to divide: the two
+      // renderers keep the sizes and drop it, and the tree says something no reader
+      // of the screen can see.
+      const Box tree = Box(width: 320, height: 200, aspectRatio: 1.5);
+
+      final TreeIssue issue = validateTree(tree).single;
+
+      expect(issue.node, same(tree));
+      expect(issue.message, contains('aspectRatio: 1.5'));
+    });
+
+    test('accepts a ratio beside one side', () {
+      // The ratio divides the width it is given, which is what it is for.
+      const Box tree = Box(width: 320, aspectRatio: 1.5);
+
+      expect(validateTree(tree), isEmpty);
+    });
+
+    test('reports a ratio that is not positive', () {
+      const Box tree = Box(aspectRatio: 0);
+
+      final TreeIssue issue = validateTree(tree).single;
+
+      expect(issue.isError, isTrue);
+      expect(issue.message, contains('aspectRatio: 0'));
+    });
+
     test('reads the tokens resolved from the style', () {
       const Box tree = Box(
         styles: <BoxStyle>[

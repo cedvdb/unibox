@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `BoxStyle.aspectRatio` is written `aspect-ratio`, so a box keeps its shape at any
+  width. It is written as the number a browser divides (`1.5`, not `3 / 2`), which is
+  how the Flutter renderer states it too.
+
 - `CrossAlign.baseline` is written `align-items: baseline`, so a row whose children
   are typeset at different sizes shares a line instead of an edge. It is the
   alphabetic baseline, the only one CSS can name.

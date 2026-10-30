@@ -34,6 +34,22 @@ void main() {
       );
     });
 
+    test('reaches the ratio from the flat parameter, and that wins', () {
+      const Box box = Box(
+        aspectRatio: 1.5,
+        styles: <BoxStyle>[BoxStyle(aspectRatio: 2)],
+      );
+
+      expect(box.computedStyle.aspectRatio, 1.5);
+      expect(
+        const Box(styles: <BoxStyle>[BoxStyle(aspectRatio: 2)])
+            .computedStyle
+            .aspectRatio,
+        2,
+        reason: 'a bag still reaches the token when no flat parameter names it',
+      );
+    });
+
     test('exposes children in order', () {
       const box = Box(children: [TextNode('a'), TextNode('b')]);
 

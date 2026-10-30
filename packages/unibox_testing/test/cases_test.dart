@@ -61,6 +61,7 @@ void main() {
             expected: core.BoxSpacing.zero,
           ),
           'height': (actual: 96, expected: null),
+          'aspectRatio': (actual: 2.0, expected: null),
           'backgroundColor': (actual: core.BoxColor.white, expected: null),
           'borderRadius': (actual: 10, expected: 0),
           'borderWidth': (actual: 1, expected: 0),

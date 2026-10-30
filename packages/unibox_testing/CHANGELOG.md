@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `BoxAppearance.aspectRatio`, with a case that states a ratio and nothing else, so a
+  renderer that drops it — or writes it as a pixel height — fails its own suite. The
+  fact is the ratio the output declares, `aspect-ratio` on one side and `AspectRatio`
+  on the other, and not the size one test surface gives it.
+
 - A case for `CrossAlign.baseline`, read back from the flex on one side and from
   `align-items: baseline` on the other, so a renderer that drops the baseline fails its
   own suite. The `README` records the one thing the table cannot hold: a child of a

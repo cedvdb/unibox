@@ -168,6 +168,7 @@ host that renders it.
 | Flutter | Unibox |
 | --- | --- |
 | `Container`, `Padding`, `SizedBox` | `Box(padding:, margin:, width:, height:)` |
+| `AspectRatio(aspectRatio: 1.5, child: …)` | `aspectRatio: 1.5` on the box |
 | `Column(children: …)` | `Box(children: …)` — a column is the default |
 | `Row(children: …)` | `Box(direction: Axis.horizontal, children: …)` |
 | `mainAxisAlignment` / `crossAxisAlignment` | `mainAlign` / `crossAlign` |

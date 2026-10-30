@@ -259,6 +259,7 @@ Box(
 | Parameter | Type | Default | Meaning |
 | --- | --- | --- | --- |
 | `width`, `height` | `double?` | content size | Logical pixels. `double.infinity` fills the space the parent gives. |
+| `aspectRatio` | `double?` | none | Width divided by height: `1.5` keeps three units across for every two down, whatever width the layout gives it. It needs one side to measure — a `width`, a `height`, a `widthFraction` or a parent that fills one — and `validateTree` reports a ratio a box states beside both a width and a height, because there is nothing left for it to divide. |
 | `widthFraction`, `heightFraction` | `double?` | none | A share of the parent rather than a number of pixels: `0.5` is half of it. This is the size a box can state without knowing one — a share of a row, one tab of a bar — and it wins over `width`/`height`, which `validateTree` reports if a box states both. |
 | `minWidth`, `maxWidth`, `minHeight`, `maxHeight` | `double?` | none | Bounds the box keeps even when its content wants otherwise. |
 | `padding` | `BoxSpacing?` | none | Space inside the box, around its children. |

@@ -148,6 +148,14 @@ never inherited (CSS does not inherit them either).
 - Unbounded parents plus an infinite dimension is a layout error in both
   targets, exactly like combining `double.infinity` with an unbounded
   `SizedBox` in plain Flutter.
+- There are three kinds of size, and they are three tokens because they answer
+  three different questions: a number of pixels (`width`), a share of the parent
+  (`widthFraction`), and a shape (`aspectRatio`). The third is the one a tree could
+  not state at all — a thumbnail that keeps its corners square at any width is not a
+  width and not a share — and it divides whatever side the layout settles, which is
+  what `AspectRatio` and `aspect-ratio` both do. A ratio beside a stated width *and*
+  height states nothing: both targets keep the two sizes, so `validateTree` reports
+  the box that says all three.
 
 ### 5.4 Parity
 - One tree, one shape: a node has to produce the same layout on both targets, so

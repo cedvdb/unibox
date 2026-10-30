@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- `Box.aspectRatio` and `BoxStyle.aspectRatio` keep a box's shape — the width
+  divided by the height — at whatever width the layout gives it, which is the one size
+  that is neither a number of pixels nor a share of the parent: a thumbnail, an avatar
+  tile, a video still. `validateTree` reports a ratio that is not positive, and one a
+  box states beside both a width and a height where it has nothing left to divide.
+
 - `CrossAlign.baseline` aligns a row's children on the alphabetic baseline of their
   first line of text, which is the one alignment that puts a small label and a large
   price on the same line rather than on the same box edge. A baseline is a horizontal

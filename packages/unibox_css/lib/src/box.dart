@@ -50,6 +50,7 @@ CssDeclarations boxDeclarations(
   final core.BoxBorderRadius? corners = style.corners;
   final core.BoxShape? shape = style.shape;
   final int? flex = style.flex;
+  final double? aspectRatio = style.aspectRatio;
 
   final String? roleBackground = backgroundColor == null
       ? null
@@ -102,6 +103,10 @@ CssDeclarations boxDeclarations(
       'height',
       style.heightFraction == null ? cssLength(style.height) : null,
     )
+    // A ratio the box divides one side by, written as the number itself: `1.5` is three
+    // units across for every two down. A browser drops it when the box states both a width
+    // and a height, which is the same answer the Flutter renderer gives a tight box.
+    ..addIf('aspect-ratio', aspectRatio == null ? null : cssNumber(aspectRatio))
     // A span is read by the grid the box sits in and by nothing else, and a browser
     // clamps one wider than the track count the way the Flutter renderer does.
     ..addIf(

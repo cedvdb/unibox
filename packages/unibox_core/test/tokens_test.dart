@@ -280,6 +280,22 @@ void main() {
       );
     });
 
+    test('carries the ratio a box keeps between its sides', () {
+      const style = BoxStyle(aspectRatio: 1.5, width: 320);
+
+      expect(style.aspectRatio, 1.5);
+      expect(style.copyWith().aspectRatio, 1.5);
+      // A style that only adds a ratio is another style: the two boxes do not look the
+      // same, which is what lets a transition and a renderer see the difference.
+      expect(style, isNot(const BoxStyle(width: 320)));
+      expect(style.toString(), contains('aspectRatio: 1.5'));
+      expect(
+        style.merge(const BoxStyle(aspectRatio: 1)).aspectRatio,
+        1,
+        reason: 'an overlay wins, like every other token',
+      );
+    });
+
     test('carries the opacity and the transform of a box', () {
       const style = BoxStyle(opacity: 0.5, transform: BoxTransform(scale: 1.1));
 

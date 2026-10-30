@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `Box.aspectRatio` becomes an `AspectRatio` inside the box's sizes, so a box that
+  states a width and a ratio is given the height the ratio asks for — the same answer
+  a browser gives `width` and `aspect-ratio` together. A box that states both a width
+  and a height keeps them, as CSS does.
+
 - `CrossAlign.baseline` becomes `CrossAxisAlignment.baseline`, with the alphabetic
   `textBaseline` a baseline aligned `Row` demands — the same line the browser aligns
   the children on with `align-items: baseline`.

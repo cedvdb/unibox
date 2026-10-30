@@ -35,6 +35,7 @@ final class BoxAppearance {
     this.margin,
     this.width,
     this.height,
+    this.aspectRatio,
     this.widthFraction,
     this.backgroundColor,
     this.borderRadius,
@@ -75,6 +76,14 @@ final class BoxAppearance {
   /// The height of the box in logical pixels, or `double.infinity` when it fills
   /// the space its parent gives it.
   final double? height;
+
+  /// The width divided by the height the box keeps, or `null` for no ratio.
+  ///
+  /// Read back as a statement and not as a measurement: a ratio describes the shape
+  /// the box will have at whatever width it is given, so the fact is the ratio the
+  /// output declares — `aspect-ratio` on one side, the `AspectRatio` it built on the
+  /// other — and not the size the box happened to settle on in one test surface.
+  final double? aspectRatio;
 
   /// The colour painted behind the box, or `null` for none.
   final core.BoxColor? backgroundColor;
@@ -152,6 +161,7 @@ final class BoxAppearance {
     compare('width', width, expected.width);
     compare('widthFraction', widthFraction, expected.widthFraction);
     compare('height', height, expected.height);
+    compare('aspectRatio', aspectRatio, expected.aspectRatio);
     compare('backgroundColor', backgroundColor, expected.backgroundColor);
     compare('borderRadius', borderRadius ?? 0, expected.borderRadius ?? 0);
     compare('corners', corners, expected.corners);
@@ -187,6 +197,7 @@ final class BoxAppearance {
     margin ?? core.BoxSpacing.zero,
     width,
     height,
+    aspectRatio,
     backgroundColor,
     borderRadius ?? 0,
     corners,
@@ -209,6 +220,7 @@ final class BoxAppearance {
         'margin: $margin, '
         'width: $width, '
         'height: $height, '
+        'aspectRatio: $aspectRatio, '
         'backgroundColor: $backgroundColor, '
         'borderRadius: $borderRadius, '
         'corners: $corners, '

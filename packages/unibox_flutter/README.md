@@ -38,6 +38,7 @@ with their target.
 | `crossAlign: CrossAlign.baseline`   | `CrossAxisAlignment.baseline` with `TextBaseline.alphabetic` |
 | `padding` / `margin`                | inner / outer `Padding`                             |
 | `width`, `height`                   | `SizedBox`                                          |
+| `aspectRatio`                       | `AspectRatio`, inside the sizes so it divides one of them |
 | `minWidth`, `maxWidth`, ...         | `ConstrainedBox`                                    |
 | `backgroundColor`, `borderRadius`, `border`, `shadows` | `DecoratedBox` with a `BoxDecoration`, one entry of its `boxShadow` per shadow |
 | `overflow: Overflow.hidden`         | `ClipRect`, inside the decoration so the shadow survives |

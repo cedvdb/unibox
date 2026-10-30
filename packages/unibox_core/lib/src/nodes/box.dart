@@ -54,6 +54,7 @@ class Box extends UINode {
     this.page,
     this.width,
     this.height,
+    this.aspectRatio,
     this.widthFraction,
     this.heightFraction,
     this.minWidth,
@@ -153,6 +154,17 @@ class Box extends UINode {
 
   /// The height in logical pixels, or `double.infinity` to expand.
   final double? height;
+
+  /// The width divided by the height, or `null` for no ratio.
+  ///
+  /// `1.5` keeps three units across for every two down, whatever the width turns out
+  /// to be: the shape of a thumbnail, an avatar tile or a video still, stated once
+  /// instead of as a pair of numbers that only fit one window. One side is measured
+  /// and the ratio gives the other, so it needs one to measure against — a [width], a
+  /// [height], a [widthFraction], or a parent that fills one. A box that states a
+  /// width and a height has answered already, and `validateTree` reports the ratio
+  /// that cannot change anything there.
+  final double? aspectRatio;
 
   /// The width as a fraction of the parent's, or `null` for a stated one.
   ///
@@ -378,6 +390,7 @@ class Box extends UINode {
     page: page,
     width: width,
     height: height,
+    aspectRatio: aspectRatio,
     widthFraction: widthFraction,
     heightFraction: heightFraction,
     minWidth: minWidth,

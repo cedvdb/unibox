@@ -65,6 +65,7 @@ BoxAppearance appearanceOf(WidgetTester tester) {
         : null,
     widthFraction: _fractionalWidthBefore(parts, contentIndex),
     height: sized?.height,
+    aspectRatio: _aspectRatioBefore(parts, contentIndex),
     backgroundColor: background == null
         ? null
         : core.BoxColor(background.toARGB32()),
@@ -433,6 +434,21 @@ SizedBox? _sizedBoxBefore(List<Element> parts, int end) {
     final Widget widget = parts[index].widget;
     if (widget is SizedBox && (widget.width != null || widget.height != null)) {
       return widget;
+    }
+  }
+  return null;
+}
+
+/// The aspect ratio the renderer built the box with, or `null` when it built none.
+///
+/// The ratio is read from the widget and not from the size it produced: the box was
+/// laid out in one test surface, and the fact the tree stated is the ratio it keeps at
+/// any width.
+double? _aspectRatioBefore(List<Element> parts, int end) {
+  for (var index = 0; index < end; index++) {
+    final Widget widget = parts[index].widget;
+    if (widget is AspectRatio) {
+      return widget.aspectRatio;
     }
   }
   return null;
