@@ -621,13 +621,13 @@ MaterialSegmentedButton(
 | Token | Value |
 | --- | --- |
 | height, radius | 40, and 20: a full round. `height`, `borderRadius`, `padding` (12 across each segment's content), `iconGap` (8) and `labelStyle` are parameters |
-| container | a 1 pixel `outline` line, `overflow: hidden` so a chosen fill is cut to the rounded ends it reaches |
+| line | a 1 pixel `outline` line, `overflow: hidden` so a chosen fill is cut to the rounded ends it reaches. `border` is the line around the pill *and* between its segments, so a theme that draws the control with `outlineVariant` says it once |
 | chosen | a `secondaryContainer` fill, an `onSecondaryContainer` label, a check, and `pressed` for a screen reader |
 | check | 18 pixels, a `MaterialCheckMark`, in place of the chosen segment's icon; `showSelectedIcon: false` keeps the icon |
 | icon | `iconSize` = 18, 8 from the label and 12 from the segment's edge |
-| label | `labelLarge`, `onSurface` or `onSecondaryContainer` |
-| dividers | a 1 pixel box the colour of the outline between two segments |
-| width | equal shares: every segment is `flex: 1` |
+| label | `labelLarge`, `onSurface` or `onSecondaryContainer`, on one line: a text too long for its share is cut with an ellipsis |
+| dividers | a box as wide as the border's line and the colour of it, between two segments |
+| width | equal shares (`flex: 1`) when the button was given a width, and each segment as wide as its label when it was not |
 | disabled | the whole control at 38%, with no ink on any segment |
 
 The container is one box and each segment is a box around a `MaterialInkWell`, so the
@@ -637,12 +637,19 @@ that is what the well's `mainAlign` and `crossAlign` are for, and why a segment 
 say `width: double.infinity` and mean it on both targets.
 
 **Give it a width when its parent stretches it.** A segment only takes a share when
-there is a width to divide: without one each hugs its label, which is right for a pill
-sitting in a row of its own, and wrong for one a column or a grid track stretches — the
-outline fills the cell while the segments stay at the left, so two thirds of the control
-is empty. `width: double.infinity` fills the space the parent gives and divides it
-equally, which is what Material's segmented button does; the example's gallery does
-exactly that, and its listings page passes a fixed 216.
+there is a width to divide: without one each is as wide as its label, which is right for a
+pill in a row of its own — a horizontally scrolling row, where a share of no width is a
+contradiction rather than a measurement — and wrong for one a column or a grid track
+stretches, where the outline fills the cell while the segments stay at the left and two
+thirds of the control is empty. `width: double.infinity` fills the space the parent gives
+and divides it equally, which is what Material's segmented button does; the example's
+gallery does exactly that, and its listings page passes a fixed 216.
+
+**A label is one line.** A segment is a share of the control's width and not a width of its
+own, so a label longer than that share — a translation, or any label at twice the text
+scale — gives way instead of widening the pill or painting over the segment beside it: a
+text is drawn with `maxLines: 1` and an ellipsis, and any other node is cut at the share.
+A hugging segment is untouched, because a row that scrolls has room for it.
 
 A chosen segment draws an 18 pixel check in place of its icon, which is what Material
 does, so a control of pictures still says which one is on. The check is a
@@ -733,7 +740,7 @@ MaterialChip(label: const TextNode('Studio'), onTap: filter)
 | hover, focus, press | `hoverLayer`, `focusLayer`, `pressedLayer` over the pill |
 | disabled | the pill at 38%, with no ink: Material draws the label at 38% and the line at 12%, and one opacity is what this model can say without an alpha role per token |
 | leading, trailing | a node before and after the label — a check, a folder, a cross |
-| onRemove | an 18 pixel round target inside the pill: a press on it removes the chip, not the choice |
+| onRemove | an 18 pixel round target inside the pill: a press on it removes the chip, not the choice. `removeSemanticsLabel` is what that target announces, and it defaults to "Remove" |
 
 It is a `Box` around a `MaterialInkWell`, like `MaterialButton`, and the padding is
 **the well's alone**: one node carries the room inside the chip, so the tint of a
@@ -761,7 +768,9 @@ well is a column, and a cross pinned to its start would leave the ring of a hove
 pixels off the cross it belongs to. The glyph itself is the caller's — a folder and a
 cross come from a font, and a font is a host asset this package does not ship.
 `MaterialIcon` is the way in when an application has one; the example draws its four
-glyphs from boxes instead.
+glyphs from boxes instead. `removeSemanticsLabel` names what the cross removes, which a
+row of applied filters should pass: eleven chips that all announce "Remove" leave a reader
+with no idea which one is about to go.
 
 ## The navigation bar
 

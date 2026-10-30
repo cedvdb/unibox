@@ -147,7 +147,10 @@ never inherited (CSS does not inherit them either).
   inside a flex parent and an infinite `BoxConstraints` elsewhere in Flutter.
 - Unbounded parents plus an infinite dimension is a layout error in both
   targets, exactly like combining `double.infinity` with an unbounded
-  `SizedBox` in plain Flutter.
+  `SizedBox` in plain Flutter. `validateTree` reports it while the tree is
+  built — the box, and the parent that offered it no end — rather than leaving
+  a page that looks fine to throw during layout on one target and resolve to
+  something else on the other.
 - There are three kinds of size, and they are three tokens because they answer
   three different questions: a number of pixels (`width`), a share of the parent
   (`widthFraction`), and a shape (`aspectRatio`). The third is the one a tree could

@@ -37,9 +37,15 @@ final class MaterialSegment {
 /// The container is one box: 40 pixels tall, fully rounded, a 1 pixel `outline`
 /// line, and `overflow: hidden` so the chosen segment's fill is cut to the rounded
 /// ends it reaches rather than needing a radius of its own. Each segment is a box
-/// with an equal share (`flex: 1`) around a [MaterialInkWell], so the tint and the
-/// ink cover the segment and not just its label; a 1 pixel rule between them is a
-/// box the colour of the outline.
+/// around a [MaterialInkWell], so the tint and the ink cover the segment and not just
+/// its label; a 1 pixel rule between them is a box the colour of the outline.
+///
+/// **A width is what makes the shares equal.** Given a width, every segment fills a
+/// share of it (`flex: 1`) and the pill reads as a scale rather than as buttons of
+/// different weight. Without one there is nothing to divide, so each segment is as wide
+/// as its label — which is what a pill in a row of its own wants, a horizontally
+/// scrolling row included, and what makes a fixed width the answer for a control a
+/// column or a grid track stretches.
 ///
 /// **The line is the caller's.** [border] is the container's line *and* the rules
 /// between its segments, which are one hairline the model draws as a box; the default

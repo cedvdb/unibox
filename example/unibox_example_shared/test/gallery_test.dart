@@ -101,7 +101,7 @@ void main() {
 
       MaterialCard raised(List<BoxShadow> shadows) => cards.singleWhere(
         // The ambient layer names the level, and a `BoxShadow` compares by value.
-        (MaterialCard card) => card.shadows?.last == shadows.last,
+        (MaterialCard card) => card.shadows?.lastOrNull == shadows.last,
       );
 
       expect(
@@ -118,17 +118,19 @@ void main() {
       );
 
       // The two shapes beside the raised one: one draws a line where the other draws a
-      // tone, and neither casts anything.
+      // tone, and neither casts anything — an empty list of shadows is that statement.
+      bool castsNothing(MaterialCard card) => card.shadows?.isEmpty ?? true;
+
       expect(
         cards.where(
-          (MaterialCard card) => card.shadows == null && card.border != null,
+          (MaterialCard card) => castsNothing(card) && card.border != null,
         ),
         hasLength(1),
         reason: 'the outlined card is the one that draws a line instead of a shadow',
       );
       expect(
         cards.where(
-          (MaterialCard card) => card.shadows == null && card.border == null,
+          (MaterialCard card) => castsNothing(card) && card.border == null,
         ),
         hasLength(1),
         reason: 'the filled card is the one with neither',

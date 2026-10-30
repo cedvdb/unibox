@@ -119,7 +119,9 @@ void main() {
         card.backgroundColor,
         const BoxColor.role(MaterialColorRole.surfaceContainerHighest),
       );
-      expect(card.shadows, isNull);
+      // An empty list and not `null`: the variant states that it casts nothing, rather
+      // than dropping the default the primary constructor would have given it.
+      expect(card.shadows, isEmpty);
     });
 
     test('outlined is the surface with an outline variant border', () {
@@ -129,7 +131,7 @@ void main() {
         card.backgroundColor,
         const BoxColor.role(MaterialColorRole.surface),
       );
-      expect(card.shadows, isNull);
+      expect(card.shadows, isEmpty);
       expect(
         card.border?.color,
         const BoxColor.role(MaterialColorRole.outlineVariant),

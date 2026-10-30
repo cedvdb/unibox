@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `MaterialCard.filled` and `MaterialCard.outlined` say that they cast no shadow, instead
+  of passing `null` through to a constructor whose default is the level one shadow. Nothing
+  draws differently — a `null` shadow already painted nothing — but the signature now reads
+  as the decision it is, and an empty list cannot be mistaken for "the default".
+
 - `MaterialIconButton`: one glyph in a 40 pixel square, in the four Material 3 shapes
   (`standard`, `filled`, `tonal`, `outlined`), with the ink of a press, a name for a screen
   reader — the control has no text, so the name is all a reader has — and `badgeCount`, a

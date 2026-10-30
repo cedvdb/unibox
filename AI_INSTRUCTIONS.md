@@ -204,15 +204,16 @@ host that renders it.
 | `FilledButton`, `TextButton`, `OutlinedButton`, `ElevatedButton` | `MaterialButton.filled(…)`, `.text(…)`, `.outlined(…)` or `.tonal(…)` — a label on a fill with the ink of a press; all four paint 40 tall and at least 64 wide, and `padding`, `height`, `minWidth` and `iconGap` restyle them |
 | `showDialog`, `Dialog` | `MaterialDialog(title:, content:, actions:, onDismiss:)` — an `OverlayNode`, not a call |
 | `showModalBottomSheet` | `MaterialBottomSheet(title:, content:, actions:)` — the same overlay at the bottom |
-| `SegmentedButton`, a `ToggleButtons` row | `MaterialSegmentedButton(segments:, selected:, onSelect:)` — one pill of equal segments, the chosen one filled |
+| `SegmentedButton`, a `ToggleButtons` row | `MaterialSegmentedButton(segments:, selected:, onSelect:)` — one pill of segments, the chosen one filled; with a `width` they share it equally, and without one each is as wide as its label, so give it a width when its parent stretches it. `border` is the line around the pill and between its segments |
 | `NavigationBar`, `BottomNavigationBar` | `MaterialNavigationBar(destinations:, selected:, onSelect:)` — one 80 pixel row of equal shares, the chosen destination on a `secondaryContainer` pill; where it sits is the tree's business, so being at the bottom is the last row of a column or a `PositionedNode` |
-| `Chip`, `FilterChip`, `ChoiceChip` | `MaterialChip(label:, selected:, leading:, onTap:)` — 32 pixels tall, an outline when unselected, the secondary container when chosen; `padding`, `height` and `gap` make a denser one |
+| `Chip`, `FilterChip`, `ChoiceChip` | `MaterialChip(label:, selected:, leading:, onTap:)` — 32 pixels tall, an outline when unselected, the secondary container when chosen; `padding`, `height` and `gap` make a denser one, and `onRemove` adds a close target whose name is `removeSemanticsLabel` |
 | `Icon(Icons.check)`, under a chosen chip or segment | `MaterialCheckMark(color:, size:)` — Material's tick drawn from two bars, no font asset needed |
 | `InkWell`, `InkResponse` | `MaterialInkWell(onTap:, borderRadius:, ink:, child:)` — a state layer plus the ink a press spreads; it paints no surface, so the filled box goes around it |
 | `StatefulWidget` + `setState` around a tree | `StatefulNode` + a `StateStore` |
 | `GridView`, a `Wrap` of cards | `GridNode(minItemWidth:, maxColumns:, gap:)` — equal columns that follow the width, no breakpoint; a card that interrupts the row states `gridSpan:` on its box |
 | `Card` | `MaterialCard` (from `unibox_material`) |
 | `Icon` | `MaterialIcon.codePoint(Symbols.home.codePoint)`, or `MaterialIcon.ligature('home')` when the font is not tree-shaken anyway |
+| `IconButton`, `FilledButton.tonalIcon` around one glyph | `MaterialIconButton(icon:, label:, onTap:, variant:, badgeCount:)` — a glyph in a 40 pixel square in the four Material 3 shapes, `label` for a screen reader because a glyph names nothing, and `badgeCount` for the count pill over the corner |
 | `ListTile` | `MaterialListTile` (from `unibox_material`) |
 | `Theme.of(context).textTheme.titleLarge` | `MaterialTypography.titleLarge` |
 | `Theme.of(context).colorScheme.primary` | `MaterialPalette.light.primary` (or `dark`), or `MaterialPalette.fromSeed(brand).primary`, passed into the tree |

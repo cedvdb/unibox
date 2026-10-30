@@ -144,7 +144,9 @@ final class MaterialCard extends Box {
          color:
              color ??
              const BoxColor.role(MaterialColorRole.surfaceContainerHighest),
-         shadows: shadows,
+         // No shadow is a statement, not the absence of one: `null` would fall through to
+         // the primary constructor's `elevatedShadows`, and this shape casts none.
+         shadows: shadows ?? const <BoxShadow>[],
          border: border,
        );
 
@@ -203,7 +205,9 @@ final class MaterialCard extends Box {
          borderRadius: borderRadius,
          textStyle: textStyle ?? _bodyOn(),
          color: color ?? const BoxColor.role(MaterialColorRole.surface),
-         shadows: shadows,
+         // No shadow is a statement, not the absence of one: `null` would fall through to
+         // the primary constructor's `elevatedShadows`, and this shape casts none.
+         shadows: shadows ?? const <BoxShadow>[],
          border:
              border ??
              BoxBorder(

@@ -126,7 +126,7 @@ class Box extends UINode {
   /// draw exactly what this draws.
   ///
   /// `crossAlign: CrossAlign.stretch`, `crossAlign: CrossAlign.baseline`, and a `flex` on
-  /// a child of a wrapping box cannot be honoured by both targets; [`validateTree`]
+  /// a child of a wrapping box cannot be honoured by both targets; `validateTree`
   /// reports them instead of drawing one of them twice.
   final bool? wrap;
 
