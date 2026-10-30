@@ -139,6 +139,12 @@ class Box extends UINode {
   /// between the first two cards — is one grid whose banner says `gridSpan: 2`,
   /// rather than two grids that agree on the column count by accident.
   ///
+  /// It is a token on the card and not a `GridItem` wrapper for the reason the model
+  /// keeps everywhere: CSS states the span on the element that spans (`grid-column:
+  /// span 2`) and not on an element around it, so a wrapper would be a box between the
+  /// grid and the card that wins nothing, changes the tree every card is written
+  /// against, and would need its own name and its own case in both renderers.
+  ///
   /// Only a box inside a [GridNode] has tracks to span; `validateTree` reports the
   /// token anywhere else. A span wider than the grid is clamped to its column
   /// count on both targets, so a full width banner is a large number rather than a

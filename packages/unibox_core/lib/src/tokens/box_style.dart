@@ -119,6 +119,10 @@ final class BoxStyle {
   /// It is how a banner interrupts a card grid: two cards, a banner the width of
   /// the row, then the rest.
   ///
+  /// It belongs to the card rather than to a wrapper around it because CSS writes the
+  /// span on the spanning element (`grid-column: span 2`), so a `GridItem` node would be
+  /// an element between the grid and the card that no target needs.
+  ///
   /// The number is clamped to the column count of the grid, so `2` in a one column
   /// grid is one column rather than an overflow — the same answer CSS gives a
   /// `grid-column: span 2` in a one track grid, and the reason both targets keep
