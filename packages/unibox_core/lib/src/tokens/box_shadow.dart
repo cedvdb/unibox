@@ -32,7 +32,9 @@ final class BoxShadow {
   /// The vertical offset in logical pixels.
   final double offsetY;
 
-  /// The blur radius in logical pixels.
+  /// The blur radius in logical pixels, in Flutter's unit: a gaussian whose standard
+  /// deviation is `0.57735 * radius + 0.5`. A renderer whose host measures a blur another
+  /// way converts the number, so one token is one shadow on both targets.
   final double blurRadius;
 
   /// The spread radius in logical pixels.

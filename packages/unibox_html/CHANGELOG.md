@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- A card's shadow sits at the same height on the page as in the app: the stylesheet writes a
+  shadow's blur in the unit a browser reads, so the level one shadow under a card fades over
+  the same seven pixels on both targets instead of a darker, tighter band on the web. The
+  conversion is `unibox_css`'s, so every shadow in a tree gains it.
+
 - A document switches off the tap highlight a touch browser paints over a control it thinks was
   pressed: the `:root` block carries `-webkit-tap-highlight-color: transparent`, so a press is the
   ink and the state layer the tree states, and not a blue flash on top of them.

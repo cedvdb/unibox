@@ -317,7 +317,7 @@ void main() {
             spreadRadius: 6,
           ),
         ),
-        '1px 2px 4px 6px #112233',
+        '1px 2px 5.62px 6px #112233',
       );
       expect(
         cssCorners(
@@ -329,6 +329,31 @@ void main() {
           ),
         ),
         '8px 8px 0 0',
+      );
+    });
+
+    test('write a blur in the unit a browser reads', () {
+      // The model keeps Flutter's unit: a radius of `r` is a gaussian of `0.57735 * r +
+      // 0.5` there, where a browser reads a `blur-radius` of `b` as a gaussian of `b / 2`.
+      // One number written through untouched paints two shadows, and the tighter one is
+      // the one under a card's edge, where a shadow is read.
+      expect(cssShadowBlur(4), '5.62px');
+      expect(cssShadowBlur(2), '3.31px');
+
+      final double sigmaInCss = 5.62 / 2;
+      final double sigmaInFlutter = 0.57735 * 4 + 0.5;
+
+      expect(sigmaInCss, closeTo(sigmaInFlutter, 0.01));
+    });
+
+    test('keep a shadow with no blur a hard edge', () {
+      // A hairline is a shadow with no blur — a line, not a glow — and Flutter's formula
+      // leaves only half a pixel of deviation there, which nothing can see, where a whole
+      // CSS pixel of it would smear the line into a band.
+      expect(cssShadowBlur(0), '0');
+      expect(
+        cssBoxShadow(const core.BoxShadow(offsetY: 1, blurRadius: 0)),
+        '0 1px 0 0 #000000',
       );
     });
 
@@ -350,8 +375,8 @@ void main() {
             blurRadius: 3,
           ),
         ]),
-        '0 2px 1px -1px rgba(0, 0, 0, 0.2), '
-        '0 1px 3px 0 rgba(0, 0, 0, 0.122)',
+        '0 2px 2.15px -1px rgba(0, 0, 0, 0.2), '
+        '0 1px 4.46px 0 rgba(0, 0, 0, 0.122)',
       );
     });
 
@@ -366,7 +391,7 @@ void main() {
             blurRadius: 3,
           ),
         ]),
-        '0 2px 3px 0 var(--unibox-color-primary)',
+        '0 2px 4.46px 0 var(--unibox-color-primary)',
       );
     });
   });

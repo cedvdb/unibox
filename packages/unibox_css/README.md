@@ -24,6 +24,7 @@ renderer that consumes it.
 | a padding or a margin | `cssSpacing(...)` → `8px`, or `8px 12px 16px 4px` in CSS's order |
 | a colour | `cssColor(...)` → `#112233`, `rgba(17, 34, 51, 0.502)` |
 | a colour that names a role | `cssRoleReference(...)` → `var(--unibox-color-primary)` |
+| a shadow, or a list of them | `cssBoxShadow(...)`, `cssBoxShadows(...)` → `0 2px 3.31px -1px #2c2c2c`, the blur written in the unit a browser reads |
 | an image fit | `cssObjectFit(...)` → `cover`, `contain`, `fill`, `scale-down` |
 | a set of declarations | `CssDeclarations` — an ordered list, and its canonical `text` |
 | a state, a theme | `stateRules(box, className)`, `themeDeclarations(theme)` — rules as values, `CssRule` |

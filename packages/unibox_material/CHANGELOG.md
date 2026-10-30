@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- A card's shadow reads the same height on the web as in the app. The stylesheet wrote
+  `MaterialElevation`'s blur in Flutter's unit, which a browser reads as half of it, so a web
+  card carried a darker band under its edge than the card beside it in the application; the
+  CSS renderer now writes the blur that paints the same spread.
+
 - An ink well's ripple no longer grows a page's stylesheet as it is pressed. A drop used to be
   given a new width, height, corner radius and offset every frame, and on the web a number is a
   class: each press left 29 rules behind that the sheet keeps for the life of the page, and every

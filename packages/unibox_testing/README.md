@@ -79,8 +79,8 @@ ships the same font file to both hosts. Do the two, and everything above the
 glyphs is identical; leave the family out, and each platform uses its own UI font.
 
 What stays approximate on purpose, and is therefore outside the contract
-altogether: the font face, line breaking, shadow blur, placeholder and focus
-colours, and hit testing.
+altogether: the font face, line breaking, how a blur is rasterised, placeholder and
+focus colours, and hit testing.
 
 One layout fact sits at that edge rather than in the table: a child of a
 baseline-aligned row that holds no text reports no baseline, and the two engines

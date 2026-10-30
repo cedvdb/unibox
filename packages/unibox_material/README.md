@@ -987,9 +987,12 @@ climb visible at all.
 
 A component names the level it rests at rather than writing a shadow, which is what
 keeps `MaterialCard`, `MaterialDialog` and `MaterialBottomSheet` in step: an app that
-replaces one level replaces it on every surface that uses it. How a shadow is
-*blurred* is outside the parity contract — a browser and Skia rasterise it
-differently — so a level states the shape of the shadow, not a pixel promise.
+replaces one level replaces it on every surface that uses it. A level states its blur in
+Flutter's unit, and the web writes the CSS blur that paints the same width, so a card
+whose shadow is read at the edge is the same height on the page as in the app. What stays
+outside the parity contract is how the two engines *rasterise* that blur — a gaussian is
+drawn differently in a browser and in Skia — so a level states the shape of the shadow,
+not a pixel promise.
 
 ## The circular progress indicator
 

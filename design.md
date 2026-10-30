@@ -270,8 +270,8 @@ never inherited (CSS does not inherit them either).
   those was a divergence before it was a default, and none of them is a token: the
   tree still says nothing, the renderers just stop asking the user agent.
 - Approximate is allowed where the platforms genuinely differ: font face, line
-  breaking, shadow blur, placeholder, caret and selection colours, scrollbars, hit
-  testing. Similar, not identical.
+  breaking, how a blur is rasterised, placeholder, caret and selection colours,
+  scrollbars, hit testing. Similar, not identical.
 
 ### 5.5 Interaction
 - A box reacts to tap, long press, hover, focus and press. These five states

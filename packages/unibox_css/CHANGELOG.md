@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- A shadow's blur is written in the unit a browser reads, so a shadow is as wide on the page
+  as it is in the app. Flutter reads a `BoxShadow.blurRadius` of `r` as a gaussian of
+  `0.57735 * r + 0.5`, where CSS reads a `blur-radius` of `b` as a gaussian of `b / 2`;
+  written through untouched, the shadow under a card's edge read 65, 39, 21, 11, 5 — darkness
+  out of 255 — on the page where the app read 56, 40, 28, 17, 9: darker at the edge and gone
+  sooner, which reads as a card raised higher. The renderer now writes the inverse,
+  `2 * (0.57735 * r + 0.5)`, and the same card reads 60, 43, 28, 16, 8, 4, 2 against the
+  app's 56, 40, 28, 17, 9, 3, 1. A shadow with no blur stays a hard edge, because a hairline
+  is drawn as one.
+
 - `rootDeclarations()`: what a page starts from — the typography of the model, and
   `-webkit-tap-highlight-color: transparent`. A touch browser paints a highlight of its own
   over whatever it thinks was pressed, which is a blue flash over a control whose tree already

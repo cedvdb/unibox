@@ -216,9 +216,9 @@ is drawn on:
   underline, no user agent border, padding, focus ring or underline), so the node
   tree is the only thing that decides how they look.
 
-What stays approximate on purpose: the exact font face, line breaking, shadow
-blur, placeholder and focus colours, and hit testing. A browser and Flutter never
-agree on those down to the pixel, and the goal is that the two renderings are
+What stays approximate on purpose: the exact font face, line breaking, how a blur is
+rasterised, placeholder and focus colours, and hit testing. A browser and Flutter
+never agree on those down to the pixel, and the goal is that the two renderings are
 recognisably the same page.
 
 ## The site is one page

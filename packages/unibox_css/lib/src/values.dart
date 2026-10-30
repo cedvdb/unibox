@@ -198,14 +198,51 @@ String cssBorder(core.BoxBorder border) =>
 /// A model [core.BoxShadow] as CSS writes one shadow.
 ///
 /// Offset, blur, spread, colour — the order CSS reads them in. A role colour is written
-/// as its custom property, so a shadow follows the theme the way a fill does.
+/// as its custom property, so a shadow follows the theme the way a fill does, and the blur
+/// goes through [cssShadowBlur], because the two hosts state a blur in different units.
 String cssBoxShadow(core.BoxShadow shadow) => <String>[
   cssPixels(shadow.offsetX),
   cssPixels(shadow.offsetY),
-  cssPixels(shadow.blurRadius),
+  cssShadowBlur(shadow.blurRadius),
   cssPixels(shadow.spreadRadius),
   cssColorOrRole(shadow.color),
 ].join(' ');
+
+/// A shadow's blur as CSS writes it, so the shadow is as wide as that number in Flutter.
+///
+/// The two hosts measure a blur differently. Flutter reads a `BoxShadow.blurRadius` of `r`
+/// as a gaussian with a standard deviation of `0.57735 * r + 0.5` — the formula
+/// `BoxShadow.toPaint` uses — while a browser reads a `blur-radius` of `b` as a gaussian of
+/// `b / 2`. Written through untouched, one token paints two shadows: a card's level one
+/// blur of two is a deviation of 1.65 in the application and of one in the browser, so the
+/// shadow under its edge read 65, 39, 21, 11, 5 — darkness out of 255, row by row below the
+/// card — on the page where the app read 56, 40, 28, 17, 9: darker at the edge and gone
+/// sooner, which is a card that reads as raised higher than the one beside it.
+///
+/// So the number is inverted on the way out: `2 * (0.57735 * r + 0.5)`, to two decimals,
+/// which is finer than a blur can be seen. The same card then reads 60, 43, 28, 16, 8, 4, 2
+/// against the app's 56, 40, 28, 17, 9, 3, 1.
+///
+/// A radius of nothing stays nothing. Flutter's formula leaves half a pixel of standard
+/// deviation there, which is invisible, where a whole CSS pixel of it would not be: a
+/// hairline drawn as a shadow with no blur — the model's way of drawing a line — would
+/// soften into a smear.
+String cssShadowBlur(double blurRadius) {
+  if (blurRadius == 0) {
+    return cssPixels(0);
+  }
+
+  final double cssBlur =
+      2 * (_blurSigmaPerRadius * blurRadius + _blurSigmaBase);
+
+  return cssPixels((cssBlur * 100).roundToDouble() / 100);
+}
+
+/// How much of a blur radius becomes a gaussian's standard deviation, in Flutter.
+const double _blurSigmaPerRadius = 0.57735;
+
+/// The half pixel Flutter adds to the deviation of every blur, whatever its radius.
+const double _blurSigmaBase = 0.5;
 
 /// The shadows of a box as CSS writes a `box-shadow` list.
 ///
