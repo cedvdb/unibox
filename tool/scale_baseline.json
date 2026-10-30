@@ -4,7 +4,7 @@
     "deep-chain": {
       "large": {
         "classes": 2,
-        "css_bytes": 245,
+        "css_bytes": 285,
         "css_ms": 0.005,
         "html_bytes": 99272,
         "nodes": 1601,
@@ -13,7 +13,7 @@
       },
       "small": {
         "classes": 2,
-        "css_bytes": 245,
+        "css_bytes": 285,
         "css_ms": 0.006,
         "html_bytes": 49672,
         "nodes": 801,
@@ -24,7 +24,7 @@
     "distinct-look": {
       "large": {
         "classes": 3003,
-        "css_bytes": 546284,
+        "css_bytes": 546324,
         "css_ms": 0.652,
         "html_bytes": 859952,
         "nodes": 12001,
@@ -33,7 +33,7 @@
       },
       "small": {
         "classes": 1503,
-        "css_bytes": 273284,
+        "css_bytes": 273324,
         "css_ms": 0.37,
         "html_bytes": 429452,
         "nodes": 6001,
@@ -44,7 +44,7 @@
     "shared-look": {
       "large": {
         "classes": 4,
-        "css_bytes": 441,
+        "css_bytes": 481,
         "css_ms": 0.018,
         "html_bytes": 859952,
         "nodes": 12001,
@@ -53,7 +53,7 @@
       },
       "small": {
         "classes": 4,
-        "css_bytes": 441,
+        "css_bytes": 481,
         "css_ms": 0.056,
         "html_bytes": 429452,
         "nodes": 6001,

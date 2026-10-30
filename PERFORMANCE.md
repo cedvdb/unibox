@@ -132,6 +132,14 @@ Measured after the fixes, on the same machine, with the same benchmark:
 Doubling the tree now doubles every stage: the two shapes that broke the rule are at 2.1x
 and 2.0x, where they were at 2.5x and 9.6x.
 
+The byte columns do not appear in that table because they are a function of the tree and of
+nothing else, which is why the guard compares them exactly rather than loosely. Two things
+are worth knowing before reading a `css_bytes` that moved: every document carries one `:root`
+block — the typography of the model, then whatever else a page starts with — so a declaration
+added there moves every shape by the same handful of bytes, however many nodes it has; and one
+class is written once however many elements wear it, so a look the whole page shares costs
+what a single rule costs.
+
 - **F3**: 41 ms → 19.5 ms to plan 12,001 nodes with 3,003 distinct looks, and 13.8 ms → 0.7 ms
   to serialise their stylesheet, because a class's declarations are sorted and joined once
   rather than twice and the sheet is indexed by class instead of scanned.
