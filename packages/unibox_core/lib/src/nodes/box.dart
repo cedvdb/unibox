@@ -22,9 +22,10 @@ import 'ui_node.dart';
 /// Styling can be expressed in two ways:
 /// * flat parameters (`gap`, `padding`, `backgroundColor`, ...), which are the
 ///   quickest to write, and
-/// * a reusable [style] (plus [hoverStyle] for the hovered state).
+/// * reusable bags, `styles: <BoxStyle>[...]`, merged in the order they are given
+///   (plus [hoverStyle] for the hovered state).
 ///
-/// Flat parameters always take precedence over the matching token in [style].
+/// Flat parameters always take precedence over the matching token in a bag.
 /// The resolved tokens are available through [computedStyle] and
 /// [computedHoverStyle].
 ///
