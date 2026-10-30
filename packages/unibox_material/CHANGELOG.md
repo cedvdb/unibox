@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- A `MaterialSegmentedButton` with no `width:` lays out at the width of its labels in
+  Flutter, where it used to throw. Every segment asked to fill `double.infinity`, which
+  is a share of a width the caller never gave: in a bounded column it was clamped and
+  looked right, and in a row — a horizontally scrolling one, which is where a control of
+  a few labels belongs on a phone — Flutter refused the constraint before it drew
+  anything. A segment now fills only a width the button was given, and hugs its label
+  otherwise, which is what the browser was already doing.
+
 - A card's shadow reads the same height on the web as in the app. The stylesheet wrote
   `MaterialElevation`'s blur in Flutter's unit, which a browser reads as half of it, so a web
   card carried a darker band under its edge than the card beside it in the application; the

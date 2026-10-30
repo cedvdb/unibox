@@ -169,7 +169,13 @@ final class MaterialSegmentedButton extends Box {
           ink: foreground,
           // A height, not an infinity: the segment is already as tall as the control,
           // and an infinite height inside a column is a constraint Flutter refuses.
-          width: double.infinity,
+          //
+          // The width is the state's too: a segment that shares the button's width fills
+          // the share it was given, and one that hugs its label has no width to fill — an
+          // infinity there is a constraint with nothing behind it, which Flutter refuses
+          // the moment the control sits in an unbounded row, a horizontally scrolling one
+          // included.
+          width: equal ? double.infinity : null,
           height: height,
           mainAlign: MainAlign.center,
           transition: transition ?? MaterialInkWell.defaultTransition,
@@ -182,7 +188,7 @@ final class MaterialSegmentedButton extends Box {
             padding: padding,
             mainAlign: MainAlign.center,
             crossAlign: CrossAlign.center,
-            width: double.infinity,
+            width: equal ? double.infinity : null,
             textStyle: labelStyle.merge(BoxTextStyle(color: foreground)),
             children: <UINode>[
               if (leading == null)

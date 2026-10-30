@@ -58,6 +58,42 @@ void main() {
       expect(button().width, isNull);
     });
 
+    test('asks a segment to fill only a width it was given', () {
+      // A segment that shares the button's width fills its share; one that hugs its
+      // label has nothing to fill, and `double.infinity` there is a constraint with no
+      // bound behind it — Flutter refuses it in an unbounded row, a horizontally
+      // scrolling one included.
+      final MaterialSegmentedButton shared = MaterialSegmentedButton(
+        segments: _segments,
+        selected: 0,
+        onSelect: _select,
+        width: 300,
+      );
+      final MaterialSegmentedButton hugging = MaterialSegmentedButton(
+        segments: _segments,
+        selected: 0,
+        onSelect: _select,
+      );
+
+      for (final UINode child in shared.children) {
+        if (child is! Box || child.width == 1) {
+          continue;
+        }
+        final Box well = _wellBox(child);
+        expect(well.width, double.infinity);
+        expect(_contentOf(well).width, double.infinity);
+      }
+
+      for (final UINode child in hugging.children) {
+        if (child is! Box || child.width == 1) {
+          continue;
+        }
+        final Box well = _wellBox(child);
+        expect(well.width, isNull);
+        expect(_contentOf(well).width, isNull);
+      }
+    });
+
     test('fills the chosen segment with the secondary container', () {
       final MaterialSegmentedButton button = MaterialSegmentedButton(
         segments: _segments,
@@ -223,6 +259,14 @@ Box _wellBox(Box segment) {
 
   return box;
 }
+
+/// The content a well draws: the box inside the layer its shapes sizes to.
+///
+/// A well is a layer of boxes — the shape, the tint layer, the stack and the content —
+/// so the box the caller handed it is the one at the bottom of that stack.
+Box _contentOf(Box well) =>
+    ((well.children.single as StackNode).children.last as Box).children.single
+        as Box;
 
 /// Every node of [root], depth first.
 List<UINode> _nodesOf(UINode root) => <UINode>[
