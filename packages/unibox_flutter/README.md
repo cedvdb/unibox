@@ -233,6 +233,56 @@ free improvement on the web. A density-aware Flutter image would need
 `ResizeImage` and the laid-out width, which is a measurement a rendering does not
 have.
 
+## An image a host draws
+
+`ImageNode` renders `Image(image: NetworkImage(src))`: no disk cache, no placeholder,
+no key that depends on the space it is drawn in. The model has no token for any of
+those — a cache and a placeholder are policies of an application — so the way an app
+supplies them is the escape hatch the model already has, an `EmbedNode` of its own.
+
+The shape of it: **a tree takes the image it should draw as a function**, and the host
+passes the function.
+
+```dart
+// image_spec.dart — in the package that holds the trees, importing unibox_core only
+/// The image a layout asks for.
+class ImageSpec {
+  const ImageSpec({
+    required this.src,
+    this.alt = '',
+    this.height,
+    this.fit = ImageFit.cover,
+    this.priority = false,
+  });
+
+  final String src;
+  final String alt;
+  final double? height;
+  final ImageFit fit;
+  final bool priority;
+}
+
+/// What a tree draws when the host offers nothing of its own.
+UINode defaultImage(ImageSpec spec) => ImageNode(
+  spec.src,
+  alt: spec.alt,
+  height: spec.height,
+  fit: spec.fit,
+);
+```
+
+A builder takes `UINode Function(ImageSpec) image` and calls it where it used to write an
+`ImageNode`. The app passes its own implementation, which returns
+`FlutterWidgetNode(YourCachedImage(…))` — its disk cache, its placeholder, its blurhash,
+its carousel — and everything around the picture still lays out with boxes.
+
+**A tree built with a host embed is that host's tree.** `FlutterWidgetNode` carries a
+`Widget`, so the web renderer reports an embed it cannot draw; the server, the static
+export, the crawler and the test build the same page with `defaultImage`, which returns
+the model's `ImageNode` and renders on both targets. That is why the function is a
+parameter and not a lookup: one builder, two values, and no Flutter import in the library
+that holds the trees.
+
 ## Colour roles
 
 `renderFlutter(node, theme: myTheme)` resolves every role a tree names while the

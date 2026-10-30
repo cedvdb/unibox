@@ -470,6 +470,77 @@ tree; it runs in a build step, a CLI or a server.
 - **Do not expect a string to run a callback.** A document carries text, not closures: a press is
   replayed by the application, not by the page, and a link is followed by the browser.
 
+## An image the host knows how to draw
+
+`ImageNode` is the model's picture: a source, an alt, a size, a fit. On Flutter it renders
+`Image(image: NetworkImage(src))`, which has no disk cache, no placeholder and no key that
+depends on the space it is drawn in — and the model has no token for any of those, because a
+cache and a placeholder are policies of an application, not values of a design.
+
+The answer is the escape hatch the model already has: **the tree takes the image it should
+draw as a function**, and the host passes the function.
+
+```dart
+// image_spec.dart — in the package that holds the trees; imports unibox_core only
+/// The image a layout asks for: what it is, where it goes and how big.
+class ImageSpec {
+  const ImageSpec({
+    required this.src,
+    this.alt = '',
+    this.height,
+    this.fit = ImageFit.cover,
+    this.priority = false,
+  });
+
+  final String src;
+  final String alt;
+  final double? height;
+  final ImageFit fit;
+
+  /// The one picture above the fold, so the host may fetch it first.
+  final bool priority;
+}
+
+/// What a tree draws when the host offers nothing of its own.
+UINode defaultImage(ImageSpec spec) => ImageNode(
+  spec.src,
+  alt: spec.alt,
+  height: spec.height,
+  fit: spec.fit,
+  loading: spec.priority ? ImageLoading.eager : ImageLoading.lazy,
+  fetchPriority: spec.priority ? ImageFetchPriority.high : ImageFetchPriority.auto,
+);
+```
+
+Every builder that draws a picture takes `UINode Function(ImageSpec) image` and calls it:
+`image(const ImageSpec(src: '…', alt: 'A bright room', height: 220))`. The tree still says
+*which* picture and *how big*; the host decides how it is fetched and what is on screen
+until it arrives.
+
+```dart
+// main.dart — the Flutter host, the one file that knows what a cache is
+final UINode page = ListingsPage(
+  listings,
+  image: (ImageSpec spec) => FlutterWidgetNode(
+    // whatever the app already uses: a disk cache, a placeholder of the same height,
+    // a blurhash, a key that includes the width it is drawn at
+    YourCachedImage(
+      url: spec.src,
+      height: spec.height,
+      fit: spec.fit,
+      semanticsLabel: spec.alt,
+    ),
+  ),
+);
+```
+
+**The consequence, because it bites a server.** An `EmbedNode` carries a payload for one
+target, so a tree built with a host's image function is *that host's tree*: it renders in
+the app and the web renderer reports an embed it cannot draw. The server, the static
+export, the crawler and the test build the same page with `defaultImage`, which is why the
+function is a parameter rather than something the tree reaches for. One builder, two
+values — and never a Flutter import in the library that holds the trees.
+
 ## A page in more than one language
 
 The tree holds strings, so a translation is another value of the same builder — never an ambient
