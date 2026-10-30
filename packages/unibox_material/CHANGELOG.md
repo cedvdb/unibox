@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- `MaterialSegmentedButton` takes `border:` — the line around the pill *and* the rules
+  between its segments, which are one hairline the model draws as a box. It was a
+  private `outline` constant, so an application that draws its segmented control with
+  Material's quieter `outlineVariant`, as Flutter's own `SegmentedButton` does, had no
+  way to say so. The default is the line it always drew, so nothing moves.
+
 - A `MaterialSegmentedButton` with no `width:` lays out at the width of its labels in
   Flutter, where it used to throw. Every segment asked to fill `double.infinity`, which
   is a share of a width the caller never gave: in a bounded column it was clamped and

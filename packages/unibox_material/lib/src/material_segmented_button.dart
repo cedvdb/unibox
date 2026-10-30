@@ -41,6 +41,12 @@ final class MaterialSegment {
 /// ink cover the segment and not just its label; a 1 pixel rule between them is a
 /// box the colour of the outline.
 ///
+/// **The line is the caller's.** [border] is the container's line *and* the rules
+/// between its segments, which are one hairline the model draws as a box; the default
+/// is Material's `outline`, and a theme that draws its segmented control with
+/// `outlineVariant` — Material's own `SegmentedButton` does — says so once rather than
+/// reaching into this package.
+///
 /// **The chosen segment shows a check**, in place of the icon it would otherwise draw
 /// — Material's own behaviour, so a control that carries pictures still says which
 /// choice is on. The check is a [MaterialCheckMark] — drawn from boxes, because a font
@@ -60,7 +66,8 @@ final class MaterialSegmentedButton extends Box {
   ///
   /// The measurements are parameters: [height] and [borderRadius] the pill, [padding]
   /// the room around each segment's content, [iconGap] the space between a segment's
-  /// icon and its label, and [labelStyle] the type — the state still owns the colour.
+  /// icon and its label, [border] the line around the pill and between its segments,
+  /// and [labelStyle] the type — the state still owns the colour.
   MaterialSegmentedButton({
     required List<MaterialSegment> segments,
     required int selected,
@@ -69,6 +76,7 @@ final class MaterialSegmentedButton extends Box {
     bool showSelectedIcon = true,
     double height = controlHeight,
     double borderRadius = radius,
+    BoxBorder border = _outline,
     BoxSpacing padding = _segmentPadding,
     double iconGap = _iconGap,
     BoxTextStyle labelStyle = MaterialTypography.labelLarge,
@@ -85,13 +93,13 @@ final class MaterialSegmentedButton extends Box {
          // model can say without an alpha role per token.
          opacity: enabled ? null : 0.38,
          borderRadius: borderRadius,
-         border: _outline,
+         border: border,
          overflow: Overflow.hidden,
          direction: Axis.horizontal,
          crossAlign: CrossAlign.stretch,
          children: <UINode>[
            for (int i = 0; i < segments.length; i++) ...<UINode>[
-             if (i > 0) _divider(),
+             if (i > 0) _divider(border),
              _segment(
                segment: segments[i],
                selected: i == selected,
@@ -207,11 +215,13 @@ final class MaterialSegmentedButton extends Box {
     );
   }
 
-  /// The rule between two segments: a hairline the colour of the outline.
-  static UINode _divider() => Box(
-    width: 1,
-    backgroundColor: const BoxColor.role(MaterialColorRole.outline),
-  );
+  /// The rule between two segments: a hairline the colour of the border.
+  ///
+  /// It is a box rather than a border, because it stands between two children rather than
+  /// around one, and it takes the width and colour the caller gave the container so that a
+  /// themed control wears one line rather than two.
+  static UINode _divider(BoxBorder border) =>
+      Box(width: border.width, backgroundColor: border.color);
 
   /// The fill of a chosen segment.
   static const BoxColor _selectedFill = BoxColor.role(

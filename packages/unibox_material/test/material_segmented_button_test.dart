@@ -94,6 +94,48 @@ void main() {
       }
     });
 
+    test(
+      'wears the line it is given, around the pill and between segments',
+      () {
+        final MaterialSegmentedButton plain = MaterialSegmentedButton(
+          segments: _segments,
+          selected: 0,
+          onSelect: _select,
+        );
+
+        // Material's own outline, unchanged: the default is a 1 pixel line the same
+        // colour as the rules between the segments.
+        expect(
+          plain.border,
+          const BoxBorder(color: BoxColor.role(MaterialColorRole.outline)),
+        );
+        expect(
+          (plain.children[1] as Box).backgroundColor,
+          const BoxColor.role(MaterialColorRole.outline),
+        );
+
+        // A theme that draws its control with outlineVariant says it once, and the rules
+        // between the segments follow: one line, not a border and a different divider.
+        const BoxBorder variant = BoxBorder(
+          width: 2,
+          color: BoxColor.role(MaterialColorRole.outlineVariant),
+        );
+        final MaterialSegmentedButton themed = MaterialSegmentedButton(
+          segments: _segments,
+          selected: 0,
+          onSelect: _select,
+          border: variant,
+        );
+
+        expect(themed.border, variant);
+        expect((themed.children[1] as Box).width, 2);
+        expect(
+          (themed.children[1] as Box).backgroundColor,
+          const BoxColor.role(MaterialColorRole.outlineVariant),
+        );
+      },
+    );
+
     test('fills the chosen segment with the secondary container', () {
       final MaterialSegmentedButton button = MaterialSegmentedButton(
         segments: _segments,

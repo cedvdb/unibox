@@ -120,4 +120,58 @@ void main() {
     // half way through a share nobody asked for.
     expect(grid.left, greaterThan(list.right + 12));
   });
+
+  testWidgets('paints the line it is given, around and between its segments', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.topLeft,
+            child: renderFlutter(
+              MaterialSegmentedButton(
+                width: 216,
+                showSelectedIcon: false,
+                // Material's own SegmentedButton draws this control with the quieter
+                // outline variant; before the line was a parameter, a themed
+                // application could not say so.
+                border: const core.BoxBorder(
+                  color: core.BoxColor.role(MaterialColorRole.outlineVariant),
+                ),
+                segments: const <MaterialSegment>[
+                  MaterialSegment(label: core.TextNode('List')),
+                  MaterialSegment(label: core.TextNode('Grid')),
+                ],
+                selected: 0,
+                onSelect: (int index) {},
+              ),
+              theme: MaterialPalette.lightTheme,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final Finder control = find.byWidgetPredicate(
+      (Widget widget) =>
+          widget is FlutterBox && widget.box is MaterialSegmentedButton,
+    );
+    final BoxDecoration decoration =
+        tester
+                .widget<DecoratedBox>(
+                  find
+                      .descendant(
+                        of: control,
+                        matching: find.byType(DecoratedBox),
+                      )
+                      .first,
+                )
+                .decoration
+            as BoxDecoration;
+
+    // The role resolved through the theme the renderer was given, which is
+    // `MaterialPalette.light.outlineVariant`.
+    expect(decoration.border, Border.all(color: const Color(0xFFCAC4D0)));
+  });
 }
