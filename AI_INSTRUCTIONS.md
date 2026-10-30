@@ -169,6 +169,7 @@ host that renders it.
 | `BoxShadow(color:, offset:, blurRadius:, spreadRadius:)` | `shadow: BoxShadow(...)` — same names |
 | `Text('Hi', style: TextStyle(…))` | `TextNode('Hi', fontSize:, fontWeight:, color:, lineHeight:)` |
 | `TextStyle.height` | `lineHeight`, a **multiple** of the font size (`1.5`, not `24`) |
+| `TextStyle.decoration`, `TextDecoration.lineThrough`, `decorationColor` | `decoration: TextDecoration.lineThrough`, `decorationColor:`, `decorationThickness:` — `none`, `lineThrough`, `underline`; `overline` has no Flutter counterpart |
 | `DefaultTextStyle` | `Box(textStyle: BoxTextStyle(...))`, inherited by the texts inside |
 | `Image.network(src, fit:)` | `ImageNode(src, fit: ImageFit.cover, alt: '…')` |
 | `GestureDetector(onTap:)` | `Box(onTap: …)` |
@@ -219,6 +220,7 @@ host that renders it.
 | `box-shadow` / `opacity` | `shadow` / `opacity` |
 | `transform: scale(…)` | `transform: BoxTransform(scale: …)` |
 | `color`, `font-size`, `font-weight`, `line-height`, `letter-spacing` | the same tokens on `TextNode` or `BoxTextStyle` |
+| `text-decoration: underline`, `text-decoration-color` | `decoration: TextDecoration.underline`, `decorationColor:` — `none`, `lineThrough`, `underline`; `double`, `wavy` and `overline` are not in the model, because Flutter draws one solid line and has no overline |
 | `overflow: hidden` / `auto` | `overflow: Overflow.hidden` / `Overflow.scroll` |
 | `<a href>` | `LinkNode(url, child: …)` |
 | `<img src alt>` | `ImageNode(src, alt: …)` |

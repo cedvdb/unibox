@@ -109,6 +109,23 @@ const List<TextCase> textCases = <TextCase>[
     expected: TextAppearance(fontFamily: 'Inter'),
   ),
   TextCase(
+    description: 'strikes through a price that is no longer paid',
+    node: core.TextNode('€1 200', decoration: core.TextDecoration.lineThrough),
+    expected: TextAppearance(decoration: core.TextDecoration.lineThrough),
+  ),
+  TextCase(
+    description: 'underlines a run of text in a colour of its own',
+    node: core.TextNode(
+      'Terms',
+      decoration: core.TextDecoration.underline,
+      decorationColor: _ink,
+    ),
+    expected: TextAppearance(
+      decoration: core.TextDecoration.underline,
+      decorationColor: _ink,
+    ),
+  ),
+  TextCase(
     description: 'aligns the lines inside the space the text is given',
     node: core.TextNode('Hello Unibox', textAlign: core.TextAlign.center),
     expected: TextAppearance(textAlign: core.TextAlign.center),
@@ -168,6 +185,8 @@ const List<TextCase> textCases = <TextCase>[
       lineHeight: 1.6,
       fontFamily: 'Inter',
       letterSpacing: 0.6,
+      decoration: core.TextDecoration.underline,
+      decorationColor: _ink,
       textAlign: core.TextAlign.right,
       maxLines: 3,
       overflow: core.TextOverflow.ellipsis,
@@ -179,6 +198,8 @@ const List<TextCase> textCases = <TextCase>[
       lineHeight: 1.6,
       fontFamily: 'Inter',
       letterSpacing: 0.6,
+      decoration: core.TextDecoration.underline,
+      decorationColor: _ink,
       textAlign: core.TextAlign.right,
       maxLines: 3,
       overflow: core.TextOverflow.ellipsis,

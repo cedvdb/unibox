@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- `TextNode.decoration` and `decorationColor` become `TextStyle.decoration` and
+  `TextStyle.decorationColor`, so a struck through price is one text node instead of
+  a stack and a positioned box. `decorationThickness` is left out on purpose:
+  Flutter's thickness is a multiple of the font's own line where the model measures
+  pixels, so this target draws the font's own line and `README.md` says why.
+
 - `FontWeight.light` is `w300`, so a light label keeps its weight instead of
   rendering at `w400` like a normal one.
 

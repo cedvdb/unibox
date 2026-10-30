@@ -109,6 +109,8 @@ announced correctly.
 | `lineHeight`            | `TextStyle.height` (both are a multiple of the font size)       |
 | `fontFamily`            | `TextStyle.fontFamily`                                          |
 | `letterSpacing`         | `TextStyle.letterSpacing`                                       |
+| `decoration`            | `TextStyle.decoration` (`none`, `lineThrough`, `underline`)     |
+| `decorationColor`       | `TextStyle.decorationColor`                                     |
 | `textAlign`             | `Text.textAlign`                                                |
 | `maxLines` / `overflow` | `Text.maxLines` / `Text.overflow` (`clip`, `ellipsis`)           |
 
@@ -150,6 +152,14 @@ typography in a `FlutterTextStyleScope`, the inherited widget the field looks fo
 Precedence, from strongest to weakest: the tokens of the node, the tokens of its
 `style`, the typography of the closest enclosing box, the `DefaultTextStyle` of
 the host application, and finally the Flutter default.
+
+`decorationThickness` is the one typography token this target does not pass on. The
+model measures a line in logical pixels, which is what CSS's
+`text-decoration-thickness` takes; `TextStyle.decorationThickness` is a multiple of
+the thickness the font asks for, so the same number would be two pixels on the page
+and twice the font's own line in the app. The app therefore draws the font's own
+line — the same asymmetry as `srcSet` below, and the reason `decoration` and
+`decorationColor` are in the conformance table while the thickness is not.
 
 ## State mapping
 

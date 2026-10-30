@@ -28,6 +28,9 @@ final class BoxTextStyle {
     this.lineHeight,
     this.fontFamily,
     this.letterSpacing,
+    this.decoration,
+    this.decorationColor,
+    this.decorationThickness,
   });
 
   /// The typography a text is typeset in when the tree says nothing else.
@@ -83,6 +86,29 @@ final class BoxTextStyle {
   /// Extra space between characters in logical pixels.
   final double? letterSpacing;
 
+  /// The line drawn across the text, or `null` to inherit one.
+  ///
+  /// A struck through price used to need a `StackNode` and a one pixel box
+  /// positioned over the middle of a line — geometry that breaks the moment the
+  /// type scale changes — because a line through a run of text is a typography
+  /// token, not a shape.
+  final TextDecoration? decoration;
+
+  /// The colour of [decoration], or `null` for the colour of the glyphs.
+  ///
+  /// Unset is the one answer both targets already give: CSS draws a decoration
+  /// in `currentColor` and Flutter in the text colour, so leaving it out is not a
+  /// default the model has to write down.
+  final BoxColor? decorationColor;
+
+  /// How thick [decoration] is in logical pixels, or `null` for the thickness the
+  /// font itself asks for.
+  ///
+  /// Resolved by the text engine — CSS calls it `from-font` and Flutter asks the
+  /// font — so the number a renderer writes and the number it paints are only
+  /// equal when this is set.
+  final double? decorationThickness;
+
   /// Whether no token is set.
   bool get isEmpty => this == const BoxTextStyle();
 
@@ -93,12 +119,17 @@ final class BoxTextStyle {
   /// This typography with its role colour looked up in [theme].
   BoxTextStyle resolve(UniboxTheme theme) {
     final BoxColor? current = color;
+    final BoxColor? line = decorationColor;
 
-    if (current == null || !current.isRole) {
+    if ((current == null || !current.isRole) &&
+        (line == null || !line.isRole)) {
       return this;
     }
 
-    return copyWith(color: theme.resolve(current));
+    return copyWith(
+      color: current == null ? null : theme.resolve(current),
+      decorationColor: line == null ? null : theme.resolve(line),
+    );
   }
 
   BoxTextStyle copyWith({
@@ -108,6 +139,9 @@ final class BoxTextStyle {
     double? lineHeight,
     String? fontFamily,
     double? letterSpacing,
+    TextDecoration? decoration,
+    BoxColor? decorationColor,
+    double? decorationThickness,
   }) {
     return BoxTextStyle(
       fontSize: fontSize ?? this.fontSize,
@@ -116,6 +150,9 @@ final class BoxTextStyle {
       lineHeight: lineHeight ?? this.lineHeight,
       fontFamily: fontFamily ?? this.fontFamily,
       letterSpacing: letterSpacing ?? this.letterSpacing,
+      decoration: decoration ?? this.decoration,
+      decorationColor: decorationColor ?? this.decorationColor,
+      decorationThickness: decorationThickness ?? this.decorationThickness,
     );
   }
 
@@ -138,6 +175,9 @@ final class BoxTextStyle {
       lineHeight: other.lineHeight ?? lineHeight,
       fontFamily: other.fontFamily ?? fontFamily,
       letterSpacing: other.letterSpacing ?? letterSpacing,
+      decoration: other.decoration ?? decoration,
+      decorationColor: other.decorationColor ?? decorationColor,
+      decorationThickness: other.decorationThickness ?? decorationThickness,
     );
   }
 
@@ -149,7 +189,10 @@ final class BoxTextStyle {
       other.color == color &&
       other.lineHeight == lineHeight &&
       other.fontFamily == fontFamily &&
-      other.letterSpacing == letterSpacing;
+      other.letterSpacing == letterSpacing &&
+      other.decoration == decoration &&
+      other.decorationColor == decorationColor &&
+      other.decorationThickness == decorationThickness;
 
   @override
   int get hashCode => Object.hash(
@@ -159,6 +202,9 @@ final class BoxTextStyle {
     lineHeight,
     fontFamily,
     letterSpacing,
+    decoration,
+    decorationColor,
+    decorationThickness,
   );
 
   @override
@@ -170,6 +216,10 @@ final class BoxTextStyle {
       if (lineHeight != null) 'lineHeight: $lineHeight',
       if (fontFamily != null) 'fontFamily: $fontFamily',
       if (letterSpacing != null) 'letterSpacing: $letterSpacing',
+      if (decoration != null) 'decoration: $decoration',
+      if (decorationColor != null) 'decorationColor: $decorationColor',
+      if (decorationThickness != null)
+        'decorationThickness: $decorationThickness',
     ];
     return 'BoxTextStyle(${tokens.join(', ')})';
   }

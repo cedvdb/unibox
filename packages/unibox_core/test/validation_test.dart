@@ -32,6 +32,97 @@ void main() {
       expect(issues.single.message, contains('without a srcSet'));
     });
 
+    test('accepts a struck through price', () {
+      expect(
+        validateTree(
+          const TextNode(
+            '€1 200',
+            decoration: TextDecoration.lineThrough,
+            decorationColor: BoxColor.black,
+            decorationThickness: 1,
+          ),
+        ),
+        isEmpty,
+      );
+    });
+
+    test('reports a decoration colour without a line to paint', () {
+      // A colour and a thickness describe a line; with no decoration stated there
+      // is none, and both renderers would write nothing at all.
+      final List<TreeIssue> issues = validateTree(
+        const TextNode('Terms', decorationColor: BoxColor.black),
+      );
+
+      expect(issues.single.message, contains('without a decoration'));
+      expect(issues.single.isError, isFalse);
+    });
+
+    test('reports a decoration thickness without a line to draw', () {
+      final List<TreeIssue> issues = validateTree(
+        const TextNode('Terms', decorationThickness: 2),
+      );
+
+      expect(issues.single.message, contains('without a decoration'));
+    });
+
+    test('reports a decoration no line can be drawn with', () {
+      final List<TreeIssue> issues = validateTree(
+        const TextNode(
+          'Terms',
+          decoration: TextDecoration.underline,
+          decorationThickness: 0,
+        ),
+      );
+
+      expect(issues.single.isError, isTrue);
+      expect(issues.single.message, contains('more than zero'));
+    });
+
+    test('accepts a line a box states for the texts inside it', () {
+      expect(
+        validateTree(
+          const Box(
+            textStyle: BoxTextStyle(decoration: TextDecoration.underline),
+            children: <UINode>[
+              TextNode('Inside'),
+              Box(children: <UINode>[TextNode('Deeper')]),
+            ],
+          ),
+        ),
+        isEmpty,
+      );
+    });
+
+    test('reports a line stated by a box and again by a text inside it', () {
+      // The two targets cannot agree: CSS propagates the box's line and lets the
+      // text add another, while Flutter lets the text's style replace it.
+      final List<TreeIssue> issues = validateTree(
+        const Box(
+          textStyle: BoxTextStyle(decoration: TextDecoration.underline),
+          children: <UINode>[
+            TextNode('Inside', decoration: TextDecoration.lineThrough),
+          ],
+        ),
+      );
+
+      expect(issues.single.isError, isTrue);
+      expect(issues.single.message, contains('State the line once'));
+    });
+
+    test('reports a decoration a box states with no line to draw', () {
+      // The typography of a box is inherited by every text inside it, so a
+      // thickness there is a token that does nothing just as much as one on a
+      // text.
+      final List<TreeIssue> issues = validateTree(
+        const Box(
+          textStyle: BoxTextStyle(decorationThickness: 2),
+          children: <UINode>[TextNode('Inside')],
+        ),
+      );
+
+      expect(issues.single.message, contains('without a decoration'));
+    });
+
     test('accepts a pager', () {
       expect(
         validateTree(

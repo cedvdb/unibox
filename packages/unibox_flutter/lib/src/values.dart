@@ -70,12 +70,28 @@ TextOverflow toTextOverflow(core.TextOverflow overflow) {
   };
 }
 
+/// Converts a Unibox [core.TextDecoration] to Flutter's [TextDecoration].
+TextDecoration toTextDecoration(core.TextDecoration decoration) {
+  return switch (decoration) {
+    core.TextDecoration.none => TextDecoration.none,
+    core.TextDecoration.lineThrough => TextDecoration.lineThrough,
+    core.TextDecoration.underline => TextDecoration.underline,
+  };
+}
+
 /// Converts the typography of a box or a text node into a Flutter [TextStyle].
 ///
 /// Only the tokens that are set end up in the result, so Flutter keeps
 /// inheriting every other token from the enclosing `DefaultTextStyle` — which is
 /// exactly how the web renderer lets CSS inherit. Returns `null` when [style]
 /// sets no token.
+///
+/// `decorationThickness` is the one typography token this target does not pass
+/// on: CSS measures a decoration in logical pixels, and Flutter can only scale the
+/// thickness the font asks for, so the two would draw different lines for the
+/// same number. The web renderer honours it; here the line is the font's own and
+/// `packages/unibox_flutter/README.md` says so beside the other attributes this
+/// target does not read.
 TextStyle? toTextStyle(core.BoxTextStyle style) {
   if (style.isEmpty) {
     return null;
@@ -83,6 +99,8 @@ TextStyle? toTextStyle(core.BoxTextStyle style) {
 
   final core.FontWeight? weight = style.fontWeight;
   final core.BoxColor? color = style.color;
+  final core.TextDecoration? decoration = style.decoration;
+  final core.BoxColor? decorationColor = style.decorationColor;
 
   return TextStyle(
     fontSize: style.fontSize,
@@ -91,6 +109,8 @@ TextStyle? toTextStyle(core.BoxTextStyle style) {
     height: style.lineHeight,
     fontFamily: style.fontFamily,
     letterSpacing: style.letterSpacing,
+    decoration: decoration == null ? null : toTextDecoration(decoration),
+    decorationColor: decorationColor == null ? null : toColor(decorationColor),
   );
 }
 

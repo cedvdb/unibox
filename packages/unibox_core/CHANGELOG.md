@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- `TextDecoration` (`none`, `lineThrough`, `underline`), with `decorationColor` and
+  `decorationThickness`, on `BoxTextStyle` and as flat tokens on `TextNode`. A
+  struck through price is a line the text engine draws through its own line box, so
+  it follows the type scale instead of being a box positioned over it. A line a box
+  states reaches the texts inside it, and `validateTree` reports a text that states
+  one below it — the two targets cannot combine two lines the same way.
+
 - `FontWeight.light` (`300`). The model had no weight below `normal`, so a label
   typeset at 300 — the light end of Material 3's scale — came out at 400 on both
   targets. The five weights the model names, and the ones it leaves out, are stated

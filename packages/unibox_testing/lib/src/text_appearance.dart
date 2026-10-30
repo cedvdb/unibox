@@ -7,9 +7,9 @@ import 'token_difference.dart';
 /// The two renderers produce different kinds of output — a `Text` widget on one
 /// side, a `<span>` with declarations on the other — so the only thing that can be
 /// compared is what the output asks for. Both are asked for the same thing: one
-/// font size, weight, colour, line height, letter spacing, family, alignment and
-/// truncation per node, written as `TextStyle` fields on one side and as CSS
-/// properties on the other.
+/// font size, weight, colour, line height, letter spacing, family, decoration,
+/// alignment and truncation per node, written as `TextStyle` fields on one side and
+/// as CSS properties on the other.
 ///
 /// Only the tokens a renderer *declared* for the node are part of this, which is
 /// the same line the box contract draws. Everything else is inherited, and the
@@ -40,6 +40,8 @@ final class TextAppearance {
     this.lineHeight,
     this.fontFamily,
     this.letterSpacing,
+    this.decoration,
+    this.decorationColor,
     this.textAlign,
     this.maxLines,
     this.overflow,
@@ -70,6 +72,14 @@ final class TextAppearance {
 
   /// Extra space between characters in logical pixels.
   final double? letterSpacing;
+
+  /// The line drawn across the text, or `null` when it draws none of its own.
+  final core.TextDecoration? decoration;
+
+  /// The colour of [decoration], or `null` when the line is the colour of the
+  /// glyphs — which is what both targets do with an unset colour, so this is
+  /// compared as "said nothing" rather than as the resolved value.
+  final core.BoxColor? decorationColor;
 
   /// The horizontal alignment of the lines in the space the text is given.
   final core.TextAlign? textAlign;
@@ -105,6 +115,8 @@ final class TextAppearance {
     compare('lineHeight', lineHeight, expected.lineHeight);
     compare('fontFamily', fontFamily, expected.fontFamily);
     compare('letterSpacing', letterSpacing, expected.letterSpacing);
+    compare('decoration', decoration, expected.decoration);
+    compare('decorationColor', decorationColor, expected.decorationColor);
     compare('textAlign', textAlign, expected.textAlign);
     compare('maxLines', maxLines, expected.maxLines);
     compare('overflow', overflow, expected.overflow);
@@ -123,6 +135,8 @@ final class TextAppearance {
     double? lineHeight,
     String? fontFamily,
     double? letterSpacing,
+    core.TextDecoration? decoration,
+    core.BoxColor? decorationColor,
     core.TextAlign? textAlign,
     int? maxLines,
     core.TextOverflow? overflow,
@@ -134,6 +148,8 @@ final class TextAppearance {
       lineHeight: lineHeight ?? this.lineHeight,
       fontFamily: fontFamily ?? this.fontFamily,
       letterSpacing: letterSpacing ?? this.letterSpacing,
+      decoration: decoration ?? this.decoration,
+      decorationColor: decorationColor ?? this.decorationColor,
       textAlign: textAlign ?? this.textAlign,
       maxLines: maxLines ?? this.maxLines,
       overflow: overflow ?? this.overflow,
@@ -152,6 +168,8 @@ final class TextAppearance {
     lineHeight,
     fontFamily,
     letterSpacing,
+    decoration,
+    decorationColor,
     textAlign,
     maxLines,
     overflow,
@@ -166,6 +184,8 @@ final class TextAppearance {
         'lineHeight: $lineHeight, '
         'fontFamily: $fontFamily, '
         'letterSpacing: $letterSpacing, '
+        'decoration: $decoration, '
+        'decorationColor: $decorationColor, '
         'textAlign: $textAlign, '
         'maxLines: $maxLines, '
         'overflow: $overflow'

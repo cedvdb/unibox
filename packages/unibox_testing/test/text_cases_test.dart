@@ -57,6 +57,11 @@ void main() {
           'lineHeight': (actual: 1.6, expected: null),
           'fontFamily': (actual: 'Inter', expected: null),
           'letterSpacing': (actual: 0.6, expected: null),
+          'decoration': (actual: core.TextDecoration.underline, expected: null),
+          'decorationColor': (
+            actual: const core.BoxColor(0xFF1A1C22),
+            expected: null,
+          ),
           'textAlign': (actual: core.TextAlign.right, expected: null),
           'maxLines': (actual: 3, expected: null),
           'overflow': (actual: core.TextOverflow.ellipsis, expected: null),

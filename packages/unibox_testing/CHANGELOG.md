@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `TextAppearance.decoration` and `decorationColor`, with a case that strikes a price
+  through and one that underlines a run in a colour of its own, both read back from
+  each renderer's output.
+
 - A case that typesets a label at `FontWeight.light`, and `300` read back as that
   weight on both sides of the table, so the two renderers are held to the light end
   of the scale.

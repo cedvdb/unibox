@@ -332,11 +332,21 @@ TextAppearance textAppearanceIn(String html) {
     lineHeight: _numberOf(declarations['line-height']),
     fontFamily: _familyOf(declarations['font-family']),
     letterSpacing: _lengthOf(declarations['letter-spacing']),
+    decoration: _decorationOf(declarations['text-decoration']),
+    decorationColor: colorOf(declarations['text-decoration-color']),
     textAlign: _textAlignOf(declarations['text-align']),
     maxLines: lines,
     overflow: _overflowOf(declarations, lines: lines),
   );
 }
+
+/// The core decoration of a CSS `text-decoration` keyword.
+core.TextDecoration? _decorationOf(String? value) => switch (value) {
+  'none' => core.TextDecoration.none,
+  'line-through' => core.TextDecoration.lineThrough,
+  'underline' => core.TextDecoration.underline,
+  _ => null,
+};
 
 /// A family as CSS writes it: one family, quoted.
 String? _familyOf(String? value) {

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `decoration`, `decorationColor` and `decorationThickness` are written as
+  `text-decoration`, `text-decoration-color` and `text-decoration-thickness`, in that
+  order: the shorthand resets the two longhands, so they have to come after it.
+
 - `FontWeight.light` is written `font-weight: 300`, so a light label is no longer
   written as a normal one.
 

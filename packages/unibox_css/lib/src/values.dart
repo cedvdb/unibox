@@ -163,6 +163,19 @@ String cssFontWeight(core.FontWeight weight) => switch (weight) {
   core.FontWeight.bold => '700',
 };
 
+/// A model [core.TextDecoration] as the CSS `text-decoration` keyword.
+///
+/// The shorthand, not `text-decoration-line`, so the whole of the line is stated:
+/// the three values the model has are solid, and a shorthand is what resets a
+/// decoration style a host stylesheet may have set. `none` is written rather than
+/// left out, because it is how a run of text takes back a propagated line.
+String cssTextDecoration(core.TextDecoration decoration) =>
+    switch (decoration) {
+      core.TextDecoration.none => 'none',
+      core.TextDecoration.lineThrough => 'line-through',
+      core.TextDecoration.underline => 'underline',
+    };
+
 /// A model [core.TextAlign] as the CSS `text-align` keyword.
 String cssTextAlign(core.TextAlign align) => switch (align) {
   core.TextAlign.left => 'left',
@@ -222,6 +235,9 @@ CssDeclarations? typographyDeclarations(core.BoxTextStyle style) {
   final String? fontFamily = style.fontFamily;
   final double? letterSpacing = style.letterSpacing;
   final double? lineHeight = style.lineHeight;
+  final core.TextDecoration? decoration = style.decoration;
+  final core.BoxColor? decorationColor = style.decorationColor;
+  final double? decorationThickness = style.decorationThickness;
 
   return CssDeclarations()
     ..addIf('font-size', fontSize == null ? null : cssPixels(fontSize))
@@ -238,7 +254,22 @@ CssDeclarations? typographyDeclarations(core.BoxTextStyle style) {
       'letter-spacing',
       letterSpacing == null ? null : cssPixels(letterSpacing),
     )
-    ..addIf('line-height', lineHeight == null ? null : cssNumber(lineHeight));
+    ..addIf('line-height', lineHeight == null ? null : cssNumber(lineHeight))
+    // The shorthand is declared before the two longhands, and the sheet sorts by
+    // property name, so `text-decoration` stays ahead of them: the shorthand resets
+    // a decoration's colour and thickness, and the two have to follow it to win.
+    ..addIf(
+      'text-decoration',
+      decoration == null ? null : cssTextDecoration(decoration),
+    )
+    ..addIf(
+      'text-decoration-color',
+      decorationColor == null ? null : cssColorOrRole(decorationColor),
+    )
+    ..addIf(
+      'text-decoration-thickness',
+      decorationThickness == null ? null : cssPixels(decorationThickness),
+    );
 }
 
 /// The typography a document starts from.

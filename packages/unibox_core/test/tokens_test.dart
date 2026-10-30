@@ -427,6 +427,9 @@ void main() {
         lineHeight: 1.5,
         fontFamily: 'Inter',
         letterSpacing: 0.2,
+        decoration: TextDecoration.lineThrough,
+        decorationColor: BoxColor.white,
+        decorationThickness: 2,
       );
 
       expect(style.fontSize, 18);
@@ -435,6 +438,9 @@ void main() {
       expect(style.lineHeight, 1.5);
       expect(style.fontFamily, 'Inter');
       expect(style.letterSpacing, 0.2);
+      expect(style.decoration, TextDecoration.lineThrough);
+      expect(style.decorationColor, BoxColor.white);
+      expect(style.decorationThickness, 2);
     });
 
     test('merge lets the overlay win', () {
@@ -452,6 +458,29 @@ void main() {
       expect(merged.color, BoxColor.white);
       expect(merged.lineHeight, 1.4);
     });
+
+    test(
+      'carries a decoration through a merge like the rest of the typography',
+      () {
+        // A struck through price is one token over the typography of the box it sits
+        // in, which is the whole reason decoration is inherited: the line must not
+        // cost the run of text its size, weight or colour.
+        const body = BoxTextStyle(fontSize: 16, color: BoxColor.black);
+        const struck = BoxTextStyle(
+          decoration: TextDecoration.lineThrough,
+          decorationColor: BoxColor.white,
+          decorationThickness: 2,
+        );
+
+        final merged = body.merge(struck);
+
+        expect(merged.fontSize, 16);
+        expect(merged.color, BoxColor.black);
+        expect(merged.decoration, TextDecoration.lineThrough);
+        expect(merged.decorationColor, BoxColor.white);
+        expect(merged.decorationThickness, 2);
+      },
+    );
 
     test('merge keeps the base when the overlay is null or empty', () {
       const base = BoxTextStyle(fontSize: 16);
@@ -479,13 +508,22 @@ void main() {
         lineHeight: 1.5,
         fontFamily: 'Inter',
         letterSpacing: 0.2,
+        decoration: TextDecoration.underline,
+        decorationColor: BoxColor.white,
+        decorationThickness: 1.5,
       );
 
       expect(style, style.copyWith());
       expect(style.hashCode, style.copyWith().hashCode);
       expect(style, isNot(style.copyWith(fontSize: 18)));
+      expect(style, isNot(style.copyWith(decoration: TextDecoration.none)));
+      expect(style, isNot(style.copyWith(decorationThickness: 3)));
       expect(style.toString(), contains('fontSize: 16.0'));
       expect(style.toString(), contains('fontFamily: Inter'));
+      expect(
+        style.toString(),
+        contains('decoration: TextDecoration.underline'),
+      );
     });
   });
 

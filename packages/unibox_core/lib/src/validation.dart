@@ -15,6 +15,7 @@ import 'tokens/box_semantics.dart';
 import 'tokens/box_shadow.dart';
 import 'tokens/box_shape.dart';
 import 'tokens/box_style.dart';
+import 'tokens/box_text_style.dart';
 import 'tokens/box_transition.dart';
 import 'tokens/unibox_theme.dart';
 
@@ -80,6 +81,8 @@ class TreeIssue {
 /// * a transition with a duration that changes nothing,
 /// * an opacity outside the `0` to `1` that both targets accept,
 /// * a colour role no theme can answer, when a theme is passed to the check,
+/// * a decoration colour or thickness on a style that draws no decoration, and a
+///   thickness no line can be drawn with,
 /// * a visibility range that is empty or negative, which no width can show,
 /// * an image candidate whose width is not positive, which no browser can pick,
 /// * an image that gives `sizes` without a `srcSet`, which a browser never reads.
@@ -92,6 +95,7 @@ List<TreeIssue> validateTree(UINode root, {UniboxTheme? theme}) {
     theme: theme,
     inGrid: false,
     definiteHeight: null,
+    decoratedAbove: false,
     issues: issues,
   );
   return issues;
@@ -146,12 +150,15 @@ Iterable<BoxColor> _roleColorsOf(UINode node) {
     final BoxColor? background = style.backgroundColor;
     final BoxBorder? border = style.border;
     final BoxShadow? shadow = style.shadow;
-    final BoxColor? text = style.textStyle?.color;
+    final BoxTextStyle? typography = style.textStyle;
+    final BoxColor? text = typography?.color;
+    final BoxColor? line = typography?.decorationColor;
 
     if (background != null) colors.add(background);
     if (border != null) colors.add(border.color);
     if (shadow != null) colors.add(shadow.color);
     if (text != null) colors.add(text);
+    if (line != null) colors.add(line);
   }
 
   if (node is Box) {
@@ -163,13 +170,89 @@ Iterable<BoxColor> _roleColorsOf(UINode node) {
     }
   } else if (node is TextNode) {
     final BoxColor? color = node.computedStyle.color;
+    final BoxColor? line = node.computedStyle.decorationColor;
 
     if (color != null) {
       colors.add(color);
     }
+
+    if (line != null) {
+      colors.add(line);
+    }
   }
 
   return colors.where((BoxColor color) => color.isRole);
+}
+
+/// Records the decoration tokens of [style] that cannot draw a line on [node].
+///
+/// A decoration colour or a thickness on its own says how a line would look
+/// without saying there is one, so no renderer draws anything; a thickness of
+/// zero or less is not a line either — CSS rejects the length and falls back to
+/// the font's own, while Flutter asserts. Neither is a difference a rendering can
+/// show, so both are reported instead.
+void _validateDecoration(
+  UINode node,
+  BoxTextStyle style, {
+  required bool decoratedAbove,
+  required List<TreeIssue> issues,
+}) {
+  final TextDecoration? decoration = style.decoration;
+  final double? thickness = style.decorationThickness;
+
+  if (decoration == null) {
+    final List<String> tokens = <String>[
+      if (style.decorationColor != null) 'a decoration color',
+      if (thickness != null) 'a decoration thickness',
+    ];
+
+    if (tokens.isNotEmpty) {
+      issues.add(
+        TreeIssue(
+          node: node,
+          message:
+              'A ${node.runtimeType} states ${tokens.join(' and ')} without a '
+              'decoration, so no line is drawn and the tokens do nothing. Name '
+              'the line — TextDecoration.none, lineThrough or underline — or '
+              'drop them.',
+        ),
+      );
+    }
+
+    return;
+  }
+
+  // A box's line reaches every text inside it on the web, and a descendant can
+  // add a line to it but never remove one; in Flutter the inner style simply
+  // replaces the outer. A tree that states a line twice would therefore be drawn
+  // two different ways, so it is reported instead of painted.
+  if (decoratedAbove) {
+    issues.add(
+      TreeIssue(
+        node: node,
+        severity: TreeIssueSeverity.error,
+        message:
+            'A ${node.runtimeType} states decoration: $decoration inside a box '
+            'that already draws one. CSS propagates the line of a box to every '
+            'text inside it and lets a descendant only add to it, so the web '
+            'would draw both and Flutter only the inner one. State the line '
+            'once — on the box that holds the run, or on the run itself.',
+      ),
+    );
+  }
+
+  if (thickness != null && thickness <= 0) {
+    issues.add(
+      TreeIssue(
+        node: node,
+        severity: TreeIssueSeverity.error,
+        message:
+            'A decoration $thickness thick cannot be drawn: a line is a length '
+            'more than zero. Leave decorationThickness unset for the thickness '
+            'the font asks for.',
+      ),
+    );
+  }
 }
 
 /// Walks [node] and records every issue of the subtree into [issues].
@@ -180,6 +263,7 @@ void _validate(
   required UniboxTheme? theme,
   required bool inGrid,
   required double? definiteHeight,
+  required bool decoratedAbove,
   required List<TreeIssue> issues,
 }) {
   _validateRoles(node, theme, issues);
@@ -379,6 +463,23 @@ void _validate(
               'A Box is drawn from $from up to $until, which is empty: the range '
               'is half open, so visibleFrom has to be smaller than visibleUntil.',
         ),
+      );
+    }
+  }
+
+  if (node is TextNode || node is Box) {
+    final BoxTextStyle? typography = switch (node) {
+      final TextNode text => text.computedStyle,
+      final Box box => box.computedStyle.textStyle,
+      _ => null,
+    };
+
+    if (typography != null) {
+      _validateDecoration(
+        node,
+        typography,
+        decoratedAbove: decoratedAbove,
+        issues: issues,
       );
     }
   }
@@ -696,10 +797,22 @@ void _validate(
       theme: theme,
       inGrid: inGrid || node is GridNode,
       definiteHeight: node is GridNode ? null : childDefiniteHeight,
+      decoratedAbove: decoratedAbove || _drawsDecoration(node),
       issues: issues,
     );
   }
 }
+
+/// Whether [node] states a line across the text it holds.
+///
+/// A box states one for the texts inside it, a text for itself; every other node
+/// passes what it was given on, because a grid, a stack or a link neither draws
+/// text nor undoes a line.
+bool _drawsDecoration(UINode node) => switch (node) {
+  final TextNode text => text.computedStyle.decoration != null,
+  final Box box => box.computedStyle.textStyle?.decoration != null,
+  _ => false,
+};
 
 /// The issues of the transition parts of [box], if it declares any.
 ///

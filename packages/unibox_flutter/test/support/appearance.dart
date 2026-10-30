@@ -139,6 +139,7 @@ TextAppearance _textAppearance(
 }) {
   final FontWeight? weight = style?.fontWeight;
   final Color? color = style?.color;
+  final Color? decorationColor = style?.decorationColor;
 
   return TextAppearance(
     fontSize: style?.fontSize,
@@ -147,10 +148,39 @@ TextAppearance _textAppearance(
     lineHeight: style?.height,
     fontFamily: style?.fontFamily,
     letterSpacing: style?.letterSpacing,
+    decoration: _decorationOf(style?.decoration),
+    decorationColor: decorationColor == null
+        ? null
+        : core.BoxColor(decorationColor.toARGB32()),
     textAlign: textAlign == null ? null : _textAlignOf(textAlign),
     maxLines: maxLines,
     overflow: overflow == null ? null : _overflowOf(overflow),
   );
+}
+
+/// The core decoration of a Flutter text decoration.
+///
+/// A Flutter `TextDecoration` is a bitmask that can name several lines at once,
+/// and the model names one: a combination is a renderer that drew more than the
+/// tree asked for, so it is reported rather than rounded to one of the three.
+core.TextDecoration? _decorationOf(TextDecoration? decoration) {
+  if (decoration == null) {
+    return null;
+  }
+
+  if (decoration == TextDecoration.none) {
+    return core.TextDecoration.none;
+  }
+
+  if (decoration == TextDecoration.lineThrough) {
+    return core.TextDecoration.lineThrough;
+  }
+
+  if (decoration == TextDecoration.underline) {
+    return core.TextDecoration.underline;
+  }
+
+  throw StateError('The model has no text decoration for $decoration.');
 }
 
 /// The core weight of a Flutter font weight.

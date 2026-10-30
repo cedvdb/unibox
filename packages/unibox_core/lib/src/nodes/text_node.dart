@@ -24,6 +24,9 @@ class TextNode extends UINode {
     this.lineHeight,
     this.fontFamily,
     this.letterSpacing,
+    this.decoration,
+    this.decorationColor,
+    this.decorationThickness,
     this.textAlign,
     this.maxLines,
     this.overflow,
@@ -67,6 +70,20 @@ class TextNode extends UINode {
   /// Extra space between characters in logical pixels.
   final double? letterSpacing;
 
+  /// The line drawn across the text, or `null` to inherit one.
+  ///
+  /// It is a typography token and not a shape: a struck through price is a line
+  /// the text engine draws through its own line box, so it follows the font size
+  /// and the line height instead of being a box someone positioned over them.
+  final TextDecoration? decoration;
+
+  /// The colour of [decoration], or `null` for [color].
+  final BoxColor? decorationColor;
+
+  /// How thick [decoration] is in logical pixels, or `null` for the thickness the
+  /// font asks for.
+  final double? decorationThickness;
+
   /// The horizontal alignment of the text.
   final TextAlign? textAlign;
 
@@ -91,6 +108,9 @@ class TextNode extends UINode {
       lineHeight: lineHeight,
       fontFamily: fontFamily,
       letterSpacing: letterSpacing,
+      decoration: decoration,
+      decorationColor: decorationColor,
+      decorationThickness: decorationThickness,
     ),
   );
 

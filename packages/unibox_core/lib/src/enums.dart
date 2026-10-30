@@ -252,6 +252,27 @@ enum FontWeight {
   bold,
 }
 
+/// A line drawn across a run of text.
+///
+/// Three of CSS's five values are here, and the two that are missing are missing
+/// for one reason: both targets have to draw the same line. `overline` has no
+/// counterpart in Flutter's `TextDecoration`, and `double` and `wavy` are style
+/// values CSS draws itself — Flutter paints one solid line and would silently
+/// draw something else. `none` is a value rather than an absence because it is
+/// how a run of text takes back a decoration: a link's underline, a struck
+/// through price in a card that strikes nothing else.
+enum TextDecoration {
+  /// No line at all.
+  none,
+
+  /// A line through the middle of the text, the way the price that is no longer
+  /// paid is struck through.
+  lineThrough,
+
+  /// A line under the text.
+  underline,
+}
+
 /// Horizontal alignment of text inside its bounds.
 enum TextAlign {
   /// Align text to the left edge (start for left-to-right text).

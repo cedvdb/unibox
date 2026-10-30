@@ -187,12 +187,35 @@ never inherited (CSS does not inherit them either).
   because both answer the same entry, one target cannot be relaxed without the
   other failing.
 - The contract stops where the two platforms stop agreeing, and it says so: what
-  is compared is what a renderer *declares* — layout, spacing, paint, the six
+  is compared is what a renderer *declares* — layout, spacing, paint, the
   typography tokens, alignment and truncation — never what a text engine makes of
   it. Glyph rasterisation, hinting and line breaking belong to the engine, and
   `unibox_testing/README.md` has the table that says which is which. One
   length is exempt from that, because both sides compute it the same way: a line
   box is `fontSize * lineHeight` on both.
+- A line across a run of text is a typography token, not a shape. `decoration`,
+  `decorationColor` and `decorationThickness` live on `BoxTextStyle` and on
+  `TextNode`, because a struck through price is not geometry: the tree it used to
+  need — a `StackNode` and a one pixel box positioned over the middle of a line —
+  breaks the moment the type scale changes, and states a line the text engine
+  already knows how to draw through its own line box.
+  - Three of CSS's five decoration lines are in the model — `none`, `lineThrough`,
+    `underline` — and the two that are out are out for the parity rule: `overline`
+    has no counterpart in Flutter's `TextDecoration`, and `double` and `wavy` are
+    styles a browser draws itself while Flutter paints one solid line, so a tree
+    that asked for either would be honoured on one target and approximated on the
+    other. `none` is a value rather than an absence so a style bag can state it
+    after a base that underlines.
+  - A line is stated **once**. A browser propagates a box's line to every text
+    inside it and lets a descendant add a line but never remove one, while Flutter
+    lets the inner `TextStyle` replace the outer; a decoration stated below a
+    decorated box would therefore be drawn twice on the web and once in the app, so
+    `validateTree` reports it.
+  - `decorationThickness` is a length in logical pixels, which is what
+    `text-decoration-thickness` takes. Flutter has no absolute thickness — its
+    `TextStyle.decorationThickness` is a multiple of the thickness the font asks for
+    — so the app draws the font's own line and the token is the second documented
+    asymmetry, beside `srcSet`, rather than a number two targets spell differently.
 - The default typography is part of the model, not of a host: renderers install
   `BoxTextStyle.defaults` at the root of the tree they render — a
   `DefaultTextStyle` around the widget tree, a `:root` rule on the page — because

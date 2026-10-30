@@ -119,6 +119,7 @@ void main() {
 
     test('states a weight as a number rather than a name', () {
       // `bold` resolves differently in different fonts; 700 does not.
+      expect(cssFontWeight(core.FontWeight.light), '300');
       expect(cssFontWeight(core.FontWeight.normal), '400');
       expect(cssFontWeight(core.FontWeight.medium), '500');
       expect(cssFontWeight(core.FontWeight.semiBold), '600');
@@ -161,6 +162,58 @@ void main() {
 
     test('is left out entirely when the style states nothing', () {
       expect(typographyDeclarations(const core.BoxTextStyle()), isNull);
+    });
+
+    test('writes a decoration, and what paints it, in an order a browser reads', () {
+      // The shorthand resets the colour and the thickness, so it has to be the
+      // first of the three for the other two to win.
+      final CssDeclarations? declarations = typographyDeclarations(
+        const core.BoxTextStyle(
+          decoration: core.TextDecoration.lineThrough,
+          decorationColor: core.BoxColor(0xFF1A1C22),
+          decorationThickness: 2,
+        ),
+      );
+
+      expect(
+        declarations!.text,
+        'text-decoration:line-through;text-decoration-color:#1a1c22;'
+        'text-decoration-thickness:2px',
+      );
+    });
+
+    test('keeps a struck through line when the run has no other token', () {
+      // A decoration is typography, so a node that declares only a line still
+      // declares something: the class must not come out empty.
+      final CssDeclarations? declarations = typographyDeclarations(
+        const core.BoxTextStyle(decoration: core.TextDecoration.none),
+      );
+
+      expect(declarations!.text, 'text-decoration:none');
+    });
+
+    test('names each decoration the way CSS names it', () {
+      expect(cssTextDecoration(core.TextDecoration.none), 'none');
+      expect(
+        cssTextDecoration(core.TextDecoration.lineThrough),
+        'line-through',
+      );
+      expect(cssTextDecoration(core.TextDecoration.underline), 'underline');
+    });
+
+    test('writes a role decoration colour as a custom property', () {
+      final CssDeclarations? declarations = typographyDeclarations(
+        const core.BoxTextStyle(
+          decoration: core.TextDecoration.underline,
+          decorationColor: core.BoxColor.role(_Role.primary),
+        ),
+      );
+
+      expect(
+        declarations!.text,
+        'text-decoration:underline;'
+        'text-decoration-color:var(--unibox-color-primary)',
+      );
     });
 
     test('starts from the model defaults, with the platform font family', () {

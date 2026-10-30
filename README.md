@@ -407,6 +407,9 @@ TextNode('Join Unibox', fontSize: 22, fontWeight: FontWeight.bold);
 | `lineHeight` | `double?` | inherited | Multiple of the font size. A line box is `fontSize * lineHeight` tall on both targets. |
 | `fontFamily` | `String?` | the platform's UI font | One family name, resolved by the host. |
 | `letterSpacing` | `double?` | inherited | Extra space between characters, in logical pixels. |
+| `decoration` | `TextDecoration?` | inherited | The line drawn across the text: `none`, `lineThrough` or `underline`. |
+| `decorationColor` | `BoxColor?` | the glyph colour | The colour of that line. |
+| `decorationThickness` | `double?` | the font's own | How thick the line is, in logical pixels. |
 | `textAlign` | `TextAlign?` | start | `left`, `center`, `right`, `justify`. |
 | `padding` | `BoxSpacing?` | none | The space inside the field; padding on the box around it sits outside the control. |
 | `maxLines` | `int?` | unlimited | Number of lines the text may occupy. |
@@ -827,6 +830,31 @@ same in an app and on a page; Flutter would have used 14 pixels and a browser 16
 The one value the model leaves to the host is the **font family**, because a font
 file is an asset: unset means "the platform's UI font" on both targets, and an app
 that wants its own ships the same file to both.
+
+**A line through the text is typography, not a shape.** A price that is no longer
+paid is struck through by a token, so the line follows the font size and the line
+height instead of being a one pixel box positioned over the middle of a line:
+
+```dart
+Box(
+  textStyle: BoxTextStyle(color: BoxColor.rgb(0x6B, 0x72, 0x80)),
+  direction: Axis.horizontal,
+  gap: 8,
+  children: <UINode>[
+    TextNode('€1 200', fontSize: 20, decoration: TextDecoration.lineThrough),
+    TextNode('€940', fontSize: 20, color: BoxColor.black),
+  ],
+);
+```
+
+`decoration` is inherited like the rest of the typography, so a box can strike
+through the texts it holds. A line is stated **once** — by the box or by the run,
+never by both: a browser propagates the line of a box to every text inside it and
+lets a descendant only add to it, where Flutter lets the inner style replace it, so
+the overlap is one of the trees `validateTree` reports. The colour defaults to the
+colour of the glyphs and the thickness to the one the font asks for (a thickness in
+pixels is a web-only token: Flutter can only scale the thickness the font already
+draws, so it draws the font's own).
 
 A scale can be written by hand, as the example does, or taken ready made:
 [`unibox_material`](packages/unibox_material/README.md) holds the Material 3 type

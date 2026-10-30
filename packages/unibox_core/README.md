@@ -53,6 +53,7 @@ and the difference would show:
 | --- | --- |
 | `Box.direction`, `mainAlign`, `crossAlign` | a column, laid out from the start (`BoxStyle.resolvedDirection`) |
 | any typography token | `BoxTextStyle.defaults` |
+| `decoration` | no line; and a line a box states reaches every text inside it, so a text that states its own below it is reported |
 | `ImageNode.fit` | `ImageFit.scaleDown` (`ImageNode.resolvedFit`), i.e. `BoxFit.scaleDown` and `object-fit: scale-down` |
 | `TextInputNode` chrome | none on either target: no border, padding, background, focus ring or resize grip, and the typography of the tree |
 | `StackNode` clipping | none, and a child that is not positioned keeps its own size |
