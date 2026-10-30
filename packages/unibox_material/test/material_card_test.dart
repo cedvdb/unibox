@@ -22,17 +22,17 @@ void main() {
       expect(card.children, isEmpty);
     });
 
-    test('draws the three layers of elevation level one, cast at 87%', () {
+    test('draws the three layers of elevation level one, cast at 79%', () {
       const List<BoxShadow> shadows = MaterialCard.elevatedShadows;
 
       // The framework's own card: an umbra under the edge, its penumbra and the wide
-      // ambient layer that reads as height — in black at 87%, placed where a `Material`
+      // ambient layer that reads as height — in black at 79%, placed where a `Material`
       // paints them, which is what keeps a card from reading heavier than the one beside it.
       expect(shadows, hasLength(3));
       expect(shadows.first.spreadRadius, -1);
-      expect(shadows.first.color.opacity, closeTo(0.174, 0.01));
-      expect(shadows.last.blurRadius, 5);
-      expect(shadows.last.color.opacity, closeTo(0.106, 0.01));
+      expect(shadows.first.color.opacity, closeTo(0.157, 0.01));
+      expect(shadows.last.blurRadius, 4);
+      expect(shadows.last.color.opacity, closeTo(0.094, 0.01));
     });
 
     test('keeps the children it is given, in order', () {

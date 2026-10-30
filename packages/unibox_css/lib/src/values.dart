@@ -215,13 +215,13 @@ String cssBoxShadow(core.BoxShadow shadow) => <String>[
 /// `BoxShadow.toPaint` uses — while a browser reads a `blur-radius` of `b` as a gaussian of
 /// `b / 2`. Written through untouched, one token paints two shadows: a card's level one
 /// blur of two is a deviation of 1.65 in the application and of one in the browser, so the
-/// shadow under its edge read 65, 39, 21, 11, 5 — darkness out of 255, row by row below the
-/// card — on the page where the app read 56, 40, 28, 17, 9: darker at the edge and gone
-/// sooner, which is a card that reads as raised higher than the one beside it.
+/// shadow under its edge read 60, 34, 19, 10, 4, 1 — darkness out of 255, row by row below
+/// the card — on the page where the app read 55, 39, 25, 14, 7, 3: darker at the edge and
+/// gone sooner, which is a card that reads as raised higher than the one beside it.
 ///
 /// So the number is inverted on the way out: `2 * (0.57735 * r + 0.5)`, to two decimals,
-/// which is finer than a blur can be seen. The same card then reads 60, 43, 28, 16, 8, 4, 2
-/// against the app's 56, 40, 28, 17, 9, 3, 1.
+/// which is finer than a blur can be seen. The same card then reads 54, 40, 23, 12, 5, 2
+/// against the app's 55, 39, 25, 14, 7, 3.
 ///
 /// A radius of nothing stays nothing. Flutter's formula leaves half a pixel of standard
 /// deviation there, which is invisible, where a whole CSS pixel of it would not be: a

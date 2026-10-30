@@ -15,11 +15,20 @@ import 'package:unibox_core/unibox_core.dart';
 /// further as the surface rises. Copied as written, the map's three layers are too dark at
 /// the edge — 29% black under a card where the framework peaks at 22% — and gone within
 /// four pixels where its shadow fades over seven. So the layers keep their roles and their
-/// opacities at 87% of the map's (20, 14 and 12% black become 17, 12 and 11), and each
+/// opacities at 79% of the map's (20, 14 and 12% black become 16, 11 and 9), and each
 /// level's geometry is placed where `drawShadow` puts its own: about `0 2px 2px`, `0 4px
-/// 4px` and `0 3px 5px` at one dp, growing to `0 3px 5px`, `0 7px 12px` and `0 8px 18px` at
+/// 4px` and `0 3px 4px` at one dp, growing to `0 3px 5px`, `0 7px 12px` and `0 8px 18px` at
 /// five. Nothing is thrown further from the surface than that, which is what keeps a
 /// shadow reading as a shadow and not as a stain under the card.
+///
+/// **A ceiling, not a fit.** A card's shadow is read against the framework's own, and one
+/// that overshoots by a few per cent reads as a card raised higher than the card beside it.
+/// So the share is chosen to sit *at most* where `drawShadow` paints: a card reads 55, 39,
+/// 25, 14, 7, 3, 1 under its edge — darkness out of 255, row by row — where the framework
+/// reads 56, 40, 28, 17, 9, 3, 1, and nowhere beside it does it read more either. Level one's
+/// ambient layer stops a pixel shorter for that reason: at five it carried the last two rows
+/// past the framework's, where a blur that reaches as far is worth less than one that never
+/// comes out heavier.
 ///
 /// The example's Flutter suite is what keeps the two together: it pumps a card and a real
 /// `Material` of the same height, rasterises both, and compares the pixels under and beside
@@ -42,7 +51,7 @@ abstract final class MaterialElevation {
   static const List<BoxShadow> level1 = <BoxShadow>[
     BoxShadow(color: _umbra, offsetY: 2, blurRadius: 2, spreadRadius: -1),
     BoxShadow(color: _penumbra, offsetY: 4, blurRadius: 4, spreadRadius: -2),
-    BoxShadow(color: _ambient, offsetY: 3, blurRadius: 5, spreadRadius: -2),
+    BoxShadow(color: _ambient, offsetY: 3, blurRadius: 4, spreadRadius: -2),
   ];
 
   /// Level two: a card under the pointer, a menu about to open.
@@ -90,15 +99,15 @@ abstract final class MaterialElevation {
   static const List<BoxShadow> sheet = <BoxShadow>[
     BoxShadow(color: _umbra, offsetY: -2, blurRadius: 2, spreadRadius: -1),
     BoxShadow(color: _penumbra, offsetY: -4, blurRadius: 4, spreadRadius: -2),
-    BoxShadow(color: _ambient, offsetY: -3, blurRadius: 5, spreadRadius: -2),
+    BoxShadow(color: _ambient, offsetY: -3, blurRadius: 4, spreadRadius: -2),
   ];
 
-  /// The layer nearest the edge: the framework's umbra, 20% black at 87%.
-  static const BoxColor _umbra = BoxColor(0x2C000000);
+  /// The layer nearest the edge: the framework's umbra, 20% black at 79%.
+  static const BoxColor _umbra = BoxColor(0x28000000);
 
-  /// The layer beside it: 14% black at 87%.
-  static const BoxColor _penumbra = BoxColor(0x1F000000);
+  /// The layer beside it: 14% black at 79%.
+  static const BoxColor _penumbra = BoxColor(0x1C000000);
 
-  /// The wide, soft layer that reads as height: 12% black at 87%.
-  static const BoxColor _ambient = BoxColor(0x1B000000);
+  /// The wide, soft layer that reads as height: 12% black at 79%.
+  static const BoxColor _ambient = BoxColor(0x18000000);
 }

@@ -313,7 +313,7 @@ the conformance table already pins — the class is a combination, not a new tok
 | padding | `16` on every edge | the room Material gives card content |
 | background | `BoxColors.white` | the surface, until a colour scheme exists |
 | radius | `12` | the medium shape of Material 3 |
-| shadows | `MaterialCard.elevatedShadows` — `MaterialElevation.level1` | elevation level one: the framework's three layers, cast in black at 87% |
+| shadows | `MaterialCard.elevatedShadows` — `MaterialElevation.level1` | elevation level one: the framework's three layers, cast in black at 79% |
 | typography | `MaterialTypography.bodyMedium` | inherited by the texts inside |
 | layout | a column (`Box`'s default), with `crossAlign: stretch` | a card stacks its content and stretches it to the card, so a row of it spans the width |
 
@@ -938,11 +938,11 @@ what is chosen through its own `pressed`.
 Material states five levels for a raised surface, and a level here is what the framework
 *paints* at that height in the shape Flutter's own table gives: three layers — an umbra at
 the edge, its penumbra, and the wide ambient layer that reads as height — in that table's
-opacities at 87% of black. A box takes a list of `BoxShadow`s, so a level is all three.
+opacities at 79% of black. A box takes a list of `BoxShadow`s, so a level is all three.
 
 | Level | Umbra | Penumbra | Ambient | Material gives it to |
 | --- | --- | --- | --- | --- |
-| `level1` | `0 2px 2px -1px` | `0 4px 4px -2px` | `0 3px 5px -2px` | a card, a sheet, a raised button |
+| `level1` | `0 2px 2px -1px` | `0 4px 4px -2px` | `0 3px 4px -2px` | a card, a sheet, a raised button |
 | `level2` | `0 2px 3px -1px` | `0 5px 6px -2px` | `0 5px 8px -2px` | a card under the pointer |
 | `level3` | `0 3px 4px -1px` | `0 6px 8px -2px` | `0 6px 11px -3px` | a dialog, a date picker, a floating action button |
 | `level4` | `0 3px 4px -1px` | `0 6px 10px -2px` | `0 7px 14px -3px` | a drawer as it opens |
@@ -956,21 +956,28 @@ not the one a `Material` draws: a `Card` hands a single opaque colour to
 shadow that falls further as the surface rises. Copied as written, the map's three layers
 composite to 29% black under a card's edge where the framework peaks at 22%, and they are
 gone within four pixels where its shadow fades over seven. The columns above keep the map's
-roles, its stretches and its opacities at 87%, and place each layer where `drawShadow` puts
+roles, its stretches and its opacities at 79%, and place each layer where `drawShadow` puts
 its own — no layer more than eight pixels from the surface, and the reach still rising with
 the level.
+
+**A ceiling, not a fit.** A card's shadow is read against the framework's own, and one that
+overshoots by a few per cent reads as a card raised higher than the card beside it, so every
+level is chosen to come in *under* what `drawShadow` paints rather than around it. Level one's
+ambient layer stops at four pixels of blur rather than five for the same reason: at five the
+last two rows of its falloff came out a shade heavier than the framework's, and a shadow that
+never comes out heavier is worth more than one that reaches as far.
 
 The example's Flutter suite is what keeps the two in step, and it compares drawings rather
 than tables: it pumps a card and a real `Material` of the same height, rasterises both, and
 holds the first five rows under the edge and the first four columns beside it to within a
-twentieth of the page's contrast. Measured that way a card reads `60, 43, 28, 18, 10` where
-Flutter reads `56, 40, 28, 17, 9`, and a card at three dp reads `66, 57, 48, 39, 31` against
-`62, 56, 50, 45, 40` — close at the edge and through the first few pixels, where a shadow is
-read, and still shorter in the far tail because three symmetric blurs cannot follow a light
-model's asymmetry.
+twentieth of the page's contrast. Measured that way a card reads `55, 39, 25, 14, 7` where
+Flutter reads `56, 40, 28, 17, 9`, and `15, 6, 3` beside its edge where Flutter reads `21, 9,
+3` — under it at every sample, and still shorter in the far tail, because three symmetric
+blurs cannot follow a light model's asymmetry. A card at three dp reads `60, 52, 44, 35, 28`
+against `62, 56, 50, 45, 40`.
 
 **A level is also a surface.** Material states elevation twice over, and the tonal half
-is the half that shows: three shadows at 20, 14 and 12% barely read on a page of the same
+is the half that shows: three shadows at 16, 11 and 9% barely read on a page of the same
 tone. `level1` goes with `surfaceContainerLow`, `level2` with `surfaceContainer` and
 `level3` with `surfaceContainerHigh`, so a card raised higher takes both halves:
 

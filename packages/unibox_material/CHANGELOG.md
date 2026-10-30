@@ -16,18 +16,21 @@
   sheet is asked for once: the first press in a place writes 30 rules, and a press after it
   writes none. The ripple paints the same pixels it did — a circle scaled is a circle.
 
-- `MaterialElevation` is calibrated to what a Flutter card paints. The three layers — umbra,
-  penumbra, ambient — keep the map's roles and stretch at 87% of its opacities, and each
-  level's offsets, blurs and spreads now match `Canvas.drawShadow` at that height: a card
-  reads `60, 43, 28, 18, 10` under its edge where Flutter reads `56, 40, 28, 17, 9`, and no
-  layer sits more than eight pixels from the surface. Two earlier readings are gone: the map
-  copied as written (29% black under a card's edge against the framework's 22%, and gone
-  within four pixels against its seven), and a pixel fit that matched the profile only by
-  throwing the shadow up to fifteen pixels down the page, which read as a stain rather than a
-  shadow. The example's Flutter suite now rasterises a card beside a real `Material` at the
-  same height and compares the pixels, rather than comparing the list with a table.
-  `MaterialCard.elevatedShadow` is `elevatedShadows` now, and every component passes the
-  list a box takes.
+- `MaterialElevation` is calibrated to what a Flutter card paints, as a ceiling rather than a
+  match. The three layers — umbra, penumbra, ambient — keep the map's roles and stretch at 79%
+  of its opacities, and each level's offsets, blurs and spreads follow `Canvas.drawShadow` at
+  that height: a card reads `55, 39, 25, 14, 7` under its edge where Flutter reads `56, 40, 28,
+  17, 9`, and `15, 6, 3` beside it where Flutter reads `21, 9, 3`, so no pixel of a shadow is
+  heavier than the framework's — a shadow that overshoots by a few per cent reads as a surface
+  raised higher than the one beside it. Level one's ambient layer stops at four pixels of blur
+  rather than the map's five, because at five its last two rows came out a shade past the
+  framework's. Two earlier readings are gone: the map copied as written (29% black under a
+  card's edge against the framework's 22%, and gone within four pixels against its seven), and a
+  pixel fit that matched the profile only by throwing the shadow up to fifteen pixels down the
+  page, which read as a stain rather than a shadow. The example's Flutter suite now rasterises a
+  card beside a real `Material` at the same height and compares the pixels, rather than
+  comparing the list with a table. `MaterialCard.elevatedShadow` is `elevatedShadows` now, and
+  every component passes the list a box takes.
 - A text button is 40 pixels tall, like the other three shapes. It painted 36: Material's
   40 is a minimum size, and the text shape's 12 by 8 of room added up to less than that
   while the three filled shapes reached it with 20 by 10. All four now paint the same

@@ -13,45 +13,45 @@ import 'package:unibox_material/unibox_material.dart';
 void main() {
   group('MaterialElevation', () {
     test('states three layers, placed where the framework paints them', () {
-      // The map's roles — umbra, penumbra, ambient — and the map's opacities at 87%, with
+      // The map's roles — umbra, penumbra, ambient — and the map's opacities at 79%, with
       // each level's offsets, blurs and spreads measured against what `Canvas.drawShadow`
       // puts on the page at that height. This package has no Flutter to ask, so the numbers
       // are written down here; the example's Flutter suite is what compares the pixels.
       expect(MaterialElevation.level1, const <BoxShadow>[
         BoxShadow(
-          color: BoxColor(0x2C000000),
+          color: BoxColor(0x28000000),
           offsetY: 2,
           blurRadius: 2,
           spreadRadius: -1,
         ),
         BoxShadow(
-          color: BoxColor(0x1F000000),
+          color: BoxColor(0x1C000000),
           offsetY: 4,
           blurRadius: 4,
           spreadRadius: -2,
         ),
         BoxShadow(
-          color: BoxColor(0x1B000000),
+          color: BoxColor(0x18000000),
           offsetY: 3,
-          blurRadius: 5,
+          blurRadius: 4,
           spreadRadius: -2,
         ),
       ]);
       expect(MaterialElevation.level2, const <BoxShadow>[
         BoxShadow(
-          color: BoxColor(0x2C000000),
+          color: BoxColor(0x28000000),
           offsetY: 2,
           blurRadius: 3,
           spreadRadius: -1,
         ),
         BoxShadow(
-          color: BoxColor(0x1F000000),
+          color: BoxColor(0x1C000000),
           offsetY: 5,
           blurRadius: 6,
           spreadRadius: -2,
         ),
         BoxShadow(
-          color: BoxColor(0x1B000000),
+          color: BoxColor(0x18000000),
           offsetY: 5,
           blurRadius: 8,
           spreadRadius: -2,
@@ -59,19 +59,19 @@ void main() {
       ]);
       expect(MaterialElevation.level3, const <BoxShadow>[
         BoxShadow(
-          color: BoxColor(0x2C000000),
+          color: BoxColor(0x28000000),
           offsetY: 3,
           blurRadius: 4,
           spreadRadius: -1,
         ),
         BoxShadow(
-          color: BoxColor(0x1F000000),
+          color: BoxColor(0x1C000000),
           offsetY: 6,
           blurRadius: 8,
           spreadRadius: -2,
         ),
         BoxShadow(
-          color: BoxColor(0x1B000000),
+          color: BoxColor(0x18000000),
           offsetY: 6,
           blurRadius: 11,
           spreadRadius: -3,
@@ -79,19 +79,19 @@ void main() {
       ]);
       expect(MaterialElevation.level4, const <BoxShadow>[
         BoxShadow(
-          color: BoxColor(0x2C000000),
+          color: BoxColor(0x28000000),
           offsetY: 3,
           blurRadius: 4,
           spreadRadius: -1,
         ),
         BoxShadow(
-          color: BoxColor(0x1F000000),
+          color: BoxColor(0x1C000000),
           offsetY: 6,
           blurRadius: 10,
           spreadRadius: -2,
         ),
         BoxShadow(
-          color: BoxColor(0x1B000000),
+          color: BoxColor(0x18000000),
           offsetY: 7,
           blurRadius: 14,
           spreadRadius: -3,
@@ -99,19 +99,19 @@ void main() {
       ]);
       expect(MaterialElevation.level5, const <BoxShadow>[
         BoxShadow(
-          color: BoxColor(0x2C000000),
+          color: BoxColor(0x28000000),
           offsetY: 3,
           blurRadius: 5,
           spreadRadius: -1,
         ),
         BoxShadow(
-          color: BoxColor(0x1F000000),
+          color: BoxColor(0x1C000000),
           offsetY: 7,
           blurRadius: 12,
           spreadRadius: -2,
         ),
         BoxShadow(
-          color: BoxColor(0x1B000000),
+          color: BoxColor(0x18000000),
           offsetY: 8,
           blurRadius: 18,
           spreadRadius: -4,
@@ -167,7 +167,7 @@ void main() {
       'casts one shade per layer, so a surface does not darken with height',
       () {
         // `kElevationToShadow`'s three layers — 20% black under the edge, 14% beside it and
-        // 12% in the ambient blur — the same three at every level, each cast at 87%.
+        // 12% in the ambient blur — the same three at every level, each cast at 79%.
         final List<List<BoxShadow>> levels = <List<BoxShadow>>[
           MaterialElevation.level1,
           MaterialElevation.level2,
@@ -186,11 +186,11 @@ void main() {
 
         expect(
           MaterialElevation.level3.first.color.opacity,
-          closeTo(0.174, 0.01),
+          closeTo(0.157, 0.01),
         );
         expect(
           MaterialElevation.level3.last.color.opacity,
-          closeTo(0.106, 0.01),
+          closeTo(0.094, 0.01),
         );
       },
     );
