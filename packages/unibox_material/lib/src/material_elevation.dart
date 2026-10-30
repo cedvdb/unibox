@@ -2,37 +2,33 @@ import 'package:unibox_core/unibox_core.dart';
 
 /// Material 3's elevation levels, as the shadow each one casts.
 ///
-/// The shape is the map's and the numbers are the framework's: three layers — an umbra at
-/// the edge, its penumbra, and the wide ambient layer that reads as height — with the
-/// offsets, blurs and spreads measured against what a `Material` actually paints at each
-/// height, so a card here casts the shadow the card beside it casts in a Flutter
-/// application.
+/// A level is **one shadow**. Material's ladder is a single shade that grows wider and
+/// falls further as a surface rises, not a stack of layers: five heights, one shade each.
 ///
-/// **Why not `kElevationToShadow` as written.** That map is what Flutter states for a
-/// widget that *needs* a `BoxShadow` list — a menu's panel, a switch's thumb — and not the
-/// one a `Material` draws: a `Card` hands a single opaque colour to `Canvas.drawShadow`,
-/// which spends it through a light model and paints one softer, wider layer that falls
-/// further as the surface rises. Copied as written, the map's three layers are too dark at
-/// the edge — 29% black under a card where the framework peaks at 22% — and gone within
-/// four pixels where its shadow fades over seven. So the layers keep their roles and their
-/// opacities at 79% of the map's (20, 14 and 12% black become 16, 11 and 9), and each
-/// level's geometry is placed where `drawShadow` puts its own: about `0 2px 2px`, `0 4px
-/// 4px` and `0 3px 4px` at one dp, growing to `0 3px 5px`, `0 7px 12px` and `0 8px 18px` at
-/// five. Nothing is thrown further from the surface than that, which is what keeps a
-/// shadow reading as a shadow and not as a stain under the card.
+/// **Where the numbers come from.** `doc/shadows_material_3_pink_seed.png` in this
+/// package is the ladder this package copies — six cards, levels 0 to 5, a pink seed
+/// palette. Its rows were read back out of the image one pixel at a time: a 120 dp card at
+/// 2x, so every row below its bottom edge is half a dp. Under level one the page reads
+/// `54, 32, 14, 4, 0` — darkness out of 255 — and clears within two and a half dp; under
+/// level five it reads `65, 60, 54, 49, 44, 40, 36, 32` and still fades at ten. Each level
+/// here is the gaussian that paints those rows, within three parts of 255 of them, and both
+/// renderers are held to that one shape: the model states a blur radius in Flutter's unit,
+/// and `unibox_css` writes the CSS radius that paints the same deviation. A level therefore
+/// looks the same in a browser as in a Flutter application, which is the one thing a design
+/// system's elevations have to do.
 ///
-/// **A ceiling, not a fit.** A card's shadow is read against the framework's own, and one
-/// that overshoots by a few per cent reads as a card raised higher than the card beside it.
-/// So the share is chosen to sit *at most* where `drawShadow` paints: a card reads 55, 39,
-/// 25, 14, 7, 3, 1 under its edge — darkness out of 255, row by row — where the framework
-/// reads 56, 40, 28, 17, 9, 3, 1, and nowhere beside it does it read more either. Level one's
-/// ambient layer stops a pixel shorter for that reason: at five it carried the last two rows
-/// past the framework's, where a blur that reaches as far is worth less than one that never
-/// comes out heavier.
+/// **Why not `kElevationToShadow`.** That map is the shadow Flutter states for a widget that
+/// needs a `BoxShadow` list — a menu's panel, a switch's thumb — and it is three times wider
+/// than this ladder: at level one it fades after four dp and reads `72, 37, 15, 5, 2`. Copied
+/// from it, a card on the page read a level higher than the card in the design file, which is
+/// the drift this scale exists to prevent.
 ///
-/// The example's Flutter suite is what keeps the two together: it pumps a card and a real
-/// `Material` of the same height, rasterises both, and compares the pixels under and beside
-/// the edge — a comparison this pure Dart package cannot make itself.
+/// **Why not what a `Card` paints, either.** A `Card` hands one opaque colour to
+/// `Canvas.drawShadow`, which spends it through a light model; that shade reads `56, 40, 28,
+/// 17, 9` below its edge — unlike the map, and unlike this ladder, in the middle. So this
+/// package follows the design file, and a card drawn from it sits tighter than Flutter's own:
+/// a documented difference rather than a coincidence, and the example's suite pins it against
+/// the ladder's numbers rather than against a `Card`.
 ///
 /// **A level is also a surface.** Material states elevation twice over — the shadow a
 /// surface casts, and the tone it is tinted with — so [level1] goes with
@@ -47,67 +43,62 @@ import 'package:unibox_core/unibox_core.dart';
 abstract final class MaterialElevation {
   /// Level one: a resting card, a sheet, a raised button.
   ///
-  /// Flutter's `kElevationToShadow[1]`.
+  /// The ladder's `Level 1` — `54, 33, 15, 5, 1` under the edge against its `54, 32, 14, 4,
+  /// 0`, and clear by two and a half dp.
   static const List<BoxShadow> level1 = <BoxShadow>[
-    BoxShadow(color: _umbra, offsetY: 2, blurRadius: 2, spreadRadius: -1),
-    BoxShadow(color: _penumbra, offsetY: 4, blurRadius: 4, spreadRadius: -2),
-    BoxShadow(color: _ambient, offsetY: 3, blurRadius: 4, spreadRadius: -2),
+    BoxShadow(color: _restingShade, offsetY: 0.55, blurRadius: 0.61),
   ];
 
   /// Level two: a card under the pointer, a menu about to open.
   ///
-  /// Flutter's `kElevationToShadow[2]`.
+  /// `59, 48, 37, 26, 18, 11, 6, 3` under the edge, against the ladder's `62, 48, 37, 27,
+  /// 18, 11, 6, 3, 1`: the level a card climbs to when the pointer rests on it.
   static const List<BoxShadow> level2 = <BoxShadow>[
-    BoxShadow(color: _umbra, offsetY: 2, blurRadius: 3, spreadRadius: -1),
-    BoxShadow(color: _penumbra, offsetY: 5, blurRadius: 6, spreadRadius: -2),
-    BoxShadow(color: _ambient, offsetY: 5, blurRadius: 8, spreadRadius: -2),
+    BoxShadow(color: _shade, offsetY: 0.95, blurRadius: 2.35),
   ];
 
   /// Level three: a dialog, a date picker, a floating action button.
   ///
-  /// Flutter's `kElevationToShadow[3]`.
+  /// `62, 55, 47, 40, 33, 26, 20, 15` against the ladder's `64, 54, 45, 39, 32, 26, 19,
+  /// 14`.
   static const List<BoxShadow> level3 = <BoxShadow>[
-    BoxShadow(color: _umbra, offsetY: 3, blurRadius: 4, spreadRadius: -1),
-    BoxShadow(color: _penumbra, offsetY: 6, blurRadius: 8, spreadRadius: -2),
-    BoxShadow(color: _ambient, offsetY: 6, blurRadius: 11, spreadRadius: -3),
+    BoxShadow(color: _shade, offsetY: 1.25, blurRadius: 3.9),
   ];
 
   /// Level four: a navigation drawer under the pointer.
   ///
-  /// Flutter's `kElevationToShadow[4]`.
+  /// `64, 58, 52, 47, 41, 35, 30, 25` against the ladder's `64, 58, 51, 45, 40, 35, 30,
+  /// 25`.
   static const List<BoxShadow> level4 = <BoxShadow>[
-    BoxShadow(color: _umbra, offsetY: 3, blurRadius: 4, spreadRadius: -1),
-    BoxShadow(color: _penumbra, offsetY: 6, blurRadius: 10, spreadRadius: -2),
-    BoxShadow(color: _ambient, offsetY: 7, blurRadius: 14, spreadRadius: -3),
+    BoxShadow(color: _shade, offsetY: 1.55, blurRadius: 5.02),
   ];
 
   /// Level five: the highest surface Material states.
   ///
-  /// Material's fifth level is five dp, which `kElevationToShadow` does not list, so this
-  /// is the framework's next entry — `kElevationToShadow[6]`.
+  /// `63, 58, 53, 49, 44, 39, 35, 31` against the ladder's `65, 60, 54, 49, 44, 40, 36,
+  /// 32`.
   static const List<BoxShadow> level5 = <BoxShadow>[
-    BoxShadow(color: _umbra, offsetY: 3, blurRadius: 5, spreadRadius: -1),
-    BoxShadow(color: _penumbra, offsetY: 7, blurRadius: 12, spreadRadius: -2),
-    BoxShadow(color: _ambient, offsetY: 8, blurRadius: 18, spreadRadius: -4),
+    BoxShadow(color: _shade, offsetY: 1.9, blurRadius: 6.5),
   ];
 
   /// Level one, cast upwards: the shadow a sheet throws over the page it covers.
   ///
   /// A sheet leaves the bottom of the screen, so its height reads above it rather than
-  /// below it — the one place Material mirrors a level instead of using it. The umbra's
-  /// spread is not mirrored, exactly as the framework's entries are not.
+  /// below it — the one place Material mirrors a level instead of using it.
   static const List<BoxShadow> sheet = <BoxShadow>[
-    BoxShadow(color: _umbra, offsetY: -2, blurRadius: 2, spreadRadius: -1),
-    BoxShadow(color: _penumbra, offsetY: -4, blurRadius: 4, spreadRadius: -2),
-    BoxShadow(color: _ambient, offsetY: -3, blurRadius: 4, spreadRadius: -2),
+    BoxShadow(color: _restingShade, offsetY: -0.55, blurRadius: 0.61),
   ];
 
-  /// The layer nearest the edge: the framework's umbra, 20% black at 79%.
-  static const BoxColor _umbra = BoxColor(0x28000000);
+  /// The shade every level above the first is cast in: black at 40%.
+  ///
+  /// The ladder barely darkens as it rises — the shade holds and the reach grows — so a
+  /// surface that climbs the scale reads as further away rather than as dirtier, and the
+  /// tone that goes with a level is what carries most of its weight.
+  static const BoxColor _shade = BoxColor(0x66000000);
 
-  /// The layer beside it: 14% black at 79%.
-  static const BoxColor _penumbra = BoxColor(0x1C000000);
-
-  /// The wide, soft layer that reads as height: 12% black at 79%.
-  static const BoxColor _ambient = BoxColor(0x18000000);
+  /// The shade level one is cast in: black at 34%.
+  ///
+  /// Level one is a shade softer than the rest, which is what the ladder shows under a
+  /// resting card: the first level of anything reads as the surface still touching the page.
+  static const BoxColor _restingShade = BoxColor(0x57000000);
 }

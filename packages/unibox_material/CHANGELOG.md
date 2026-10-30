@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- **The elevation scale is the design file's ladder, not Flutter's drawing.** A level is now
+  one shade instead of three layers, fitted to `doc/shadows_material_3_pink_seed.png`: level one
+  is `0 0.55px 0.61px` in black at 34% and clears within two and a half dp, where the three
+  layers it replaces reached seven. On the page and in the app a card sat a level higher than
+  the card beside it in the design file — level one read like the file's level two — and it no
+  longer does. Levels two to five are one shade each at 40%, `0 0.95px 2.35px` up to
+  `0 1.9px 6.5px`, so a surface still climbs the scale. A Flutter `Card` draws its own shadow
+  with `Canvas.drawShadow` and is now a documented difference rather than the oracle: the
+  example's suite pins each level against the ladder's measured rows instead of against a
+  `Card`.
+
 - `MaterialCard.filled` and `MaterialCard.outlined` say that they cast no shadow, instead
   of passing `null` through to a constructor whose default is the level one shadow. Nothing
   draws differently — a `null` shadow already painted nothing — but the signature now reads

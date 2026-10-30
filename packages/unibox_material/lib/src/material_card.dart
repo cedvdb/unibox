@@ -292,11 +292,12 @@ final class MaterialCard extends Box {
   /// card.
   ///
   /// It is [MaterialElevation.level1] under the name a card reads best: one scale, so a
-  /// card, a dialog and a sheet cannot drift into three different shadows. The three
-  /// layers are Flutter's own, so a card drawn from this tree sits at the height a card
-  /// in a Flutter application does; how a shadow is *blurred* is still outside the parity
-  /// contract — a browser and Skia rasterise it differently — so the value states the
-  /// shape of the shadow, not a pixel promise.
+  /// card, a dialog and a sheet cannot drift into three different shadows. The shape is the
+  /// ladder's in `shadows_material_3_pink_seed.png` — one shade, one height — so a card
+  /// drawn from this tree sits at the height the design file gives it, which is a little
+  /// tighter than a Flutter `Card`'s own `drawShadow`; how a shadow is *blurred* is still
+  /// outside the parity contract, so the value states the shape of the shadow, not a pixel
+  /// promise.
   static const List<BoxShadow> elevatedShadows = MaterialElevation.level1;
 
   /// The name this node answers to in an inspector.

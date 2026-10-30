@@ -4,161 +4,123 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:unibox_core/unibox_core.dart' as core;
 import 'package:unibox_flutter/unibox_flutter.dart';
 import 'package:unibox_material/unibox_material.dart';
 
-/// A card casts at most the shadow a Flutter card casts, at the same height.
+/// A card casts the shadow the design file gives its level.
 ///
-/// `unibox_material` is pure Dart and cannot ask Flutter what a level looks like, so
-/// `MaterialElevation` writes the numbers down; this is the test that keeps them honest,
-/// and it compares the two *drawings* rather than two tables. `kElevationToShadow` is not
-/// the oracle it looks like: a `Material` — and so every `Card` — draws its shadow with
-/// `Canvas.drawShadow`, one opaque colour through a light model, and the map is what
-/// Flutter states for the widgets that *do* need a `BoxShadow` list, such as a menu's
-/// panel. A ceiling rather than a match, because a shadow a few per cent over reads as a
-/// card raised higher than the card beside it.
-void main() {
-  testWidgets('a resting card casts at most the shadow a Flutter card casts', (
-    WidgetTester tester,
-  ) async {
-    await _expectSameShadow(
-      tester,
-      ours: const MaterialCard(width: 200, height: 100),
-      elevation: 1,
-    );
-  });
+/// The oracle is `doc/shadows_material_3_pink_seed.png` in `unibox_material`: six
+/// cards at levels 0 to 5, rendered at 2x, whose rows were read back out of the image one
+/// pixel at a time. That is what a level in `MaterialElevation` is fitted to, so that is
+/// what this test holds the renderer to — not a `Card`'s own shadow, which is
+/// `Canvas.drawShadow`'s light model and a documented different thing: at level one it
+/// reads `56, 40, 28, 17, 9` where the ladder reads `54, 32, 14, 4`, so a card here is a
+/// little tighter than the card beside it in a Flutter application, on purpose.
+///
+/// A row is half a dp: the card is 120 dp wide, rendered at a device pixel ratio of two,
+/// so the first row below its edge is half a dp down and the twelfth is six dp down. Six
+/// parts of 255 is the allowance — a rasteriser may differ in how it draws a gaussian; the
+/// shape is what the table states.
+const Map<int, List<int>> _ladder = <int, List<int>>{
+  1: <int>[54, 32, 14, 4, 0],
+  2: <int>[62, 48, 37, 27, 18, 11, 6, 3, 1],
+  3: <int>[64, 54, 45, 39, 32, 26, 19, 14, 10, 7],
+  4: <int>[64, 58, 51, 45, 40, 35, 30, 25, 20, 16, 12, 10, 7, 5],
+  5: <int>[65, 60, 54, 49, 44, 40, 36, 32, 28, 25, 21, 17, 14, 12, 9, 7],
+};
 
-  testWidgets(
-    'a card raised three levels casts at most what a card at three dp casts',
-    (WidgetTester tester) async {
-      await _expectSameShadow(
-        tester,
-        ours: const MaterialCard(
-          width: 200,
-          height: 100,
-          shadows: MaterialElevation.level3,
-        ),
-        elevation: 3,
-      );
-    },
-  );
+const List<List<core.BoxShadow>> _levels = <List<core.BoxShadow>>[
+  MaterialElevation.level1,
+  MaterialElevation.level2,
+  MaterialElevation.level3,
+  MaterialElevation.level4,
+  MaterialElevation.level5,
+];
+
+void main() {
+  for (int level = 1; level <= 5; level++) {
+    testWidgets('a card at level $level casts the ladder\'s level $level', (
+      WidgetTester tester,
+    ) async {
+      debugDisableShadows = false;
+      try {
+        final List<int> painted = await _rowsBelow(tester, _levels[level - 1]);
+        final List<int> ladder = _ladder[level]!;
+
+        for (int row = 0; row < ladder.length; row++) {
+          expect(
+            painted[row],
+            closeTo(ladder[row], 6),
+            reason:
+                'row ${row + 1} under a level $level card reads '
+                '${painted[row]} where the ladder reads ${ladder[row]}',
+          );
+        }
+      } finally {
+        debugDisableShadows = true;
+      }
+    });
+  }
 
   testWidgets('an outlined card draws a line and casts nothing', (
     WidgetTester tester,
   ) async {
-    await _pumpCard(tester, MaterialCard.outlined());
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: renderFlutter(
+          MaterialCard.outlined(),
+          theme: MaterialPalette.lightTheme,
+        ),
+      ),
+    );
 
     expect(_paintedShadows(tester), isNull);
   });
 }
 
-/// Pumps a card of ours beside the framework's own, and holds ours under it.
+/// The darkness of the page under a card's bottom edge, row by row, out of 255.
 ///
-/// The comparison samples the rows under the card's bottom edge and the columns beside
-/// its left edge — where an elevation is read. How a shadow is *rasterised* is outside the
-/// parity contract, as `unibox_testing` says beside the font face and the line breaking, so
-/// each sample allows a fiftieth of the page's contrast of noise above the framework's and
-/// a twentieth below it: the ceiling is the decision, a shadow that never reads heavier than
-/// the card beside it, and the floor is what keeps a card that casts nothing from passing.
-Future<void> _expectSameShadow(
-  WidgetTester tester, {
-  required MaterialCard ours,
-  required double elevation,
-}) async {
-  // `flutter_test` turns shadows off — it paints a stroked outline in their place, which
-  // is what `debugDisableShadows` is for — so the one comparison that is *about* a shadow
-  // has to turn them back on, and put the flag back before the test body returns: the
-  // binding checks that no painting debug variable was left set.
-  debugDisableShadows = false;
-  try {
-    await _compareShadows(tester, ours: ours, elevation: elevation);
-  } finally {
-    debugDisableShadows = true;
-  }
-}
-
-/// Pumps both cards, rasterises them and compares the shadows they painted.
-Future<void> _compareShadows(
-  WidgetTester tester, {
-  required MaterialCard ours,
-  required double elevation,
-}) async {
+/// The card is drawn at a device pixel ratio of two so a row is half a dp — the scale the
+/// ladder was measured at — and the page is white, so the page's own darkness is zero.
+Future<List<int>> _rowsBelow(
+  WidgetTester tester,
+  List<core.BoxShadow> shadows,
+) async {
   tester.view.physicalSize = const Size(400, 400);
-  tester.view.devicePixelRatio = 1;
+  tester.view.devicePixelRatio = 2;
   addTearDown(tester.view.reset);
 
-  final GlobalKey frameworkKey = GlobalKey();
+  final GlobalKey key = GlobalKey();
   await tester.pumpWidget(
     Directionality(
       textDirection: TextDirection.ltr,
-      child: Theme(
-        data: ThemeData(useMaterial3: true),
-        child: RepaintBoundary(
-          key: frameworkKey,
-          child: _page(
-            Card(
-              elevation: elevation,
-              margin: EdgeInsets.zero,
-              child: const SizedBox(width: 200, height: 100),
+      child: RepaintBoundary(
+        key: key,
+        child: ColoredBox(
+          color: const Color(0xFFFFFFFF),
+          child: Center(
+            child: renderFlutter(
+              MaterialCard(width: 120, height: 120, shadows: shadows.cast()),
+              theme: MaterialPalette.lightTheme,
             ),
           ),
         ),
       ),
     ),
   );
-  final List<double> framework = await _shadowAround(
-    tester,
-    frameworkKey,
-    tester.getRect(find.byType(Card)),
-  );
 
-  final GlobalKey oursKey = GlobalKey();
-  await tester.pumpWidget(
-    Directionality(
-      textDirection: TextDirection.ltr,
-      child: RepaintBoundary(
-        key: oursKey,
-        child: _page(renderFlutter(ours, theme: MaterialPalette.lightTheme)),
-      ),
+  final Rect card = tester.getRect(
+    find.byWidgetPredicate(
+      (Widget widget) => widget is FlutterBox && widget.box is MaterialCard,
     ),
   );
-  final List<double> painted = await _shadowAround(
-    tester,
-    oursKey,
-    tester.getRect(
-      find.byWidgetPredicate(
-        (Widget widget) => widget is FlutterBox && widget.box is MaterialCard,
-      ),
-    ),
-  );
-
-  for (int i = 0; i < framework.length; i++) {
-    expect(
-      painted[i],
-      lessThanOrEqualTo(framework[i] + 0.02),
-      reason: '${_where(i)} is heavier than the framework at ${elevation}dp',
-    );
-    expect(
-      painted[i],
-      greaterThan(framework[i] - 0.06),
-      reason: '${_where(i)} is lighter than the framework at ${elevation}dp',
-    );
-  }
-}
-
-/// The darkness of the page around [card], as rows below it and columns beside it.
-///
-/// Entry `i` below eight is the row `i + 1` under the card's bottom edge, read at its
-/// horizontal centre; after that it is the column beside the card's left edge, read at
-/// its vertical centre. Zero is white and one is black.
-Future<List<double>> _shadowAround(
-  WidgetTester tester,
-  GlobalKey key,
-  Rect card,
-) async {
   final RenderRepaintBoundary boundary =
       key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
-  final ui.Image image = (await tester.runAsync(() => boundary.toImage()))!;
+  final ui.Image image = (await tester.runAsync(
+    () => boundary.toImage(pixelRatio: 2),
+  ))!;
   final ByteData data = (await tester.runAsync<ByteData?>(
     () => image.toByteData(format: ui.ImageByteFormat.rawRgba),
   ))!;
@@ -167,34 +129,17 @@ Future<List<double>> _shadowAround(
 
   double at(int x, int y) {
     final int offset = (y * width + x) * 4;
-    return 1 -
-        (bytes[offset] + bytes[offset + 1] + bytes[offset + 2]) / 3 / 255;
+    return 255 - (bytes[offset] + bytes[offset + 1] + bytes[offset + 2]) / 3;
   }
 
-  final int centreX = card.center.dx.round();
-  final int centreY = card.center.dy.round();
-  final int left = card.left.round();
+  final int x = (card.center.dx * 2).round();
+  final int bottom = (card.bottom * 2).round();
+  final List<int> rows = <int>[
+    for (int row = 1; row <= 16; row++) at(x, bottom + row).round(),
+  ];
 
   image.dispose();
-  return <double>[
-    for (int i = 0; i < 5; i++) at(centreX, card.bottom.ceil() + i),
-    for (int i = 0; i < 4; i++) at(left - 1 - i, centreY),
-  ];
-}
-
-/// The name of the sample at [index], for a failure message.
-String _where(int index) => index < 5
-    ? 'the row ${index + 1} under the card'
-    : 'the column ${index - 4} beside the card';
-
-/// Pumps one card at the root, the way a host draws a tree.
-Future<void> _pumpCard(WidgetTester tester, MaterialCard card) {
-  return tester.pumpWidget(
-    Directionality(
-      textDirection: TextDirection.ltr,
-      child: renderFlutter(card, theme: MaterialPalette.lightTheme),
-    ),
-  );
+  return rows;
 }
 
 /// The shadows painted inside the card, read back from its decoration.
@@ -220,9 +165,3 @@ List<BoxShadow>? _paintedShadows(WidgetTester tester) {
 
   return null;
 }
-
-/// The card on a white page, the way a tree is drawn over a surface.
-Widget _page(Widget card) => ColoredBox(
-  color: const Color(0xFFFFFFFF),
-  child: Center(child: card),
-);

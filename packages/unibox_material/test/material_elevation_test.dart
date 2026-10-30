@@ -2,140 +2,41 @@ import 'package:test/test.dart';
 import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_material/unibox_material.dart';
 
-/// The scale is the only place a shadow is written.
+/// The ladder, as it was measured out of `doc/shadows_material_3_pink_seed.png`.
 ///
-/// A card, a dialog and a sheet used to carry a shadow each, and the example wrote a
-/// fourth; three of them were near-copies of one another and the fourth was a
-/// different design. The tests here pin the direction of the dependency — the
-/// components read the scale — so a changed elevation changes every surface that
-/// rests on it, and a surface cannot quietly keep a shadow of its own. They also pin the
-/// numbers themselves, because this package cannot ask Flutter what a level looks like.
+/// Each list is the page's darkness out of 255, row by row below a card's bottom edge, on
+/// a 120 dp card rendered at 2x — so one row is half a dp. A level that paints these is a
+/// level that looks like the one in the design file; the example's Flutter suite is what
+/// checks the painting, because this package has no renderer.
+const Map<int, List<int>> _ladder = <int, List<int>>{
+  1: <int>[54, 32, 14, 4, 0],
+  2: <int>[62, 48, 37, 27, 18, 11, 6, 3, 1],
+  3: <int>[64, 54, 45, 39, 32, 26, 19, 14, 10, 7],
+  4: <int>[64, 58, 51, 45, 40, 35, 30, 25],
+  5: <int>[65, 60, 54, 49, 44, 40, 36, 32],
+};
+
 void main() {
   group('MaterialElevation', () {
-    test('states three layers, placed where the framework paints them', () {
-      // The map's roles — umbra, penumbra, ambient — and the map's opacities at 79%, with
-      // each level's offsets, blurs and spreads measured against what `Canvas.drawShadow`
-      // puts on the page at that height. This package has no Flutter to ask, so the numbers
-      // are written down here; the example's Flutter suite is what compares the pixels.
+    test('states one shadow a level, the ladder\'s own heights', () {
+      // A level is one shade, not a stack: the ladder's five cards each cast a single
+      // shadow that grows wider as the card rises. Written down here because this package
+      // cannot ask a designer's file what a level looks like.
       expect(MaterialElevation.level1, const <BoxShadow>[
-        BoxShadow(
-          color: BoxColor(0x28000000),
-          offsetY: 2,
-          blurRadius: 2,
-          spreadRadius: -1,
-        ),
-        BoxShadow(
-          color: BoxColor(0x1C000000),
-          offsetY: 4,
-          blurRadius: 4,
-          spreadRadius: -2,
-        ),
-        BoxShadow(
-          color: BoxColor(0x18000000),
-          offsetY: 3,
-          blurRadius: 4,
-          spreadRadius: -2,
-        ),
+        BoxShadow(color: BoxColor(0x57000000), offsetY: 0.55, blurRadius: 0.61),
       ]);
       expect(MaterialElevation.level2, const <BoxShadow>[
-        BoxShadow(
-          color: BoxColor(0x28000000),
-          offsetY: 2,
-          blurRadius: 3,
-          spreadRadius: -1,
-        ),
-        BoxShadow(
-          color: BoxColor(0x1C000000),
-          offsetY: 5,
-          blurRadius: 6,
-          spreadRadius: -2,
-        ),
-        BoxShadow(
-          color: BoxColor(0x18000000),
-          offsetY: 5,
-          blurRadius: 8,
-          spreadRadius: -2,
-        ),
+        BoxShadow(color: BoxColor(0x66000000), offsetY: 0.95, blurRadius: 2.35),
       ]);
       expect(MaterialElevation.level3, const <BoxShadow>[
-        BoxShadow(
-          color: BoxColor(0x28000000),
-          offsetY: 3,
-          blurRadius: 4,
-          spreadRadius: -1,
-        ),
-        BoxShadow(
-          color: BoxColor(0x1C000000),
-          offsetY: 6,
-          blurRadius: 8,
-          spreadRadius: -2,
-        ),
-        BoxShadow(
-          color: BoxColor(0x18000000),
-          offsetY: 6,
-          blurRadius: 11,
-          spreadRadius: -3,
-        ),
+        BoxShadow(color: BoxColor(0x66000000), offsetY: 1.25, blurRadius: 3.9),
       ]);
       expect(MaterialElevation.level4, const <BoxShadow>[
-        BoxShadow(
-          color: BoxColor(0x28000000),
-          offsetY: 3,
-          blurRadius: 4,
-          spreadRadius: -1,
-        ),
-        BoxShadow(
-          color: BoxColor(0x1C000000),
-          offsetY: 6,
-          blurRadius: 10,
-          spreadRadius: -2,
-        ),
-        BoxShadow(
-          color: BoxColor(0x18000000),
-          offsetY: 7,
-          blurRadius: 14,
-          spreadRadius: -3,
-        ),
+        BoxShadow(color: BoxColor(0x66000000), offsetY: 1.55, blurRadius: 5.02),
       ]);
       expect(MaterialElevation.level5, const <BoxShadow>[
-        BoxShadow(
-          color: BoxColor(0x28000000),
-          offsetY: 3,
-          blurRadius: 5,
-          spreadRadius: -1,
-        ),
-        BoxShadow(
-          color: BoxColor(0x1C000000),
-          offsetY: 7,
-          blurRadius: 12,
-          spreadRadius: -2,
-        ),
-        BoxShadow(
-          color: BoxColor(0x18000000),
-          offsetY: 8,
-          blurRadius: 18,
-          spreadRadius: -4,
-        ),
+        BoxShadow(color: BoxColor(0x66000000), offsetY: 1.9, blurRadius: 6.5),
       ]);
-    });
-
-    test('casts three layers, so a surface has an edge and a penumbra', () {
-      for (final List<BoxShadow> level in <List<BoxShadow>>[
-        MaterialElevation.level1,
-        MaterialElevation.level2,
-        MaterialElevation.level3,
-        MaterialElevation.level4,
-        MaterialElevation.level5,
-      ]) {
-        expect(level, hasLength(3));
-        // The layer nearest the edge is the tightest and the darkest; the ambient layer
-        // is the widest and the faintest. That is what makes the three read as one.
-        expect(level.first.blurRadius, lessThan(level.last.blurRadius));
-        expect(
-          level.first.color.opacity,
-          greaterThan(level.last.color.opacity),
-        );
-      }
     });
 
     test('rises: every level casts further than the one below it', () {
@@ -147,9 +48,9 @@ void main() {
         MaterialElevation.level5,
       ];
 
-      // How far a shadow reaches below its surface: the far edge of its widest layer.
-      // The framework's drawing grows the same way — a surface that rises casts further —
-      // so the reach is what has to stay monotone, layer by layer or not.
+      // How far a shadow reaches below its surface: its offset plus the blur that carries
+      // it. The ladder grows the same way — a surface that rises casts further — so the
+      // reach is what has to stay monotone.
       double reach(List<BoxShadow> shadows) => shadows
           .map((BoxShadow layer) => layer.offsetY + layer.blurRadius)
           .reduce((double a, double b) => a > b ? a : b);
@@ -163,37 +64,41 @@ void main() {
       }
     });
 
-    test(
-      'casts one shade per layer, so a surface does not darken with height',
-      () {
-        // `kElevationToShadow`'s three layers — 20% black under the edge, 14% beside it and
-        // 12% in the ambient blur — the same three at every level, each cast at 79%.
-        final List<List<BoxShadow>> levels = <List<BoxShadow>>[
-          MaterialElevation.level1,
-          MaterialElevation.level2,
-          MaterialElevation.level3,
-          MaterialElevation.level4,
-          MaterialElevation.level5,
-        ];
+    test('holds one shade, so a surface does not darken with height', () {
+      // The ladder is a shade that reaches further, not one that thickens: levels two to
+      // five are cast in one colour, and the tone that goes with a level is what carries
+      // its weight. Level one is a shade softer — a resting card still touches the page.
+      expect(
+        MaterialElevation.level2.single.color,
+        MaterialElevation.level5.single.color,
+      );
+      expect(
+        MaterialElevation.level3.single.color,
+        MaterialElevation.level4.single.color,
+      );
 
-        for (int layer = 0; layer < 3; layer++) {
-          expect(
-            levels.map((List<BoxShadow> level) => level[layer].color).toSet(),
-            hasLength(1),
-            reason: 'layer ${layer + 1} is one shade at every level',
-          );
-        }
+      expect(
+        MaterialElevation.level1.single.color.opacity,
+        closeTo(0.34, 0.01),
+      );
+      expect(
+        MaterialElevation.level5.single.color.opacity,
+        closeTo(0.40, 0.01),
+      );
+    });
 
+    test('covers the ladder it was measured from', () {
+      // The rows the design file gives, and the levels they belong to: a level whose reach
+      // fell inside the one below it would be a level that does not exist.
+      expect(_ladder.keys, <int>[1, 2, 3, 4, 5]);
+      for (final MapEntry<int, List<int>> level in _ladder.entries) {
         expect(
-          MaterialElevation.level3.first.color.opacity,
-          closeTo(0.157, 0.01),
+          level.value.length,
+          greaterThanOrEqualTo(5),
+          reason: 'level ${level.key} has a falloff to compare',
         );
-        expect(
-          MaterialElevation.level3.last.color.opacity,
-          closeTo(0.094, 0.01),
-        );
-      },
-    );
+      }
+    });
 
     test('mirrors level one upwards for a sheet', () {
       expect(
@@ -212,8 +117,8 @@ void main() {
           MaterialElevation.level1[i].blurRadius,
         );
         expect(
-          MaterialElevation.sheet[i].spreadRadius,
-          MaterialElevation.level1[i].spreadRadius,
+          MaterialElevation.sheet[i].color,
+          MaterialElevation.level1[i].color,
         );
       }
     });
