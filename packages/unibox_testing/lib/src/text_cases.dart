@@ -79,6 +79,11 @@ const List<TextCase> textCases = <TextCase>[
     expected: TextAppearance(fontWeight: core.FontWeight.semiBold),
   ),
   TextCase(
+    description: 'recedes to a light weight for a label',
+    node: core.TextNode('Category', fontWeight: core.FontWeight.light),
+    expected: TextAppearance(fontWeight: core.FontWeight.light),
+  ),
+  TextCase(
     description: 'sets the colour of the glyphs',
     node: core.TextNode('Hello Unibox', color: _ink),
     expected: TextAppearance(color: _ink),

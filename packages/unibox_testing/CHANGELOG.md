@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- A case that typesets a label at `FontWeight.light`, and `300` read back as that
+  weight on both sides of the table, so the two renderers are held to the light end
+  of the scale.
+
 ## 0.1.0
 
 - `BoxAppearance.corners` and a case that rounds two corners, so the four radii are

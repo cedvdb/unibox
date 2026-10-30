@@ -348,6 +348,7 @@ String? _familyOf(String? value) {
 }
 
 core.FontWeight? _fontWeightOf(String? value) => switch (value) {
+  '300' => core.FontWeight.light,
   '400' => core.FontWeight.normal,
   '500' => core.FontWeight.medium,
   '600' => core.FontWeight.semiBold,

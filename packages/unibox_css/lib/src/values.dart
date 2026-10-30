@@ -156,6 +156,7 @@ String? cssScrollSnap(core.ScrollSnap? snap, core.Axis axis) => switch (snap) {
 /// written rather than `normal` or `bold`, so a host that sets a weight between two
 /// of the model's cannot be surprised by what `bold` resolves to.
 String cssFontWeight(core.FontWeight weight) => switch (weight) {
+  core.FontWeight.light => '300',
   core.FontWeight.normal => '400',
   core.FontWeight.medium => '500',
   core.FontWeight.semiBold => '600',

@@ -104,7 +104,7 @@ announced correctly.
 | Unibox                  | Flutter                                                        |
 | ----------------------- | -------------------------------------------------------------- |
 | `fontSize`              | `TextStyle.fontSize`                                            |
-| `fontWeight`            | `TextStyle.fontWeight` (`normal` → `w400`, `medium` → `w500`, `semiBold` → `w600`, `bold` → `w700`) |
+| `fontWeight`            | `TextStyle.fontWeight` (`light` → `w300`, `normal` → `w400`, `medium` → `w500`, `semiBold` → `w600`, `bold` → `w700`) |
 | `color`                 | `TextStyle.color`                                               |
 | `lineHeight`            | `TextStyle.height` (both are a multiple of the font size)       |
 | `fontFamily`            | `TextStyle.fontFamily`                                          |

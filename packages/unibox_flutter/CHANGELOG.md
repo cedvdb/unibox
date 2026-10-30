@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- `FontWeight.light` is `w300`, so a light label keeps its weight instead of
+  rendering at `w400` like a normal one.
+
 - `UINode.toWidget({UniboxTheme? theme})` takes the theme, so the shorthand can draw a
   tree built from colour roles. It forwarded nothing before, which meant validation
   rejected every themed tree with the role in the message and the extension the README

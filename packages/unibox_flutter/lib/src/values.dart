@@ -44,6 +44,7 @@ CrossAxisAlignment toCrossAxisAlignment(core.CrossAlign align) {
 /// Converts a Unibox [core.FontWeight] to a Flutter [FontWeight].
 FontWeight toFontWeight(core.FontWeight weight) {
   return switch (weight) {
+    core.FontWeight.light => FontWeight.w300,
     core.FontWeight.normal => FontWeight.w400,
     core.FontWeight.medium => FontWeight.w500,
     core.FontWeight.semiBold => FontWeight.w600,

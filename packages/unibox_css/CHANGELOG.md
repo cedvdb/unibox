@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- `FontWeight.light` is written `font-weight: 300`, so a light label is no longer
+  written as a normal one.
+
 - A look's declarations are sorted and joined once, and kept: a class name and the rule it becomes
   read the same text, and a page with thousands of nodes read it thousands of times.
 

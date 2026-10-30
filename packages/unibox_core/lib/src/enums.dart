@@ -228,17 +228,27 @@ enum ImageFetchPriority {
 }
 
 /// Relative weight of a font.
+///
+/// The five weights every target can name without a variable font: CSS writes
+/// them as `100`–`900` in steps of a hundred, and Flutter as `FontWeight.w300`
+/// to `w700`. The ones below 300 and above 700 are left out because the two
+/// engines disagree about what they mean — a browser synthesises a `100` from a
+/// family that has no such cut, while Flutter picks the closest face and warns
+/// in debug — so a token either target would draw differently is not a token.
 enum FontWeight {
-  /// Regular text weight.
+  /// A light weight, for a label that has to recede: `300`.
+  light,
+
+  /// Regular text weight: `400`.
   normal,
 
-  /// Slightly emphasized text weight.
+  /// Slightly emphasized text weight: `500`.
   medium,
 
-  /// Strongly emphasized text weight.
+  /// Strongly emphasized text weight: `600`.
   semiBold,
 
-  /// Heaviest supported text weight.
+  /// Heaviest supported text weight: `700`.
   bold,
 }
 

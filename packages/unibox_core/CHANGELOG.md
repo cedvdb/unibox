@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `FontWeight.light` (`300`). The model had no weight below `normal`, so a label
+  typeset at 300 — the light end of Material 3's scale — came out at 400 on both
+  targets. The five weights the model names, and the ones it leaves out, are stated
+  in `design.md` §2.
+
 - `Box.hasThreshold`: whether a box is drawn at only some widths, read from the tokens without
   resolving a style. A renderer asks it of every child of every box to know which box a container
   query measures, and answering that by merging every bag was work per node for a question about

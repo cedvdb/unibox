@@ -402,7 +402,7 @@ TextNode('Join Unibox', fontSize: 22, fontWeight: FontWeight.bold);
 | `text` | `String` | required | The characters to draw. |
 | `headingLevel` | `int?` | none | `1`–`6` makes it a heading: `<h1>`–`<h6>` on the web, a heading of that level in Flutter's accessibility tree. It changes no look. |
 | `fontSize` | `double?` | inherited | Logical pixels. |
-| `fontWeight` | `FontWeight?` | inherited | `normal`, `medium`, `semiBold`, `bold` — `400`–`700` on both targets. |
+| `fontWeight` | `FontWeight?` | inherited | `light`, `normal`, `medium`, `semiBold`, `bold` — `300`–`700` on both targets. |
 | `color` | `BoxColor?` | inherited | Colour of the glyphs. |
 | `lineHeight` | `double?` | inherited | Multiple of the font size. A line box is `fontSize * lineHeight` tall on both targets. |
 | `fontFamily` | `String?` | the platform's UI font | One family name, resolved by the host. |

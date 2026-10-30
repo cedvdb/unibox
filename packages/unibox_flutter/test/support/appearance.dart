@@ -159,6 +159,7 @@ TextAppearance _textAppearance(
 /// described something the other target cannot express.
 core.FontWeight _fontWeightOf(FontWeight weight) {
   return switch (weight) {
+    FontWeight.w300 => core.FontWeight.light,
     FontWeight.w400 => core.FontWeight.normal,
     FontWeight.w500 => core.FontWeight.medium,
     FontWeight.w600 => core.FontWeight.semiBold,

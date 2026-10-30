@@ -50,8 +50,8 @@ final class TextAppearance {
 
   /// The weight of the font.
   ///
-  /// Both targets express it as one of the four weights the model has — `700` in
-  /// CSS, [FontWeight.w700] in Flutter — so a renderer that rounded a weight up
+  /// Both targets express it as one of the five weights the model has — `300` in
+  /// CSS, [FontWeight.w300] in Flutter — so a renderer that rounded a weight up
   /// or down is visible here.
   final core.FontWeight? fontWeight;
 

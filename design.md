@@ -27,7 +27,15 @@ Unibox provides pure Dart layout primitives that draw natively as Flutter widget
   - `CrossAlign`: `start`, `center`, `end`, `stretch`.
   - `Overflow`: `visible`, `hidden`, `scroll`.
   - `ImageFit`: `cover`, `contain`, `fill`.
-  - `FontWeight`: `normal`, `medium`, `semiBold`, `bold`.
+  - `FontWeight`: `light` (`300`), `normal` (`400`), `medium` (`500`), `semiBold`
+    (`600`), `bold` (`700`). Those five are the weights of the two type scales the
+    model targets — Material 3 uses `300` for its light label roles and Roboto
+    ships exactly `300`, `400`, `500`, `700` — and they are the ones both engines
+    draw the same way. `w100`, `w200`, `w800` and `w900` are out: a browser
+    synthesises a weight a family does not have while Flutter picks the nearest
+    face and warns, so the same token would look different on the two targets. A
+    variable font would make the range expressible, and the model is not a font
+    file: it would have to name a family and an axis, which belongs to the host.
   - `TextAlign`: `left`, `center`, `right`, `justify`.
   - `TextOverflow`: `clip`, `ellipsis`.
 
