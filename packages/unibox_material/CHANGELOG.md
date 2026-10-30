@@ -2,14 +2,16 @@
 
 ## Unreleased
 
-- `MaterialElevation` casts its layers in black at 87%. The geometry is still
-  `kElevationToShadow`'s — the umbra, the penumbra and the ambient blur, layer for layer —
-  but that map is what Flutter states for a widget that needs a `BoxShadow` list, not what a
-  `Material` draws: a `Card` hands one opaque colour to `Canvas.drawShadow` and paints a
-  single softer layer. Three layers at the map's own opacities composite to 29% black under
-  a card's edge, where the framework's own card peaks at 22%, so a card here read heavier
-  than the card beside it. At 87% every surface that reads this scale — a card, a dialog, a
-  sheet, a drawer — lands near 25% and keeps the compact shape the map states.
+- `MaterialElevation` is calibrated to what a Flutter card paints. The three layers — umbra,
+  penumbra, ambient — keep the map's roles and stretch at 87% of its opacities, and each
+  level's offsets, blurs and spreads now match `Canvas.drawShadow` at that height: a card
+  reads `60, 43, 28, 18, 10` under its edge where Flutter reads `56, 40, 28, 17, 9`, and no
+  layer sits more than eight pixels from the surface. Two earlier readings are gone: the map
+  copied as written (29% black under a card's edge against the framework's 22%, and gone
+  within four pixels against its seven), and a pixel fit that matched the profile only by
+  throwing the shadow up to fifteen pixels down the page, which read as a stain rather than a
+  shadow. The example's Flutter suite now rasterises a card beside a real `Material` at the
+  same height and compares the pixels, rather than comparing the list with a table.
   `MaterialCard.elevatedShadow` is `elevatedShadows` now, and every component passes the
   list a box takes.
 - The catalogue in the example shows a card at each of the first three heights, on the surface

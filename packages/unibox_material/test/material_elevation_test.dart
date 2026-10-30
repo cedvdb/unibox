@@ -12,55 +12,91 @@ import 'package:unibox_material/unibox_material.dart';
 /// numbers themselves, because this package cannot ask Flutter what a level looks like.
 void main() {
   group('MaterialElevation', () {
-    test('states the layers Flutter’s framework keeps, cast at 87%', () {
-      // `kElevationToShadow` in `package:flutter/material.dart`, copied out layer for
-      // layer: this package has no Flutter to ask, so the geometry is written down here
-      // and compared with what the framework states. The colours are that map's opacities
-      // at 87%, because the three of them stacked come out heavier than the one softer
-      // layer a `Material` actually draws. A level that drifts is a card that is no longer
-      // a Material card.
+    test('states three layers, placed where the framework paints them', () {
+      // The map's roles — umbra, penumbra, ambient — and the map's opacities at 87%, with
+      // each level's offsets, blurs and spreads measured against what `Canvas.drawShadow`
+      // puts on the page at that height. This package has no Flutter to ask, so the numbers
+      // are written down here; the example's Flutter suite is what compares the pixels.
       expect(MaterialElevation.level1, const <BoxShadow>[
         BoxShadow(
           color: BoxColor(0x2C000000),
           offsetY: 2,
-          blurRadius: 1,
+          blurRadius: 2,
           spreadRadius: -1,
         ),
-        BoxShadow(color: BoxColor(0x1F000000), offsetY: 1, blurRadius: 1),
-        BoxShadow(color: BoxColor(0x1B000000), offsetY: 1, blurRadius: 3),
+        BoxShadow(
+          color: BoxColor(0x1F000000),
+          offsetY: 4,
+          blurRadius: 4,
+          spreadRadius: -2,
+        ),
+        BoxShadow(
+          color: BoxColor(0x1B000000),
+          offsetY: 3,
+          blurRadius: 5,
+          spreadRadius: -2,
+        ),
       ]);
       expect(MaterialElevation.level2, const <BoxShadow>[
         BoxShadow(
           color: BoxColor(0x2C000000),
-          offsetY: 3,
-          blurRadius: 1,
+          offsetY: 2,
+          blurRadius: 3,
+          spreadRadius: -1,
+        ),
+        BoxShadow(
+          color: BoxColor(0x1F000000),
+          offsetY: 5,
+          blurRadius: 6,
           spreadRadius: -2,
         ),
-        BoxShadow(color: BoxColor(0x1F000000), offsetY: 2, blurRadius: 2),
-        BoxShadow(color: BoxColor(0x1B000000), offsetY: 1, blurRadius: 5),
+        BoxShadow(
+          color: BoxColor(0x1B000000),
+          offsetY: 5,
+          blurRadius: 8,
+          spreadRadius: -2,
+        ),
       ]);
       expect(MaterialElevation.level3, const <BoxShadow>[
         BoxShadow(
           color: BoxColor(0x2C000000),
           offsetY: 3,
-          blurRadius: 3,
+          blurRadius: 4,
+          spreadRadius: -1,
+        ),
+        BoxShadow(
+          color: BoxColor(0x1F000000),
+          offsetY: 6,
+          blurRadius: 8,
           spreadRadius: -2,
         ),
-        BoxShadow(color: BoxColor(0x1F000000), offsetY: 3, blurRadius: 4),
-        BoxShadow(color: BoxColor(0x1B000000), offsetY: 1, blurRadius: 8),
+        BoxShadow(
+          color: BoxColor(0x1B000000),
+          offsetY: 6,
+          blurRadius: 11,
+          spreadRadius: -3,
+        ),
       ]);
       expect(MaterialElevation.level4, const <BoxShadow>[
         BoxShadow(
           color: BoxColor(0x2C000000),
-          offsetY: 2,
+          offsetY: 3,
           blurRadius: 4,
           spreadRadius: -1,
         ),
-        BoxShadow(color: BoxColor(0x1F000000), offsetY: 4, blurRadius: 5),
-        BoxShadow(color: BoxColor(0x1B000000), offsetY: 1, blurRadius: 10),
+        BoxShadow(
+          color: BoxColor(0x1F000000),
+          offsetY: 6,
+          blurRadius: 10,
+          spreadRadius: -2,
+        ),
+        BoxShadow(
+          color: BoxColor(0x1B000000),
+          offsetY: 7,
+          blurRadius: 14,
+          spreadRadius: -3,
+        ),
       ]);
-      // Material's fifth level is five dp, which the map does not list, so the highest
-      // surface takes its six.
       expect(MaterialElevation.level5, const <BoxShadow>[
         BoxShadow(
           color: BoxColor(0x2C000000),
@@ -68,8 +104,18 @@ void main() {
           blurRadius: 5,
           spreadRadius: -1,
         ),
-        BoxShadow(color: BoxColor(0x1F000000), offsetY: 6, blurRadius: 10),
-        BoxShadow(color: BoxColor(0x1B000000), offsetY: 1, blurRadius: 18),
+        BoxShadow(
+          color: BoxColor(0x1F000000),
+          offsetY: 7,
+          blurRadius: 12,
+          spreadRadius: -2,
+        ),
+        BoxShadow(
+          color: BoxColor(0x1B000000),
+          offsetY: 8,
+          blurRadius: 18,
+          spreadRadius: -4,
+        ),
       ]);
     });
 
@@ -102,8 +148,8 @@ void main() {
       ];
 
       // How far a shadow reaches below its surface: the far edge of its widest layer.
-      // The framework's own entries are not monotonic layer by layer — level four's
-      // umbra sits nearer the edge than level three's — but the reach is.
+      // The framework's drawing grows the same way — a surface that rises casts further —
+      // so the reach is what has to stay monotone, layer by layer or not.
       double reach(List<BoxShadow> shadows) => shadows
           .map((BoxShadow layer) => layer.offsetY + layer.blurRadius)
           .reduce((double a, double b) => a > b ? a : b);
