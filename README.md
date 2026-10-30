@@ -18,6 +18,10 @@ expected appearance holds both renderers to the same answer.
   <sub>One tree, drawn twice: <code>/web/listings/</code> on the left, <code>/flutter/listings/</code> on the right.</sub>
 </p>
 
+It is live at **[cedvdb.github.io/unibox](https://cedvdb.github.io/unibox/)** — the site is
+built with the library it documents, so every band of it is a node tree, and the page you
+read is the demo.
+
 ## Features
 
 - 🧩 **One tree, two renderings** — the same nodes are Flutter widgets in the app and HTML with CSS in the browser, so the design is written once.
@@ -1146,9 +1150,9 @@ Material catalogue the page is built with, which closes it — plus the
 example itself at `/web/` and its Flutter build at `/flutter/`. Every band of the page
 is a node tree: the two frames of the comparison are the one thing the model cannot
 describe, and they arrive through `EmbedNode`.
-`--serve` previews the result locally, and
-[`.github/workflows/pages.yml`](.github/workflows/pages.yml) publishes it to GitHub
-Pages on every push to `main`, which needs one setting first: Settings → Pages →
+`--serve` previews the result locally. [`.github/workflows/pages.yml`](.github/workflows/pages.yml)
+publishes it to GitHub Pages on every push to `main` — the published site is
+<https://cedvdb.github.io/unibox/> — which needs one setting first: Settings → Pages →
 Source: **GitHub Actions** (see
 [`example/README.md`](example/README.md#the-static-site)).
 
