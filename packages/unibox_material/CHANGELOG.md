@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- A label too long for its segment is cut with an ellipsis instead of failing the build.
+  A segment is a share of the control's width, and the label was laid out at its own
+  width: a translation, or any label at twice the text scale, raised
+  `A RenderFlex overflowed by N pixels on the right` in Flutter and painted over the
+  segment beside it on the web. A text is now one line, centred and ellipsised inside
+  the room its segment gives it; a node that is not a text is cut at the share. A
+  control with no width is untouched, because a row that scrolls has room for it.
+
 - `MaterialSegmentedButton` takes `border:` — the line around the pill *and* the rules
   between its segments, which are one hairline the model draws as a box. It was a
   private `outline` constant, so an application that draws its segmented control with

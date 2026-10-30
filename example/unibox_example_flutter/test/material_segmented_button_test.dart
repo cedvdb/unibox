@@ -121,6 +121,63 @@ void main() {
     expect(grid.left, greaterThan(list.right + 12));
   });
 
+  testWidgets('cuts a label that is longer than its share, at any text scale', (
+    WidgetTester tester,
+  ) async {
+    // "Salle de réunion" in a 168 pixel control: 59.5 pixels of room in a segment of
+    // 83.5, which the label does not fit at either scale. Before the label was given a
+    // width to be cut at, the row laid it out at its own width and Flutter raised
+    // `A RenderFlex overflowed by 150 pixels on the right` — a translation, or any
+    // label at a larger text scale, failing a build rather than reading short.
+    for (final double scale in <double>[1, 2]) {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MediaQuery(
+            data: MediaQueryData(textScaler: TextScaler.linear(scale)),
+            child: Scaffold(
+              body: Align(
+                alignment: Alignment.topLeft,
+                child: renderFlutter(
+                  MaterialSegmentedButton(
+                    width: 168,
+                    showSelectedIcon: false,
+                    segments: const <MaterialSegment>[
+                      MaterialSegment(label: core.TextNode('Salle de réunion')),
+                      MaterialSegment(label: core.TextNode('Salon')),
+                    ],
+                    selected: 1,
+                    onSelect: (int index) {},
+                  ),
+                  theme: MaterialPalette.lightTheme,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isNull, reason: 'at a scale of $scale');
+
+      final Rect control = tester.getRect(
+        find.byWidgetPredicate(
+          (Widget widget) =>
+              widget is FlutterBox && widget.box is MaterialSegmentedButton,
+        ),
+      );
+      final Finder label = find.text('Salle de réunion');
+      final Rect cut = tester.getRect(label);
+      final Text text = tester.widget<Text>(label);
+
+      // One line, ellipsised, and drawn inside the share it was given rather than over
+      // the segment beside it.
+      expect(text.maxLines, 1);
+      expect(text.overflow, TextOverflow.ellipsis);
+      expect(cut.right, lessThanOrEqualTo(control.center.dx));
+      expect(cut.left, greaterThanOrEqualTo(control.left + 12));
+      expect(cut.width, lessThan(control.width / 2));
+    }
+  });
+
   testWidgets('paints the line it is given, around and between its segments', (
     WidgetTester tester,
   ) async {

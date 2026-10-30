@@ -58,6 +58,30 @@ void main() {
       }
     });
 
+    test('gives a label a width to be cut at, and one line to be cut on', () {
+      final String html = render(
+        MaterialSegmentedButton(
+          width: 168,
+          showSelectedIcon: false,
+          segments: const <MaterialSegment>[
+            MaterialSegment(label: core.TextNode('Salle de réunion')),
+            MaterialSegment(label: core.TextNode('Salon')),
+          ],
+          selected: 1,
+          onSelect: (int index) {},
+        ),
+      );
+
+      // The box around the label fills the share, so the text inside it has a width to
+      // be measured against — which is the whole of why it can be cut instead of
+      // pushing the segment wider.
+      expect(html, contains('align-items:stretch'));
+      // One line, centred in the room it was given, cut with an ellipsis.
+      expect(html, contains('-webkit-line-clamp:1'));
+      expect(html, contains('text-align:center'));
+      expect(html, contains('Salle de réunion'));
+    });
+
     test('paints the line it is given, around and between the segments', () {
       final String html = render(
         MaterialSegmentedButton(

@@ -53,6 +53,13 @@ final class MaterialSegment {
 /// is a host asset and this package ships none. Pass `showSelectedIcon: false` for a
 /// control whose fill is enough, and the icon stays where it is.
 ///
+/// **A segment's label is one line.** A segment is a share of the control's width and not
+/// a width of its own, so a label longer than that share — a translation, or any label at
+/// a larger text scale — gives way instead of widening the pill or painting over the
+/// segment beside it: a text is drawn with `maxLines: 1` and an ellipsis, and any other
+/// node is cut at the share. A label that hugs (a control with no `width`) is not touched,
+/// because a row that scrolls has room for it.
+///
 /// **What Material draws that this does not.** The container announces no
 /// `radiogroup`: a radio promises arrow keys between the choices and a single tab stop
 /// for the set, and a box activates with `Enter` and `Space` alone — on both targets,
@@ -200,18 +207,101 @@ final class MaterialSegmentedButton extends Box {
             textStyle: labelStyle.merge(BoxTextStyle(color: foreground)),
             children: <UINode>[
               if (leading == null)
-                segment.label
+                _labelOf(segment.label, equal: equal)
               else
                 Box(
                   direction: Axis.horizontal,
                   crossAlign: CrossAlign.center,
                   gap: iconGap,
-                  children: <UINode>[leading, segment.label],
+                  children: <UINode>[
+                    leading,
+                    _labelOf(segment.label, equal: equal, beside: true),
+                  ],
                 ),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  /// The label of a segment: its own size, or the share the segment was given.
+  ///
+  /// A segment is a share of a control's width, not a width of its own, so a label long
+  /// enough to fill it — a translation, or any label at a large text scale — has to give
+  /// way rather than widen the pill or paint over the segment beside it. Two things say
+  /// so, and both are read by the two targets:
+  ///
+  /// * the box around the label is **stretched**, which is what gives a text a width to
+  ///   be cut at: Flutter hands the child of a stretched column a tight width and CSS
+  ///   hands a stretched flex item the track, and a text that fills its box ellipsises
+  ///   while one that hugs it first measures what it cannot have;
+  /// * the text itself is **one line**, cut with an ellipsis ([_fitted]) and centred in
+  ///   the room it was given, which is what Material states for a segment's label.
+  ///
+  /// [beside] is the shape with a node in front of it. The model's `flex` is a share of
+  /// the parent and not "take what is left", so the label fills the room beside the
+  /// node: a short label is centred in that room rather than sitting against its icon.
+  /// Flutter's own `SegmentedButton` uses a `Flexible` there, which this model has no
+  /// word for; the difference shows at a width where the label is much shorter than its
+  /// share, and it is the price of a label that can never overflow.
+  ///
+  /// Without a share there is nothing to cut at, so the label is drawn as it was given:
+  /// every node in a hugging segment is as wide as it wants to be.
+  static UINode _labelOf(
+    UINode label, {
+    required bool equal,
+    bool beside = false,
+  }) {
+    if (!equal) {
+      return label;
+    }
+
+    return Box(
+      // A share, at the one place that says so: the box fills the segment when it is the
+      // content's only child, and the room beside the node when it is the row's.
+      flex: beside ? 1 : null,
+      width: beside ? null : double.infinity,
+      // The room the text is given, and the cut when it is still too long: a node that
+      // is not a text cannot say how it gives way, so it is clipped at the share.
+      crossAlign: CrossAlign.stretch,
+      overflow: Overflow.hidden,
+      children: <UINode>[_fitted(label)],
+    );
+  }
+
+  /// [label] as a segment draws it: one line, centred, and an ellipsis when it does not fit.
+  ///
+  /// A text is the one node that can say how it gives way, so it is rebuilt with the
+  /// tokens that make it: [TextNode.maxLines] of one and [TextOverflow.ellipsis], which
+  /// CSS spells `-webkit-line-clamp: 1` and Flutter `maxLines: 1` with an ellipsis. A
+  /// caller who stated either keeps their answer, and every other token comes through
+  /// untouched. A node that is not a text is returned as it is and cut by the box around
+  /// it, because there is nothing to rebuild.
+  static UINode _fitted(UINode label) {
+    if (label is! TextNode) {
+      return label;
+    }
+
+    return TextNode(
+      label.text,
+      key: label.key,
+      headingLevel: label.headingLevel,
+      fontSize: label.fontSize,
+      fontWeight: label.fontWeight,
+      color: label.color,
+      lineHeight: label.lineHeight,
+      fontFamily: label.fontFamily,
+      letterSpacing: label.letterSpacing,
+      decoration: label.decoration,
+      decorationColor: label.decorationColor,
+      decorationThickness: label.decorationThickness,
+      // Centred, because the box around it now fills the share: a text that fills its
+      // room and starts at its edge would read as a label pinned to the left of the pill.
+      textAlign: label.textAlign ?? TextAlign.center,
+      maxLines: label.maxLines ?? 1,
+      overflow: label.overflow ?? TextOverflow.ellipsis,
+      style: label.style,
     );
   }
 
