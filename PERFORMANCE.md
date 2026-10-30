@@ -100,6 +100,22 @@ whether that child holds a visibility threshold. `computedStyle` merges every ba
 flat parameters into a fresh `BoxStyle`, so half of that work is allocated and dropped.
 `_planBox` also builds three maps per box where one would do.
 
+### A look was composed once per node that wore it
+
+`_planBox` and `_planText` built their declarations and then asked `Stylesheet.classFor` for
+the class, which hashes the canonical text of those declarations — so every node that wore a
+look composed it: allocate a list of the declarations, sort it, join it into ~200 characters
+and hash that, about three microseconds, only for the sheet to answer with a class it already
+had. A list of a thousand rows did it a thousand times for one class. The sheet now remembers
+the class of a look (`classForLook`), keyed on what the declarations and the state rules are
+drawn from, and composing one look is a map lookup for the rest.
+
+It is a trade, and both sides are in the table below. A page of shared looks plans 6,001 nodes
+in **2.5 ms** where it took 9.8, and 12,001 in 5.1 where it took 14.5; a page whose every look
+is new — the `distinct-look` shape, one colour per row — pays about a microsecond a node for a
+key that never hits, and goes from 19.5 ms to 22.7 ms. Real pages are the first shape far more
+often than the second, and the second stays linear, which is what the guard holds it to.
+
 ### Recorded, not fixed
 
 - **A hover in Flutter rebuilds the subtree.** `FlutterBox.build` builds its children in
@@ -122,15 +138,17 @@ Measured after the fixes, on the same machine, with the same benchmark:
 
 | Shape | nodes | classes | plan | css | write |
 | --- | --- | --- | --- | --- | --- |
-| shared look | 6,001 | 4 | 9.8 ms | 0.1 ms | 10.1 ms |
-| shared look | 12,001 | 4 | 14.5 ms | 0.0 ms | 20.6 ms |
-| distinct looks | 6,001 | 1,503 | 9.4 ms | 0.4 ms | 10.6 ms |
-| distinct looks | 12,001 | 3,003 | 19.5 ms | 0.7 ms | 22.2 ms |
-| deep chain | 801 | 2 | 3.1 ms | 0.0 ms | 1.0 ms |
-| deep chain | 1,601 | 2 | 4.2 ms | 0.0 ms | 2.0 ms |
+| shared look | 6,001 | 4 | 2.5 ms | 0.0 ms | 10.7 ms |
+| shared look | 12,001 | 4 | 5.1 ms | 0.0 ms | 20.9 ms |
+| distinct looks | 6,001 | 1,503 | 12.0 ms | 0.4 ms | 10.3 ms |
+| distinct looks | 12,001 | 3,003 | 22.7 ms | 0.6 ms | 21.1 ms |
+| deep chain | 801 | 2 | 1.3 ms | 0.0 ms | 1.1 ms |
+| deep chain | 1,601 | 2 | 0.6 ms | 0.0 ms | 2.1 ms |
 
-Doubling the tree now doubles every stage: the two shapes that broke the rule are at 2.1x
-and 2.0x, where they were at 2.5x and 9.6x.
+Doubling the tree still doubles every stage — the plan of the shared-look shape is at 2.0x
+and the distinct-look one at 1.9x, where they were at 2.5x and 9.6x before the six fixes. The
+chain's plan is under two milliseconds at both sizes, so it is noise; the two large rows are
+the numbers to read.
 
 The byte columns do not appear in that table because they are a function of the tree and of
 nothing else, which is why the guard compares them exactly rather than loosely. Two things
@@ -140,9 +158,12 @@ added there moves every shape by the same handful of bytes, however many nodes i
 class is written once however many elements wear it, so a look the whole page shares costs
 what a single rule costs.
 
-- **F3**: 41 ms → 19.5 ms to plan 12,001 nodes with 3,003 distinct looks, and 13.8 ms → 0.7 ms
+- **F3**: 41 ms → 22.7 ms to plan 12,001 nodes with 3,003 distinct looks, and 13.8 ms → 0.6 ms
   to serialise their stylesheet, because a class's declarations are sorted and joined once
   rather than twice and the sheet is indexed by class instead of scanned.
+- **F7**: 14.5 ms → 5.1 ms to plan 12,001 nodes of shared looks (9.8 → 2.5 at 6,001), because
+  a look is composed once and remembered — at the cost of the microsecond a node that a page
+  of 3,003 distinct looks pays for a key that never hits.
 - **F4**: 20 ms → 2.0 ms to write a chain of 1,601 boxes, at the same bytes.
 - **F1**, **F2**, **F5**, **F6** are on the DOM side or are smaller, and the benchmark cannot
   see them: a browser is what pays. F1 and F2 are pinned by the tests in

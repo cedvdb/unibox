@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- A look is composed once per rendering, not once per node that wears it. A row of a list
+  builds its declarations, sorts them, joins them into the canonical text and hashes that
+  text — about three microseconds — and every row of a thousand-row list did it again only
+  to be told the class it already had. `Stylesheet.classForLook` remembers the class a look
+  is given, and the plan of a page of shared looks went from 14.6 ms to 2.8 ms at 12,001
+  nodes. A page whose every look is new pays about a microsecond a node for the key and gets
+  nothing back, which is why the benchmark keeps both shapes.
+
 - A document's `:root` block starts from `rootDeclarations()`: the typography of the model and
   the switched-off tap highlight. A touch browser used to paint its blue flash over a control
   whose tree already draws the press, and the flash is inherited, so the root is where it goes.

@@ -22,6 +22,11 @@ final class Stylesheet {
   /// The state rules, in the order their classes were asked for.
   final List<CssRule> _states = <CssRule>[];
 
+  /// The class of every look this sheet has already composed, so a look asked for twice is
+  /// composed once. Its size is the number of distinct looks, which is what the rules cost
+  /// too.
+  final Map<Object, String> _looks = <Object, String>{};
+
   /// How many times a rule has been added, which is what tells a renderer whether the
   /// stylesheet it wrote into the page is still the one this sheet describes.
   ///
@@ -70,6 +75,37 @@ final class Stylesheet {
     }
 
     return className;
+  }
+
+  /// The class for the look [look] names, with its declarations composed only the first
+  /// time that look is asked for.
+  ///
+  /// A rendering asks for a look once per node that wears it: a list of a thousand rows
+  /// wears one class, and every row built the declarations, sorted them, joined them into
+  /// the canonical text and hashed that text — about three microseconds of work — only for
+  /// [classFor] to answer with a class it already had. Remembering the answer costs about
+  /// a fifth of that, and on a page of shared looks the plan was two thirds this work.
+  ///
+  /// [look] has to tell apart every pair of looks whose declarations *or state rules*
+  /// differ: a settled look is never composed again, so two different looks behind one key
+  /// would share a class and lose the difference between them. What counts is whatever the
+  /// caller's declarations and states are computed from — a resolved style and the flags
+  /// that change what it says.
+  String classForLook(
+    Object look,
+    String kind,
+    CssDeclarations Function() declarations, {
+    List<CssRule> Function(String className)? states,
+  }) {
+    final String? known = _looks[look];
+
+    if (known != null) {
+      return known;
+    }
+
+    final String className = classFor(kind, declarations(), states: states);
+
+    return _looks[look] = className;
   }
 
   /// Every rule, as the body of one `<style>` element.

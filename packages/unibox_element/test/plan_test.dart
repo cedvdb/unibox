@@ -120,6 +120,64 @@ void main() {
 
   shapedTests();
 
+  group('a look is composed once', () {
+    test('gives two boxes that look alike one class', () {
+      final Stylesheet sheet = Stylesheet();
+      final ElementPlan first = planNode(
+        const core.Box(padding: core.BoxSpacing.all(8)),
+        sheet,
+      );
+      final ElementPlan second = planNode(
+        const core.Box(padding: core.BoxSpacing.all(8)),
+        sheet,
+      );
+
+      expect(second.className, first.className);
+      expect(
+        sheet.length,
+        1,
+        reason: 'one look is one rule, however many nodes wear it',
+      );
+    });
+
+    test('keeps two boxes apart when only their states differ', () {
+      // What a sheet remembers has to include the state styles, not only the resting look: two
+      // boxes that rest alike and tint differently would otherwise wear one class, and the tint
+      // of the first would answer a press on the second.
+      final Stylesheet sheet = Stylesheet();
+      final ElementPlan plain = planNode(
+        const core.Box(padding: core.BoxSpacing.all(8)),
+        sheet,
+      );
+      final ElementPlan tinted = planNode(
+        const core.Box(
+          padding: core.BoxSpacing.all(8),
+          hoverStyle: core.BoxStyle(backgroundColor: core.BoxColor(0xFF00FF00)),
+        ),
+        sheet,
+      );
+
+      expect(tinted.className, isNot(plain.className));
+      expect(sheet.css, contains('.${tinted.className}:hover'));
+      expect(
+        sheet.css,
+        isNot(contains('.${plain.className}:hover')),
+        reason: 'a box that states no hover has no hover rule',
+      );
+    });
+
+    test('keeps two texts apart when only their alignment differs', () {
+      final Stylesheet sheet = Stylesheet();
+      final ElementPlan start = planNode(const core.TextNode('Hi'), sheet);
+      final ElementPlan centred = planNode(
+        const core.TextNode('Hi', textAlign: core.TextAlign.center),
+        sheet,
+      );
+
+      expect(centred.className, isNot(start.className));
+    });
+  });
+
   group('an embed', () {
     test('is planned by the renderer that can draw it', () {
       // Its payload is the host's, so the plan package cannot decide.

@@ -110,27 +110,43 @@ ElementPlan _planBox(core.Box box, Stylesheet sheet, PlanOptions options) {
   final bool holdsThreshold = box.children.any(
     (core.UINode child) => child is core.Box && child.hasThreshold,
   );
-  final CssDeclarations declarations = boxDeclarations(
-    style,
-    interactive: box.isInteractive,
-    capturesPointer: capturesPointer,
-    element: element,
-  );
+  final bool interactive = box.isInteractive;
 
-  // Mobile first: a box that only appears above a width starts hidden, and the container
-  // query below brings it back. A browser without container queries then draws the narrow
-  // layout rather than a broken wide one.
-  if (style.visibleFrom != null) {
-    declarations.add('display', 'none');
-  }
-
-  // A box that holds a threshold is the box that threshold measures.
-  if (holdsThreshold) {
-    declarations.addAllIn(containerDeclarations());
-  }
-  final String className = sheet.classFor(
+  final String className = sheet.classForLook(
+    // What a look is, for the sheet to remember it by: the declarations and the state rules
+    // below are drawn from these seven and from nothing else.
+    (
+      style: style,
+      element: element,
+      interactive: interactive,
+      pointer: capturesPointer,
+      threshold: holdsThreshold,
+      hover: box.hoverStyle,
+      states: _StateStyles.of(box.stateStyles),
+    ),
     'box',
-    declarations,
+    () {
+      final CssDeclarations declarations = boxDeclarations(
+        style,
+        interactive: interactive,
+        capturesPointer: capturesPointer,
+        element: element,
+      );
+
+      // Mobile first: a box that only appears above a width starts hidden, and the container
+      // query below brings it back. A browser without container queries then draws the narrow
+      // layout rather than a broken wide one.
+      if (style.visibleFrom != null) {
+        declarations.add('display', 'none');
+      }
+
+      // A box that holds a threshold is the box that threshold measures.
+      if (holdsThreshold) {
+        declarations.addAllIn(containerDeclarations());
+      }
+
+      return declarations;
+    },
     states: (String name) => <CssRule>[
       ...stateRules(box, name),
       ...snapRules(name, style),
@@ -156,6 +172,50 @@ ElementPlan _planBox(core.Box box, Stylesheet sheet, PlanOptions options) {
       for (final core.UINode child in box.children)
         planNode(child, sheet, options: options),
     ],
+  );
+}
+
+/// The state styles of a box, compared by value.
+///
+/// A `Map` compares by identity, so two rows that paint the same tint on hover would be two
+/// looks and every one of them would be composed again. What the state rules are drawn from
+/// is the states a box names and the styles it names them with, which is what this compares.
+final class _StateStyles {
+  const _StateStyles(this.styles);
+
+  /// The states a box states no style for, which is most of them.
+  static const _StateStyles none = _StateStyles(
+    <core.BoxState, core.BoxStyle>{},
+  );
+
+  /// The look of [styles], which a box may leave unset or empty.
+  static _StateStyles of(Map<core.BoxState, core.BoxStyle>? styles) =>
+      styles == null || styles.isEmpty ? none : _StateStyles(styles);
+
+  /// The style the box gives each state it names.
+  final Map<core.BoxState, core.BoxStyle> styles;
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! _StateStyles || other.styles.length != styles.length) {
+      return false;
+    }
+
+    for (final MapEntry<core.BoxState, core.BoxStyle> entry in styles.entries) {
+      if (other.styles[entry.key] != entry.value) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  @override
+  int get hashCode => Object.hashAllUnordered(
+    styles.entries.map(
+      (MapEntry<core.BoxState, core.BoxStyle> entry) =>
+          Object.hash(entry.key, entry.value),
+    ),
   );
 }
 
@@ -245,7 +305,17 @@ Map<String, String> nodeAttributes(core.UINode node) {
 }
 
 ElementPlan _planText(core.TextNode node, Stylesheet sheet) {
-  final String className = sheet.classFor('text', textDeclarations(node));
+  final String className = sheet.classForLook(
+    // A text's look is its typography and the three things it adds to it.
+    (
+      style: node.computedStyle,
+      align: node.textAlign,
+      lines: node.maxLines,
+      overflow: node.overflow,
+    ),
+    'text',
+    () => textDeclarations(node),
+  );
 
   return ElementPlan(
     tag: textTagOf(node.headingLevel),
