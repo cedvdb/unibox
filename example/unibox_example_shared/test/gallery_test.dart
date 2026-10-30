@@ -86,6 +86,52 @@ void main() {
         isEmpty,
       );
     });
+
+    test('raises one card per level, on the surface Material tints with it', () {
+      // Elevation is two values in Material, not one: the shadow a surface casts and
+      // the tone it is tinted with. A card that took the shadow alone would be three
+      // cards that look alike once a browser has blurred 12% black over the page's own
+      // tone, so the catalogue pairs them — and this is the pair, written down.
+      final MaterialPalette palette = ExamplePalette.materialFor(
+        ExampleSeed.defaultSeed,
+      );
+      final List<MaterialCard> cards = _nodesOf(buildMaterialSection())
+          .whereType<MaterialCard>()
+          .toList();
+
+      MaterialCard raised(BoxShadow shadow) =>
+          cards.singleWhere((MaterialCard card) => card.shadow == shadow);
+
+      expect(
+        raised(MaterialElevation.level1).backgroundColor,
+        palette.surfaceContainerLow,
+      );
+      expect(
+        raised(MaterialElevation.level2).backgroundColor,
+        palette.surfaceContainer,
+      );
+      expect(
+        raised(MaterialElevation.level3).backgroundColor,
+        palette.surfaceContainerHigh,
+      );
+
+      // The two shapes beside the raised one: one draws a line where the other draws a
+      // tone, and neither casts anything.
+      expect(
+        cards.where(
+          (MaterialCard card) => card.shadow == null && card.border != null,
+        ),
+        hasLength(1),
+        reason: 'the outlined card is the one that draws a line instead of a shadow',
+      );
+      expect(
+        cards.where(
+          (MaterialCard card) => card.shadow == null && card.border == null,
+        ),
+        hasLength(1),
+        reason: 'the filled card is the one with neither',
+      );
+    });
   });
 }
 

@@ -937,6 +937,9 @@ MaterialCard(
 )
 ```
 
+The catalogue in the example draws the three pairs side by side, which is what makes the
+climb visible at all.
+
 A component names the level it rests at rather than writing a shadow, which is what
 keeps `MaterialCard`, `MaterialDialog` and `MaterialBottomSheet` in step: an app that
 replaces one level replaces it on every surface that uses it. How a shadow is
