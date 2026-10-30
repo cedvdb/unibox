@@ -82,6 +82,13 @@ What stays approximate on purpose, and is therefore outside the contract
 altogether: the font face, line breaking, shadow blur, placeholder and focus
 colours, and hit testing.
 
+One layout fact sits at that edge rather than in the table: a child of a
+baseline-aligned row that holds no text reports no baseline, and the two engines
+then fall back differently — Flutter tops the child out, a browser uses its bottom
+edge. The alignment itself is in the table, because both outputs declare it; what
+each host does with a child that has nothing to align is where the two stop
+agreeing, so a row that aligns on the baseline is a row of text.
+
 The geometry of a `BoxShape` is not in the table either, for a different reason: it
 is exact on both targets, but it is *not a fact one rendering can read back and the
 other state*. Flutter paints a `Path` and the web writes a `d` attribute, so there

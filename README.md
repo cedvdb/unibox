@@ -246,7 +246,7 @@ Box(
 | `children` | `List<UINode>` | empty | The nodes laid out inside. |
 | `direction` | `Axis?` | column | `Axis.horizontal` is a row, `Axis.vertical` a column. |
 | `mainAlign` | `MainAlign?` | start | Distribution along the direction: `start`, `center`, `end`, `spaceBetween`, `spaceAround`, `spaceEvenly`. |
-| `crossAlign` | `CrossAlign?` | start | Alignment across the direction: `start`, `center`, `end`, `stretch`. |
+| `crossAlign` | `CrossAlign?` | start | Alignment across the direction: `start`, `center`, `end`, `stretch`, `baseline`. A baseline is a horizontal line, so it is a row's alignment: a column that states one is reported by `validateTree`. |
 | `gap` | `double?` | none | Space between two children. For space at the edges, use `padding`. |
 | `flex` | `int?` | none | Share of the free space this box takes inside its parent: `flex: 1` is an `Expanded` in Flutter and `flex-grow: 1` on the web. |
 | `gridSpan` | `int?` | one track | How many columns of a `GridNode` this box covers: a banner that interrupts a card grid states `2`, or more for a full row. Only a grid child has tracks, and `validateTree` reports it anywhere else. |
@@ -324,6 +324,15 @@ size the tree gave it instead of collapsing differently on each side.
 platform does", so `gap` and the alignments work in every box. Nothing is inherited
 from a box to its children except typography: a box never pushes its padding, gap or
 alignment down.
+
+**A baseline is a row's alignment.** `crossAlign: CrossAlign.baseline` sits the
+children on the alphabetic baseline of their first line of text — the one alignment
+that knows where the glyphs are, so a 14px label and a 24px price share a line
+instead of a box edge. It is Flutter's `CrossAxisAlignment.baseline` and the
+browser's `align-items: baseline`, and both mean the same thing there because a
+baseline is a horizontal line. A column has no baseline to align on: Flutter draws
+the children as if the value were `start` while a browser shifts them sideways, so
+`validateTree` reports a baseline on anything that is not a row.
 
 **The two defaults that cost an afternoon.** Both are the same on both targets, and
 both are the opposite of what an instinct says:

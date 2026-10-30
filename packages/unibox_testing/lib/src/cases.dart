@@ -61,6 +61,20 @@ const List<BoxCase> boxCases = <BoxCase>[
     expected: BoxAppearance(crossAlign: core.CrossAlign.center),
   ),
   BoxCase(
+    description: 'aligns the children on the baseline of their text',
+    // A row, because a baseline is a horizontal line: on a column the two targets
+    // disagree about what it means, and `validateTree` reports it instead.
+    box: core.Box(
+      direction: core.Axis.horizontal,
+      crossAlign: core.CrossAlign.baseline,
+      children: _children,
+    ),
+    expected: BoxAppearance(
+      direction: core.Axis.horizontal,
+      crossAlign: core.CrossAlign.baseline,
+    ),
+  ),
+  BoxCase(
     description: 'keeps a gap between two children',
     box: core.Box(gap: 12, children: _children),
     expected: BoxAppearance(gap: 12),

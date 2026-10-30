@@ -564,6 +564,9 @@ class FlutterBoxState extends State<FlutterBox> {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: mainAxisAlignment,
         crossAxisAlignment: crossAxisAlignment,
+        // Stated even when it is not used: a baseline alignment is the one value that
+        // needs it, and a flex that leaves it out asserts when it is.
+        textBaseline: uniboxTextBaseline,
         children: children,
       );
     }
@@ -572,6 +575,7 @@ class FlutterBoxState extends State<FlutterBox> {
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: mainAxisAlignment,
       crossAxisAlignment: crossAxisAlignment,
+      textBaseline: uniboxTextBaseline,
       children: children,
     );
   }

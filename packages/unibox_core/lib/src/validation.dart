@@ -72,6 +72,8 @@ class TreeIssue {
 ///   navigates twice,
 /// * a box that scrolls along its main axis while distributing its children
 ///   with [Box.mainAlign], which pushes overflowing children out of reach,
+/// * a box that aligns on the baseline without a row to align, where the two
+///   targets lay the children out differently,
 /// * a list item whose parent is not a list, and a caption whose parent is not a
 ///   figure, both of which are invalid HTML and name nothing where they stand,
 /// * a grid span on a box that is not a grid child, and a span no track can hold,
@@ -702,6 +704,27 @@ void _validate(
               'children with mainAlign: ${mainAlign.name}. The children that '
               'overflow are pushed out of reach in CSS and out of the viewport '
               'in Flutter. Use MainAlign.start and let the children scroll.',
+        ),
+      );
+    }
+
+    // A baseline is a horizontal line, so it aligns the children of a row and
+    // describes nothing about a column: Flutter lays a column out as if the value
+    // were `start`, while a browser shifts the children sideways to line their
+    // baselines up. The same tree would then be laid out two ways.
+    if (style.crossAlign == CrossAlign.baseline &&
+        style.resolvedDirection != Axis.horizontal) {
+      issues.add(
+        TreeIssue(
+          node: node,
+          severity: TreeIssueSeverity.error,
+          message:
+              'A box aligns its children on the baseline (crossAlign: '
+              'CrossAlign.baseline) without direction: Axis.horizontal. Only a '
+              'row has a baseline, because a baseline is a horizontal line: '
+              'Flutter treats the value as start on a column and a browser '
+              'aligns the children sideways. Set the direction, or align on an '
+              'edge.',
         ),
       );
     }

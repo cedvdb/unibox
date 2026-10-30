@@ -100,6 +100,8 @@ void main() {
       expect(cssAlignItems(core.CrossAlign.center), 'center');
       expect(cssAlignItems(core.CrossAlign.end), 'end');
       expect(cssAlignItems(core.CrossAlign.stretch), 'stretch');
+      // The alphabetic baseline, which is the only one `align-items` can name.
+      expect(cssAlignItems(core.CrossAlign.baseline), 'baseline');
     });
 
     test('scrolls only when the content overflows', () {

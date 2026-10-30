@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- A case for `CrossAlign.baseline`, read back from the flex on one side and from
+  `align-items: baseline` on the other, so a renderer that drops the baseline fails its
+  own suite. The `README` records the one thing the table cannot hold: a child of a
+  baseline aligned row that holds no text has no baseline to align, and the two engines
+  fall back differently.
+
 - `GridAppearance` and `gridCases`: the tracks each child of a grid ends up in, read
   out of each renderer's output, so a renderer that drops a `gridSpan` — or counts it
   as one slot and leaves the rest empty — fails its own suite.

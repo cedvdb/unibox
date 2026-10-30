@@ -122,11 +122,15 @@ String cssJustifyContent(core.MainAlign align) => switch (align) {
 };
 
 /// A model [core.CrossAlign] as the CSS `align-items` keyword.
+///
+/// `baseline` is the alphabetic baseline: CSS has no way to ask for another one, and
+/// the alphabetic baseline is what Flutter is told to align on.
 String cssAlignItems(core.CrossAlign align) => switch (align) {
   core.CrossAlign.start => 'start',
   core.CrossAlign.center => 'center',
   core.CrossAlign.end => 'end',
   core.CrossAlign.stretch => 'stretch',
+  core.CrossAlign.baseline => 'baseline',
 };
 
 /// A model [core.Overflow] as the CSS `overflow` keyword.

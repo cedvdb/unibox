@@ -304,6 +304,7 @@ core.CrossAlign crossAlignOf(String? value) => switch (value) {
   'center' => core.CrossAlign.center,
   'end' => core.CrossAlign.end,
   'stretch' => core.CrossAlign.stretch,
+  'baseline' => core.CrossAlign.baseline,
   _ => core.CrossAlign.start,
 };
 

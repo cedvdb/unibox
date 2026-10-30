@@ -157,7 +157,14 @@ never inherited (CSS does not inherit them either).
 - A default lives in the model (`BoxStyle.resolvedDirection`), not in each
   renderer, so the two can only ever agree on it.
 - A token that cannot take effect is either honoured or reported by
-  `validateTree`; silently accepting it is not an option.
+  `validateTree`; silently accepting it is not an option. `crossAlign: baseline` is
+  the case that decided it: a baseline is a horizontal line, so it aligns the children
+  of a row, and on a column Flutter lays them out as if the value were `start` while a
+  browser shifts them sideways along the axis. The value stays — a row of a 14px label
+  and a 24px price needs it, and both targets draw it the same way — and the column
+  that states it is reported instead. The baseline itself has one name, the
+  alphabetic one: CSS cannot ask for another, so the model does not offer a choice
+  only one target could honour.
 - Filling a width needs a width to fill. `width: double.infinity` means "as wide as I
   am offered": Flutter hands a child the incoming constraint, and a browser resolves
   `100%` against its parent's width — which, for a column that hugs its content, is

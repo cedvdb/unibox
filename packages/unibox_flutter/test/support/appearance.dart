@@ -518,11 +518,7 @@ core.CrossAlign _crossAlignOf(CrossAxisAlignment align) {
     CrossAxisAlignment.end => core.CrossAlign.end,
     CrossAxisAlignment.center => core.CrossAlign.center,
     CrossAxisAlignment.stretch => core.CrossAlign.stretch,
-    // A baseline has no counterpart on the cross axis of a box, so a renderer
-    // that aligned on it would be laying the box out differently.
-    CrossAxisAlignment.baseline => throw StateError(
-      'A box cannot align its children on a baseline.',
-    ),
+    CrossAxisAlignment.baseline => core.CrossAlign.baseline,
   };
 }
 

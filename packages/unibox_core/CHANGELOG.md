@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- `CrossAlign.baseline` aligns a row's children on the alphabetic baseline of their
+  first line of text, which is the one alignment that puts a small label and a large
+  price on the same line rather than on the same box edge. A baseline is a horizontal
+  line, so a column that states it is reported by `validateTree` rather than laid out
+  two different ways by the two renderers.
+
 - `Box.style` and `EmbedNode.payload` are gone, and no compatibility member replaces them:
   a bag is a list (`styles:`), and an embed states `implementations`. The library has one
   consumer — this repository — so a removed spelling is rewritten rather than forwarded.

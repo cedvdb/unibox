@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `CrossAlign.baseline` is written `align-items: baseline`, so a row whose children
+  are typeset at different sizes shares a line instead of an edge. It is the
+  alphabetic baseline, the only one CSS can name.
+
 - A box's shadows are written as one comma separated `box-shadow` list, in the order the model
   states them, so the layers of an elevation are declarations CSS paints at once. A
   shadow whose colour is a role keeps its custom property, which the old single-shadow path could

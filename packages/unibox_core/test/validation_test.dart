@@ -457,6 +457,31 @@ void main() {
       expect(validateTree(tree), isEmpty);
     });
 
+    test('reports a baseline alignment on a column', () {
+      // A baseline is a horizontal line: Flutter lays a column out as if the value
+      // were start, and a browser shifts the children sideways. Nothing can draw both.
+      const Box tree = Box(
+        crossAlign: CrossAlign.baseline,
+        children: <UINode>[TextNode('a'), TextNode('b')],
+      );
+
+      final TreeIssue issue = validateTree(tree).single;
+
+      expect(issue.node, same(tree));
+      expect(issue.isError, isTrue);
+      expect(issue.message, contains('CrossAlign.baseline'));
+    });
+
+    test('accepts a baseline alignment on a row of text', () {
+      const Box tree = Box(
+        direction: Axis.horizontal,
+        crossAlign: CrossAlign.baseline,
+        children: <UINode>[TextNode('label'), TextNode('price')],
+      );
+
+      expect(validateTree(tree), isEmpty);
+    });
+
     test('reads the tokens resolved from the style', () {
       const Box tree = Box(
         styles: <BoxStyle>[

@@ -171,6 +171,7 @@ host that renders it.
 | `Column(children: …)` | `Box(children: …)` — a column is the default |
 | `Row(children: …)` | `Box(direction: Axis.horizontal, children: …)` |
 | `mainAxisAlignment` / `crossAxisAlignment` | `mainAlign` / `crossAlign` |
+| `CrossAxisAlignment.baseline` | `crossAlign: CrossAlign.baseline` on a **row** — on a column `validateTree` reports it, because Flutter draws it as `start` and a browser shifts the children sideways |
 | `Expanded(child: …)` | `flex: 1` on the child box |
 | `SizedBox(height: 8)` between children | `gap: 8` on the parent |
 | `Colors.white`, `Color(0xFF112233)` | `BoxColor.white`, `BoxColor(0xFF112233)` |

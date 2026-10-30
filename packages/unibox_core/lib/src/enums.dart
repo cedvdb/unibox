@@ -41,6 +41,25 @@ enum CrossAlign {
 
   /// Stretch children to fill the cross axis.
   stretch,
+
+  /// Align children so that their first lines of text sit on one baseline.
+  ///
+  /// The one cross alignment that knows where the glyphs are: a row of a 14px
+  /// label and a 24px price aligned any other way lines their boxes up, and the
+  /// two texts then sit at different heights. `CrossAxisAlignment.baseline` and
+  /// `align-items: baseline` both say it, so the two targets agree on it.
+  ///
+  /// The baseline is the alphabetic one, which is what both engines default to
+  /// and the only one CSS can name. A child with no text in it reports no
+  /// baseline: Flutter tops it out and CSS falls back to the bottom edge of the
+  /// child, so a row that aligns on the baseline is a row of text.
+  ///
+  /// Only a horizontal box has one. A vertical box aligns its children across a
+  /// horizontal axis, where a horizontal line describes nothing: Flutter treats
+  /// the value as [start] and a browser shifts the children sideways to line the
+  /// baselines up. The two then lay the same tree out differently, so
+  /// `validateTree` reports it.
+  baseline,
 }
 
 /// Where a child sits in the cell of a stack, both axes at once.

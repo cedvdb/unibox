@@ -34,7 +34,8 @@ with their target.
 | `direction: Axis.vertical`          | `Column`                                           |
 | no `direction`                      | `Column`, the same as `Axis.vertical`              |
 | `gap`                               | `SizedBox` separators between children              |
-| `mainAlign` / `crossAlign`          | `mainAxisAlignment` / `crossAxisAlignment`          |
+| `mainAlign` / `crossAlign`          | `mainAxisAlignment` / `crossAxisAlignment`, with `textBaseline` stated |
+| `crossAlign: CrossAlign.baseline`   | `CrossAxisAlignment.baseline` with `TextBaseline.alphabetic` |
 | `padding` / `margin`                | inner / outer `Padding`                             |
 | `width`, `height`                   | `SizedBox`                                          |
 | `minWidth`, `maxWidth`, ...         | `ConstrainedBox`                                    |

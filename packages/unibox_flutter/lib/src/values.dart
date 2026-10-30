@@ -32,14 +32,26 @@ MainAxisAlignment toMainAxisAlignment(core.MainAlign align) {
 }
 
 /// Converts a Unibox [core.CrossAlign] to Flutter [CrossAxisAlignment].
+///
+/// A baseline alignment makes Flutter demand a [TextBaseline] as well, which the
+/// renderer states as the alphabetic one: it is the baseline CSS names, and the
+/// only one the two targets can agree on.
 CrossAxisAlignment toCrossAxisAlignment(core.CrossAlign align) {
   return switch (align) {
     core.CrossAlign.start => CrossAxisAlignment.start,
     core.CrossAlign.center => CrossAxisAlignment.center,
     core.CrossAlign.end => CrossAxisAlignment.end,
     core.CrossAlign.stretch => CrossAxisAlignment.stretch,
+    core.CrossAlign.baseline => CrossAxisAlignment.baseline,
   };
 }
+
+/// The baseline Flutter lays a baseline aligned flex out against.
+///
+/// Alphabetic, which is where a line of Latin text sits and the only baseline CSS
+/// can name: `align-items: baseline` has no ideographic counterpart, so the model
+/// offers one baseline rather than a token one target could not honour.
+const TextBaseline uniboxTextBaseline = TextBaseline.alphabetic;
 
 /// Converts a Unibox [core.FontWeight] to a Flutter [FontWeight].
 FontWeight toFontWeight(core.FontWeight weight) {
@@ -268,7 +280,12 @@ core.BoxAlignment toBoxAlignment(
     core.MainAlign.end => 1,
   };
   final int cross = switch (crossAlign) {
-    core.CrossAlign.start || core.CrossAlign.stretch => -1,
+    // A stack aligns a child in a cell, and a cell has no line of text to sit on: a
+    // baseline places the child at the start, which is what Flutter does with one on
+    // a vertical axis.
+    core.CrossAlign.start ||
+    core.CrossAlign.stretch ||
+    core.CrossAlign.baseline => -1,
     core.CrossAlign.center => 0,
     core.CrossAlign.end => 1,
   };

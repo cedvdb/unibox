@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `CrossAlign.baseline` becomes `CrossAxisAlignment.baseline`, with the alphabetic
+  `textBaseline` a baseline aligned `Row` demands — the same line the browser aligns
+  the children on with `align-items: baseline`.
+
 - A box's shadows become one entry of the decoration's `boxShadow` per layer, so the elevation a
   design system states as three shadows is painted as three instead of one.
 
