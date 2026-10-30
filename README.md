@@ -1,5 +1,9 @@
 # Unibox
 
+**Flutter UI. Searchable HTML.** Unibox makes a Flutter Web page indexable without a second
+UI: build the screen once in Dart, draw it as Flutter widgets, and serve the same tree as
+real HTML and CSS — the page a search engine reads.
+
 A search engine, a link preview and a reader whose JavaScript failed all see the same
 thing in a Flutter screen: nothing. Flutter draws into a canvas, so there is no text to
 index and no link to follow. The usual fix is to write that page again in HTML, and then
@@ -24,8 +28,8 @@ read is the demo.
 
 ## Features
 
+- 🔍 **Flutter SEO without a second UI** — a crawler, a link preview and a reader without JavaScript get the page itself: real text, headings, links, `alt`, landmarks and metadata, generated from the same Dart tree the app draws as widgets.
 - 🧩 **One tree, two renderings** — the same nodes are Flutter widgets in the app and HTML with CSS in the browser, so the design is written once.
-- 🔍 **A page a search engine reads** — real text, headings, links, `alt`, landmarks and metadata: what a crawler, a link preview and a reader without JavaScript see is the page itself.
 - 🖐 **Take the page over, and keep the reader's place** — Flutter boots into the document it was served, prefetched while they read and started at their first intent, and the scroll of every keyed region and the presses they made come back with it.
 - ⚡ **Or let the page run on its own** — the same tree compiled to JavaScript renders into the page with `unibox_dom` and reacts through its store, so a page that should stay light needs no Flutter binary at all.
 - 🟩 **Rendered from Node too** — pure Dart with no dependencies, so a document is produced in a server, a build step, a CLI, or compiled to JavaScript for a backend that is not Dart.
@@ -35,6 +39,7 @@ read is the demo.
 ## Contents
 
 - [How it works](#how-it-works)
+- [Flutter SEO: make Flutter Web pages indexable](#flutter-seo-make-flutter-web-pages-indexable)
 - [Serving a tree](#serving-a-tree)
 - [Quick start](#quick-start)
 - [Flutter hydrates it](#flutter-hydrates-it--the-least-to-change)
@@ -83,6 +88,74 @@ browser markup and CSS, with no WebView between them.
 
 How wide the window is, what a tap does and what the document is called cannot come from the
 tree: only the application knows them. See [what the host owns](#what-the-host-owns).
+
+## Flutter SEO: make Flutter Web pages indexable
+
+Flutter Web paints into a canvas. A search engine is served an empty page — no text to index,
+no heading to rank, no link to follow — and a page a crawler cannot read is a page nobody
+arrives on. The usual answer is to write that page a second time in HTML, and to keep the two
+designs in step until they no longer are.
+
+Unibox answers it with the page that is already there. The tree is the description;
+`toDocument` writes it as a document:
+
+```dart
+final UINode page = Box(
+  gap: 8,
+  children: <UINode>[
+    TextNode('Apartments in Amsterdam', headingLevel: 1),
+    TextNode('Forty-one flats, from a studio to a family home.'),
+    LinkNode('apartments/amsterdam', child: TextNode('See all')),
+  ],
+);
+
+final String document = toDocument(
+  page,
+  title: 'Apartments in Amsterdam',
+  description: 'Forty-one flats to rent in Amsterdam.',
+  takeover: const Takeover(boot: 'app.js'),
+);
+```
+
+`toDocument` writes the head and the body, and nothing in the output needs a runtime to be
+read. With the class hashes elided and the whitespace added by hand, this is the body it
+writes:
+
+```html
+<body>
+  <div class="unibox-box-…" data-unibox-node="box">
+    <h1 class="unibox-text-…" data-unibox-node="text">Apartments in Amsterdam</h1>
+    <span class="unibox-text-…" data-unibox-node="text">Forty-one flats, from a studio to a family home.</span>
+    <a class="unibox-link-…" href="apartments/amsterdam" data-unibox-node="link">
+      <span class="unibox-text-…" data-unibox-node="text">See all</span>
+    </a>
+  </div>
+</body>
+```
+
+A real `h1`, real sentences and an `href` a crawler follows — and a title, a description and
+the `og:` pair in the head, so a link preview reads the page too. That is what an indexable
+Flutter page has to mean in practice: the document the crawler is given is the document the
+reader lands on.
+
+**The application is not replaced.** `takeover` names the Flutter build the document belongs
+to: it is prefetched while the reader reads, started at their first intent, and boots into
+the page it was served — the scroll of every keyed region and the presses already made come
+back with it. From then on Flutter draws everything: the dialogs, the forms and the screens
+behind the list, exactly as the application already writes them. See
+[Serving a tree](#serving-a-tree).
+
+**Adopt it one page at a time.** None of this asks for an application to be rewritten. The
+pages that have to be found — the listing, the product, the article, a landing page — become
+trees; the dashboard behind a login stays the Flutter it already is, because no crawler is
+going to sign in. That is the difference between a migration and a page, and it is why this
+can start with one screen.
+
+**What it does not do.** Rendering is not the whole of search. Unibox does not choose a url,
+write the copy, fill the metadata, produce `robots.txt` or a sitemap, set a canonical or a
+redirect, or deploy the result — the application still owns all of that, which is where it
+belongs. What Unibox removes is the canvas between a crawler and the page, and the second UI
+that used to sit beside it.
 
 ## Serving a tree
 
