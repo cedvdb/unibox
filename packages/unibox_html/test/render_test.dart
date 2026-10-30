@@ -518,6 +518,50 @@ void main() {
     });
   });
 
+  group('the toHtml shorthand', () {
+    test('writes the fragment the function writes, for the same arguments', () {
+      // The spelling the Flutter target uses for a widget, so a reader who has written
+      // `page.toWidget()` finds `page.toHtml()` where they look for it — and it has to be
+      // the same rendering, down to the class hashes, or the two spellings would be two
+      // renderers.
+      const core.Box box = core.Box(
+        width: 40,
+        backgroundColor: core.BoxColor.white,
+      );
+
+      expect(box.toHtml(), toHtml(box));
+      expect(box.toHtml(showOverlays: true), toHtml(box, showOverlays: true));
+      expect(
+        box.toHtml(
+          theme: const core.UniboxTheme(colors: <Enum, core.BoxColor>{}),
+        ),
+        toHtml(
+          box,
+          theme: const core.UniboxTheme(colors: <Enum, core.BoxColor>{}),
+        ),
+      );
+    });
+
+    test('carries the theme into the sheet the function writes', () {
+      // On this target a role is not resolved while the tree is walked: the theme writes the
+      // custom property in `:root` and the rule points at it with `var()`. So the shorthand
+      // has only to pass the theme on, and the page has to be the one the function writes.
+      const core.UniboxTheme theme = core.UniboxTheme(
+        colors: <Enum, core.BoxColor>{_Role.ink: core.BoxColor.black},
+      );
+      const core.Box box = core.Box(
+        backgroundColor: core.BoxColor.role(_Role.ink),
+      );
+
+      expect(box.toHtml(theme: theme), toHtml(box, theme: theme));
+      expect(box.toHtml(theme: theme), contains('--unibox-color-ink:#000000'));
+      expect(
+        box.toHtml(theme: theme),
+        contains('background-color:var(--unibox-color-ink)'),
+      );
+    });
+  });
+
   group('a node this renderer cannot draw', () {
     test('is reported instead of skipped', () {
       // A tree built for another target fails loudly rather than shipping a page with a

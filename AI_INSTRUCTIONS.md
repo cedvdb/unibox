@@ -32,7 +32,7 @@ host that renders it.
   `LinkNode`, `StackNode` + `PositionedNode`, `TextInputNode`, `StatefulNode`,
   `OverlayNode`, `GridNode`, `EmbedNode`.
 - One tree, two renderings: `renderFlutter(tree, theme: …)` or `tree.toWidget(theme: …)`
-  in a Flutter app, and `toDocument(tree, theme: …)` or `toHtml(tree, theme: …)` in
+  in a Flutter app, and `toDocument(tree, theme: …)` or `tree.toHtml(theme: …)` in
   `unibox_html` for a page a crawler reads. A tree that names colour roles needs the
   theme on both targets — leaving it out is a validation error naming the role, not a
   fallback to a host colour.

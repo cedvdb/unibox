@@ -8,7 +8,7 @@
 /// import 'package:unibox_html/unibox_html.dart';
 ///
 /// final String page = ListingsPage(listings).toHtml();
-/// final String document = ListingsPage(listings).toDocument(title: 'Apartments');
+/// final String document = toDocument(ListingsPage(listings), title: 'Apartments');
 /// ```
 ///
 /// It is pure Dart with no dependencies, so a document can be rendered in a server, in a
@@ -33,5 +33,6 @@ export 'src/document.dart';
 export 'src/embed_node.dart';
 export 'src/escape.dart';
 export 'src/render.dart';
+export 'src/to_html.dart';
 export 'src/takeover.dart';
 export 'src/write.dart' show writeElement;

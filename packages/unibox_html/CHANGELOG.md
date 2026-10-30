@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `node.toHtml(...)`: the shorthand the Flutter target already had, so one tree is rendered by two
+  calls of the same shape — `tree.toWidget()` for the widgets and `tree.toHtml()` for the fragment a
+  page is made of. `toDocument(node, …)` stays a function, because a page carries facts no tree
+  does: its title, its canonical url, the languages it is translated into.
+
 - A tree is written into one buffer instead of one per element, so its text is written once rather
   than copied once per ancestor: a deeply nested page no longer costs its own depth squared.
 - `toDocument(alternates: …)`: the `hreflang` links that pair a page with its translations.

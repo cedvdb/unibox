@@ -13,7 +13,7 @@ command line tool, and, for a host whose backend is not Dart, compiled to JavaSc
 
 | Question | Answer |
 | --- | --- |
-| a tree as a fragment | `toHtml()` |
+| a tree as a fragment | `toHtml(tree)`, or `tree.toHtml()`, with the one `<style>` element in front of it |
 | a tree as a page | `toDocument(title: …, lang: …)` — the fragment, a `<head>` and the stylesheet |
 | a page in one language of several | `toDocument(lang: …, alternates: …)` — the language it is written in, and the `hreflang` links that pair it with its translations |
 | a page an application takes over | `toDocument(takeover: Takeover(boot: …))` — the bundle prefetched, the recorders, the boot on a signal |

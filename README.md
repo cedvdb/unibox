@@ -798,6 +798,7 @@ const Box(backgroundColor: BoxColor.role(AppColor.primary));
 renderFlutter(page, theme: theme);   // resolves each role while building
 page.toWidget(theme: theme);         // the same call, as the extension
 toDocument(page, theme: theme);      // writes :root and points the rules at it
+page.toHtml(theme: theme);           // the fragment, as the extension
 ```
 
 | | What it buys |
@@ -1065,7 +1066,7 @@ a custom property. Nothing in a tree is written inline.
 | `packages/unibox_flutter` | The Flutter renderer: `renderFlutter(node)` and `node.toWidget()`. |
 | `packages/unibox_css` | The token-to-CSS mapping and the class hash the web renders from. |
 | `packages/unibox_element` | The element plan: what each node becomes. |
-| `packages/unibox_html` | The web renderer: `toHtml(node)` and `toDocument(node)`. |
+| `packages/unibox_html` | The web renderer: `toHtml(node)` (or `node.toHtml()`) and `toDocument(node)`. |
 | `packages/unibox_dom` | The client renderer: `DomView.adopt(tree, root)` keeps the markup a server wrote and patches it as the stores publish. |
 | `packages/unibox_testing` | The tables both renderers are tested against. Development only, not published. |
 | `packages/unibox_material` | The Material 3 type scale, the colour roles as a theme — the baseline scheme written down, or a palette grown from one seed colour — and the components built from them (card, list tile, button, chip, segmented button, ink well, text field, icon, check mark, navigation bar, dialog, bottom sheet). Optional: no renderer depends on it. |
