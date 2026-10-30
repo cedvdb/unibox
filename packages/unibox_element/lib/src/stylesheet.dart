@@ -19,6 +19,10 @@ final class Stylesheet {
   /// order is the order the rules are written in, which is what a `LinkedHashMap` gives.
   final Map<String, CssDeclarations> _rules = <String, CssDeclarations>{};
 
+  /// The class names in the order they were first asked for, which is the order the rules are
+  /// written in — a map keeps that order but cannot be read from the middle of.
+  final List<String> _classOrder = <String>[];
+
   /// The state rules, in the order their classes were asked for.
   final List<CssRule> _states = <CssRule>[];
 
@@ -63,6 +67,7 @@ final class Stylesheet {
     }
 
     _rules[className] = declarations;
+    _classOrder.add(className);
     _revision++;
 
     if (states != null) {
@@ -108,23 +113,34 @@ final class Stylesheet {
     return _looks[look] = className;
   }
 
-  /// Every rule, as the body of one `<style>` element.
+  /// Where the sheet stands: how many class rules and how many state rules it holds.
   ///
-  /// The looks first, then the states, so a state rule can override a resting one. A
-  /// hover rule is wrapped in its media condition, because a phone that reported a hover
-  /// would otherwise be stuck in it after a tap.
-  String get css {
-    final StringBuffer buffer = StringBuffer();
+  /// A renderer that writes a page and then adds to it keeps the mark of what it wrote, so the
+  /// next write is only the rules that came after it.
+  ({int classes, int states}) get mark =>
+      (classes: _classOrder.length, states: _states.length);
 
-    for (final MapEntry<String, CssDeclarations> rule in _rules.entries) {
-      if (rule.value.isEmpty) {
+  /// The rules added after [mark], as the text a page is given.
+  ///
+  /// A rule that declares nothing is not a rule: it is skipped here as it is in `css`, so a
+  /// class with no declarations costs no bytes however many nodes wear it.
+  List<String> rulesSince(({int classes, int states}) mark) {
+    final List<String> rules = <String>[];
+
+    for (int i = mark.classes; i < _classOrder.length; i++) {
+      final String className = _classOrder[i];
+      final CssDeclarations declarations = _rules[className]!;
+
+      if (declarations.isEmpty) {
         continue;
       }
 
-      buffer.writeln('.${rule.key}{${rule.value.text}}');
+      rules.add('.$className{${declarations.text}}');
     }
 
-    for (final CssRule rule in _states) {
+    for (int i = mark.states; i < _states.length; i++) {
+      final CssRule rule = _states[i];
+
       if (rule.declarations.isEmpty) {
         continue;
       }
@@ -134,11 +150,26 @@ final class Stylesheet {
       final String? container = rule.container;
 
       if (media != null) {
-        buffer.writeln('@media $media{$body}');
+        rules.add('@media $media{$body}');
         continue;
       }
 
-      buffer.writeln(container == null ? body : '@container $container{$body}');
+      rules.add(container == null ? body : '@container $container{$body}');
+    }
+
+    return rules;
+  }
+
+  /// Every rule, as the body of one `<style>` element.
+  ///
+  /// The looks first, then the states, so a state rule can override a resting one. A
+  /// hover rule is wrapped in its media condition, because a phone that reported a hover
+  /// would otherwise be stuck in it after a tap.
+  String get css {
+    final StringBuffer buffer = StringBuffer();
+
+    for (final String rule in rulesSince((classes: 0, states: 0))) {
+      buffer.writeln(rule);
     }
 
     return buffer.toString();

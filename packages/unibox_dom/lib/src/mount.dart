@@ -96,6 +96,15 @@ final class DomView {
   ///
   /// `-1` is "nothing has been written": a fresh view writes once, whatever the sheet says.
   int _cssRevision = -1;
+
+  /// Where the sheet stood when the page was last given it, and how many rules the page's
+  /// `<style>` holds of this view's. `null` and `-1` mean the view has written none: a page it
+  /// adopted was served with a sheet, and this writes beside that one.
+  ///
+  /// A sheet that no longer holds what this view put in it — a host replaced it, or a second
+  /// view wrote over it — is written whole rather than appended to.
+  ({int classes, int states})? _cssMark;
+  int _cssRules = -1;
   bool _drawing = false;
   bool _dirty = false;
   bool _disposed = false;
@@ -177,22 +186,12 @@ final class DomView {
         next,
         onBuilt: pass.record,
       );
-      _style = _stylesheetIn(web.document.head);
-
-      if (_style == null) {
-        final web.HTMLStyleElement created =
-            web.document.createElement('style') as web.HTMLStyleElement
-              ..setAttribute(_cssAttribute, _clientSheet);
-        web.document.head!.append(created);
-        _style = created;
-      }
+      _style = _stylesheetIn(web.document.head) ?? _createStyle();
     } else {
       _element = buildElement(next, onBuilt: pass.record);
       // Marked as the tree's stylesheet either way, so an adoption later rewrites this element
       // instead of adding a second copy of the same rules — and so a reader can find it.
-      _style = web.document.createElement('style') as web.HTMLStyleElement
-        ..setAttribute(_cssAttribute, _clientSheet);
-      web.document.head!.append(_style!);
+      _style = _createStyle();
       _host.replaceChildren(_element!);
     }
 
@@ -204,22 +203,51 @@ final class DomView {
     _sweep(pass.visited);
   }
 
-  /// Writes the stylesheet into the page, unless the page already has this revision of it.
+  /// Writes the sheet into the page, or appends what it gained since the last write.
   ///
   /// A store that publishes every frame — an ink ripple, a spinner — publishes sixty times a
   /// second, and between two of those publishes the tree is the same and so is every class: the
-  /// sheet cannot have changed. Serialising a few thousand rules and handing them to the browser
-  /// makes it throw away and re-parse all of them, which is the most expensive thing a publish
-  /// could do and the one thing it never needs to.
+  /// sheet cannot have changed, and nothing is written. When one rule is new, that rule is
+  /// inserted, because `insertRule` is one rule parsed: assigning `textContent` makes the browser
+  /// throw away and re-parse every rule the page holds, which measured 38 ms against nothing on a
+  /// sheet of 300 KB. The whole sheet is written only when there is nothing to append to — the
+  /// first write of this view, or a `<style>` that no longer holds what this view put in it.
   void _writeCss() {
-    final web.HTMLStyleElement? style = _style;
-
-    if (style == null || _cssRevision == _sheet.revision) {
+    if (_cssRevision == _sheet.revision) {
       return;
     }
 
     _cssRevision = _sheet.revision;
-    style.textContent = documentCss(_sheet, theme: _theme);
+
+    final web.HTMLStyleElement style = _style ??= _createStyle();
+    final ({int classes, int states})? mark = _cssMark;
+    final web.CSSStyleSheet? rules = style.sheet;
+
+    if (mark == null || rules == null || rules.cssRules.length != _cssRules) {
+      style.textContent = documentCss(_sheet, theme: _theme);
+    } else {
+      for (final String rule in _sheet.rulesSince(mark)) {
+        rules.insertRule(rule, rules.cssRules.length);
+      }
+    }
+
+    _cssMark = _sheet.mark;
+    _cssRules = style.sheet?.cssRules.length ?? -1;
+  }
+
+  /// A `<style>` of this view's own, marked as one a runtime wrote.
+  ///
+  /// The mark is what tells it apart from the sheet a document was served with, which this view
+  /// never rewrites: adoption keeps elements the plan never saw — a shape's `<svg>` layer and its
+  /// `<path>` — and those are painted by the served rules.
+  web.HTMLStyleElement _createStyle() {
+    final web.HTMLStyleElement created =
+        web.document.createElement('style') as web.HTMLStyleElement
+          ..setAttribute(_cssAttribute, _clientSheet);
+
+    web.document.head!.append(created);
+
+    return created;
   }
 
   /// Pairs the tree's nodes with the page's elements and binds what they do.

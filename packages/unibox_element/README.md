@@ -18,6 +18,7 @@ again would draw the same tree two ways, which is the drift this repository exis
 | what does this tree become? | `planNode(node, sheet)` → an `ElementPlan` |
 | which class does a look wear? | `sheet.classFor(kind, declarations)`, a hash of the declarations — or `classForLook(look, kind, () => declarations)`, which composes a look once however many nodes wear it |
 | which rules does the tree need? | `sheet.css`, one rule per look and one per state |
+| what does a page still need? | `sheet.mark` and `sheet.rulesSince(mark)`, the rules added since a renderer wrote the sheet — so a page is appended to, not rewritten |
 | may a destination be followed? | `isRiskyUrl`, `safeUrlValue` — a script url becomes `#` |
 | how is an embed drawn? | the renderer says, through `PlanOptions.embed` |
 

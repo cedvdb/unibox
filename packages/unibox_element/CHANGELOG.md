@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `Stylesheet.mark` and `Stylesheet.rulesSince` answer what a page a renderer already wrote is
+  missing: a renderer keeps the mark of the rules it wrote and appends only the ones a publish
+  added, instead of handing the browser the whole sheet — every rule on the page — again. The
+  rules are the same rules and the same bytes; `css` is built from them.
 - A look is composed once per rendering, not once per node that wears it. A row of a list
   builds its declarations, sorts them, joins them into the canonical text and hashes that
   text — about three microseconds — and every row of a thousand-row list did it again only

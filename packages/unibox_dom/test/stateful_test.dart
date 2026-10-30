@@ -453,18 +453,71 @@ void main() {
 
     test('is written when a publish brings a look the page does not have', () {
       // The other half of the rule: a state whose look is new needs a rule, or the page holds an
-      // element with a class nothing describes.
+      // element with a class nothing describes. What a browser paints from is the CSSOM, and
+      // that is where a rule a publish brings appears: `textContent` is the text the element was
+      // *given*, and inserting a rule does not change it.
       final web.HTMLDivElement element = host();
       final DomView view = DomView.mount(Tint(), element);
-      final web.Element style = web.document.head!.querySelector(
-        'style[data-unibox-css]',
-      )!;
+      final web.HTMLStyleElement style =
+          web.document.head!.querySelector('style[data-unibox-css]')!
+              as web.HTMLStyleElement;
 
-      expect(style.textContent, isNot(contains('#00ff00')));
+      expect(style.sheet!.cssRules.length, 2);
 
       press(at(element, 'tint'));
 
-      expect(style.textContent, contains('#00ff00'));
+      expect(style.sheet!.cssRules.length, 3);
+      expect(
+        style.sheet!.cssRules.item(2)!.cssText,
+        contains('rgb(0, 255, 0)'),
+      );
+
+      view.dispose();
+      style.remove();
+    });
+
+    test(
+      'appends the rule a publish brings, instead of writing the sheet again',
+      () {
+        // A rule inserted is one rule parsed; a sheet assigned to `textContent` is every rule the
+        // page holds, parsed again — 38 ms against nothing on a sheet of 300 KB. The rule objects
+        // of the sheet surviving is how a test sees the difference: a rewrite throws the whole
+        // CSSOM away and builds it again.
+        final web.HTMLDivElement element = host();
+        final DomView view = DomView.mount(Tint(), element);
+        final web.HTMLStyleElement style =
+            web.document.head!.querySelector('style[data-unibox-css]')!
+                as web.HTMLStyleElement;
+        final web.CSSStyleSheet sheet = style.sheet!;
+        final web.CSSRule root = sheet.cssRules.item(0)!;
+
+        press(at(element, 'tint'));
+
+        expect(identical(sheet.cssRules.item(0), root), isTrue);
+        expect(sheet.cssRules.length, 3);
+
+        view.dispose();
+        style.remove();
+      },
+    );
+
+    test('writes the sheet whole again when the page no longer holds it', () {
+      // A host, or a second view, can replace a sheet's text under the view that wrote it.
+      // Appending to a sheet that lost its rules would leave elements wearing classes nothing
+      // describes, so a sheet that is not the one this view wrote is written from the top.
+      final web.HTMLDivElement element = host();
+      final DomView view = DomView.mount(Tint(), element);
+      final web.HTMLStyleElement style =
+          web.document.head!.querySelector('style[data-unibox-css]')!
+              as web.HTMLStyleElement;
+
+      style.textContent = '/* sentinel */';
+
+      press(at(element, 'tint'));
+
+      expect(style.textContent, isNot(contains('sentinel')));
+      expect(style.textContent, contains(':root{'));
+      expect(style.textContent, startsWith(':root{'));
 
       view.dispose();
       style.remove();

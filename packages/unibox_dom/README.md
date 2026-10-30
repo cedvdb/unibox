@@ -62,6 +62,12 @@ place: a child that is still there is patched where it stands rather than replac
 field keeps its focus and a list keeps its elements when it reorders. `dispose()` unsubscribes
 every store and removes the listeners, which is what a view that is going away does.
 
+The stylesheet moves the same way: it is written once and **appended to** after that. A publish
+that brings a look the page does not have inserts its rule — one rule parsed, rather than every
+rule on the page — and a publish that brings none writes nothing at all. A page the client
+adopted keeps the sheet it was served with, and the rules its stores mint go into a sheet of the
+view's own beside it.
+
 ## What it is not
 
 Not a general-purpose framework. There is no virtual DOM diff of arbitrary trees, no

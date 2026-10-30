@@ -261,10 +261,72 @@ void main() {
       view.dispose();
       style.remove();
     });
+    test('writes the rules a press brings into a sheet of its own', () {
+      // The fast path leaves the page with no sheet of the client's, and a store that publishes
+      // a look the document does not have — an ink drop is the case — needs somewhere for its
+      // rule to go. It goes into a sheet of the view's own, beside the served one, which stays
+      // exactly as it was: adoption keeps elements the plan never saw, and those are painted by
+      // the served rules.
+      final web.HTMLStyleElement served =
+          web.document.createElement('style') as web.HTMLStyleElement
+            ..setAttribute('data-unibox-css', '')
+            ..textContent = ':root{} /* the document wrote this */';
+      web.document.head!.append(served);
+
+      final web.HTMLDivElement element = host()
+        ..innerHTML = servedMarkup(Ink()).toJS;
+      final DomView view = DomView.adopt(Ink(), element.children.item(0)!);
+
+      element
+          .querySelector('[data-unibox-key="ink"]')!
+          .dispatchEvent(
+            web.MouseEvent('click', web.MouseEventInit(bubbles: true)),
+          );
+
+      final web.HTMLStyleElement client =
+          web.document.head!.querySelector('style[data-unibox-css="client"]')!
+              as web.HTMLStyleElement;
+
+      expect(
+        client.sheet!.cssRules.length,
+        greaterThan(0),
+        reason: 'the rule a press minted is in the page',
+      );
+      expect(served.textContent, contains('the document wrote this'));
+
+      view.dispose();
+      served.remove();
+    });
   });
 }
 
-/// A counter, so an adoption can be asked whether a state change still repaints.
+/// The look a press paints, so a press can be asked whether its rule reached the page.
+final class InkStore extends core.StateStore<int> {
+  InkStore() : super(0);
+
+  void press() => state = state + 1;
+}
+
+/// A component whose press paints a look the page was not served with — the shape of an ink well,
+/// which is why the served sheet has nowhere to put the rule.
+final class Ink extends core.StatefulNode<int, InkStore> {
+  Ink()
+    : super(
+        create: InkStore.new,
+        view: (int count, InkStore store) => core.Box(
+          key: 'ink',
+          onTap: store.press,
+          children: <core.UINode>[
+            core.Box(
+              key: 'drop',
+              backgroundColor: core.BoxColor(0xFF000000 | count),
+              children: const <core.UINode>[core.TextNode('press')],
+            ),
+          ],
+        ),
+      );
+}
+
 final class TallyStore extends core.StateStore<int> {
   TallyStore() : super(0);
 

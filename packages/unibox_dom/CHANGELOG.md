@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- The page's stylesheet is written once and appended to after that. A publish that adds a rule
+  used to hand the browser the whole sheet again — every rule on the page, thrown away and
+  re-parsed; it inserts the one rule now, which measured 38 ms → 0 on a sheet of 300 KB. A publish
+  that adds no rule still writes nothing at all, and a sheet the page no longer holds is written
+  from the top.
+- A page the client adopted gets a sheet of its own the first time a store publishes a rule the
+  document was not served with. That rule used to have nowhere to go: adoption leaves the view
+  without a sheet, and an ink drop on an adopted page was an element with a class nothing
+  described.
 - The page's stylesheet is written only when a publish has added a rule. A store that publishes
   every frame — an ink ripple, a spinner — used to re-serialise and hand the browser a sheet that
   could not have changed, which made the browser re-parse every rule on the page sixty times a

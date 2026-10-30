@@ -67,6 +67,14 @@ frame -- an ink ripple, a spinner -- publishes sixty times a second. The text ca
 changed (same tree, same classes), and a stylesheet of 2,000 looks is 320 KiB, so this is
 the most expensive thing a page does per publish, for nothing.
 
+Two fixes, and the second was the one that mattered once the first was in. The view keeps the
+sheet's revision, so a publish that added no rule writes nothing at all. And a publish that adds
+one *appends* it: `insertRule` is one rule parsed, while assigning `textContent` makes the browser
+throw the whole CSSOM away and parse every rule the page holds. Measured in Chrome, 29 rules
+arriving one at a time on a sheet of 300 KB: **38 ms by assignment, nothing by insertion**. The
+whole sheet is written only when there is nothing to append to — the first write of a view, or a
+sheet the page no longer holds.
+
 ### Adoption walked the DOM quadratically
 
 `DomView._adopt` calls `root.querySelectorAll('[data-unibox-node]')` **twice per
@@ -165,8 +173,13 @@ what a single rule costs.
   a look is composed once and remembered — at the cost of the microsecond a node that a page
   of 3,003 distinct looks pays for a key that never hits.
 - **F4**: 20 ms → 2.0 ms to write a chain of 1,601 boxes, at the same bytes.
-- **F1**, **F2**, **F5**, **F6** are on the DOM side or are smaller, and the benchmark cannot
-  see them: a browser is what pays. F1 and F2 are pinned by the tests in
+- **F1**: the sheet is written once and appended to after that. A publish that adds a rule
+  inserts it — 38 ms → 0 on a 300 KB sheet, measured in Chrome — and a publish that adds none
+  writes nothing at all. The stylesheet group of
+  `packages/unibox_dom/test/stateful_test.dart` pins both halves, and `adopt_test.dart` pins the
+  rules a press brings to a page the client adopted.
+- **F2**, **F5**, **F6** are on the DOM side or are smaller, and the benchmark cannot see them: a
+  browser is what pays. They are pinned by the tests in
   `packages/unibox_dom/test/stateful_test.dart` and `adopt_test.dart`, and the two the tests
   cannot observe — a query per element, a key list squared — are one lookup each now.
 
