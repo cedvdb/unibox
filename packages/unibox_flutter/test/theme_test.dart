@@ -145,6 +145,53 @@ void main() {
     });
   });
 
+  group('the toWidget shorthand', () {
+    testWidgets('paints a role-named colour with the theme it is given', (
+      tester,
+    ) async {
+      // The extension is the spelling the README leads with, so it has to be
+      // able to draw the tree the README leads with — one that names roles.
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: Center(
+            child: KeyedSubtree(
+              key: nodeKey,
+              child: const core.Box(
+                backgroundColor: core.BoxColor.role(AppColor.primary),
+                width: 40,
+                height: 40,
+              ).toWidget(theme: theme),
+            ),
+          ),
+        ),
+      );
+
+      expect(decorationOf(tester).color, const Color(0xFF6750A4));
+    });
+
+    testWidgets('reports a role with no theme through the shorthand too', (
+      tester,
+    ) async {
+      // Leaving the theme out is a mistake, not a second way to render: the
+      // shorthand passes the missing theme on and validation names the role.
+      expect(
+        () => const core.Box(
+          backgroundColor: core.BoxColor.role(AppColor.primary),
+          width: 40,
+          height: 40,
+        ).toWidget(),
+        throwsA(
+          isA<StateError>().having(
+            (StateError error) => error.message,
+            'message',
+            contains('AppColor.primary'),
+          ),
+        ),
+      );
+    });
+  });
+
   testWidgets('a role in the hint style is resolved against the theme', (
     tester,
   ) async {

@@ -63,12 +63,14 @@ final page = Box(
   ],
 );
 
-runApp(MaterialApp(home: page.toWidget()));           // Flutter draws it as widgets
-final html = toDocument(page, title: 'Apartments');  // the web reads it as a page
+runApp(MaterialApp(home: page.toWidget(theme: MaterialPalette.lightTheme)));
+final html = toDocument(page, title: 'Apartments', theme: MaterialPalette.lightTheme);
 ```
 
-`toWidget()` builds the widgets; `toDocument()` writes the page and its head. Which one you call
-is the only decision.
+`toWidget(theme: …)` builds the widgets; `toDocument()` writes the page and its head. Which one
+you call is the only decision, and both take the same `UniboxTheme`: a tree that names colour roles
+has no colours without it (see [roles and theming](#roles-and-theming)), and a tree of literal
+colours ignores it.
 
 The two stay equal because the model states every default — an unset direction is a column, an
 unset text size is 16 — so neither target answers with its own, and because a test compares what
@@ -180,10 +182,14 @@ dependencies:
 
 ```dart
 // Flutter
-runApp(MaterialApp(home: tree.toWidget()));
+runApp(MaterialApp(home: tree.toWidget(theme: MaterialPalette.lightTheme)));
 
 // the web: a page a crawler reads, and a reader acts on
-final String page = toDocument(tree, title: 'My page');
+final String page = toDocument(
+  tree,
+  title: 'My page',
+  theme: MaterialPalette.lightTheme,
+);
 ```
 
 Keep the tree in a package of its own that imports `unibox_core` and neither
@@ -750,6 +756,7 @@ const theme = UniboxTheme(
 const Box(backgroundColor: BoxColor.role(AppColor.primary));
 
 renderFlutter(page, theme: theme);   // resolves each role while building
+page.toWidget(theme: theme);         // the same call, as the extension
 toDocument(page, theme: theme);      // writes :root and points the rules at it
 ```
 

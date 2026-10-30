@@ -213,6 +213,15 @@ void _reportTreeIssues(core.UINode node, core.UniboxTheme? theme) {
 extension UINodeFlutterRenderer on core.UINode {
   /// Renders this node as a Flutter [Widget].
   ///
-  /// Shorthand for `renderFlutter(this)`.
-  Widget toWidget() => renderFlutter(this);
+  /// Shorthand for `renderFlutter(this, theme: theme)`, and it takes the theme
+  /// for the same reason `renderFlutter` does: a tree built from colour roles
+  /// names them, and validation rejects a role no theme answers before a widget
+  /// is built. Without the argument the shorthand could not draw a themed tree
+  /// at all — which is most of them.
+  ///
+  /// ```dart
+  /// runApp(MaterialApp(home: page.toWidget(theme: palette)));
+  /// ```
+  Widget toWidget({core.UniboxTheme? theme}) =>
+      renderFlutter(this, theme: theme);
 }

@@ -15,8 +15,8 @@ const card = Box(
 );
 
 Widget widget = renderFlutter(card);
-// or, equivalently:
-Widget widget = card.toWidget();
+// or, equivalently — and the theme the roles of the tree need travels with it:
+Widget widget = card.toWidget(theme: myTheme);
 ```
 
 Every node type also exports the widget it renders to — `FlutterBox`,
@@ -227,7 +227,9 @@ have.
 
 `renderFlutter(node, theme: myTheme)` resolves every role a tree names while the
 widget tree is built, so everything below reads a concrete colour and nothing looks
-anything up at paint time:
+anything up at paint time. `node.toWidget(theme: myTheme)` is the same call through the
+extension on `UINode`, and it takes the theme for that reason: the shorthand must be able
+to draw the themed trees it is advertised for.
 
 | Unibox | Flutter |
 | --- | --- |

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `UINode.toWidget({UniboxTheme? theme})` takes the theme, so the shorthand can draw a
+  tree built from colour roles. It forwarded nothing before, which meant validation
+  rejected every themed tree with the role in the message and the extension the README
+  leads with could not be used on the trees it advertises.
+
 - `snap: ScrollSnap.page` is `PageScrollPhysics` on the box's scroll view, so a drag that
   ends between two children comes to rest on one.
 
