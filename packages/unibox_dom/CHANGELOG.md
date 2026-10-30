@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- The view holds its stylesheet to the looks the page wears. A view lives as long as the page, so
+  every look a store minted — a list whose styling follows its data, a ripple pressed in a new
+  place — left a rule behind for good. Every 64 rules the view walks the plans it holds and
+  forgets the rest, and writes the sheet again whole because a rule cannot be lifted out of a
+  page one at a time. A look that comes back gets the name it had.
 - The page's stylesheet is written once and appended to after that. A publish that adds a rule
   used to hand the browser the whole sheet again — every rule on the page, thrown away and
   re-parsed; it inserts the one rule now, which measured 38 ms → 0 on a sheet of 300 KB. A publish

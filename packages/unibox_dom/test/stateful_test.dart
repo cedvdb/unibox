@@ -522,7 +522,85 @@ void main() {
       view.dispose();
       style.remove();
     });
+
+    test('forgets the rules of looks the page has stopped wearing', () {
+      // The view lives as long as the page, and a store that mints a look per publish — a list
+      // whose styling follows its data, a ripple pressed somewhere new — would otherwise leave a
+      // rule behind for every one of them. The sheet is held to what the page wears, and one that
+      // was pruned is written whole, because rules cannot be lifted out of a page one at a time.
+      final web.HTMLDivElement element = host();
+      final DomView view = DomView.mount(
+        core.Box(
+          key: 'page',
+          children: <core.UINode>[
+            Tints(),
+            // A look the page wears from its first frame to its last, so the prune has something
+            // it must not take.
+            core.Box(
+              key: 'kept',
+              backgroundColor: const core.BoxColor(0xFF00FF00),
+              children: const <core.UINode>[core.TextNode('kept')],
+            ),
+          ],
+        ),
+        element,
+      );
+      final web.HTMLStyleElement style =
+          web.document.head!.querySelector('style[data-unibox-css]')!
+              as web.HTMLStyleElement;
+
+      for (int i = 0; i < 140; i++) {
+        press(at(element, 'tints'));
+      }
+
+      final List<String> rules = <String>[
+        for (int i = 0; i < style.sheet!.cssRules.length; i++)
+          style.sheet!.cssRules.item(i)!.cssText,
+      ];
+
+      expect(
+        rules.length,
+        lessThan(20),
+        reason: '140 presses do not leave 140 rules behind',
+      );
+      expect(
+        rules.where((String rule) => rule.contains('rgb(0, 255, 0)')),
+        hasLength(1),
+        reason: 'the look the page still wears keeps its rule',
+      );
+      expect(textAt(element, 'kept'), 'kept');
+
+      view.dispose();
+      style.remove();
+    });
   });
+}
+
+/// A component that mints a look on every publish, the way a list whose styling follows the data
+/// does, or a ripple pressed somewhere new.
+final class TintsStore extends core.StateStore<int> {
+  TintsStore() : super(0);
+
+  void next() => state = state + 1;
+}
+
+/// A control whose colour is a different look on every press.
+final class Tints extends core.StatefulNode<int, TintsStore> {
+  Tints()
+    : super(
+        create: TintsStore.new,
+        view: (int count, TintsStore store) => core.Box(
+          key: 'tints',
+          onTap: store.next,
+          children: <core.UINode>[
+            core.Box(
+              key: 'tint',
+              backgroundColor: core.BoxColor(0xFF000000 | count),
+              children: <core.UINode>[core.TextNode('tint $count')],
+            ),
+          ],
+        ),
+      );
 }
 
 /// A component that publishes *during* a press, the way the ink well does: a drop appears before

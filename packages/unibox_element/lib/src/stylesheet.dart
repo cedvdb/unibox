@@ -26,6 +26,12 @@ final class Stylesheet {
   /// The state rules, in the order their classes were asked for.
   final List<CssRule> _states = <CssRule>[];
 
+  /// The class each state rule belongs to, so forgetting a class can forget its states.
+  ///
+  /// A rule's selector says which class it is for, but not where the name ends: this is the
+  /// sheet's own record, kept beside [_states] and pruned with it.
+  final List<String> _owners = <String>[];
+
   /// The class of every look this sheet has already composed, so a look asked for twice is
   /// composed once. Its size is the number of distinct looks, which is what the rules cost
   /// too.
@@ -75,6 +81,7 @@ final class Stylesheet {
 
       if (added.isNotEmpty) {
         _states.addAll(added);
+        _owners.addAll(List<String>.filled(added.length, className));
         _revision++;
       }
     }
@@ -111,6 +118,50 @@ final class Stylesheet {
     final String className = classFor(kind, declarations(), states: states);
 
     return _looks[look] = className;
+  }
+
+  /// Forgets every rule of a class that is not in [keep], and every look remembered for one.
+  ///
+  /// A view lives as long as the page it draws, and every look a store mints is a rule — a list
+  /// whose styling follows its data, a ripple pressed in a new place, a spinner that does not
+  /// repeat its steps. A look the page has stopped wearing is never asked for again by name, so
+  /// holding its rule is holding nothing: [keep] is every class an element on the page wears, and
+  /// everything else goes. A look that comes back is registered again, under the name it had,
+  /// because the name is a hash of the declarations.
+  ///
+  /// Returns whether anything was forgotten, which is what a renderer needs to know: the rules a
+  /// page holds cannot be taken out one at a time from outside, so a sheet that lost rules is
+  /// written again whole.
+  bool retain(Set<String> keep) {
+    final int classes = _rules.length;
+    final int states = _states.length;
+
+    _rules.removeWhere((String className, _) => !keep.contains(className));
+    _classOrder.removeWhere((String className) => !keep.contains(className));
+    _looks.removeWhere((_, String className) => !keep.contains(className));
+
+    int next = 0;
+
+    for (int i = 0; i < _states.length; i++) {
+      if (!keep.contains(_owners[i])) {
+        continue;
+      }
+
+      _states[next] = _states[i];
+      _owners[next] = _owners[i];
+      next++;
+    }
+
+    _states.length = next;
+    _owners.length = next;
+
+    if (classes == _rules.length && states == _states.length) {
+      return false;
+    }
+
+    _revision++;
+
+    return true;
   }
 
   /// Where the sheet stands: how many class rules and how many state rules it holds.

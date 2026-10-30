@@ -68,6 +68,12 @@ rule on the page — and a publish that brings none writes nothing at all. A pag
 adopted keeps the sheet it was served with, and the rules its stores mint go into a sheet of the
 view's own beside it.
 
+A view also holds its sheet to what the page wears. Every 64 rules it walks the plans it holds
+and forgets the looks nothing wears any more, so a host whose styling follows its data — or an
+animation that does not repeat itself — cannot grow the sheet for as long as the page is open. A
+look that comes back is registered again under the name it had, because a class name is a hash of
+the declarations behind it.
+
 ## What it is not
 
 Not a general-purpose framework. There is no virtual DOM diff of arbitrary trees, no

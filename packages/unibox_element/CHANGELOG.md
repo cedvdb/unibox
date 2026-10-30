@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `Stylesheet.retain` forgets every rule of a class a page no longer wears, and the look it
+  remembered for it. A class name is a hash of the declarations, so a look that comes back is
+  registered again under the name it had. The sheet says whether it dropped anything, which is
+  what tells a renderer to write the page again whole.
 - `Stylesheet.mark` and `Stylesheet.rulesSince` answer what a page a renderer already wrote is
   missing: a renderer keeps the mark of the rules it wrote and appends only the ones a publish
   added, instead of handing the browser the whole sheet — every rule on the page — again. The

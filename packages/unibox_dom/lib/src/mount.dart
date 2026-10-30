@@ -105,6 +105,17 @@ final class DomView {
   /// view wrote over it — is written whole rather than appended to.
   ({int classes, int states})? _cssMark;
   int _cssRules = -1;
+
+  /// How many rules the sheet held at the last prune, and `-1` until the first pass has set the
+  /// mark — a page is not pruned at boot, where every rule it holds is worn.
+  int _prunedAt = -1;
+
+  /// How many rules may gather before the sheet is walked and pruned.
+  ///
+  /// A prune is a walk of every plan this view holds, so it is paid once per this many rules
+  /// rather than once per publish: 64 is small enough that a page that mints looks forever is
+  /// held to its own size, and large enough that a ripple's first press does not pay for it.
+  static const int _pruneFloor = 64;
   bool _drawing = false;
   bool _dirty = false;
   bool _disposed = false;
@@ -195,9 +206,11 @@ final class DomView {
       _host.replaceChildren(_element!);
     }
 
+    _plan = next;
+
+    _pruneSheet();
     _writeCss();
 
-    _plan = next;
     _bindAll(pass, next);
     _syncElements(pass);
     _sweep(pass.visited);
@@ -248,6 +261,67 @@ final class DomView {
     web.document.head!.append(created);
 
     return created;
+  }
+
+  /// Forgets the sheet's rules for looks the page has stopped wearing, once enough have gathered.
+  ///
+  /// The view lives as long as the page, and every look a store mints is a rule: a list whose
+  /// styling follows its data, a ripple pressed in a new place. A rule nothing wears paints
+  /// nothing and will never be asked for again by name, so the sheet is held to what the page
+  /// wears — plus whatever it has gained since the last prune, which is what keeps the walk
+  /// amortised rather than paid on every publish.
+  void _pruneSheet() {
+    if (_prunedAt < 0) {
+      // The first pass is not a prune: everything a tree is drawn from is worn by definition,
+      // and walking every node to be told so is a cost a page would pay at boot for nothing.
+      _prunedAt = _sheet.length;
+
+      return;
+    }
+
+    if (_sheet.length - _prunedAt < _pruneFloor) {
+      return;
+    }
+
+    if (_sheet.retain(_wornClasses())) {
+      // A rule cannot be lifted out of a page one at a time from outside, so a sheet that lost
+      // rules is written whole on the next write.
+      _cssMark = null;
+    }
+
+    _prunedAt = _sheet.length;
+  }
+
+  /// Every class the page wears, from the plans this view holds.
+  ///
+  /// A plan is what an element was built from, so the classes of the plans that are still here
+  /// are the classes still in the page — with one stale set per stateful node: the whole tree's
+  /// plan is a snapshot, and a boundary that published since holds the newer plan of its own.
+  /// Both are walked, so the answer is never short of a class the page wears.
+  Set<String> _wornClasses() {
+    final Set<String> worn = <String>{};
+
+    void walk(ElementPlan plan) {
+      if (plan.className case final String className) {
+        worn.add(className);
+      }
+
+      for (final ElementPlan child in plan.children) {
+        walk(child);
+      }
+    }
+
+    if (_plan case final ElementPlan plan) {
+      walk(plan);
+    }
+
+    for (final _Mount mount in _mounts.values) {
+      if (mount.plan case final ElementPlan plan) {
+        walk(plan);
+      }
+    }
+
+    return worn;
   }
 
   /// Pairs the tree's nodes with the page's elements and binds what they do.
@@ -357,6 +431,8 @@ final class DomView {
     );
     mount.plan = next;
     mount.element = pass.built[next] ?? mount.element;
+
+    _pruneSheet();
     _writeCss();
 
     _bindAll(pass, next);

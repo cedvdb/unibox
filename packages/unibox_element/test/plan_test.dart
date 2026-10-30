@@ -178,6 +178,63 @@ void main() {
     });
   });
 
+  group('a sheet forgets what nothing wears', () {
+    test('forgets the rules of a class that is not worn, and its states', () {
+      final Stylesheet sheet = Stylesheet();
+      final ElementPlan kept = planNode(
+        const core.Box(backgroundColor: core.BoxColor(0xFF00FF00)),
+        sheet,
+      );
+      final ElementPlan gone = planNode(
+        const core.Box(
+          backgroundColor: core.BoxColor(0xFF0000FF),
+          hoverStyle: core.BoxStyle(backgroundColor: core.BoxColor(0xFFFF0000)),
+        ),
+        sheet,
+      );
+
+      expect(sheet.retain(<String>{kept.className!}), isTrue);
+      expect(sheet.css, contains(kept.className!));
+      expect(
+        sheet.css,
+        isNot(contains(gone.className!)),
+        reason: 'a state rule goes with the class it belongs to',
+      );
+      expect(sheet.length, 1);
+    });
+
+    test('keeps every rule when the page wears every class', () {
+      // A prune that finds nothing to forget is a walk and no change, which is what a renderer
+      // reads the answer for: nothing to write.
+      final Stylesheet sheet = Stylesheet();
+      final ElementPlan box = planNode(
+        const core.Box(backgroundColor: core.BoxColor(0xFF00FF00)),
+        sheet,
+      );
+      final String before = sheet.css;
+
+      expect(sheet.retain(<String>{box.className!}), isFalse);
+      expect(sheet.css, before);
+    });
+
+    test('gives a look the name it had when it comes back', () {
+      // A class is a hash of the declarations, so forgetting a look costs nothing when it
+      // returns — which is what makes it safe to forget one at all.
+      final Stylesheet sheet = Stylesheet();
+      const core.Box box = core.Box(backgroundColor: core.BoxColor(0xFF00FF00));
+      final ElementPlan first = planNode(box, sheet);
+
+      sheet.retain(const <String>{});
+      expect(sheet.length, 0);
+      expect(sheet.css, isEmpty);
+
+      final ElementPlan again = planNode(box, sheet);
+
+      expect(again.className, first.className);
+      expect(sheet.length, 1);
+    });
+  });
+
   group('an embed', () {
     test('is planned by the renderer that can draw it', () {
       // Its payload is the host's, so the plan package cannot decide.

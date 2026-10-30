@@ -131,12 +131,6 @@ often than the second, and the second stays linear, which is what the guard hold
   fires on enter and exit, not per pixel) and Flutter reuses elements, so it is a stretch
   target rather than a defect. Fixing it means moving the interaction layer outside the
   content, which changes widget structure and needs a Flutter-side measurement to justify.
-- **A long-lived view never prunes its stylesheet.** `DomView._sheet` lives as long as the
-  view, so a page re-rendered with changing looks accumulates rules. Correct-ish (a class
-  is a look, and a look that may come back is worth keeping) and only wrong for a host that
-  re-renders constantly with *new* looks. Every animation the library runs is written to
-  come back: a spinner counts the steps of a turn and a ripple scales one fixed circle, so
-  both ask for looks the sheet already has instead of minting one a frame.
 - **The planner recurses per level** and overflows the stack at about 2,600 levels of
   nesting. No page is that deep; a limit would be a validation rule nobody needs yet.
 
@@ -175,8 +169,10 @@ what a single rule costs.
 - **F4**: 20 ms → 2.0 ms to write a chain of 1,601 boxes, at the same bytes.
 - **F1**: the sheet is written once and appended to after that. A publish that adds a rule
   inserts it — 38 ms → 0 on a 300 KB sheet, measured in Chrome — and a publish that adds none
-  writes nothing at all. The stylesheet group of
-  `packages/unibox_dom/test/stateful_test.dart` pins both halves, and `adopt_test.dart` pins the
+  writes nothing at all. The sheet is also held to what the page wears: every 64 rules it walks
+  the plans the view holds and forgets the rest, so a page whose styling follows its data cannot
+  grow for as long as it is open. The stylesheet group of
+  `packages/unibox_dom/test/stateful_test.dart` pins all three, and `adopt_test.dart` pins the
   rules a press brings to a page the client adopted.
 - **F2**, **F5**, **F6** are on the DOM side or are smaller, and the benchmark cannot see them: a
   browser is what pays. They are pinned by the tests in
