@@ -82,9 +82,29 @@ void main() {
       expect(bands, <String>[
         '2|HTML and CSS',
         '2|Flutter',
-        '2|The whole vocabulary',
+        '2|Just boxes',
         '2|Material 3, as values and nodes',
       ]);
+    });
+
+    test('names the two calls the taken apart card is for', () {
+      // The band's claim is that a screen is containers; its evidence is the list of
+      // nodes, and the two calls under it are the whole of what a tree is for — one
+      // builds the widgets, one writes the document.
+      final List<String> words = _flatten(buildSitePage(frame: _frame))
+          .whereType<TextNode>()
+          .map((TextNode text) => text.text)
+          .toList();
+
+      expect(
+        words,
+        containsAll(<String>[
+          'Just boxes',
+          'the same tree, two calls',
+          'tree.toWidget()',
+          'toHtml(tree)',
+        ]),
+      );
     });
 
     test('keys the two arrows of the diagram, so the site can move them', () {

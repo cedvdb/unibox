@@ -30,12 +30,15 @@ void main() {
     test('draws the vocabulary as a picture and as the list of it', () {
       final String html = buildSiteDocument();
 
-      // The second band: one card, drawn from the nodes the page had not shown, and the
-      // same card taken apart as text — which is the argument of the whole site.
-      expect(html, contains('The whole vocabulary'));
+      // The second band: one card, drawn from the nodes the page had not shown, the
+      // same card taken apart as text — which is the argument of the whole site — and
+      // the two calls that list is for.
+      expect(html, contains('Just boxes'));
       expect(html, contains('alt="A living room'));
       expect(html, contains('placeholder="Search the listings"'));
       expect(html, contains('PositionedNode'));
+      expect(html, contains('tree.toWidget()'));
+      expect(html, contains('toHtml(tree)'));
     });
 
     test('moves the two arrows, three passes and then still', () {

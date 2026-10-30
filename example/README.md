@@ -229,7 +229,7 @@ argument needs.
 | Band | What it says |
 | --- | --- |
 | the hero | the claim — *describe a screen once* — and the diagram that answers it: one `Unibox` chip branching into **HTML and CSS** and **Flutter**, each branch carrying the live example it produces, so the page on the left and the Flutter build on the right are the two halves of the diagram rather than a comparison beside it |
-| *The whole vocabulary* | the four nodes the page had not drawn yet — a picture, a stack, a child placed at an offset and a field with no chrome — as one listing card, beside the same card taken apart node by node |
+| *Just boxes* | what the whole vocabulary amounts to: a screen is containers, so the four nodes the page had not drawn yet — a picture, a stack, a child placed at an offset and a field with no chrome — sit as one listing card beside the same card taken apart node by node, under the two calls that tree is for, `tree.toWidget()` and `toHtml(tree)` |
 | *Material 3, as values and nodes* | the catalogue: every component first, then the type scale and the colour roles those components name |
 
 The frames are the claim's evidence, so they sit in the band that makes it: a reader
@@ -237,8 +237,10 @@ scrolls from the sentence to the two renderings it is about, and meets each rend
 name once, and each name sits over the rendering it belongs to. The vocabulary comes next,
 because a frame draws a whole tree and never the parts it is made of: the four nodes the
 page had not drawn are the four a reader would otherwise never see named, and the card
-beside the list is not a screenshot of one — it *is* the list. The catalogue closes the
-page, because the design system is how every band above it is drawn, not what it says.
+beside the list is not a screenshot of one — it *is* the list. The band closes on what that
+list is for: `tree.toWidget()` and `toHtml(tree)`, the two calls the rest of the page is an
+example of. The catalogue closes the page, because the design system is how every band
+above it is drawn, not what it says.
 Every band is a node tree — the frames are the only thing the
 model cannot describe, and they arrive through `ShowcaseFrame`/`EmbedNode`.
 

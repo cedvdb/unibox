@@ -4,17 +4,18 @@ import 'package:unibox_material/unibox_material.dart';
 import '../theme.dart';
 import 'section.dart';
 
-/// The second band: the nodes the page had not drawn yet, once, as one card.
+/// The second band: what the whole vocabulary amounts to, once, as one card.
 ///
-/// The hero frames a whole tree, so it says what the page claims and never which parts the
-/// claim is made of: a picture, a stack, a child placed at an offset and a field with no
-/// chrome are the four the page had not drawn, and they are the four easiest to miss
-/// because none of them is a word. They are the parts a card is made of.
+/// The band's claim is the smallest sentence the library can be described in: a screen is
+/// containers, and a container holds text, a picture, a field or more containers. Nothing
+/// else is on offer — there is no widget to learn beside a box — which is why the four nodes
+/// a card is built from are the four a reader would otherwise never notice: a picture, a
+/// stack, a child placed at an offset and a field with no chrome.
 ///
-/// So the band is one small card, and the same card taken apart. The picture is not a
-/// screenshot of the card — it *is* the list beside it, which is the whole of what the
-/// library claims, and it is why the card is text a crawler reads rather than an image
-/// of text it cannot.
+/// So the band is one small card, the same card taken apart, and the two calls the taken
+/// apart tree is for. The picture is not a screenshot of the card — it *is* the list beside
+/// it, which is the whole of what the library claims, and it is why the card is text a
+/// crawler reads rather than an image of text it cannot.
 UINode buildVocabularySection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
   final MaterialPalette palette = ExamplePalette.materialFor(seed);
 
@@ -29,22 +30,33 @@ UINode buildVocabularySection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
       children: <UINode>[
         siteHeading(
           palette,
-          title: 'The whole vocabulary',
+          title: 'Just boxes',
           lead:
-              'Eleven nodes, and the four this page had not yet drawn are the parts a '
-              'card is made of: a field with no chrome, a stack, a picture, and a child '
-              'placed at an offset. The list beside the card is that card, taken '
-              'apart.',
+              'A screen is containers: a box holds text, a picture, a field, or more '
+              'boxes, and there is no widget or element to learn beside it. The four '
+              'nodes this page had not drawn yet are the parts a card is made of — a '
+              'field with no chrome, a stack, a picture, and a child placed at an '
+              'offset. The list beside the card is that card, taken apart.',
         ),
         GridNode(
           minItemWidth: 360,
           maxColumns: 2,
           gap: 40,
-          children: <UINode>[_card(palette), _tree(palette)],
+          children: <UINode>[
+            _card(palette),
+            // The list and the two calls are one column: the calls are what that list is
+            // for, and a reader who has just read the nodes should meet them next rather
+            // than on the far side of the card.
+            Box(
+              crossAlign: CrossAlign.stretch,
+              gap: 16,
+              children: <UINode>[_tree(palette), _calls(palette)],
+            ),
+          ],
         ),
         TextNode(
-          'The hero, the catalogue and this band are the same eleven nodes, drawn '
-          'the same way.',
+          'The hero, the catalogue and this band are the same nodes, drawn by the same '
+          'two calls.',
           style: MaterialTypography.labelMedium.copyWith(
             color: palette.onSurfaceVariant,
           ),
@@ -141,6 +153,65 @@ UINode _card(MaterialPalette palette) {
             ],
           ),
         ],
+      ),
+    ],
+  );
+}
+
+/// The two calls the list above is the argument for: one tree, a widget tree and a
+/// document.
+///
+/// They sit under the node list rather than in a paragraph, because the list is what a
+/// reader has just read: those nodes are the tree, and these are the only two things
+/// anything does with it. Neither name is this page's invention — `toWidget()` is the
+/// Flutter renderer's extension and `toHtml()` the web renderer's function.
+UINode _calls(MaterialPalette palette) {
+  return Box(
+    backgroundColor: palette.surface,
+    border: BoxBorder(color: palette.outlineVariant),
+    borderRadius: 18,
+    padding: const BoxSpacing.all(22),
+    crossAlign: CrossAlign.stretch,
+    gap: 10,
+    children: <UINode>[
+      TextNode(
+        'the same tree, two calls',
+        style: MaterialTypography.labelSmall.copyWith(
+          color: palette.onSurfaceVariant,
+        ),
+      ),
+      _call(palette, 'tree.toWidget()', 'Flutter widgets'),
+      _call(palette, 'toHtml(tree)', 'an HTML string'),
+    ],
+  );
+}
+
+/// One line of the pair: the call on the left, what it returns on the right.
+///
+/// The call takes the rest of the width, so the two results end on the same edge as the
+/// tokens of the list above rather than after each call's own label.
+UINode _call(MaterialPalette palette, String call, String result) {
+  return Box(
+    direction: Axis.horizontal,
+    crossAlign: CrossAlign.center,
+    gap: 12,
+    children: <UINode>[
+      Box(
+        flex: 1,
+        children: <UINode>[
+          TextNode(
+            call,
+            style: MaterialTypography.labelLarge.copyWith(
+              color: palette.primary,
+            ),
+          ),
+        ],
+      ),
+      TextNode(
+        result,
+        style: MaterialTypography.labelSmall.copyWith(
+          color: palette.onSurfaceVariant,
+        ),
       ),
     ],
   );
