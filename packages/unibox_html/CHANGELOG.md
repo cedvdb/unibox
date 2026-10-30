@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- A document switches off the tap highlight a touch browser paints over a control it thinks was
+  pressed: the `:root` block carries `-webkit-tap-highlight-color: transparent`, so a press is the
+  ink and the state layer the tree states, and not a blue flash on top of them.
+
 - `node.toHtml(...)`: the shorthand the Flutter target already had, so one tree is rendered by two
   calls of the same shape — `tree.toWidget()` for the widgets and `tree.toHtml()` for the fragment a
   page is made of. `toDocument(node, …)` stays a function, because a page carries facts no tree

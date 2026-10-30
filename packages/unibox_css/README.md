@@ -33,6 +33,7 @@ renderer that consumes it.
 | a text, an image, a grid | `textDeclarations`, `imageDeclarations`, `gridDeclarations` |
 | a box | `boxDeclarations(style)` — the flex container, its paint, its typography |
 | the typography of a box | `typographyDeclarations(style)`, and `defaultTypographyDeclarations()` |
+| what a page starts from | `rootDeclarations()` — the typography of the model, and the tap highlight a touch browser would paint |
 | a transform, a transition | `cssTransform`, `cssTransition` |
 
 `CssDeclarations` is a list and not a map because CSS allows a property to be written

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- A document's `:root` block starts from `rootDeclarations()`: the typography of the model and
+  the switched-off tap highlight. A touch browser used to paint its blue flash over a control
+  whose tree already draws the press, and the flash is inherited, so the root is where it goes.
+
 - The stylesheet finds a look's class by looking it up: a rendering asks for a class once per node,
   and asking was a scan of every look the page had, which made a page whose styling varies with its
   data cost more than its size. `Stylesheet.revision` says whether the sheet has changed since a

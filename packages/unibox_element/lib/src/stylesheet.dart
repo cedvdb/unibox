@@ -120,7 +120,7 @@ final class Stylesheet {
 /// would write different class names for the same tree, and a client could no longer adopt a page a
 /// server wrote.
 String documentCss(Stylesheet sheet, {core.UniboxTheme? theme}) {
-  final CssDeclarations root = defaultTypographyDeclarations();
+  final CssDeclarations root = rootDeclarations();
 
   if (theme != null) {
     root

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- `rootDeclarations()`: what a page starts from — the typography of the model, and
+  `-webkit-tap-highlight-color: transparent`. A touch browser paints a highlight of its own
+  over whatever it thinks was pressed, which is a blue flash over a control whose tree already
+  answers a press with ink and a state layer; the property is inherited, so one declaration on
+  the root is enough.
+
 - `BoxStyle.aspectRatio` is written `aspect-ratio`, so a box keeps its shape at any
   width. It is written as the number a browser divides (`1.5`, not `3 / 2`), which is
   how the Flutter renderer states it too.

@@ -605,6 +605,16 @@ void main() {
       expect(html, contains(':root{'));
       expect(html, contains('font-size:16px'));
     });
+
+    test('switches off the tap highlight a touch browser paints', () {
+      // A blue flash over the control a finger pressed is browser chrome, and the tree
+      // already answers a press with its own ink; the root is where the property inherits
+      // to every element from.
+      expect(
+        toHtml(const core.Box()),
+        contains('-webkit-tap-highlight-color:transparent'),
+      );
+    });
   });
 }
 

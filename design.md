@@ -184,8 +184,12 @@ never inherited (CSS does not inherit them either).
 - Platform chrome belongs to the tree. A node never keeps a decoration its
   platform adds by itself — no Material underline under a field, no user agent
   border, focus ring or padding around an input, no user agent underline under a
-  link — because the same node would then look different on the two targets.
-  Whatever a field or a link should look like is expressed as a box around it.
+  link, no tap highlight over a control a finger pressed — because the same node
+  would then look different on the two targets. The tap highlight is why the
+  document's `:root` block sets `-webkit-tap-highlight-color: transparent`: it is
+  inherited, so one declaration reaches every element, and a tree that answers a
+  press with its own ink answers it alone. Whatever a field or a link should look
+  like is expressed as a box around it.
   The focus ring is the subtle case: a browser draws it around the field, which
   sits inside the padding and the border of the box that wraps it, so keeping it
   paints a second frame inside the one the tree asked for. Dropping it leaves the

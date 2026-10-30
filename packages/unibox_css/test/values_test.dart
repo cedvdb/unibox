@@ -227,6 +227,19 @@ void main() {
         'font-weight:400;letter-spacing:0;line-height:1.5',
       );
     });
+
+    test('adds the one piece of browser chrome a page starts without', () {
+      // The tap highlight is a flash the browser paints over what it thinks was pressed.
+      // It sits on the root rather than on a control, because it inherits: a tree answers a
+      // press with its own ink and state layers, so the platform's answer is switched off
+      // once for every element.
+      expect(
+        rootDeclarations().text,
+        '-webkit-tap-highlight-color:transparent;color:#000000;'
+        'font-family:system-ui;font-size:16px;font-weight:400;'
+        'letter-spacing:0;line-height:1.5',
+      );
+    });
   });
 
   group('a transform and a transition', () {

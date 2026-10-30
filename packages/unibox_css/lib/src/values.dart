@@ -300,6 +300,17 @@ CssDeclarations defaultTypographyDeclarations() {
   return declarations..add('font-family', 'system-ui');
 }
 
+/// The declarations a page starts from, before a box states one of its own.
+///
+/// [defaultTypographyDeclarations] is the model's typography, and the one other declaration is
+/// browser chrome no node draws: a touch browser paints a highlight of its own over whatever it
+/// thinks was pressed, which is a blue flash over a control whose tree already answers a press
+/// with ink and a state layer. The property is inherited, so the root switches it off once and
+/// no control has to know about it.
+CssDeclarations rootDeclarations() =>
+    defaultTypographyDeclarations()
+      ..add('-webkit-tap-highlight-color', 'transparent');
+
 /// The four corner radii of [corners], in CSS's order: top left, top right,
 /// bottom right, bottom left.
 String cssCorners(core.BoxBorderRadius corners) =>
