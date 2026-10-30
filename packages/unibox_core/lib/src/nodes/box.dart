@@ -217,8 +217,8 @@ class Box extends UINode {
   /// The drop shadows painted behind the box, in paint order.
   ///
   /// A list rather than one shadow, because a design system states an elevation as
-  /// several layers and each of them is a shadow: a card casts a key shadow and a wide
-  /// ambient one, and a browser paints both.
+  /// several layers and each of them is a shadow: Material's level one is a tight umbra,
+  /// a penumbra and a wide ambient layer, and a browser paints all three.
   final List<BoxShadow>? shadows;
 
   /// The outline the box is painted in, instead of its rectangle.

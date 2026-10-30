@@ -18,10 +18,10 @@
   a bag is a list (`styles:`), and an embed states `implementations`. The library has one
   consumer — this repository — so a removed spelling is rewritten rather than forwarded.
 - A box states its **shadows** as a list, not one shadow: `Box(shadows: <BoxShadow>[…])` and
-  `BoxStyle.shadows`. An elevation is several layers — a key shadow, a wide ambient blur — and
-  a single `BoxShadow` could only ever state one of them. The first entry paints on top, as it
-  does in CSS, the transition part is `BoxProperty.shadows`, and a style compares the list by
-  value so two boxes that state the same layers are the same box.
+  `BoxStyle.shadows`. An elevation is three layers in Material and in Flutter — an umbra, a
+  penumbra and an ambient blur — and a single `BoxShadow` could only ever state one of them. The
+  first entry paints on top, as it does in CSS, the transition part is `BoxProperty.shadows`, and
+  a style compares the list by value so two boxes that state the same layers are the same box.
 
 - `Box.gridSpan`, and `GridNode.spanOf` / `GridNode.spanWidthFor`: a card says how
   many columns it covers, so a banner that interrupts a card grid is one grid with
