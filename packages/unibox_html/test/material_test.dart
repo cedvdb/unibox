@@ -1,5 +1,6 @@
 import 'package:test/test.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
+import 'package:unibox_element/unibox_element.dart';
 import 'package:unibox_html/unibox_html.dart';
 import 'package:unibox_material/unibox_material.dart';
 
@@ -59,6 +60,52 @@ void main() {
 
       expect(html, contains('<span class="unibox-text-'));
       expect(html, isNot(contains('<canvas')));
+    });
+  });
+
+  group('a ripple in the stylesheet', () {
+    test('writes the looks a press needs once, so pressing again costs no rule', () {
+      // The bug this exists for: a drop used to be given a new size every frame, and on the
+      // web a size is a class — one rule a frame, kept for the life of the page. A button
+      // pressed all afternoon left thousands of rules behind, and every frame of every press
+      // rewrote the whole sheet into the document, so each press was slower than the one
+      // before it. A ripple is a fixed set of looks now, and the press point snaps to a pixel.
+      final MaterialInkStore store = MaterialInkStore();
+      final MaterialInkWell well = MaterialInkWell(
+        onTap: () {},
+        borderRadius: 12,
+        child: const core.TextNode('Ada Lovelace'),
+      );
+      final Stylesheet sheet = Stylesheet();
+
+      /// One press, planned frame by frame the way a publish plans it.
+      void ripple(core.BoxPoint at) {
+        store.press(at);
+
+        while (store.state.drops.isNotEmpty) {
+          planNode(well.viewFor(store.state, store), sheet);
+          store.advance(const Duration(milliseconds: 16));
+        }
+      }
+
+      ripple(const core.BoxPoint(30.4, 16.7));
+      final int first = sheet.length;
+      expect(first, greaterThan(0));
+
+      // The same button, tapped again a fraction of a pixel away.
+      ripple(const core.BoxPoint(30.2, 16.6));
+      expect(
+        sheet.length,
+        first,
+        reason:
+            'a ripple draws a fixed set of looks, and a press lands on a pixel',
+      );
+
+      // A tap a few pixels along is one look more: where it landed, not when it landed.
+      ripple(const core.BoxPoint(34.4, 16.7));
+      expect(sheet.length, first + 1);
+
+      store.dispose();
     });
   });
 }

@@ -110,7 +110,9 @@ flat parameters into a fresh `BoxStyle`, so half of that work is allocated and d
 - **A long-lived view never prunes its stylesheet.** `DomView._sheet` lives as long as the
   view, so a page re-rendered with changing looks accumulates rules. Correct-ish (a class
   is a look, and a look that may come back is worth keeping) and only wrong for a host that
-  re-renders constantly with new looks.
+  re-renders constantly with *new* looks. Every animation the library runs is written to
+  come back: a spinner counts the steps of a turn and a ripple scales one fixed circle, so
+  both ask for looks the sheet already has instead of minting one a frame.
 - **The planner recurses per level** and overflows the stack at about 2,600 levels of
   nesting. No page is that deep; a limit would be a validation rule nobody needs yet.
 

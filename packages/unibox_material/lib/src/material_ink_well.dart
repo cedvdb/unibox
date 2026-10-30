@@ -154,7 +154,7 @@ final class MaterialInkStore extends StateStore<MaterialInkState> {
 ///
 /// It is a [StatefulNode] over one box, so both targets draw it with the
 /// renderers they already have: the tints are state styles, and the ink is a
-/// second layer of boxes whose size and opacity come from [MaterialInkStore].
+/// second layer of boxes whose scale and opacity come from [MaterialInkStore].
 /// The node buys the combination — the three layers, a short transition so a
 /// tint eases instead of flashing, the ink, and the button role when the region
 /// can be tapped.
@@ -446,27 +446,38 @@ BoxPoint _insideShape(BoxPoint position, double slop) =>
 
 /// One drop: a circle centred on the press, growing as it fades.
 ///
-/// The circle is moved by a transform rather than by the offsets of the node that
-/// positions it, and that is a cost decision: a frame of the ripple is then one look
-/// of one box, so the web writes the wrapper's rule once and only the ink's own
-/// declarations are new. A transform also paints without taking room, which is what
-/// keeps a growing drop from resizing the well around it.
+/// It is a circle of [materialInkSpread] *scaled* out of nothing, not a circle that is given
+/// a new size every frame. Both paint the same pixels — a scaled circle is a circle — and only
+/// the first is affordable: a width, a height, a corner radius and the offset that keeps a
+/// growing circle over the press are new numbers every frame, and on the web a number is a
+/// class, so every frame of every press wrote a rule the sheet keeps for the life of the page.
+/// A page that had been tapped a hundred times carried three thousand rules the ripple would
+/// never wear again, and rewrote all of them sixty times a second because each frame added one
+/// more.
+///
+/// Scaling moves two numbers, and they are the same two on every press, so a ripple needs a
+/// fixed set of looks the sheet is asked for once: a well pressed a hundred times writes no
+/// rule after the first press. That is the same reason `MaterialSpinStore` counts steps rather
+/// than degrees — a turn that repeats its looks is a turn that stops costing anything.
+///
+/// The centre is snapped to a whole pixel for the same reason: a hundredth of a pixel of a 280
+/// pixel circle is not a look, and two taps on one button should not be two of them. A drop is
+/// placed by its wrapper and painted by its own box, so the press point lands in a rule written
+/// once per pixel while the animation lands in rules shared by every press anywhere.
 UINode _dropView(MaterialInkDrop drop, BoxColor ink) {
-  final double diameter = materialInkSpread * drop.progress;
+  const double radius = materialInkSpread / 2;
 
   return PositionedNode(
-    left: 0,
-    top: 0,
+    // The corner of the box that puts the circle's centre on the pixel that was pressed.
+    left: drop.position.x.roundToDouble() - radius,
+    top: drop.position.y.roundToDouble() - radius,
     child: Box(
-      width: diameter,
-      height: diameter,
-      borderRadius: diameter / 2,
+      width: materialInkSpread,
+      height: materialInkSpread,
+      borderRadius: radius,
       backgroundColor: ink,
       opacity: materialInkOpacity * (1 - drop.progress),
-      transform: BoxTransform(
-        offsetX: drop.position.x - diameter / 2,
-        offsetY: drop.position.y - diameter / 2,
-      ),
+      transform: BoxTransform(scale: drop.progress),
     ),
   );
 }

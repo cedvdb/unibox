@@ -223,16 +223,51 @@ void main() {
         const BoxTapEvent(position: BoxPoint(40, 12)),
       );
 
-      final Box drop = _ink(_view(well, store)).single.child as Box;
-      expect(drop.backgroundColor, MaterialInkWell.defaultInk);
-      // At the instant of the press the drop has no width, so its centre is the
-      // point that was pressed.
-      expect(drop.transform?.offsetX, 40);
-      expect(drop.transform?.offsetY, 12);
-      expect(drop.width, 0);
+      final PositionedNode drop = _ink(_view(well, store)).single;
+      final Box ink = drop.child as Box;
 
-      store.advance(materialInkDuration);
+      // A circle as wide as the spread, its centre on the press: the box is placed by its
+      // corner, and the drop grows by scaling out of nothing rather than by being given a
+      // new size each frame — see `_dropView` for why that is what keeps a ripple cheap.
+      expect(drop.left, 40 - materialInkSpread / 2);
+      expect(drop.top, 12 - materialInkSpread / 2);
+      expect(ink.backgroundColor, MaterialInkWell.defaultInk);
+      expect(ink.width, materialInkSpread);
+      expect(ink.height, materialInkSpread);
+      expect(ink.borderRadius, materialInkSpread / 2);
+      expect(ink.transform?.scale, 0);
+      expect(ink.opacity, materialInkOpacity);
+
+      store.advance(materialInkDuration ~/ 2);
+
+      final Box half = _ink(_view(well, store)).single.child as Box;
+      expect(half.transform?.scale, closeTo(0.5, 0.01));
+      expect(half.opacity, closeTo(materialInkOpacity / 2, 0.001));
+
+      store.advance(materialInkDuration ~/ 2);
       expect(_ink(_view(well, store)), isEmpty);
+
+      store.dispose();
+    });
+
+    test('puts the middle of a drop on a whole pixel', () {
+      // A tap carries a fraction of a pixel. Two of them on one button are the same ripple to
+      // the eye, and on the web a fraction would be a look of its own: forty taps an afternoon
+      // would be forty rules the sheet keeps. So the centre snaps, and the press point lives in
+      // the one rule per pixel rather than in the animation.
+      final MaterialInkStore store = MaterialInkStore();
+      final MaterialInkWell well = MaterialInkWell(
+        onTap: _tap,
+        child: const TextNode('Ada'),
+      );
+
+      _view(well, store).onTapDown!(
+        const BoxTapEvent(position: BoxPoint(40.4, 12.7)),
+      );
+
+      final PositionedNode drop = _ink(_view(well, store)).single;
+      expect(drop.left, 40 - materialInkSpread / 2);
+      expect(drop.top, 13 - materialInkSpread / 2);
 
       store.dispose();
     });

@@ -496,10 +496,11 @@ a drop that lands in it still starts where the pill would see the press. It is l
 and not paint: a row of chips is as tall as the target.
 
 What it is not is a timeline the host owns: the ink is a state machine and a timer,
-so a press costs a rebuild of one subtree per frame for 450ms. On the web that is
-visible in the sheet — a frame's circle is a look of its own — and it is why a drop
-moves by `transform` rather than by the offsets of the node that holds it: one rule
-per frame instead of two, measured at 30 rules for one press against 58 before.
+so a press costs a rebuild of one subtree per frame for 450ms. On the web that rebuild
+stops costing anything after the first press — a drop is a fixed circle scaled out of
+nothing, so every frame of every press asks for a look the sheet already has. A ripple
+writes 30 rules the first time it is pressed in a place, one of which is where it
+landed, and a press after that writes none until the press lands on another pixel.
 `EmbedNode` remains the escape hatch when a host-side animation is what the effect
 needs.
 

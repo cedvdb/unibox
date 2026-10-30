@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- An ink well's ripple no longer grows a page's stylesheet as it is pressed. A drop used to be
+  given a new width, height, corner radius and offset every frame, and on the web a number is a
+  class: each press left 29 rules behind that the sheet keeps for the life of the page, and every
+  frame of every press rewrote all of them into the document, so a button pressed all afternoon
+  got slower with each press. A drop is now a circle of the spread, scaled out of nothing and
+  placed on the pixel that was pressed, so the frames of a ripple are a fixed set of looks the
+  sheet is asked for once: the first press in a place writes 30 rules, and a press after it
+  writes none. The ripple paints the same pixels it did — a circle scaled is a circle.
+
 - `MaterialElevation` is calibrated to what a Flutter card paints. The three layers — umbra,
   penumbra, ambient — keep the map's roles and stretch at 87% of its opacities, and each
   level's offsets, blurs and spreads now match `Canvas.drawShadow` at that height: a card
