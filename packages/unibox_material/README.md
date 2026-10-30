@@ -931,6 +931,14 @@ the framework's own card peaks at 22% — so every layer is 87% of its opacity, 
 the edge to about 25%: the same height read at the card, with the map's compact falloff
 rather than a wide smear that reaches twice as far down the page.
 
+One factor, in one place: the three constants at the foot of `MaterialElevation` are the
+map's 20, 14 and 12% at 87% — `0x2C`, `0x1F`, `0x1B`. Taking them to `0x27`, `0x1C`, `0x18`
+(77%) lands the edge exactly on the framework's 22%, at the cost of a shadow that fades out
+by its third pixel. Nothing else moves: the offsets, blurs and spreads are the map's, which
+is why the shadow stays compact. Widening them to reach as far as a Flutter card is what
+makes a shadow read heavy — it grows sideways and above the surface too, where the framework
+casts nothing at all.
+
 **A level is also a surface.** Material states elevation twice over, and the tonal half
 is the half that shows: three shadows at 20, 14 and 12% barely read on a page of the same
 tone. `level1` goes with `surfaceContainerLow`, `level2` with `surfaceContainer` and
