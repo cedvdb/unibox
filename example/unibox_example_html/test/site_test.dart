@@ -37,8 +37,8 @@ void main() {
       expect(html, contains('alt="A living room'));
       expect(html, contains('placeholder="Search the listings"'));
       expect(html, contains('PositionedNode'));
-      expect(html, contains('tree.toWidget()'));
-      expect(html, contains('toHtml(tree)'));
+      expect(html, contains('node.toWidget()'));
+      expect(html, contains('node.toHtml()'));
     });
 
     test('moves the two arrows, three passes and then still', () {

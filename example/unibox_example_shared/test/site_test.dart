@@ -101,8 +101,8 @@ void main() {
         containsAll(<String>[
           'Just boxes',
           'the same tree, two calls',
-          'tree.toWidget()',
-          'toHtml(tree)',
+          'node.toWidget()',
+          'node.toHtml()',
         ]),
       );
     });

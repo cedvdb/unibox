@@ -163,8 +163,8 @@ UINode _card(MaterialPalette palette) {
 ///
 /// They sit under the node list rather than in a paragraph, because the list is what a
 /// reader has just read: those nodes are the tree, and these are the only two things
-/// anything does with it. Neither name is this page's invention — `toWidget()` is the
-/// Flutter renderer's extension and `toHtml()` the web renderer's function.
+/// anything does with it. Neither name is this page's invention — each is an extension on
+/// the node in its own renderer, so the same tree is drawn by two calls of the same shape.
 UINode _calls(MaterialPalette palette) {
   return Box(
     backgroundColor: palette.surface,
@@ -180,8 +180,8 @@ UINode _calls(MaterialPalette palette) {
           color: palette.onSurfaceVariant,
         ),
       ),
-      _call(palette, 'tree.toWidget()', 'Flutter widgets'),
-      _call(palette, 'toHtml(tree)', 'an HTML string'),
+      _call(palette, 'node.toWidget()', 'Flutter widgets'),
+      _call(palette, 'node.toHtml()', 'an HTML string'),
     ],
   );
 }
