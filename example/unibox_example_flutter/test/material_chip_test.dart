@@ -48,4 +48,37 @@ void main() {
     expect(close.center.dx, closeTo(target.center.dx, 0.5));
     expect(close.center.dy, closeTo(target.center.dy, 0.5));
   });
+
+  testWidgets('announces the close as the chip it removes', (
+    WidgetTester tester,
+  ) async {
+    // `aria-label` on the web, a label in the semantics tree here: one token, two
+    // targets. A row of applied filters used to read as the same "Remove" eleven times,
+    // which a reader cannot tell apart.
+    final SemanticsHandle handle = tester.ensureSemantics();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.topLeft,
+            child: renderFlutter(
+              MaterialChip(
+                label: const TextNode('Garden'),
+                trailing: const TextNode('×', fontSize: 10),
+                onRemove: () {},
+                removeSemanticsLabel: 'Remove Garden',
+              ),
+              theme: MaterialPalette.lightTheme,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.bySemanticsLabel('Remove Garden'), findsOneWidget);
+    expect(find.bySemanticsLabel('Remove'), findsNothing);
+
+    handle.dispose();
+  });
 }

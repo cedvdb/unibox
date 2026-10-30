@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- `MaterialChip` takes `removeSemanticsLabel:`, the name its close announces. The cross of
+  an input chip is a target with no text of its own, so it said "Remove" and nothing else:
+  a row of applied filters read as the same button eleven times, and a screen reader could
+  not tell a reader what was about to go. It defaults to "Remove", so nothing moves for a
+  chip that does not name one.
+
 - A label too long for its segment is cut with an ellipsis instead of failing the build.
   A segment is a share of the control's width, and the label was laid out at its own
   width: a translation, or any label at twice the text scale, raised

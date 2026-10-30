@@ -245,6 +245,37 @@ void main() {
       expect(_box(chip).semantics?.role, BoxRole.button);
     });
 
+    test('lets a caller say which chip its close removes', () {
+      // A row of applied filters: a reader hears "Remove Garden" rather than the same
+      // "Remove" eleven times.
+      final MaterialChip named = MaterialChip(
+        label: const TextNode('Garden'),
+        trailing: const TextNode('x'),
+        onRemove: _tap,
+        removeSemanticsLabel: 'Remove Garden',
+      );
+      final Box row = _content(named).children.single as Box;
+      final MaterialInkWell close = row.children.last as MaterialInkWell;
+
+      expect(_boxOf(close).semantics?.label, 'Remove Garden');
+      expect(_boxOf(close).semantics?.role, BoxRole.button);
+      // The chip itself is still the control it was: the name belongs to the cross.
+      expect(named.semantics, isNull);
+
+      // Nothing passed, nothing changed: the cross announces what it always did.
+      final MaterialChip plain = MaterialChip(
+        label: const TextNode('Garden'),
+        trailing: const TextNode('x'),
+        onRemove: _tap,
+      );
+      final Box plainRow = _content(plain).children.single as Box;
+
+      expect(
+        _boxOf(plainRow.children.last as MaterialInkWell).semantics?.label,
+        'Remove',
+      );
+    });
+
     test('lets a caller set the room, the pill and the target', () {
       final MaterialChip chip = MaterialChip(
         label: const TextNode('Studio'),

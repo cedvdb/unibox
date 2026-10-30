@@ -35,7 +35,9 @@ import 'material_typography.dart';
 /// close of an input chip: a round 18 pixel target of its own inside the pill, so a
 /// press on the cross removes the chip instead of choosing it, and the cross itself is
 /// [trailing] — a glyph the application draws or writes, because a font is a host
-/// asset.
+/// asset. [removeSemanticsLabel] is what that target announces: a row of applied
+/// filters should say which one it removes, because eleven chips that all say "Remove"
+/// tell a reader nothing about what is about to go.
 final class MaterialChip extends Box {
   /// Creates a chip around [label].
   ///
@@ -44,7 +46,8 @@ final class MaterialChip extends Box {
   /// inside the pill, [height] the pill it paints (32 unless it says otherwise),
   /// [tapTargetHeight] the room a finger gets around it (48), [gap] the space
   /// between a node and the label, and [borderRadius] the corner. [labelStyle] and
-  /// [ink] are the type and the splash.
+  /// [ink] are the type and the splash. [removeSemanticsLabel] is the name of the
+  /// chip's own close, which defaults to "Remove".
   MaterialChip({
     required UINode label,
     bool selected = false,
@@ -53,6 +56,7 @@ final class MaterialChip extends Box {
     HoverCallback? onHover,
     UINode? trailing,
     TapCallback? onRemove,
+    String? removeSemanticsLabel,
     bool enabled = true,
     BoxColor? ink,
     double height = controlHeight,
@@ -118,6 +122,7 @@ final class MaterialChip extends Box {
                    : _removeAffordance(
                        glyph: trailing,
                        onRemove: onRemove,
+                       label: removeSemanticsLabel ?? _removeLabel,
                        enabled: enabled,
                        selected: selected,
                      ),
@@ -152,6 +157,13 @@ final class MaterialChip extends Box {
 
   /// The space between a node and the label when the chip is not told otherwise.
   static const double _nodeGap = 8;
+
+  /// What the close of a chip announces when the caller does not name it.
+  ///
+  /// It is the whole of what the cross means on its own. A chip that removes one of
+  /// several filters should pass [removeSemanticsLabel] instead, so a reader hears which
+  /// one.
+  static const String _removeLabel = 'Remove';
 
   /// The room inside the pill: Material pads only the sides a node sits on.
   ///
@@ -222,9 +234,13 @@ final class MaterialChip extends Box {
   /// The glyph is centred on **both** axes, which a well has to say: it is a column, and
   /// a cross without `crossAlign` was pinned to the start of the target, so the ring a
   /// hover drew around it sat four pixels off the cross it belongs to.
+  ///
+  /// [label] is what the target says to a screen reader: a control that is a cross has no
+  /// text of its own, so without a name it is announced as a button and nothing more.
   static UINode _removeAffordance({
     required UINode? glyph,
     required TapCallback onRemove,
+    required String label,
     required bool enabled,
     required bool selected,
   }) {
@@ -237,7 +253,7 @@ final class MaterialChip extends Box {
       height: 18,
       mainAlign: MainAlign.center,
       crossAlign: CrossAlign.center,
-      semantics: const BoxSemantics(role: BoxRole.button, label: 'Remove'),
+      semantics: BoxSemantics(role: BoxRole.button, label: label),
       child: Box(
         mainAlign: MainAlign.center,
         crossAlign: CrossAlign.center,
