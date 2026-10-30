@@ -92,6 +92,20 @@ TextDecoration toTextDecoration(core.TextDecoration decoration) {
 /// same number. The web renderer honours it; here the line is the font's own and
 /// `packages/unibox_flutter/README.md` says so beside the other attributes this
 /// target does not read.
+///
+/// The line height is distributed the way CSS distributes it. A line box is
+/// `fontSize * lineHeight` tall on both targets, but *where the glyphs sit in
+/// it* is a second decision, and the two hosts make it differently: Flutter's
+/// default, [TextLeadingDistribution.proportional], spreads the leading above
+/// and below the glyphs in proportion to the font's ascent and descent, while
+/// CSS adds half of it above and half below — [TextLeadingDistribution.even],
+/// which the engine's own documentation calls "the default strategy used by
+/// CSS". The two are not close: at 16 logical pixels with a 1.5 line height they
+/// put the same line of text about a pixel and a half apart. Both boxes are the
+/// same height either way, so nothing about the layout moves — the text moves
+/// inside it, which is exactly what a reader sees as a jump when a page is handed
+/// from the browser to Flutter. Only one of the two rules can be stated on both
+/// targets, so the model uses it.
 TextStyle? toTextStyle(core.BoxTextStyle style) {
   if (style.isEmpty) {
     return null;
@@ -107,6 +121,7 @@ TextStyle? toTextStyle(core.BoxTextStyle style) {
     fontWeight: weight == null ? null : toFontWeight(weight),
     color: color == null ? null : toColor(color),
     height: style.lineHeight,
+    leadingDistribution: TextLeadingDistribution.even,
     fontFamily: style.fontFamily,
     letterSpacing: style.letterSpacing,
     decoration: decoration == null ? null : toTextDecoration(decoration),

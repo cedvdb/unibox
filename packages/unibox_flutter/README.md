@@ -129,6 +129,14 @@ CSS `line-height` gives on the web: that is the one measurement the two renderer
 agree on exactly. Without a `lineHeight` the box is as tall as the font's own
 metrics instead, which the browser and Skia do not have to compute the same way.
 
+Where the glyphs sit inside that box is agreed on too. The leading the line height
+adds is split half above them and half below, which is what CSS calls half-leading;
+Flutter's own default distributes it in proportion to the font's ascent and descent,
+and the two rules differ by about a pixel and a half at 16 pixels with a 1.5 line
+height. Nothing about the layout moves either way — the box keeps its size and the
+text moves inside it — which is what a reader sees as a jump when a page is handed
+from the browser to Flutter, so the renderer asks for the CSS rule.
+
 ## Typography mapping
 
 A `Box.textStyle` (or `BoxStyle.textStyle`) becomes a `DefaultTextStyle` around

@@ -24,6 +24,14 @@
   tree built from colour roles. It forwarded nothing before, which meant validation
   rejected every themed tree with the role in the message and the extension the README
   leads with could not be used on the trees it advertises.
+
+- A line of text sits where CSS puts it. The extra height a `lineHeight` adds is
+  split half above the glyphs and half below them — CSS's half-leading — where
+  Flutter's own default distributes it in proportion to the font's ascent and
+  descent. The line box was already the same height on both targets; now the
+  baseline inside it is too, so text no longer shifts by a pixel or two when a page
+  is handed from the browser to Flutter.
+
 - `snap: ScrollSnap.page` is `PageScrollPhysics` on the box's scroll view, so a drag that
   ends between two children comes to rest on one.
 

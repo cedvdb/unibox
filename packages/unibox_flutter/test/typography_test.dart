@@ -146,6 +146,51 @@ void main() {
       expect(style.letterSpacing, core.BoxTextStyle.defaults.letterSpacing);
     });
 
+    testWidgets('puts the extra line height half above, half below the glyphs', (
+      tester,
+    ) async {
+      await pumpNode(
+        tester,
+        const core.TextNode('Hello', fontSize: 20, lineHeight: 2),
+      );
+
+      final TextStyle style = styleOf(tester, 'Hello');
+
+      // What CSS calls half-leading: the line box is a fixed forty pixels, and
+      // the leading it adds to the glyphs' own height is split evenly above and
+      // below them, so the baseline lands halfway down the extra space.
+      // Flutter's own default splits it in proportion to the font's ascent and
+      // descent instead, which keeps the box the same height and moves the text
+      // inside it — a jump a reader sees when a page is handed from the browser
+      // to Flutter. The expectation is measured against the test host's font
+      // rather than written as a number, so it holds whatever that font is.
+      final TextPainter line = TextPainter(
+        text: TextSpan(text: 'Hello', style: style),
+        textDirection: TextDirection.ltr,
+      )..layout();
+
+      // The glyphs with no leading at all: a line height of one is the font's
+      // own height, so the distance to the baseline is the font's ascent.
+      final TextPainter glyphs = TextPainter(
+        text: TextSpan(text: 'Hello', style: style.copyWith(height: 1)),
+        textDirection: TextDirection.ltr,
+      )..layout();
+
+      final double ascent = glyphs.computeDistanceToActualBaseline(
+        TextBaseline.alphabetic,
+      );
+      final double lineBox = style.fontSize! * style.height!;
+
+      expect(line.height, moreOrLessEquals(lineBox));
+      expect(
+        line.computeDistanceToActualBaseline(TextBaseline.alphabetic),
+        moreOrLessEquals(
+          (lineBox - glyphs.height) / 2 + ascent,
+          epsilon: 0.001,
+        ),
+      );
+    });
+
     testWidgets('keeps the font family the host brought', (tester) async {
       await pumpNode(
         tester,

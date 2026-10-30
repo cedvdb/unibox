@@ -192,7 +192,11 @@ never inherited (CSS does not inherit them either).
   it. Glyph rasterisation, hinting and line breaking belong to the engine, and
   `unibox_testing/README.md` has the table that says which is which. One
   length is exempt from that, because both sides compute it the same way: a line
-  box is `fontSize * lineHeight` on both.
+  box is `fontSize * lineHeight` on both, and the glyphs sit in it by the rule CSS
+  uses — half-leading, the extra height split evenly above and below them, which
+  the Flutter renderer asks for explicitly rather than accepting Flutter's
+  proportional default, because the two rules put the same text a pixel or two
+  apart inside a box of exactly the same height.
 - A line across a run of text is a typography token, not a shape. `decoration`,
   `decorationColor` and `decorationThickness` live on `BoxTextStyle` and on
   `TextNode`, because a struck through price is not geometry: the tree it used to
