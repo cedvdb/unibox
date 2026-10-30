@@ -82,6 +82,14 @@ SignupFormState submitSignupForm(SignupFormState state) {
   return state.isComplete ? state.copyWith(submitted: true) : state;
 }
 
+/// The width of the card: Material's minimum dialog width, and narrow enough for the
+/// frame the example is shown in on a phone.
+///
+/// A page is drawn twice and measured twice, so the number is one both targets can
+/// honour: a browser would centre a wider card and cut its padding off, while Flutter
+/// would clamp it and keep the padding — the drift the card's comment describes.
+const double _dialogWidth = 280;
+
 /// Builds the sign-up card as the dialog the frame shows over the page.
 ///
 /// Presence is the host's: it builds this node while the form is open and leaves
@@ -114,6 +122,14 @@ OverlayNode buildSignupDialog({
 /// The card holds no state of its own and knows nothing about Flutter or the
 /// DOM: the host owns a [SignupFormState] and feeds the new values back through
 /// the callbacks, which is what keeps the two renderers interchangeable.
+///
+/// **A dialog's width is a number, and the number is the narrow one.** The card is
+/// shown over the page on a phone and inside the comparison's frames, which are a
+/// phone's width; 380 pixels was wider than either, so a browser centred it and cut
+/// the padding off both edges — the fields ran into the screen while Flutter, which
+/// clamps a stated width to the space it is given, kept its 24 pixels. 280 is
+/// Material's minimum dialog width and it fits the narrowest column the example is
+/// drawn in, so the padding survives at every size and both targets agree.
 Box buildSignupCard({
   required SignupFormState state,
   required TextChangedCallback onNameChanged,
@@ -132,7 +148,7 @@ Box buildSignupCard({
   return Box(
     direction: Axis.vertical,
     gap: 16,
-    width: 380,
+    width: _dialogWidth,
     // The card is a self contained composition, which is what an `<article>` is:
     // it makes sense on its own, next to anything else on the page.
     semantics: const BoxSemantics(element: BoxElement.article),

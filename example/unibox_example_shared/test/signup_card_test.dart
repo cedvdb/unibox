@@ -64,6 +64,22 @@ void main() {
   });
 
   group('buildSignupCard', () {
+    test('is narrow enough for the frame a phone shows it in', () {
+      // A dialog is drawn over the page and inside the comparison's frames, which are a
+      // phone's width. A wider card is centred by a browser with its padding cut off — the
+      // fields run into the edges — while Flutter clamps it and keeps the padding, so the two
+      // renderings disagree at exactly the size the page is read at. 280 is Material's minimum
+      // dialog width, and it fits the narrowest band the example is drawn in.
+      final Box card = RecordingHost().card();
+
+      expect(card.width, 280);
+      expect(
+        card.width,
+        lessThanOrEqualTo(326),
+        reason: 'a 390 pixel window leaves 326 for the comparison frame',
+      );
+    });
+
     test('renders a controlled field for the name and the email', () {
       final List<TextInputNode> fields = flatten(
         RecordingHost().card(

@@ -56,13 +56,20 @@ void main() {
       expect(store.state.selected, 2);
     });
 
-    test('is a bar and a page of the same width', () {
-      // A page has to be a number in the tree for the pager to land on one, so the bar above
-      // it is given that number too: the two are one table, and a page narrower than the row
-      // of tabs above it reads as a view that does not belong to them.
-      expect(const TabsDemoState().pageWidth, greaterThan(0));
-      expect(const TabsDemoState().pageWidth, 720);
-    });
+    test(
+      'is a bar and a page of the same width, and that width is a phone',
+      () {
+        // A page has to be a number in the tree for the pager to land on one, so the bar above
+        // it is given that number too: the two are one table, and a page narrower than the row
+        // of tabs above it reads as a view that does not belong to them.
+        //
+        // The number also has to fit the column it is drawn in. The band keeps 32 pixels of
+        // padding on each side, so a 344 pixel window leaves 280 — the width of the table — and
+        // anything wider pushed the whole catalogue sideways on a phone.
+        expect(const TabsDemoState().pageWidth, 280);
+        expect(const TabsDemoState().pageWidth, lessThanOrEqualTo(344 - 64));
+      },
+    );
 
     test('refuses a tab that is not there', () {
       final TabsDemoStore store = TabsDemoStore();

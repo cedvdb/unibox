@@ -579,9 +579,14 @@ final class TabsDemo extends StatefulNode<TabsDemoState, TabsDemoStore> {
 /// the bar speaks in indices, so something has to know the divisor. Here, because the demo draws a
 /// table of a fixed size — the bar, the pager and every page are the same width, which is what puts
 /// the page under the tab that shows it and leaves no strip of view narrower than the bar above it.
+///
+/// A page has to be a number in the tree, and the number has to fit the column the table is drawn
+/// in: a phone's band leaves 280 pixels of a 344 pixel window, so the table is a specimen at every
+/// width rather than a pager that pushes the page sideways. It was 720, which is wider than a
+/// phone, and the whole catalogue scrolled horizontally because of it.
 final class TabsDemoState {
   /// Creates a state showing page [selected], in a view [pageWidth] wide.
-  const TabsDemoState({this.selected = 0, this.pageWidth = 720});
+  const TabsDemoState({this.selected = 0, this.pageWidth = 280});
 
   /// The index of the chosen tab, which is also the page the pager shows.
   final int selected;
@@ -667,8 +672,8 @@ UINode _tabsView(
   return Box(
     // The bar is as wide as the page under it, which is the width the demo states: a page has to
     // be a number in the tree for the pager to land on one, so the bar is given that number too
-    // rather than the whole section. Stretched instead, the bar was 1080 pixels and the page 720,
-    // and the view under the tabs read as a narrower strip than the row above it.
+    // rather than the whole section. Stretched instead, the bar is as wide as the band and the
+    // view under the tabs reads as a narrower strip than the row above it.
     width: state.pageWidth,
     gap: 16,
     children: <UINode>[
