@@ -145,12 +145,14 @@ Iterable<BoxColor> _roleColorsOf(UINode node) {
   void addStyle(BoxStyle style) {
     final BoxColor? background = style.backgroundColor;
     final BoxBorder? border = style.border;
-    final BoxShadow? shadow = style.shadow;
+    final List<BoxShadow>? shadows = style.shadows;
     final BoxColor? text = style.textStyle?.color;
 
     if (background != null) colors.add(background);
     if (border != null) colors.add(border.color);
-    if (shadow != null) colors.add(shadow.color);
+    if (shadows != null) {
+      colors.addAll(shadows.map((BoxShadow shadow) => shadow.color));
+    }
     if (text != null) colors.add(text);
   }
 
@@ -282,7 +284,7 @@ void _validate(
         );
       }
 
-      if (style.shadow != null) {
+      if (style.shadows?.isNotEmpty ?? false) {
         issues.add(
           TreeIssue(
             node: node,
@@ -761,7 +763,7 @@ List<TreeIssue> _transitionIssues(Box box, BoxTransition? transition) {
     BoxProperty.backgroundColor,
     BoxProperty.borderColor,
     BoxProperty.borderRadius,
-    BoxProperty.shadow,
+    BoxProperty.shadows,
   };
   final Set<BoxTransitionTiming> paintTimings = <BoxTransitionTiming>{
     for (final BoxProperty look in paint) transition.timingOf(look),

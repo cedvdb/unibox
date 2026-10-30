@@ -174,7 +174,7 @@ void main() {
       const BoxStyle style = BoxStyle(
         backgroundColor: BoxColor.role(AppColor.primary),
         border: BoxBorder(color: BoxColor.role(AppColor.error)),
-        shadow: BoxShadow(color: BoxColor.role(AppColor.error)),
+        shadows: <BoxShadow>[BoxShadow(color: BoxColor.role(AppColor.error))],
         textStyle: BoxTextStyle(color: BoxColor.role(AppColor.primary)),
         padding: BoxSpacing.all(8),
         borderRadius: 12,
@@ -183,7 +183,7 @@ void main() {
 
       expect(resolved.backgroundColor?.value, 0xFF6750A4);
       expect(resolved.border?.color.value, 0xFFB3261E);
-      expect(resolved.shadow?.color.value, 0xFFB3261E);
+      expect(resolved.shadows?.single.color.value, 0xFFB3261E);
       expect(resolved.textStyle?.color?.value, 0xFF6750A4);
       // Everything that is not a colour travels untouched.
       expect(resolved.padding, style.padding);

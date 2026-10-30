@@ -263,5 +263,43 @@ void main() {
         '8px 8px 0 0',
       );
     });
+
+    test('stack several shadows as one comma separated list', () {
+      // An elevation is three layers in Material and in Flutter, and CSS paints a list
+      // in the order it is written: the first entry ends up on top, which is why the
+      // model keeps the same order.
+      expect(
+        cssBoxShadows(const <core.BoxShadow>[
+          core.BoxShadow(
+            color: core.BoxColor(0x33000000),
+            offsetY: 2,
+            blurRadius: 1,
+            spreadRadius: -1,
+          ),
+          core.BoxShadow(
+            color: core.BoxColor(0x1F000000),
+            offsetY: 1,
+            blurRadius: 3,
+          ),
+        ]),
+        '0 2px 1px -1px rgba(0, 0, 0, 0.2), '
+        '0 1px 3px 0 rgba(0, 0, 0, 0.122)',
+      );
+    });
+
+    test('keeps a role shadow pointed at its custom property', () {
+      // A shadow may be a role like any other colour, and then it has to stay a
+      // variable: a theme or a dark-mode block outranks the tree, and a literal would
+      // pin one level's shade into the stylesheet.
+      expect(
+        cssBoxShadows(const <core.BoxShadow>[
+          core.BoxShadow(
+            color: core.BoxColor.role(_Role.primary),
+            blurRadius: 3,
+          ),
+        ]),
+        '0 2px 3px 0 var(--unibox-color-primary)',
+      );
+    });
   });
 }

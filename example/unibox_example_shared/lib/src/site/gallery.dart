@@ -906,21 +906,21 @@ UINode _cards(MaterialPalette palette) {
         palette,
         title: 'Level 1',
         note: 'surfaceContainerLow',
-        shadow: MaterialElevation.level1,
+        shadows: MaterialElevation.level1,
         surface: palette.surfaceContainerLow,
       ),
       _heightCard(
         palette,
         title: 'Level 2',
         note: 'surfaceContainer',
-        shadow: MaterialElevation.level2,
+        shadows: MaterialElevation.level2,
         surface: palette.surfaceContainer,
       ),
       _heightCard(
         palette,
         title: 'Level 3',
         note: 'surfaceContainerHigh',
-        shadow: MaterialElevation.level3,
+        shadows: MaterialElevation.level3,
         surface: palette.surfaceContainerHigh,
       ),
       // The two shapes a card comes in besides the raised one: a line instead of a
@@ -993,13 +993,13 @@ UINode _heightCard(
   MaterialPalette palette, {
   required String title,
   required String note,
-  required BoxShadow shadow,
+  required List<BoxShadow> shadows,
   required BoxColor surface,
 }) {
   return MaterialCard(
     width: double.infinity,
     gap: 8,
-    shadow: shadow,
+    shadows: shadows,
     color: surface,
     children: <UINode>[
       TextNode(title, style: MaterialTypography.titleMedium),

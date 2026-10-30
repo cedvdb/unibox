@@ -475,7 +475,7 @@ UINode _mapButton() {
   return Box(
     visibleUntil: 900,
     margin: const BoxSpacing.only(bottom: 24),
-    shadow: MaterialElevation.level3,
+    shadows: MaterialElevation.level3,
     borderRadius: 16,
     backgroundColor: const BoxColor.role(MaterialColorRole.primaryContainer),
     children: <UINode>[

@@ -72,7 +72,9 @@ UINode _header(MaterialPalette palette, ExampleSeed seed) {
     width: double.infinity,
     backgroundColor: palette.surface,
     semantics: const BoxSemantics(element: BoxElement.header),
-    shadow: BoxShadow(color: palette.outlineVariant, offsetY: 1, blurRadius: 0),
+    shadows: <BoxShadow>[
+      BoxShadow(color: palette.outlineVariant, offsetY: 1, blurRadius: 0),
+    ],
     children: <UINode>[
       siteBand(
         vertical: 14,
@@ -150,11 +152,9 @@ UINode _footer(MaterialPalette palette) {
     width: double.infinity,
     backgroundColor: palette.surface,
     semantics: const BoxSemantics(element: BoxElement.footer),
-    shadow: BoxShadow(
-      color: palette.outlineVariant,
-      offsetY: -1,
-      blurRadius: 0,
-    ),
+    shadows: <BoxShadow>[
+      BoxShadow(color: palette.outlineVariant, offsetY: -1, blurRadius: 0),
+    ],
     children: <UINode>[
       siteBand(
         vertical: 28,

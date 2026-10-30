@@ -213,7 +213,7 @@ it was typed into.
 ### Box
 
 The container. It lays children out in a row or a column, spaces them, sizes
-itself, paints a background, a border, rounded corners and a shadow, and reacts to
+itself, paints a background, a border, rounded corners and shadows, and reacts to
 taps and hover.
 
 ```dart
@@ -261,7 +261,7 @@ Box(
 | `border` | `BoxBorder?` | none | Line around the box, with a width, a colour and — for a shape's open outline — a cap. |
 | `borderRadius` | `double?` | square | Corner radius in logical pixels, the same on all four. |
 | `corners` | `BoxBorderRadius?` | square | The radius of each corner, for a box that is not round on all four — a filled text field rounds its top and leaves the bottom square. Takes precedence over `borderRadius`. |
-| `shadow` | `BoxShadow?` | none | Drop shadow: colour, offset, blur, spread. |
+| `shadows` | `List<BoxShadow>?` | none | Drop shadows, painted in the order they are written: colour, offset, blur, spread. |
 | `shape` | `BoxShape?` | the rectangle | The outline the box is painted in, instead of its rectangle: a path in a view box, stretched to the box. The background fills it, the `border` is drawn along it, and the children are clipped to it when the box also says `overflow: Overflow.hidden`. See [shapes](#shapes). |
 | `opacity` | `double?` | solid | `0` (invisible) to `1` (solid). The box keeps its room either way. |
 | `transform` | `BoxTransform?` | none | Moves, turns or scales the box about its centre (`scale`, `rotation` in degrees, `offsetX`/`offsetY` in pixels, `fractionX`/`fractionY` in multiples of the box's own size). The fractions are the offsets that need no measurement — one tab, half a width — and they compose with the pixels. It paints differently without taking different room, so text inside never reflows. |
@@ -378,7 +378,7 @@ Five things follow from a shape:
 - **Layout does not change.** Children are laid out in the same rectangle as before,
   which is what puts a label inside the hole of a ring; `overflow: Overflow.hidden`
   is what clips them to the outline.
-- **A shape paints; it does not cast.** It has no shadow (put the shadow on the box
+- **A shape paints; it does not cast.** It has no shadow (put the shadows on the box
   around it) and it does not ease (there are no numbers to interpolate between two
   outlines). `validateTree` reports a shaped box that also names a shadow or a
   corner radius, because a box has one outline.
@@ -849,7 +849,7 @@ Box(
 )
 ```
 
-It covers the paint — background, border colour, corner radius, shadow, opacity
+It covers the paint — background, border colour, corner radius, shadows, opacity
 and transform — and never the layout, and the curve is one of `linear`, `ease`,
 `easeIn`, `easeOut` or `easeInOut`: the five curves CSS and Flutter define the same
 way, so both targets ease identically. A state that *introduces* a scale or a fade

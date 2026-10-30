@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- A box's shadows become one entry of the decoration's `boxShadow` per layer, so the elevation a
+  design system states as three shadows is painted as three instead of one.
 - `snap: ScrollSnap.page` is `PageScrollPhysics` on the box's scroll view, so a drag that
   ends between two children comes to rest on one.
 

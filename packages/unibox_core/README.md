@@ -106,7 +106,7 @@ curves CSS and Flutter share the control points of (`linear`, `ease`, `easeIn`,
 `easeOut`, `easeInOut`). The resting style declares it, a `BoxState` style names
 the tokens that change, and the change eases.
 
-What it covers is the paint — background, border colour, corner radius and shadow —
+What it covers is the paint — background, border colour, corner radius and shadows —
 and nothing else. Layout never animates, because a transition on a width or a gap
 would move everything around the box on one target and not the other; the border
 width is out for the same reason, since CSS animates it as a layout change while

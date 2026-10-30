@@ -174,11 +174,9 @@ UINode _treeChip(MaterialPalette palette) {
     border: BoxBorder(color: palette.outlineVariant),
     // A soft drop shadow under the chip: the one place on the page where the tree is
     // drawn *above* the two things it becomes, rather than beside them.
-    shadow: BoxShadow(
-      color: palette.outlineVariant,
-      offsetY: 4,
-      blurRadius: 12,
-    ),
+    shadows: <BoxShadow>[
+      BoxShadow(color: palette.outlineVariant, offsetY: 4, blurRadius: 12),
+    ],
     children: <UINode>[
       TextNode(
         'Unibox',

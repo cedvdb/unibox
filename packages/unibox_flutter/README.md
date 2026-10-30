@@ -38,7 +38,7 @@ with their target.
 | `padding` / `margin`                | inner / outer `Padding`                             |
 | `width`, `height`                   | `SizedBox`                                          |
 | `minWidth`, `maxWidth`, ...         | `ConstrainedBox`                                    |
-| `backgroundColor`, `borderRadius`, `border`, `shadow` | `DecoratedBox` with a `BoxDecoration` |
+| `backgroundColor`, `borderRadius`, `border`, `shadows` | `DecoratedBox` with a `BoxDecoration`, one entry of its `boxShadow` per shadow |
 | `overflow: Overflow.hidden`         | `ClipRect`, inside the decoration so the shadow survives |
 | `PositionedNode.alignment`          | `Positioned.fill` around an `Align`                 |
 | `shape`                            | `CustomPaint` with a `Path`: the fill, then the border as a stroke along it |
@@ -331,7 +331,7 @@ is what sizes it.
 ## Motion
 
 A box with a `BoxTransition` eases the change of its paint tokens — background,
-border colour, corner radius and shadow — between the resting style and a state
+border colour, corner radius and shadows — between the resting style and a state
 style. The `DecoratedBox` becomes a `TweenAnimationBuilder<Decoration>`, which
 tweens from the decoration it painted last to the one the new state asks for; that
 is exactly the set `BoxDecoration.lerp` covers, and `BoxCurve` maps one to one

@@ -99,8 +99,10 @@ void main() {
           .whereType<MaterialCard>()
           .toList();
 
-      MaterialCard raised(BoxShadow shadow) =>
-          cards.singleWhere((MaterialCard card) => card.shadow == shadow);
+      MaterialCard raised(List<BoxShadow> shadows) => cards.singleWhere(
+        // The ambient layer names the level, and a `BoxShadow` compares by value.
+        (MaterialCard card) => card.shadows?.last == shadows.last,
+      );
 
       expect(
         raised(MaterialElevation.level1).backgroundColor,
@@ -119,14 +121,14 @@ void main() {
       // tone, and neither casts anything.
       expect(
         cards.where(
-          (MaterialCard card) => card.shadow == null && card.border != null,
+          (MaterialCard card) => card.shadows == null && card.border != null,
         ),
         hasLength(1),
         reason: 'the outlined card is the one that draws a line instead of a shadow',
       );
       expect(
         cards.where(
-          (MaterialCard card) => card.shadow == null && card.border == null,
+          (MaterialCard card) => card.shadows == null && card.border == null,
         ),
         hasLength(1),
         reason: 'the filled card is the one with neither',

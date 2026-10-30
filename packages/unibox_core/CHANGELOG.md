@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- A box states its **shadows** as a list, not one shadow: `Box(shadows: <BoxShadow>[…])` and
+  `BoxStyle.shadows`. An elevation is three layers in Material and in Flutter — an umbra, a
+  penumbra and an ambient blur — and a single `BoxShadow` could only ever state one of them. The
+  first entry paints on top, as it does in CSS, the transition part is `BoxProperty.shadows`, and
+  a style compares the list by value so two boxes that state the same layers are the same box.
 - `Box.hasThreshold`: whether a box is drawn at only some widths, read from the tokens without
   resolving a style. A renderer asks it of every child of every box to know which box a container
   query measures, and answering that by merging every bag was work per node for a question about

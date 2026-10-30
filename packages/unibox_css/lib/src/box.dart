@@ -39,7 +39,7 @@ CssDeclarations boxDeclarations(
       : style.crossAlign ?? core.CrossAlign.start;
 
   final core.BoxBorder? border = style.border;
-  final core.BoxShadow? shadow = style.shadow;
+  final List<core.BoxShadow>? shadows = style.shadows;
   final core.BoxSpacing? padding = style.padding;
   final core.BoxSpacing? margin = style.margin;
   final core.BoxColor? backgroundColor = style.backgroundColor;
@@ -57,9 +57,6 @@ CssDeclarations boxDeclarations(
   final String? roleBorder = border == null || !border.isVisible
       ? null
       : cssRoleReference(border.color);
-  final String? roleShadow = shadow == null
-      ? null
-      : cssRoleReference(shadow.color);
 
   final CssDeclarations declarations = CssDeclarations()
     ..add('box-sizing', 'border-box');
@@ -146,8 +143,8 @@ CssDeclarations boxDeclarations(
     );
   }
 
-  if (shape == null && shadow != null && roleShadow == null) {
-    declarations.add('box-shadow', cssBoxShadow(shadow));
+  if (shape == null && shadows != null && shadows.isNotEmpty) {
+    declarations.add('box-shadow', cssBoxShadows(shadows));
   }
 
   declarations
@@ -174,19 +171,6 @@ CssDeclarations boxDeclarations(
 
   if (shape == null && corners != null) {
     declarations.add('border-radius', cssCorners(corners));
-  }
-
-  if (shape == null && shadow != null && roleShadow != null) {
-    declarations.add(
-      'box-shadow',
-      <String>[
-        cssPixels(shadow.offsetX),
-        cssPixels(shadow.offsetY),
-        cssPixels(shadow.blurRadius),
-        cssPixels(shadow.spreadRadius),
-        roleShadow,
-      ].join(' '),
-    );
   }
 
   if (shape != null) {

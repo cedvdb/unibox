@@ -97,7 +97,7 @@ void main() {
         backgroundColor: BoxColor.black,
         borderRadius: 6,
         border: BoxBorder(width: 2),
-        shadow: BoxShadow(),
+        shadows: <BoxShadow>[BoxShadow()],
       );
 
       final computed = box.computedStyle;
@@ -119,7 +119,7 @@ void main() {
       expect(computed.backgroundColor, BoxColor.black);
       expect(computed.borderRadius, 6);
       expect(computed.border, const BoxBorder(width: 2));
-      expect(computed.shadow, const BoxShadow());
+      expect(computed.shadows, const <BoxShadow>[BoxShadow()]);
     });
 
     test('does not mutate the style it resolves', () {

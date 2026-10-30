@@ -59,7 +59,7 @@ void main() {
         const BoxColor.role(MaterialColorRole.surfaceContainerHigh),
       );
       expect(surface.borderRadius, 28);
-      expect(surface.shadow, MaterialDialog.elevation);
+      expect(surface.shadows, MaterialDialog.elevation);
       expect(surface.minWidth, 280);
       expect(surface.maxWidth, 560);
     });
@@ -94,7 +94,11 @@ void main() {
       );
       expect(surface.maxWidth, 640);
       expect(surface.width, double.infinity);
-      expect(surface.shadow!.offsetY, lessThan(0));
+      expect(
+        surface.shadows!.every((BoxShadow shadow) => shadow.offsetY < 0),
+        isTrue,
+        reason: 'a sheet rises, so every layer of its shadow points up',
+      );
     });
 
     test('holds a title, the content and the actions, in that order', () {

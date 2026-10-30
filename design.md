@@ -43,7 +43,7 @@ All nodes extend `abstract class UINode`.
    - **Dimensions:** `width`, `height`, `minWidth`, `maxWidth`, `minHeight`, `maxHeight` (`double?`).
    - **Visuals:** `padding`, `margin`, `backgroundColor`, `borderRadius` (`double?`), `corners`
      (`BoxBorderRadius?` — the four radii, for a shape that is not round everywhere), `border`,
-     `shadow`.
+     `shadows`.
    - **Actions:** `onTap`, `onLongPress`, `onHover`.
    - **Tokens/Overrides:** Optional `style: BoxStyle?` and `hoverStyle: BoxStyle?`.
    - `computedStyle`: Helper that overlays explicit flat parameters onto `style`.

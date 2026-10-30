@@ -53,7 +53,7 @@ final class BoxStyle {
     this.borderRadius,
     this.corners,
     this.border,
-    this.shadow,
+    this.shadows,
     this.shape,
     this.textStyle,
     this.transition,
@@ -174,8 +174,13 @@ final class BoxStyle {
   /// The border painted around the box.
   final BoxBorder? border;
 
-  /// The drop shadow painted behind the box.
-  final BoxShadow? shadow;
+  /// The drop shadows painted behind the box, in paint order.
+  ///
+  /// A shadow is a list because a design system states one elevation as several
+  /// layers — Material's level one is a tight umbra, a penumbra and a wide ambient
+  /// layer — and a single [BoxShadow] could only ever state one of them. The first
+  /// entry paints on top, as it does in CSS.
+  final List<BoxShadow>? shadows;
 
   /// The outline the box is painted in, instead of its rectangle.
   ///
@@ -248,7 +253,7 @@ final class BoxStyle {
     final BoxColor? background = backgroundColor;
     return (background != null && background.isRole) ||
         (border?.color.isRole ?? false) ||
-        (shadow?.color.isRole ?? false) ||
+        (shadows?.any((BoxShadow shadow) => shadow.color.isRole) ?? false) ||
         (textStyle?.color?.isRole ?? false);
   }
 
@@ -288,7 +293,9 @@ final class BoxStyle {
       borderRadius: borderRadius,
       corners: corners,
       border: border?.resolve(theme),
-      shadow: shadow?.resolve(theme),
+      shadows: shadows
+          ?.map((BoxShadow shadow) => shadow.resolve(theme))
+          .toList(growable: false),
       shape: shape,
       textStyle: textStyle?.resolve(theme),
       transition: transition,
@@ -328,7 +335,7 @@ final class BoxStyle {
     double? borderRadius,
     BoxBorderRadius? corners,
     BoxBorder? border,
-    BoxShadow? shadow,
+    List<BoxShadow>? shadows,
     BoxShape? shape,
     BoxTextStyle? textStyle,
     BoxTransition? transition,
@@ -360,7 +367,7 @@ final class BoxStyle {
       borderRadius: borderRadius ?? this.borderRadius,
       corners: corners ?? this.corners,
       border: border ?? this.border,
-      shadow: shadow ?? this.shadow,
+      shadows: shadows ?? this.shadows,
       shape: shape ?? this.shape,
       textStyle: textStyle ?? this.textStyle,
       transition: transition ?? this.transition,
@@ -407,7 +414,7 @@ final class BoxStyle {
       borderRadius: other.borderRadius ?? borderRadius,
       corners: other.corners ?? corners,
       border: other.border ?? border,
-      shadow: other.shadow ?? shadow,
+      shadows: other.shadows ?? shadows,
       shape: other.shape ?? shape,
       textStyle: textStyle?.merge(other.textStyle) ?? other.textStyle,
       transition: other.transition ?? transition,
@@ -443,7 +450,7 @@ final class BoxStyle {
       other.borderRadius == borderRadius &&
       other.corners == corners &&
       other.border == border &&
-      other.shadow == shadow &&
+      _sameShadows(other.shadows, shadows) &&
       other.shape == shape &&
       other.textStyle == textStyle &&
       other.transition == transition &&
@@ -476,7 +483,7 @@ final class BoxStyle {
     borderRadius,
     corners,
     border,
-    shadow,
+    shadows,
     shape,
     textStyle,
     transition,
@@ -509,7 +516,7 @@ final class BoxStyle {
       if (borderRadius != null) 'borderRadius: $borderRadius',
       if (corners != null) 'corners: $corners',
       if (border != null) 'border: $border',
-      if (shadow != null) 'shadow: $shadow',
+      if (shadows != null) 'shadows: $shadows',
       if (shape != null) 'shape: $shape',
       if (textStyle != null) 'textStyle: $textStyle',
       if (transition != null) 'transition: $transition',
@@ -520,4 +527,25 @@ final class BoxStyle {
     ];
     return 'BoxStyle(${tokens.join(', ')})';
   }
+}
+
+/// Whether two shadow lists paint the same layers, in the same order.
+///
+/// A `List` compares by identity and a style compares by value, so the one list a style
+/// holds is compared entry by entry here. Two boxes that state the same elevation
+/// layers are the same box, which is what lets a transition see no change at all.
+bool _sameShadows(List<BoxShadow>? a, List<BoxShadow>? b) {
+  if (identical(a, b)) {
+    return true;
+  }
+  if (a == null || b == null || a.length != b.length) {
+    return false;
+  }
+  for (int i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) {
+      return false;
+    }
+  }
+
+  return true;
 }

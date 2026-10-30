@@ -457,7 +457,7 @@ void main() {
 
     test('reports a shape and a shadow, which the model cannot draw', () {
       final List<TreeIssue> issues = validateTree(
-        const Box(shape: hexagon, shadow: BoxShadow()),
+        const Box(shape: hexagon, shadows: <BoxShadow>[BoxShadow()]),
       );
 
       expect(issues.single.message, contains('shadow'));

@@ -373,7 +373,7 @@ void main() {
         overflow: Overflow.scroll,
         padding: BoxSpacing.all(8),
         border: BoxBorder(width: 1),
-        shadow: BoxShadow(),
+        shadows: <BoxShadow>[BoxShadow()],
         textStyle: BoxTextStyle(fontSize: 16),
       );
 

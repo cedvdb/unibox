@@ -270,7 +270,7 @@ void main() {
           backgroundColor: core.BoxColor.white,
           borderRadius: 12,
           border: core.BoxBorder(width: 2, color: core.BoxColor.black),
-          shadow: core.BoxShadow(),
+          shadows: <core.BoxShadow>[core.BoxShadow()],
         ),
       );
 
@@ -451,7 +451,9 @@ void main() {
           height: 20,
           borderRadius: 12,
           overflow: core.Overflow.hidden,
-          shadow: core.BoxShadow(color: core.BoxColor.black, blurRadius: 6),
+          shadows: <core.BoxShadow>[
+            core.BoxShadow(color: core.BoxColor.black, blurRadius: 6),
+          ],
           children: [core.Box(width: 200, height: 10)],
         ),
       );

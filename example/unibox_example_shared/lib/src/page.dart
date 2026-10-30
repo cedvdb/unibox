@@ -86,11 +86,9 @@ Box buildExamplePage({
         backgroundColor: BoxColors.white,
         // The same hairline the bar under it has: two white strips one above the other read
         // as one bar without it, and the palette belongs to the page, not to the bar.
-        shadow: const BoxShadow(
-          color: BoxColor(0x14000000),
-          offsetY: 1,
-          blurRadius: 0,
-        ),
+        shadows: const <BoxShadow>[
+          BoxShadow(color: BoxColor(0x14000000), offsetY: 1, blurRadius: 0),
+        ],
         children: <UINode>[seedPicker(current: seed)],
       ),
       _navigationBar(current: current, onNavigate: onNavigate),
@@ -126,11 +124,9 @@ UINode _navigationBar({
     width: double.infinity,
     padding: const BoxSpacing.symmetric(horizontal: 24, vertical: 12),
     backgroundColor: const BoxColor.role(ExampleColor.panel),
-    shadow: const BoxShadow(
-      color: BoxColor(0x14000000),
-      offsetY: 1,
-      blurRadius: 0,
-    ),
+    shadows: const <BoxShadow>[
+      BoxShadow(color: BoxColor(0x14000000), offsetY: 1, blurRadius: 0),
+    ],
     textStyle: ExampleType.body,
     children: <UINode>[
       Box(

@@ -64,7 +64,7 @@ class Box extends UINode {
     this.borderRadius,
     this.corners,
     this.border,
-    this.shadow,
+    this.shadows,
     this.shape,
     this.textStyle,
     this.transition,
@@ -190,8 +190,12 @@ class Box extends UINode {
   /// The border painted around the box.
   final BoxBorder? border;
 
-  /// The drop shadow painted behind the box.
-  final BoxShadow? shadow;
+  /// The drop shadows painted behind the box, in paint order.
+  ///
+  /// A list rather than one shadow, because a design system states an elevation as
+  /// several layers and each of them is a shadow: Material's level one is a tight umbra,
+  /// a penumbra and a wide ambient layer, and a browser paints all three.
+  final List<BoxShadow>? shadows;
 
   /// The outline the box is painted in, instead of its rectangle.
   ///
@@ -383,7 +387,7 @@ class Box extends UINode {
     borderRadius: borderRadius,
     corners: corners,
     border: border,
-    shadow: shadow,
+    shadows: shadows,
     shape: shape,
     textStyle: textStyle,
     transition: transition,

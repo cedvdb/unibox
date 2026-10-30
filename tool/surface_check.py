@@ -72,7 +72,7 @@ CLASSIFIED = {
         'minHeight': 'a constraint rather than a measurement',
         'maxHeight': 'a constraint rather than a measurement',
         'border': 'spread into `borderWidth` and `borderColor`',
-        'shadow': 'blur, spread and offset stay approximate on purpose, so the suites assert that a '
+        'shadows': 'blur, spread and offset stay approximate on purpose, so the suites assert that a '
         'shadow is emitted and not what it blurs to',
         'shape': 'a path in a view box, which neither output hands back',
         'textStyle': 'typography is compared through `TextAppearance`, not through a box',

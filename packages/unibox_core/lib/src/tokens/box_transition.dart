@@ -15,8 +15,8 @@ enum BoxProperty {
   /// The corner radius.
   borderRadius,
 
-  /// The drop shadow.
-  shadow,
+  /// The drop shadows.
+  shadows,
 
   /// How opaque the box is.
   opacity,
@@ -35,7 +35,7 @@ enum BoxProperty {
     backgroundColor,
     borderColor,
     borderRadius,
-    shadow,
+    shadows,
   };
 }
 

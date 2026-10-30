@@ -3,29 +3,29 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:unibox_flutter/unibox_flutter.dart';
 import 'package:unibox_material/unibox_material.dart';
 
-/// A card casts the shadow the framework itself states for its level.
+/// A card casts the shadows the framework itself states for its level.
 ///
 /// `unibox_material` is pure Dart and cannot ask Flutter what a level looks like, so
 /// the numbers are written out in `MaterialElevation`; this is the test that keeps
-/// them honest. A card is pumped, the shadow it paints is read back out of the widget
-/// tree, and it is compared with `kElevationToShadow` — the map `Material` itself
-/// draws from. A level that stops matching that map is a card that no longer looks
-/// like the Material card beside it in a Flutter application.
+/// them honest. A card is pumped, the shadows it paints are read back out of the widget
+/// tree, and the whole list is compared with `kElevationToShadow` — the map `Material`
+/// itself draws from, three layers and all. A level that stops matching that map is a
+/// card that no longer looks like the Material card beside it in a Flutter application.
 void main() {
-  testWidgets('a resting card casts the framework’s level one shadow', (
+  testWidgets('a resting card casts the framework’s level one shadows', (
     WidgetTester tester,
   ) async {
     await _pumpCard(tester, const MaterialCard());
 
-    expect(_paintedShadow(tester), kElevationToShadow[1]!.last);
+    expect(_paintedShadows(tester), kElevationToShadow[1]);
   });
 
-  testWidgets('a card raised two levels casts the shadow of that level', (
+  testWidgets('a card raised two levels casts the shadows of that level', (
     WidgetTester tester,
   ) async {
-    await _pumpCard(tester, MaterialCard(shadow: MaterialElevation.level3));
+    await _pumpCard(tester, MaterialCard(shadows: MaterialElevation.level3));
 
-    expect(_paintedShadow(tester), kElevationToShadow[3]!.last);
+    expect(_paintedShadows(tester), kElevationToShadow[3]);
   });
 
   testWidgets('an outlined card draws a line and casts nothing', (
@@ -33,7 +33,7 @@ void main() {
   ) async {
     await _pumpCard(tester, MaterialCard.outlined());
 
-    expect(_paintedShadow(tester), isNull);
+    expect(_paintedShadows(tester), isNull);
   });
 }
 
@@ -47,8 +47,8 @@ Future<void> _pumpCard(WidgetTester tester, MaterialCard card) {
   );
 }
 
-/// The single shadow painted inside the card, read back from its decoration.
-BoxShadow? _paintedShadow(WidgetTester tester) {
+/// The shadows painted inside the card, read back from its decoration.
+List<BoxShadow>? _paintedShadows(WidgetTester tester) {
   final Finder card = find.byWidgetPredicate(
     (Widget widget) => widget is FlutterBox && widget.box is MaterialCard,
   );
@@ -64,7 +64,7 @@ BoxShadow? _paintedShadow(WidgetTester tester) {
         : null;
 
     if (shadows != null && shadows.isNotEmpty) {
-      return shadows.single;
+      return shadows;
     }
   }
 

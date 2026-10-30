@@ -280,15 +280,17 @@ UINode _fieldView(
           topRight: field.borderRadius,
         ),
         opacity: field.enabled ? null : 0.38,
-        shadow: _line(focused: state.focused, invalid: invalid),
+        shadows: <BoxShadow>[_line(focused: state.focused, invalid: invalid)],
         textStyle: _valueStyle(),
         hoverStyle: field.enabled && !state.focused && !invalid
             ? const BoxStyle(
-                shadow: BoxShadow(
-                  color: BoxColor.role(MaterialColorRole.onSurface),
-                  offsetY: 1,
-                  blurRadius: 0,
-                ),
+                shadows: <BoxShadow>[
+                  BoxShadow(
+                    color: BoxColor.role(MaterialColorRole.onSurface),
+                    offsetY: 1,
+                    blurRadius: 0,
+                  ),
+                ],
               )
             : null,
         children: <UINode>[
