@@ -194,7 +194,7 @@ host that renders it.
 | `Icon(Icons.check)`, under a chosen chip or segment | `MaterialCheckMark(color:, size:)` — Material's tick drawn from two bars, no font asset needed |
 | `InkWell`, `InkResponse` | `MaterialInkWell(onTap:, borderRadius:, ink:, child:)` — a state layer plus the ink a press spreads; it paints no surface, so the filled box goes around it |
 | `StatefulWidget` + `setState` around a tree | `StatefulNode` + a `StateStore` |
-| `GridView`, a `Wrap` of cards | `GridNode(minItemWidth:, maxColumns:, gap:)` — equal columns that follow the width, no breakpoint |
+| `GridView`, a `Wrap` of cards | `GridNode(minItemWidth:, maxColumns:, gap:)` — equal columns that follow the width, no breakpoint; a card that interrupts the row states `gridSpan:` on its box |
 | `Card` | `MaterialCard` (from `unibox_material`) |
 | `Icon` | `MaterialIcon.codePoint(Symbols.home.codePoint)`, or `MaterialIcon.ligature('home')` when the font is not tree-shaken anyway |
 | `ListTile` | `MaterialListTile` (from `unibox_material`) |

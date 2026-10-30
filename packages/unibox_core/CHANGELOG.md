@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- `Box.gridSpan`, and `GridNode.spanOf` / `GridNode.spanWidthFor`: a card says how
+  many columns it covers, so a banner that interrupts a card grid is one grid with
+  one spanning child instead of two grids that agree on a column count. A span wider
+  than the grid is clamped to the count the width gives, and `validateTree` reports a
+  span on a box that is not a grid child.
+
 - `TextDecoration` (`none`, `lineThrough`, `underline`), with `decorationColor` and
   `decorationThickness`, on `BoxTextStyle` and as flat tokens on `TextNode`. A
   struck through price is a line the text engine draws through its own line box, so

@@ -58,6 +58,7 @@ and the difference would show:
 | `TextInputNode` chrome | none on either target: no border, padding, background, focus ring or resize grip, and the typography of the tree |
 | `StackNode` clipping | none, and a child that is not positioned keeps its own size |
 | `Box.shape` | the rectangle: a box paints its border box, and a corner radius rounds it |
+| `Box.gridSpan` | one track: a card covers one column, and only a grid child covers more |
 | `LinkNode` styling | the typography of its box: no link colour, no underline |
 
 What is left to the host, because only the host can answer it: the font family (a

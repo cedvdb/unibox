@@ -98,6 +98,60 @@ void main() {
       expect(card(tester, 1).top, greaterThan(card(tester, 0).top));
     });
 
+    testWidgets('lays a spanning card across the tracks it names', (
+      tester,
+    ) async {
+      await pumpAt(
+        tester,
+        core.GridNode(
+          minItemWidth: 280,
+          maxColumns: 3,
+          gap: 16,
+          children: <core.UINode>[
+            core.Box(key: 0, height: 40),
+            core.Box(key: 1, height: 40, gridSpan: 2),
+            core.Box(key: 2, height: 40),
+          ],
+        ),
+        900,
+      );
+
+      final double cell = card(tester, 0).width;
+      final Rect banner = card(tester, 1);
+
+      // Two tracks and the gutter between them, in the row the first card is on.
+      expect(banner.width, closeTo(2 * cell + 16, 0.01));
+      expect(banner.left, closeTo(cell + 16, 0.01));
+      expect(banner.top, closeTo(card(tester, 0).top, 0.01));
+    });
+
+    testWidgets('starts a new row when a span does not fit', (tester) async {
+      await pumpAt(
+        tester,
+        core.GridNode(
+          minItemWidth: 280,
+          maxColumns: 2,
+          gap: 16,
+          children: <core.UINode>[
+            core.Box(key: 0, height: 40),
+            core.Box(key: 1, height: 40, gridSpan: 2),
+            core.Box(key: 2, height: 40),
+          ],
+        ),
+        600,
+      );
+
+      final Rect first = card(tester, 0);
+      final Rect banner = card(tester, 1);
+
+      // One track is left in the first row and the banner needs two, so it takes
+      // the whole of the next one — which is what `auto-flow: row` does, and why
+      // the track it did not fill stays empty rather than being stretched.
+      expect(banner.top, closeTo(first.bottom + 16, 0.01));
+      expect(banner.width, closeTo(first.width * 2 + 16, 0.01));
+      expect(card(tester, 2).top, greaterThan(banner.bottom));
+    });
+
     testWidgets('keeps a zero gap out of the layout', (tester) async {
       await pumpAt(
         tester,

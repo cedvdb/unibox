@@ -264,6 +264,13 @@ their track instead of stretching, which is why nothing here is `Expanded` or
 `Flexible`. Cards are top-aligned in a row that is as tall as its tallest card
 (`align-items: start` on the web).
 
+A card that states `gridSpan` is given the width of that many tracks and the gutters
+between them (`GridNode.spanWidthFor`), and the row it is on skips the tracks it
+covers; a span that does not fit in the tracks a row has left starts the next row,
+leaving the rest of the current one empty. `GridNode.spanOf` is the number of tracks,
+clamped to the columns the width gives, so a banner that asks for more than the grid
+has is a full row rather than an overflow.
+
 An unbounded width — a grid inside a horizontal scroll view, or in a row that
 lets its children be as wide as they like — gets one column of `minItemWidth`,
 which is the answer `columnsFor` gives and the one that needs no surface.

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'box.dart';
 import 'ui_node.dart';
 
 /// A grid of equal columns whose count follows the width of the box.
@@ -100,6 +101,31 @@ final class GridNode extends UINode {
     final int columns = columnsFor(width);
 
     return (width - (columns - 1) * gap) / columns;
+  }
+
+  /// How many of [columns] tracks the child at [index] occupies.
+  ///
+  /// A child takes one track unless it is a `Box` that states `gridSpan`, and a
+  /// span wider than the grid is clamped to its count — which is what a browser
+  /// does with `grid-column: span 2` in a grid with one track, and the reason both
+  /// targets keep `auto-fill`: a span cannot add a column, because the count is
+  /// what the width gives.
+  int spanOf(int index, int columns) {
+    final UINode child = children[index];
+    final int declared = child is Box ? child.computedStyle.gridSpan ?? 1 : 1;
+
+    return math.min(math.max(declared, 1), math.max(columns, 1));
+  }
+
+  /// The width of a child that spans [span] tracks of a grid [width] wide,
+  /// gutters included.
+  ///
+  /// It is the one measurement a renderer needs to give a spanning card its row:
+  /// `span` tracks and the `span - 1` gutters between them.
+  double spanWidthFor(int span, double width) {
+    final double cell = cellWidthFor(width);
+
+    return span * cell + (span - 1) * gap;
   }
 
   /// The name this node answers to in an inspector.

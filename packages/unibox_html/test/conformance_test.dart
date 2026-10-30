@@ -32,6 +32,21 @@ void main() {
     });
   }
 
+  for (final GridCase gridCase in gridCases) {
+    test('a document ${gridCase.description}', () {
+      final GridAppearance appearance = gridAppearanceIn(
+        toHtml(gridCase.node),
+        gridCase: gridCase,
+      );
+
+      expect(
+        appearance.differencesFrom(gridCase.expected),
+        isEmpty,
+        reason: 'the grid places its children differently from the table',
+      );
+    });
+  }
+
   for (final OverlayCase testCase in overlayCases) {
     test('a document ${testCase.description}', () {
       final OverlayAppearance appearance = overlayAppearanceIn(

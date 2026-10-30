@@ -17,7 +17,13 @@ output *does* with the same node. This package writes that down once:
   against: one case per token, and one with every token at once.
 - [`TextAppearance`](lib/src/text_appearance.dart) describes how a text node is
   typeset: font size, weight, colour, line height, letter spacing, family,
-  alignment and truncation.
+  decoration, alignment and truncation.
+- [`GridAppearance`](lib/src/grid_appearance.dart) describes how a grid placed its
+  children: the number of tracks each one occupies.
+- [`gridCases`](lib/src/grid_cases.dart) is the grid table: a grid of plain cards,
+  one with a banner across two tracks, and one whose span is wider than the column
+  count. A case states the width it is laid out at, because a span is counted in
+  tracks and the count comes from the width.
 - [`OverlayAppearance`](lib/src/overlay_appearance.dart) describes how an overlay
   is presented: the colour of its barrier and where its content sits.
 - [`overlayCases`](lib/src/overlay_cases.dart) is the overlay table: one case per

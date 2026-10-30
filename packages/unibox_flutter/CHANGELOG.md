@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- `GridNode` honours `Box.gridSpan`: a card that names several tracks is given that
+  many alongside a `SizedBox` gutter, and a span that does not fit what is left of a
+  row starts the next one — the placement `auto-flow: row` gives on the web. Both
+  sides read the count from `GridNode.spanOf`, so a span wider than the columns the
+  width gives is clamped rather than overflowing.
+
 - `TextNode.decoration` and `decorationColor` become `TextStyle.decoration` and
   `TextStyle.decorationColor`, so a struck through price is one text node instead of
   a stack and a positioned box. `decorationThickness` is left out on purpose:

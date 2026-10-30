@@ -47,6 +47,7 @@ class Box extends UINode {
     this.crossAlign,
     this.gap,
     this.flex,
+    this.gridSpan,
     this.overflow,
     this.snap,
     this.page,
@@ -111,6 +112,18 @@ class Box extends UINode {
 
   /// How much of the remaining space this box should take up.
   final int? flex;
+
+  /// How many tracks of a [GridNode] this box occupies, or `null` for one.
+  ///
+  /// A card grid that has to be interrupted — a promo banner across the row
+  /// between the first two cards — is one grid whose banner says `gridSpan: 2`,
+  /// rather than two grids that agree on the column count by accident.
+  ///
+  /// Only a box inside a [GridNode] has tracks to span; `validateTree` reports the
+  /// token anywhere else. A span wider than the grid is clamped to its column
+  /// count on both targets, so a full width banner is a large number rather than a
+  /// second rule.
+  final int? gridSpan;
 
   /// How content exceeding the box bounds is treated.
   final Overflow? overflow;
@@ -366,6 +379,7 @@ class Box extends UINode {
     crossAlign: crossAlign,
     gap: gap,
     flex: flex,
+    gridSpan: gridSpan,
     overflow: overflow,
     snap: snap,
     page: page,

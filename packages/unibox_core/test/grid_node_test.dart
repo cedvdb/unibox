@@ -59,6 +59,45 @@ void main() {
       expect(tight.columnsFor(300), 3);
       expect(tight.cellWidthFor(300), 100);
     });
+
+    test('gives a child one track unless it names a span', () {
+      const GridNode grid = GridNode(
+        minItemWidth: 280,
+        maxColumns: 3,
+        gap: 16,
+        children: <UINode>[
+          Box(height: 40),
+          Box(height: 40, gridSpan: 2),
+        ],
+      );
+
+      expect(grid.spanOf(0, 3), 1);
+      expect(grid.spanOf(1, 3), 2);
+    });
+
+    test('clamps a span to the columns the width gives', () {
+      // A browser clamps `grid-column: span 3` in a grid that has one track, and
+      // the model answers the same way rather than laying a card out twice.
+      const GridNode grid = GridNode(
+        minItemWidth: 280,
+        children: <UINode>[Box(height: 40, gridSpan: 3), Box(height: 40)],
+      );
+
+      expect(grid.columnsFor(375), 1);
+      expect(grid.spanOf(0, 1), 1);
+      expect(grid.spanOf(0, 2), 2);
+    });
+
+    test('measures a spanning cell as its tracks and the gutters between', () {
+      // One card of two tracks is two cells and the gutter the second cell starts
+      // after, which is the width both renderers have to give it.
+      const GridNode grid = GridNode(minItemWidth: 280, maxColumns: 3, gap: 16);
+      final double cell = grid.cellWidthFor(900);
+
+      expect(grid.spanWidthFor(1, 900), closeTo(cell, 0.0001));
+      expect(grid.spanWidthFor(2, 900), closeTo(cell * 2 + 16, 0.0001));
+      expect(grid.spanWidthFor(3, 900), closeTo(900, 0.0001));
+    });
   });
 
   group('GridNode validation', () {
@@ -105,6 +144,43 @@ void main() {
         ),
         isEmpty,
       );
+    });
+
+    test('accepts a banner that spans two tracks', () {
+      expect(
+        issuesOf(
+          const GridNode(
+            minItemWidth: 280,
+            maxColumns: 3,
+            children: <UINode>[
+              Box(height: 40),
+              Box(height: 40, gridSpan: 2),
+            ],
+          ),
+        ),
+        isEmpty,
+      );
+    });
+
+    test('reports a span on a box that is not a grid child', () {
+      final List<TreeIssue> issues = issuesOf(
+        const Box(children: <UINode>[Box(height: 40, gridSpan: 2)]),
+      );
+
+      expect(issues.single.isError, isFalse);
+      expect(issues.single.message, contains('no grid to span'));
+    });
+
+    test('reports a span of zero, which no track can hold', () {
+      final List<TreeIssue> issues = issuesOf(
+        const GridNode(
+          minItemWidth: 280,
+          children: <UINode>[Box(height: 40, gridSpan: 0)],
+        ),
+      );
+
+      expect(issues.single.isError, isTrue);
+      expect(issues.single.message, contains('one track or more'));
     });
 
     test('reports a child with an infinite height', () {

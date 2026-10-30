@@ -16,6 +16,13 @@ import 'render.dart';
 /// it would be a different layout on the two targets, which is why nothing here
 /// uses `Expanded` or `Flexible`.
 ///
+/// A card that states a `gridSpan` takes that many tracks — the row of the banner
+/// that interrupts a card grid — and a span wider than what is left of the row
+/// starts a new row instead, leaving the rest of the current one empty. That is
+/// what `auto-flow: row` does with `grid-column: span 2`, and the count itself
+/// comes from [core.GridNode.spanOf], so both targets clamp a span to the columns
+/// the width gives.
+///
 /// Every card is top-aligned in its row (`align-items: start` on the web), so a
 /// row is as tall as its tallest card and shorter cards are not stretched.
 class FlutterGrid extends StatelessWidget {
@@ -31,21 +38,29 @@ class FlutterGrid extends StatelessWidget {
       builder: (BuildContext context, BoxConstraints constraints) {
         final double width = constraints.maxWidth;
         final int columns = node.columnsFor(width);
-        final double cell = node.cellWidthFor(width);
         final List<Widget> rows = <Widget>[];
+        int index = 0;
 
-        for (int start = 0; start < node.children.length; start += columns) {
-          if (start > 0 && node.gap > 0) {
+        while (index < node.children.length) {
+          if (rows.isNotEmpty && node.gap > 0) {
             rows.add(SizedBox(height: node.gap));
           }
+
+          final ({List<Widget> slots, int placed}) line = _line(
+            index,
+            columns,
+            width,
+          );
 
           rows.add(
             Row(
               mainAxisSize: MainAxisSize.max,
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: _slots(start, columns, cell),
+              children: line.slots,
             ),
           );
+
+          index += line.placed;
         }
 
         return Column(
@@ -57,27 +72,50 @@ class FlutterGrid extends StatelessWidget {
     );
   }
 
-  /// One track per column, empty when [start] runs out of cards.
-  List<Widget> _slots(int start, int columns, double cell) {
+  /// One row of tracks, and how many children it took.
+  ///
+  /// A child wider than the tracks left in the row is not placed: the row is
+  /// padded to its end and that child starts the next one, which is where
+  /// `auto-flow: row` puts it.
+  ({List<Widget> slots, int placed}) _line(
+    int start,
+    int columns,
+    double width,
+  ) {
     final List<Widget> slots = <Widget>[];
+    int column = 0;
+    int index = start;
 
-    for (int column = 0; column < columns; column++) {
+    while (index < node.children.length) {
+      final int span = node.spanOf(index, columns);
+
+      if (column + span > columns) {
+        break;
+      }
+
       if (column > 0 && node.gap > 0) {
         slots.add(SizedBox(width: node.gap));
       }
 
-      final int index = start + column;
-
       slots.add(
         SizedBox(
-          width: cell,
-          child: index < node.children.length
-              ? renderNode(node.children[index])
-              : null,
+          width: node.spanWidthFor(span, width),
+          child: renderNode(node.children[index]),
         ),
       );
+
+      column += span;
+      index++;
     }
 
-    return slots;
+    for (; column < columns; column++) {
+      if (column > 0 && node.gap > 0) {
+        slots.add(SizedBox(width: node.gap));
+      }
+
+      slots.add(SizedBox(width: node.cellWidthFor(width)));
+    }
+
+    return (slots: slots, placed: index - start);
   }
 }

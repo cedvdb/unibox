@@ -88,6 +88,82 @@ void main() {
     });
   });
 
+  group('gridCases', () {
+    test('pin a different placement for every case', () {
+      final Set<GridAppearance> distinct = gridCases
+          .map((GridCase gridCase) => gridCase.expected)
+          .toSet();
+
+      expect(distinct, hasLength(gridCases.length));
+    });
+
+    test('key every child, so a renderer can be asked which became which', () {
+      // The Flutter suite measures a child by its key and the web suite reads the
+      // class of the element that carries it, so an unkeyed child cannot be read
+      // back out of either output.
+      for (final GridCase gridCase in gridCases) {
+        expect(gridCase.node.children, isNotEmpty);
+
+        for (final core.UINode child in gridCase.node.children) {
+          expect(
+            child.key,
+            isNotNull,
+            reason: '"${gridCase.description}" leaves a child unkeyed.',
+          );
+        }
+      }
+    });
+
+    test('expect one span per child, and never more than the columns', () {
+      for (final GridCase gridCase in gridCases) {
+        expect(
+          gridCase.expected.spans,
+          hasLength(gridCase.node.children.length),
+          reason:
+              '"${gridCase.description}" describes another number of children.',
+        );
+
+        for (final int span in gridCase.expected.spans) {
+          expect(span, inInclusiveRange(1, gridCase.columns));
+        }
+      }
+    });
+  });
+
+  group('GridAppearance', () {
+    test('names the child that took another number of tracks', () {
+      const GridAppearance actual = GridAppearance(spans: <int>[1, 1, 1]);
+      const GridAppearance expected = GridAppearance(spans: <int>[1, 2, 1]);
+
+      expect(actual.differencesFrom(expected), <String, TokenDifference>{
+        'span 1': (actual: 1, expected: 2),
+      });
+    });
+
+    test('reports a placement of another length as one difference', () {
+      const GridAppearance actual = GridAppearance(spans: <int>[1, 1]);
+      const GridAppearance expected = GridAppearance(spans: <int>[1, 1, 1]);
+      final Map<String, TokenDifference> differences = actual.differencesFrom(
+        expected,
+      );
+
+      // The two lists describe placement of another length, so there is no child
+      // to point at: the difference is the whole placement.
+      expect(differences.keys, <String>['spans']);
+      expect(differences['spans']?.actual, same(actual.spans));
+      expect(differences['spans']?.expected, same(expected.spans));
+    });
+
+    test('compares equal placements as equal', () {
+      const GridAppearance one = GridAppearance(spans: <int>[1, 2, 1]);
+      const GridAppearance other = GridAppearance(spans: <int>[1, 2, 1]);
+
+      expect(one, other);
+      expect(one.hashCode, other.hashCode);
+      expect(one, isNot(const GridAppearance(spans: <int>[2, 1, 1])));
+    });
+  });
+
   group('BoxAppearance', () {
     test(
       'treats an absent token and a zero token as the same presentation',

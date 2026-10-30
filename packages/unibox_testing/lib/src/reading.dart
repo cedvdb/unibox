@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:unibox_core/unibox_core.dart' as core;
 import 'package:unibox_testing/unibox_testing.dart';
 
@@ -395,6 +397,57 @@ core.TextOverflow? _overflowOf(
   return declarations['text-overflow'] == 'ellipsis'
       ? core.TextOverflow.ellipsis
       : core.TextOverflow.clip;
+}
+
+/// The tracks each child of a rendered grid occupies in [html].
+///
+/// The span is read from the `grid-column` declaration of the class the child's
+/// element wears, and clamped to the column count the case's width gives — which is
+/// how both renderers read a span wider than the grid. The element is found by the
+/// key its node carried, because a class list in document order is every element a
+/// child contains and not the children themselves.
+GridAppearance gridAppearanceIn(String html, {required GridCase gridCase}) {
+  final Map<String, Map<String, String>> rules = rulesOf(html);
+  final int columns = gridCase.columns;
+
+  return GridAppearance(
+    spans: <int>[
+      for (final core.UINode child in gridCase.node.children)
+        _spanOf(html, rules, child.key, columns),
+    ],
+  );
+}
+
+/// The tracks the child [key] was given, read from the class its element wears.
+int _spanOf(
+  String html,
+  Map<String, Map<String, String>> rules,
+  Object? key,
+  int columns,
+) {
+  if (key == null) {
+    throw StateError('A grid case needs a key on every child.');
+  }
+
+  final RegExpMatch? element = RegExp(
+    'class="([^"]+)"[^>]*data-unibox-key="${RegExp.escape('$key')}"',
+  ).firstMatch(html);
+
+  if (element == null) {
+    throw StateError('No element in\n$html\ncarries the key $key.');
+  }
+
+  final Map<String, String> declarations =
+      rules[element.group(1)!] ?? const <String, String>{};
+  final String? value = declarations['grid-column'];
+
+  if (value == null) {
+    return 1;
+  }
+
+  final int declared = int.tryParse(value.replaceFirst('span ', '')) ?? 1;
+
+  return math.min(math.max(declared, 1), math.max(columns, 1));
 }
 
 /// The presentation this renderer gave the root overlay of [html].

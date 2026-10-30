@@ -81,6 +81,40 @@ BoxAppearance appearanceOf(WidgetTester tester) {
   );
 }
 
+/// The tracks each child of a rendered grid occupies.
+///
+/// The width the layout gave a child is the fact this reads: a child that spans
+/// `n` tracks is `n` cells and `n - 1` gutters wide, so a renderer that dropped the
+/// span — or counted it as one slot and left the rest empty — is visible here. It is
+/// the number the web suite reads out of `grid-column`, which is what makes the two
+/// answers comparable at a width where the column count is known.
+GridAppearance gridAppearanceOf(
+  WidgetTester tester, {
+  required GridCase gridCase,
+}) {
+  final core.GridNode node = gridCase.node;
+  final int columns = gridCase.columns;
+  final double track = node.cellWidthFor(gridCase.width) + node.gap;
+  final List<int> spans = <int>[];
+
+  for (final core.UINode child in node.children) {
+    final Object? key = child.key;
+
+    if (key == null) {
+      throw StateError('A grid case needs a key on every child.');
+    }
+
+    final double rendered = tester
+        .getSize(find.byKey(ValueKey<Object>(key)))
+        .width;
+    final int span = track <= 0 ? 1 : ((rendered + node.gap) / track).round();
+
+    spans.add(math.min(math.max(span, 1), columns));
+  }
+
+  return GridAppearance(spans: spans);
+}
+
 /// The typesetting this renderer gave the text node of [pumpNode].
 ///
 /// The facts are read from the `Text` widget the renderer built — the `TextStyle`

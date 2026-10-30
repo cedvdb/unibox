@@ -365,6 +365,24 @@ void main() {
       expect(const BoxStyle(gap: 8).merge(style).textStyle, style.textStyle);
     });
 
+    test('merges a grid span like every other layout token', () {
+      // A bag can hold the span a component adds to a card, and the flat parameter
+      // on the box still wins — the ordinary precedence, on a token that only a
+      // grid reads.
+      const BoxStyle card = BoxStyle(gridSpan: 2);
+      const BoxStyle banner = BoxStyle(gridSpan: 3, gap: 8);
+
+      expect(card.merge(banner).gridSpan, 3);
+      expect(card.merge(const BoxStyle()).gridSpan, 2);
+      expect(card.copyWith().gridSpan, 2);
+      expect(card, isNot(card.copyWith(gridSpan: 1)));
+      expect(card.toString(), contains('gridSpan: 2'));
+      expect(
+        const Box(gridSpan: 1, styles: <BoxStyle>[card]).computedStyle.gridSpan,
+        1,
+      );
+    });
+
     test('implements value equality', () {
       const style = BoxStyle(
         direction: Axis.vertical,

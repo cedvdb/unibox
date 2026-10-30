@@ -74,6 +74,7 @@ class TreeIssue {
 ///   with [Box.mainAlign], which pushes overflowing children out of reach,
 /// * a list item whose parent is not a list, and a caption whose parent is not a
 ///   figure, both of which are invalid HTML and name nothing where they stand,
+/// * a grid span on a box that is not a grid child, and a span no track can hold,
 /// * an embed that carries no implementation at all, which no renderer can draw
 ///   and which would otherwise vanish from the page,
 /// * a transition declared on a state style instead of the resting one, which no
@@ -336,6 +337,33 @@ void _validate(
           message:
               'A box states page: ${style.page}, and a page cannot be before the '
               'first one.',
+        ),
+      );
+    }
+
+    // A span is a statement about the grid around the box: outside one there are no
+    // tracks, so the token can only do nothing.
+    final int? gridSpan = style.gridSpan;
+
+    if (gridSpan != null && gridSpan < 1) {
+      issues.add(
+        TreeIssue(
+          node: node,
+          severity: TreeIssueSeverity.error,
+          message:
+              'A box states gridSpan: $gridSpan, and a cell is one track or more. '
+              'Use 1 for the ordinary case, or a larger number for a card that '
+              'interrupts the row.',
+        ),
+      );
+    } else if (gridSpan != null && parent is! GridNode) {
+      issues.add(
+        TreeIssue(
+          node: node,
+          message:
+              'A box states gridSpan: $gridSpan but its parent is '
+              '${parent?.runtimeType ?? 'the root'}, so there is no grid to span. '
+              'Put the box in a GridNode, or drop the span.',
         ),
       );
     }

@@ -85,6 +85,7 @@ void main() {
         crossAlign: CrossAlign.stretch,
         gap: 4,
         flex: 2,
+        gridSpan: 2,
         overflow: Overflow.hidden,
         width: double.infinity,
         height: 40,
@@ -107,6 +108,7 @@ void main() {
       expect(computed.crossAlign, CrossAlign.stretch);
       expect(computed.gap, 4);
       expect(computed.flex, 2);
+      expect(computed.gridSpan, 2);
       expect(computed.overflow, Overflow.hidden);
       expect(computed.width, double.infinity);
       expect(computed.height, 40);

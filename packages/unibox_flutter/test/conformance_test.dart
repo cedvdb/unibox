@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:unibox_testing/unibox_testing.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
@@ -47,6 +48,29 @@ void main() {
           renderedTextOf(tester),
           textCase.node.text,
           reason: 'Flutter renders "${textCase.description}" without its text.',
+        );
+      });
+    }
+  });
+
+  group('grid conformance', () {
+    for (final GridCase gridCase in gridCases) {
+      testWidgets(gridCase.description, (WidgetTester tester) async {
+        // A span is counted in tracks, so the case is laid out at the width it
+        // states: the same width the web suite reads the column count from.
+        tester.view.physicalSize = Size(gridCase.width, 800);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+
+        await pumpNode(tester, gridCase.node);
+
+        expect(
+          gridAppearanceOf(
+            tester,
+            gridCase: gridCase,
+          ).differencesFrom(gridCase.expected),
+          isEmpty,
+          reason: 'Flutter places "${gridCase.description}" differently.',
         );
       });
     }

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `GridAppearance` and `gridCases`: the tracks each child of a grid ends up in, read
+  out of each renderer's output, so a renderer that drops a `gridSpan` — or counts it
+  as one slot and leaves the rest empty — fails its own suite.
+
 - `TextAppearance.decoration` and `decorationColor`, with a case that strikes a price
   through and one that underlines a run in a colour of its own, both read back from
   each renderer's output.

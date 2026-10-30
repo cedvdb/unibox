@@ -36,6 +36,7 @@ final class BoxStyle {
     this.crossAlign,
     this.gap,
     this.flex,
+    this.gridSpan,
     this.overflow,
     this.snap,
     this.page,
@@ -92,6 +93,20 @@ final class BoxStyle {
 
   /// How much of the remaining space this box should take up.
   final int? flex;
+
+  /// How many tracks of a grid this box occupies, or `null` for one.
+  ///
+  /// Only a child of a `GridNode` has tracks to span, and `validateTree` reports
+  /// the token anywhere else, because a span with no grid around it does nothing.
+  /// It is how a banner interrupts a card grid: two cards, a banner the width of
+  /// the row, then the rest.
+  ///
+  /// The number is clamped to the column count of the grid, so `2` in a one column
+  /// grid is one column rather than an overflow — the same answer CSS gives a
+  /// `grid-column: span 2` in a one track grid, and the reason both targets keep
+  /// `auto-fill`: the count follows the width, and a span that does not fit has to
+  /// follow the count.
+  final int? gridSpan;
 
   /// How overflowing content is treated.
   final Overflow? overflow;
@@ -271,6 +286,7 @@ final class BoxStyle {
       crossAlign: crossAlign,
       gap: gap,
       flex: flex,
+      gridSpan: gridSpan,
       overflow: overflow,
       snap: snap,
       page: page,
@@ -311,6 +327,7 @@ final class BoxStyle {
     CrossAlign? crossAlign,
     double? gap,
     int? flex,
+    int? gridSpan,
     Overflow? overflow,
     ScrollSnap? snap,
     int? page,
@@ -343,6 +360,7 @@ final class BoxStyle {
       crossAlign: crossAlign ?? this.crossAlign,
       gap: gap ?? this.gap,
       flex: flex ?? this.flex,
+      gridSpan: gridSpan ?? this.gridSpan,
       overflow: overflow ?? this.overflow,
       snap: snap ?? this.snap,
       page: page ?? this.page,
@@ -390,6 +408,7 @@ final class BoxStyle {
       crossAlign: other.crossAlign ?? crossAlign,
       gap: other.gap ?? gap,
       flex: other.flex ?? flex,
+      gridSpan: other.gridSpan ?? gridSpan,
       overflow: other.overflow ?? overflow,
       snap: other.snap ?? snap,
       page: other.page ?? page,
@@ -426,6 +445,7 @@ final class BoxStyle {
       other.crossAlign == crossAlign &&
       other.gap == gap &&
       other.flex == flex &&
+      other.gridSpan == gridSpan &&
       other.overflow == overflow &&
       other.snap == snap &&
       other.page == page &&
@@ -459,6 +479,7 @@ final class BoxStyle {
     crossAlign,
     gap,
     flex,
+    gridSpan,
     overflow,
     snap,
     page,
@@ -492,6 +513,7 @@ final class BoxStyle {
       if (crossAlign != null) 'crossAlign: $crossAlign',
       if (gap != null) 'gap: $gap',
       if (flex != null) 'flex: $flex',
+      if (gridSpan != null) 'gridSpan: $gridSpan',
       if (overflow != null) 'overflow: $overflow',
       if (snap != null) 'snap: $snap',
       if (page != null) 'page: $page',

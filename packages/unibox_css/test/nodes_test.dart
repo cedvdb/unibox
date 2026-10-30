@@ -99,6 +99,25 @@ void main() {
         'min-width:0;width:100%',
       );
     });
+
+    test('states a child span as the tracks it covers', () {
+      // The declaration lives on the child, not on the grid: `span 2` says the card
+      // takes two of whatever tracks the grid laid out, and a browser clamps it to
+      // the count the width gives.
+      final CssDeclarations declarations = boxDeclarations(
+        const core.BoxStyle(gridSpan: 2),
+      );
+
+      expect(declarations.text, contains('grid-column:span 2'));
+    });
+
+    test('says nothing about a span a box does not state', () {
+      final CssDeclarations declarations = boxDeclarations(
+        const core.BoxStyle(),
+      );
+
+      expect(declarations.text, isNot(contains('grid-column')));
+    });
   });
 
   group('a stack', () {

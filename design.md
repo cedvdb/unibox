@@ -576,6 +576,27 @@ has one, joins that list).
 tallest card and shorter cards are not stretched, which is also what keeps the
 Flutter side free of intrinsic measurement a card containing a scroll view could
 not answer.
+
+**A cell may span tracks.** `Box.gridSpan` says how many columns a card covers, so a
+banner that interrupts the grid — a promo between the first two cards, then the rest
+— is one grid with one spanning child, rather than two grids whose column counts
+agree only because they are computed from the same width. Three rules keep the two
+targets together:
+
+- the span is written as `grid-column: span n` on the card and read by the grid it
+  sits in, which is why `validateTree` reports it on a box that has no `GridNode`
+  around it;
+- both keep `auto-fill`, so the count comes from the width and a span is **clamped**
+  to it: `span 3` in a one column grid is one column, which is what a browser does
+  with a span wider than the explicit grid and what `GridNode.spanOf` answers;
+- a span that does not fit what is left of the row starts a new row and leaves the
+  rest of the current one empty, which is `auto-flow: row`. `GridNode.spanWidthFor`
+  is the width of a spanning card — `n` tracks and the `n - 1` gutters between them
+  — so Flutter gives it the same cell a browser lays out.
+
+`unibox_testing` holds the placement: a `GridCase` states a width, and both suites
+read the tracks each child ended up in — Flutter from the width the layout gave it,
+the web from the class it wears.
 ### 5.15 Visibility is a style, and a width is measured where it is drawn
 
 **The screen.** A listings page: cards in a grid on a wide surface with a map beside

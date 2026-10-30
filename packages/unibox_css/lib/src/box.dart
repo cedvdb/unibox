@@ -105,6 +105,12 @@ CssDeclarations boxDeclarations(
       'height',
       style.heightFraction == null ? cssLength(style.height) : null,
     )
+    // A span is read by the grid the box sits in and by nothing else, and a browser
+    // clamps one wider than the track count the way the Flutter renderer does.
+    ..addIf(
+      'grid-column',
+      style.gridSpan == null ? null : 'span ${style.gridSpan}',
+    )
     ..addIf('min-width', cssLength(style.minWidth))
     ..addIf('min-height', cssLength(style.minHeight))
     ..addIf('max-width', cssLength(style.maxWidth))

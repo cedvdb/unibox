@@ -245,6 +245,7 @@ Box(
 | `crossAlign` | `CrossAlign?` | start | Alignment across the direction: `start`, `center`, `end`, `stretch`. |
 | `gap` | `double?` | none | Space between two children. For space at the edges, use `padding`. |
 | `flex` | `int?` | none | Share of the free space this box takes inside its parent: `flex: 1` is an `Expanded` in Flutter and `flex-grow: 1` on the web. |
+| `gridSpan` | `int?` | one track | How many columns of a `GridNode` this box covers: a banner that interrupts a card grid states `2`, or more for a full row. Only a grid child has tracks, and `validateTree` reports it anywhere else. |
 | `overflow` | `Overflow?` | visible | `hidden` clips the content, `scroll` makes the box scroll along its direction. |
 | `snap` | `ScrollSnap?` | none | Where a scrolling box comes to rest. `page` makes it a pager: it moves one child at a time along its own direction and settles on a child rather than between two. It needs `overflow: Overflow.scroll`; `validateTree` reports a snap on a box that cannot scroll. |
 | `page` | `int?` | none | The page a snapping box shows, counted along its direction: how a pager is *told* where to go, as a position rather than a controller. It moves the box when it changes, so a tree drawn twice with the same page leaves the reader alone. Only meaningful with `snap: ScrollSnap.page`. |
@@ -628,6 +629,29 @@ A short last row keeps its empty tracks, because `auto-fill` creates them; a gri
 child does not size or flex itself (`validateTree` reports a `flex`, a finite
 `width` or an infinite `height`), and a photo inside a grid needs a height that is
 known before the file arrives.
+
+**A row can be interrupted.** A card that states `gridSpan` covers that many
+columns, so a promo banner between the cards is one grid rather than two grids that
+have to agree on a column count:
+
+```dart
+GridNode(
+  minItemWidth: 280,
+  maxColumns: 3,
+  gap: 16,
+  children: <UINode>[
+    card, card,
+    Box(gridSpan: 3, children: <UINode>[banner]),   // the whole row
+    ...cards,
+  ],
+)
+```
+
+A span wider than the grid is clamped to its column count, because the columns
+follow the width: three at 900 pixels is three tracks for a banner asking for more,
+and one on a phone. A span that does not fit what is left of a row starts the next
+one, leaving the rest of the current row empty — what a browser's `auto-flow` does.
+`unibox_testing` holds both renderers to the same placement.
 
 ### OverlayNode
 
