@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- `MaterialIconButton`: one glyph in a 40 pixel square, in the four Material 3 shapes
+  (`standard`, `filled`, `tonal`, `outlined`), with the ink of a press, a name for a screen
+  reader — the control has no text, so the name is all a reader has — and `badgeCount`, a
+  count pill in `error`/`onError` over the top-right corner of the glyph, placed in the
+  square rather than beside it so a number cannot grow the target a finger needs. Every
+  application was drawing this by hand — Comover's filters control is a stack of a box, a
+  glyph and a positioned pill — and the hand-built one loses the hover tint, the focus
+  ring and the press it belongs to.
+
 - `MaterialChip` takes `removeSemanticsLabel:`, the name its close announces. The cross of
   an input chip is a target with no text of its own, so it said "Remove" and nothing else:
   a row of applied filters read as the same button eleven times, and a screen reader could

@@ -440,6 +440,56 @@ An `icon` puts a node before the label, `iconGap` pixels away (eight by default)
 to differ, and all four constructors take `onTap`, `onLongPress`, `onHover` and
 `transition` — a named shape used to drop the last three.
 
+## The icon button
+
+`MaterialIconButton` is one glyph in a 40 pixel square, with the ink of a press: the shape
+every application was drawing by hand — a box, a glyph inside it and a counter over the
+corner — as one node.
+
+```dart
+MaterialIconButton(
+  icon: MaterialIcon.ligature('tune'),
+  label: 'Filters',
+  onTap: openFilters,
+)
+MaterialIconButton(
+  icon: MaterialIcon.codePoint(Symbols.notifications.codePoint),
+  label: 'Notifications, 3 unread',
+  badgeCount: 3,
+  variant: MaterialIconButtonVariant.filled,
+  onTap: openInbox,
+)
+```
+
+| Variant | Fill | Glyph | Line |
+| --- | --- | --- | --- |
+| `standard` | none | `onSurfaceVariant` | — |
+| `filled` | `primary` | `onPrimary` | — |
+| `tonal` | `secondaryContainer` | `onSecondaryContainer` | — |
+| `outlined` | none | `onSurfaceVariant` | `outline` |
+
+**The square is Material's.** 40 by 40, which is the smallest thing a finger is aimed at,
+with the glyph centred in a 24 pixel box and 8 pixels of room round it. `height` and
+`width` are the square — a control that names only a height is as wide as it is tall —
+`iconSize`, `padding`, `borderRadius`, `ink` and `transition` are the rest of the
+measurements, and `label` is what a screen reader says, because a glyph with no text beside
+it names nothing. A control with no label leaves the reading order rather than announcing
+an anonymous button.
+
+**The badge is placed, not added.** `badgeCount` draws a pill of `error` with `onError`
+labelled text, 16 pixels tall and as wide as the number needs, pinned to the top right
+corner of the square — which is the corner of the glyph once the 8 pixel inset is taken
+off. It sits in a `StackNode` over the square instead of beside it, so a count can never
+grow the target the finger needs, and it is hidden from a screen reader: a count nobody is
+told is a picture, and the control's own `label` is where the fact belongs.
+
+**What Material draws that this does not.** A toggle icon button states `aria-pressed` and
+changes its shape when it is on; this node has one shape, so a toggle is the caller's
+rebuild — the store picks the variant — and it announces no pressed state, because a
+`pressed` no view can change is a state a reader is told wrongly. There is no tooltip (that
+is platform chrome), and the badge does not scale in (a transition the tree can say, if a
+caller wants one).
+
 ## The ink well
 
 `MaterialInkWell` is a tappable region: the three state layers of the palette, and

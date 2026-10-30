@@ -986,10 +986,10 @@ A scale can be written by hand, as the example does, or taken ready made:
 scale as `const BoxTextStyle` values (`MaterialTypography.titleLarge`,
 `MaterialTypography.bodyMedium`, ...), the colour roles as a `MaterialPalette` value —
 written down for the baseline scheme, or grown from one brand colour with
-`MaterialPalette.fromSeed` — and fourteen components built from the same tokens: a card,
-a list tile, a button, a chip, a segmented button, an ink well, a text field, an icon,
-Material's drawn tick, a navigation bar, a progress ring and its spinner, a dialog
-and a bottom sheet. It is optional
+`MaterialPalette.fromSeed` — and fifteen components built from the same tokens: a card,
+a list tile, a button, an icon button, a chip, a segmented button, an ink well, a text
+field, an icon, Material's drawn tick, a navigation bar, a progress ring and its spinner,
+a dialog and a bottom sheet. It is optional
 and pure Dart, and the
 renderers do not know it exists — a tree that uses it is drawn by the same two
 renderers as one that does not.
