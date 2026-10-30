@@ -11,7 +11,44 @@ import 'package:unibox_material/unibox_material.dart';
 /// rests on it, and a surface cannot quietly keep a shadow of its own.
 void main() {
   group('MaterialElevation', () {
-    test('rises: every level is softer and further than the one below it', () {
+    test('states the layer Flutter’s framework keeps for each level', () {
+      // `kElevationToShadow` in `package:flutter/material.dart`, third layer of each
+      // entry, copied out: this package cannot import Flutter to ask, so the numbers
+      // are written down here and compared with what the framework states. A level
+      // that drifts is a card that is no longer a Material card.
+      expect(
+        MaterialElevation.level1,
+        const BoxShadow(color: BoxColor(0x1F000000), offsetY: 1, blurRadius: 3),
+      );
+      expect(
+        MaterialElevation.level2,
+        const BoxShadow(color: BoxColor(0x1F000000), offsetY: 1, blurRadius: 5),
+      );
+      expect(
+        MaterialElevation.level3,
+        const BoxShadow(color: BoxColor(0x1F000000), offsetY: 1, blurRadius: 8),
+      );
+      expect(
+        MaterialElevation.level4,
+        const BoxShadow(
+          color: BoxColor(0x1F000000),
+          offsetY: 1,
+          blurRadius: 10,
+        ),
+      );
+      // Material's fifth level is five dp, which the map does not list, so the
+      // highest surface takes its six.
+      expect(
+        MaterialElevation.level5,
+        const BoxShadow(
+          color: BoxColor(0x1F000000),
+          offsetY: 1,
+          blurRadius: 18,
+        ),
+      );
+    });
+
+    test('rises: every level is a softer edge than the one below it', () {
       const List<BoxShadow> levels = <BoxShadow>[
         MaterialElevation.level1,
         MaterialElevation.level2,
@@ -22,21 +59,22 @@ void main() {
 
       for (int i = 1; i < levels.length; i++) {
         expect(
-          levels[i].offsetY,
-          greaterThan(levels[i - 1].offsetY),
-          reason: 'level ${i + 1} sits above level $i',
-        );
-        expect(
           levels[i].blurRadius,
           greaterThan(levels[i - 1].blurRadius),
           reason: 'a higher surface has a softer edge',
+        );
+        expect(
+          levels[i].offsetY,
+          greaterThanOrEqualTo(levels[i - 1].offsetY),
+          reason: 'level ${i + 1} sits at least as far below its surface as $i',
         );
       }
     });
 
     test('casts one shade at every level, so a surface does not darken with height', () {
       expect(MaterialElevation.level1.color, MaterialElevation.level5.color);
-      expect(MaterialElevation.level3.color.opacity, closeTo(0.15, 0.01));
+      // `kElevationToShadow`'s ambient layer is `Color(0x1F000000)`, 12% black.
+      expect(MaterialElevation.level3.color.opacity, closeTo(0.12, 0.01));
     });
 
     test('mirrors level one upwards for a sheet', () {

@@ -25,9 +25,10 @@ void main() {
     test('draws the shade of elevation level one', () {
       const shadow = MaterialCard.elevatedShadow;
 
+      // Flutter's `kElevationToShadow[1]`, ambient layer: `0 1px 3px` at 12%.
       expect(shadow.offsetY, 1);
       expect(shadow.blurRadius, 3);
-      expect(shadow.color.opacity, closeTo(0.15, 0.01));
+      expect(shadow.color.opacity, closeTo(0.12, 0.01));
     });
 
     test('keeps the children it is given, in order', () {

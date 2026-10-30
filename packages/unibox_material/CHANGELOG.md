@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- `MaterialElevation` states Flutter's own shadows. Each level was a reading of Material's
+  two-layer specification at 15% black; every one is now the *ambient* layer of the
+  framework's `kElevationToShadow`, which is what `Material` draws from — `0 1px 3px` at 12%
+  for level one, rising to `0 1px 18px` for the fifth — so a card casts the shadow a
+  Flutter card casts. Both renderers only ever wrote the one shadow a `BoxShadow` is, and
+  that has not changed; what the level is worth has.
+
 - A **primary** tab bar's indicator sits under the tab that is chosen. It was laid from the
   centre of the bar and then moved one share per tab, so with three tabs the underline showed
   the *second* one while the first was chosen — and the third tab's underline ran off the end.

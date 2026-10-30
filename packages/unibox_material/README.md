@@ -313,7 +313,7 @@ the conformance table already pins — the class is a combination, not a new tok
 | padding | `16` on every edge | the room Material gives card content |
 | background | `BoxColors.white` | the surface, until a colour scheme exists |
 | radius | `12` | the medium shape of Material 3 |
-| shadow | `MaterialCard.elevatedShadow` — `MaterialElevation.level1` | elevation level one, one of its two layers |
+| shadow | `MaterialCard.elevatedShadow` — `MaterialElevation.level1` | elevation level one, as Flutter's `kElevationToShadow` states it |
 | typography | `MaterialTypography.bodyMedium` | inherited by the texts inside |
 | layout | a column (`Box`'s default), with `crossAlign: stretch` | a card stacks its content and stretches it to the card, so a row of it spans the width |
 
@@ -902,18 +902,40 @@ what is chosen through its own `pressed`.
 
 ## Elevation
 
-Material states five levels for a raised surface, and each is two shadow layers; a
-`BoxShadow` is one, so `MaterialElevation` holds the wide, soft layer of each — the
-one that reads as height — in one place:
+Material states five levels for a raised surface, and Flutter's `kElevationToShadow` —
+the map `Material` itself draws from — states each of them as three shadow layers. A
+`BoxShadow` is one shadow and the model keeps it that way, so `MaterialElevation` holds
+the *ambient* layer of each: the wide, soft one at 12% black that reads as height. The
+other two are a tight line under the edge and the penumbra beside it, which is what a
+`BoxBorder` states more honestly than a second and third shadow written into the tree.
 
 | Level | Shadow | Material gives it to |
 | --- | --- | --- |
-| `level1` | 0 1px 3px at 15% | a card, a sheet, a raised button |
-| `level2` | 0 2px 6px | a card under the pointer |
-| `level3` | 0 4px 8px | a dialog, a date picker, a floating action button |
-| `level4` | 0 6px 10px | a drawer as it opens |
-| `level5` | 0 8px 12px | the highest surface Material states |
-| `sheet` | 0 -1px 3px | level one, cast upwards: a sheet rises from the bottom edge |
+| `level1` | `0 1px 3px` at 12% | a card, a sheet, a raised button |
+| `level2` | `0 1px 5px` at 12% | a card under the pointer |
+| `level3` | `0 1px 8px` at 12% | a dialog, a date picker, a floating action button |
+| `level4` | `0 1px 10px` at 12% | a drawer as it opens |
+| `level5` | `0 1px 18px` at 12% | the highest surface Material states |
+| `sheet` | `0 -1px 3px` at 12% | level one, cast upwards: a sheet rises from the bottom edge |
+
+Each row is the third layer of the framework's entry of the same name — `level5` is
+`kElevationToShadow[6]`, because Material's fifth level is five dp and the map does not
+list it. The example's Flutter suite is what keeps the two in step: it pumps a card and
+compares the shadow it painted with the framework's own, which is a comparison this
+pure Dart package cannot make for itself.
+
+**A level is also a surface.** Material states elevation twice over, and the tonal half
+is the half that shows: 12% black over a few pixels barely reads on a page of the same
+tone. `level1` goes with `surfaceContainerLow`, `level2` with `surfaceContainer` and
+`level3` with `surfaceContainerHigh`, so a card raised higher takes both halves:
+
+```dart
+MaterialCard(
+  shadow: MaterialElevation.level2,
+  color: palette.surfaceContainer,
+  children: <UINode>[TextNode('A card under the pointer')],
+)
+```
 
 A component names the level it rests at rather than writing a shadow, which is what
 keeps `MaterialCard`, `MaterialDialog` and `MaterialBottomSheet` in step: an app that
@@ -972,9 +994,9 @@ content is `bodyMedium` in `onSurfaceVariant` over `labelLarge` actions in `prim
 a navigation bar 80 pixels tall on `surfaceContainer`, its chosen destination's icon
 on a 64 by 32 `secondaryContainer` pill; and a bottom sheet that fills the width up
 to 640 pixels, with a drag handle and a shadow that rises. Still approximate: the sheet
-rounds all four corners, the handle is not draggable, shadows are one layer where
-Material has two, the navigation indicator fades and grows in place instead of sliding
-between destinations, and the ink is one circle that grows and fades where Material
+rounds all four corners, the handle is not draggable, a shadow is one layer where the
+framework's map states three, the navigation indicator fades and grows in place instead of
+sliding between destinations, and the ink is one circle that grows and fades where Material
 draws a splash with a fading highlight and a second ripple when the press is released.
 
 ## Line heights
