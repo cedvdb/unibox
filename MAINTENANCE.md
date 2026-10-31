@@ -108,7 +108,8 @@ The prompt that works is specific about the gate, because the gate is what makes
 automated change reviewable:
 
 ```text
-Read AGENTS.md, CONTRIBUTING.md and the README section for <the node or token> before
+Read AGENTS.md, CONTRIBUTING.md, the `docs/nodes/` page for <the node> (or the README
+section for <the token>) before
 editing. Make one change: <what>. It lands on both targets — the Flutter widget and the
 web mapping — with a case in packages/unibox_testing, a doc comment on every public
 member, and a bullet under "## Unreleased" in each CHANGELOG.md touched. Run

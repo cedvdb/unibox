@@ -47,6 +47,7 @@ guide is [`README.md`](README.md).
 | `example/unibox_example_shared/` | the example as one `StatefulNode` (`ExamplePageNode`, `ExampleState`, `ExampleStore`) and the trees it is built from, the site as one page (`buildSitePage`) whose bands are the claim with the comparison inside it (`buildHeroSection`), the vocabulary that names the nodes the page had not drawn (`buildVocabularySection`) and the catalogue that closes it (`buildMaterialSection`), plus the palette grown from one seed | the example or the site content changes |
 | `example/unibox_example_flutter/`, `example/unibox_example_html/` | hosts: the surface, the link policy, and the documents — never layout or state | the surface, a link or a document changes |
 | `README.md`, `design.md`, package READMEs | the user guide, the reasoning, the per-target mapping tables | public API or behaviour changes |
+| `docs/nodes/` | one page per node: its parameters, the model's defaults and what each target does, reached from the summary tables in `README.md` | a node gains or loses a parameter, or its documentation changes |
 | `AI_INSTRUCTIONS.md` | the consumer-facing counterpart: rules and a translation table for an assistant writing application code | a parameter is renamed or a default changes |
 | `RELEASE.md` | the release checklist | never automatically; it is a human procedure |
 
@@ -174,9 +175,9 @@ that lands on one target only fails the suites.
    is skipped.
 7. Core tests for the merge and the precedence: `test/tokens_test.dart` and
    `test/box_test.dart`.
-8. Docs: the `Box` tables in `README.md`, the defaults table and the motion
-   section of `packages/unibox_core/README.md`, `design.md` §5.2/§5.4 when a rule
-   changes, and the changelogs.
+8. Docs: the `Box` page in `docs/nodes/box.md`, its summary row in `README.md`, the
+   defaults table and the motion section of `packages/unibox_core/README.md`,
+   `design.md` §5.2/§5.4 when a rule changes, and the changelogs.
 
 ### B. A typography token
 
@@ -223,9 +224,9 @@ that lands on one target only fails the suites.
 5. The contract, only when the node carries presentational tokens the tables cover
    (boxes and texts). A node with no token — a link, an embed — is pinned by the
    renderer suites instead, which is honest: there is no appearance to compare.
-6. Docs: the node sections of `README.md`, the node table of
-   `packages/unibox_core/README.md`, the mapping tables of both renderer READMEs,
-   and the changelogs. The example changes only if it demonstrates the node.
+6. Docs: the node's page in `docs/nodes/`, its summary row in `README.md`, the node
+   table of `packages/unibox_core/README.md`, the mapping tables of both renderer
+   READMEs, and the changelogs. The example changes only if it demonstrates the node.
 
 ### D. A difference between the two renderers
 
@@ -268,7 +269,8 @@ cannot catch.
    store, draws the state it starts with and never calls `onMount` — a document is a
    snapshot — and `test/render_test.dart` pins it. A page that reacts needs the
    application to take it over, or `unibox_dom` when it exists.
-5. Docs: the state section of `README.md` and the core README, plus the changelogs.
+5. Docs: the `StatefulNode` page in `docs/nodes/stateful.md` and the core README, plus
+   the changelogs.
 
 ### H. A callback on a node
 
@@ -296,8 +298,8 @@ renderer that bound nothing — so the control looked alive in Flutter and did n
    was rendered to show it (`showOverlays`).
 4. The contract: `OverlayAppearance` and `overlayCases` in `unibox_testing`, read
    back from each renderer's output.
-5. Docs: the node section of `README.md`, the core and renderer READMEs, and the
-   changelogs.
+5. Docs: the node's page in `docs/nodes/overlay.md`, the core and renderer READMEs, and
+   the changelogs.
 
 ## Definition of done
 
@@ -369,13 +371,13 @@ and two when each side is independently reviewable.
 
 | Question | Read |
 | --- | --- |
-| How do I use a node? | [`README.md`](README.md) — one section per node, with parameter tables |
+| How do I use a node? | [`docs/nodes/`](docs/nodes/README.md) — one page per node, with the parameter tables and the model's defaults |
 | Why is the model shaped this way? | [`design.md`](design.md) — defaults, precedence, parity, non-goals |
 | What does a token do on Flutter? | [`packages/unibox_flutter/README.md`](packages/unibox_flutter/README.md) |
 | What does a token do on the web? | [`packages/unibox_html/README.md`](packages/unibox_html/README.md) |
 | What is the model's default? | [`packages/unibox_core/README.md`](packages/unibox_core/README.md) |
 | How does a node own state? | [`packages/unibox_core/README.md#state`](packages/unibox_core/README.md#state) |
-| Which Material type role should I use? | [`packages/unibox_material/README.md`](packages/unibox_material/README.md) |
+| Which Material type role or component should I use? | [`packages/unibox_material/README.md`](packages/unibox_material/README.md), with one line per component in [`README.md#material`](README.md#material) |
 | What has to look the same on both? | [`packages/unibox_testing/README.md`](packages/unibox_testing/README.md) |
 | What does a page with thousands of nodes cost? | [`PERFORMANCE.md`](PERFORMANCE.md) — the shapes measured and the baseline `tool/scale.sh` holds them to |
 | How do I build an application with this, as an assistant? | [`AI_INSTRUCTIONS.md`](AI_INSTRUCTIONS.md) — the consumer-facing file, written to be pasted into a context |

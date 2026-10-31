@@ -716,7 +716,7 @@ landed, and a press after that writes none until the press lands on another pixe
 `EmbedNode` remains the escape hatch when a host-side animation is what the effect
 needs.
 
-## The segmented button
+## The tabs and the segmented button
 
 `MaterialTabBar` is one row of tabs with an indicator under the chosen one, and
 `MaterialTabs` is that bar with the page of the chosen tab under it: a `StatefulNode`

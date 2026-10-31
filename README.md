@@ -46,6 +46,7 @@ read is the demo.
 - [The DOM hydrates itself](#the-dom-hydrates-itself--nothing-of-flutter)
 - [In several languages](#in-several-languages--one-document-per-language)
 - [The nodes](#the-nodes)
+- [Material](#material)
 - [Colours](#colours)
 - [Typography](#typography)
 - [Motion](#motion)
@@ -246,7 +247,7 @@ head element, which is why it sits beside the head rather than in it. The head's
 says which other addresses carry the same page, so a search engine pairs the translations
 instead of keeping one and hiding the rest. The
 locale comes from the address rather than a cookie or `Accept-Language`, because a crawler sends
-neither, and a language switch is a [link](#links) to the other address — followable by a reader
+neither, and a language switch is a [link](docs/nodes/link.md) to the other address — followable by a reader
 and by a crawler. Copy stays a value passed into the tree (`SiteCopy.de`), so a string a language is
 missing is a compile error; an `.arb` catalogue, plurals and date formats live in the application's
 own package, which the tree never sees.
@@ -294,12 +295,6 @@ it. Style values — colours, spacing, borders, typography — are separate obje
 that a node takes as parameters, so a look can be reused as one `const BoxStyle`
 instead of being repeated.
 
-The eleven: [`Box`](#box), [`TextNode`](#textnode), [`ImageNode`](#imagenode),
-[`LinkNode`](#links), [`StackNode`](#stacknode-and-positionednode) with
-[`PositionedNode`](#stacknode-and-positionednode), [`TextInputNode`](#textinputnode),
-[`StatefulNode`](#statefulnode), [`GridNode`](#gridnode), [`OverlayNode`](#overlaynode)
-and [`EmbedNode`](#embednode).
-
 A layout the two targets do not draw with the container a box is becomes a node, not a
 token on `Box`: a grid is `display: grid` with its own tracks, so it is `GridNode`, where
 `Box.wrap` is a token because `flex-wrap` is the same container with another property.
@@ -308,600 +303,62 @@ Every node accepts a `key`. Renderers hand it to the target's own key mechanism,
 when a list is reordered each child keeps its state: typed text stays in the field
 it was typed into.
 
-### Box
-
-The container. It lays children out in a row or a column, spaces them, sizes
-itself, paints a background, a border, rounded corners and shadows, and reacts to
-taps and hover. A box that names a destination is a [`LinkNode`](#links), which *is* a box.
-
-```dart
-Box(
-  direction: Axis.horizontal,
-  gap: 12,
-  padding: BoxSpacing.symmetric(horizontal: 16, vertical: 10),
-  backgroundColor: BoxColor.white,
-  border: BoxBorder(color: BoxColor.rgb(0xE5, 0xE7, 0xEB)),
-  borderRadius: 10,
-  onTap: open,
-  children: <UINode>[TextNode('Open')],
-);
-```
-
-**Layout**
-
-| Parameter | Type | Default | Meaning |
-| --- | --- | --- | --- |
-| `children` | `List<UINode>` | empty | The nodes laid out inside. |
-| `direction` | `Axis?` | column | `Axis.horizontal` is a row, `Axis.vertical` a column. |
-| `writingDirection` | `WritingDirection?` | inherited | The direction the words flow in: `rtl` packs a row from the other side, carries `start`/`end` with it, and is inherited by everything inside the box. It is not `direction` — a row is still a row — and the page states the same value as `dir` on `<html>`. |
-| `mainAlign` | `MainAlign?` | start | Distribution along the direction: `start`, `center`, `end`, `spaceBetween`, `spaceAround`, `spaceEvenly`. |
-| `crossAlign` | `CrossAlign?` | start | Alignment across the direction: `start`, `center`, `end`, `stretch`, `baseline`. A baseline is a horizontal line, so it is a row's alignment: a column that states one is reported by `validateTree`. A `stretch` fills the children that state no size across the direction and leaves the rest alone: a child with its own `width` keeps it, as a browser leaves a flex item whose cross size is `auto` alone. |
-| `gap` | `double?` | none | Space between two children, and between two lines of a wrapping box. For space at the edges, use `padding`. |
-| `wrap` | `bool?` | `false` | Whether a child that does not fit starts another line instead of running off the end. `gap` is the space between two lines as well, and `mainAlign` distributes one line while `crossAlign` places a child in it — what `Wrap` and `flex-wrap: wrap` each mean. A `stretch` or `baseline` cross alignment, a `flex` on a child, and a box that both wraps and scrolls are reported by `validateTree`, because the two targets cannot draw them the same way. |
-| `flex` | `int?` | none | Share of the free space this box takes inside its parent: `flex: 1` is an `Expanded` in Flutter and `flex-grow: 1` on the web. |
-| `gridSpan` | `int?` | one track | How many columns of a `GridNode` this box covers: a banner that interrupts a card grid states `2`, or more for a full row. Only a grid child has tracks, and `validateTree` reports it anywhere else. |
-| `overflow` | `Overflow?` | visible | `hidden` clips the content, `scroll` makes the box scroll along its direction. |
-| `snap` | `ScrollSnap?` | none | Where a scrolling box comes to rest. `page` makes it a pager: it moves one child at a time along its own direction and settles on a child rather than between two. It needs `overflow: Overflow.scroll`; `validateTree` reports a snap on a box that cannot scroll. |
-| `page` | `int?` | none | The page a snapping box shows, counted along its direction: how a pager is *told* where to go, as a position rather than a controller. It moves the box when it changes, so a tree drawn twice with the same page leaves the reader alone. Only meaningful with `snap: ScrollSnap.page`. |
-| `pin` | `BoxPin?` | none | The edge of the box that scrolls it that this box stays at, once the content would have carried it past: `start` is the top of the viewport, `end` the bottom. The band keeps its slot in the flow — nothing below it moves — and is painted above the content that scrolls under it. It is a relation to the nearest scrolling box, not an offset in the window, so it works when the document scrolls as well as inside a box with `overflow: Overflow.scroll`. The band is a child of that box and states its height (it is the room the flow keeps) and paints its own background, since the content passes underneath it. `validateTree` reports a pin inside a box that scrolls sideways, inside a box that only clips, one that is not a child of the box that scrolls it, one with no height, one that also asks for a `flex` share, and an inset with no pin. |
-| `pinOffset` | `double?` | none | The room a pinned band keeps from its edge, in logical pixels: the same number as the `height` of the header above it, so the band comes to rest under it instead of over it. |
-
-**Size**
-
-| Parameter | Type | Default | Meaning |
-| --- | --- | --- | --- |
-| `width`, `height` | `double?` | content size | Logical pixels. `double.infinity` fills the space the parent gives — and that space has to have an end: a box that fills the width inside a row that scrolls along it, or inside any parent that offers it none, is reported by `validateTree`, because Flutter refuses the constraint at layout time and a browser resolves the share against the wrong box. |
-| `aspectRatio` | `double?` | none | Width divided by height: `1.5` keeps three units across for every two down, whatever width the layout gives it. It needs one side to measure — a `width`, a `height`, a `widthFraction` or a parent that fills one — and `validateTree` reports a ratio a box states beside both a width and a height, because there is nothing left for it to divide. |
-| `widthFraction`, `heightFraction` | `double?` | none | A share of the parent rather than a number of pixels: `0.5` is half of it. This is the size a box can state without knowing one — a share of a row, one tab of a bar — and it wins over `width`/`height`, which `validateTree` reports if a box states both. |
-| `minWidth`, `maxWidth`, `minHeight`, `maxHeight` | `double?` | none | Bounds the box keeps even when its content wants otherwise. A box that also fills its parent stops at the bound: a measure inside a row that fills is as wide as the row or the measure, whichever is narrower. |
-| `padding` | `BoxSpacing?` | none | Space inside the box, around its children. |
-| `margin` | `BoxSpacing?` | none | Space outside the box. |
-
-**Paint**
-
-| Parameter | Type | Default | Meaning |
-| --- | --- | --- | --- |
-| `backgroundColor` | `BoxColor?` | none | Colour behind the children. |
-| `border` | `BoxBorder?` | none | Line around the box, with a width, a colour and — for a shape's open outline — a cap. |
-| `borderRadius` | `double?` | square | Corner radius in logical pixels, the same on all four. |
-| `corners` | `BoxBorderRadius?` | square | The radius of each corner, for a box that is not round on all four — a filled text field rounds its top and leaves the bottom square. Takes precedence over `borderRadius`. |
-| `shadows` | `List<BoxShadow>?` | none | Drop shadows, painted in the order they are written: colour, offset, blur, spread. The blur is in logical pixels, in Flutter's unit, and the web writes the CSS blur that paints the same width. |
-| `shape` | `BoxShape?` | the rectangle | The outline the box is painted in, instead of its rectangle: a path in a view box, stretched to the box. The background fills it, the `border` is drawn along it, and the children are clipped to it when the box also says `overflow: Overflow.hidden`. See [shapes](#shapes). |
-| `opacity` | `double?` | solid | `0` (invisible) to `1` (solid). The box keeps its room either way. |
-| `transform` | `BoxTransform?` | none | Moves, turns or scales the box about its centre (`scale`, `rotation` in degrees, `offsetX`/`offsetY` in pixels, `fractionX`/`fractionY` in multiples of the box's own size). The fractions are the offsets that need no measurement — one tab, half a width — and they compose with the pixels. It paints differently without taking different room, so text inside never reflows. |
-| `transition` | `BoxTransition?` | none | How long a change of the paint, the opacity or the transform takes, and how it eases. See [motion](#motion). |
-| `fold` | `BoxFold?` | none | The look the box takes as it leaves the box that scrolls it: `to` states the paint at the end of the travel, `over` how much of the exit the fold takes, and `curve` how it eases. Paint only — the same looks a `transition` eases — so nothing is laid out again as the reader scrolls. See [motion](#motion). |
-
-**Interaction**
-
-| Parameter | Type | Default | Meaning |
-| --- | --- | --- | --- |
-| `onTap` | `TapCallback?` | none | Tapped, clicked, or activated with `Enter`/`Space` once the box is focusable. |
-| `onTapDown` | `TapDownCallback?` | none | A press lands: where it landed inside the box and what pressed it (touch, mouse, pen, keyboard). It fires before `onTap`, which is what an effect that starts at the pointer needs. |
-| `onLongPress` | `LongPressCallback?` | none | Pressed and held. |
-| `onHover` | `HoverCallback?` | none | Pointer entered or left the box. |
-| `onScroll` | `ScrollCallback?` | none | The box scrolled, with how far its content has moved along its main axis. Only a box with `overflow: Overflow.scroll` reports it, and only for its own scrolling — a scrollable nested inside it reports to its own box. It is what lets a header fold as the list under it moves. A box that states `page` *and* listens to `onScroll` is wired to itself: the move it was told to make reports every offset on the way, so the callback has to tell those from the reader's own scrolling. The example's tabs demo does it with one field, and the difference is visible: a pager sliding to a page a press chose reports 0, its whole width, then the page. |
-| `enabled` | `bool` | `true` | A disabled box keeps its layout, drops its callbacks, leaves the tab order and is announced as disabled. |
-| `capturesPointer` | `bool?` | the box decides | Whether the pointer may land on this box. Left unset, a box with children, a callback or a state style takes it and a painted leaf does not; `false` says the box is decoration whatever it holds, so the hover, the cursor and the press reach the control under it — a badge over a button. `true` makes a leaf a target of its own. |
-| `semantics` | `BoxSemantics?` | none | What the box *is* for a screen reader: role, label, state, element. |
-| `stateStyles` | `Map<BoxState, BoxStyle>?` | none | Looks for `hover`, `focus`, `pressed` and `disabled`, layered over the resting one. |
-| `hoverStyle` | `BoxStyle?` | none | Shorthand for the `hover` entry of `stateStyles`. |
-
-**Styles**
-
-Instead of the flat parameters above, a box can wear one or more reusable bags:
-`styles: <BoxStyle>[...]`. The bags merge left to right — a later bag wins a value
-over an earlier one — and a flat parameter wins over all of them. `textStyle` is
-different from the others: it is inherited by the texts inside the box (see
-[typography](#typography)).
-
-```dart
-const cardBase = BoxStyle(
-  padding: BoxSpacing.all(16),
-  backgroundColor: BoxColor.white,
-  borderRadius: 12,
-);
-const cardBusy = BoxStyle(backgroundColor: BoxColor.rgb(0xF3, 0xF4, 0xF6));
-
-const row = Box(
-  styles: <BoxStyle>[cardBase, cardBusy],
-  padding: BoxSpacing.all(8), // wins over both bags
-);
-```
-
-**On each target.** A box is a `Flex` (`Row`/`Column`) wrapped in `Padding`,
-`DecoratedBox`, `ClipRect`, `SizedBox` and `GestureDetector`/`MouseRegion` in
-Flutter, and one `<div>` with `display: flex` and the matching CSS in the browser.
-A box with no children still renders its flex container, so an empty box takes the
-size the tree gave it instead of collapsing differently on each side.
-
-**Worth knowing.** A box without a direction is a **column**, not "whatever the
-platform does", so `gap` and the alignments work in every box. Nothing is inherited
-from a box to its children except typography and the writing direction: a box never
-pushes its padding, gap or alignment down, and those two are the tokens CSS and
-Flutter inherit as well — `font` and `direction` in one, `DefaultTextStyle` and
-`Directionality` in the other.
-
-**A baseline is a row's alignment.** `crossAlign: CrossAlign.baseline` sits the
-children on the alphabetic baseline of their first line of text — the one alignment
-that knows where the glyphs are, so a 14px label and a 24px price share a line
-instead of a box edge. It is Flutter's `CrossAxisAlignment.baseline` and the
-browser's `align-items: baseline`, and both mean the same thing there because a
-baseline is a horizontal line. A column has no baseline to align on: Flutter draws
-the children as if the value were `start` while a browser shifts them sideways, so
-`validateTree` reports a baseline on anything that is not a row.
-
-**The two defaults that cost an afternoon.** Both are the same on both targets, and
-both are the opposite of what an instinct says:
-
-- **The cross axis starts; it does not stretch.** `crossAlign` is `start`, where a
-  CSS flex container defaults to `stretch`. A column therefore hugs each child to its
-  own content, and a band does not reach the page width on its own. A band that must
-  span says `crossAlign: CrossAlign.stretch` on the column that holds it. A child
-  that fills needs that too: `width: double.infinity` takes the space it is given,
-  and a browser resolves `100%` against a parent that has a width.
-- **A row is as wide as its content.** A horizontal box is a `Row` with
-  `mainAxisSize: min` — a CSS flex row whose container hugs — so a row with
-  `mainAlign: spaceBetween` distributes nothing unless its parent gave it a width.
-  A row that must distribute is inside a box that did: `crossAlign:
-  CrossAlign.stretch` on the column around it, or a `width`.
-
-So the recipe, in one line: **a band that must span says `crossAlign:
-CrossAlign.stretch`, and a row that must distribute is inside one that did.**
-
-#### Shapes
-
-A box can be painted in an outline that is not a rectangle. The outline is a
-`BoxShape`: a path in a **view box**, so the same value draws the same silhouette at
-40 pixels and at 400.
-
-```dart
-const BoxShape hexagon = BoxShape(
-  viewBoxWidth: 100,
-  viewBoxHeight: 100,
-  commands: <BoxPathCommand>[
-    BoxPathMoveTo(50, 0),
-    BoxPathLineTo(93, 25),
-    BoxPathLineTo(93, 75),
-    BoxPathLineTo(50, 100),
-    BoxPathLineTo(7, 75),
-    BoxPathLineTo(7, 25),
-    BoxPathClose(),
-  ],
-);
-
-Box(width: 40, height: 40, shape: hexagon, backgroundColor: BoxColor.white)
-```
-
-The commands are the ones SVG's `d` attribute has — `M`, `L`, `C`, `Q`, `A` and `Z`
-— and every renderer has a method for each, so neither parses what the other wrote.
-The model ships three values over that vocabulary, because they are asked for far more
-often than the rest: `BoxShape.circle`, `BoxShape.ring` and `BoxShape.arc`.
-
-```dart
-// A band: the region between the edge and a circle 12 units inside it.
-Box(width: 96, height: 96, shape: BoxShape.ring(thickness: 12), backgroundColor: grey)
-
-// A value over it: the same band, a fraction of a turn, clockwise from twelve.
-Box(width: 96, height: 96, shape: BoxShape.ring(thickness: 12, sweep: 0.42), backgroundColor: accent)
-
-// A line: a circle's centreline, run along by an open path. What paints it is the border,
-// and `cap` is what its two ends look like — which is how Material's indicator is drawn.
-Box(
-  width: 48,
-  height: 48,
-  shape: BoxShape.arc(stroke: 4, sweep: 0.42, viewBox: 48),
-  border: BoxBorder(width: 4, color: accent, cap: BoxStrokeCap.round),
-)
-```
-
-Five things follow from a shape:
-
-- **The fill is the shape.** `backgroundColor` fills the path rather than the
-  rectangle, and `border` is a stroke along the same path.
-- **`fillRule` decides what is inside.** `BoxFillRule.evenOdd` punches a hole: two
-  circles become a ring, which is how a donut is drawn without a second outline.
-- **An open outline is a line, not a region.** `BoxShape.arc` closes nothing, so what a
-  reader sees is the border's stroke — and `BoxBorder.cap` (`butt`, `round`, `square`)
-  states how its two ends are drawn. A cap on a rectangle draws nothing, so
-  `validateTree` reports one there.
-- **Layout does not change.** Children are laid out in the same rectangle as before,
-  which is what puts a label inside the hole of a ring; `overflow: Overflow.hidden`
-  is what clips them to the outline.
-- **A shape paints; it does not cast.** It has no shadow (put the shadows on the box
-  around it) and it does not ease (there are no numbers to interpolate between two
-  outlines). `validateTree` reports a shaped box that also names a shadow or a
-  corner radius, because a box has one outline.
-
-### TextNode
-
-A run of text.
-
-```dart
-TextNode('Join Unibox', fontSize: 22, fontWeight: FontWeight.bold);
-```
-
-| Parameter | Type | Default | Meaning |
-| --- | --- | --- | --- |
-| `text` | `String` | required | The characters to draw. |
-| `headingLevel` | `int?` | none | `1`–`6` makes it a heading: `<h1>`–`<h6>` on the web, a heading of that level in Flutter's accessibility tree. It changes no look. |
-| `fontSize` | `double?` | inherited | Logical pixels. |
-| `fontWeight` | `FontWeight?` | inherited | `light`, `normal`, `medium`, `semiBold`, `bold` — `300`–`700` on both targets. |
-| `color` | `BoxColor?` | inherited | Colour of the glyphs. |
-| `lineHeight` | `double?` | inherited | Multiple of the font size. A line box is `fontSize * lineHeight` tall on both targets. |
-| `fontFamily` | `String?` | the platform's UI font | One family name, resolved by the host. |
-| `letterSpacing` | `double?` | inherited | Extra space between characters, in logical pixels. |
-| `decoration` | `TextDecoration?` | inherited | The line drawn across the text: `none`, `lineThrough` or `underline`. |
-| `decorationColor` | `BoxColor?` | the glyph colour | The colour of that line. |
-| `decorationThickness` | `double?` | the font's own | How thick the line is, in logical pixels. |
-| `textAlign` | `TextAlign?` | start | `left`, `center`, `right`, `justify`. |
-| `padding` | `BoxSpacing?` | none | The space inside the field; padding on the box around it sits outside the control. |
-| `maxLines` | `int?` | unlimited | Number of lines the text may occupy. |
-| `overflow` | `TextOverflow?` | none | How text too long for its lines is cut: `clip` or `ellipsis`. With `maxLines` it cuts after those lines, without it on the single line. |
-| `style` | `BoxTextStyle?` | none | A bundle of the typography values; a flat parameter wins. |
-
-**On each target.** A `<span>` with the typography as CSS in the browser, a `Text`
-in Flutter. A heading becomes `<h1>`–`<h6>` with the browser's own heading styles
-turned off (no margin, size or weight of its own), so the tree still decides how it
-looks.
-
-### ImageNode
-
-A picture, from a URL or from the assets the host ships.
-
-```dart
-ImageNode('https://example.com/room.jpg', alt: 'A bright room', fit: ImageFit.cover);
-```
-
-| Parameter | Type | Default | Meaning |
-| --- | --- | --- | --- |
-| `src` | `String` | required | `http`/`https` loads from the network, anything else is an asset path. |
-| `alt` | `String` | `''` | Text for screen readers and for a failed load. Empty means decorative. |
-| `width`, `height` | `double?` | natural size | Logical pixels; `double.infinity` fills. One dimension keeps the aspect ratio. |
-| `fit` | `ImageFit?` | `scaleDown` | `cover`, `contain`, `fill`, `scaleDown`. |
-| `borderRadius` | `double?` | square | Rounds the corners and clips the picture. |
-| `srcSet` | `Map<int, String>` | `{}` | Candidate widths and their URLs, narrowest first. The web picks one; Flutter loads `src`. |
-| `sizes` | `String?` | none | How wide the image is laid out, in CSS `sizes` syntax. Read only with `srcSet`. |
-| `loading` | `ImageLoading` | `eager` | `eager`, `lazy` or `auto`. Web only. |
-| `fetchPriority` | `ImageFetchPriority` | `auto` | `high`, `low` or `auto`. Web only. |
-
-**Worth knowing.** The default fit is the model's, not the platform's: without it a
-Flutter `Image` scales a picture down while a browser stretches it over its box, and
-the same image looked different on each target.
-
-The four responsive fields are the one part of a node the web renderer reads and
-Flutter cannot: they become `<img>` attributes (`srcset`, `sizes`, `loading`,
-`fetchpriority`, and the element's `width`/`height` so the browser reserves the box
-before the picture arrives). Flutter loads a single source, so ship `src` at the size
-a phone needs and the denser candidates are a free improvement on the web.
-
-### Links
-
-`LinkNode` is a [box](#box) that names a destination. It *is* the box — the same element,
-the same look, the same children, the same press — with a `url` on it, so the whole of it is
-what a reader presses and, on the web, a real `<a href>` that a crawler follows and a page
-without JavaScript can use. A wrapper around a box cannot do that: it states no layout, so a
-control inside it keeps the `flex` share, the height and the padding the anchor should have
-had.
-
-```dart
-LinkNode(
-  '/apartments/amsterdam',
-  padding: BoxSpacing.all(16),
-  borderRadius: 12,
-  children: <UINode>[TextNode('See all')],
-)
-```
-
-It takes every parameter a `Box` takes, plus:
-
-| Parameter | Type | Default | Meaning |
-| --- | --- | --- | --- |
-| `url` | `String` | required | The destination. The element is the anchor (`BoxSemantics.element: BoxElement.a`), and a disabled link writes no `href`. |
-| `newTab` | `bool` | `false` | Opens elsewhere: `target="_blank"` with `rel="noopener noreferrer"` on the web. Flutter has no tab; the host decides there. |
-
-**Worth knowing.** In Flutter there is no browser, so the host decides what following a
-destination means: wrap the tree in `FlutterLinkScope(open: (url) => ...)` and every link
-calls it — unless the link has an `onTap`, which answers the press itself, the same way the
-web renderer cancels the navigation rather than doing both. A link with neither a scope nor
-an `onTap` is reported in debug builds, because pressing it would do nothing. The browser's
-own link styling — underline and blue — is cancelled, so a link looks exactly like the box
-it is. A box with `BoxSemantics(element: BoxElement.a)` and no destination is HTML's
-placeholder anchor: a browser paints it as text, nothing follows it and nothing can tab to
-it.
-
-**What cannot be one.** HTML forbids interactive content inside `<a>`, so a control inside a
-link is reported by `validateTree` rather than painted two ways: a chip with a remove cross
-is two nodes side by side, not one inside the other. A link inside a link is reported for the
-same reason — it would navigate twice. A link that names a landmark (`element: article`)
-*and* a destination is reported too, because only one tag is written and the anchor is the
-one that navigates.
-
-### StackNode and PositionedNode
-
-`StackNode` layers its children on top of each other, painted in order, the last one
-on top. `PositionedNode` places one of them at an offset from the edges.
-
-```dart
-StackNode(
-  width: double.infinity,
-  height: 120,
-  children: <UINode>[
-    Box(
-      width: double.infinity,
-      height: 120,
-      backgroundColor: BoxColor.rgb(0x2D, 0x6C, 0xF3),
-    ),
-    PositionedNode(bottom: 8, left: 16, child: TextNode('Sale')),
-  ],
-);
-```
-
-| Parameter | Type | Default | Meaning |
-| --- | --- | --- | --- |
-| `StackNode.children` | `List<UINode>` | empty | The layers, bottom first. |
-| `StackNode.width`, `height` | `double?` | largest child | The box the stack occupies. |
-| `PositionedNode.child` | `UINode` | required | The node being placed. |
-| `PositionedNode.top`, `right`, `bottom`, `left` | `double?` | auto | Distances from the edges of the stack. At least one is needed to place it. |
-| `PositionedNode.alignment` | `BoxAlignment?` | none | Where in the stack the child sits, instead of at offsets: the child fills the stack and the alignment places it. This is how a control floats at the bottom centre of a surface at any window size. The names are reading ones — `topStart` is the corner the words begin at — so a page written right to left mirrors without a second tree. |
-
-**Worth knowing.** A stack does not clip: a child that sticks out is still drawn,
-which is what CSS does by default and what `Stack` does with `Clip.none`. A child
-that is not positioned keeps its own size in the top start corner instead of
-stretching to fill the stack, and a `PositionedNode` with no offset is drawn like a
-plain child. A `PositionedNode` outside a stack is reported by `validateTree`,
-because its offsets would be silently ignored, and so is one that states an alignment
-and an offset together — the child fills the stack when it is aligned, so an offset
-would have nothing left to move. A stack that places every child and states no size
-is reported too: it has nothing in its flow to be as big as, and the two targets then
-disagree — Flutter's `Stack` takes the room it is handed while a browser's grid
-collapses. State a width and a height, as a frame or a screen does.
-
-**A floating control** is an aligned child with a margin: it stays where the surface
-puts it while everything under it scrolls, and no window is measured to know where
-the bottom centre is.
-
-### TextInputNode
-
-A single line field, a password field, or a text area. The node describes what the
-field is *for*; the box around it describes what it looks like.
-
-```dart
-TextInputNode(
-  value: state.email,
-  placeholder: 'ada@example.com',
-  inputType: InputType.email,
-  onChanged: onEmailChanged,
-);
-```
-
-| Parameter | Type | Default | Meaning |
-| --- | --- | --- | --- |
-| `value` | `String?` | `null` | Controlled value. `null` lets the field keep what the user types; a value replaces it. |
-| `placeholder` | `String?` | none | Hint shown while the field is empty. |
-| `placeholderStyle` | `BoxTextStyle?` | inherit | The hint's typography: `hintStyle` on Flutter, a `::placeholder` rule on the web. |
-| `inputType` | `InputType` | `text` | `text`, `email`, `number`, `phone`, `url`: picks the on-screen keyboard and the browser's validation hints. |
-| `obscureText` | `bool` | `false` | Hides the characters, for passwords. |
-| `multiline` | `bool` | `false` | Renders a text area instead of a single line field. |
-| `maxLines` | `int?` | one row | Visible rows of a text area. |
-| `enabled` | `bool` | `true` | Disabled fields keep their value and layout and leave the tab order. |
-| `readOnly` | `bool` | `false` | Selectable and copyable, not editable. |
-| `autofocus` | `bool` | `false` | Takes focus as soon as it is drawn. |
-| `required` | `bool` | `false` | The form needs a value here: `aria-required`, and announced with the label in Flutter. |
-| `invalid` | `bool` | `false` | The value is wrong, decided by the host: `aria-invalid`, and the invalid state of the field in Flutter. |
-| `description` | `String?` | none | What the field expects, or why it was rejected. It is the accessible description (`aria-description`, `Semantics.hint`), not a drawn message: that stays a text node. |
-| `semanticsLabel` | `String?` | none | The name a screen reader announces. |
-| `onChanged` | `TextChangedCallback?` | none | Fires on every change, with the current text. |
-| `onSubmitted` | `TextSubmittedCallback?` | none | Fires on `Enter` (or `Ctrl`/`Cmd`+`Enter` in a text area). |
-| `onFocusChanged` | `FocusChangedCallback?` | none | Fires when the field gains or loses focus. |
-
-**Worth knowing.** The field brings no chrome of its own: no Material underline, no
-browser border, padding, background, focus ring or resize handle. The box around it
-draws what a field should look like, which is the only way the same tree can look
-the same on both targets. The typography is the tree's, inherited like any text.
-
-### StatefulNode
-
-A subtree that owns its state. The node carries two functions — a factory for a
-*store* and a view — and a renderer creates the store once, subscribes to it, and
-rebuilds the view whenever the store publishes a new state.
-
-```dart
-final class SignupNode extends StatefulNode<SignupState, SignupStore> {
-  SignupNode() : super(create: SignupStore.new, view: signupView);
-}
-
-UINode signupView(SignupState state, SignupStore store) => Box(
-  children: <UINode>[
-    TextNode(state.pending ? 'Joining…' : 'Join'),
-    Box(onTap: store.submit, children: const <UINode>[TextNode('Continue')]),
-  ],
-);
-```
-
-| Member | Type | Meaning |
+The nodes are documented one page at a time — the parameters, the defaults the model
+gives each one, and what each target does with it. That is ten pages for the eleven
+nodes, because `PositionedNode` is documented beside the `StackNode` it places in. The
+reference is [`docs/nodes`](docs/nodes/README.md).
+
+| Node | What it is | Reference |
 | --- | --- | --- |
-| `create` | `C Function()` | Makes the store for one mounting. The node never holds the instance, so the tree stays a description. |
-| `view` | `UINode Function(S state, C store)` | Draws one state, with the store for the callbacks the view hands out. |
-| `key` | `Object?` | Keeps the state across rebuilds; a different key starts again. |
+| `Box` | The container: children in a row or a column, the space between them, the paint and the press. | [Box](docs/nodes/box.md) |
+| `TextNode` | A run of text, and the heading level it may be. | [TextNode](docs/nodes/text.md) |
+| `ImageNode` | A picture from a URL or from the assets the host ships. | [ImageNode](docs/nodes/image.md) |
+| `LinkNode` | A `Box` that names a destination: the link a press follows. | [LinkNode](docs/nodes/link.md) |
+| `StackNode`, `PositionedNode` | Layers painted on top of each other, and one child placed at an offset. | [StackNode](docs/nodes/stack.md) |
+| `TextInputNode` | A single line field, a password field, or a text area. | [TextInputNode](docs/nodes/text-input.md) |
+| `StatefulNode` | A subtree that owns a store and draws the tree of its state. | [StatefulNode](docs/nodes/stateful.md) |
+| `GridNode` | Equal columns whose count follows the width of the box, or a row of stated factors. | [GridNode](docs/nodes/grid.md) |
+| `OverlayNode` | Content drawn above the page: a dialog, a sheet, a menu. | [OverlayNode](docs/nodes/overlay.md) |
+| `EmbedNode` | The escape hatch, for what the eleven nodes cannot describe. | [EmbedNode](docs/nodes/embed.md) |
 
-The view returns one tree for the state, so every state a page can be in — a
-pending request, a result, an error — is an ordinary tree the renderers already
-know how to draw. A view draws no overlay of its own: a dialog is an
-[`OverlayNode`](#overlaynode) in the tree the view returns, so the state decides
-whether it exists and the node decides how it is presented.
+The values a node takes are documented once, for both targets: [colours](#colours),
+[roles and theming](#roles-and-theming), [typography](#typography), [motion](#motion)
+and [semantics](#semantics).
 
-**State lives in a store, not in the node.** [`Store`](packages/unibox_core/README.md#state)
-is the contract and `StateStore` is the ready-made implementation in the same
-package: its listener list is its own, so a store needs no dependency and runs in
-Flutter, on a server and in a browser. `onMount` is where an initial request
-starts, which is also why a server render can draw the first state without running
-it.
+## Material
 
-`FlutterStateful` is the runtime: it creates the store, subscribes to it and disposes it. A
-document has none — `unibox_html` creates the store only to read it, draws **the state it
-starts with** and never calls `onMount`, so a page that loads is a page that says it is
-loading. Reacting to a press is the application's job once it takes the page over.
+`unibox_material` is an optional package of values and components for Material 3. A look
+is a value — the fifteen roles of the type scale as `const BoxTextStyle` values, the
+colour roles as a `MaterialPalette` — and a component is a node built from the ones
+above, never a new node type. It is pure Dart, adds no renderer code, and neither target
+knows it exists: a tree that uses it is drawn by the same two renderers as one that does
+not.
 
-### GridNode
+| Component | What it is | Reference |
+| --- | --- | --- |
+| `MaterialTypography`, `MaterialTypeRole` | the fifteen type roles of Material 3, as `const BoxTextStyle` values | [The scale](packages/unibox_material/README.md#the-scale) |
+| `MaterialPalette`, `MaterialColorRole` | the colour roles as a palette: the baseline `light` and `dark`, or one grown from a seed with `fromSeed` | [The palette and the theme](packages/unibox_material/README.md#the-palette-and-the-theme) |
+| `MaterialScaffold` | a screen: an app bar that stays, and a body under it | [The scaffold](packages/unibox_material/README.md#the-scaffold) |
+| `MaterialAppBar`, `MaterialLargeAppBar` | the top app bar, and the one with air above its headline that folds as it leaves | [The app bars](packages/unibox_material/README.md#the-app-bars) |
+| `MaterialCard` | Material's elevated surface, padded and rounded | [The card](packages/unibox_material/README.md#the-card) |
+| `MaterialListTile` | one row of a list: a leading node, a title, a subtitle and a trailing node | [The list tile](packages/unibox_material/README.md#the-list-tile) |
+| `MaterialButton` | a label on a fill, in four shapes: `filled`, `tonal`, `outlined` and `text` | [The button](packages/unibox_material/README.md#the-button) |
+| `MaterialIconButton` | one glyph in a square, with a count over its corner | [The icon button](packages/unibox_material/README.md#the-icon-button) |
+| `MaterialInkWell` | the press itself: the tints, and the ink a press spreads | [The ink well](packages/unibox_material/README.md#the-ink-well) |
+| `MaterialTabBar`, `MaterialTabs` | one row of tabs with an indicator, and that bar above the page of the chosen tab | [The tabs and the segmented button](packages/unibox_material/README.md#the-tabs-and-the-segmented-button) |
+| `MaterialSegmentedButton` | two to five choices in one divided pill | [The tabs and the segmented button](packages/unibox_material/README.md#the-tabs-and-the-segmented-button) |
+| `MaterialTextField` | a field that owns its text, its focus and whether it has been touched | [The text field](packages/unibox_material/README.md#the-text-field) |
+| `MaterialChip` | a compact choice: a pill with a label, and a node on either side | [The chip](packages/unibox_material/README.md#the-chip) |
+| `MaterialNavigationBar` | three to five destinations along the bottom edge, one of them current | [The navigation bar](packages/unibox_material/README.md#the-navigation-bar) |
+| `MaterialDialog`, `MaterialBottomSheet` | the two surfaces an `OverlayNode` presents | [The dialog and the bottom sheet](packages/unibox_material/README.md#the-dialog-and-the-bottom-sheet) |
+| `MaterialIcon` | one glyph of an icon font, centred in a 24 pixel square | [The icon](packages/unibox_material/README.md#the-icon) |
+| `MaterialCheckMark` | Material's tick, drawn from boxes, for an application that ships no icon font | [The one glyph this package draws](packages/unibox_material/README.md#the-one-glyph-this-package-draws) |
+| `MaterialProgressRing`, `MaterialSpinner` | a value as a ring of a shape, and the step that ring turns | [The circular progress indicator](packages/unibox_material/README.md#the-circular-progress-indicator) |
+| `MaterialElevation` | Material's six heights as lists of `BoxShadow` | [Elevation](packages/unibox_material/README.md#elevation) |
 
-Equal columns whose count follows the width of the box — a card grid that reflows without a
-breakpoint — **or** one row of columns whose widths you state: the same node, in the two
-forms CSS has for `grid-template-columns`.
-
-```dart
-// a card grid that reflows
-GridNode(
-  minItemWidth: 280,   // the narrowest a card may get
-  maxColumns: 3,       // the widest count; the columns keep growing instead
-  gap: 16,
-  children: cards,
-)
-
-// one row of columns, as `1fr 2fr 1fr` states them
-GridNode.columns(<int>[1, 2, 1], gap: 12, children: <UINode>[nav, main, aside])
-```
-
-| Parameter | Type | Default | Meaning |
-| --- | --- | --- | --- |
-| `minItemWidth` | `double?` | required | The narrowest a column may get in a reflowing grid. |
-| `maxColumns` | `int?` | none | Where the count stops; the columns share the width instead. |
-| `columns` | `List<int>?` | none | One flex factor per child of a stated grid, in one row. |
-| `gap` | `double` | `0` | The gutter between two columns and two rows. |
-| `crossAlign` | `CrossAlign?` | `start` | `align-items`: `stretch` makes every column as tall as the tallest. |
-| `children` | `List<UINode>` | `[]` | The cards, or the columns, in reading order. |
-
-**A stated grid is one row of columns.** Each child gets a flex factor — the number `1fr`
-takes in CSS and the one `Expanded(flex:)` takes in Flutter — and every column is as wide
-as the widest content per unit, so `[1, 2, 1]` over a `nav` of 80 and a `main` of 200 is a
-row of 100, 200 and 100. Given a width, the factors divide it. A column is the grid's
-answer and not the child's: `validateTree` reports a `flex`, a width of its own, a
-`gridSpan`, and a template whose length is not the number of children — a stated grid has
-one column per child and no second row, which is what both targets can draw.
-
-**A grid takes the width it is given and measures when it is given none.** A browser writes
-`width: 100%`, which resolves against the box the grid is in and falls back to the content
-where that box has no width; Flutter fills the width it is offered on the same terms. A
-pill of segments therefore fills the cell it was given and hugs inside a row that scrolls,
-without the tree saying which case it is in.
-
-**A reflowing grid** fits as many columns of at least `minItemWidth` as the width allows,
-caps the count at `maxColumns`, and lets the tracks share the width. The web renderer
-writes one declaration — `repeat(auto-fill, minmax(min(100%, max(280px, (100% - 32px) / 3)),
-1fr))` — and Flutter applies the same arithmetic (`columnsFor`, `cellWidthFor`) to the
-constraints it is given, so the two agree at every width: one column at 375, two at 600,
-three from 900 on, and 250 is one column of 250. Nothing in the tree reads a viewport, and
-a resize sends no request.
-
-A short last row keeps its empty tracks, because `auto-fill` creates them; a grid child
-does not size or flex itself (the same `validateTree` rules as a stated grid), and a photo
-inside a grid needs a height that is known before the file arrives.
-
-**A row can be interrupted.** A card that states `gridSpan` covers that many columns, so a
-promo banner between the cards is one grid rather than two grids that have to agree on a
-column count:
-
-```dart
-GridNode(
-  minItemWidth: 280,
-  maxColumns: 3,
-  gap: 16,
-  children: <UINode>[
-    card, card,
-    Box(gridSpan: 3, children: <UINode>[banner]),   // the whole row
-    ...cards,
-  ],
-)
-```
-
-A span wider than the grid is clamped to its column count, because the columns follow the
-width: three at 900 pixels is three tracks for a banner asking for more, and one on a
-phone. A span that does not fit what is left of a row starts the next one, leaving the rest
-of the current row empty — what a browser's `auto-flow` does. `unibox_testing` holds both
-renderers to the same placement. A stated grid has no spans: the template already says
-which column each child has.
-
-`MaterialSegmentedButton` is the component built on the stated form: a pill whose segments
-are columns of one factor each.
-
-### OverlayNode
-
-Content drawn above the page instead of in the layout of its parent: a dialog, a
-sheet, a menu. Being in the tree is being shown, so the state decides presence and
-the node decides policy:
-
-```dart
-UINode details(StoreFrontState state, StoreFrontStore store) => Box(
-  children: <UINode>[
-    const TextNode('Store front'),
-    if (state.details != null)
-      OverlayNode(
-        onDismiss: store.closeDetails,
-        child: TextNode(state.details!.name),
-      ),
-  ],
-);
-```
-
-| Parameter | Type | Default | Meaning |
-| --- | --- | --- | --- |
-| `child` | `UINode` | required | The content shown above the page. |
-| `onDismiss` | `TapCallback?` | none | Called by `Escape` and by a press on the barrier. |
-| `barrierDismissible` | `bool` | `true` | Whether a press on the barrier dismisses. |
-| `barrierColor` | `BoxColor` | black at 32% | The scrim between the page and the content. |
-| `alignment` | `OverlayAlignment` | `center` | `center`, `top` or `bottom`. |
-
-**On each target.** Flutter presents it through an `OverlayPortal` on the root
-overlay, so it escapes the clipping and scrolling of the boxes around it: a
-barrier, `Escape`, focus kept inside and handed back on exit. The web renders a
-fixed layer that holds the barrier and the content, and the interaction waits for
-the client build.
-
-**The layer is the window, and it bounds the content.** A dialog holding more than
-the window is a scroll away rather than a taller box: both targets lay the content
-out in the room the window gives and scroll the rest, so the same card is the same
-height on both — a dialog that grew past the window used to be as tall as its
-content on the web and cut off at the window in Flutter. `validateTree` reports a
-dismissible barrier with no `onDismiss`, which could not dismiss anything, and a
-content that fills its height, which the room it is drawn in has no end for.
-
-### EmbedNode
-
-The escape hatch, for what the ten nodes cannot describe: a chart from a package,
-a video player, an effect that only exists on one platform.
-
-A node carries **one implementation per renderer**, and each renderer draws the
-first one whose type it understands. Nothing in `unibox_core` names a platform, so a
-node class the library has never seen renders anywhere that can draw one of its
-payloads.
-
-```dart
-final class InkRipple extends EmbedNode {
-  const InkRipple({required super.child});
-
-  @override
-  List<Object> get implementations => <Object>[
-    (Widget child) => InkWell(child: child),                 // Flutter
-    (Component child) => div(<Component>[child], classes: 'ink'), // the web
-  ];
-}
-```
-
-| Parameter | Type | Default | Meaning |
-| --- | --- | --- | --- |
-| `implementations` | `List<Object>` | required | The payloads, one per renderer. A renderer accepts a `Widget`/`Component`, or a builder of one that wraps the child. |
-| `child` | `UINode?` | none | The content the implementations wrap, for effects. |
-
-Two conveniences cover the single-implementation case: `FlutterWidgetNode(widget)`
-in `unibox_flutter` and `HtmlEmbed(markup)` in `unibox_html`.
-
-**Worth knowing.** The payloads are platform values, so the node is usually
-declared where both types are visible, or it takes its half through a parameter its
-host supplies. An embed is the one place where the two renderings may differ, so it
-is outside the tests that hold the targets together: use it last, not first. A node
-with no implementation this target can draw — or with two of them — throws a message
-naming what the renderer accepts and what the node carries, so a mistake is loud
-instead of blank.
+The package README documents each component in full: the tokens it states, the ones it
+leaves to the platform, and the parts that stay approximate. Everything in it is a value
+or a node, so a dark theme restyles a whole screen without a parameter.
 
 ## Colours
 
@@ -1268,7 +725,7 @@ to the host that draws it.
 | **The document**: title, language, description, canonical url, structured data | Those describe a page, not a region of one. The Flutter host gives them to its `MaterialApp`, the web host to `toDocument`. |
 | **The language**: which copy the page is written in, and the addresses of its translations | Copy is a string, so it is built into the tree as a value like a colour; the locale is the host's, because a crawler can only read it from the address. A tree that read `Localizations` could not be rendered as a document at all. |
 | **The fonts** | A font file is an asset of the application, and it has to be the same file on both sides. |
-| **Effects with no common description** | That is what [`EmbedNode`](#embednode) is for. |
+| **Effects with no common description** | That is what [`EmbedNode`](docs/nodes/embed.md) is for. |
 
 The one thing a host does not choose is the name on each element: the web renderer
 always writes `data-unibox-node="…"` on the elements a node drew, because a name
@@ -1408,7 +865,7 @@ describe, and they arrive through `EmbedNode`.
 publishes it to GitHub Pages on every push to `main` — the published site is
 <https://cedvdb.github.io/unibox/> — which needs one setting first: Settings → Pages →
 Source: **GitHub Actions** (see
-[`example/README.md`](example/README.md#the-static-site)).
+[`example/README.md`](example/README.md#the-site-is-one-page)).
 
 The workspace targets Dart `^3.13.0`. Continuous integration runs the format check,
 `dart analyze`, every suite, `dart doc` for each package, the performance budget and the

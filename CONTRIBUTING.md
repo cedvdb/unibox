@@ -73,8 +73,9 @@ change, it is a broken one — the tests will tell you, which is the point.
 - **Both renderers** draw it. A look that exists on one target is the drift this
   repository exists to prevent.
 - **Every public member has a doc comment**, and the docs that describe the behaviour you
-  changed are updated in the same commit: the `README.md` tables, the package README, and
-  a bullet under `## Unreleased` in each `CHANGELOG.md` you touched.
+  changed are updated in the same commit: the node page in `docs/nodes/`, the `README.md`
+  summary, the package README, and a bullet under `## Unreleased` in each `CHANGELOG.md`
+  you touched.
 - **`tool/verify.sh` passes.**
 
 `AGENTS.md` has the file-by-file recipe for each kind of change (a `Box` token, a
@@ -127,7 +128,7 @@ changelog, and say what replaced it.
 
 ## Getting unstuck
 
-- A parameter that is not in `README.md` and not in
+- A parameter that is not in `docs/nodes/` and not in
   `packages/unibox_core/lib/src/` does not exist. That single fact resolves most
   confusion about this library, for people and for assistants.
 - `example/unibox_example_shared/lib/` is a complete application in plain Dart: a

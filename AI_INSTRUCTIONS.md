@@ -650,12 +650,13 @@ UINode buildListingsPage(SiteCopy copy) => … TextNode(copy.title) …
 
 | Need | Read |
 | --- | --- |
-| Every `Box` parameter and its default | [`README.md#box`](README.md#box) |
-| Text, typography and inheritance | [`README.md#textnode`](README.md#textnode), [`#typography`](README.md#typography) |
-| Images, links, stacks, inputs, embeds | [`#imagenode`](README.md#imagenode), [`#links`](README.md#links), [`#stacknode-and-positionednode`](README.md#stacknode-and-positionednode), [`#textinputnode`](README.md#textinputnode), [`#embednode`](README.md#embednode) |
-| A dialog, a sheet, a banner | [`#overlaynode`](README.md#overlaynode), and the policy in [`packages/unibox_core/README.md#overlays`](packages/unibox_core/README.md#overlays) |
-| State, a store and a lifecycle | [`#statefulnode`](README.md#statefulnode), and the rules in [`packages/unibox_core/README.md#state`](packages/unibox_core/README.md#state) |
-| Material type roles and components | [`packages/unibox_material/README.md`](packages/unibox_material/README.md) |
+| Every `Box` parameter and its default | [`docs/nodes/box.md`](docs/nodes/box.md) |
+| Text, typography and inheritance | [`docs/nodes/text.md`](docs/nodes/text.md), [`#typography`](README.md#typography) |
+| Images, links, stacks, inputs, embeds | [`docs/nodes/image.md`](docs/nodes/image.md), [`docs/nodes/link.md`](docs/nodes/link.md), [`docs/nodes/stack.md`](docs/nodes/stack.md), [`docs/nodes/text-input.md`](docs/nodes/text-input.md), [`docs/nodes/embed.md`](docs/nodes/embed.md) |
+| A grid: columns that follow the width, or one row of stated factors | [`docs/nodes/grid.md`](docs/nodes/grid.md) |
+| A dialog, a sheet, a banner | [`docs/nodes/overlay.md`](docs/nodes/overlay.md), and the policy in [`packages/unibox_core/README.md#overlays`](packages/unibox_core/README.md#overlays) |
+| State, a store and a lifecycle | [`docs/nodes/stateful.md`](docs/nodes/stateful.md), and the rules in [`packages/unibox_core/README.md#state`](packages/unibox_core/README.md#state) |
+| Material type roles and components | [`packages/unibox_material/README.md`](packages/unibox_material/README.md), summarised in [`README.md#material`](README.md#material) |
 | What has to look the same on both | [`packages/unibox_testing/README.md`](packages/unibox_testing/README.md) |
 | Motion, states and semantics | [`#motion`](README.md#motion), [`#semantics`](README.md#semantics) |
 | What the tree leaves to the host | [`#what-the-host-owns`](README.md#what-the-host-owns) |
