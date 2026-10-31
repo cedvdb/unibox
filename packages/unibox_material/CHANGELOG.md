@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **A button's 64 by 40 minimum is the press's, not the pill's.** `MaterialInkWell` takes
+  `minWidth` and `minHeight` and `MaterialButton` states them there, so the fill hugs a control
+  that is never smaller than the button it paints. Before, a caller's four pixels of vertical
+  room drew a 40 pixel pill around a 28 pixel control — six dead pixels above and below, a tint
+  that stopped short of the rounded ends, and a `text` button beside it behaving differently —
+  and a pinned `width` left the sides of the pill dead. A pinned size is the well's too, and a
+  label taller than the floor still grows the button. `MaterialIconButton`, `MaterialChip` and
+  `MaterialListTile` draw exactly what they did.
 - **An icon button's count no longer takes the pointer.** The badge is decoration —
   `capturesPointer: false` — so the corner it covers keeps the control's hover, hand and press
   instead of answering with an arrow and no ink. The pill looks the same: 16 tall, `error`

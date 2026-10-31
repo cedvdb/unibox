@@ -45,12 +45,17 @@ enum MaterialButtonVariant {
 /// four lines up. A disabled button is drawn at 38% and takes no ink, which is what
 /// the field does when it is disabled.
 ///
+/// **The pill is the press.** The minimum belongs to the well rather than to the fill
+/// around it, so the fill hugs a control that is never smaller than the button it
+/// paints: a caller's four pixels of vertical room still gives a 40 pixel target, and a
+/// pinned width widens the press with the pill.
+///
 /// **Every measurement is a parameter.** `padding` is the room inside the fill,
 /// `iconGap` the space between `icon` and the label, `borderRadius` the corner,
-/// `minWidth` and `height` the size the fill may not go under, and `width` an exact
+/// `minWidth` and `height` the size the press may not go under, and `width` an exact
 /// one. A minimum outranks a size on both targets — `min-width` beats `width` in CSS,
 /// and a `ConstrainedBox` in Flutter clamps the same way — so `width: 40` on a button
-/// is 64 wide on both. The label is centred in whatever the fill turns out to be,
+/// is 64 wide on both. The label is centred in whatever the press turns out to be,
 /// which is what keeps a full-width button's label in the middle of it rather than
 /// against its left edge.
 ///
@@ -344,7 +349,6 @@ final class MaterialButton extends Box {
       borderRadius: borderRadius,
       width: width,
       height: height,
-      minWidth: minWidth,
       margin: margin,
       inkWell: MaterialInkWell(
         onTap: onTap,
@@ -358,6 +362,16 @@ final class MaterialButton extends Box {
         padding: padding ?? _paddingOf(variant),
         transition: transition ?? MaterialInkWell.defaultTransition,
         semantics: semantics ?? _roleFor(onTap),
+        // The press is the size of the pill: a pinned width and height are the well's,
+        // and so is the floor, so no part of the pill is a look without a target.
+        width: width,
+        height: height,
+        minWidth: minWidth,
+        minHeight: _height,
+        // A well that is wider or taller than its label centres it, exactly as the fill
+        // used to: a 64 pixel pill centres a 46 pixel label.
+        mainAlign: MainAlign.center,
+        crossAlign: CrossAlign.center,
         child: _labelOf(
           label: label,
           icon: icon,
@@ -378,7 +392,6 @@ final class MaterialButton extends Box {
     BoxBorder? border,
     double? width,
     double? height,
-    double minWidth = _minWidth,
     required this.label,
     required UINode inkWell,
     BoxColor? fill,
@@ -395,12 +408,10 @@ final class MaterialButton extends Box {
            Box(
              width: width,
              height: height,
-             // Material's minimum — a button is 64 by 40 whatever its label says —
-             // and a minimum outranks a size on both targets, so a 40 pixel button
-             // is still 64 wide. The label is centred in the result, which is what
-             // keeps a pinned width's label in the middle instead of at its left.
-             minWidth: minWidth,
-             minHeight: _height,
+             // The minimum is the well's, not the fill's: a floor stated here would paint
+             // a pill bigger than the box that takes the press, and the ends of a button
+             // would look pressable and be dead. The fill hugs the press instead, and
+             // centres it, which is what keeps a pinned width's label in the middle.
              mainAlign: MainAlign.center,
              crossAlign: CrossAlign.center,
              backgroundColor: fill,

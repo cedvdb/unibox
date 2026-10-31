@@ -441,7 +441,14 @@ row, so a parent that stretches its children — a card's column, a grid track �
 something invisible, and the fill and the well inside it keep the size the label asks
 for. That is what keeps a hover tint the width of the button: a fill that stretched while
 its ink did not was a band with a pill at one end. Pass `width:` when a full-width button
-is what is wanted, and the fill takes exactly that.
+is what is wanted, and the press takes exactly that.
+
+**The pill is the press.** The 64 by 40 minimum belongs to the well, not to the fill
+around it, so the fill hugs a control that is never smaller than the button it paints:
+four pixels of vertical room still gives a 40 pixel target, and a pinned `width` or
+`height` is the well's too. A minimum on the fill painted a pill bigger than the box that
+answered the pointer, so the ends of a button looked pressable and were dead — on one page
+a `text` button and an `outlined` one of the same header behaved differently.
 
 Shape and states are Material's: a radius of 20 (a full round on a 40 pixel height —
 `labelLarge`'s 20 pixel line plus ten above and below), 24 by 10 of room on the three
@@ -452,7 +459,7 @@ takes the ink away and leaves the button in place.
 **All four carry the same minimum, 64 by 40.** The text shape is narrower than the
 others — 12 across rather than 24 — but it is the same height, so the four line up in a
 row; it used to be the only one that painted 36, because Material's 40 is a *minimum
-size* and not the sum of its padding. The label is centred in the fill, so a button
+size* and not the sum of its padding. The label is centred in the press, so a button
 pinned with `width:` centres its label rather than leaving it against the left edge, and
 `minWidth` and `height` are the caller's to lower or raise. A minimum outranks a size on
 both targets — `min-width` beats `width` in CSS and a `ConstrainedBox` clamps the same
@@ -547,7 +554,13 @@ Box(
 | ink | `onSurface`, 12% where the press landed, 280 pixels wide at the end, gone after 450ms |
 | role | `BoxRole.button` when it can be tapped |
 | `url` | the region is a destination instead of a callback: one `<a href>`, wherever the press is |
+| `minWidth`, `minHeight` | a floor on the shape — the box that takes the press — rather than on a fill around it |
 | `shadows`, `textStyle` | the well can be a whole surface — a card — rather than a press inside one |
+
+**A floor belongs to the shape.** `minWidth` and `minHeight` are the smallest the region
+paints, and they are stated on the box that takes the press rather than on a fill around
+it: a pill bigger than its control has ends that look pressable and are not. The floor is
+never a clamp — a label taller than it grows the region.
 
 The ripple is **state, not a renderer feature**. A press adds a drop to a
 `MaterialInkStore`, a timer advances it every frame, and the view draws one box per

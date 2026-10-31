@@ -198,6 +198,11 @@ final class MaterialInkWell
   /// in. A target needs a [height] to centre within, so it is ignored by a well that
   /// hugs its content.
   ///
+  /// [minWidth] and [minHeight] are floors on the shape — the box that takes the press —
+  /// rather than on a fill around it: a control smaller than the pill it paints has ends
+  /// that look pressable and are not, which is what Material's own minimum size prevents.
+  /// A floor never clamps: a label taller than it grows the shape.
+  ///
   /// [url] makes the region a destination rather than a callback: the anchor is wherever
   /// the press is, so the browser follows it with no runtime, a crawler reads it, and a
   /// press still ripples. [shadows] and [textStyle] are what let one well be a whole
@@ -215,6 +220,8 @@ final class MaterialInkWell
     BoxSpacing? padding,
     double? width,
     double? height,
+    double? minWidth,
+    double? minHeight,
     int? flex,
     double? borderRadius,
     BoxColor? fill,
@@ -250,6 +257,8 @@ final class MaterialInkWell
            padding: padding,
            width: width,
            height: height,
+           minWidth: minWidth,
+           minHeight: minHeight,
            flex: flex,
            borderRadius: borderRadius,
            fill: fill,
@@ -319,6 +328,8 @@ UINode _inkWellView(
   required BoxSpacing? padding,
   required double? width,
   required double? height,
+  required double? minWidth,
+  required double? minHeight,
   required int? flex,
   required double? borderRadius,
   required BoxColor? fill,
@@ -430,6 +441,10 @@ UINode _inkWellView(
       semantics: interactive ? resolvedSemantics : null,
       width: width,
       height: height,
+      // The floor belongs to the box that takes the press: a pill painted around a
+      // control smaller than itself has ends that look pressable and are not.
+      minWidth: minWidth,
+      minHeight: minHeight,
       backgroundColor: fill,
       border: border,
       shadows: shadows,

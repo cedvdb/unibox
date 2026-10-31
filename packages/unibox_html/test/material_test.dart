@@ -310,6 +310,45 @@ void main() {
         .rulesSince((classes: 0, states: 0))
         .firstWhere((String rule) => rule.startsWith('.${plan.className!}{'));
 
+    test('puts the floor on the press, not on the pill around it', () {
+      // A minimum on the fill paints a pill bigger than the box that answers the pointer, so
+      // the ends of a button look pressable and are dead. The fill hugs a press that states
+      // the floor itself.
+      final MaterialButton roomy = MaterialButton.outlined(
+        label: const core.TextNode('Sign in'),
+        padding: const core.BoxSpacing.symmetric(horizontal: 16, vertical: 4),
+        onTap: () {},
+      );
+      final MaterialButton pinned = MaterialButton.filled(
+        label: const core.TextNode('Sign in'),
+        width: 220,
+        onTap: () {},
+      );
+
+      for (final MaterialButton button in <MaterialButton>[roomy, pinned]) {
+        final Stylesheet sheet = Stylesheet();
+        final ElementPlan row = planNode(button, sheet);
+        final ElementPlan pill = row.children.single;
+        final ElementPlan press = pill.children.single;
+        final String pillRule = ruleOf(sheet, pill);
+        final String pressRule = ruleOf(sheet, press);
+
+        expect(pressRule, contains('min-width:64px'));
+        expect(pressRule, contains('min-height:40px'));
+        expect(pillRule, isNot(contains('min-width')));
+        expect(pillRule, isNot(contains('min-height')));
+      }
+
+      // A pinned width is the press's as well, or the sides of the pill are dead.
+      final Stylesheet sheet = Stylesheet();
+      final ElementPlan row = planNode(pinned, sheet);
+      final ElementPlan pill = row.children.single;
+      final ElementPlan press = pill.children.single;
+
+      expect(ruleOf(sheet, pill), contains('width:220px'));
+      expect(ruleOf(sheet, press), contains('width:220px'));
+    });
+
     test('keeps the pointer off the count and on the control', () {
       // The badge is a picture: `pointer-events: none` hands the corner it covers back to the
       // control, so the hover, the hand and the press there are the control's.

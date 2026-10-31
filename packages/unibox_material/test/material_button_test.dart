@@ -204,7 +204,10 @@ void main() {
         MaterialButton.text(label: const TextNode('d')),
       ]) {
         expect(_padding(button)!.vertical + line, 40);
-        expect(_fill(button).minHeight, 40);
+        // The floor is the press's, and the fill hugs it: a minimum on the fill would paint a
+        // pill bigger than the box that answers the pointer.
+        expect(_surface(button).minHeight, 40);
+        expect(_fill(button).minHeight, isNull);
       }
     });
 
@@ -234,13 +237,18 @@ void main() {
         height: 56,
       );
 
-      expect(_fill(natural).minWidth, 64);
-      // A parent that stretches the row must not leave the label at the left of a
-      // wider fill: the box centres what the label sizes and the well centres itself.
+      expect(_surface(natural).minWidth, 64);
+      expect(_fill(natural).minWidth, isNull);
+      // A parent that stretches the row must not leave the label at the left of a wider
+      // fill: the well centres a label it is wider than, and the fill centres the well.
+      expect(_surface(natural).mainAlign, MainAlign.center);
+      expect(_surface(natural).crossAlign, CrossAlign.center);
       expect(_fill(natural).mainAlign, MainAlign.center);
-      expect(_fill(natural).crossAlign, CrossAlign.center);
       expect(_fill(pinned).width, 240);
       expect(_fill(pinned).height, 56);
+      // A pinned size is the press's too, or the ends of the pill are a look with no target.
+      expect(_surface(pinned).width, 240);
+      expect(_surface(pinned).height, 56);
     });
 
     test('lets a caller say how far the icon sits from the label', () {
