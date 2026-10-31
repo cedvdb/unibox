@@ -21,7 +21,7 @@ Flutter or the web renderer. Renderers live in `unibox_flutter`, `unibox_css` an
 | `Store`           | the state contract a `StatefulNode` draws                     |
 | `StateStore`      | the ready made `Store`: one state value and its listeners     |
 | `BoxColor`, `BoxColors`, `BoxSpacing`, `BoxBorder`, `BoxShadow` | visual tokens            |
-| `BoxAlignment`    | where a child sits in a stack cell: nine positions                        |
+| `BoxAlignment`    | where a child sits in a stack cell: nine positions, and a `Start` or an `End` follows the writing direction |
 | `BoxShape`, `BoxPathCommand`, `BoxFillRule` | an outline a box is painted in            |
 | `BoxStyle`        | a bundle of every layout and visual token                     |
 | `BoxTextStyle`    | a bundle of typography tokens                                 |
@@ -58,6 +58,15 @@ and the difference would show:
 | `TextInputNode` chrome | none on either target: no border, padding, background, focus ring or resize grip, and the typography of the tree |
 | `StackNode` clipping | none, and a child that is not positioned keeps its own size |
 | `Box.shape` | the rectangle: a box paints its border box, and a corner radius rounds it |
+
+Writing direction is the one token with no answer in this table, and the reason is in the
+model rather than in a host: a direction belongs to the script the words are written in,
+and the model cannot read words it did not write. A box that says nothing inherits from
+the box above it, so a tree written right to left states it once, at its root — and
+`toDocument(writingDirection: …)` is the same statement for the page, written as the `dir`
+of `<html>`. Resolving a default here would either force left to right over a page that is
+correctly Arabic, or guess from a `lang` — and a language is not a direction, because
+Azerbaijani, Kurdish and Punjabi are written in both scripts.
 | `Box.gridSpan` | one track: a card covers one column, and only a grid child covers more |
 | `Box.wrap` | off: a box is one line, and a child that does not fit runs past its edge until the box says otherwise |
 | `Box.pinOffset` | zero: a pinned band keeps none of the edge it pins to (`BoxStyle.resolvedPinOffset`) |

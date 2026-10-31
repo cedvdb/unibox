@@ -7,6 +7,31 @@ enum Axis {
   vertical,
 }
 
+/// The direction writing flows in, which is what "start" and "end" mean.
+///
+/// It is not [Axis]. A row lays its children along one axis whichever way the words
+/// in it read, and the two are separate facts about one box: Arabic in a row is the
+/// same rectangle with the children packed from the other side.
+///
+/// A direction is inherited, the way typography is — CSS inherits `direction` and
+/// Flutter's `Directionality` is ambient — so a box states it once and everything
+/// inside it reads that way, unless something inside states its own. That is what
+/// makes it a property of a region rather than of the document: a quotation, a code
+/// block or a price written in the other script states the direction it is written in
+/// and the rest of the page keeps its own.
+///
+/// There is no `auto`, which is CSS's `dir="auto"`: it reads the first strong
+/// character of the text, and Flutter has no counterpart — a value only one target
+/// can honour is a bug here. A box that says nothing inherits, so "let the text
+/// decide" is the page's direction and not a third value.
+enum WritingDirection {
+  /// Writing flows from left to right: English, Dutch, Greek.
+  ltr,
+
+  /// Writing flows from right to left: Arabic, Hebrew, Persian, Urdu.
+  rtl,
+}
+
 /// Distribution of children along the main axis of a box.
 enum MainAlign {
   /// Pack children at the start of the main axis.
@@ -68,34 +93,40 @@ enum CrossAlign {
 /// two axes and no direction of its own, so a child placed in it names both. The nine
 /// positions are the corners, the edges and the middle.
 ///
+/// The names are the reading ones and not the screen's: `topStart` is the corner the
+/// words begin at — the left one in Dutch and the right one in Arabic — and every
+/// `Start` and `End` follows the writing direction of the box the child sits in. That is
+/// what CSS's `justify-content: start` means, and naming a physical corner would need a
+/// second tree per language, which is the drift the model exists to prevent.
+///
 /// It is what a floating control needs: a button pinned to the bottom centre of the
 /// surface it floats over, rather than at offsets that suit one window.
 enum BoxAlignment {
-  /// The top left corner.
+  /// The corner at the start of the top edge.
   topStart,
 
-  /// The top edge, centred.
+  /// The middle of the top edge.
   topCenter,
 
-  /// The top right corner.
+  /// The corner at the end of the top edge.
   topEnd,
 
-  /// The left edge, centred.
+  /// The middle of the start edge.
   centerStart,
 
   /// The middle.
   center,
 
-  /// The right edge, centred.
+  /// The middle of the end edge.
   centerEnd,
 
-  /// The bottom left corner.
+  /// The corner at the start of the bottom edge.
   bottomStart,
 
-  /// The bottom edge, centred.
+  /// The middle of the bottom edge.
   bottomCenter,
 
-  /// The bottom right corner.
+  /// The corner at the end of the bottom edge.
   bottomEnd,
 }
 

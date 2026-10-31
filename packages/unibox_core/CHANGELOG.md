@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+- A style that names a role colour keeps every other token when it is resolved. `BoxStyle.resolve`
+  rebuilds the style field by field, and it had stopped carrying `wrap`, `pin`, `pinOffset`,
+  `aspectRatio` and `fold` — so a themed box lost its wrap, its pin and its fold in Flutter, the
+  one target that resolves, and kept them in the browser. The list is now written in the order of
+  the class, and a test resolves a style that names every token a box has.
+- `BoxAlignment` says what its names mean: `topStart` is the corner the words begin at, not the
+  left one, and every `Start` and `End` follows the writing direction of the box the child sits
+  in. The behaviour was already that on the web; the Flutter renderer now matches (see the
+  `unibox_flutter` changelog).
+
+- `WritingDirection` and `Box(writingDirection: …)`: a box states the direction the words flow
+  in, and everything inside it inherits it, so one tree reads in Arabic or in Dutch without a
+  second tree. `rtl` packs a row from the other side and carries every `start`/`end` with it. The
+  token has no default on purpose — a box that says nothing inherits, and the page states the
+  root — because a language is not a direction and the model cannot read the script of words it
+  did not write. `BoxStyle(writingDirection: …)` is the bag spelling, and a flat parameter wins
+  over it like every other token.
+
 - `Box(fold: BoxFold(to: …, over: …, curve: …))` is a look that arrives as the box leaves the
   box that scrolls it: the reader's scroll is the clock, so a hero fades and shrinks as a
   toolbar comes up under it. It is paint only — the background, the border colour, the radius,

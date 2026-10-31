@@ -93,6 +93,10 @@ CLASSIFIED = {
         'visibleFrom': 'the width a box is drawn at, and the appearance describes a box at no '
         'particular width',
         'visibleUntil': 'the width a box stops being drawn at, for the same reason',
+        'writingDirection': 'the direction the words flow in, which decides where the '
+        'children of a row land rather than how the box is painted: the appearance '
+        'describes one box, so the two renderer suites pump a row and read the children '
+        'back instead, and the page states the same value as the `dir` attribute',
     },
     # Every text token but one is in `TextAppearance`; a token that is not has a place to be
     # explained here.

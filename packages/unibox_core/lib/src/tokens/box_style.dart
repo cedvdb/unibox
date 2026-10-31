@@ -17,9 +17,11 @@ import 'unibox_theme.dart';
 /// parameters on top of a style with [merge], so flat parameters always win
 /// over matching style tokens.
 ///
-/// A [textStyle] is the one exception to "a box styles itself": typography is
-/// inherited by the descendants of the box, the way CSS font properties and
-/// Flutter's `DefaultTextStyle` are. Every other token only affects the box.
+/// A [textStyle] and a [writingDirection] are the exceptions to "a box styles
+/// itself": typography and the direction writing flows in are inherited by the
+/// descendants of the box, the way CSS inherits font properties and `direction` and
+/// Flutter's `DefaultTextStyle` and `Directionality` are ambient. Every other token
+/// only affects the box.
 ///
 /// ```dart
 /// const cardStyle = BoxStyle(
@@ -33,6 +35,7 @@ final class BoxStyle {
   /// Creates a style bundle. Unspecified tokens stay `null`.
   const BoxStyle({
     this.direction,
+    this.writingDirection,
     this.mainAlign,
     this.crossAlign,
     this.gap,
@@ -87,6 +90,22 @@ final class BoxStyle {
   /// of a child from silently doing nothing on a box that never named a
   /// direction.
   Axis get resolvedDirection => direction ?? Axis.vertical;
+
+  // Writing.
+
+  /// The direction writing flows in, inherited by the descendants of the box.
+  ///
+  /// Unset means "not specified", and it is the one token whose unset answer is not
+  /// written here. A direction is a property of the script the words are written in,
+  /// and the model cannot read the words it did not write, so resolving a default
+  /// would do one of two wrong things: force left to right over a page that is
+  /// correctly Arabic, or guess from a `lang`, and a language is not a direction —
+  /// Azerbaijani, Kurdish and Punjabi are written both ways. A box that states
+  /// nothing therefore inherits from the closest box above it that states one, and a
+  /// tree that states none anywhere writes in the direction of the page: the `dir`
+  /// of the document on the web, and the application's own `Directionality` in
+  /// Flutter. A tree that is written right to left states it once, at its root.
+  final WritingDirection? writingDirection;
 
   /// Distribution of the children along the main axis.
   final MainAlign? mainAlign;
@@ -360,18 +379,28 @@ final class BoxStyle {
 
     final BoxColor? background = backgroundColor;
 
+    // Every token is carried across. The fields are easy to lose one at a time — a style that
+    // resolves a role colour and drops a token keeps it in the browser and loses it in the
+    // application, because Flutter is the only target that resolves — so the list is written
+    // in the order of the class and `test/tokens_test.dart` resolves a style that names every
+    // token a box has.
     return BoxStyle(
       direction: direction,
+      writingDirection: writingDirection,
       mainAlign: mainAlign,
       crossAlign: crossAlign,
       gap: gap,
+      wrap: wrap,
       flex: flex,
       gridSpan: gridSpan,
       overflow: overflow,
       snap: snap,
       page: page,
+      pin: pin,
+      pinOffset: pinOffset,
       width: width,
       height: height,
+      aspectRatio: aspectRatio,
       widthFraction: widthFraction,
       heightFraction: heightFraction,
       minWidth: minWidth,
@@ -390,6 +419,7 @@ final class BoxStyle {
       shape: shape,
       textStyle: textStyle?.resolve(theme),
       transition: transition,
+      fold: fold,
       opacity: opacity,
       transform: transform,
       visibleFrom: visibleFrom,
@@ -405,6 +435,7 @@ final class BoxStyle {
   /// tokens.
   BoxStyle copyWith({
     Axis? direction,
+    WritingDirection? writingDirection,
     MainAlign? mainAlign,
     CrossAlign? crossAlign,
     double? gap,
@@ -443,6 +474,7 @@ final class BoxStyle {
   }) {
     return BoxStyle(
       direction: direction ?? this.direction,
+      writingDirection: writingDirection ?? this.writingDirection,
       mainAlign: mainAlign ?? this.mainAlign,
       crossAlign: crossAlign ?? this.crossAlign,
       gap: gap ?? this.gap,
@@ -496,6 +528,7 @@ final class BoxStyle {
     }
     return BoxStyle(
       direction: other.direction ?? direction,
+      writingDirection: other.writingDirection ?? writingDirection,
       mainAlign: other.mainAlign ?? mainAlign,
       crossAlign: other.crossAlign ?? crossAlign,
       gap: other.gap ?? gap,
@@ -538,6 +571,7 @@ final class BoxStyle {
   bool operator ==(Object other) =>
       other is BoxStyle &&
       other.direction == direction &&
+      other.writingDirection == writingDirection &&
       other.mainAlign == mainAlign &&
       other.crossAlign == crossAlign &&
       other.gap == gap &&
@@ -577,6 +611,7 @@ final class BoxStyle {
   @override
   int get hashCode => Object.hashAll(<Object?>[
     direction,
+    writingDirection,
     mainAlign,
     crossAlign,
     gap,
@@ -616,6 +651,7 @@ final class BoxStyle {
   String toString() {
     final tokens = <String>[
       if (direction != null) 'direction: $direction',
+      if (writingDirection != null) 'writingDirection: $writingDirection',
       if (mainAlign != null) 'mainAlign: $mainAlign',
       if (crossAlign != null) 'crossAlign: $crossAlign',
       if (gap != null) 'gap: $gap',

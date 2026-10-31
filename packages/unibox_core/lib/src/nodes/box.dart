@@ -45,6 +45,7 @@ class Box extends UINode {
     super.key,
     this.children = const <UINode>[],
     this.direction,
+    this.writingDirection,
     this.mainAlign,
     this.crossAlign,
     this.gap,
@@ -106,6 +107,19 @@ class Box extends UINode {
   /// shape of the tree between Flutter and the web. See
   /// [BoxStyle.resolvedDirection].
   final Axis? direction;
+
+  /// The direction writing flows in, for this box and everything inside it.
+  ///
+  /// A row packs its children from the side the words start on, so a page translated
+  /// into Arabic reverses without a second tree, and a text's alignment means the same
+  /// edge on either side. It is not [direction]: the children of a row are laid out
+  /// along one axis whichever way the words in it read.
+  ///
+  /// Unset means "not specified": the box writes in the direction of the closest box
+  /// above it that states one, and a tree that states none anywhere writes in the
+  /// direction of the page. Typography and this are the only two tokens a box hands
+  /// down to its descendants, which is what CSS and Flutter each do with them.
+  final WritingDirection? writingDirection;
 
   /// Distribution of children along the main axis.
   final MainAlign? mainAlign;
@@ -455,6 +469,7 @@ class Box extends UINode {
   /// The flat parameters of this box as a style overlay.
   BoxStyle get _flatStyle => BoxStyle(
     direction: direction,
+    writingDirection: writingDirection,
     mainAlign: mainAlign,
     crossAlign: crossAlign,
     gap: gap,

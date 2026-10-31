@@ -4,6 +4,18 @@ import 'package:unibox_core/unibox_core.dart';
 /// One role, so the resolve test can watch a theme answer it.
 enum _ShapeColor { surface }
 
+/// The roles the resolution test names, one per colour a style can carry.
+enum _ThemedColor { surface, outline, ink }
+
+/// The theme those roles answer to.
+const UniboxTheme _themed = UniboxTheme(
+  colors: <Enum, BoxColor>{
+    _ThemedColor.surface: BoxColor(0xFFFEF7FF),
+    _ThemedColor.outline: BoxColor(0xFF79747E),
+    _ThemedColor.ink: BoxColor(0xFF1D1B20),
+  },
+);
+
 void main() {
   group('BoxColor', () {
     test('exposes the channels of a raw ARGB value', () {
@@ -231,6 +243,46 @@ void main() {
       expect(
         const BoxStyle(direction: Axis.horizontal).resolvedDirection,
         Axis.horizontal,
+      );
+    });
+
+    test('leaves the writing direction unset rather than guessing one', () {
+      // There is no resolved getter, and that is the decision: a direction belongs to the
+      // script the words are written in, and the model cannot read words it did not write.
+      // A box that says nothing inherits, so guessing `ltr` here would force it over a page
+      // that is correctly Arabic and a guess from `lang` would be wrong for the languages
+      // written in both scripts.
+      expect(const BoxStyle().writingDirection, isNull);
+    });
+
+    test('carries the direction the words flow in', () {
+      const style = BoxStyle(writingDirection: WritingDirection.rtl);
+
+      expect(style.copyWith().writingDirection, WritingDirection.rtl);
+      expect(style, const BoxStyle(writingDirection: WritingDirection.rtl));
+      expect(
+        style,
+        isNot(const BoxStyle(writingDirection: WritingDirection.ltr)),
+        reason:
+            'two directions are two styles, or a class name would be shared',
+      );
+      expect(
+        style.toString(),
+        contains('writingDirection: WritingDirection.rtl'),
+      );
+      // An overlay wins, like every other token: the page states one, the region another.
+      expect(
+        style
+            .merge(const BoxStyle(writingDirection: WritingDirection.ltr))
+            .writingDirection,
+        WritingDirection.ltr,
+      );
+      expect(
+        const BoxStyle()
+            .merge(const BoxStyle(writingDirection: WritingDirection.rtl))
+            .writingDirection,
+        WritingDirection.rtl,
+        reason: 'a style that says nothing does not clear the one below it',
       );
     });
 
@@ -1076,6 +1128,74 @@ void main() {
       expect(resolved.shape, hexagon);
       expect(resolved.corners, style.corners);
       expect(resolved.visibleFrom, 600);
+    });
+  });
+
+  group('BoxStyle resolve', () {
+    test('looks the colours up and changes nothing else', () {
+      // `resolve` rebuilds the style field by field, and only the Flutter renderer calls it,
+      // so a field it forgets is a token a themed box keeps in the browser and loses in the
+      // app. This style names every token a box has, so the comparison below covers all of
+      // them: the expected value is the same style with the four colours looked up.
+      const BoxStyle style = BoxStyle(
+        direction: Axis.horizontal,
+        writingDirection: WritingDirection.rtl,
+        mainAlign: MainAlign.end,
+        crossAlign: CrossAlign.center,
+        gap: 4,
+        wrap: true,
+        flex: 2,
+        gridSpan: 3,
+        overflow: Overflow.scroll,
+        snap: ScrollSnap.page,
+        page: 1,
+        pin: BoxPin.start,
+        pinOffset: 6,
+        width: 10,
+        height: 11,
+        aspectRatio: 1.5,
+        widthFraction: 0.5,
+        heightFraction: 0.25,
+        minWidth: 1,
+        maxWidth: 100,
+        minHeight: 2,
+        maxHeight: 200,
+        padding: BoxSpacing.all(3),
+        margin: BoxSpacing.all(4),
+        backgroundColor: BoxColor.role(_ThemedColor.surface),
+        borderRadius: 5,
+        corners: BoxBorderRadius(topLeft: 3),
+        border: BoxBorder(color: BoxColor.role(_ThemedColor.outline)),
+        shadows: <BoxShadow>[
+          BoxShadow(color: BoxColor.role(_ThemedColor.surface)),
+        ],
+        shape: BoxShape.circle,
+        textStyle: BoxTextStyle(
+          fontSize: 13,
+          color: BoxColor.role(_ThemedColor.ink),
+        ),
+        transition: BoxTransition(duration: Duration(milliseconds: 120)),
+        fold: BoxFold(to: BoxStyle(opacity: 0)),
+        opacity: 0.5,
+        transform: BoxTransform(scale: 1.1),
+        visibleFrom: 600,
+        visibleUntil: 900,
+      );
+
+      expect(
+        style.resolve(_themed),
+        style.copyWith(
+          backgroundColor: const BoxColor(0xFFFEF7FF),
+          border: const BoxBorder(color: BoxColor(0xFF79747E)),
+          shadows: const <BoxShadow>[BoxShadow(color: BoxColor(0xFFFEF7FF))],
+          textStyle: const BoxTextStyle(
+            fontSize: 13,
+            color: BoxColor(0xFF1D1B20),
+          ),
+        ),
+        reason:
+            'a role is looked up, and every other token is carried as it was',
+      );
     });
   });
 }

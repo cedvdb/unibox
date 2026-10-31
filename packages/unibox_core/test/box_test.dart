@@ -50,6 +50,34 @@ void main() {
       );
     });
 
+    test(
+      'reaches the writing direction from the flat parameter, and that wins',
+      () {
+        const Box box = Box(
+          writingDirection: WritingDirection.rtl,
+          styles: <BoxStyle>[BoxStyle(writingDirection: WritingDirection.ltr)],
+        );
+
+        expect(box.computedStyle.writingDirection, WritingDirection.rtl);
+        expect(
+          const Box(
+            styles: <BoxStyle>[
+              BoxStyle(writingDirection: WritingDirection.rtl),
+            ],
+          ).computedStyle.writingDirection,
+          WritingDirection.rtl,
+          reason:
+              'a bag still reaches the token when no flat parameter names it',
+        );
+        expect(
+          const Box().computedStyle.writingDirection,
+          isNull,
+          reason:
+              'the box says nothing, and neither does the model on its behalf',
+        );
+      },
+    );
+
     test('exposes children in order', () {
       const box = Box(children: [TextNode('a'), TextNode('b')]);
 

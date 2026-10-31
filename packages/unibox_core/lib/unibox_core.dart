@@ -7,8 +7,8 @@
 /// The public API is composed of:
 /// * style tokens ([BoxColor], [BoxColors], [BoxSpacing], [BoxStyle],
 ///   [BoxBorder], [BoxShadow]),
-/// * layout enums ([Axis], [MainAlign], [CrossAlign], [Overflow], [ImageFit],
-///   [FontWeight], [TextAlign], [TextOverflow]),
+/// * layout enums ([Axis], [WritingDirection], [MainAlign], [CrossAlign], [Overflow],
+///   [ImageFit], [FontWeight], [TextAlign], [TextOverflow]),
 /// * the immutable node tree rooted in [UINode]: [Box], [TextNode],
 ///   [ImageNode], [StackNode], [PositionedNode],
 ///   [TextInputNode], [OverlayNode] and [StatefulNode], which adds a subtree
