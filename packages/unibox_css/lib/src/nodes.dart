@@ -76,15 +76,46 @@ CssDeclarations imageDeclarations(core.ImageNode node) {
     ..add('object-fit', cssObjectFit(node.resolvedFit));
 }
 
-/// The declarations of a grid.
+/// The declarations of a grid, in either of its two forms.
 ///
-/// The grid takes the width it is given, because the tracks are counted from it — which
-/// is what the Flutter renderer does with the constraints of the same box. A block-level
-/// grid already fills its parent, but a box aligns its children to the start by default
-/// and a flex item that is not stretched shrinks to fit, where `auto-fill` would then
-/// find room for exactly one column.
+/// A grid that states its columns writes one explicit `minmax(0, Nfr)` track per child — the
+/// `1fr 2fr 1fr` of the CSS specification, which a browser equalises in an intrinsic sizing
+/// pass and divides a definite width between. A grid that reflows writes `auto-fill`, and
+/// the tracks are counted from the width, which is what the Flutter renderer does with the
+/// constraints of the same box.
+///
+/// Both forms state `width: 100%`: a block-level grid fills its parent, and a flex item that
+/// is not stretched shrinks to fit — where `auto-fill` would then find room for exactly one
+/// column, and a row of stated columns would hug its content. The percentage falls back to
+/// `auto` against a box with no width yet, so a grid inside a row that scrolls hugs.
 CssDeclarations gridDeclarations(core.GridNode node) {
-  final String minimum = cssPixels(node.minItemWidth);
+  final CssDeclarations declarations = CssDeclarations()
+    ..add('display', 'grid')
+    // The whole of the width rule, in both forms: `100%` resolves against the box the grid
+    // is in, and a percentage against a box with no width yet is `auto`, which is the
+    // content. A pill of segments therefore fills the cell it was given and hugs inside a
+    // row that scrolls, without the tree saying which case it is in.
+    ..add('width', '100%')
+    ..add('min-width', '0')
+    ..addIf('gap', node.gap > 0 ? cssPixels(node.gap) : null)
+    // Written even when the node states none, because the model's answer is `start` and a
+    // browser's is to stretch every column to the tallest.
+    ..add('align-items', cssAlignItems(node.resolvedCrossAlign));
+  final List<int>? columns = node.columns;
+
+  if (columns != null) {
+    // One explicit track per column, with a floor of zero: a column is a part of the width
+    // the grid was handed, so a row shrinks into a parent narrower than its columns
+    // instead of overflowing it with the longest word.
+    return declarations..add(
+      'grid-template-columns',
+      columns
+          .map((int flex) => 'minmax(0, ${cssNumber(flex.toDouble())}fr)')
+          .join(' '),
+    );
+  }
+
+  final String minimum = cssPixels(node.minItemWidth!);
   final int? cap = node.maxColumns;
   final String tracks;
 
@@ -99,13 +130,7 @@ CssDeclarations gridDeclarations(core.GridNode node) {
     tracks = 'repeat(auto-fill, minmax(min(100%, max($minimum, $share)), 1fr))';
   }
 
-  return CssDeclarations()
-    ..add('display', 'grid')
-    ..add('width', '100%')
-    ..add('min-width', '0')
-    ..addIf('gap', node.gap > 0 ? cssPixels(node.gap) : null)
-    ..add('align-items', 'start')
-    ..add('grid-template-columns', tracks);
+  return declarations..add('grid-template-columns', tracks);
 }
 
 /// The declarations of a stack.

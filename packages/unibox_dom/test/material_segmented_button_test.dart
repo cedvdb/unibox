@@ -11,7 +11,8 @@ import 'support/document.dart';
 
 /// How wide a browser makes the shares of a segmented button.
 ///
-/// The tree states the rule — a row of `equalShares` — and only a browser resolves it:
+/// The tree states the rule — a grid with one column per segment — and only a browser
+/// resolves it:
 /// a track that is as wide as the widest segment when the pill has no width to divide,
 /// and an equal part of the width when it has one. The numbers a reader meets are layout,
 /// so they are read back off the elements rather than off the stylesheet.
@@ -40,13 +41,16 @@ void main() {
   /// The pill a [view] of one control drew: the root element's only child.
   web.Element controlOf(DomView view) => child(view.element);
 
+  /// The row of shares inside that pill, which is the grid the segments sit in.
+  web.Element rowOf(DomView view) => child(controlOf(view));
+
   /// The widths of the segments of [view]'s pill, in reading order.
   List<double> sharesOf(DomView view) {
-    final web.Element control = controlOf(view);
+    final web.Element row = rowOf(view);
 
     return <double>[
-      for (int i = 0; i < control.children.length; i++)
-        child(control, i).getBoundingClientRect().width,
+      for (int i = 0; i < row.children.length; i++)
+        child(row, i).getBoundingClientRect().width,
     ];
   }
 

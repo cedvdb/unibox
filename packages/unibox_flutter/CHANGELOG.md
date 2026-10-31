@@ -14,11 +14,12 @@
   container's alignment then places; claiming the whole line left that alignment nothing to
   move, so a centred band's 1080-pixel column was drawn against the row's leading edge.
 
-- A row whose style states `equalShares` is a `Row` of `Expanded` children inside an
+- A grid that states its columns is a `Row` of `Expanded` children at their factors inside an
   `IntrinsicWidth`: every child is measured at its max intrinsic width and laid out at the widest
-  one, which is the arithmetic Material's own segmented control uses. A parent with less room than
-  that divides what it has between the shares, so a label too long for its share is cut rather
-  than widening the row, and a child the width does not draw keeps no share.
+  content per unit, which is the arithmetic Material's own segmented control uses. A parent with
+  less room divides what it has between the columns, so a label too long for its column is cut
+  rather than widening the grid, a child the width does not draw keeps no column, and
+  `CrossAlign.stretch` measures the height too, so every column can be as tall as the tallest.
 - An aligned `PositionedNode` child follows the writing direction, as the browser's class always
   did: `Align` was given `Alignment.centerRight` for a `centerEnd` child, so in a page written
   right to left the row mirrored and the control floating over it did not. It is now an

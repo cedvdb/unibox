@@ -56,67 +56,59 @@ void main() {
     });
   });
 
-  group('a box of equal shares', () {
-    test('is one auto-column grid of equal tracks', () {
-      final CssDeclarations declarations = boxDeclarations(
-        const core.BoxStyle(direction: core.Axis.horizontal, equalShares: true),
-      );
-
-      // A browser equalises `fr` tracks in an intrinsic sizing pass and divides a definite
-      // width between them, which is the whole of the rule — the Flutter renderer reaches
-      // the same answer by measuring the children, so no track width is written here.
-      expect(declarations['display'], 'grid');
-      expect(declarations['grid-auto-flow'], 'column');
-      expect(
-        declarations['grid-auto-columns'],
-        'minmax(0, 1fr)',
-        reason:
-            'a floor of zero is what lets a share shrink into a parent too narrow for '
-            'the widest child, which is what Flutter does with the width it clamps',
-      );
-      expect(
-        declarations.has('flex-direction'),
-        isFalse,
-        reason: 'a grid has no main axis for a flex direction to name',
-      );
-    });
-
-    test('keeps the gap and both alignments, which a grid reads as well', () {
-      final CssDeclarations declarations = boxDeclarations(
-        const core.BoxStyle(
-          direction: core.Axis.horizontal,
-          equalShares: true,
-          gap: 8,
-          crossAlign: core.CrossAlign.stretch,
-          mainAlign: core.MainAlign.center,
+  group('a grid that states its columns', () {
+    test('is one explicit track per column, as 1fr 2fr 1fr states them', () {
+      final CssDeclarations declarations = gridDeclarations(
+        const core.GridNode.columns(
+          <int>[1, 2, 1],
+          gap: 12,
+          children: <core.UINode>[core.Box(), core.Box(), core.Box()],
         ),
       );
 
-      expect(declarations['gap'], '8px');
-      expect(declarations['align-items'], 'stretch');
-      expect(declarations['justify-content'], 'center');
+      expect(declarations['display'], 'grid');
+      expect(
+        declarations['grid-template-columns'],
+        'minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr)',
+        reason:
+            'a floor of zero is what lets a column shrink into a parent too narrow '
+            'for the widest one, which is what Flutter does with the width it clamps',
+      );
+      expect(declarations['gap'], '12px');
+
+      // One width rule for both forms: the percentage is the box the grid is in, and
+      // `auto` where that box has no width yet.
+      expect(declarations['width'], '100%');
     });
 
-    test('is a flex container again when it is a column', () {
-      // A share is a width divided between the children, and only a row divides one: the
-      // token on a column is a tree `validateTree` reports, and the web draws it as the
-      // column it would have been.
-      final CssDeclarations declarations = boxDeclarations(
-        const core.BoxStyle(equalShares: true),
+    test('starts its columns unless the node stretches them', () {
+      // A grid stretches its items by default and the column's height is the model's to
+      // place: an unset alignment is `start`, which is written rather than left to the
+      // browser.
+      expect(
+        gridDeclarations(const core.GridNode.columns(<int>[1]))['align-items'],
+        'start',
       );
-
-      expect(declarations['display'], 'flex');
-      expect(declarations.has('grid-auto-columns'), isFalse);
+      expect(
+        gridDeclarations(
+          const core.GridNode.columns(<int>[
+            1,
+          ], crossAlign: core.CrossAlign.stretch),
+        )['align-items'],
+        'stretch',
+      );
     });
 
-    test('leaves the grid out of a state rule', () {
-      final CssDeclarations declarations = boxDeclarations(
-        const core.BoxStyle(direction: core.Axis.horizontal, equalShares: true),
-        declaredOnly: true,
+    test('keeps the reflowing grid as it was', () {
+      final CssDeclarations declarations = gridDeclarations(
+        const core.GridNode(minItemWidth: 200, gap: 16, maxColumns: 3),
       );
 
-      expect(declarations.has('display'), isFalse);
-      expect(declarations.has('grid-auto-columns'), isFalse);
+      expect(
+        declarations['grid-template-columns'],
+        contains('repeat(auto-fill'),
+      );
+      expect(declarations['align-items'], 'start');
     });
   });
 

@@ -90,26 +90,50 @@ void main() {
       );
     });
 
-    test('is one auto-column grid when its children are equal shares', () {
-      // The row states the rule and the browser resolves it: every child is a track of the
-      // same size, the widest child's max content when the row has no width to divide and
-      // an equal part of it when it has one.
+    test('states one track per column when the grid states them', () {
+      // The node states the rule and the browser resolves it: one track per column, with a
+      // floor of zero so a column shrinks with the rest instead of overflowing the row.
       final String html = toHtml(
-        const core.Box(
-          direction: core.Axis.horizontal,
-          equalShares: true,
-          children: <core.UINode>[core.TextNode('Day'), core.TextNode('Week')],
+        const core.GridNode.columns(
+          <int>[1, 2, 1],
+          children: <core.UINode>[
+            core.TextNode('Day'),
+            core.TextNode('Week'),
+            core.TextNode('Month'),
+          ],
         ),
       );
 
       expect(html, contains('display:grid'));
-      expect(html, contains('grid-auto-flow:column'));
-      expect(html, contains('grid-auto-columns:minmax(0, 1fr)'));
       expect(
         html,
-        isNot(contains('flex-direction')),
-        reason: 'a grid has no main axis for a flex direction to name',
+        contains(
+          'grid-template-columns:minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr)',
+        ),
       );
+      expect(
+        html,
+        contains('align-items:start'),
+        reason: 'the model starts a column where a browser would stretch it',
+      );
+    });
+
+    test('is not the element a grid is', () {
+      // A box is a flex container on both targets and a grid is a node of its own: the two
+      // are different layouts, not one box with another property.
+      final String html = toHtml(
+        const core.Box(
+          children: <core.UINode>[
+            core.GridNode.columns(
+              <int>[1],
+              children: <core.UINode>[core.TextNode('Day')],
+            ),
+          ],
+        ),
+      );
+
+      expect(html, contains('display:flex'));
+      expect(html, contains('data-unibox-node="grid"'));
     });
 
     test('runs a fold on the box itself, from a block the page carries', () {

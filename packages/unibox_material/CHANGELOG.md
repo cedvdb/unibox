@@ -9,9 +9,9 @@
   and 109 — a button beside a visibly heavier one inside a single pill — where the screen it
   replaces, drawn with Material's own `SegmentedButton` in Flutter, measures 151 and 147 in a 298
   pixel pill: the control hugs its content, and every segment is the widest label's width. The
-  pill is now a row of `equalShares`: every segment is as wide as the widest one, the control hugs
-  at the count of them when it has no width to divide (125 and 125 in that 250 pixel pill), and a
-  width still divides equally. A label longer than its share is cut — one line, an ellipsis —
+  pill is now a box around a grid of one column per segment: every segment is as wide as the
+  widest one, the control hugs at the count of them when it has no width to divide (125 and 125 in
+  that 250 pixel pill), and a width still divides equally. A label longer than its share is cut — one line, an ellipsis —
   which is now reached only by a parent narrower than the segments rather than by a label longer
   than its neighbour. The hairline between two segments is drawn inside the segment it opens and
   layered over it, so it takes no room from any share and the label stays centred on its own.

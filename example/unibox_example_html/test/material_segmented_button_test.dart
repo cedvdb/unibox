@@ -35,14 +35,14 @@ void main() {
     onSelect: (int index) {},
   );
 
-  /// The declarations of the class the pill itself wears.
+  /// The declarations of the class an element of [node] wears.
   ///
-  /// The document is a sheet of hashed classes, so the pill's own rule is found through
-  /// the element that names it: a test about the layout of this control must not read the
-  /// declarations of the boxes inside it.
-  String pillDeclarations(String html) {
+  /// The document is a sheet of hashed classes, so a rule is found through the element that
+  /// names it: a test about the layout of this control must not read the declarations of
+  /// the boxes around it.
+  String declarationsOf(String html, String node) {
     final RegExpMatch element = RegExp(
-      r'class="(unibox-box-[0-9a-f]+)" data-unibox-node="material-segmented-button"',
+      'class="(unibox-[a-z]+-[0-9a-f]+)" data-unibox-node="$node"',
     ).firstMatch(html)!;
     final String name = RegExp.escape(element.group(1)!);
 
@@ -50,22 +50,27 @@ void main() {
   }
 
   group('a segmented button', () {
-    test('divides itself into equal shares, whatever the labels say', () {
+    test('states one column per segment, whatever the labels say', () {
       for (final String html in <String>[
         render(button()),
         render(button(width: 216)),
       ]) {
-        // One grid, one track per child, each track an equal part of the row: the rule
-        // that makes a two choice control two halves rather than two buttons. A grid has
-        // no flex direction, and the shares are what say how the row is divided.
-        final String pill = pillDeclarations(html);
+        // One grid, one track per segment, every track of one factor: the rule that makes
+        // a two choice control two halves rather than two buttons. The grid is the row of
+        // columns; the pill around it is a plain box.
+        final String grid = declarationsOf(html, 'grid');
 
-        expect(pill, contains('display:grid'));
-        expect(pill, contains('grid-auto-flow:column'));
-        expect(pill, contains('grid-auto-columns:minmax(0, 1fr)'));
-        expect(pill, isNot(contains('flex-direction')));
+        expect(grid, contains('display:grid'));
+        expect(
+          grid,
+          contains('grid-template-columns:minmax(0, 1fr) minmax(0, 1fr)'),
+        );
+        expect(
+          declarationsOf(html, 'material-segmented-button'),
+          contains('display:flex'),
+        );
 
-        // Every segment fills the share it is given, which is what puts the fill and the
+        // Every segment fills the column it is given, which is what puts the fill and the
         // tint across the whole segment rather than around its label.
         expect(html, contains('width:100%'));
       }

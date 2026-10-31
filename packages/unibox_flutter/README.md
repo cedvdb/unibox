@@ -35,7 +35,6 @@ with their target.
 | no `direction`                      | `Column`, the same as `Axis.vertical`              |
 | `writingDirection`                  | a `Directionality` around the flex, so the row itself reverses |
 | `gap`                               | `SizedBox` separators between children              |
-| `equalShares`                      | a `Row` of `Expanded` children inside an `IntrinsicWidth`, so every share is the widest child's max content and a width the parent gives is divided |
 | `mainAlign` / `crossAlign`          | `mainAxisAlignment` / `crossAxisAlignment`, with `textBaseline` stated |
 | `crossAlign: CrossAlign.baseline`   | `CrossAxisAlignment.baseline` with `TextBaseline.alphabetic` |
 | `padding` / `margin`                | inner / outer `Padding`                             |
@@ -45,6 +44,7 @@ with their target.
 | `backgroundColor`, `borderRadius`, `border` | `DecoratedBox` with a `BoxDecoration` |
 | `shadows`                           | a `CustomPaint` behind the box, painting each entry of the decoration's `boxShadow` clipped to the outside of the box — which is what CSS does, so a hairline is one pixel and a box with no fill does not paint its own rectangle |
 | `overflow: Overflow.hidden`         | `ClipRect`, inside the decoration so the shadow survives |
+| `GridNode.columns`                  | a `Row` of `Expanded` children at their factors inside an `IntrinsicWidth`, so a column is the widest content per unit and a width the grid was given is divided; `CrossAlign.stretch` adds an `IntrinsicHeight` |
 | `PositionedNode.alignment`          | `Positioned.fill` around an `Align`, with a directional alignment so a start or an end follows the writing direction |
 | `shape`                            | `CustomPaint` with a `Path`: the fill, then the border as a stroke along it |
 | `shape` + `overflow: Overflow.hidden` | `ClipPath` to the same path                       |

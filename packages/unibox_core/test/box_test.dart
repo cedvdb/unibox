@@ -129,7 +129,6 @@ void main() {
         crossAlign: CrossAlign.stretch,
         gap: 4,
         wrap: true,
-        equalShares: true,
         flex: 2,
         gridSpan: 2,
         overflow: Overflow.hidden,
@@ -154,7 +153,6 @@ void main() {
       expect(computed.crossAlign, CrossAlign.stretch);
       expect(computed.gap, 4);
       expect(computed.wrap, isTrue);
-      expect(computed.equalShares, isTrue);
       expect(computed.flex, 2);
       expect(computed.gridSpan, 2);
       expect(computed.overflow, Overflow.hidden);

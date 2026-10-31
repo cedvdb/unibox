@@ -969,59 +969,72 @@ What that buys, stated as the invariants the feature has to keep:
   a physical corner, and a gap for a `padding` that means "the reading start". Adding those
   values is a change to the vocabulary rather than to this token, and it is the next one.
 
-### 5.21 Equal shares are a row's rule, not a component's
+### 5.21 A grid is one node with two track rules
 
-`Box(equalShares: true)` says that every child of a row is as wide as the widest
-child's **max content**: three choices over `Day`, `Week` and `Month` are three
-`Month`s, and the row hugs at the count of them. Given a width, it divides that
-instead, and a share that no longer fits cuts what is inside it rather than widening
-the row.
+`GridNode` holds equal columns whose count follows the width — a card grid that reflows —
+and one row of columns whose flex factors are stated: `1fr 2fr 1fr`. The second form is
+what a segmented button is built on, and it is the first form's sibling because CSS says
+so: `grid-template-columns: repeat(auto-fill, minmax(…))` and `grid-template-columns: 1fr
+2fr 1fr` are one property, one engine and one node.
 
-The rule lives on `Box` and not in `MaterialSegmentedButton`, which is what it was
-written for. A segmented button is the case that found it — Material's own control
-sizes each segment at `max(constraints.minWidth / count, widest child's max intrinsic
-width)`, clamped to `maxWidth / count`, so a pill with no width is a pill of equal
-segments and never one long button beside a short one — but the arithmetic is one
-thing a row can say, and a component cannot say it: `unibox_material` ships values and
-nodes, not renderer code, so a rule only that package knew would be a rule neither
-target could draw. What the component does own is the geometry (a pill of 40, its
-outline, the fill of the chosen segment) and the hairline between two segments, which
-therefore has to be drawn *inside* the segment it opens rather than laid out between
-the two: a box between two shares sits outside every share, and takes room neither can
-divide.
+**What the stated form means.** One factor per child, in one row: every column is as wide
+as the widest content per unit — `max(intrinsicᵢ / factorᵢ)` — times its own factor, so a
+row of `[1, 2, 1]` over a `nav` of 80 and a `main` of 200 is 100, 200 and 100, and it hugs
+at the sum of the factors. Given a width, the factors divide it instead, and a narrow
+parent shrinks every column rather than overhanging the row. The template is the grid's,
+not the child's, exactly as `grid-template-columns` and Flutter's `TableColumnWidth` are
+the container's: a child that states a `flex`, a width or a `gridSpan` is reported, because
+a column is the grid's answer. One factor per child is what makes it one row rather than a
+matrix, and neither target has a second row to flow into: a stated template is a row.
+
+The width is not a token. A grid takes the width it is given and measures when it is given
+none, which is one rule for both forms: a browser writes `width: 100%`, whose used value is
+`auto` against a box with no width yet, and Flutter fills the width it is offered on the
+same terms. A pill of segments therefore fills the cell it was given and hugs inside a row
+that scrolls — no `width: double.infinity` in the tree, and no mode for the renderer to
+choose between.
+
+**Why not a token on `Box`.** §5.1's test for a token is that both hosts already draw the
+same element with another property: `wrap` is `flex-wrap`. A grid is a different engine —
+`display: grid` with its own track rules on the web, a row measured through intrinsic
+widths in Flutter — and a boolean or a `columns:` on `Box` would quietly reinterpret
+`direction`, `wrap`, `mainAlign` and the `flex` of every child as well. `Box`'s contract is
+"a `Row`/`Column` in Flutter, a flex container in CSS", and it stays that.
+
+**Where the component ends and the node begins.** The rule is not `MaterialSegmentedButton`'s
+to keep: `unibox_material` ships values and nodes, not renderer code. The component owns the
+geometry (a pill of 40, its outline, the fill of the chosen segment) and the hairline
+between two segments, which is drawn *inside* the segment it opens rather than laid out
+between them: a child between two columns sits outside every column, and takes room none of
+them can divide.
 
 **Two idioms, one invariant.** Neither target invents an equaliser:
 
-- a browser already has one — `display: grid; grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 1fr)`. In an intrinsic sizing pass a `fr` track takes
-  the widest item's max-content contribution, and every track takes the same, so the
-  grid hugs at the count times that; with a definite width the tracks divide it
-  equally. The floor is zero rather than `auto`, which is what `1fr` alone means and
-  what would have kept the longest word from ever being cut: a share is a part of the
-  width the box was handed;
+- a browser already has one — `grid-template-columns: minmax(0, 1fr) minmax(0, 2fr)
+  minmax(0, 1fr)`. In an intrinsic sizing pass a `fr` track takes the largest of its
+  item's max-content contribution divided by its factor, and every track is that unit times
+  its own factor, so the grid hugs at the sum of the factors; with a definite width the
+  tracks divide it in the same proportions. The floor is zero rather than `auto`, which is
+  what `1fr` alone means and what would have kept the longest word from ever being cut: a
+  column is a part of the width the grid was handed;
 - Flutter measures, which is the same rule in the arithmetic the SDK's own
-  `SegmentedButton` uses: each child's `getMaxIntrinsicWidth(double.infinity)`, the
-  largest one for every share, clamped to the room the parent offers. A `Row` of
-  `Expanded` children inside an `IntrinsicWidth` *is* that arithmetic — a flex
-  container reports `max(flex fraction) × total flex`, so the intrinsic width of `n`
-  expanded children is `n ×` the widest rather than the sum of their different
-  contents — and the constraint clamp is the narrower parent. `IntrinsicWidth`
-  around children that are not expanded would divide their sum, which is a different
-  number, and laying the children out at their own intrinsic width (a `Table`, a
-  `Flexible` row) is the hugging rule this replaced.
+  `SegmentedButton` uses: each child's `getMaxIntrinsicWidth(double.infinity)`, the largest
+  per factor for every column, clamped to the room the parent offers. A `Row` of `Expanded`
+  children inside an `IntrinsicWidth` *is* that arithmetic — a flex container reports
+  `max(intrinsicᵢ / flexᵢ) × Σflex`, and layout then gives each child its factor's share —
+  and the constraint clamp is the narrower parent. Laying the children out at their own
+  intrinsic width (a `Table`, a `Flexible` row) is the hugging rule this replaced.
 
-**What the model refuses.** A share is a width divided between children, so the token
-on a column is reported: the axis has to be the one the renderer measures along. So is
-a wrapping box, whose lines are broken before the shares can be measured, and so is a
-child that states a `flex` (a weight on a share the row makes equal, ignored by a
-browser's grid item and honoured by Flutter's `Expanded`) or a width of its own
-(honoured inside a track by a browser, overwritten by the tight width Flutter gives a
-share). What a child *does* with the width it is handed is the child's business: a
-label that fills it and ellipsises is how a segmented button keeps one line.
+**What the model refuses.** A child of a stated grid that states a `flex` or a width of its
+own — the column is the grid's answer, and a browser would honour a width inside a track
+where Flutter overwrites it with the tight width of the column — and a `gridSpan`, because
+the template already says which column each child has. What a child *does* with the width
+it is handed is the child's business: a label that fills it and ellipsises is how a
+segmented button keeps one line.
 
-**Measured, because a share is a layout.** The appearance tables describe one box at
-no particular width and cannot carry this, so `tool/surface_check.py` records why the
-token is outside them, and the two renderer suites measure instead: a `Row`'s segments
-by their rectangles in Flutter, and the same segments by `getBoundingClientRect` in a
-browser, where the case that started it — two labels of 137 and 109 pixels inside one
-250 pixel pill — is 125 and 125.
+**A stretched column needs a height to stretch to.** `align-items: stretch` makes every
+column as tall as the tallest one and needs nothing else; a flex can only stretch a child
+to a height it already has, and a box above a row hands it none — a column lays its
+children out with an endless main axis. So the Flutter renderer measures the row once more
+(`IntrinsicHeight`) when the node asks for `stretch`, and the two targets agree: every
+column the tallest one's height, whatever the box above says.

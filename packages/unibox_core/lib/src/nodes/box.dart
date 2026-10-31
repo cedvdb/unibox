@@ -50,7 +50,6 @@ class Box extends UINode {
     this.crossAlign,
     this.gap,
     this.wrap,
-    this.equalShares,
     this.flex,
     this.gridSpan,
     this.overflow,
@@ -149,21 +148,6 @@ class Box extends UINode {
   /// a child of a wrapping box cannot be honoured by both targets; `validateTree`
   /// reports them instead of drawing one of them twice.
   final bool? wrap;
-
-  /// Whether the children are equal shares of the box's width.
-  ///
-  /// A share is the widest child's max-content width: three choices over the labels
-  /// "Day", "Week" and "Month" are each as wide as "Month", and the box hugs at that
-  /// count. Given a width to fill, the shares divide it into equal parts instead, and a
-  /// share that no longer fits cuts what is inside it rather than widening the box.
-  ///
-  /// It is what a segmented button is: a row whose shares are equal whatever their
-  /// labels, so a control does not read as two buttons of different weight. Every child
-  /// is a share, which is why a rule drawn between two of them — the hairline of a
-  /// segmented pill — lives inside a share and is layered over it; a child between two
-  /// shares would be outside all of them. `validateTree` reports this token on a column,
-  /// on a wrapping box, and on a child that states a `flex` or a width of its own.
-  final bool? equalShares;
 
   /// How much of the remaining space this box should take up.
   final int? flex;
@@ -490,7 +474,6 @@ class Box extends UINode {
     crossAlign: crossAlign,
     gap: gap,
     wrap: wrap,
-    equalShares: equalShares,
     flex: flex,
     gridSpan: gridSpan,
     overflow: overflow,

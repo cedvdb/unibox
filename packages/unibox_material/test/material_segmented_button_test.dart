@@ -23,20 +23,33 @@ void main() {
       expect(button, isA<Box>());
       expect(button.height, MaterialSegmentedButton.controlHeight);
       expect(button.borderRadius, MaterialSegmentedButton.radius);
-      expect(button.direction, Axis.horizontal);
+      expect(
+        button.direction,
+        isNull,
+        reason: 'a box that names no direction is a column, and the pill holds one row',
+      );
       expect(
         button.overflow,
         Overflow.hidden,
         reason: 'the fill of a chosen segment is cut to the rounded ends',
       );
-      // The shares are the row's, not the segments': one token on the pill, and no rule
-      // laid out between two of them that would sit outside every share.
-      expect(button.equalShares, isTrue);
-      expect(button.children, hasLength(3));
-      expect(button.children, everyElement(isA<Box>()));
+      // The columns are the grid's, not the segments': one node inside the pill, and no
+      // rule laid out between two of them that would sit outside every column.
+      expect(button.children.single, isA<GridNode>());
+
+      final GridNode grid = button.children.single as GridNode;
+
+      expect(grid.columns, <int>[
+        1,
+        1,
+        1,
+      ], reason: 'one column per segment, every one of one factor');
+      expect(grid.crossAlign, CrossAlign.stretch);
+      expect(grid.children, hasLength(3));
+      expect(grid.children, everyElement(isA<Box>()));
     });
 
-    test('states no width of its own, whatever the labels say', () {
+    test('states no width on a segment, whatever the labels say', () {
       MaterialSegmentedButton button({double? width}) =>
           MaterialSegmentedButton(
             segments: _segments,
@@ -52,7 +65,7 @@ void main() {
         button(),
         button(width: 300),
       ]) {
-        for (final UINode child in control.children) {
+        for (final UINode child in _gridOf(control).children) {
           final Box segment = child as Box;
           expect(segment.width, isNull);
           expect(segment.flex, isNull);
@@ -66,7 +79,7 @@ void main() {
       expect(button(width: 300).width, 300);
     });
 
-    test('fills the share it was given, and cuts a label at it', () {
+    test('fills the column it was given, and cuts a label at it', () {
       // Every segment is a share of the pill — measured from the widest one when the pill
       // hugs, divided when it was given a width — so a segment fills what it is handed in
       // both cases, and a label too long for that width is cut inside it rather than
@@ -84,7 +97,7 @@ void main() {
           onSelect: _select,
         ),
       ]) {
-        for (final UINode child in control.children) {
+        for (final UINode child in _gridOf(control).children) {
           final Box well = _wellBox(child as Box);
           final Box content = _contentOf(well);
 
@@ -109,9 +122,9 @@ void main() {
       // The first segment begins at the pill's own border, and every later one begins with
       // a line the colour of it. The line is positioned rather than laid out, so it takes
       // no room from the share and the label stays centred on it.
-      expect(_ruleOf(button.children.first as Box), isNull);
+      expect(_ruleOf(_gridOf(button).children.first as Box), isNull);
 
-      for (final UINode child in button.children.skip(1)) {
+      for (final UINode child in _gridOf(button).children.skip(1)) {
         final PositionedNode? rule = _ruleOf(child as Box);
 
         expect(rule, isNotNull);
@@ -140,7 +153,8 @@ void main() {
           const BoxBorder(color: BoxColor.role(MaterialColorRole.outline)),
         );
         expect(
-          (_ruleOf(plain.children[1] as Box)!.child as Box).backgroundColor,
+          (_ruleOf(_gridOf(plain).children[1] as Box)!.child as Box)
+              .backgroundColor,
           const BoxColor.role(MaterialColorRole.outline),
         );
 
@@ -158,9 +172,13 @@ void main() {
         );
 
         expect(themed.border, variant);
-        expect((_ruleOf(themed.children[1] as Box)!.child as Box).width, 2);
         expect(
-          (_ruleOf(themed.children[1] as Box)!.child as Box).backgroundColor,
+          (_ruleOf(_gridOf(themed).children[1] as Box)!.child as Box).width,
+          2,
+        );
+        expect(
+          (_ruleOf(_gridOf(themed).children[1] as Box)!.child as Box)
+              .backgroundColor,
           const BoxColor.role(MaterialColorRole.outlineVariant),
         );
       },
@@ -173,7 +191,9 @@ void main() {
         onSelect: _select,
       );
 
-      final List<Box> segments = button.children.whereType<Box>().toList();
+      final List<Box> segments = _gridOf(button).children
+          .whereType<Box>()
+          .toList();
 
       expect(segments, hasLength(3));
       expect(
@@ -193,7 +213,7 @@ void main() {
         onSelect: _select,
       );
       final List<BoxSemantics> semantics = <BoxSemantics>[
-        for (final Box segment in button.children.whereType<Box>())
+        for (final Box segment in _gridOf(button).children.whereType<Box>())
           _wellBox(segment).semantics!,
       ];
 
@@ -224,7 +244,9 @@ void main() {
         selected: 1,
         onSelect: _select,
       );
-      final List<Box> segments = button.children.whereType<Box>().toList();
+      final List<Box> segments = _gridOf(button).children
+          .whereType<Box>()
+          .toList();
 
       // A chosen segment shows the check *instead of* its icon, which is what
       // Material does: a control that carries pictures still says which one is on.
@@ -244,7 +266,7 @@ void main() {
         onSelect: _select,
         showSelectedIcon: false,
       );
-      final Box chosen = button.children.whereType<Box>().single;
+      final Box chosen = _gridOf(button).children.whereType<Box>().single;
 
       expect(_checkOf(_wellBox(chosen)), isNull);
       expect(_nodesOf(_wellBox(chosen)), contains(same(icon)));
@@ -283,7 +305,7 @@ void main() {
         iconGap: 6,
         labelStyle: MaterialTypography.labelMedium,
       );
-      final Box segment = button.children.single as Box;
+      final Box segment = _gridOf(button).children.single as Box;
       final Box pill = _wellBox(segment);
       final Box content =
           ((pill.children.single as StackNode).children.last as Box)
@@ -318,6 +340,10 @@ void main() {
     });
   });
 }
+
+/// The grid of columns a segmented button is.
+GridNode _gridOf(MaterialSegmentedButton button) =>
+    button.children.single as GridNode;
 
 /// The rule at the start of [segment], or `null` for the first segment of a pill.
 ///

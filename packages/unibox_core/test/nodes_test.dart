@@ -225,6 +225,54 @@ void main() {
     });
   });
 
+  group('GridNode.columns', () {
+    test('states one flex factor per child, in one row', () {
+      const GridNode grid = GridNode.columns(
+        <int>[1, 2, 1],
+        gap: 8,
+        children: <UINode>[
+          TextNode('Nav'),
+          TextNode('Main'),
+          TextNode('Aside'),
+        ],
+      );
+
+      expect(grid.columns, <int>[1, 2, 1]);
+      expect(grid.gap, 8);
+      expect(grid.children, hasLength(3));
+      expect(
+        grid.columnsFor(600),
+        3,
+        reason: 'a stated grid has the columns it was given, at any width',
+      );
+    });
+
+    test('leaves the reflowing tokens off, and the stated ones on', () {
+      const GridNode columns = GridNode.columns(<int>[1, 1]);
+      const GridNode reflowing = GridNode(minItemWidth: 280, maxColumns: 3);
+
+      expect(columns.minItemWidth, isNull);
+      expect(columns.maxColumns, isNull);
+      expect(reflowing.columns, isNull);
+      expect(reflowing.minItemWidth, 280);
+    });
+
+    test('keeps a short column at the top unless it is told to stretch', () {
+      // Unset is `start` and not the browser's `normal`, which stretches: a column taller
+      // than its own content would be a height the model did not ask for.
+      const GridNode grid = GridNode.columns(<int>[1, 1]);
+
+      expect(grid.crossAlign, isNull);
+      expect(grid.resolvedCrossAlign, CrossAlign.start);
+      expect(
+        const GridNode.columns(<int>[
+          1,
+        ], crossAlign: CrossAlign.stretch).resolvedCrossAlign,
+        CrossAlign.stretch,
+      );
+    });
+  });
+
   group('PositionedNode', () {
     test('stores its offsets and child', () {
       const node = PositionedNode(

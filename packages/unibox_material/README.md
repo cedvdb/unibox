@@ -750,7 +750,7 @@ room is 16 rather than 8.
 
 Its indicator is one element, a share of the bar wide, laid from the start edge and moved by a
 multiple of its own width — so it slides between tabs with a `transform` a transition eases, and
-nobody has to measure a tab. That is the *primary* bar, whose tabs are equal shares by
+nobody has to measure a tab. That is the *primary* bar, whose tabs are equal columns by
 definition. It begins at the start edge rather than the centre: an aligned child fills the
 layer and the alignment places it, so a centred indicator is already half a bar along and every
 step after that lands one tab too far.
@@ -789,7 +789,7 @@ MaterialSegmentedButton(
 | icon | `iconSize` = 18, 8 from the label and 12 from the segment's edge |
 | label | `labelLarge`, `onSurface` or `onSecondaryContainer`, on one line: a text too long for its share is cut with an ellipsis |
 | dividers | a box as wide as the border's line and the colour of it, at the start of every segment but the first, layered over the segment it opens |
-| width | the segments are equal shares (`equalShares`), so a width divides it and no width hugs at the count of them |
+| width | the segments are the children of a `GridNode.columns`, one column per segment and all of one factor: a width divides it and no width hugs at the count of them |
 | disabled | the whole control at 38%, with no ink on any segment |
 
 The container is one box and each segment is a box around a `MaterialInkWell`, so the
@@ -798,9 +798,9 @@ keeps them inside the pill. The well's content is centred and its stack stretche
 that is what the well's `mainAlign` and `crossAlign` are for, and why a segment can
 say `width: double.infinity` and mean it on both targets.
 
-**The shares are equal, whether or not the control has a width.** The pill is a row whose
-children are equal shares, so the widest segment — its label, its icon and its padding —
-sets the width of every segment. Without a width the pill hugs at the count of them, which
+**The columns are equal, whether or not the control has a width.** The pill is a box
+around a `GridNode` of one column per segment, so the widest segment — its label, its icon
+and its padding — sets the width of every column. Without a width the pill hugs at the count of them, which
 is what a pill in a row of its own wants, a horizontally scrolling row included; a width
 divides it, which is what one a column or a grid track stretches wants. `width:
 double.infinity` fills the space the parent gives and divides it equally, which is what

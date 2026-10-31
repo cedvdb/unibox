@@ -1093,7 +1093,7 @@ const List<(String, String)> _flats = <(String, String)>[
 UINode _segmentedView(int chosen, SegmentedStore store) {
   return MaterialSegmentedButton(
     // The width the grid cell gives it, divided three ways. The segments are equal
-    // shares either way — the widest label sets all three — and a width is what puts
+    // columns either way — the widest label sets all three — and a width is what puts
     // them across the cell rather than hugging the start of it.
     width: double.infinity,
     segments: const <MaterialSegment>[
@@ -1128,7 +1128,7 @@ UINode _viewSwitchView(int chosen, ViewStore store) {
 
   return MaterialSegmentedButton(
     // The same width divided three ways, for the reason the day/week/month control
-    // states: a stretched pill takes the cell, and the three shares divide it.
+    // states: a stretched pill takes the cell, and the three columns divide it.
     width: double.infinity,
     segments: <MaterialSegment>[
       MaterialSegment(

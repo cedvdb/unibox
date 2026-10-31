@@ -61,16 +61,16 @@ final class MaterialSegment {
 /// its label; the 1 pixel rule between two segments is a box the colour of the outline,
 /// layered over the segment it opens.
 ///
-/// **The shares are equal.** A segment is a share of the control and never a width of its
-/// own: the control measures its widest segment — the label, the icon beside it and the
+/// **The columns are equal.** A segment is a column of the control and never a width of
+/// its own: the control measures its widest segment — the label, the icon beside it and the
 /// padding around both — and every segment is that wide, so a control of "Rent" beside
 /// "Rent to buy" is two equal halves rather than a button beside a bigger one. That is
-/// what Material's own `SegmentedButton` does, and it is the tree's own rule: the pill is
-/// a row whose children are `equalShares`. With no width the pill hugs its shares — a row
-/// that scrolls gets a control exactly as wide as its content, and the widest label sets
-/// the width of every segment — and a width divides that width equally instead, which is
-/// what a pill stretched across a cell wants. A share that the room does not stretch to
-/// cuts its label (see below) rather than widening the pill.
+/// what Material's own `SegmentedButton` does, and it is the tree's own rule: the pill is a
+/// [Box] around a [GridNode] that states one column per segment. With no width the pill
+/// hugs its columns — a row that scrolls gets a control exactly as wide as its content,
+/// and the widest label sets the width of every segment — and a width divides that width
+/// equally instead, which is what a pill stretched across a cell wants. A column that the
+/// room does not stretch to cuts its label (see below) rather than widening the pill.
 ///
 /// **The line is the caller's.** [border] is the container's line *and* the rules
 /// between its segments — one hairline the model draws as a box, at the start of every
@@ -84,12 +84,12 @@ final class MaterialSegment {
 /// is a host asset and this package ships none. Pass `showSelectedIcon: false` for a
 /// control whose fill is enough, and the icon stays where it is.
 ///
-/// **A segment's label is one line.** A segment is a share of the control's width and not
-/// a width of its own, so a label longer than that share — a translation, or any label at
+/// **A segment's label is one line.** A segment is a column of the control's width and not
+/// a width of its own, so a label longer than that column — a translation, or any label at
 /// a larger text scale — gives way instead of widening the pill or painting over the
 /// segment beside it: a text is drawn with `maxLines: 1` and an ellipsis, and any other
-/// node is cut at the share. Only a parent too narrow for `count ×` the widest segment
-/// reaches it, because the widest label is what set the share every other label is given.
+/// node is cut at the column. Only a parent too narrow for `count ×` the widest segment
+/// reaches it, because the widest label is what set the column every label is given.
 ///
 /// **A set of destinations is a set of links.** Give the segments a [MaterialSegment.url]
 /// and the control stops being a set of buttons: each unselected choice is one `<a href>`
@@ -127,8 +127,8 @@ final class MaterialSegmentedButton extends Box {
     double iconGap = _iconGap,
     BoxTextStyle labelStyle = MaterialTypography.labelLarge,
     // A width is divided equally between the segments; without one the pill is as wide as
-    // its shares and hugs them — a row that scrolls, or a control in the corner of a page.
-    // Both are one rule, `equalShares` below, so the width states no size of its own.
+    // its columns and hugs them — a row that scrolls, or a control in the corner of a page.
+    // Both are one rule, the `GridNode` below, so the width states no size of its own.
     super.width,
     super.margin,
     BoxTransition? transition,
@@ -148,29 +148,33 @@ final class MaterialSegmentedButton extends Box {
          borderRadius: borderRadius,
          border: border,
          overflow: Overflow.hidden,
-         direction: Axis.horizontal,
-         crossAlign: CrossAlign.stretch,
-         // Every segment is a share of the pill, and the shares are equal: the control
-         // measures its widest segment and gives each one that width, or divides the width
-         // it was given between them. One rule for both cases, so the tree says nothing
-         // about how wide a segment is.
-         equalShares: true,
          children: <UINode>[
-           for (int i = 0; i < segments.length; i++)
-             _segment(
-               segment: segments[i],
-               selected: i == selected,
-               enabled: enabled,
-               showSelectedIcon: showSelectedIcon,
-               first: i == 0,
-               border: border,
-               height: height,
-               padding: padding,
-               iconGap: iconGap,
-               labelStyle: labelStyle,
-               transition: transition,
-               onTap: onSelect == null ? null : () => onSelect(i),
-             ),
+           // One column per segment, all of one factor: the grid measures its widest
+           // segment and gives each column that width, or divides the width it was given
+           // between them. One rule for both cases, so the tree says nothing about how
+           // wide a segment is — and the grid fills the pill, while a pill with no width
+           // of its own is as wide as its columns.
+           GridNode.columns(
+             List<int>.filled(segments.length, 1),
+             crossAlign: CrossAlign.stretch,
+             children: <UINode>[
+               for (int i = 0; i < segments.length; i++)
+                 _segment(
+                   segment: segments[i],
+                   selected: i == selected,
+                   enabled: enabled,
+                   showSelectedIcon: showSelectedIcon,
+                   first: i == 0,
+                   border: border,
+                   height: height,
+                   padding: padding,
+                   iconGap: iconGap,
+                   labelStyle: labelStyle,
+                   transition: transition,
+                   onTap: onSelect == null ? null : () => onSelect(i),
+                 ),
+             ],
+           ),
          ],
        );
 
@@ -205,9 +209,9 @@ final class MaterialSegmentedButton extends Box {
   /// chosen one is the page the reader is on and takes no press, and a segment without a
   /// url selects.
   ///
-  /// The stack is what lets the rule stay inside the segment: a share of the pill is the
+  /// The stack is what lets the rule stay inside the segment: a column of the pill is the
   /// whole of its width, so a line laid out before the segment's content would either take
-  /// room from it or push the label off the centre of the share. Layered over it instead,
+  /// room from it or push the label off the centre of the column. Layered over it instead,
   /// the line is where the segment begins and the label stays centred on the segment — the
   /// geometry Material's own control draws, where the divider is part of the segment's own
   /// shape.
@@ -239,8 +243,8 @@ final class MaterialSegmentedButton extends Box {
         : segment.icon;
 
     return Box(
-      // The fill of the chosen segment. The share itself is the pill's: every child of an
-      // `equalShares` row is one, so no segment states a width, a flex or a share.
+      // The fill of the chosen segment. The column itself is the grid's: every child of a
+      // stated grid is one, so no segment states a width, a flex or a factor.
       backgroundColor: selected ? _selectedFill : null,
       children: <UINode>[
         StackNode(
@@ -254,8 +258,8 @@ final class MaterialSegmentedButton extends Box {
               // A height, not an infinity: the segment is already as tall as the control,
               // and an infinite height inside a column is a constraint Flutter refuses.
               //
-              // The width is infinite because the share is what bounds it: the pill gave
-              // this segment its width, so the well fills exactly the share, and a tint or
+              // The width is infinite because the column is what bounds it: the pill gave
+              // this segment its width, so the well fills exactly the column, and a tint or
               // an ink that only covered the label would stop short of the rounded end the
               // segment reaches.
               width: double.infinity,
@@ -321,9 +325,9 @@ final class MaterialSegmentedButton extends Box {
         : BoxSemantics(label: label, current: BoxCurrent.page);
   }
 
-  /// The label of a segment, in the share the segment was given.
+  /// The label of a segment, in the column the segment was given.
   ///
-  /// A segment is a share of the control's width and not a width of its own, so a label
+  /// A segment is a column of the control's width and not a width of its own, so a label
   /// long enough to fill it — a translation, or any label at a large text scale — has to
   /// give way rather than widen the pill or paint over the segment beside it. Two things
   /// say so, and both are read by the two targets:
@@ -335,23 +339,23 @@ final class MaterialSegmentedButton extends Box {
   /// * the text itself is **one line**, cut with an ellipsis ([_fitted]) and centred in
   ///   the room it was given, which is what Material states for a segment's label.
   ///
-  /// There is no share to hug instead: every segment of a segmented button is a share, and
-  /// the widest label is what the share is. A label wider than one is only reached by a
-  /// parent too narrow for `count ×` that widest segment.
+  /// There is no column to hug instead: every segment of a segmented button is one, and the
+  /// widest label is what the column is. A label wider than one is only reached by a parent
+  /// too narrow for `count ×` that widest segment.
   ///
-  /// [beside] is the shape with a node in front of it. The model's `flex` is a share of
+  /// [beside] is the shape with a node in front of it. The model's `flex` is a portion of
   /// the parent and not "take what is left", so the label fills the room beside the
   /// node: a short label is centred in that room rather than sitting against its icon.
   /// Flutter's own `SegmentedButton` uses a `Flexible` there, which this model has no
   /// word for; the difference shows at a width where the label is much shorter than its
-  /// share, and it is the price of a label that can never overflow.
+  /// column, and it is the price of a label that can never overflow.
   static UINode _labelOf(UINode label, {bool beside = false}) => Box(
-    // A share, at the one place that says so: the box fills the segment when it is the
+    // A column, at the one place that says so: the box fills the segment when it is the
     // content's only child, and the room beside the node when it is the row's.
     flex: beside ? 1 : null,
     width: beside ? null : double.infinity,
     // The room the text is given, and the cut when it is still too long: a node that
-    // is not a text cannot say how it gives way, so it is clipped at the share.
+    // is not a text cannot say how it gives way, so it is clipped at the column.
     crossAlign: CrossAlign.stretch,
     overflow: Overflow.hidden,
     children: <UINode>[_fitted(label)],
@@ -383,7 +387,7 @@ final class MaterialSegmentedButton extends Box {
       decoration: label.decoration,
       decorationColor: label.decorationColor,
       decorationThickness: label.decorationThickness,
-      // Centred, because the box around it now fills the share: a text that fills its
+      // Centred, because the box around it now fills the column: a text that fills its
       // room and starts at its edge would read as a label pinned to the left of the pill.
       textAlign: label.textAlign ?? TextAlign.center,
       maxLines: label.maxLines ?? 1,

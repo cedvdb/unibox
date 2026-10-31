@@ -89,8 +89,8 @@ class TreeIssue {
 ///   height, or one that is not positive,
 /// * a list item whose parent is not a list, and a caption whose parent is not a
 ///   figure, both of which are invalid HTML and name nothing where they stand,
-/// * a row of equal shares that cannot divide one — a column, a wrapping box, or a child
-///   that states a `flex` or a width of its own,
+/// * a grid of stated columns whose template is not one factor per child, and a column
+///   whose factor is not positive,
 /// * a grid span on a box that is not a grid child, and a span no track can hold,
 /// * an embed that carries no implementation at all, which no renderer can draw
 ///   and which would otherwise vanish from the page,
@@ -978,17 +978,53 @@ void _validate(
   }
 
   if (node is GridNode) {
-    if (node.minItemWidth <= 0) {
+    final double? minimum = node.minItemWidth;
+    final List<int>? stated = node.columns;
+
+    if (minimum != null && minimum <= 0) {
       issues.add(
         TreeIssue(
           node: node,
           severity: TreeIssueSeverity.error,
           message:
-              'A GridNode declares a minItemWidth of ${node.minItemWidth}. '
+              'A GridNode declares a minItemWidth of $minimum. '
               'No column can be that narrow, so the count is undefined: give '
               'the grid a positive minimum.',
         ),
       );
+    }
+
+    // A stated grid is one row, and every child is a column: a template that does not
+    // match the children would leave a column with no child, or a child with no column,
+    // and neither target has a second row to put it in.
+    if (stated != null && stated.length != node.children.length) {
+      issues.add(
+        TreeIssue(
+          node: node,
+          severity: TreeIssueSeverity.error,
+          message:
+              'A GridNode states ${stated.length} columns for '
+              '${node.children.length} children. A stated grid is one row of one '
+              'column per child: give it one factor for each, or use '
+              'minItemWidth for a grid that reflows.',
+        ),
+      );
+    }
+
+    for (final int factor in stated ?? const <int>[]) {
+      if (factor < 1) {
+        issues.add(
+          TreeIssue(
+            node: node,
+            severity: TreeIssueSeverity.error,
+            message:
+                'A GridNode states a column of factor $factor. A column takes a '
+                'share the size of its factor, so a column of zero takes nothing '
+                'and one of less than zero has no meaning: give every column at '
+                'least 1.',
+          ),
+        );
+      }
     }
 
     if (node.gap < 0) {
@@ -1031,6 +1067,20 @@ void _validate(
                 'A box inside a GridNode declares flex: ${style.flex}. The '
                 'track fixes the width, and a flexing child would stretch the '
                 'empty slots of a short last row in Flutter and not in CSS.',
+          ),
+        );
+      }
+
+      if (stated != null && style.gridSpan != null) {
+        issues.add(
+          TreeIssue(
+            node: child,
+            severity: TreeIssueSeverity.error,
+            message:
+                'A box inside a grid of stated columns declares gridSpan: '
+                '${style.gridSpan}. The template already says which column each '
+                'child has, so a span would add a track the row does not have. '
+                'Give the child its factor instead.',
           ),
         );
       }
@@ -1233,76 +1283,6 @@ void _validate(
               'width, or take it out of the wrap.',
         ),
       );
-    }
-
-    // A share is a width divided between the children, so only a row has one: a column
-    // divides a height the two targets measure differently, and a wrap divides lines it
-    // has not measured.
-    if (style.equalShares ?? false) {
-      if (style.resolvedDirection != Axis.horizontal) {
-        issues.add(
-          TreeIssue(
-            node: node,
-            severity: TreeIssueSeverity.error,
-            message:
-                'A box states equalShares without direction: Axis.horizontal. A '
-                'share is a width divided between the children, and a column '
-                'divides a height instead; a browser builds the row out of '
-                '`grid-auto-columns: 1fr` and Flutter measures the children '
-                'along the axis it lays them out in. State the direction.',
-          ),
-        );
-      }
-
-      if (style.wrap ?? false) {
-        issues.add(
-          TreeIssue(
-            node: node,
-            severity: TreeIssueSeverity.error,
-            message:
-                'A box both states equalShares and wraps its children (wrap: '
-                'true). Equal shares are one line divided between the '
-                'children, and a wrapped box breaks that line before the shares '
-                'can be measured. Keep one of the two.',
-          ),
-        );
-      }
-    }
-
-    // A share is the row's answer and not the child's: a `flex` would weight a share the
-    // row makes equal, and a width would be honoured by a browser and ignored by a
-    // Flutter `Expanded`, so the two targets would draw two layouts.
-    if (parent is Box && (parent.computedStyle.equalShares ?? false)) {
-      if ((style.flex ?? 0) > 0) {
-        issues.add(
-          TreeIssue(
-            node: node,
-            severity: TreeIssueSeverity.error,
-            message:
-                'A box inside a box with equalShares states flex: ${style.flex}, '
-                'and a share is already equal to every other share: a browser '
-                'ignores the flex on a grid item and Flutter weights the share '
-                'with it. Take the flex out.',
-          ),
-        );
-      }
-
-      if (style.width != null || style.widthFraction != null) {
-        issues.add(
-          TreeIssue(
-            node: node,
-            severity: TreeIssueSeverity.error,
-            message:
-                'A box inside a box with equalShares states a width of '
-                '${style.width ?? style.widthFraction}, and a share is the '
-                "row's answer rather than the child's: a browser honours a width "
-                'inside an equal track and Flutter hands the share a tight one, '
-                'so the two targets would draw two layouts. Let the share size '
-                'the box — that is what a share is — and put a width on a box '
-                'inside it.',
-          ),
-        );
-      }
     }
   }
 

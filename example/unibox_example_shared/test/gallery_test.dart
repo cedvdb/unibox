@@ -17,15 +17,17 @@ void main() {
       expect(buttons, hasLength(2));
       for (final MaterialSegmentedButton button in buttons) {
         expect(button.width, double.infinity);
+        final GridNode grid = button.children.single as GridNode;
+
         expect(
-          button.equalShares,
-          isTrue,
-          reason: 'the three segments are shares of the pill, and equal ones',
+          grid.columns,
+          <int>[1, 1, 1],
+          reason: 'the three segments are columns of the pill, and equal ones',
         );
         expect(
-          button.children.whereType<Box>().where((Box box) => box.flex != null),
+          grid.children.whereType<Box>().where((Box box) => box.flex != null),
           isEmpty,
-          reason: 'a share is the row\'s answer, so no segment states a flex',
+          reason: 'a column is the grid\'s answer, so no segment states a flex',
         );
       }
     });

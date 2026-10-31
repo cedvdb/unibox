@@ -288,17 +288,21 @@ a static site, each host a single small file.
 
 ## The nodes
 
-There are ten node types. Each one is an immutable Dart object with a `const`
+There are eleven node types. Each one is an immutable Dart object with a `const`
 constructor, and each one describes *what* it is rather than which framework draws
 it. Style values — colours, spacing, borders, typography — are separate objects
 that a node takes as parameters, so a look can be reused as one `const BoxStyle`
 instead of being repeated.
 
-The ten: [`Box`](#box), [`TextNode`](#textnode), [`ImageNode`](#imagenode),
+The eleven: [`Box`](#box), [`TextNode`](#textnode), [`ImageNode`](#imagenode),
 [`LinkNode`](#links), [`StackNode`](#stacknode-and-positionednode) with
 [`PositionedNode`](#stacknode-and-positionednode), [`TextInputNode`](#textinputnode),
-[`StatefulNode`](#statefulnode), [`OverlayNode`](#overlaynode) and
-[`EmbedNode`](#embednode).
+[`StatefulNode`](#statefulnode), [`GridNode`](#gridnode), [`OverlayNode`](#overlaynode)
+and [`EmbedNode`](#embednode).
+
+A layout the two targets do not draw with the container a box is becomes a node, not a
+token on `Box`: a grid is `display: grid` with its own tracks, so it is `GridNode`, where
+`Box.wrap` is a token because `flex-wrap` is the same container with another property.
 
 Every node accepts a `key`. Renderers hand it to the target's own key mechanism, so
 when a list is reordered each child keeps its state: typed text stays in the field
@@ -334,7 +338,6 @@ Box(
 | `crossAlign` | `CrossAlign?` | start | Alignment across the direction: `start`, `center`, `end`, `stretch`, `baseline`. A baseline is a horizontal line, so it is a row's alignment: a column that states one is reported by `validateTree`. |
 | `gap` | `double?` | none | Space between two children, and between two lines of a wrapping box. For space at the edges, use `padding`. |
 | `wrap` | `bool?` | `false` | Whether a child that does not fit starts another line instead of running off the end. `gap` is the space between two lines as well, and `mainAlign` distributes one line while `crossAlign` places a child in it — what `Wrap` and `flex-wrap: wrap` each mean. A `stretch` or `baseline` cross alignment, a `flex` on a child, and a box that both wraps and scrolls are reported by `validateTree`, because the two targets cannot draw them the same way. |
-| `equalShares` | `bool?` | `false` | Whether the children are equal shares of the box's width: every child is as wide as the widest one, so a row of three choices over `Day`, `Week` and `Month` is three `Month`s. Without a width the box hugs at that count; with one it divides it equally, and a share that no longer fits cuts what is inside it rather than widening the box. It is what `MaterialSegmentedButton` is built on, and what a row of equal tabs or price plans wants: `grid-auto-columns: minmax(0, 1fr)` on the web, and a `Row` of `Expanded`s inside an `IntrinsicWidth` in Flutter. A column, a wrapping box, and a child that states a `flex` or its own width are reported by `validateTree`; a rule between two shares is drawn inside a share, over it. |
 | `flex` | `int?` | none | Share of the free space this box takes inside its parent: `flex: 1` is an `Expanded` in Flutter and `flex-grow: 1` on the web. |
 | `gridSpan` | `int?` | one track | How many columns of a `GridNode` this box covers: a banner that interrupts a card grid states `2`, or more for a full row. Only a grid child has tracks, and `validateTree` reports it anywhere else. |
 | `overflow` | `Overflow?` | visible | `hidden` clips the content, `scroll` makes the box scroll along its direction. |
@@ -739,40 +742,61 @@ loading. Reacting to a press is the application's job once it takes the page ove
 
 ### GridNode
 
-Equal columns whose count follows the width of the box: a card grid that reflows
-without a breakpoint and without asking a host how wide the screen is.
+Equal columns whose count follows the width of the box — a card grid that reflows without a
+breakpoint — **or** one row of columns whose widths you state: the same node, in the two
+forms CSS has for `grid-template-columns`.
 
 ```dart
+// a card grid that reflows
 GridNode(
   minItemWidth: 280,   // the narrowest a card may get
   maxColumns: 3,       // the widest count; the columns keep growing instead
   gap: 16,
   children: cards,
 )
+
+// one row of columns, as `1fr 2fr 1fr` states them
+GridNode.columns(<int>[1, 2, 1], gap: 12, children: <UINode>[nav, main, aside])
 ```
 
 | Parameter | Type | Default | Meaning |
 | --- | --- | --- | --- |
-| `minItemWidth` | `double` | required | The narrowest a column may get. |
+| `minItemWidth` | `double?` | required | The narrowest a column may get in a reflowing grid. |
 | `maxColumns` | `int?` | none | Where the count stops; the columns share the width instead. |
+| `columns` | `List<int>?` | none | One flex factor per child of a stated grid, in one row. |
 | `gap` | `double` | `0` | The gutter between two columns and two rows. |
-| `children` | `List<UINode>` | `[]` | The cards, in reading order. |
+| `crossAlign` | `CrossAlign?` | `start` | `align-items`: `stretch` makes every column as tall as the tallest. |
+| `children` | `List<UINode>` | `[]` | The cards, or the columns, in reading order. |
 
-The web renderer writes one declaration — `repeat(auto-fill, minmax(min(100%,
-max(280px, (100% - 32px) / 3)), 1fr))` — and Flutter applies the same arithmetic
-(`columnsFor`, `cellWidthFor`) to the constraints it is given, so the two agree at
-every width: one column at 375, two at 600, three from 900 on, and 250 is one
-column of 250. Nothing in the tree reads a viewport, and a resize sends no
-request.
+**A stated grid is one row of columns.** Each child gets a flex factor — the number `1fr`
+takes in CSS and the one `Expanded(flex:)` takes in Flutter — and every column is as wide
+as the widest content per unit, so `[1, 2, 1]` over a `nav` of 80 and a `main` of 200 is a
+row of 100, 200 and 100. Given a width, the factors divide it. A column is the grid's
+answer and not the child's: `validateTree` reports a `flex`, a width of its own, a
+`gridSpan`, and a template whose length is not the number of children — a stated grid has
+one column per child and no second row, which is what both targets can draw.
 
-A short last row keeps its empty tracks, because `auto-fill` creates them; a grid
-child does not size or flex itself (`validateTree` reports a `flex`, a finite
-`width` or an infinite `height`), and a photo inside a grid needs a height that is
-known before the file arrives.
+**A grid takes the width it is given and measures when it is given none.** A browser writes
+`width: 100%`, which resolves against the box the grid is in and falls back to the content
+where that box has no width; Flutter fills the width it is offered on the same terms. A
+pill of segments therefore fills the cell it was given and hugs inside a row that scrolls,
+without the tree saying which case it is in.
 
-**A row can be interrupted.** A card that states `gridSpan` covers that many
-columns, so a promo banner between the cards is one grid rather than two grids that
-have to agree on a column count:
+**A reflowing grid** fits as many columns of at least `minItemWidth` as the width allows,
+caps the count at `maxColumns`, and lets the tracks share the width. The web renderer
+writes one declaration — `repeat(auto-fill, minmax(min(100%, max(280px, (100% - 32px) / 3)),
+1fr))` — and Flutter applies the same arithmetic (`columnsFor`, `cellWidthFor`) to the
+constraints it is given, so the two agree at every width: one column at 375, two at 600,
+three from 900 on, and 250 is one column of 250. Nothing in the tree reads a viewport, and
+a resize sends no request.
+
+A short last row keeps its empty tracks, because `auto-fill` creates them; a grid child
+does not size or flex itself (the same `validateTree` rules as a stated grid), and a photo
+inside a grid needs a height that is known before the file arrives.
+
+**A row can be interrupted.** A card that states `gridSpan` covers that many columns, so a
+promo banner between the cards is one grid rather than two grids that have to agree on a
+column count:
 
 ```dart
 GridNode(
@@ -787,11 +811,15 @@ GridNode(
 )
 ```
 
-A span wider than the grid is clamped to its column count, because the columns
-follow the width: three at 900 pixels is three tracks for a banner asking for more,
-and one on a phone. A span that does not fit what is left of a row starts the next
-one, leaving the rest of the current row empty — what a browser's `auto-flow` does.
-`unibox_testing` holds both renderers to the same placement.
+A span wider than the grid is clamped to its column count, because the columns follow the
+width: three at 900 pixels is three tracks for a banner asking for more, and one on a
+phone. A span that does not fit what is left of a row starts the next one, leaving the rest
+of the current row empty — what a browser's `auto-flow` does. `unibox_testing` holds both
+renderers to the same placement. A stated grid has no spans: the template already says
+which column each child has.
+
+`MaterialSegmentedButton` is the component built on the stated form: a pill whose segments
+are columns of one factor each.
 
 ### OverlayNode
 

@@ -2,11 +2,15 @@
 
 ## Unreleased
 
-- `Box.equalShares` states that the children of a row are equal shares of it: each one is as wide
-  as the widest child's max content, and the box hugs at the count of them until it is given a
-  width, which the shares then divide. `validateTree` reports it on a column, on a wrapping box,
-  and on a child that states a `flex` or a width of its own, because a share is the row's answer
-  rather than the child's.
+- `GridNode.columns` states one column per child, in one row: `[1, 2, 1]` is
+  `grid-template-columns: 1fr 2fr 1fr`, so every column is as wide as the widest content per unit
+  times its own factor, and given a width the factors divide it. It is the grid's second form
+  rather than a node of its own, because CSS states both with one property; `validateTree` reports
+  a template that is not one factor per child, a factor that takes no share, and a child that
+  states a `flex`, a width or a `gridSpan` — a column is the grid's answer, not the child's.
+- A grid takes the width it is given and measures when it is given none, in both forms, and
+  `GridNode` states where a column sits (`crossAlign`, `align-items`) instead of always starting
+  it.
 - A style that names a role colour keeps every other token when it is resolved. `BoxStyle.resolve`
   rebuilds the style field by field, and it had stopped carrying `wrap`, `pin`, `pinOffset`,
   `aspectRatio` and `fold` — so a themed box lost its wrap, its pin and its fold in Flutter, the
