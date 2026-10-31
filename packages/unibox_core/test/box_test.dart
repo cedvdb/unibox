@@ -350,6 +350,24 @@ void main() {
       expect(box.computedStyle.backgroundColor, BoxColor.transparent);
     });
 
+    test('reaches the pin from the flat parameter, and that wins', () {
+      const Box box = Box(
+        pin: BoxPin.start,
+        pinOffset: 56,
+        styles: <BoxStyle>[BoxStyle(pin: BoxPin.end, pinOffset: 8)],
+      );
+
+      expect(box.computedStyle.pin, BoxPin.start);
+      expect(box.computedStyle.resolvedPinOffset, 56);
+      // A bag still reaches the token when the flat parameter leaves it out.
+      expect(
+        const Box(styles: <BoxStyle>[BoxStyle(pin: BoxPin.end)])
+            .computedStyle
+            .pin,
+        BoxPin.end,
+      );
+    });
+
     test('merges the bags left to right, the last one winning', () {
       const Box box = Box(
         styles: <BoxStyle>[

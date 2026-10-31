@@ -60,6 +60,7 @@ and the difference would show:
 | `Box.shape` | the rectangle: a box paints its border box, and a corner radius rounds it |
 | `Box.gridSpan` | one track: a card covers one column, and only a grid child covers more |
 | `Box.wrap` | off: a box is one line, and a child that does not fit runs past its edge until the box says otherwise |
+| `Box.pinOffset` | zero: a pinned band keeps none of the edge it pins to (`BoxStyle.resolvedPinOffset`) |
 | a link's paint | the browser's blue and underline: cancelled on an anchor, so a link looks like the box that states it |
 | `LinkNode.url` | nowhere on a `Box`, which is a container: a destination is the node's own field, and a disabled link writes no `href` |
 | `LinkNode` inside a link | reported: a link inside a link navigates twice |

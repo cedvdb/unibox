@@ -166,6 +166,104 @@ void main() {
       );
     });
 
+    test('accepts a pin inside a box that scrolls down', () {
+      expect(
+        validateTree(
+          const Box(
+            height: 400,
+            overflow: Overflow.scroll,
+            children: <UINode>[
+              Box(height: 100),
+              Box(height: 60, pin: BoxPin.start, pinOffset: 48),
+              Box(height: 60, pin: BoxPin.end),
+            ],
+          ),
+        ),
+        isEmpty,
+      );
+    });
+
+    test('accepts a pin at the top of a page, where the surface scrolls', () {
+      // A server-rendered page scrolls the document, not a box, and the document is the
+      // viewport a band at the top of the tree pins to. Nothing above it in the tree is a
+      // reason to report it.
+      expect(
+        validateTree(
+          const Box(
+            height: 200,
+            children: <UINode>[Box(height: 56, pin: BoxPin.start)],
+          ),
+        ),
+        isEmpty,
+      );
+    });
+
+    test('reports a pin inside a box that scrolls sideways', () {
+      final List<TreeIssue> issues = validateTree(
+        const Box(
+          direction: Axis.horizontal,
+          overflow: Overflow.scroll,
+          children: <UINode>[Box(width: 60, height: 20, pin: BoxPin.start)],
+        ),
+      );
+
+      expect(issues, hasLength(1));
+      expect(issues.single.message, contains('scrolls sideways'));
+      expect(issues.single.isError, isTrue);
+    });
+
+    test('reports a pin inside a box that only clips', () {
+      // A browser makes a scroll container of any overflow but `visible`, so the band would
+      // pin to a viewport that never moves; Flutter has no viewport there at all.
+      final List<TreeIssue> issues = validateTree(
+        const Box(
+          overflow: Overflow.hidden,
+          children: <UINode>[Box(height: 60, pin: BoxPin.start)],
+        ),
+      );
+
+      expect(issues, hasLength(1));
+      expect(issues.single.message, contains('Overflow.hidden'));
+      expect(issues.single.isError, isTrue);
+    });
+
+    test('reports a pinned box with no height to keep its slot', () {
+      // The band is drawn over its viewport and the flow keeps its room, so the height is
+      // what holds the children below it still.
+      final List<TreeIssue> issues = validateTree(
+        const Box(
+          height: 400,
+          overflow: Overflow.scroll,
+          children: <UINode>[Box(pin: BoxPin.end)],
+        ),
+      );
+
+      expect(issues, hasLength(1));
+      expect(issues.single.message, contains('without a finite height'));
+      expect(issues.single.isError, isTrue);
+    });
+
+    test('reports a negative inset', () {
+      final List<TreeIssue> issues = validateTree(
+        const Box(
+          height: 400,
+          overflow: Overflow.scroll,
+          children: <UINode>[Box(height: 60, pin: BoxPin.start, pinOffset: -8)],
+        ),
+      );
+
+      expect(issues, hasLength(1));
+      expect(issues.single.message, contains('pinOffset of -8.0'));
+    });
+
+    test('reports an inset with no pin to hold it', () {
+      final List<TreeIssue> issues = validateTree(const Box(pinOffset: 8));
+
+      expect(issues, hasLength(1));
+      expect(issues.single.message, contains('without a pin'));
+      expect(issues.single.isError, isFalse);
+    });
+
     test('accepts a well formed tree', () {
       const Box tree = Box(
         direction: Axis.vertical,

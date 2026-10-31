@@ -53,6 +53,8 @@ class Box extends UINode {
     this.overflow,
     this.snap,
     this.page,
+    this.pin,
+    this.pinOffset,
     this.width,
     this.height,
     this.aspectRatio,
@@ -173,6 +175,28 @@ class Box extends UINode {
   /// Only meaningful with [snap] of [ScrollSnap.page]; `validateTree` reports a page on a box that
   /// does not snap, and a snap with no page is left alone, since a reader may still swipe.
   final int? page;
+
+  // Position.
+
+  /// The edge of the box that scrolls this one that it stays at.
+  ///
+  /// The box keeps its slot in the flow — nothing below it moves — and is painted at
+  /// [BoxPin.start] or [BoxPin.end] of the viewport once it would have scrolled past it,
+  /// and is back in its slot when the reader scrolls back. A toolbar under a hero states
+  /// `pin: BoxPin.start` and stays under the page's header while the results scroll
+  /// beneath it.
+  ///
+  /// A pin names a relation to the nearest box that scrolls, not an offset in the
+  /// reader's window: the same tree pins to a scrolling box and, at the top of a page
+  /// whose document scrolls, to the page itself. `validateTree` reports the pins a
+  /// viewport cannot honour — the wrong axis, or a box that only clips.
+  final BoxPin? pin;
+
+  /// The inset, in logical pixels, this box keeps from the edge it pins to.
+  ///
+  /// Unset means zero. It is the room a header above the pinned band takes, so the band
+  /// comes to rest under it instead of over it.
+  final double? pinOffset;
 
   // Dimensions.
 
@@ -425,6 +449,8 @@ class Box extends UINode {
     overflow: overflow,
     snap: snap,
     page: page,
+    pin: pin,
+    pinOffset: pinOffset,
     width: width,
     height: height,
     aspectRatio: aspectRatio,

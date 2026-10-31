@@ -80,6 +80,9 @@ class TreeIssue {
 ///   unbounded — which Flutter refuses at layout time,
 /// * a box that aligns on the baseline without a row to align, where the two
 ///   targets lay the children out differently,
+/// * a pin the nearest viewport cannot honour — one inside a box that scrolls
+///   sideways, one inside a box that only clips, an end pin with no height to keep
+///   its slot, and a negative inset — plus an inset with no pin to hold it,
 /// * an aspect ratio that cannot divide anything — a ratio next to a width and a
 ///   height, or one that is not positive,
 /// * a list item whose parent is not a list, and a caption whose parent is not a
@@ -111,6 +114,9 @@ List<TreeIssue> validateTree(UINode root, {UniboxTheme? theme}) {
     // reach: a root that fills its width is the ordinary case.
     unboundedWidth: false,
     unboundedHeight: false,
+    // Nothing above the root, so a pin in it resolves against the surface — the document a
+    // page scrolls, or the scroll view a host wraps it in.
+    scrollingAncestor: null,
     issues: issues,
   );
   return issues;
@@ -330,6 +336,7 @@ void _validate(
   required bool decoratedAbove,
   required bool unboundedWidth,
   required bool unboundedHeight,
+  required Box? scrollingAncestor,
   required List<TreeIssue> issues,
 }) {
   _validateRoles(node, theme, issues);
@@ -402,6 +409,86 @@ void _validate(
           message:
               'A box states page: ${style.page}, and a page cannot be before the '
               'first one.',
+        ),
+      );
+    }
+
+    // A pin is a relation to the nearest viewport, so it is read against the boxes above the
+    // node rather than against itself: the two edges it holds are vertical ones, and a
+    // viewport that scrolls sideways, or one that only clips, has no edge a band could come
+    // to rest at.
+    final BoxPin? pin = style.pin;
+
+    if (pin != null) {
+      final BoxStyle? scroller = scrollingAncestor?.computedStyle;
+
+      if (scroller != null && scroller.resolvedDirection != Axis.vertical) {
+        issues.add(
+          TreeIssue(
+            node: node,
+            severity: TreeIssueSeverity.error,
+            message:
+                'A box pins (pin: BoxPin.${pin.name}) inside a box that scrolls '
+                'sideways, and the two edges a pin holds are the vertical ones, so a '
+                'browser pins nothing and Flutter pins along the axis of its viewport. '
+                'Pin inside a box that scrolls down, or drop the pin.',
+          ),
+        );
+      } else if (scroller != null && scroller.overflow == Overflow.hidden) {
+        issues.add(
+          TreeIssue(
+            node: node,
+            severity: TreeIssueSeverity.error,
+            message:
+                'A box pins inside a box that clips (overflow: Overflow.hidden) and '
+                'never scrolls. A browser treats any overflow but `visible` as a scroll '
+                'container, so the band would pin to a viewport that never moves, and '
+                'Flutter has no viewport there at all. Let the box above scroll, or drop '
+                'the pin.',
+          ),
+        );
+      }
+
+      final double? pinOffset = style.pinOffset;
+
+      if (pinOffset != null && pinOffset < 0) {
+        issues.add(
+          TreeIssue(
+            node: node,
+            severity: TreeIssueSeverity.error,
+            message:
+                'A pinned box keeps a pinOffset of $pinOffset from its edge, and an '
+                'inset is a distance inward: a negative one would place the band outside '
+                'the viewport it pins to. Leave it unset for an edge with no header above '
+                'it.',
+          ),
+        );
+      }
+
+      // Flutter draws a pinned band over its viewport while its slot stays in the flow, and
+      // the slot is the size the tree states. Without one there is nothing to hold open, and
+      // the content below would move when the band came out of it.
+      if (style.height == null || !style.height!.isFinite) {
+        issues.add(
+          TreeIssue(
+            node: node,
+            severity: TreeIssueSeverity.error,
+            message:
+                'A box pins (pin: BoxPin.${pin.name}) without a finite height. A pinned '
+                'band is drawn over its viewport and keeps its slot in the flow, and that '
+                'slot is the height the box states. State a height, so nothing below the '
+                'band moves while it is away at the edge.',
+          ),
+        );
+      }
+    } else if (style.pinOffset != null) {
+      issues.add(
+        TreeIssue(
+          node: node,
+          message:
+              'A box states pinOffset: ${style.pinOffset} without a pin, so nothing is '
+              'pinned and the inset does nothing. Name the edge — BoxPin.start or '
+              'BoxPin.end — or drop the offset.',
         ),
       );
     }
@@ -1074,9 +1161,26 @@ void _validate(
       decoratedAbove: decoratedAbove || _drawsDecoration(node),
       unboundedWidth: room.$1,
       unboundedHeight: room.$2,
+      scrollingAncestor: _viewportOf(node, scrollingAncestor),
       issues: issues,
     );
   }
+}
+
+/// The nearest box above the children of [node] that gives them a viewport.
+///
+/// A box with any overflow other than `visible` is a scroll container in CSS, so a box that
+/// only clips counts as well: it is the box a pin resolves against, and it never moves, which
+/// is exactly the case a pin cannot be drawn in. A box that states nothing passes on the
+/// viewport above it, so the nearest scroller wins and a nested one is found first.
+Box? _viewportOf(UINode node, Box? above) {
+  if (node is! Box) {
+    return above;
+  }
+
+  final Overflow? overflow = node.computedStyle.overflow;
+
+  return overflow == null || overflow == Overflow.visible ? above : node;
 }
 
 /// The room [node] gives its children: whether either axis of it has no end.

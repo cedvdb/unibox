@@ -41,6 +41,8 @@ final class BoxStyle {
     this.overflow,
     this.snap,
     this.page,
+    this.pin,
+    this.pinOffset,
     this.width,
     this.height,
     this.aspectRatio,
@@ -150,6 +152,34 @@ final class BoxStyle {
   /// Only meaningful with [snap] of [ScrollSnap.page]: [ScrollSnap] says where the box settles and
   /// this says where it is told to settle, which `validateTree` reports when only one is given.
   final int? page;
+
+  // Position.
+
+  /// The edge of the box that scrolls this one that it stays at, or `null` for a box
+  /// that scrolls away with the rest.
+  ///
+  /// The box keeps its slot in the flow — no sibling moves — and is painted at
+  /// [BoxPin.start] or [BoxPin.end] of the viewport once it would have scrolled past,
+  /// returning to its slot when it is scrolled back. It is what a toolbar under a hero
+  /// wants: the hero leaves, the toolbar comes to rest under the header above it, and the
+  /// results keep flowing under both.
+  ///
+  /// Only a box that scrolls vertically holds one; `validateTree` reports a pin that the
+  /// viewport it was given cannot honour.
+  final BoxPin? pin;
+
+  /// The inset, in logical pixels, a pinned box keeps from the edge it pins to.
+  ///
+  /// Unset means zero. It is the room a header above the pinned band takes, so the band
+  /// comes to rest under it rather than over it — the header's own height, stated by the
+  /// box that puts the band there.
+  final double? pinOffset;
+
+  /// The inset [pinOffset] resolves to when the box does not state one.
+  ///
+  /// A pin without an inset keeps none of the edge, which is what a band pinned under
+  /// nothing wants, so the default is written here rather than in a renderer.
+  double get resolvedPinOffset => pinOffset ?? 0;
 
   // Dimensions.
 
@@ -374,6 +404,8 @@ final class BoxStyle {
     Overflow? overflow,
     ScrollSnap? snap,
     int? page,
+    BoxPin? pin,
+    double? pinOffset,
     double? width,
     double? height,
     double? aspectRatio,
@@ -409,6 +441,8 @@ final class BoxStyle {
       overflow: overflow ?? this.overflow,
       snap: snap ?? this.snap,
       page: page ?? this.page,
+      pin: pin ?? this.pin,
+      pinOffset: pinOffset ?? this.pinOffset,
       width: width ?? this.width,
       height: height ?? this.height,
       aspectRatio: aspectRatio ?? this.aspectRatio,
@@ -459,6 +493,8 @@ final class BoxStyle {
       overflow: other.overflow ?? overflow,
       snap: other.snap ?? snap,
       page: other.page ?? page,
+      pin: other.pin ?? pin,
+      pinOffset: other.pinOffset ?? pinOffset,
       width: other.width ?? width,
       height: other.height ?? height,
       aspectRatio: other.aspectRatio ?? aspectRatio,
@@ -498,6 +534,8 @@ final class BoxStyle {
       other.overflow == overflow &&
       other.snap == snap &&
       other.page == page &&
+      other.pin == pin &&
+      other.pinOffset == pinOffset &&
       other.width == width &&
       other.height == height &&
       other.aspectRatio == aspectRatio &&
@@ -534,6 +572,8 @@ final class BoxStyle {
     overflow,
     snap,
     page,
+    pin,
+    pinOffset,
     width,
     height,
     aspectRatio,
@@ -570,6 +610,8 @@ final class BoxStyle {
       if (overflow != null) 'overflow: $overflow',
       if (snap != null) 'snap: $snap',
       if (page != null) 'page: $page',
+      if (pin != null) 'pin: $pin',
+      if (pinOffset != null) 'pinOffset: $pinOffset',
       if (width != null) 'width: $width',
       if (height != null) 'height: $height',
       if (aspectRatio != null) 'aspectRatio: $aspectRatio',

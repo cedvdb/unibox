@@ -65,6 +65,11 @@ CLASSIFIED = {
         'overflow': 'clipping and scrolling need a viewport neither output hands back',
         'snap': 'where a scrolling box comes to rest; meaningless without `overflow`',
         'page': 'which child a pager shows at rest, which is a position rather than a look',
+        'pin': 'where a band comes to rest in a viewport, which is a fact about scrolling and not '
+        'about the box at rest: the band looks the same pinned or not, and the two renderer '
+        'suites scroll it instead',
+        'pinOffset': 'the room a pinned band keeps from its edge, which moves nothing until the '
+        'content scrolls past it',
         'heightFraction': 'the table carries the width fraction only; a height fraction is pinned '
         'by the node suites',
         'minWidth': 'a constraint rather than a measurement: the output reports the size it settled on',

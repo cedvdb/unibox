@@ -191,6 +191,24 @@ enum ScrollSnap {
   page,
 }
 
+/// The edge of a scrolling box a box stays at while the content scrolls past it.
+///
+/// A pinned box keeps its slot in the flow — nothing below it moves — and is painted at
+/// the named edge of the box that scrolls it once it would have scrolled past. It is the
+/// relation, not the mechanism: a browser writes it as `position: sticky` with an inset,
+/// and Flutter pins a sliver, and both resolve the edge the same way.
+///
+/// The two edges are the vertical ones, in the direction a page scrolls, so only a box
+/// that scrolls vertically holds one: a pin inside a row that scrolls sideways would
+/// name an edge nothing moves along, and `validateTree` reports it.
+enum BoxPin {
+  /// The leading edge of the scrolling box: the top of a vertical viewport.
+  start,
+
+  /// The trailing edge of the scrolling box: the bottom of a vertical viewport.
+  end,
+}
+
 /// How an image fills its bounds.
 enum ImageFit {
   /// Scale the image to cover its bounds, cropping when needed.

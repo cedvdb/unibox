@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- `Box(pin: …, pinOffset: …)` keeps a band at the edge of the box that scrolls it:
+  `BoxPin.start` is the top of the viewport, `BoxPin.end` the bottom, and `pinOffset` is the
+  room a header above it takes. The band keeps its slot in the flow — nothing below it moves —
+  and is painted above the content that scrolls under it, whether the scrolling ancestor is a
+  box with `overflow: Overflow.scroll` or the document a page scrolls. A pinned box states its
+  height: the slot the flow keeps is that number, so a pin without one is reported. So is a pin
+  inside a box that scrolls sideways, a pin inside a box that only clips
+  (`Overflow.hidden` never moves), a negative inset, and an inset with no pin to hold it.
+
 - `Box.capturesPointer` says whether the pointer may land on a box, and `null` keeps today's
   rule: a box with children, a callback or a state style takes it, and a painted leaf lets it
   through. `false` says the box is decoration whatever it holds, so the hover, the cursor and

@@ -280,6 +280,33 @@ void main() {
       );
     });
 
+    test('carries the edge a box pins to, and the inset it keeps', () {
+      const style = BoxStyle(pin: BoxPin.start, pinOffset: 12);
+
+      expect(style.pin, BoxPin.start);
+      expect(style.pinOffset, 12);
+      expect(style.resolvedPinOffset, 12);
+      expect(style.copyWith().pin, BoxPin.start);
+      expect(style, const BoxStyle(pin: BoxPin.start, pinOffset: 12));
+      expect(style.toString(), contains('pin: BoxPin.start'));
+      expect(style.toString(), contains('pinOffset: 12'));
+      expect(
+        style.merge(const BoxStyle(pin: BoxPin.end, pinOffset: 0)).pin,
+        BoxPin.end,
+        reason: 'an overlay wins, like every other token',
+      );
+      expect(
+        style.merge(const BoxStyle(pinOffset: 0)).resolvedPinOffset,
+        0,
+        reason: 'an inset of zero is a value, not "unchanged"',
+      );
+    });
+
+    test('resolves an unset inset to none', () {
+      // The default belongs to the model, so both renderers read the same zero.
+      expect(const BoxStyle(pin: BoxPin.end).resolvedPinOffset, 0);
+    });
+
     test('carries the ratio a box keeps between its sides', () {
       const style = BoxStyle(aspectRatio: 1.5, width: 320);
 
