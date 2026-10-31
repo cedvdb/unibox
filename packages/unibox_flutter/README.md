@@ -68,6 +68,14 @@ bounce reports negative pixels and a value past the end, while `scrollTop` clamp
 and at the content's height. In the middle of the range the two numbers agree, which is
 where a folding header or a "back to the top" control reads them.
 
+A viewport a box builds runs under a **scroll configuration that drops the overscroll
+decoration**: a Material application wraps a scroll view it did not write in a
+`GlowingOverscrollIndicator` — a wash of the primary colour, or a stretch of the content —
+and a browser paints nothing when a panel is pulled past its end. That wash is chrome, which
+is the one thing a node never keeps, so pulling a box past its end shows only its content.
+The physics, the devices a drag may use and the scrollbar stay the host's: the box says what
+it looks like, not how a platform scrolls.
+
 A **pin** is drawn by the box that scrolls: the band comes out of the flow, its slot stays
 in it, and a `_RenderPinnedBand` repaints it at the edge it named — so a scroll costs a
 repaint and not a rebuild, and a field inside the band keeps its state while it is carried

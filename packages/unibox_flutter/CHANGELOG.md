@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- A box that scrolls paints no overscroll decoration: its viewport runs under a scroll
+  configuration that passes the host's physics, drag devices and scrollbar through and drops its
+  `GlowingOverscrollIndicator`. A Material application tints or stretches a scroll view pulled
+  past its end and a browser paints nothing, and that tint is host chrome — the same reason a
+  field keeps no underline and a link no blue.
+
 - A box that states `fold` paints the look it names as it leaves its viewport. A `_RenderFoldedBox`
   layer interpolates the decoration, the opacity and the transform when it paints, from the box's
   own exit, so a scroll repaints one layer: nothing is rebuilt and nothing is laid out again.

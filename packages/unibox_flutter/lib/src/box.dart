@@ -237,6 +237,15 @@ class FlutterBoxState extends State<FlutterBox> {
         );
       }
 
+      // A scroll view pulled past its end is decorated by its host: a Material application glows,
+      // or stretches the content, and a browser paints nothing at all. That decoration is chrome,
+      // which is the one thing a node never keeps — a box states what it looks like, and the
+      // scrollbar and the physics stay the host's.
+      content = ScrollConfiguration(
+        behavior: _NoOverscrollGlow(ScrollConfiguration.of(context)),
+        child: content,
+      );
+
       final core.ScrollCallback? onScroll = box.onScroll;
       if (onScroll != null) {
         // *Around* the scroll view: a notification travels up from the scrollable to its
@@ -1855,4 +1864,45 @@ class _RenderFoldedBox extends RenderProxyBox {
       transform.multiply(matrix);
     }
   }
+}
+
+/// The scroll behaviour a box runs under: the host's, without its overscroll decoration.
+///
+/// A Material application wraps every scroll view in a `GlowingOverscrollIndicator` — a wash of
+/// the primary colour, or a stretch of the content — and a browser draws nothing when a box is
+/// pulled past its end. Keeping the glow would make the same tree look different on the two
+/// targets for the one reason this library refuses everywhere else: the host's chrome is not the
+/// tree's. Everything else is passed through, so the physics, the devices a drag may use and the
+/// scrollbar stay the host's.
+class _NoOverscrollGlow extends ScrollBehavior {
+  const _NoOverscrollGlow(this._host);
+
+  /// The behaviour the surrounding application installed.
+  final ScrollBehavior _host;
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) =>
+      _host.getScrollPhysics(context);
+
+  @override
+  Set<PointerDeviceKind> get dragDevices => _host.dragDevices;
+
+  @override
+  TargetPlatform getPlatform(BuildContext context) =>
+      _host.getPlatform(context);
+
+  @override
+  Widget buildScrollbar(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) => _host.buildScrollbar(context, child, details);
+
+  /// No decoration at all: the box's content is the whole of what a pull past the end shows.
+  @override
+  Widget buildOverscrollIndicator(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) => child;
 }
