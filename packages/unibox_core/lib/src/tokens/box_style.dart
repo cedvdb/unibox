@@ -171,8 +171,8 @@ final class BoxStyle {
   /// The inset, in logical pixels, a pinned box keeps from the edge it pins to.
   ///
   /// Unset means zero. It is the room a header above the pinned band takes, so the band
-  /// comes to rest under it rather than over it — the header's own height, stated by the
-  /// box that puts the band there.
+  /// comes to rest under it rather than over it — the same number as that header's `height`,
+  /// stated by the box that puts the band there.
   final double? pinOffset;
 
   /// The inset [pinOffset] resolves to when the box does not state one.

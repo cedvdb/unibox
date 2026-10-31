@@ -189,7 +189,12 @@ never inherited (CSS does not inherit them either).
   facts that *are* checkable — the slot in the flow, the paint order, the height the tree
   states for it — and each renderer's suite scrolls it rather than the appearance table.
   The height is part of the API for that reason: Flutter draws the band over the viewport
-  and the flow keeps its room from the number the tree states. A pin with no scrolling box
+  and the flow keeps its room from the number the tree states. So is the band's parent: a
+  band is drawn by the box that scrolls it, and a browser would pin one nested a level
+  down inside *that* box instead, so `validateTree` reports a pin that is not a child of
+  its viewport rather than letting the two targets come to rest in different places. The
+  share a `flex` asks for is reported for the same reason: a band keeps its stated height,
+  and a browser would grow it with the free space it has. A pin with no scrolling box
   above it is the one documented asymmetry: a browser pins it to the document, which
   scrolls a page, and Flutter has no viewport to pin it to, which the Flutter README
   records beside `srcSet`.

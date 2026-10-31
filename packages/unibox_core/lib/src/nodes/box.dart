@@ -195,7 +195,8 @@ class Box extends UINode {
   /// The inset, in logical pixels, this box keeps from the edge it pins to.
   ///
   /// Unset means zero. It is the room a header above the pinned band takes, so the band
-  /// comes to rest under it instead of over it.
+  /// comes to rest under it instead of over it: the same number as that header's `height`,
+  /// written twice because the header is a sibling the band cannot measure.
   final double? pinOffset;
 
   // Dimensions.

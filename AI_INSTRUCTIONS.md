@@ -243,7 +243,7 @@ host that renders it.
 | `color`, `font-size`, `font-weight`, `line-height`, `letter-spacing` | the same tokens on `TextNode` or `BoxTextStyle` |
 | `text-decoration: underline`, `text-decoration-color` | `decoration: TextDecoration.underline`, `decorationColor:` — `none`, `lineThrough`, `underline`; `double`, `wavy` and `overline` are not in the model, because Flutter draws one solid line and has no overline |
 | `overflow: hidden` / `auto` | `overflow: Overflow.hidden` / `Overflow.scroll` |
-| `position: sticky; top: 0` | `pin: BoxPin.start`, with the band's `height` stated: it stays at the edge of the box that scrolls it and keeps its slot in the flow. `bottom: 0` is `BoxPin.end`; the `<header>` above it is `pinOffset:` |
+| `position: sticky; top: 0` | `pin: BoxPin.start`, on a child of the box that scrolls, with the band's `height` stated: it stays at the edge of that box and keeps its slot in the flow. `bottom: 0` is `BoxPin.end`; the `<header>` above it is `pinOffset:` — the same number as the header's height |
 | `<a href>` | `LinkNode(url, …)`, which *is* the `<a href>` |
 | `<a>` with no `href` | `semantics: BoxSemantics(element: BoxElement.a)`: a placeholder that nothing follows |
 | `<img src alt>` | `ImageNode(src, alt: …)` |

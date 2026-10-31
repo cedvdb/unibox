@@ -196,11 +196,13 @@ enum ScrollSnap {
 /// A pinned box keeps its slot in the flow — nothing below it moves — and is painted at
 /// the named edge of the box that scrolls it once it would have scrolled past. It is the
 /// relation, not the mechanism: a browser writes it as `position: sticky` with an inset,
-/// and Flutter pins a sliver, and both resolve the edge the same way.
+/// and this package's Flutter renderer paints the band over the viewport it pins to, so
+/// both resolve the edge the same way.
 ///
 /// The two edges are the vertical ones, in the direction a page scrolls, so only a box
 /// that scrolls vertically holds one: a pin inside a row that scrolls sideways would
-/// name an edge nothing moves along, and `validateTree` reports it.
+/// name an edge nothing moves along, and `validateTree` reports it. So does a pin that is
+/// not a child of the box that scrolls it, because a band is drawn by that box.
 enum BoxPin {
   /// The leading edge of the scrolling box: the top of a vertical viewport.
   start,
