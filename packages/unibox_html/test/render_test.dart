@@ -90,6 +90,26 @@ void main() {
       );
     });
 
+    test('runs a fold on the box itself, from a block the page carries', () {
+      final String html = toHtml(
+        const core.Box(
+          height: 132,
+          fold: core.BoxFold(
+            to: core.BoxStyle(opacity: 0),
+            curve: core.BoxCurve.easeOut,
+            over: 0.5,
+          ),
+        ),
+      );
+
+      expect(html, contains('animation-timeline:view()'));
+      expect(html, contains('animation-timing-function:ease-out'));
+      expect(html, contains('animation-range:exit 0% exit 50%'));
+      // Both frames and the call sit in one fragment, so a page with no client script folds.
+      expect(html, contains('@keyframes unibox-fold-'));
+      expect(html, contains('from{opacity:1}to{opacity:0}'));
+    });
+
     test('renders the element its semantics name', () {
       expect(
         toHtml(

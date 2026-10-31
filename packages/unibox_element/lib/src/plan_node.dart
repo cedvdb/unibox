@@ -130,6 +130,15 @@ ElementPlan _planBox(core.Box box, Stylesheet sheet, PlanOptions options) {
   final bool holdsThreshold = box.children.any(
     (core.UINode child) => child is core.Box && child.hasThreshold,
   );
+
+  // A fold is two frames and a name, and the name is what the class rule calls: the block goes
+  // into the sheet once, however many boxes fold the same way. It is registered before the
+  // look so a page that writes only the rules added since its last write still gets it.
+  final core.BoxFold? fold = style.fold;
+
+  if (fold != null) {
+    sheet.keyframes(foldKeyframes(style));
+  }
   final bool interactive = box.isInteractive;
 
   final String className = sheet.classForLook(

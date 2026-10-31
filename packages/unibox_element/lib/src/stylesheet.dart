@@ -32,6 +32,13 @@ final class Stylesheet {
   /// sheet's own record, kept beside [_states] and pruned with it.
   final List<String> _owners = <String>[];
 
+  /// The `@keyframes` blocks this rendering needs, in the order they were first asked for.
+  ///
+  /// A block is not worn by an element the way a class is: it is called by name from an
+  /// `animation-name` declaration, so it is keyed by its own name — a hash of its frames — and
+  /// two boxes folding the same way share one block.
+  final Map<String, CssKeyframes> _frames = <String, CssKeyframes>{};
+
   /// The class of every look this sheet has already composed, so a look asked for twice is
   /// composed once. Its size is the number of distinct looks, which is what the rules cost
   /// too.
@@ -120,6 +127,22 @@ final class Stylesheet {
     return _looks[look] = className;
   }
 
+  /// Registers [frames] the first time it is asked for, and answers with its name.
+  ///
+  /// Nothing prunes a block the way [retain] prunes a class: a fold is a property of a box
+  /// rather than of the data drawn into one, so a page mints as many blocks as it has folds and
+  /// no more. A block nothing calls is also harmless — it is a rule a browser never runs.
+  String keyframes(CssKeyframes frames) {
+    if (_frames.containsKey(frames.name)) {
+      return frames.name;
+    }
+
+    _frames[frames.name] = frames;
+    _revision++;
+
+    return frames.name;
+  }
+
   /// Forgets every rule of a class that is not in [keep], and every look remembered for one.
   ///
   /// A view lives as long as the page it draws, and every look a store mints is a rule — a list
@@ -168,14 +191,17 @@ final class Stylesheet {
   ///
   /// A renderer that writes a page and then adds to it keeps the mark of what it wrote, so the
   /// next write is only the rules that came after it.
-  ({int classes, int states}) get mark =>
-      (classes: _classOrder.length, states: _states.length);
+  ({int classes, int states, int frames}) get mark => (
+    classes: _classOrder.length,
+    states: _states.length,
+    frames: _frames.length,
+  );
 
   /// The rules added after [mark], as the text a page is given.
   ///
   /// A rule that declares nothing is not a rule: it is skipped here as it is in `css`, so a
   /// class with no declarations costs no bytes however many nodes wear it.
-  List<String> rulesSince(({int classes, int states}) mark) {
+  List<String> rulesSince(({int classes, int states, int frames}) mark) {
     final List<String> rules = <String>[];
 
     for (int i = mark.classes; i < _classOrder.length; i++) {
@@ -208,6 +234,14 @@ final class Stylesheet {
       rules.add(container == null ? body : '@container $container{$body}');
     }
 
+    // The at-rules last, so a page that writes its rules in order reads the looks and the states
+    // that call them before the blocks themselves.
+    final List<CssKeyframes> frames = _frames.values.toList();
+
+    for (int i = mark.frames; i < frames.length; i++) {
+      rules.add(frames[i].toString());
+    }
+
     return rules;
   }
 
@@ -219,7 +253,7 @@ final class Stylesheet {
   String get css {
     final StringBuffer buffer = StringBuffer();
 
-    for (final String rule in rulesSince((classes: 0, states: 0))) {
+    for (final String rule in rulesSince((classes: 0, states: 0, frames: 0))) {
       buffer.writeln(rule);
     }
 

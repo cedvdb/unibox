@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- A box that states `fold` puts its `@keyframes` block into the sheet once, named by a hash of its
+  frames, so two boxes folding the same way cost one block. `Stylesheet.keyframes` registers it,
+  `mark` and `rulesSince` carry it so a renderer that writes its rules in pieces still writes the
+  block, and nothing prunes it: a page mints as many blocks as it has folds.
+
 - A heading wears a class of its own: whether a text is a heading is part of the look the sheet
   remembers. `textDeclarations` writes the reset that cancels a user agent's heading margin,
   size and weight, and the look it was filed under did not say so — a plain text of the same

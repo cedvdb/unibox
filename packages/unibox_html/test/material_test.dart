@@ -199,7 +199,7 @@ void main() {
         );
 
         String ruleOf(Stylesheet sheet, ElementPlan plan) => sheet
-            .rulesSince((classes: 0, states: 0))
+            .rulesSince((classes: 0, states: 0, frames: 0))
             .firstWhere((String r) => r.startsWith('.${plan.className!}{'));
 
         // The body, not the selector: the classes differ, which is the one thing that should.
@@ -273,7 +273,7 @@ void main() {
         sheet,
       );
       final String rule = sheet
-          .rulesSince((classes: 0, states: 0))
+          .rulesSince((classes: 0, states: 0, frames: 0))
           .firstWhere((String rule) => rule.startsWith('.${plan.className!}{'));
 
       // The card is content, not a control: a press belongs to the ink inside it.
@@ -307,7 +307,7 @@ void main() {
   group('a Material control in a document', () {
     /// The declarations of the class [plan] wears.
     String ruleOf(Stylesheet sheet, ElementPlan plan) => sheet
-        .rulesSince((classes: 0, states: 0))
+        .rulesSince((classes: 0, states: 0, frames: 0))
         .firstWhere((String rule) => rule.startsWith('.${plan.className!}{'));
 
     test('puts the floor on the press, not on the pill around it', () {

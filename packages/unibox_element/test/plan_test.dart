@@ -353,7 +353,7 @@ void shapedTests() {
 
     /// The one rule [className] declares.
     String ruleOf(Stylesheet sheet, String className) => sheet
-        .rulesSince((classes: 0, states: 0))
+        .rulesSince((classes: 0, states: 0, frames: 0))
         .firstWhere((String rule) => rule.startsWith('.$className{'));
 
     test('is the anchor element, with the look and the children it had', () {
@@ -390,7 +390,7 @@ void shapedTests() {
       // class of its own, which is not what this counts.
       expect(
         sheet
-            .rulesSince((classes: 0, states: 0))
+            .rulesSince((classes: 0, states: 0, frames: 0))
             .where((String rule) => rule.startsWith('.unibox-box-')),
         hasLength(1),
       );

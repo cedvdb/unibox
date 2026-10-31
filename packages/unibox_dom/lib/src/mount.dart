@@ -103,7 +103,7 @@ final class DomView {
   ///
   /// A sheet that no longer holds what this view put in it — a host replaced it, or a second
   /// view wrote over it — is written whole rather than appended to.
-  ({int classes, int states})? _cssMark;
+  ({int classes, int states, int frames})? _cssMark;
   int _cssRules = -1;
 
   /// How many rules the sheet held at the last prune, and `-1` until the first pass has set the
@@ -233,7 +233,7 @@ final class DomView {
     _cssRevision = _sheet.revision;
 
     final web.HTMLStyleElement style = _style ??= _createStyle();
-    final ({int classes, int states})? mark = _cssMark;
+    final ({int classes, int states, int frames})? mark = _cssMark;
     final web.CSSStyleSheet? rules = style.sheet;
 
     if (mark == null || rules == null || rules.cssRules.length != _cssRules) {

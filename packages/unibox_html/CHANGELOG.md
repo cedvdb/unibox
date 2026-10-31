@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- A page carries the `@keyframes` a folded box runs, in the same `<style>` element as the rest, so
+  a document that no script touches folds as the reader scrolls it.
+
 - A `LinkNode` is written as an `<a href>` with the box's own class, children and declarations,
   instead of a `<div role="button">`: a page a crawler can follow, a reader without the
   runtime can use, and anyone can copy or open in a new tab. Nothing else about the element
