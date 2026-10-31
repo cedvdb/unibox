@@ -92,11 +92,11 @@ coding agent needs are in [AGENTS.md](AGENTS.md), and a human contributing needs
   as `BoxTextStyle` values (`MaterialTypography`, `MaterialTypeRole`), the colour
   roles as `MaterialPalette` (`light`/`dark`, or grown from one seed colour with
   `fromSeed` and its `MaterialSchemeVariant`), and the components built on the nodes
-  the renderers already draw — `MaterialCard`, `MaterialListTile`, `MaterialButton`,
-  `MaterialChip`, `MaterialSegmentedButton`, `MaterialTabBar`, `MaterialTabs`,
-  `MaterialNavigationBar`, `MaterialIcon`, `MaterialInkWell`, `MaterialTextField`,
-  `MaterialDialog`, `MaterialBottomSheet` — optional and pure Dart, for a tree that wants Material on both
-  targets.
+  the renderers already draw — a scaffold, app bars, a card, a list tile, a button,
+  an icon button, a chip, tabs, a segmented button, an ink well, a text field, an
+  icon and a check mark, a navigation bar, a progress ring and a spinner, a dialog
+  and a bottom sheet — optional and pure Dart, one line each in
+  [README.md#material](README.md#material).
 
 ## Working on the repository
 

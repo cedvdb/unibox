@@ -521,13 +521,11 @@ A scale can be written by hand, as the example does, or taken ready made:
 scale as `const BoxTextStyle` values (`MaterialTypography.titleLarge`,
 `MaterialTypography.bodyMedium`, ...), the colour roles as a `MaterialPalette` value —
 written down for the baseline scheme, or grown from one brand colour with
-`MaterialPalette.fromSeed` — and fifteen components built from the same tokens: a card,
-a list tile, a button, an icon button, a chip, a segmented button, an ink well, a text
-field, an icon, Material's drawn tick, a navigation bar, a progress ring and its spinner,
-a dialog and a bottom sheet. It is optional
-and pure Dart, and the
-renderers do not know it exists — a tree that uses it is drawn by the same two
-renderers as one that does not.
+`MaterialPalette.fromSeed` — and the components built from the same tokens, from a
+scaffold and an app bar to a card, a list tile, a button and a dialog. It is optional
+and pure Dart, and the renderers do not know it exists — a tree that uses it is drawn
+by the same two renderers as one that does not. [The Material section](#material) has
+one line for each component.
 
 ## Motion
 
@@ -782,7 +780,7 @@ a custom property. Nothing in a tree is written inline.
 | `packages/unibox_html` | The web renderer: `toHtml(node)` (or `node.toHtml()`) and `toDocument(node)`. |
 | `packages/unibox_dom` | The client renderer: `DomView.adopt(tree, root)` keeps the markup a server wrote and patches it as the stores publish. |
 | `packages/unibox_testing` | The tables both renderers are tested against. Development only, not published. |
-| `packages/unibox_material` | The Material 3 type scale, the colour roles as a theme — the baseline scheme written down, or a palette grown from one seed colour — and the components built from them (card, list tile, button, chip, segmented button, ink well, text field, icon, check mark, navigation bar, dialog, bottom sheet). Optional: no renderer depends on it. |
+| `packages/unibox_material` | The Material 3 type scale, the colour roles as a theme — the baseline scheme written down, or a palette grown from one seed colour — and the components built from them, from a scaffold and an app bar to a card, a list tile, a button, a dialog and a sheet. Optional: no renderer depends on it, and [the Material section](#material) has one line for each component. |
 | `example/` | The example — a listings page and a sign-up dialog, one node tree — and the site: one page, the example drawn by both renderers beside the claim it makes. |
 
 Dependencies point one way: both renderers depend on `unibox_core`, never the other

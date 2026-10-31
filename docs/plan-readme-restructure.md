@@ -87,4 +87,11 @@ paragraph, so nothing on the front page says which components exist.
 - `tool/check_docs.py` resolved every relative link against the repository root, which
   was only correct while every document lived there. It now resolves against each
   document's own directory, so a page under `docs/` is checked like one at the root.
+- The Material README had drifted the same way a summary exposes: it said the package
+  "exports three names" (it exports the scale, the palette and the components), "ten
+  components" (there are twenty), that chips and navigation were "not built" (both are),
+  and that the bottom sheet "rounds all four corners" (it rounds the two it rises from,
+  as `MaterialBottomSheet` says in its own doc comment). The root README's "fifteen
+  components", `llms.txt`, `AGENTS.md` and `AI_INSTRUCTIONS.md` now point at the
+  summary or name the whole set instead of a count that goes stale.
 

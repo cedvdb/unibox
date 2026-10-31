@@ -181,8 +181,8 @@ a surface that have to travel together, so it is a node — built by extending t
 node that already draws it, which is why `MaterialCard` needs no renderer and no
 conformance case. A `TitleText` is the first kind pretending to be the second.
 
-Keep those four lines in the application that wants them. The package exports
-three names, and the day a preset needs a theme token it is a `BoxTextStyle`
+Keep those four lines in the application that wants them. The package exports values
+and components, and the day a preset needs a theme token it is a `BoxTextStyle`
 again.
 
 ## The palette and the theme
@@ -1298,8 +1298,8 @@ label, an `onSurface` hover outline and 38% opacity when disabled; a dialog whos
 content is `bodyMedium` in `onSurfaceVariant` over `labelLarge` actions in `primary`;
 a navigation bar 80 pixels tall on `surfaceContainer`, its chosen destination's icon
 on a 64 by 32 `secondaryContainer` pill; and a bottom sheet that fills the width up
-to 640 pixels, with a drag handle and a shadow that rises. Still approximate: the sheet
-rounds all four corners, the handle is not draggable, the navigation indicator fades and
+to 640 pixels, with a drag handle and a shadow that rises. Still approximate: the
+handle is not draggable, the navigation indicator fades and
 grows in place instead of sliding between destinations, and the ink is one circle that
 grows and fades where Material draws a splash with a fading highlight and a second ripple
 when the press is released.
@@ -1320,11 +1320,10 @@ division keeps the promise the renderers are tested against: a line box is
 
 ## Imports
 
-`unibox_material` exports three names — `MaterialTypography`, `MaterialTypeRole`
-and `MaterialCard` — and it **does not re-export `unibox_core`**. A file that also
-imports Flutter can therefore import this package without a prefix; it still needs
-one for the tree, as described in the
-[core README](../unibox_core/README.md#beside-flutter).
+`unibox_material` exports the type scale, the palette and the components, and it
+**does not re-export `unibox_core`**. A file that also imports Flutter can therefore
+import this package without a prefix; it still needs one for the tree, as described in
+the [core README](../unibox_core/README.md#beside-flutter).
 
 ## Testing
 
@@ -1346,10 +1345,9 @@ its name.
 
 ## Scope
 
-The type scale, the colour roles (written or grown from a seed), and ten
-components. What is deliberately not here
-is written on the class that lacks it, and it is all platform behaviour rather than a
-value the model could carry:
+The type scale, the colour roles (written or grown from a seed), and the components,
+each documented above. What is deliberately not here is written on the class that lacks
+it, and it is all platform behaviour rather than a value the model could carry:
 
 | Left out | Why |
 | --- | --- |
@@ -1361,7 +1359,7 @@ value the model could carry:
 | the icon font and its subset | a host asset: declared in `fonts:` or with an `@font-face`, and subset by the Flutter build |
 | Material's breathing spinner | a rotating arc of a fixed sweep: a sweep that grows and shrinks needs a keyframe timeline |
 | a `progressbar` role with its bounds | `BoxSemantics` has no progress role yet, so a ring announces its label as text |
-| chips, menus, navigation | not built; each is a component, not a decision |
+| menus | not built: a menu is a component, not a decision, and where it opens is the pointer's business |
 
 ## License
 
