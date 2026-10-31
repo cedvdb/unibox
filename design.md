@@ -183,6 +183,16 @@ never inherited (CSS does not inherit them either).
   that states it is reported instead. The baseline itself has one name, the
   alphabetic one: CSS cannot ask for another, so the model does not offer a choice
   only one target could honour.
+- A token whose effect only exists while the content moves is still a parity claim.
+  `pin` says where a band comes to rest in the viewport that scrolls it, which no static
+  appearance can show: the band looks the same pinned or not. So the token is held to the
+  facts that *are* checkable — the slot in the flow, the paint order, the height the tree
+  states for it — and each renderer's suite scrolls it rather than the appearance table.
+  The height is part of the API for that reason: Flutter draws the band over the viewport
+  and the flow keeps its room from the number the tree states. A pin with no scrolling box
+  above it is the one documented asymmetry: a browser pins it to the document, which
+  scrolls a page, and Flutter has no viewport to pin it to, which the Flutter README
+  records beside `srcSet`.
 - Filling a width needs a width to fill. `width: double.infinity` means "as wide as I
   am offered": Flutter hands a child the incoming constraint, and a browser resolves
   `100%` against its parent's width — which, for a column that hugs its content, is

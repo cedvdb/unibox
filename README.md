@@ -327,6 +327,8 @@ Box(
 | `overflow` | `Overflow?` | visible | `hidden` clips the content, `scroll` makes the box scroll along its direction. |
 | `snap` | `ScrollSnap?` | none | Where a scrolling box comes to rest. `page` makes it a pager: it moves one child at a time along its own direction and settles on a child rather than between two. It needs `overflow: Overflow.scroll`; `validateTree` reports a snap on a box that cannot scroll. |
 | `page` | `int?` | none | The page a snapping box shows, counted along its direction: how a pager is *told* where to go, as a position rather than a controller. It moves the box when it changes, so a tree drawn twice with the same page leaves the reader alone. Only meaningful with `snap: ScrollSnap.page`. |
+| `pin` | `BoxPin?` | none | The edge of the box that scrolls it that this box stays at, once the content would have carried it past: `start` is the top of the viewport, `end` the bottom. The box keeps its slot in the flow — nothing below it moves — and is painted above the content that scrolls under it. It is a relation to the nearest scrolling box, not an offset in the window, so it works when the document scrolls as well as inside a box with `overflow: Overflow.scroll`. `validateTree` reports a pin inside a box that scrolls sideways, inside a box that only clips, and a pinned box with no height. |
+| `pinOffset` | `double?` | none | The room a pinned box keeps from its edge, in logical pixels: the height of the header above it, so the band comes to rest under it instead of over it. |
 
 **Size**
 
@@ -1123,6 +1125,7 @@ to the host that draws it.
 | --- | --- |
 | **State**: the values of a form, which page is open, what a tap does | Nodes are immutable and hold no values. A callback is a `void Function()` the host implements, and the host re-renders with new nodes. |
 | **The surface**: window size, safe areas, scroll position | A description does not know how large the window is. A responsive page takes the answer as a parameter, and each host produces it its own way. |
+| **Where the scroll is**, but not what stays in it | A pin is a relation to the nearest box that scrolls, not an offset in the window: the band says *stay at this edge of whatever scrolls me*, and the reader's scroll position stays the host's. That is the line between `pin` and `onScroll` — one says what the tree looks like while it moves, the other reports where it got to. |
 | **The document**: title, language, description, canonical url, structured data | Those describe a page, not a region of one. The Flutter host gives them to its `MaterialApp`, the web host to `toDocument`. |
 | **The language**: which copy the page is written in, and the addresses of its translations | Copy is a string, so it is built into the tree as a value like a colour; the locale is the host's, because a crawler can only read it from the address. A tree that read `Localizations` could not be rendered as a document at all. |
 | **The fonts** | A font file is an asset of the application, and it has to be the same file on both sides. |
