@@ -811,6 +811,14 @@ The rule between two segments is drawn inside the segment it opens rather than b
 two: a share is the whole of its width, so a box laid out between two shares would take
 room neither can divide, and would push the label off the centre of its own share.
 
+**An icon sits at the start of its segment.** The label fills the room beside it
+and is centred there, rather than the pair being centred as a group — the
+control's own choice, and one the tree has to state: a row is as wide as its
+content, so the row that holds the icon and the label fills the column the
+segment was given. Without that width the two targets drew the same pair
+differently: the document centred the icon and the words together while Flutter
+filled the room beside the icon.
+
 **A label is one line.** A segment is a share of the control's width and not a width of its
 own, so a label longer than that share — a translation, or any label at twice the text
 scale — gives way instead of widening the pill or painting over the segment beside it: a

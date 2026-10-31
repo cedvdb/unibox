@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- A segmented button with an icon draws it at the start of its segment, with the label
+  centred in the room beside it, on both renderers. The row that holds the two asked for a
+  portion of a width it did not state, so the document centred the icon and the words
+  together while Flutter filled the room beside the icon; the row now fills the column the
+  segment was given, and the pair are drawn the same way.
+
 - **Breaking: a segmented button's segments are the same width with or without a `width`.** The
   control had two sizing rules, and only one of them was a segmented button: given a width, every
   segment filled `1 / count` of it, and with no width each segment was as wide as its own label.

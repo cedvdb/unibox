@@ -337,4 +337,54 @@ void main() {
     // `MaterialPalette.light.outlineVariant`.
     expect(decoration.border, Border.all(color: const Color(0xFFCAC4D0)));
   });
+
+  testWidgets('puts an icon at the start and centres the label beside it', (
+    WidgetTester tester,
+  ) async {
+    const Key icon = ValueKey<Object>('segment-icon');
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.topLeft,
+            child: renderFlutter(
+              MaterialSegmentedButton(
+                width: 216,
+                showSelectedIcon: false,
+                segments: const <MaterialSegment>[
+                  MaterialSegment(
+                    label: core.TextNode('List'),
+                    icon: core.Box(key: 'segment-icon', width: 12, height: 12),
+                  ),
+                  MaterialSegment(label: core.TextNode('Grid')),
+                ],
+                selected: 1,
+                onSelect: (int index) {},
+              ),
+              theme: MaterialPalette.lightTheme,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final Rect control = tester.getRect(
+      find.byWidgetPredicate(
+        (Widget widget) =>
+            widget is FlutterBox && widget.box is MaterialSegmentedButton,
+      ),
+    );
+    final Rect iconRect = tester.getRect(find.byKey(icon));
+    final Rect label = tester.getRect(find.text('List'));
+
+    // The row that holds the icon and the label fills the segment, so the label is given
+    // the room beside the icon and is centred in it — which is what the web draws, and
+    // what the component states the width for. A hugging row put the pair in the middle
+    // of the segment with the label against its icon.
+    expect(iconRect.left - control.left, closeTo(12, 0.5));
+    final double roomStart = iconRect.right + 8;
+    final double roomEnd = control.left + (control.width - 1) / 2 - 12;
+    expect(label.center.dx, closeTo((roomStart + roomEnd) / 2, 0.5));
+  });
 }

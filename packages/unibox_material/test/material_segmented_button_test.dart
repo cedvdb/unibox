@@ -137,6 +137,39 @@ void main() {
       }
     });
 
+    test('gives a label beside an icon the room it asks to fill', () {
+      const UINode icon = TextNode('grid');
+      const TextNode label = TextNode('List');
+
+      MaterialSegmentedButton button({double? width}) =>
+          MaterialSegmentedButton(
+            width: width,
+            showSelectedIcon: false,
+            segments: const <MaterialSegment>[
+              MaterialSegment(label: label, icon: icon),
+              MaterialSegment(label: TextNode('Grid')),
+            ],
+            selected: 0,
+            onSelect: _select,
+          );
+
+      // The row holds the icon and the label. A row is as wide as its content, so the
+      // room the label asks for needs a width to be a room of: the grid column bounds the
+      // segment, and the row fills it in both cases — a pill that hugs its columns and a
+      // pill that divides a width it was given.
+      for (final MaterialSegmentedButton control in <MaterialSegmentedButton>[
+        button(),
+        button(width: 216),
+      ]) {
+        final Box segment = _gridOf(control).children.first as Box;
+        final Box row = _contentOf(_wellBox(segment)).children.single as Box;
+
+        expect(row.direction, Axis.horizontal);
+        expect(row.width, double.infinity);
+        expect((row.children.last as Box).flex, 1);
+      }
+    });
+
     test(
       'wears the line it is given, around the pill and between segments',
       () {

@@ -281,6 +281,12 @@ final class MaterialSegmentedButton extends Box {
                       direction: Axis.horizontal,
                       crossAlign: CrossAlign.center,
                       gap: iconGap,
+                      // A row is as wide as its content, so the room the label asks for
+                      // needs a width to be a room of: the column bounds this row, and
+                      // without the width the row hugged the icon and the words — the
+                      // document centred the pair while Flutter filled the room beside
+                      // the icon.
+                      width: double.infinity,
                       children: <UINode>[
                         leading,
                         _labelOf(segment.label, beside: true),
@@ -345,7 +351,8 @@ final class MaterialSegmentedButton extends Box {
   ///
   /// [beside] is the shape with a node in front of it. The model's `flex` is a portion of
   /// the parent and not "take what is left", so the label fills the room beside the
-  /// node: a short label is centred in that room rather than sitting against its icon.
+  /// node: a short label is centred in that room rather than sitting against its icon,
+  /// and the row that holds the two states the width the room is measured against.
   /// Flutter's own `SegmentedButton` uses a `Flexible` there, which this model has no
   /// word for; the difference shows at a width where the label is much shorter than its
   /// column, and it is the price of a label that can never overflow.
