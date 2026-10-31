@@ -94,16 +94,16 @@ void main() {
       expect(_textsIn(paged.last), contains('Three'));
     });
 
-    test('dresses its bands as app bars rather than hand-built boxes', () {
+    test('dresses its bars as app bars rather than hand-built boxes', () {
       final List<Box> nodes = _nodesOf(buildMaterialSection())
           .whereType<Box>()
           .toList();
 
-      // Every band in the catalogue is the component that draws one — the two screens' bars and
+      // Every bar in the catalogue is the component that draws one — the two screens' bars and
       // the ones the static specimens show — so nothing here teaches a reader to write the same
       // thing out of a `Box`.
-      for (final Box band in nodes.where((Box box) => box.pin != null)) {
-        expect(band, anyOf(isA<MaterialAppBar>(), isA<MaterialLargeAppBar>()));
+      for (final Box bar in nodes.where((Box box) => box.pin != null)) {
+        expect(bar, anyOf(isA<MaterialAppBar>(), isA<MaterialLargeAppBar>()));
       }
 
       // And the bars have specimens of their own, not only a part in a screen.
@@ -169,31 +169,31 @@ void main() {
           .toList();
 
       // Two: one per screen. Both come to rest at the top, which is what a top app bar does — the
-      // other edges a band can hold are in the README and the renderer suites, not in a screen.
+      // other edges a bar can hold are in the README and the renderer suites, not in a screen.
       expect(pinned, hasLength(2));
-      for (final Box band in pinned) {
-        expect(band.pin, BoxPin.start);
+      for (final Box bar in pinned) {
+        expect(bar.pin, BoxPin.start);
         expect(
-          band.pinOffset,
+          bar.pinOffset,
           isNull,
           reason: 'a top app bar has nothing above it to stop under',
         );
 
-        // The contract a band keeps: a stated height for its slot, a surface of its own, and a
+        // The contract a bar keeps: a stated height for its slot, a surface of its own, and a
         // parent that scrolls it and is given the rest of the screen to fill.
-        expect(band.height, isNotNull);
-        expect(band.height!.isFinite, isTrue);
-        expect(band.backgroundColor, isNotNull);
+        expect(bar.height, isNotNull);
+        expect(bar.height!.isFinite, isTrue);
+        expect(bar.backgroundColor, isNotNull);
 
         final Box viewport = nodes.whereType<Box>().singleWhere(
-          (Box box) => box.children.contains(band),
+          (Box box) => box.children.contains(bar),
         );
 
         expect(viewport.overflow, Overflow.scroll);
         expect(viewport.height, double.infinity);
       }
 
-      // The band whose height follows the scroll is the large one, and it can only follow it
+      // The bar whose height follows the scroll is the large one, and it can only follow it
       // because the body it is in reports where it has got to.
       final Box shrinking = pinned.singleWhere(
         (Box box) => box is MaterialLargeAppBar,

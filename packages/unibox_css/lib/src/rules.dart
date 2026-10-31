@@ -135,14 +135,14 @@ List<CssRule> stateRules(core.Box box, String className) {
 /// inline-size` — the parent — so the width is the one the box is drawn in.
 ///
 /// `from` is the width the box starts being drawn at, `until` the width it stops at: the two
-/// together are a band, and either alone is a floor or a ceiling.
+/// together are a range, and either alone is a floor or a ceiling.
 /// The rule that keeps the children of a box that scrolls at the size the tree states.
 ///
 /// A flex item shrinks to fit by default, which is the opposite of what a viewport means: three
-/// bands of 120 pixels inside a box of 120 shrank to a third each and the box had nothing to
+/// rows of 120 pixels inside a box of 120 shrank to a third each and the box had nothing to
 /// scroll. Flutter lays the children out at their stated heights and scrolls, so without this
 /// declaration the same tree scrolls in the app and is squashed on the page — which is how a
-/// sticky band came out as a bar that never moved.
+/// sticky bar came out as a row that never moved.
 ///
 /// `> *` is the parent's class because the rule belongs to the box that scrolls, not to a child
 /// that knows nothing about it.

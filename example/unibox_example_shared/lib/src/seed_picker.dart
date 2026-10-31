@@ -9,7 +9,7 @@ import 'theme.dart';
 /// is told which one it is and which one is in force.
 ///
 /// It carries no width, no background and no padding, because where it sits is the
-/// page's: the header places it beside the name, and a band of its own would push the
+/// page's: the header places it beside the name, and a bar of its own would push the
 /// name off the row it belongs to.
 ///
 /// A swatch is a link to the page it is on with `?seed=<name>` in the address. The

@@ -4,23 +4,23 @@ import 'package:unibox_material/unibox_material.dart';
 import '../theme.dart';
 import 'section.dart';
 
-/// The second band: what the whole vocabulary amounts to, once, as one card.
+/// The second bar: what the whole vocabulary amounts to, once, as one card.
 ///
-/// The band's claim is the smallest sentence the library can be described in: a screen is
+/// The bar's claim is the smallest sentence the library can be described in: a screen is
 /// containers, and a container holds text, a picture, a field or more containers. Nothing
 /// else is on offer — there is no widget to learn beside a box — which is why the four nodes
 /// a card is built from are the four a reader would otherwise never notice: a picture, a
 /// stack, a child placed at an offset and a field with no chrome.
 ///
-/// So the band is one small card, the same card taken apart, and the two calls the taken
+/// So the bar is one small card, the same card taken apart, and the two calls the taken
 /// apart tree is for. The picture is not a screenshot of the card — it *is* the list beside
 /// it, which is the whole of what the library claims, and it is why the card is text a
 /// crawler reads rather than an image of text it cannot.
 UINode buildVocabularySection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
   final MaterialPalette palette = ExamplePalette.materialFor(seed);
 
-  return siteBand(
-    // A tint, so the band stands apart from the two bands around it: the claim above it
+  return siteSection(
+    // A tint, so the bar stands apart from the two bars around it: the claim above it
     // and the catalogue below it are both the surface colour.
     background: palette.surfaceContainer,
     vertical: 80,
@@ -55,7 +55,7 @@ UINode buildVocabularySection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
           ],
         ),
         TextNode(
-          'The hero, the catalogue and this band are the same nodes, drawn by the same '
+          'The hero, the catalogue and this bar are the same nodes, drawn by the same '
           'two calls.',
           style: MaterialTypography.labelMedium.copyWith(
             color: palette.onSurfaceVariant,

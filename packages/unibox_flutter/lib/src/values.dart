@@ -84,14 +84,14 @@ WrapCrossAlignment? toWrapCrossAlignment(core.CrossAlign align) {
   };
 }
 
-/// A model [core.CrossAlign] as the alignment a band drawn over a viewport is given.
+/// A model [core.CrossAlign] as the alignment a bar drawn over a viewport is given.
 ///
-/// A band drawn over a viewport is handed the whole width of it, tight, where a flex
+/// A bar drawn over a viewport is handed the whole width of it, tight, where a flex
 /// container hands its child the room it asks for; `null` means the child fills that
-/// width, which is what [core.CrossAlign.stretch] asks for and what the band does by
+/// width, which is what [core.CrossAlign.stretch] asks for and what the bar does by
 /// default. A baseline is a line a row aligns on and a box laid out by a viewport is a
 /// column, which `validateTree` reports, so the value lands on the nearest edge here.
-AlignmentGeometry? toBandAlignment(core.CrossAlign align) {
+AlignmentGeometry? toPinnedAlignment(core.CrossAlign align) {
   return switch (align) {
     core.CrossAlign.start ||
     core.CrossAlign.baseline => AlignmentDirectional.centerStart,

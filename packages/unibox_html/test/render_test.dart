@@ -167,8 +167,8 @@ void main() {
       );
     });
 
-    test('renders a pinned band as a sticky element above what it covers', () {
-      // A fragment asserted against the declaration itself: the band has to be sticky, at
+    test('renders a pinned bar as a sticky element above what it covers', () {
+      // A fragment asserted against the declaration itself: the bar has to be sticky, at
       // the edge it named, with the stacking a browser does not give it for free.
       final String html = toHtml(
         const core.Box(
@@ -270,7 +270,7 @@ void main() {
       expect(html, contains('@container (min-width: 900px)'));
     });
 
-    test('draws a band between two widths', () {
+    test('draws a bar between two widths', () {
       final String html = toHtml(
         const core.Box(
           children: <core.UINode>[

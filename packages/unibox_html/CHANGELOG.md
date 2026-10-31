@@ -52,7 +52,7 @@
 
 - A card's shadow sits at the same height on the page as in the app: the stylesheet writes a
   shadow's blur in the unit a browser reads, so the level one shadow under a card has the width
-  and the weight of the one in the application instead of a darker, tighter band on the web.
+  and the weight of the one in the application instead of a darker, tighter bar on the web.
   The conversion is `unibox_css`'s, so every shadow in a tree gains it.
 
 - A document switches off the tap highlight a touch browser paints over a control it thinks was

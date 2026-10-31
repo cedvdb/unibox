@@ -51,7 +51,7 @@ with their target.
 | `shape` + `overflow: Overflow.hidden` | `ClipPath` to the same path                       |
 | `overflow: Overflow.scroll`         | `SingleChildScrollView`                             |
 | `PagerNode`                         | the same scroll view with `PageScrollPhysics`, so a drag settles on a child rather than between two; `index` is applied after the frame that laid it out, and `onPageChanged` is read from the viewport at the end of a scroll. It is a `Box`, so it is drawn by `FlutterBox` and needs no widget of its own |
-| `pin` / `pinOffset`                 | the flow unchanged, with the band drawn over the viewport at the edge it names: a `_RenderPinnedBand` repaints it into place on every scroll, so nothing rebuilds and the band keeps its slot |
+| `pin` / `pinOffset`                 | the flow unchanged, with the bar drawn over the viewport at the edge it names: a `_RenderPinnedBar` repaints it into place on every scroll, so nothing rebuilds and the bar keeps its slot |
 | `fold`                              | a `_RenderFoldedBox` layer that interpolates the decoration, the opacity and the transform as it paints, from the box's own exit out of the viewport; nothing is rebuilt and nothing is laid out again |
 | `onTap` / `onLongPress`             | `GestureDetector`                                   |
 | `capturesPointer: false`            | `IgnorePointer`, so the hover, the cursor and the press reach the control under the box; `true` makes a leaf a `Listener` with an opaque hit test |
@@ -85,9 +85,9 @@ box the pull that says "this is the end". What that pull reveals is the box's ow
 `backgroundColor` — so a panel that states the surface of the bar at its edge shows that surface
 and never the page through a gap, on either target.
 
-A **pin** is drawn by the box that scrolls: the band comes out of the flow, its slot stays
-in it, and a `_RenderPinnedBand` repaints it at the edge it named — so a scroll costs a
-repaint and not a rebuild, and a field inside the band keeps its state while it is carried
+A **pin** is drawn by the box that scrolls: the bar comes out of the flow, its slot stays
+in it, and a `_RenderPinnedBar` repaints it at the edge it named — so a scroll costs a
+repaint and not a rebuild, and a field inside the bar keeps its state while it is carried
 around. A pin that has no scrolling box above it in the tree is the one place the two
 renderings part: a browser pins it to the document, which scrolls a page even though the
 tree holds no viewport, while Flutter draws it where the flow put it, because the surface
@@ -109,7 +109,7 @@ flex parent the expanding child is wrapped in an `Expanded` (using `flex`, or
 parent. An infinite dimension in an unbounded parent is a layout error, exactly
 like a tight infinite `SizedBox` in plain Flutter. A child that also states a maximum on
 that axis is not a flex child at all: CSS gives it `min(100%, max-width)` and the
-container's alignment places the result, which is what a band's measure is.
+container's alignment places the result, which is what a bar's measure is.
 
 `crossAlign: CrossAlign.stretch` is not Flutter's `CrossAxisAlignment.stretch`.
 The model's is CSS's: an item whose cross size is `auto` fills the line, and one
@@ -119,7 +119,7 @@ cross start and a small inherited flag says "you are stretched"; the first box i
 reaches fills the line when it states no size there, and clears the flag for what
 it holds. That is why a stateful node's view is stretched like the element it is,
 and why a specimen that states 280 stays 280 instead of becoming as wide as the
-band.
+bar.
 
 ## Semantics
 

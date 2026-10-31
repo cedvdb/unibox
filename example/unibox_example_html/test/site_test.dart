@@ -4,7 +4,7 @@ import 'package:unibox_example_html/site/site_document.dart';
 /// What the site owes a reader and a crawler.
 ///
 /// It is one page drawn with the library it documents: the claim, the comparison and the
-/// catalogue are bands of one tree, and the comparison frames the example below it.
+/// catalogue are bars of one tree, and the comparison frames the example below it.
 void main() {
   group('the site document', () {
     test('is one page, with one title and one description', () {
@@ -37,7 +37,7 @@ void main() {
     test('draws the vocabulary as a picture and as the list of it', () {
       final String html = buildSiteDocument().write();
 
-      // The second band: one card, drawn from the nodes the page had not shown, the
+      // The second bar: one card, drawn from the nodes the page had not shown, the
       // same card taken apart as text — which is the argument of the whole site — and
       // the two calls that list is for.
       expect(html, contains('Just boxes'));
@@ -53,9 +53,9 @@ void main() {
       () {
         final String html = buildSiteDocument().write();
 
-        // The band's evidence is a document quoted in the page, so the tags arrive escaped:
+        // The bar's evidence is a document quoted in the page, so the tags arrive escaped:
         // a crawler indexing this site reads the same words a reader does, which is the
-        // claim the band is making in the first place.
+        // claim the bar is making in the first place.
         expect(html, contains('Make Flutter Web pages indexable'));
         expect(html, contains('&lt;h1&gt;Apartments in Amsterdam&lt;/h1&gt;'));
         expect(html, contains('class names elided'));
@@ -66,8 +66,8 @@ void main() {
     test('writes the structure as elements, not as a page of divs', () {
       final String html = buildSiteDocument().write();
 
-      // Every band is a `section`, and so is every block of the catalogue — which is
-      // what makes the two counts agree: four bands, then one section per `h3`.
+      // Every bar is a `section`, and so is every block of the catalogue — which is
+      // what makes the two counts agree: four bars, then one section per `h3`.
       expect(
         '<section'.allMatches(html).length,
         4 + '<h3'.allMatches(html).length,
@@ -134,7 +134,7 @@ void main() {
     });
 
     test('does not give the document the height of a viewport', () {
-      // The page is longer than a window: it scrolls, and its bands paint down its length.
+      // The page is longer than a window: it scrolls, and its bars paint down its length.
       expect(buildSiteDocument().write(), isNot(contains('height: 100%')));
     });
 

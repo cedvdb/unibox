@@ -404,7 +404,7 @@ void _validate(
     // A pager is a box that settles on a child, and the three things that make that work are
     // also the three ways a tree can say something the two targets would resolve differently:
     // which page it is on, how big a page is, and whether the children are that big. The rules
-    // below are those three, plus the one band a pager cannot hold.
+    // below are those three, plus the one bar a pager cannot hold.
     if (node is PagerNode) {
       final int pages = node.children.length;
       final int? index = node.index;
@@ -488,7 +488,7 @@ void _validate(
           );
         }
 
-        // A band is drawn by the box that scrolls it, over that box's own viewport — and a
+        // A bar is drawn by the box that scrolls it, over that box's own viewport — and a
         // pager's viewport holds one page at a time, so a pin inside one would be painted
         // over content that has already moved on.
         if (childStyle.pin != null) {
@@ -498,7 +498,7 @@ void _validate(
               severity: TreeIssueSeverity.error,
               message:
                   'A pinned box inside a pager has nothing to stay at: the pager shows '
-                  'one page at a time, so the band would be drawn over the page that '
+                  'one page at a time, so the bar would be drawn over the page that '
                   'replaced it. Pin inside a box that scrolls and settles nowhere '
                   'instead, or drop the pin.',
             ),
@@ -509,7 +509,7 @@ void _validate(
 
     // A pin is a relation to the nearest viewport, so it is read against the boxes above the
     // node rather than against itself: the two edges it holds are vertical ones, and a
-    // viewport that scrolls sideways, or one that only clips, has no edge a band could come
+    // viewport that scrolls sideways, or one that only clips, has no edge a bar could come
     // to rest at.
     final BoxPin? pin = style.pin;
 
@@ -536,14 +536,14 @@ void _validate(
             message:
                 'A box pins inside a box that clips (overflow: Overflow.hidden) and '
                 'never scrolls. A browser treats any overflow but `visible` as a scroll '
-                'container, so the band would pin to a viewport that never moves, and '
+                'container, so the bar would pin to a viewport that never moves, and '
                 'Flutter has no viewport there at all. Let the box above scroll, or drop '
                 'the pin.',
           ),
         );
       }
 
-      // A band is drawn by the box that scrolls it, over that box's own viewport: a pin
+      // A bar is drawn by the box that scrolls it, over that box's own viewport: a pin
       // nested inside another box takes its room in the flow of that box, and neither target
       // could then paint it at the viewport's edge. A browser would pin it within the box it
       // sits in — which is where it would stop, not where the scroll ends — so the two would
@@ -557,7 +557,7 @@ void _validate(
                 'A pinned box has to be a child of the box that scrolls it, but its parent '
                 'is ${parent?.runtimeType ?? 'the root'}. A browser pins it inside its own '
                 'parent and Flutter draws it at the edge of the viewport, so the two come to '
-                'rest in different places. Make the band a child of the box that states '
+                'rest in different places. Make the bar a child of the box that states '
                 'overflow: Overflow.scroll, or drop the pin.',
           ),
         );
@@ -572,16 +572,16 @@ void _validate(
             severity: TreeIssueSeverity.error,
             message:
                 'A pinned box keeps a pinOffset of $pinOffset from its edge, and an '
-                'inset is a distance inward: a negative one would place the band outside '
+                'inset is a distance inward: a negative one would place the bar outside '
                 'the viewport it pins to. Leave it unset for an edge with no header above '
                 'it.',
           ),
         );
       }
 
-      // The slot a pinned band keeps in the flow is the height the tree states, which is what
-      // keeps the children below it still. A share of the box would grow the band in a
-      // browser's flex layout and change nothing in Flutter, which draws the band from the
+      // The slot a pinned bar keeps in the flow is the height the tree states, which is what
+      // keeps the children below it still. A share of the box would grow the bar in a
+      // browser's flex layout and change nothing in Flutter, which draws the bar from the
       // height it was given.
       if ((style.flex ?? 0) > 0) {
         issues.add(
@@ -589,17 +589,17 @@ void _validate(
             node: node,
             severity: TreeIssueSeverity.error,
             message:
-                'A pinned box states flex: ${style.flex}, and a pinned band keeps the height '
+                'A pinned box states flex: ${style.flex}, and a pinned bar keeps the height '
                 'it was given: a share of the box would grow it in a browser and change '
-                'nothing in Flutter. Give the band the height it should have, or drop the '
+                'nothing in Flutter. Give the bar the height it should have, or drop the '
                 'share.',
           ),
         );
       }
 
-      // Flutter draws a pinned band over its viewport while its slot stays in the flow, and
+      // Flutter draws a pinned bar over its viewport while its slot stays in the flow, and
       // the slot is the size the tree states. Without one there is nothing to hold open, and
-      // the content below would move when the band came out of it.
+      // the content below would move when the bar came out of it.
       if (style.height == null || !style.height!.isFinite) {
         issues.add(
           TreeIssue(
@@ -607,9 +607,9 @@ void _validate(
             severity: TreeIssueSeverity.error,
             message:
                 'A box pins (pin: BoxPin.${pin.name}) without a finite height. A pinned '
-                'band is drawn over its viewport and keeps its slot in the flow, and that '
+                'bar is drawn over its viewport and keeps its slot in the flow, and that '
                 'slot is the height the box states. State a height, so nothing below the '
-                'band moves while it is away at the edge.',
+                'bar moves while it is away at the edge.',
           ),
         );
       }
@@ -703,7 +703,7 @@ void _validate(
         );
       }
 
-      // A pinned band does not leave: it is held at the edge of the viewport while the content
+      // A pinned bar does not leave: it is held at the edge of the viewport while the content
       // moves past it, so its own exit never begins and the fold would never arrive.
       if (style.pin != null) {
         issues.add(
@@ -712,8 +712,8 @@ void _validate(
             severity: TreeIssueSeverity.error,
             message:
                 'A box both pins and folds, and the two describe opposite journeys: a pinned '
-                'band stays at the edge of its viewport, so it never leaves and the fold never '
-                'arrives. Pin the band that stays, and fold the one above it that scrolls '
+                'bar stays at the edge of its viewport, so it never leaves and the fold never '
+                'arrives. Pin the bar that stays, and fold the one above it that scrolls '
                 'away.',
           ),
         );

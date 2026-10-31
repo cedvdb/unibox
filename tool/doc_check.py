@@ -17,7 +17,7 @@ import os
 import re
 import sys
 
-# What each published document owes. Words are a floor with room: a band may be rewritten, but a page
+# What each published document owes. Words are a floor with room: a passage may be rewritten, but a page
 # that loses two thirds of its text is not a redesign, it is a bug.
 DOCUMENTS = {
     'index.html': {'words': 300, 'h1': 1, 'links': 4, 'iframes': 2},

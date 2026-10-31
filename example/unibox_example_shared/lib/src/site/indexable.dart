@@ -4,10 +4,10 @@ import 'package:unibox_material/unibox_material.dart';
 import '../theme.dart';
 import 'section.dart';
 
-/// The band that answers the question the hero raises: what does a search engine
+/// The bar that answers the question the hero raises: what does a search engine
 /// actually get?
 ///
-/// The hero claims that a Flutter screen has an HTML form; this band is that form,
+/// The hero claims that a Flutter screen has an HTML form; this bar is that form,
 /// written on the left and served on the right. The two cards are the same screen, so a
 /// reader compares the tree with its markup rather than taking an adjective on trust —
 /// and what the markup holds is the whole of what a crawler can see: a real `h1`, real
@@ -21,7 +21,7 @@ import 'section.dart';
 UINode buildIndexableSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
   final MaterialPalette palette = ExamplePalette.materialFor(seed);
 
-  return siteBand(
+  return siteSection(
     vertical: 80,
     child: Box(
       width: double.infinity,

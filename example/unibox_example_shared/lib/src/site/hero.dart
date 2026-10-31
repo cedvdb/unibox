@@ -14,7 +14,7 @@ typedef ShowcaseFrame = UINode Function({
   required String title,
 });
 
-/// The first band: the claim, and the diagram that answers it.
+/// The first bar: the claim, and the diagram that answers it.
 ///
 /// A one-line claim and one chip that branches into the two things the tree becomes, each
 /// branch carrying the live rendering it produces. That is the whole pitch in one screen:
@@ -35,7 +35,7 @@ UINode buildHeroSection({
 }) {
   final MaterialPalette palette = ExamplePalette.materialFor(seed);
 
-  return siteBand(
+  return siteSection(
     background: palette.surface,
     vertical: 80,
     child: Box(
@@ -46,15 +46,15 @@ UINode buildHeroSection({
   );
 }
 
-/// The measure the band's copy is set to.
+/// The measure the bar's copy is set to.
 ///
 /// One measure, and both text blocks of the claim end on it: the headline at 57 pixels
 /// breaks where a line is worth reading, and the paragraph under it stops on the same
-/// edge rather than running to the window. The diagram below is measured by the band
+/// edge rather than running to the window. The diagram below is measured by the bar
 /// instead, because it is a picture of the whole, not a paragraph of the claim.
 const double _copyMeasure = 640;
 
-/// The claim, on the one measure the rest of the band's copy shares.
+/// The claim, on the one measure the rest of the bar's copy shares.
 UINode _claim(MaterialPalette palette) {
   return Box(
     width: double.infinity,

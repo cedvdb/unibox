@@ -85,8 +85,8 @@ void main() {
       await tester.pumpWidget(const SiteApp());
       await tester.pump();
 
-      // The claim, the two branches of the diagram and the band that closes the page: three
-      // bands that say the tree reached the renderer whole rather than a part of it.
+      // The claim, the two branches of the diagram and the bar that closes the page: three
+      // bars that say the tree reached the renderer whole rather than a part of it.
       expect(find.text('Flutter UI. Searchable HTML.'), findsOneWidget);
       expect(find.text('HTML and CSS'), findsOneWidget);
       expect(find.text('Flutter'), findsOneWidget);

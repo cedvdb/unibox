@@ -66,7 +66,7 @@ void main() {
     final ({ByteData pixels, int width}) canvas = await _painted(tester);
     final int x = pad.toInt() + 50;
 
-    // Inside the box: nothing. The bug this pins made a 48-pixel tab bar a solid band of its
+    // Inside the box: nothing. The bug this pins made a 48-pixel tab bar a solid bar of its
     // own hairline, because the shadow was painted *through* a box that paints no fill.
     expect(_channel(canvas.pixels, canvas.width, x, pad.toInt() + 20, 3), 0);
     // The pixel the one-pixel offset puts outside the box: the hairline itself.

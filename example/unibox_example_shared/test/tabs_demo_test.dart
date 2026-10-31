@@ -43,7 +43,7 @@ void main() {
         // it is given that number too: the two are one table, and a page narrower than the row
         // of tabs above it reads as a view that does not belong to them.
         //
-        // The number also has to fit the column it is drawn in. The band keeps 32 pixels of
+        // The number also has to fit the column it is drawn in. The bar keeps 32 pixels of
         // padding on each side, so a 344 pixel window leaves 280 — the width of the table — and
         // anything wider pushed the whole catalogue sideways on a phone.
         expect(const TabsDemoState().pageWidth, 280);

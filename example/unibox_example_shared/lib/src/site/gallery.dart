@@ -5,14 +5,14 @@ import '../icons.dart';
 import '../theme.dart';
 import 'section.dart';
 
-/// The third band: the Material library as one node tree — the type scale, the
+/// The third section: the Material library as one node tree — the type scale, the
 /// colour roles and the components.
 ///
-/// The band is a demonstration and a claim at once. Every value on it is a `const`
+/// The section is a demonstration and a claim at once. Every value on it is a `const`
 /// in `unibox_material` — no colour is typed into this file — and every component is
 /// a node the two renderers already draw, so nothing here is a screenshot.
 ///
-/// It is a band of the page rather than a page of its own: the heading names what
+/// It is a section of the page rather than a page of its own: the heading names what
 /// the catalogue is, and each block under it is an `h3`, so the page still has one
 /// `h1` and four `h2`s above it. Each block is a `section` on the web, so the document
 /// says where one demonstration ends — the block has a heading of its own, which is
@@ -20,7 +20,7 @@ import 'section.dart';
 UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
   final MaterialPalette palette = ExamplePalette.materialFor(seed);
 
-  return siteBand(
+  return siteSection(
     background: palette.surface,
     child: Box(
       width: double.infinity,
@@ -98,8 +98,8 @@ UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
           'Scaffold',
           _screens(palette),
           note:
-              'A screen: `MaterialScaffold` draws a page under a band and a body that fills the '
-              'rest — the bar states a container and the page a surface, so the band reads as '
+              'A screen: `MaterialScaffold` draws a page under a bar and a body that fills the '
+              'rest — the bar states a container and the page a surface, so the bar reads as '
               'one. Scroll either body: the first bar stays, and the second is drawn again at the '
               'height a store hands it, which a document never runs.',
         ),
@@ -108,7 +108,7 @@ UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
           'App bars',
           _appBars(palette),
           note:
-              'The band a page opens with, and the one a list scrolls under: '
+              'The bar a page opens with, and the one a list scrolls under: '
               '`MaterialAppBar` states the height its slot keeps, the container it paints, and '
               'the `pin` that makes it stay.',
         ),
@@ -599,7 +599,7 @@ final class TabsDemo extends StatefulNode<TabsDemoState, TabsDemoStore> {
 /// the page it came to rest on, not the offset it travelled.
 ///
 /// A page has to be a number in the tree, and the number has to fit the column the table is drawn
-/// in: a phone's band leaves 280 pixels of a 344 pixel window, so the table is a specimen at every
+/// in: a phone's section leaves 280 pixels of a 344 pixel window, so the table is a specimen at every
 /// width rather than a pager that pushes the page sideways. It was 720, which is wider than a
 /// phone, and the whole catalogue scrolled horizontally because of it.
 final class TabsDemoState {
@@ -665,7 +665,7 @@ UINode _tabsView(
   return Box(
     // The bar is as wide as the page under it, which is the width the demo states: a page has to
     // be a number in the tree for the pager to land on one, so the bar is given that number too
-    // rather than the whole section. Stretched instead, the bar is as wide as the band and the
+    // rather than the whole section. Stretched instead, the bar is as wide as the section and the
     // view under the tabs reads as a narrower strip than the row above it.
     width: state.pageWidth,
     gap: 16,
@@ -771,7 +771,7 @@ UINode _pager(MaterialPalette palette) {
 /// Two screens, one per thing a top app bar can do: stay where it is, or give its height back.
 ///
 /// Both are `MaterialScaffold`s, because a scaffold is what a screen is: the page it is drawn on,
-/// the band above it in a container of its own, and a body whose scroll a bar can be wired to.
+/// the bar above it in a container of its own, and a body whose scroll a bar can be wired to.
 UINode _screens(MaterialPalette palette) {
   return GridNode(
     minItemWidth: 360,
@@ -824,8 +824,8 @@ const double _screenHeight = 420;
 /// The page a catalogue screen is drawn on.
 ///
 /// White, which is what the cards around it are painted with. Material's `surface` is a tone below
-/// the container a bar paints, and that difference is the whole of what makes a band read as a
-/// band — on a card that is itself tinted, a faint difference is not enough to see.
+/// the container a bar paints, and that difference is the whole of what makes a bar read as a
+/// bar — on a card that is itself tinted, a faint difference is not enough to see.
 const BoxColor _pageColor = BoxColor.role(
   MaterialColorRole.surfaceContainerLowest,
 );
@@ -837,7 +837,7 @@ const BoxColor _pageColor = BoxColor.role(
 /// width. A number was what put a 320-pixel phone in the corner of a 450-pixel card.
 ///
 /// The frame draws a line and no shape: rounded and clipping, it cut the corners off the app bar at
-/// the top of the screen, which is a band of its own rather than a corner of the frame.
+/// the top of the screen, which is a bar of its own rather than a corner of the frame.
 UINode _phone(MaterialPalette palette, UINode screen) {
   return Box(
     width: double.infinity,
@@ -1017,7 +1017,7 @@ UINode _appBars(MaterialPalette palette) {
 /// A bar in the surface a page would put it on, so the bar's own colour reads against it.
 ///
 /// The frame draws a line and no shape: rounded and clipping, it cut the corners off the bar, which
-/// is a band of its own rather than a corner of the frame.
+/// is a bar of its own rather than a corner of the frame.
 UINode _framed(MaterialPalette palette, UINode bar) {
   return Box(
     width: double.infinity,
@@ -1056,7 +1056,7 @@ UINode _flatTile(String name, String price) => MaterialListTile(
 /// The flats every specimen scrolls past.
 ///
 /// Eight of them, which is more than a panel is tall: a panel has to be able to scroll past
-/// everything in it, or a band cannot reach the edge it pins to and a band cannot leave far
+/// everything in it, or a bar cannot reach the edge it pins to and a bar cannot leave far
 /// enough for its fold to arrive.
 const List<(String, String)> _flats = <(String, String)>[
   ('Garden loft', '€1 280'),

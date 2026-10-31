@@ -133,7 +133,7 @@ void main() {
       expect(validateTree(const Box(shape: BoxShape.circle)), isEmpty);
     });
 
-    test('keeps a hole however wide the band is asked to be', () {
+    test('keeps a hole however wide the ring is asked to be', () {
       final BoxShape thick = BoxShape.ring(thickness: 400);
       final BoxPathArcTo inner = thick.commands[4] as BoxPathArcTo;
 

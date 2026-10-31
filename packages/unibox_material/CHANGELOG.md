@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- `MaterialScaffold` takes a `bottomBar`, so a navigation bar or an action bar is furniture outside
+  the scroll rather than the last child of the body. Both bars now keep the height they state, and
+  the body is what grows: `flex: 1` is the spelling the component documents, because a body of
+  `height: double.infinity` beside two bars is resolved by a browser against the whole column and
+  shrinks all three — a 64-pixel app bar came out at 50 — while Flutter kept the bars and gave the
+  body the rest.
+
 - The tabs' own documentation points at `PagerNode` for the pager rather than at a token: the
   component still swaps its page on a press, and the example's tabs demo composes a
   `MaterialTabBar` with a `PagerNode` over one store when a swipe is wanted.
@@ -59,14 +66,14 @@
 
 - **A scaffold is a page, and its app bar is a container above it.** `MaterialScaffold` painted
   `MaterialAppBar.surface` behind the bar *and* the body, so a screen was one colour and its bar
-  was invisible: the band read as the first row of the list. It now paints
+  was invisible: the bar read as the first row of the list. It now paints
   `MaterialScaffold.surface` — Material's `surface`, the page — and the bar keeps
   `surfaceContainer`, which is Material's own arrangement and the difference that makes a top app
   bar read as one. A pull past either end of the body reveals the page, so a scrolling list states
   no colour of its own.
 
-- **A band and a body span the screen.** `MaterialScaffold` stretches its children: a column that
-  hugged its content gave a bar the width of its own title, so `Apartments` sat in a band 280
+- **A bar and a body span the screen.** `MaterialScaffold` stretches its children: a column that
+  hugged its content gave a bar the width of its own title, so `Apartments` sat in a bar 280
   pixels wide inside a 600-pixel phone. A bar is as wide as the screen it is on, whatever it says.
 
 - `MaterialScaffold` is the screen as a `Box`: an app bar that stays and a body under it, both as
@@ -75,16 +82,16 @@
 
 - `MaterialAppBar` is the small top app bar as a `Box`: a title at the start, a node at the end,
   `titleLarge` on the bar's own surface, a hairline under it, and a stated height — so the same
-  component is a header or a band, depending on whether it states `pin: BoxPin.start` or
+  component is a header or a bar, depending on whether it states `pin: BoxPin.start` or
   `BoxPin.end`. It publishes `topHeight`, `surface` and `hairline`.
-- `MaterialLargeAppBar` is the band with air above its headline: 152 pixels, the title in
+- `MaterialLargeAppBar` is the bar with air above its headline: 152 pixels, the title in
   `headlineMedium` on the floor of it, the same surface as the small bar, and a `fold:` — the
   look it takes as it leaves the box that scrolls it. Material's own collapse is a layout
   change and no renderer here eases one, so what folds is the paint. It takes `pin:` and
-  `pinOffset:` as the small bar does, which is what a band whose height a store drives needs to
+  `pinOffset:` as the small bar does, which is what a bar whose height a store drives needs to
   stay at the top once it has collapsed: the site's second screen is a pinned sliver app bar
   built from those two and a body that reports its scroll.
-- `MaterialCard` takes `fold:`, for a card that is the band a page opens with.
+- `MaterialCard` takes `fold:`, for a card that is the bar a page opens with.
 
 - **A button's 64 by 40 minimum is the press's, not the pill's.** `MaterialInkWell` takes
   `minWidth` and `minHeight` and `MaterialButton` states them there, so the fill hugs a control
@@ -185,7 +192,7 @@
 
 - A card's shadow reads the same height on the web as in the app. The stylesheet wrote
   `MaterialElevation`'s blur in Flutter's unit, which a browser reads as half of it, so a web
-  card carried a darker band under its edge than the card beside it in the application; the
+  card carried a darker bar under its edge than the card beside it in the application; the
   CSS renderer now writes the blur that paints the same spread.
 
 - An ink well's ripple no longer grows a page's stylesheet as it is pressed. A drop used to be
@@ -281,7 +288,7 @@
   than sliding between pages: a controlled scroll position is not in the model yet.
 
 - `MaterialProgressRing` is drawn the way Material 3 draws it: one arc **stroked** in a
-  colour, with `round` caps, instead of a filled band whose ends were radial cuts. The outline
+  colour, with `round` caps, instead of a filled bar whose ends were radial cuts. The outline
   is `BoxShape.arc` — a centreline inset by half the stroke, so the stroke meets the box's
   edge — and the paint is the box's `border`, whose `cap` states the rounded ends. The
   component is still three nodes and still adds no renderer code; what changed is that the
@@ -382,7 +389,7 @@
 
 - `MaterialButton` keeps its fill — and the ink well inside it — the size of its label,
   so a parent that stretches its children (a card's column, a grid track) no longer
-  paints a hover tint as a band wider than the button. `width:` pins the fill when a
+  paints a hover tint as a bar wider than the button. `width:` pins the fill when a
   full-width button is what is wanted.
 - `MaterialListTile`'s row fills the width the tile was given, which is what the
   trailing node needed to sit at the far edge instead of against the subtitle. The
@@ -433,7 +440,7 @@
 
 - `MaterialProgressRing` and `MaterialSpinner`: Material 3's circular progress
   indicator. The ring is two boxes painted in `BoxShape.ring` — the track, and the value
-  as a sector of the same band — so no renderer knows what a progress indicator is; the
+  as a sector of the same bar — so no renderer knows what a progress indicator is; the
   value is clamped rather than refused. The spinner is that ring at three quarters of a
   turn, rotated one step per frame by a `MaterialSpinStore`, whose sixty steps repeat
   after one turn so a page settles instead of growing a class a frame.

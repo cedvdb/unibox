@@ -3,7 +3,7 @@ import 'package:unibox_core/unibox_core.dart';
 import 'material_palette.dart';
 import 'material_typography.dart';
 
-/// A Material 3 small top app bar: a band with a title, and the edge a list scrolls under.
+/// A Material 3 small top app bar: a bar with a title, and the edge a list scrolls under.
 ///
 /// ```dart
 /// MaterialAppBar(
@@ -37,7 +37,7 @@ final class MaterialAppBar extends Box {
   ///
   /// `color`, `titleStyle`, `height`, `padding` and `border` are the bar's own tokens, so an
   /// application can theme them without giving up the bar; [leading] and [trailing] are the
-  /// nodes at the two ends, and [pin] is what makes it a band rather than a header.
+  /// nodes at the two ends, and [pin] is what makes it a bar rather than a header.
   factory MaterialAppBar({
     Object? key,
     required UINode title,
@@ -111,14 +111,14 @@ final class MaterialAppBar extends Box {
 
   /// The height of a small top app bar, in logical pixels.
   ///
-  /// A band that pins has to state its height — that number is the room its slot keeps in the
+  /// A bar that pins has to state its height — that number is the room its slot keeps in the
   /// flow — and this is the height Material gives one.
   static const double topHeight = 64;
 
   /// The colour the bar paints: Material's `surfaceContainer`, one step above the page.
   ///
   /// A bar states a container and the screen behind it states `surface` — that difference is what
-  /// makes the band read as a band, and it is why `MaterialScaffold` names a colour of its own
+  /// makes the bar read as a bar, and it is why `MaterialScaffold` names a colour of its own
   /// rather than reusing this one. A list that is pulled past its end reveals the page, not the
   /// bar, so a scrolling list has nothing to state: the scaffold is already behind it.
   static const BoxColor surface = BoxColor.role(

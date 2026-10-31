@@ -78,7 +78,7 @@ class _SiteAppState extends State<SiteApp> {
       theme: theme,
       child: FlutterLinkScope(
         open: _open,
-        // A document scrolls; a column of bands taller than the window needs one scroll view
+        // A document scrolls; a column of sections taller than the window needs one scroll view
         // around it, which is the whole of what the other renderer gets from the browser.
         child: SingleChildScrollView(
           child: renderFlutter(

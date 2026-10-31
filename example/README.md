@@ -14,7 +14,7 @@ with.
 
 | Package | Role |
 | --- | --- |
-| `unibox_example_shared` | The example as one node (`ExamplePageNode`, with `ExampleState` and `ExampleStore`) and the parts it is built from (`buildExamplePage`, `buildApartmentsPage`, `buildSignupDialog`); the site as one node (`buildSitePage`) and its four bands (`buildHeroSection` — the claim and the diagram under it — `buildIndexableSection` — what a search engine is served, and what Flutter does with the page afterwards — `buildVocabularySection` — the nodes the page had not drawn, beside the same card taken apart — and `buildMaterialSection` — the catalogue that closes it); plus the palette. The listings are a `GridNode` of `MaterialCard`s, so the example also shows the design-system package. Pure Dart, no renderer. |
+| `unibox_example_shared` | The example as one node (`ExamplePageNode`, with `ExampleState` and `ExampleStore`) and the parts it is built from (`buildExamplePage`, `buildApartmentsPage`, `buildSignupDialog`); the site as one node (`buildSitePage`) and its four sections (`buildHeroSection` — the claim and the diagram under it — `buildIndexableSection` — what a search engine is served, and what Flutter does with the page afterwards — `buildVocabularySection` — the nodes the page had not drawn, beside the same card taken apart — and `buildMaterialSection` — the catalogue that closes it); plus the palette. The listings are a `GridNode` of `MaterialCard`s, so the example also shows the design-system package. Pure Dart, no renderer. |
 | `unibox_example_flutter` | Flutter host: `lib/main.dart` sends the address to one of two trees, `lib/site.dart` is the site page drawn by Flutter, and `lib/surface.dart`, `lib/page_address.dart` and `lib/showcase_frame.dart` are the three things a node cannot know — the surface, the address and a frame. |
 | `unibox_example_html` | HTML host: the site's document, the example's document, the shipped font faces, the one `<iframe>` node the comparison needs, and the build script — no page trees, which live in the shared package. |
 
@@ -223,30 +223,30 @@ recognisably the same page.
 
 ## The site is one page
 
-`buildSitePage` is the whole site: a header, four bands and a footer, in the order the
+`buildSitePage` is the whole site: a header, four sections and a footer, in the order the
 argument needs. It is published at <https://cedvdb.github.io/unibox/>.
 
-| Band | What it says |
+| Section | What it says |
 | --- | --- |
 | the hero | the claim — *Flutter UI, searchable HTML* — and the diagram that answers it: one `Unibox` chip branching into **HTML and CSS** and **Flutter**, each branch carrying the live example it produces, so the page on the left and the Flutter build on the right are the two halves of the diagram rather than a comparison beside it |
 | *Make Flutter Web pages indexable* | what a search engine is actually served: the same screen as a Dart tree and as the markup it becomes — a real `h1`, real text and a link with an `href` — then the two facts the cards cannot show: Flutter takes the page over once the build arrives, and only the pages that have to be found need a tree |
 | *Just boxes* | what the whole vocabulary amounts to: a screen is containers, so the four nodes the page had not drawn yet — a picture, a stack, a child placed at an offset and a field with no chrome — sit as one listing card beside the same card taken apart node by node, under the two calls that tree is for, `node.toWidget()` and `node.toHtml()` |
 | *Material* | the catalogue: every component first, then the type scale and the colour roles those components name |
 
-The frames are the claim's evidence, so they sit in the band that makes it: a reader
+The frames are the claim's evidence, so they sit in the section that makes it: a reader
 scrolls from the sentence to the two renderings it is about, and meets each rendering's
-name once, and each name sits over the rendering it belongs to. Every band is a `section`
+name once, and each name sits over the rendering it belongs to. Each one is a `section`
 on the web, and so is every block of the catalogue under its `h3` — the page is a
-document, and the elements say where one part of it ends. The indexable band comes
+document, and the elements say where one part of it ends. The indexable section comes
 next, because the HTML branch is the reason most readers are there: it shows what a crawler
 is served and how little of the application has to change for it. The vocabulary follows,
 because a frame draws a whole tree and never the parts it is made of: the four nodes the
 page had not drawn are the four a reader would otherwise never see named, and the card
-beside the list is not a screenshot of one — it *is* the list. The band closes on what that
+beside the list is not a screenshot of one — it *is* the list. The section closes on what that
 list is for: `node.toWidget()` and `node.toHtml()`, the two calls the rest of the page is an
-example of. The catalogue closes the page, because the design system is how every band
+example of. The catalogue closes the page, because the design system is how every section
 above it is drawn, not what it says.
-Every band is a node tree — the frames are the only thing the
+Each one is a node tree — the frames are the only thing the
 model cannot describe, and they arrive through `ShowcaseFrame`/`EmbedNode`.
 
 There is one `h1` (the claim), an `h2` for each branch of the diagram, for the catalogue
@@ -309,7 +309,7 @@ The page links with relative paths and the documents carry **no `<base>` element
 the same build works at `/` and at `/unibox/`: a base href of `/` would send every
 relative link, and both frames, to the domain root.
 
-The site is a node tree as well, so it is built with the library it documents: its bands
+The site is a node tree as well, so it is built with the library it documents: its sections
 are boxes and text, drawn by the same renderer that draws the example.
 
 The catalogue's dialog is the exception that proves the rule: the button is a
@@ -381,7 +381,7 @@ The whole site, with both renderings and the Flutter build beside them, is
 `tool/site.sh` (see [the site is one page](#the-site-is-one-page)).
 
 The page is a document before it is a picture: the header is a `<header>`, the hero's
-claim an `<h1>`, each band an `<h2>`, each block of the catalogue an `<h3>`, the
+claim an `<h1>`, each section an `<h2>`, each block of the catalogue an `<h3>`, the
 example's bar a `<nav>` around the name and its destination — with the sign-up button
 beside it rather than inside, since a landmark is a list of places to go — its page box
 a `<main>`, the card an `<article>`, the listings a `<ul>` of `<li>`s, and the

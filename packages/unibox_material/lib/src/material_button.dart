@@ -400,7 +400,7 @@ final class MaterialButton extends Box {
          // A row around the button, so a parent that stretches its children — a
          // card's column, a grid track — has something invisible to stretch. The
          // fill and the ink well inside it keep the size the label asks for, which
-         // is what stops a tint painting a band wider than the button it belongs
+         // is what stops a tint painting a bar wider than the button it belongs
          // to. Passing [width] pins the fill instead of leaving it natural.
          direction: Axis.horizontal,
          crossAlign: CrossAlign.center,

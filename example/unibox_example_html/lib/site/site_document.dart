@@ -7,13 +7,13 @@ import 'iframe_node.dart';
 
 /// The document the site is served as.
 ///
-/// One page, four bands — the claim with the comparison inside it, what a crawler is
+/// One page, four bars — the claim with the comparison inside it, what a crawler is
 /// served, the vocabulary, the catalogue — so there is one title and one description, and
 /// they describe the whole of it: the search engine reason first, because that is the
 /// reason a reader arrives from one.
 ///
 /// The page is longer than a viewport, so nothing here gives it the height of one: it scrolls,
-/// and its bands paint their own backgrounds down its whole length. The body margin is removed
+/// and its bars paint their own backgrounds down its whole length. The body margin is removed
 /// for the reason [pageCss] gives.
 ///
 /// The metadata is the host's, not the tree's: a title and a description describe a *document*,

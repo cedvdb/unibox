@@ -94,7 +94,7 @@ host that renders it.
    `center` cross alignment and not CSS's `stretch`. Two consequences are worth
    reading twice, because both fail silently:
 
-   - a column hugs every child to its content, so a band does not reach the page width
+   - a column hugs every child to its content, so a bar does not reach the page width
      until the column says `crossAlign: CrossAlign.stretch` — and a
      `width: double.infinity` inside it needs that too, or the two targets disagree
      about a `100%` with no parent width;
@@ -103,10 +103,10 @@ host that renders it.
      distribute is inside a column that stretches, or has a `width`.
 
    A `stretch` fills only what states no size across the axis: a child with its own
-   `width` keeps it, so a specimen stays at 280 in a band that stretches, and a child
+   `width` keeps it, so a specimen stays at 280 in a bar that stretches, and a child
    with a `maxWidth` stops at the cap.
 
-   Say what you mean: `direction`, `crossAlign: CrossAlign.stretch` on a band, and a
+   Say what you mean: `direction`, `crossAlign: CrossAlign.stretch` on a bar, and a
    width on a row that distributes.
 5. **Dimensions are `double?` in logical pixels.** `double.infinity` fills the space
    the parent gives; `flex: 1` is the `Expanded` spelling. `gap` is the space between
@@ -217,7 +217,7 @@ host that renders it.
 | `SegmentedButton`, a `ToggleButtons` row | `MaterialSegmentedButton(segments:, selected:, onSelect:)` — one pill of equal segments, the chosen one filled: a segment is always as wide as the widest one, whether or not the control has a `width`, which is what a segmented button is. `border` is the line around the pill and between its segments. A segment with a `url` is a destination: one `<a href>` per unchosen choice, no `onSelect`, and `aria-current` on the chosen one |
 | `NavigationBar`, `BottomNavigationBar` | `MaterialNavigationBar(destinations:, selected:, onSelect:)` — one 80 pixel row of equal shares, the chosen destination on a `secondaryContainer` pill; where it sits is the tree's business, so being at the bottom is the last row of a column or a `PositionedNode` |
 | `Chip`, `FilterChip`, `ChoiceChip` | `MaterialChip(label:, selected:, leading:, onTap:)` — 32 pixels tall, an outline when unselected, the secondary container when chosen; `padding`, `height` and `gap` make a denser one, and `onRemove` adds a close target whose name is `removeSemanticsLabel` |
-| `Icon(Icons.check)`, under a chosen chip or segment | `MaterialCheckMark(color:, size:)` — Material's tick drawn from two bars, no font asset needed |
+| `Icon(Icons.check)`, under a chosen chip or segment | `MaterialCheckMark(color:, size:)` — Material's tick drawn from two strokes, no font asset needed |
 | `InkWell`, `InkResponse` | `MaterialInkWell(onTap:, borderRadius:, ink:, child:)` — a state layer plus the ink a press spreads; it paints no surface, so the filled box goes around it. `url:` makes it a destination instead of a callback, and `fill:`/`border:`/`shadows:` give it the surface so one node can be a whole control |
 | `StatefulWidget` + `setState` around a tree | `StatefulNode` + a `StateStore` |
 | `GridView`, a `Wrap` of cards | `GridNode(minItemWidth:, maxColumns:, gap:)` — equal columns that follow the width, no breakpoint; a card that interrupts the row states `gridSpan:` on its box |
@@ -250,7 +250,7 @@ host that renders it.
 | `color`, `font-size`, `font-weight`, `line-height`, `letter-spacing` | the same tokens on `TextNode` or `BoxTextStyle` |
 | `text-decoration: underline`, `text-decoration-color` | `decoration: TextDecoration.underline`, `decorationColor:` — `none`, `lineThrough`, `underline`; `double`, `wavy` and `overline` are not in the model, because Flutter draws one solid line and has no overline |
 | `overflow: hidden` / `auto` | `overflow: Overflow.hidden` / `Overflow.scroll` |
-| `position: sticky; top: 0` | `pin: BoxPin.start`, on a child of the box that scrolls, with the band's `height` stated: it stays at the edge of that box and keeps its slot in the flow. `bottom: 0` is `BoxPin.end`; the `<header>` above it is `pinOffset:` — the same number as the header's height |
+| `position: sticky; top: 0` | `pin: BoxPin.start`, on a child of the box that scrolls, with the bar's `height` stated: it stays at the edge of that box and keeps its slot in the flow. `bottom: 0` is `BoxPin.end`; the `<header>` above it is `pinOffset:` — the same number as the header's height |
 | an animation driven by the scroll (`animation-timeline: view()`, `@keyframes`) | `fold: BoxFold(to: BoxStyle(…))` on the box that leaves: paint tokens only, and `over:` for the share of its exit the fold takes |
 | `<a href>` | `LinkNode(url, …)`, which *is* the `<a href>` |
 | `<a>` with no `href` | `semantics: BoxSemantics(element: BoxElement.a)`: a placeholder that nothing follows |

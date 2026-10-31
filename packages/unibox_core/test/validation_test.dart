@@ -173,8 +173,8 @@ void main() {
       expect(issues.single.message, contains('there is no page to show'));
     });
 
-    test('reports a band inside a pager', () {
-      // The pager shows one page at a time, so a band pinned to its viewport would be painted
+    test('reports a bar inside a pager', () {
+      // The pager shows one page at a time, so a bar pinned to its viewport would be painted
       // over the page that replaced it.
       final List<TreeIssue> issues = validateTree(
         const PagerNode(
@@ -206,7 +206,7 @@ void main() {
 
     test('accepts a pin at the top of a page, where the surface scrolls', () {
       // A server-rendered page scrolls the document, not a box, and the document is the
-      // viewport a band at the top of the tree pins to. Nothing above it in the tree is a
+      // viewport a bar at the top of the tree pins to. Nothing above it in the tree is a
       // reason to report it.
       expect(
         validateTree(
@@ -234,7 +234,7 @@ void main() {
     });
 
     test('reports a pin inside a box that only clips', () {
-      // A browser makes a scroll container of any overflow but `visible`, so the band would
+      // A browser makes a scroll container of any overflow but `visible`, so the bar would
       // pin to a viewport that never moves; Flutter has no viewport there at all.
       final List<TreeIssue> issues = validateTree(
         const Box(
@@ -249,7 +249,7 @@ void main() {
     });
 
     test('reports a pinned box with no height to keep its slot', () {
-      // The band is drawn over its viewport and the flow keeps its room, so the height is
+      // The bar is drawn over its viewport and the flow keeps its room, so the height is
       // what holds the children below it still.
       final List<TreeIssue> issues = validateTree(
         const Box(
@@ -265,8 +265,8 @@ void main() {
     });
 
     test('reports a pin that is not a child of the box that scrolls it', () {
-      // A band is drawn by the box that scrolls it, over that box's own viewport: from one
-      // level down the flow already has a parent, and a browser would pin the band inside
+      // A bar is drawn by the box that scrolls it, over that box's own viewport: from one
+      // level down the flow already has a parent, and a browser would pin the bar inside
       // that parent rather than to the edge of the viewport.
       final List<TreeIssue> issues = validateTree(
         const Box(
@@ -290,7 +290,7 @@ void main() {
     });
 
     test('reports a pinned box that asks for a share of the box', () {
-      // A band keeps the height it states — that is the slot the flow holds open — while a
+      // A bar keeps the height it states — that is the slot the flow holds open — while a
       // browser would grow it with the free space it has.
       final List<TreeIssue> issues = validateTree(
         const Box(
@@ -391,7 +391,7 @@ void main() {
     });
 
     test('reports a box that both pins and folds', () {
-      // A pinned band stays at the edge of its viewport, so its own exit never begins.
+      // A pinned bar stays at the edge of its viewport, so its own exit never begins.
       final List<TreeIssue> issues = validateTree(
         const Box(
           height: 400,

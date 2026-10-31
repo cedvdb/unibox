@@ -78,7 +78,7 @@ Box buildExamplePage({
     height: double.infinity,
     backgroundColor: const BoxColor.role(ExampleColor.canvas),
     children: <UINode>[
-      // The palette picker is a band of its own above the bar: it belongs to the whole page
+      // The palette picker is a bar of its own above the bar: it belongs to the whole page
       // rather than to any destination, and a strip of white with room around it says so.
       Box(
         width: double.infinity,

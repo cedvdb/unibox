@@ -60,11 +60,11 @@ class FlutterBoxState extends State<FlutterBox> {
   /// one the tree last named: applying it again on every rebuild would drag them back.
   int? _appliedIndex;
 
-  /// The slot each pinned band keeps in the flow, by the index of its child.
+  /// The slot each pinned bar keeps in the flow, by the index of its child.
   ///
-  /// A band is drawn over the viewport rather than in the flow, and the flow holds its
+  /// A bar is drawn over the viewport rather than in the flow, and the flow holds its
   /// room open with a box of the height the tree states for it. Where that slot is — which
-  /// is where the band settles back to — is a fact only its own layout knows, and the band
+  /// is where the bar settles back to — is a fact only its own layout knows, and the bar
   /// reads it from this key.
   final Map<int, GlobalKey> _slots = <int, GlobalKey>{};
 
@@ -186,7 +186,7 @@ class FlutterBoxState extends State<FlutterBox> {
         ? FlutterLinkScope.maybeOf(context)
         : null;
 
-    final List<core.Box> pinned = _pinnedBands(box, style);
+    final List<core.Box> pinned = _pinnedChildren(box, style);
 
     // A pager is a node rather than a token, so the renderer reads it here: the physics below, the
     // index it is told to show and the settled page it reports all come from it.
@@ -713,7 +713,7 @@ class FlutterBoxState extends State<FlutterBox> {
 
     // A stretch is not Flutter's `CrossAxisAlignment.stretch`: that hands every child a
     // tight width, and a tight constraint wins over the child's own `width`, so a box that
-    // states 280 came out as wide as the band while the browser left it at 280. The model's
+    // states 280 came out as wide as the section while the browser left it at 280. The model's
     // stretch is CSS's: an item whose cross size is `auto` fills the line, and one that
     // states a size keeps it. So the children are placed at the cross start and each one
     // decides — `_stretchedChild` tells a box it is stretched, and fills a leaf that has no
@@ -772,7 +772,7 @@ class FlutterBoxState extends State<FlutterBox> {
 
   /// The content of the box inside its viewport.
   ///
-  /// A box that holds a pinned band is laid out by [_buildPinnedContent]: a
+  /// A box that holds a pinned bar is laid out by [_buildPinnedContent]: a
   /// `SingleChildScrollView` lays its whole content out in one box, so a child of it has
   /// nowhere to stay while the content moves past. Every other box is a flex container.
   Widget _buildFlow(
@@ -789,9 +789,9 @@ class FlutterBoxState extends State<FlutterBox> {
   /// A pin holds a vertical edge, so only a box that scrolls down has edges to pin to: a
   /// pin in any other box is reported by `validateTree`, and drawing it in the flow is
   /// the one answer both targets give for a tree it refuses.
-  static List<core.Box> _pinnedBands(core.Box box, core.BoxStyle style) {
+  static List<core.Box> _pinnedChildren(core.Box box, core.BoxStyle style) {
     if (box is core.PagerNode) {
-      // A pager's viewport holds one child at a time, so a band pinned to it would be painted
+      // A pager's viewport holds one child at a time, so a bar pinned to it would be painted
       // over the page that replaced it. `validateTree` reports the tree; drawing it in the flow
       // is the one answer both targets give for a tree they refuse.
       return const <core.Box>[];
@@ -810,30 +810,30 @@ class FlutterBoxState extends State<FlutterBox> {
 
   /// [child] placed across the axis a viewport cannot align on its own.
   ///
-  /// A band drawn over the viewport is handed the whole width of it, tight, where a column
+  /// A bar drawn over the viewport is handed the whole width of it, tight, where a column
   /// hands a child the room it asks for and places it by the box's `crossAlign`. Only a
   /// stretched child wants the whole width; the rest are wrapped.
   Widget _aligned(Widget child, core.CrossAlign crossAlign) {
-    final AlignmentGeometry? alignment = toBandAlignment(crossAlign);
+    final AlignmentGeometry? alignment = toPinnedAlignment(crossAlign);
 
     return alignment == null
         ? child
         : Align(alignment: alignment, child: child);
   }
 
-  /// The content of a box that holds pinned bands: the flow it always had, with the
-  /// bands drawn over it.
+  /// The content of a box that holds pinned bars: the flow it always had, with the
+  /// bars drawn over it.
   ///
-  /// A pinned band is lifted out of the flow and painted over the viewport at the edge it
+  /// A pinned bar is lifted out of the flow and painted over the viewport at the edge it
   /// named, driven by the scroll offset of this box: it comes to rest at
   /// [core.BoxPin.start] or [core.BoxPin.end] once the content would have carried it past,
   /// and settles back into the flow when its slot comes up. That is what a browser states
-  /// with `position: sticky`, and it is why the band paints above the content: a band drawn
+  /// with `position: sticky`, and it is why the bar paints above the content: a bar drawn
   /// in the flow order it was written in would be painted over by the content that scrolls
   /// under it, and a browser only escapes that with the `z-index` it writes beside the
   /// position.
   ///
-  /// The slot keeps the room the band takes — the height the tree states for it — so the
+  /// The slot keeps the room the bar takes — the height the tree states for it — so the
   /// children below it never move, which is the promise a pin makes. Laying the flow out
   /// exactly as before is the other half of it: `gap`, `crossAlign` and `mainAlign` stay a
   /// flex container's, so the trees that already exist are drawn as they were.
@@ -843,31 +843,31 @@ class FlutterBoxState extends State<FlutterBox> {
     required double? availableWidth,
   }) {
     final Map<int, double> slots = <int, double>{};
-    final List<Widget> bands = <Widget>[];
+    final List<Widget> bars = <Widget>[];
 
     for (var index = 0; index < box.children.length; index++) {
       final core.UINode child = box.children[index];
-      final core.Box? band = child is core.Box ? child : null;
-      final core.BoxStyle? bandStyle = band?.computedStyle;
-      final core.BoxPin? pin = bandStyle?.pin;
-      final double? height = bandStyle?.height;
+      final core.Box? bar = child is core.Box ? child : null;
+      final core.BoxStyle? barStyle = bar?.computedStyle;
+      final core.BoxPin? pin = barStyle?.pin;
+      final double? height = barStyle?.height;
 
-      // A band with no height of its own has no slot to hold open, so it stays in the
+      // A bar with no height of its own has no slot to hold open, so it stays in the
       // flow: `validateTree` reports it, and drawing it as an ordinary child is the one
       // answer both targets give for a pin they cannot honour.
-      if (band == null || pin == null || height == null || !height.isFinite) {
+      if (bar == null || pin == null || height == null || !height.isFinite) {
         continue;
       }
 
       slots[index] = height;
-      bands.add(
-        _pinnedBand(
-          _buildChild(band, core.Axis.vertical, availableWidth: availableWidth),
+      bars.add(
+        _pinnedChild(
+          _buildChild(bar, core.Axis.vertical, availableWidth: availableWidth),
           scroll: _scroll,
           pin: pin,
           slot: _slots.putIfAbsent(index, GlobalKey.new),
           height: height,
-          inset: bandStyle!.resolvedPinOffset,
+          inset: barStyle!.resolvedPinOffset,
           crossAlign: style.crossAlign ?? core.CrossAlign.start,
         ),
       );
@@ -891,7 +891,7 @@ class FlutterBoxState extends State<FlutterBox> {
             ),
           ),
         ),
-        ...bands,
+        ...bars,
       ],
     );
   }
@@ -900,7 +900,7 @@ class FlutterBoxState extends State<FlutterBox> {
   ///
   /// The resting look is where the fold starts and [core.BoxFold.to] is where it arrives; the
   /// layer paints the interpolation rather than rebuilding it, so a scroll asks for a repaint
-  /// and the box's children are built once — the same reason the pinned band is a layer.
+  /// and the box's children are built once — the same reason the pinned bar is a layer.
   Widget _folded(
     Widget content,
     core.BoxStyle style,
@@ -916,14 +916,14 @@ class FlutterBoxState extends State<FlutterBox> {
     );
   }
 
-  /// [band] drawn at the edge it pins to, over the content that scrolls under it.
+  /// [bar] drawn at the edge it pins to, over the content that scrolls under it.
   ///
-  /// The layer takes the whole viewport and paints the band at the place the scroll offset
-  /// puts it, so a scroll repaints the band instead of rebuilding it: the subtree is built
-  /// once and painted wherever the edge is, which is also what keeps the band's own
+  /// The layer takes the whole viewport and paints the bar at the place the scroll offset
+  /// puts it, so a scroll repaints the bar instead of rebuilding it: the subtree is built
+  /// once and painted wherever the edge is, which is also what keeps the bar's own
   /// subtree — a field, a menu — alive while it is being carried around.
-  Widget _pinnedBand(
-    Widget band, {
+  Widget _pinnedChild(
+    Widget bar, {
     required ScrollController? scroll,
     required core.BoxPin pin,
     required GlobalKey slot,
@@ -936,13 +936,13 @@ class FlutterBoxState extends State<FlutterBox> {
     }
 
     return Positioned.fill(
-      child: _PinnedBand(
+      child: _PinnedBar(
         scroll: scroll,
         pin: pin,
         slot: slot,
         height: height,
         inset: inset,
-        child: _aligned(band, crossAlign),
+        child: _aligned(bar, crossAlign),
       ),
     );
   }
@@ -993,7 +993,7 @@ class FlutterBoxState extends State<FlutterBox> {
     // A box that fills only *up to a measure* is not a flex child. CSS gives it
     // `min(100%, max-width)`, so the container's own alignment can then place the result on
     // the line — and an `Expanded` would claim the whole line and leave that alignment
-    // nothing to move, which put a centred band's 1080-pixel column against its left edge.
+    // nothing to move, which put a centred section's 1080-pixel column against its left edge.
     final double? mainMax = direction == core.Axis.horizontal
         ? childStyle.maxWidth
         : childStyle.maxHeight;
@@ -1466,7 +1466,7 @@ class FlutterBoxState extends State<FlutterBox> {
 /// outside of it, which is why a hairline — `BoxShadow(offsetY: 1, blurRadius: 0)` on a row
 /// that has no fill of its own — is one pixel on the web. `DecoratedBox` paints the shadow
 /// as a second shape behind the box instead, so a box with no background showed the whole
-/// rectangle in the shadow's colour: the tab bar of the catalogue came out as a filled band
+/// rectangle in the shadow's colour: the tab bar of the catalogue came out as a filled bar
 /// the height of its own tabs.
 ///
 /// The clip is the complement of the box's outline: one path with two subpaths and the
@@ -1558,19 +1558,19 @@ final class _BoxTransformTween extends Tween<core.BoxTransform> {
 /// is how a delay is expressed without a controller.
 typedef _Timing = ({Duration duration, Curve curve});
 
-/// A band drawn over its viewport at the edge it pins to.
+/// A bar drawn over its viewport at the edge it pins to.
 ///
 /// It lays out like any child of the drawing stack it sits in — the whole width of the
 /// viewport, the height the tree states for it — and paints at the place the scroll offset
 /// puts it. Painting rather than rebuilding is what makes the pin cheap: a scroll asks the
-/// layer to repaint, the band's own subtree is built once, and a field or a menu inside it
+/// layer to repaint, the bar's own subtree is built once, and a field or a menu inside it
 /// keeps its state while it is being carried around.
 ///
-/// The slot the band keeps in the flow is a [RenderObject] of its own, and the band reads
+/// The slot the bar keeps in the flow is a [RenderObject] of its own, and the bar reads
 /// its position from it in [RenderBox.performLayout] — after the flow has been laid out and
-/// before anything is painted, so the first frame is drawn where the band belongs.
-class _PinnedBand extends SingleChildRenderObjectWidget {
-  const _PinnedBand({
+/// before anything is painted, so the first frame is drawn where the bar belongs.
+class _PinnedBar extends SingleChildRenderObjectWidget {
+  const _PinnedBar({
     required this.scroll,
     required this.pin,
     required this.slot,
@@ -1579,9 +1579,9 @@ class _PinnedBand extends SingleChildRenderObjectWidget {
     required super.child,
   });
 
-  /// The scroll offset the band follows.
+  /// The scroll offset the bar follows.
   ///
-  /// The controller rather than its position: a band is built before the viewport it
+  /// The controller rather than its position: a bar is built before the viewport it
   /// belongs to is, so the position it will follow does not exist yet at that moment.
   final ScrollController scroll;
 
@@ -1598,14 +1598,11 @@ class _PinnedBand extends SingleChildRenderObjectWidget {
   final double inset;
 
   @override
-  _RenderPinnedBand createRenderObject(BuildContext context) =>
-      _RenderPinnedBand(scroll, pin, slot, height, inset);
+  _RenderPinnedBar createRenderObject(BuildContext context) =>
+      _RenderPinnedBar(scroll, pin, slot, height, inset);
 
   @override
-  void updateRenderObject(
-    BuildContext context,
-    _RenderPinnedBand renderObject,
-  ) {
+  void updateRenderObject(BuildContext context, _RenderPinnedBar renderObject) {
     renderObject
       ..scroll = scroll
       ..pin = pin
@@ -1615,9 +1612,9 @@ class _PinnedBand extends SingleChildRenderObjectWidget {
   }
 }
 
-/// Where a [_PinnedBand] paints: the layout of a box, the geometry of a sticky one.
-class _RenderPinnedBand extends RenderProxyBox {
-  _RenderPinnedBand(
+/// Where a [_PinnedBar] paints: the layout of a box, the geometry of a sticky one.
+class _RenderPinnedBar extends RenderProxyBox {
+  _RenderPinnedBar(
     this._scroll,
     this._pin,
     this._slot,
@@ -1693,9 +1690,9 @@ class _RenderPinnedBand extends RenderProxyBox {
     super.detach();
   }
 
-  /// Redraws the band where the offset now puts it.
+  /// Redraws the bar where the offset now puts it.
   ///
-  /// A band that moved is also a rectangle a screen reader has to be told about, and
+  /// A bar that moved is also a rectangle a screen reader has to be told about, and
   /// marking both is what keeps the announced box where the painted one is. With no
   /// semantics owner — the ordinary case — the second call is a flag check.
   void _scrollChanged() {
@@ -1709,9 +1706,9 @@ class _RenderPinnedBand extends RenderProxyBox {
     final BoxConstraints constraints = this.constraints;
 
     if (child != null) {
-      // The band keeps the width the viewport hands it and the height it states, which is
+      // The bar keeps the width the viewport hands it and the height it states, which is
       // the room its slot holds in the flow; a viewport that is itself unconstrained across
-      // leaves the band its own width rather than an infinity no box can be laid out in.
+      // leaves the bar its own width rather than an infinity no box can be laid out in.
       child.layout(
         BoxConstraints.tightFor(
           width: constraints.hasBoundedWidth ? constraints.maxWidth : null,
@@ -1721,7 +1718,7 @@ class _RenderPinnedBand extends RenderProxyBox {
       );
     }
 
-    // The layer fills the viewport, and takes the band's own height where the viewport was
+    // The layer fills the viewport, and takes the bar's own height where the viewport was
     // not given an end to fill.
     size = constraints.constrain(
       Size(
@@ -1731,15 +1728,15 @@ class _RenderPinnedBand extends RenderProxyBox {
     );
   }
 
-  /// The place the band is painted, in this layer's coordinates.
+  /// The place the bar is painted, in this layer's coordinates.
   ///
   /// At rest it is where the flow put it. Once the content would have carried it past the
   /// edge it named, it keeps that edge's distance, and it goes no further than the box it
   /// is drawn in allows — the box a browser keeps a sticky element inside, which is why a
-  /// band that has nothing after it never comes away from its slot.
+  /// bar that has nothing after it never comes away from its slot.
   ///
-  /// Read when the band is painted rather than once per layout: a scroll repaints without
-  /// laying anything out, and the place a band belongs is a fact about the scroll offset.
+  /// Read when the bar is painted rather than once per layout: a scroll repaints without
+  /// laying anything out, and the place a bar belongs is a fact about the scroll offset.
   double get _top {
     if (!_scroll.hasClients) {
       return 0;
@@ -1770,7 +1767,7 @@ class _RenderPinnedBand extends RenderProxyBox {
     return math.max(math.min(at, edge), -scroll);
   }
 
-  /// Where the slot sits right now, in this layer's coordinates: where the band would be
+  /// Where the slot sits right now, in this layer's coordinates: where the bar would be
   /// if it did not pin.
   ///
   /// Read from the slot's own place in the tree rather than counted from the children above
@@ -1815,7 +1812,7 @@ class _RenderPinnedBand extends RenderProxyBox {
     );
   }
 
-  // The band is laid out where the flow would have put it and painted elsewhere, so the
+  // The bar is laid out where the flow would have put it and painted elsewhere, so the
   // offset it was painted at is the one everything else has to be told about: the position
   // a test reads, the rectangle a screen reader announces, and the box a press lands in.
   @override
@@ -2162,7 +2159,7 @@ class _NoOverscrollGlow extends ScrollBehavior {
 /// own: a `ClipRect` cuts the whole box, so the last `line` pixels on every side — the ones
 /// the border paints over — were the children's to paint, and a child that filled the box
 /// covered the line where it met it. A chosen segment's fill broke the outline of the pill
-/// around it and the tint of a hover lit a band the browser never lights; both targets now
+/// around it and the tint of a hover lit a bar the browser never lights; both targets now
 /// stop at the line.
 ///
 /// The corner is the inside of the border's, which is the outer radius less the line, the

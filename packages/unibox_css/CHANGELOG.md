@@ -26,7 +26,7 @@
   `flex-shrink: 0` for the children of any `overflow: auto` box, not only for a pager's pages.
   A flex item shrinks to fit by default, so a hero, a bar and five rows inside a box shorter than
   all three were squashed until the box had nothing to scroll — Flutter scrolls them, and the page
-  did not, which is how a sticky band came out as a bar that never moved. A row of chips that
+  did not, which is how a sticky bar came out as a row that never moved. A row of chips that
   overflows now scrolls instead of narrowing its chips for the same reason.
 
 - A box that states `fold` is written as an animation the reader drives: `animation-timeline:

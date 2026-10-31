@@ -42,11 +42,11 @@ Iterable<String> _headings(UINode page) sync* {
 
 void main() {
   group('buildSitePage', () {
-    test('is one page with one h1 and a band under it', () {
+    test('is one page with one h1 and a bar under it', () {
       final UINode page = buildSitePage(frame: _frame);
       final List<String> headings = _headings(page).toList();
 
-      // The hero makes the claim, so its line is the one h1; each band is an h2 and
+      // The hero makes the claim, so its line is the one h1; each bar is an h2 and
       // each block of the catalogue an h3, which is the outline a crawler and a
       // screen reader build the document from.
       expect(
@@ -73,15 +73,15 @@ void main() {
       );
     });
 
-    test('puts the indexable band under the claim, and the catalogue last', () {
+    test('puts the indexable bar under the claim, and the catalogue last', () {
       // The order is the reason to adopt the library, then the parts the claim is made
       // of, then the design system all of it is drawn with. The catalogue is what the
       // page closes on.
-      final List<String> bands = _headings(buildSitePage(frame: _frame))
+      final List<String> bars = _headings(buildSitePage(frame: _frame))
           .where((String heading) => heading.startsWith('2|'))
           .toList();
 
-      expect(bands, <String>[
+      expect(bars, <String>[
         '2|HTML and CSS',
         '2|Flutter',
         '2|Make Flutter Web pages indexable',
@@ -93,7 +93,7 @@ void main() {
     test(
       'shows the markup a crawler is served, and what Flutter does next',
       () {
-        // The band exists for the reader who arrives from a search engine: the same screen
+        // The bar exists for the reader who arrives from a search engine: the same screen
         // written as a tree and served as markup, then the two facts that make it usable —
         // the app takes the page over, and only the pages that have to be found change.
         final List<String> words = <String>[
@@ -115,7 +115,7 @@ void main() {
     );
 
     test('names the two calls the taken apart card is for', () {
-      // The band's claim is that a screen is containers; its evidence is the list of
+      // The bar's claim is that a screen is containers; its evidence is the list of
       // nodes, and the two calls under it are the whole of what a tree is for — one
       // builds the widgets, one writes the document.
       final List<String> words = _flatten(buildSitePage(frame: _frame))
@@ -293,7 +293,7 @@ void main() {
       'draws the nodes the rest of the page never shows, and names them',
       () {
         // The hero frames a tree and the catalogue draws components; four nodes were never
-        // drawn as themselves, so the band under the hero is where a reader meets them — and
+        // drawn as themselves, so the bar under the hero is where a reader meets them — and
         // the list beside the card is what names them, because a picture has no words.
         final List<UINode> page = _flatten(buildSitePage(frame: _frame))
             .toList();
@@ -332,10 +332,10 @@ void main() {
       expect(picture.alt, isNotEmpty);
     });
 
-    test('wraps every band in a section, and the catalogue blocks too', () {
+    test('wraps every bar in a section, and the catalogue blocks too', () {
       // The page is a document, not a stack of layers: the content of `main` is four
       // sections, and each block of the catalogue is a section of its own because each
-      // one has an `h3`. A band inside the header or the footer adds none, because the
+      // one has an `h3`. A bar inside the header or the footer adds none, because the
       // landmark is already there.
       final List<UINode> page = _flatten(buildSitePage(frame: _frame)).toList();
       final Box main = page.whereType<Box>().firstWhere(
@@ -343,9 +343,7 @@ void main() {
       );
 
       expect(
-        main.children.whereType<Box>().map(
-          (Box band) => band.semantics?.element,
-        ),
+        main.children.whereType<Box>().map((Box bar) => bar.semantics?.element),
         <BoxElement>[
           BoxElement.section,
           BoxElement.section,
@@ -377,7 +375,7 @@ void main() {
             node.semantics!.element,
       ];
 
-      // A reader can jump to the header, the content and the footer, and the bands
+      // A reader can jump to the header, the content and the footer, and the sections
       // sit inside the content rather than beside it. The navigation landmark is the
       // navigation bar demo inside the catalogue, which is a real `nav` too.
       expect(
@@ -407,22 +405,25 @@ void main() {
       expect(texts, isNot(contains('The Flutter build')));
     });
 
-    test('shows each rendering rather than a picture of it, and names it once', () {
-      final List<String> texts = <String>[
-        for (final UINode node in _flatten(buildSitePage(frame: _emptyFrame)))
-          if (node is TextNode) node.text,
-      ];
+    test(
+      'shows each rendering rather than a picture of it, and names it once',
+      () {
+        final List<String> texts = <String>[
+          for (final UINode node in _flatten(buildSitePage(frame: _emptyFrame)))
+            if (node is TextNode) node.text,
+        ];
 
-      // The claim used to end in two stub cards captioned with the same two names, and
-      // the band below it framed the real thing under those names again — the page told
-      // a reader the point twice, once as a diagram and once for real. The frames are
-      // the claim's answer, in the claim's band, so each name is written once.
-      expect(
-        texts.where((String text) => text == 'HTML and CSS'),
-        hasLength(1),
-      );
-      expect(texts.where((String text) => text == 'Flutter'), hasLength(1));
-      expect(texts, isNot(contains('Sunny flat, 62 m²')));
-    });
+        // The claim used to end in two stub cards captioned with the same two names, and
+        // the bar below it framed the real thing under those names again — the page told
+        // a reader the point twice, once as a diagram and once for real. The frames are
+        // the claim's answer, in the claim's bar, so each name is written once.
+        expect(
+          texts.where((String text) => text == 'HTML and CSS'),
+          hasLength(1),
+        );
+        expect(texts.where((String text) => text == 'Flutter'), hasLength(1));
+        expect(texts, isNot(contains('Sunny flat, 62 m²')));
+      },
+    );
   });
 }

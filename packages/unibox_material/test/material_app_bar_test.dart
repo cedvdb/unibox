@@ -21,7 +21,7 @@ void main() {
       expect(bar.direction, Axis.horizontal);
       expect(bar.mainAlign, MainAlign.spaceBetween);
       expect(bar.crossAlign, CrossAlign.center);
-      // A band is a header of what it sits over, on the web and in an accessibility tree.
+      // A bar is a header of what it sits over, on the web and in an accessibility tree.
       expect(bar.semantics?.element, BoxElement.header);
     });
 
@@ -53,7 +53,7 @@ void main() {
 
     test('paints the container one step above the page', () {
       // The screen behind a bar is the scaffold's `surface`; the bar itself is a container, which
-      // is the difference that makes a band read as a band.
+      // is the difference that makes a bar read as a bar.
       final MaterialAppBar bar = MaterialAppBar(
         title: const TextNode('Results'),
       );
@@ -84,43 +84,43 @@ void main() {
 
   group('MaterialLargeAppBar', () {
     test('is a box with the tokens Material gives a large app bar', () {
-      final MaterialLargeAppBar band = MaterialLargeAppBar(
+      final MaterialLargeAppBar bar = MaterialLargeAppBar(
         title: const TextNode('Six flats, one tree'),
       );
 
-      expect(band, isA<Box>());
-      expect(band.height, MaterialLargeAppBar.largeHeight);
-      expect(band.backgroundColor, MaterialLargeAppBar.surface);
-      // The headline sits on the floor of the band: the air is above it.
-      expect(band.mainAlign, MainAlign.end);
-      expect(band.crossAlign, CrossAlign.start);
-      expect(band.semantics?.element, BoxElement.header);
+      expect(bar, isA<Box>());
+      expect(bar.height, MaterialLargeAppBar.largeHeight);
+      expect(bar.backgroundColor, MaterialLargeAppBar.surface);
+      // The headline sits on the floor of the bar: the air is above it.
+      expect(bar.mainAlign, MainAlign.end);
+      expect(bar.crossAlign, CrossAlign.start);
+      expect(bar.semantics?.element, BoxElement.header);
     });
 
     test('folds, and keeps the height it states while it does', () {
       const BoxFold fold = BoxFold(
         to: BoxStyle(opacity: 0.1, transform: BoxTransform(scale: 0.62)),
       );
-      final MaterialLargeAppBar band = MaterialLargeAppBar(
+      final MaterialLargeAppBar bar = MaterialLargeAppBar(
         title: const TextNode('Six flats, one tree'),
         fold: fold,
       );
 
-      expect(band.fold, fold);
-      // The fold is paint: the band's height is the room the flow keeps, whatever it paints.
-      expect(band.height, MaterialLargeAppBar.largeHeight);
-      expect(band.fold!.looks, contains(BoxProperty.opacity));
+      expect(bar.fold, fold);
+      // The fold is paint: the bar's height is the room the flow keeps, whatever it paints.
+      expect(bar.height, MaterialLargeAppBar.largeHeight);
+      expect(bar.fold!.looks, contains(BoxProperty.opacity));
     });
 
-    test('pins, so a band whose height a store drives can stay at the top', () {
-      final MaterialLargeAppBar band = MaterialLargeAppBar(
+    test('pins, so a bar whose height a store drives can stay at the top', () {
+      final MaterialLargeAppBar bar = MaterialLargeAppBar(
         title: const TextNode('Apartments'),
         pin: BoxPin.start,
       );
 
-      // A collapse is a height a rebuild states, so the band that collapses is the band that has
+      // A collapse is a height a rebuild states, so the bar that collapses is the bar that has
       // to be able to pin: without the edge it would scroll away as it shrank.
-      expect(band.pin, BoxPin.start);
+      expect(bar.pin, BoxPin.start);
       expect(
         MaterialLargeAppBar(
           title: const TextNode('Apartments'),

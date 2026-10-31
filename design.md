@@ -190,16 +190,16 @@ never inherited (CSS does not inherit them either).
   alphabetic one: CSS cannot ask for another, so the model does not offer a choice
   only one target could honour.
 - A token whose effect only exists while the content moves is still a parity claim.
-  `pin` says where a band comes to rest in the viewport that scrolls it, which no static
-  appearance can show: the band looks the same pinned or not. So the token is held to the
+  `pin` says where a bar comes to rest in the viewport that scrolls it, which no static
+  appearance can show: the bar looks the same pinned or not. So the token is held to the
   facts that *are* checkable — the slot in the flow, the paint order, the height the tree
   states for it — and each renderer's suite scrolls it rather than the appearance table.
-  The height is part of the API for that reason: Flutter draws the band over the viewport
-  and the flow keeps its room from the number the tree states. So is the band's parent: a
-  band is drawn by the box that scrolls it, and a browser would pin one nested a level
+  The height is part of the API for that reason: Flutter draws the bar over the viewport
+  and the flow keeps its room from the number the tree states. So is the bar's parent: a
+  bar is drawn by the box that scrolls it, and a browser would pin one nested a level
   down inside *that* box instead, so `validateTree` reports a pin that is not a child of
   its viewport rather than letting the two targets come to rest in different places. The
-  share a `flex` asks for is reported for the same reason: a band keeps its stated height,
+  share a `flex` asks for is reported for the same reason: a bar keeps its stated height,
   and a browser would grow it with the free space it has. A pin with no scrolling box
   above it is the one documented asymmetry: a browser pins it to the document, which
   scrolls a page, and Flutter has no viewport to pin it to, which the Flutter README
@@ -227,7 +227,7 @@ never inherited (CSS does not inherit them either).
   alone, and a child that names a `maxWidth` stops at the cap rather than at the
   track. So the renderer says "you are stretched" rather than handing the child a
   tight width, because a tight constraint wins over the child's own tokens — the
-  reason the catalogue's tab strips and its pager came out as wide as the band in
+  reason the catalogue's tab strips and its pager came out as wide as the section in
   Flutter while the document kept them narrow.
 - Platform chrome belongs to the tree. A node never keeps a decoration its
   platform adds by itself — no Material underline under a field, no user agent
@@ -251,7 +251,7 @@ never inherited (CSS does not inherit them either).
   same rectangle, with the corner radius reduced by the border's width as CSS reduces it.
   A child that fills a bordered box therefore stops at the line rather than painting over
   it — a chosen segment keeps the outline of the pill around it, and a hover tint covers
-  the segment and not the pixel band a browser leaves alone.
+  the segment and not the pixel strip a browser leaves alone.
 - Parity is *tested*, not assumed: `unibox_testing` lists the boxes every
   renderer has to present the same way and the texts every renderer has to
   typeset the same way, and each renderer suite reads the appearance back out of
@@ -861,7 +861,7 @@ What that buys, stated as the invariants the feature has to keep:
 - **`fillRule` is part of the value.** `BoxFillRule.evenOdd` makes a subpath inside
   another punch a hole, so a ring is two circles and no stroke token: the effect that
   motivated shapes in the first place needs no second primitive. A partial ring is the
-  same band cut short — one subpath of two arcs and two radial edges, filled under
+  same ring cut short — one subpath of two arcs and two radial edges, filled under
   `nonZero` — which is why `BoxShape.ring(thickness:, sweep:)` can be a value rather
   than a component, and why a progress indicator is two boxes instead of a node type.
   The model ships that factory and `BoxShape.circle` because arc arithmetic is the one

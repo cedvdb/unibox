@@ -31,8 +31,8 @@ Box(
 | `flex` | `int?` | none | Share of the free space this box takes inside its parent: `flex: 1` is an `Expanded` in Flutter and `flex-grow: 1` on the web. |
 | `gridSpan` | `int?` | one track | How many columns of a `GridNode` this box covers: a banner that interrupts a card grid states `2`, or more for a full row. Only a grid child has tracks, and `validateTree` reports it anywhere else. |
 | `overflow` | `Overflow?` | visible | `hidden` clips the content, `scroll` makes the box scroll along its direction. A box that should settle on a child is a [`PagerNode`](pager.md) rather than a token here. |
-| `pin` | `BoxPin?` | none | The edge of the box that scrolls it that this box stays at, once the content would have carried it past: `start` is the top of the viewport, `end` the bottom. The band keeps its slot in the flow — nothing below it moves — and is painted above the content that scrolls under it. It is a relation to the nearest scrolling box, not an offset in the window, so it works when the document scrolls as well as inside a box with `overflow: Overflow.scroll`. The band is a child of that box and states its height (it is the room the flow keeps) and paints its own background, since the content passes underneath it. `validateTree` reports a pin inside a box that scrolls sideways, inside a box that only clips, one that is not a child of the box that scrolls it, one with no height, one that also asks for a `flex` share, and an inset with no pin. |
-| `pinOffset` | `double?` | none | The room a pinned band keeps from its edge, in logical pixels: the same number as the `height` of the header above it, so the band comes to rest under it instead of over it. |
+| `pin` | `BoxPin?` | none | The edge of the box that scrolls it that this box stays at, once the content would have carried it past: `start` is the top of the viewport, `end` the bottom. The bar keeps its slot in the flow — nothing below it moves — and is painted above the content that scrolls under it. It is a relation to the nearest scrolling box, not an offset in the window, so it works when the document scrolls as well as inside a box with `overflow: Overflow.scroll`. The bar is a child of that box and states its height (it is the room the flow keeps) and paints its own background, since the content passes underneath it. `validateTree` reports a pin inside a box that scrolls sideways, inside a box that only clips, one that is not a child of the box that scrolls it, one with no height, one that also asks for a `flex` share, and an inset with no pin. |
+| `pinOffset` | `double?` | none | The room a pinned bar keeps from its edge, in logical pixels: the same number as the `height` of the header above it, so the bar comes to rest under it instead of over it. |
 
 **Size**
 
@@ -124,7 +124,7 @@ both are the opposite of what an instinct says:
 
 - **The cross axis starts; it does not stretch.** `crossAlign` is `start`, where a
   CSS flex container defaults to `stretch`. A column therefore hugs each child to its
-  own content, and a band does not reach the page width on its own. A band that must
+  own content, and a section does not reach the page width on its own. A section that must
   span says `crossAlign: CrossAlign.stretch` on the column that holds it. A child
   that fills needs that too: `width: double.infinity` takes the space it is given,
   and a browser resolves `100%` against a parent that has a width.
@@ -134,7 +134,7 @@ both are the opposite of what an instinct says:
   A row that must distribute is inside a box that did: `crossAlign:
   CrossAlign.stretch` on the column around it, or a `width`.
 
-So the recipe, in one line: **a band that must span says `crossAlign:
+So the recipe, in one line: **a section that must span says `crossAlign:
 CrossAlign.stretch`, and a row that must distribute is inside one that did.**
 
 ## Shapes
@@ -167,10 +167,10 @@ The model ships three values over that vocabulary, because they are asked for fa
 often than the rest: `BoxShape.circle`, `BoxShape.ring` and `BoxShape.arc`.
 
 ```dart
-// A band: the region between the edge and a circle 12 units inside it.
+// A ring: the region between the edge and a circle 12 units inside it.
 Box(width: 96, height: 96, shape: BoxShape.ring(thickness: 12), backgroundColor: grey)
 
-// A value over it: the same band, a fraction of a turn, clockwise from twelve.
+// A value over it: the same ring, a fraction of a turn, clockwise from twelve.
 Box(width: 96, height: 96, shape: BoxShape.ring(thickness: 12, sweep: 0.42), backgroundColor: accent)
 
 // A line: a circle's centreline, run along by an open path. What paints it is the border,

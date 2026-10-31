@@ -189,9 +189,9 @@ class Box extends UINode {
 
   /// The inset, in logical pixels, this box keeps from the edge it pins to.
   ///
-  /// Unset means zero. It is the room a header above the pinned band takes, so the band
+  /// Unset means zero. It is the room a header above the pinned bar takes, so the bar
   /// comes to rest under it instead of over it: the same number as that header's `height`,
-  /// written twice because the header is a sibling the band cannot measure.
+  /// written twice because the header is a sibling the bar cannot measure.
   final double? pinOffset;
 
   // Dimensions.
@@ -348,7 +348,7 @@ class Box extends UINode {
   /// from 600 up to, but not including, 900.
   final double? visibleUntil;
 
-  /// Whether this box is drawn at only some widths, on either side of a band.
+  /// Whether this box is drawn at only some widths, on either side of a width.
   ///
   /// Read from the tokens without resolving the style. A renderer asks this of every child of
   /// every box — a box that holds a threshold is the box a container query measures — and

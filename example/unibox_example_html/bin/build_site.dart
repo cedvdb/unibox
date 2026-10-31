@@ -10,7 +10,7 @@ import 'package:unibox_html/unibox_html.dart';
 ///   --url=https://example.com/unibox/
 /// ```
 ///
-/// Three documents, one per address. `index.html` is the **site** — one page of four bands: the
+/// Three documents, one per address. `index.html` is the **site** — one page of four bars: the
 /// claim with the comparison inside it, the markup a search engine is served, the vocabulary
 /// that names the nodes the claim never drew, and the Material catalogue the page is drawn with,
 /// which closes it. `web/listings/` is the **example**: the same tree as the left frame of the

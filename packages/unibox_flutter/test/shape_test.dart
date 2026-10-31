@@ -55,7 +55,7 @@ void main() {
       expect(
         path.contains(const Offset(50, 8)),
         isTrue,
-        reason: 'the band between the two circles is the ring itself',
+        reason: 'the area between the two circles is the ring itself',
       );
     });
 

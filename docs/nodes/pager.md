@@ -33,7 +33,7 @@ way it states that a page is the size of the box. A bag that names another value
 **Every child is the size of the pager.** That is the whole of the relation, and it is what
 makes a browser's snap edge and Flutter's page edge the same one. `validateTree` reports a pager
 that states no main-axis size, a child that states another size, a non-`Box` child, an index
-past the last page, and a `pin` inside one — a band pinned to a viewport that shows one page at
+past the last page, and a `pin` inside one — a bar pinned to a viewport that shows one page at
 a time would be painted over the page that replaced it.
 
 **The move is a jump.** A browser's programmatic scroll can be given neither a duration nor a

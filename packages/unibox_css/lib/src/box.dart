@@ -78,7 +78,7 @@ CssDeclarations boxDeclarations(
         ..add('flex-wrap', 'wrap')
         // The lines are packed from the start of the box, which is what a Flutter `Wrap`
         // does with its runs. A browser's `align-content: normal` stretches them over the
-        // height of the box instead, so a wrapped row in a tall box would sit in bands.
+        // height of the box instead, so a wrapped row in a tall box would sit in rows.
         ..add('align-content', 'flex-start');
     }
   }
@@ -214,7 +214,7 @@ CssDeclarations boxDeclarations(
   //
   // `z-index` is stated with it because sticky positions the box in the flow order it was
   // written in, so content that follows it would paint over it as it scrolls under; one
-  // level is enough, and it is why the pinned band covers the results rather than the
+  // level is enough, and it is why the pinned bar covers the results rather than the
   // reverse.
   //
   // A state rule leaves the three out: a pin is a relation to the viewport, not a look a

@@ -69,7 +69,7 @@ void main() {
       // phone's width. A wider card is centred by a browser with its padding cut off — the
       // fields run into the edges — while Flutter clamps it and keeps the padding, so the two
       // renderings disagree at exactly the size the page is read at. 280 is Material's minimum
-      // dialog width, and it fits the narrowest band the example is drawn in.
+      // dialog width, and it fits the narrowest bar the example is drawn in.
       final Box card = RecordingHost().card();
 
       expect(card.width, 280);

@@ -6,26 +6,26 @@
   the frame that laid the pager out, and `onPageChanged` read back from the viewport when a
   scroll ends. The move is no longer animated: a browser's programmatic scroll takes no duration
   and no curve, so an eased one here was an animation only this target had. A pager holds no
-  pinned bands, which is the one tree `validateTree` refuses.
+  pinned bars, which is the one tree `validateTree` refuses.
 
 - A box that hides its overflow now hides it *inside* its border, where a browser hides it:
   `overflow: Overflow.hidden` on a bordered box cut the whole box, so a child that filled it
   painted over the line — a chosen segment broke the outline of the pill around it, and the tint
-  of a hover lit the 1 pixel band a page leaves alone. The clip is the padding box, with the
+  of a hover lit the 1 pixel bar a page leaves alone. The clip is the padding box, with the
   corner reduced by the border's width, so the fill and the tint stop at the outline on both
   targets and Material's segmented button keeps the line it draws around a chosen segment.
 
 - A shadow is painted the way CSS paints one: outside the border box, never through it. A box
   with no fill was handing its shadows to a `DecoratedBox`, which paints them as a second shape
   *behind* the box, so a hairline — `BoxShadow(offsetY: 1, blurRadius: 0)` on a row that paints
-  no background — filled the whole rectangle: the catalogue's tab bar came out as a solid band
+  no background — filled the whole rectangle: the catalogue's tab bar came out as a solid bar
   the height of its tabs. The shadows are now painted by a painter that clips them to the
   complement of the box's outline.
 
 - A box that fills only up to a measure is no longer an `Expanded` in the row that holds it.
   `width: double.infinity` with a `maxWidth` is CSS's `min(100%, max-width)`, which the
   container's alignment then places; claiming the whole line left that alignment nothing to
-  move, so a centred band's 1080-pixel column was drawn against the row's leading edge.
+  move, so a centred section's 1080-pixel column was drawn against the row's leading edge.
 
 - A grid that states its columns is a `Row` of `Expanded` children at their factors inside an
   `IntrinsicWidth`: every child is measured at its max intrinsic width and laid out at the widest
@@ -38,7 +38,7 @@
   and leaves the rest alone, which is what `align-items: stretch` does with a flex item whose
   cross size is not `auto`. Flutter's `CrossAxisAlignment.stretch` gave every child a tight
   width, and a tight width wins over the child's own: a tab strip that states 280 came out as
-  wide as the band, a pager that states 240 showed three pages at once, and a stateful view
+  wide as the bar, a pager that states 240 showed three pages at once, and a stateful view
   could not keep a width it named. The stretch is now stated to the child instead of imposed
   on it, and a box that names its own cross size keeps it.
 
@@ -66,16 +66,16 @@
   through the bottom of the viewport, which a browser's `view()` would fold.
 
 - A box that states `pin` stays at the edge it names while its viewport scrolls. The flow is
-  laid out exactly as before — a column, with the band's stated height left in its slot — and
-  the band is drawn over the viewport by a layer that repaints itself into place as the scroll
-  offset changes, so nothing rebuilds and a field inside the band keeps its state. It paints
-  above the content that scrolls under it and takes a press there, which a band left in the
-  flow order would lose. A band that is not a child of the box that scrolls it, a pin inside a
+  laid out exactly as before — a column, with the bar's stated height left in its slot — and
+  the bar is drawn over the viewport by a layer that repaints itself into place as the scroll
+  offset changes, so nothing rebuilds and a field inside the bar keeps its state. It paints
+  above the content that scrolls under it and takes a press there, which a bar left in the
+  flow order would lose. A bar that is not a child of the box that scrolls it, a pin inside a
   box that scrolls sideways, a pin inside a box that only clips, a pinned box with no height
   and one that also asks for a `flex` share are reported by `validateTree` and drawn in the
   flow. So is a pin at the top of a tree with no scrolling box above it: the web pins it to the
   document, while the surface an application is drawn on does not scroll.
-- The catalogue on the site shows a sticky band: a screen whose app bar is the first child of the
+- The catalogue on the site shows a sticky bar: a screen whose app bar is the first child of the
   body that scrolls, so it comes to rest at the top and the list runs under it.
 
 - A box that states `capturesPointer: false` is wrapped in an `IgnorePointer`, so a press, a
@@ -162,7 +162,7 @@
 - A shaped box strokes its outline with the cap its border states, and `toStrokeCap` maps the
   token to Flutter's `StrokeCap`. An open outline — `BoxShape.arc` — has two ends, and the cap is
   what draws them: `BoxStrokeCap.round` gives the rounded ends Material's progress indicator has,
-  where the previous filled band stopped on a radius.
+  where the previous filled bar stopped on a radius.
 
 - `pressesFromPage()` and `FlutterStateful(presses: …)`: the presses a page recorded, answered
   once against the first view the node builds — which is the only place their callbacks exist,

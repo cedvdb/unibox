@@ -4,7 +4,7 @@ import 'material_app_bar.dart';
 import 'material_palette.dart';
 import 'material_typography.dart';
 
-/// A Material 3 large top app bar: a band with room above its title, which folds as it leaves.
+/// A Material 3 large top app bar: a bar with room above its title, which folds as it leaves.
 ///
 /// ```dart
 /// MaterialLargeAppBar(
@@ -16,35 +16,35 @@ import 'material_typography.dart';
 /// )
 /// ```
 ///
-/// It is the band a results page opens with: a headline with air above it, and a list under it.
+/// It is the bar a results page opens with: a headline with air above it, and a list under it.
 /// What the class buys is the combination Material gives a large app bar — 152 logical pixels of
-/// height, the title on the baseline at the bottom of the band in `headlineMedium`, 16 pixels of
+/// height, the title on the baseline at the bottom of the bar in `headlineMedium`, 16 pixels of
 /// padding, and the same surface the small bar and the list share — plus the [fold] it takes for
 /// the journey out of view.
 ///
 /// **It pins, and it states its height, because a bar that shrinks is a bar whose height is
 /// rebuilt.** `pin: BoxPin.start` keeps it at the top of the box that scrolls it once it has left —
-/// a pinned `SliverAppBar`'s behaviour — and the height is a number the caller states, so a band
+/// a pinned `SliverAppBar`'s behaviour — and the height is a number the caller states, so a bar
 /// whose height follows a store is rebuilt with the new number rather than eased into it. That is
 /// the one way a *layout* collapse is expressed here: a state and a rebuild, not a fold.
 ///
 /// **The fold is paint, and Material's own collapse is not.** Material shrinks a large app bar
-/// into a small one as the content scrolls, which is a *layout* change: the band's height and the
+/// into a small one as the content scrolls, which is a *layout* change: the bar's height and the
 /// room it takes both move, and no renderer here eases a layout — a frame of an eased layout is a
-/// picture the two engines cannot be held to. What a [BoxFold] does instead is paint the band out
+/// picture the two engines cannot be held to. What a [BoxFold] does instead is paint the bar out
 /// of view — fade it, shrink it about its centre — while the flow keeps its height. A tree that
-/// wants the space back states a state and swaps the band for a small one, which is a rebuild and
+/// wants the space back states a state and swaps the bar for a small one, which is a rebuild and
 /// not a fold.
 ///
-/// **What it is not.** It is not a scaffold and it is not a sliver: the band is a child of the
+/// **What it is not.** It is not a scaffold and it is not a sliver: the bar is a child of the
 /// tree, the list is the next one, and the box that holds them decides whether it scrolls. And it
 /// is not a colour scheme: [surface] is a [MaterialColorRole] the theme resolves.
 final class MaterialLargeAppBar extends Box {
   /// Creates a large app bar around [title].
   ///
-  /// [fold] is the look the band takes as it leaves the box that scrolls it, and the rest are the
-  /// band's own tokens — the surface, the type, the height, the padding — so an application can
-  /// theme them without giving up the band.
+  /// [fold] is the look the bar takes as it leaves the box that scrolls it, and the rest are the
+  /// bar's own tokens — the surface, the type, the height, the padding — so an application can
+  /// theme them without giving up the bar.
   factory MaterialLargeAppBar({
     Object? key,
     required UINode title,
@@ -72,7 +72,7 @@ final class MaterialLargeAppBar extends Box {
         backgroundColor: color,
         fold: fold,
         semantics: semantics ?? const BoxSemantics(element: BoxElement.header),
-        // The title sits on the floor of the band, which is where Material puts it: the air the
+        // The title sits on the floor of the bar, which is where Material puts it: the air the
         // large app bar is for is above the headline, not around it.
         mainAlign: MainAlign.end,
         crossAlign: CrossAlign.start,
@@ -113,7 +113,7 @@ final class MaterialLargeAppBar extends Box {
   /// The height of a large top app bar, in logical pixels.
   static const double largeHeight = 152;
 
-  /// The colour the band paints: Material's `surfaceContainer`, one step above the page.
+  /// The colour the bar paints: Material's `surfaceContainer`, one step above the page.
   ///
   /// The same role the small bar uses, because Material draws all of its top app bars on one
   /// container — a large bar and the small one it becomes share a colour, and the page they sit on

@@ -293,15 +293,17 @@ builds the theme.
 
 ## The scaffold
 
-`MaterialScaffold` is the screen: an app bar that stays, and a body under it.
+`MaterialScaffold` is the screen: an app bar that stays, a body, and a bottom bar under it.
 
 ```dart
 MaterialScaffold(
   appBar: MaterialAppBar(title: const TextNode('Apartments'), trailing: const TextNode('24')),
+  bottomBar: MaterialNavigationBar(…),
   body: Box(
-    // The body fills the room the bar leaves — `height: 100%` on the page, an `Expanded` in
-    // Flutter — and scrolls its own content.
-    height: double.infinity,
+    // The body takes the room the two bars leave. `flex: 1` is the one spelling both targets
+    // read as "the rest": `flex-grow: 1` with a basis of zero in a browser, an `Expanded` in
+    // Flutter.
+    flex: 1,
     overflow: Overflow.scroll,
     children: <UINode>[
       // A bar inside the body pins at the body's top edge, which is already under the app bar,
@@ -313,39 +315,45 @@ MaterialScaffold(
 )
 ```
 
-**The app bar is the scaffold's, and it does not move.** That is what a scaffold is for: the
-bar sits outside the scroll, so it states no `pin` and no `pinOffset`, and the bar that *does*
-pin is the one inside the body. A band that scrolls away with the content and comes back to
-rest at the edge is not a scaffold — it is a child of a scrolling box, which is the case the
-next section is about.
+**Both bars are outside the scroll, and that is what a scaffold is for.** The body scrolls
+between them, so neither bar moves and neither needs a `pin`; the bar that *does* pin is the one
+inside the body, which is the case the next section is about. It is also what keeps a pull honest:
+the strip a reader pulls open at either end of the body opens *inside* the body, so the page shows
+there — never the edge of a bar that ended a moment ago. A bar that shows its own edge on a pull is
+content that pins, not furniture, and that is a different composition.
 
-**The page and the bar are two colours.** The scaffold paints `MaterialScaffold.surface` — the
-page the screen is drawn on — and the bar paints `MaterialAppBar.surface`, one step up the
-container ladder. That is Material's own arrangement and it is what makes a bar read as a band
-rather than as the first row of its list; a single colour behind both is a bar that disappears.
-A pull past either end of the body opens a gap of the scaffold's colour, so the list slides over
-the page, which is the thing the page is for.
+**The page and the bars are two colours.** The scaffold paints `MaterialScaffold.surface` — the
+page the screen is drawn on — and the bars paint `MaterialAppBar.surface`, one step up the
+container ladder. That is Material's own arrangement and it is what makes a bar read as a bar
+rather than as the first or last row of its list; a single colour behind both is a bar that
+disappears. A pull past either end of the body opens a gap of the scaffold's colour, so the list
+slides over the page, which is the thing the page is for.
 
-**A band and a body span the screen.** The scaffold's column stretches its children instead of
+**A bar and a body span the screen.** The scaffold's column stretches its children instead of
 hugging their content, so a bar whose title is short is still as wide as the phone it is in. A
 column left to its default width gives the bar the width of its words, which is the one thing a
 top app bar never is.
 
 **A body that reports its scroll is a bar that can follow it.** The body states `onScroll`, a
 store keeps the offset, and the view is drawn again with a bar whose height is the next number:
-`height:` on a band is what a rebuild states, so a top app bar that gives its height back as a
-reader scrolls is a `StatefulNode` over a body that reports, not a token. `pin: BoxPin.start`
-on the same band keeps what is left of it at the top once it has collapsed — a pinned
-`SliverAppBar`, in the terms this package has.
+`height:` on a bar is what a rebuild states, so a top app bar that gives its height back as a
+reader scrolls is a `StatefulNode` over a body that reports, not a token. `pin: BoxPin.start` on
+the same bar keeps what is left of it at the top once it has collapsed — a pinned `SliverAppBar`,
+in the terms this package has.
 
-**The body fills, or it does not.** `height: double.infinity` is the rest of the screen — the
-form a scrolling body takes — and a body that states nothing takes its own height, which is
-what a screen that fits wants. The scaffold does not size it for the caller: a flex child
-would hand the body an unbounded axis, and a scroll view cannot be laid out in one.
+**The body fills, or it does not.** Beside either bar, a body that must take the rest of the
+screen states `flex: 1`: the bars then keep the heights they state and the body is what grows.
+`height: double.infinity` is a share of the *whole* column instead — a browser resolves it against
+a height the bars are already inside and shrinks all three to fit, so a 64-pixel app bar came out at
+50 over a body of `height: double.infinity` and a 56-pixel bottom bar, which
+`unibox_dom`'s `test/material_scaffold_test.dart` measures. A body that states nothing takes its
+own height, which is what a screen that fits wants. The scaffold does not size the body for the
+caller: a flex child would hand a scroll view an unbounded axis, and a scroll view cannot be laid
+out in one.
 
 ## The app bars
 
-Two bands, and both are `Box`es: `MaterialAppBar` is the small top app bar, and
+Two bars, and both are `Box`es: `MaterialAppBar` is the small top app bar, and
 `MaterialLargeAppBar` is the one with air above its headline, which folds as it leaves.
 
 ```dart
@@ -374,14 +382,14 @@ Box(
 | --- | --- | --- |
 | height | `topHeight` — 64 | `largeHeight` — 152 |
 | surface | `surface` — `surfaceContainer`, one step above the page | `surface` — the same role |
-| type | the title in `titleLarge` on `onSurface` | the title in `headlineMedium`, on the floor of the band |
-| the band's edge | `pinned` by stating `pin: BoxPin.start`, with `pinOffset` for a second bar | `pinned` the same way — the height a store drives stays at the top — or `fold:`, a look for a band that leaves |
+| type | the title in `titleLarge` on `onSurface` | the title in `headlineMedium`, on the floor of the bar |
+| the bar's edge | `pinned` by stating `pin: BoxPin.start`, with `pinOffset` for a second bar | `pinned` the same way — the height a store drives stays at the top — or `fold:`, a look for a bar that leaves |
 
 **A bar is pinned by stating the edge**, because that is the token: `pin: BoxPin.start`
 comes to rest at the top of the box that scrolls it, `BoxPin.end` at the bottom, and
 `pinOffset: MaterialAppBar.topHeight` stops a second bar under the first. `validateTree`
-reports a pinned band with no height, one that is not a child of the box that scrolls it,
-and one that also states a fold — a band that stays never leaves, so it never folds.
+reports a pinned bar with no height, one that is not a child of the box that scrolls it,
+and one that also states a fold — a bar that stays never leaves, so it never folds.
 
 **The pair share one container, and the screen behind them is another.** Material draws every top
 app bar on `surfaceContainer`, so a large bar and the small one it becomes are the same colour; the
@@ -390,12 +398,12 @@ page, so it states no colour of its own: the scaffold is already behind it. Both
 published as constants because a screen that wants the pair in another theme needs the names.
 
 **What the large bar is not.** Material collapses a large app bar into a small one as the
-content scrolls, which is a *layout* change: the band's height and the room it takes both
+content scrolls, which is a *layout* change: the bar's height and the room it takes both
 move, and nothing here eases a layout — a frame of an eased layout is a picture the two
-engines cannot be held to. A fold paints the band out instead: it fades and shrinks about its
+engines cannot be held to. A fold paints the bar out instead: it fades and shrinks about its
 centre while the flow keeps its height. A tree that wants the space back states a state: the
 body reports its scroll, a store turns the offset into a share, and the view is drawn again with
-a shorter band and a smaller title — `pin: BoxPin.start` keeps the sliver of it at the top. That
+a shorter bar and a smaller title — `pin: BoxPin.start` keeps the sliver of it at the top. That
 is a rebuild and not a fold, and it is how the catalogue's second screen collapses.
 
 ## The card
@@ -547,7 +555,7 @@ renderer work: neither target knows the class.
 row, so a parent that stretches its children — a card's column, a grid track — stretches
 something invisible, and the fill and the well inside it keep the size the label asks
 for. That is what keeps a hover tint the width of the button: a fill that stretched while
-its ink did not was a band with a pill at one end. Pass `width:` when a full-width button
+its ink did not was a bar with a pill at one end. Pass `width:` when a full-width button
 is what is wanted, and the press takes exactly that.
 
 **The pill is the press.** The 64 by 40 minimum belongs to the well, not to the fill

@@ -51,16 +51,16 @@ final class BoxShape {
     this.fillRule = BoxFillRule.nonZero,
   });
 
-  /// A ring: the band between the box's edge and a circle [thickness] inside it.
+  /// A ring: the area between the box's edge and a circle [thickness] inside it.
   ///
   /// A whole ring is two circles filled with [BoxFillRule.evenOdd], the inner one
   /// being the hole. A partial ring — [sweep] of a turn, clockwise from twelve
-  /// o'clock — is a sector of that band: one subpath of two arcs and two radial
+  /// o'clock — is a sector of that ring: one subpath of two arcs and two radial
   /// edges, filled under [BoxFillRule.nonZero]. Either way it is one shape, so a
   /// progress indicator is two boxes: the track at one sweep and the value at
   /// another.
   ///
-  /// [thickness] is the band's width in the view box's units, and the outline fills
+  /// [thickness] is the ring's width in the view box's units, and the outline fills
   /// the box: the outer radius is half the view box. A sweep of zero draws a
   /// sliver rather than nothing, so a value at zero is still a shape the tree can
   /// hold — and still a ring a renderer can draw.
@@ -69,7 +69,7 @@ final class BoxShape {
     double sweep = 1,
     double viewBox = 100,
   }) {
-    assert(thickness > 0, 'A ring has a band wider than nothing.');
+    assert(thickness > 0, 'A ring is thicker than nothing.');
 
     final double centre = viewBox / 2;
     final double outer = centre;

@@ -17,8 +17,8 @@ void main() {
       expect(screen.backgroundColor, MaterialScaffold.surface);
     });
 
-    test('draws the page a step below the container the band paints', () {
-      // Material's arrangement, and the one that makes a band read as a band: `surface` behind the
+    test('draws the page a step below the container the bar paints', () {
+      // Material's arrangement, and the one that makes a bar read as a bar: `surface` behind the
       // screen and `surfaceContainer` for the bar. One colour behind both is a bar that disappears
       // into its list, which is what this test is here to stop happening again.
       expect(
@@ -28,18 +28,18 @@ void main() {
       expect(
         MaterialScaffold.surface,
         isNot(MaterialAppBar.surface),
-        reason: 'the page and the band are two different roles',
+        reason: 'the page and the bar are two different roles',
       );
     });
 
-    test('stretches the band and the body across the screen', () {
+    test('stretches the bar and the body across the screen', () {
       final MaterialScaffold screen = MaterialScaffold(
         appBar: MaterialAppBar(title: const TextNode('24')),
         body: const Box(height: double.infinity, overflow: Overflow.scroll),
       );
 
       // A column hugs its children by default, which hands a bar with a short title the width of
-      // its words: a band only as wide as the screen if the screen says so.
+      // its words: a bar only as wide as the screen if the screen says so.
       expect(screen.crossAlign, CrossAlign.stretch);
     });
 
@@ -53,6 +53,26 @@ void main() {
       // A scaffold without a bar is a body: the bar is the screen's, not the component's.
       expect(screen.children, hasLength(1));
     });
+
+    test(
+      'puts the bottom bar under the body, and the body between the bars',
+      () {
+        const Box bottom = Box(height: 56);
+
+        final MaterialScaffold screen = MaterialScaffold(
+          appBar: MaterialAppBar(title: const TextNode('Apartments')),
+          bottomBar: bottom,
+          body: const Box(flex: 1, overflow: Overflow.scroll),
+        );
+
+        // The order is the layout: both bars are outside the scroll, so neither moves and the strip
+        // a pull opens is the page's.
+        expect(screen.children, hasLength(3));
+        expect(screen.children.first, isA<MaterialAppBar>());
+        expect(screen.children[1], isA<Box>());
+        expect(screen.children[2], same(bottom));
+      },
+    );
 
     test('leaves the body its own height, because a flex child cannot hold a scroll view', () {
       // The doc's rule, pinned: a scrolling body states `height: double.infinity` itself — the

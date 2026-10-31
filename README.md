@@ -23,7 +23,7 @@ expected appearance holds both renderers to the same answer.
 </p>
 
 It is live at **[cedvdb.github.io/unibox](https://cedvdb.github.io/unibox/)** — the site is
-built with the library it documents, so every band of it is a node tree, and the page you
+built with the library it documents, so every section of it is a node tree, and the page you
 read is the demo.
 
 ## Features
@@ -339,7 +339,7 @@ not.
 | --- | --- | --- |
 | `MaterialTypography`, `MaterialTypeRole` | the fifteen type roles of Material 3, as `const BoxTextStyle` values | [The scale](packages/unibox_material/README.md#the-scale) |
 | `MaterialPalette`, `MaterialColorRole` | the colour roles as a palette: the baseline `light` and `dark`, or one grown from a seed with `fromSeed` | [The palette and the theme](packages/unibox_material/README.md#the-palette-and-the-theme) |
-| `MaterialScaffold` | a screen: an app bar that stays, and a body under it | [The scaffold](packages/unibox_material/README.md#the-scaffold) |
+| `MaterialScaffold` | a screen: an app bar that stays, a body, and a bottom bar | [The scaffold](packages/unibox_material/README.md#the-scaffold) |
 | `MaterialAppBar`, `MaterialLargeAppBar` | the top app bar, and the one with air above its headline that folds as it leaves | [The app bars](packages/unibox_material/README.md#the-app-bars) |
 | `MaterialCard` | Material's elevated surface, padded and rounded | [The card](packages/unibox_material/README.md#the-card) |
 | `MaterialListTile` | one row of a list: a leading node, a title, a subtitle and a trailing node | [The list tile](packages/unibox_material/README.md#the-list-tile) |
@@ -577,7 +577,7 @@ The four paint properties share a timing, because a `BoxDecoration` interpolates
 on Flutter; a box that needs two paint speeds nests a box, and `validateTree` says
 so instead of the renderer approximating.
 
-### A band that stays
+### A bar that stays
 
 Before the motion, the thing most pages need first: chrome that does not scroll
 away. `pin` names the edge and `pinOffset` the room a bar above it takes.
@@ -597,9 +597,9 @@ Box(
 )
 ```
 
-A band at the other end is the same token with `BoxPin.end`: a “Continue” bar that
+A bar at the other end is the same token with `BoxPin.end`: a “Continue” bar that
 waits at the bottom of a long form until the reader reaches the end of it. Both
-bands state a height — that number is the room the flow keeps for them — and both
+bars state a height — that number is the room the flow keeps for them — and both
 paint a background, because each is drawn over the content that passes beneath it.
 
 The box states a surface too, and it is the surface a pull past either end reveals: a host
@@ -643,7 +643,7 @@ keyframes it was served, and in Flutter the layer repaints. A tree that names a 
 token in `fold.to`, folds a box that also pins, or eases one look with both a transition
 and a fold is reported by `validateTree`.
 
-A second fold, of a different paint and a shorter range — a title band that loses its tint
+A second fold, of a different paint and a shorter range — a title bar that loses its tint
 once half of it has left, which is `over: 0.5`:
 
 ```dart
@@ -720,7 +720,7 @@ to the host that draws it.
 | --- | --- |
 | **State**: the values of a form, which page is open, what a tap does | Nodes are immutable and hold no values. A callback is a `void Function()` the host implements, and the host re-renders with new nodes. |
 | **The surface**: window size, safe areas, scroll position | A description does not know how large the window is. A responsive page takes the answer as a parameter, and each host produces it its own way. |
-| **Where the scroll is**, but not what stays in it | A pin is a relation to the nearest box that scrolls, not an offset in the window: the band says *stay at this edge of whatever scrolls me*, and the reader's scroll position stays the host's. That is the line between `pin` and `onScroll` — one says what the tree looks like while it moves, the other reports where it got to. |
+| **Where the scroll is**, but not what stays in it | A pin is a relation to the nearest box that scrolls, not an offset in the window: the bar says *stay at this edge of whatever scrolls me*, and the reader's scroll position stays the host's. That is the line between `pin` and `onScroll` — one says what the tree looks like while it moves, the other reports where it got to. |
 | **The document**: title, language, description, canonical url, structured data | Those describe a page, not a region of one. The Flutter host gives them to its `MaterialApp`, the web host to `toDocument`. |
 | **The language**: which copy the page is written in, and the addresses of its translations | Copy is a string, so it is built into the tree as a value like a colour; the locale is the host's, because a crawler can only read it from the address. A tree that read `Localizations` could not be rendered as a document at all. |
 | **The fonts** | A font file is an asset of the application, and it has to be the same file on both sides. |
@@ -857,7 +857,7 @@ renderers side by side, the vocabulary that names the nodes the page had not dra
 Material catalogue the page is built with, which closes it — plus the
 example itself at `/web/`, and the Flutter build at `/flutter/`, whose root is that same
 site page drawn by the other renderer and whose `/flutter/listings/` is the example on its
-own. Every band of the page
+own. Every section of the page
 is a node tree: the two frames of the comparison are the one thing the model cannot
 describe, and they arrive through `EmbedNode`.
 `--serve` previews the result locally. [`.github/workflows/pages.yml`](.github/workflows/pages.yml)

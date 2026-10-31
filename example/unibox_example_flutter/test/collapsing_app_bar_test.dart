@@ -32,7 +32,7 @@ void main() {
       ),
     );
 
-    /// The bar is the pinned box the title is drawn in: the band, not the box padding it.
+    /// The bar is the pinned box the title is drawn in: the bar, not the box padding it.
     Finder bar() => find.ancestor(
       of: find.text('Saved'),
       matching: find.byWidgetPredicate(

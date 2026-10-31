@@ -10,8 +10,8 @@
   move a tree asks for is a jump on both targets, because a browser's programmatic scroll takes
   no duration and no curve.
 - `validateTree` reports a pager with no main-axis size, a page that is not the size of its
-  pager, a child that is not a `Box`, an `index` past the last page, and a pinned band inside
-  one — a band pinned to a viewport that shows one page at a time would be painted over the
+  pager, a child that is not a `Box`, an `index` past the last page, and a pinned bar inside
+  one — a bar pinned to a viewport that shows one page at a time would be painted over the
   page that replaced it.
 - `PageChangedCallback` is the settled report: the page a pager came to rest on, whether the
   reader swiped there or the tree asked for it.
@@ -64,15 +64,15 @@
   came back as a link that swallows the press it was told to pass on. The forwarding list is
   the cost of a node that is a box, and this is the first field it caught.
 
-- `Box(pin: …, pinOffset: …)` keeps a band at the edge of the box that scrolls it:
+- `Box(pin: …, pinOffset: …)` keeps a bar at the edge of the box that scrolls it:
   `BoxPin.start` is the top of the viewport, `BoxPin.end` the bottom, and `pinOffset` is the
-  room a header above it takes. The band keeps its slot in the flow — nothing below it moves —
+  room a header above it takes. The bar keeps its slot in the flow — nothing below it moves —
   and is painted above the content that scrolls under it, whether the scrolling ancestor is a
   box with `overflow: Overflow.scroll` or the document a page scrolls. A pinned box states its
   height: the slot the flow keeps is that number, so a pin without one is reported. So is a pin
   inside a box that scrolls sideways, a pin inside a box that only clips
   (`Overflow.hidden` never moves), a negative inset, and an inset with no pin to hold it.
-  A band is also a child of the box that scrolls it — from one level down a browser pins it
+  A bar is also a child of the box that scrolls it — from one level down a browser pins it
   inside *that* box, so the two targets would come to rest in different places — and it keeps
   the height it states, so a `flex` share on it is reported rather than honoured by one
   target and ignored by the other.
@@ -205,7 +205,7 @@
   be an arc of a circle whose `sweep` is a number rather than a path. A cap only shows where an
   outline has ends — a rectangle's border meets itself at four corners — so `validateTree` reports
   one on a box with no shape. Together they draw Material's progress ring as one stroked circle
-  with rounded ends instead of a filled band with radial cuts, and a sweep that a value, a state
+  with rounded ends instead of a filled ring with radial cuts, and a sweep that a value, a state
   style or a timeline can move without either renderer learning what an indicator is.
 
 - `BoxPress` and `replayPresses`: a press a page recorded before an application existed, and the
@@ -261,7 +261,7 @@
   is untouched and `overflow: hidden` clips the children to it. `BoxFillRule.evenOdd`
   turns two circles into a ring. `BoxShape.circle` and `BoxShape.ring(thickness:,
   sweep:)` state the two outlines people ask for — a ring is two circles under the
-  even-odd rule, and a partial one is a single subpath of that band, so a progress
+  even-odd rule, and a partial one is a single subpath of that bar, so a progress
   indicator is two boxes rather than new geometry. A shape is not eased and casts no
   shadow, and
   `validateTree` reports it next to a corner radius, a shadow, an empty command list

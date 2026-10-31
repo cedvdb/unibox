@@ -363,7 +363,7 @@ void main() {
     test('keep a shadow with no blur a hard edge', () {
       // A hairline is a shadow with no blur — a line, not a glow — and Flutter's formula
       // leaves only half a pixel of deviation there, which nothing can see, where a whole
-      // CSS pixel of it would smear the line into a band.
+      // CSS pixel of it would smear the line into a strip.
       expect(cssShadowBlur(0), '0');
       expect(
         cssBoxShadow(const core.BoxShadow(offsetY: 1, blurRadius: 0)),

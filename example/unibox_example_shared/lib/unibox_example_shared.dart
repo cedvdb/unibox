@@ -6,9 +6,9 @@
 /// same node renders as Flutter widgets in `unibox_example_flutter` and as a document in
 /// `unibox_example_html`.
 ///
-/// The site itself is one page — [buildSitePage] — of four bands: the hero, which makes the
+/// The site itself is one page — [buildSitePage] — of four bars: the hero, which makes the
 /// claim, gives the three reasons for it and settles it with the same tree drawn twice; the
-/// band that shows what a search engine is served and what the Flutter build does with the
+/// bar that shows what a search engine is served and what the Flutter build does with the
 /// page afterwards; the vocabulary, which says a screen is containers, draws the four nodes
 /// the hero never named and takes them apart; and the Material catalogue, which closes the
 /// page with the design system all of it is drawn with.

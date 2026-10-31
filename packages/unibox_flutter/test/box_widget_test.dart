@@ -11,7 +11,7 @@ final class _FixedStore extends core.StateStore<int> {
   _FixedStore() : super(0);
 }
 
-/// A view that states its own width, the way a specimen in a band does.
+/// A view that states its own width, the way a specimen in a bar does.
 core.UINode _fixedView(int state, _FixedStore store) =>
     const core.Box(key: 'view', width: 120, height: 10);
 
@@ -307,7 +307,7 @@ void main() {
       );
 
       // The view is the element the parent stretches, so the width it states is the width
-      // it keeps — a specimen in a band is not made as wide as the band.
+      // it keeps — a specimen in a bar is not made as wide as the bar.
       expect(
         tester.getSize(find.byKey(const ValueKey<Object>('view'))).width,
         120,
@@ -363,7 +363,7 @@ void main() {
       tester,
     ) async {
       // `width: 100%; max-width: 400px` in a centred row is 400 wide and 200 from either
-      // edge — the shape every band of the site is. Expanded instead of the measure took the
+      // edge — the shape every bar of the site is. Expanded instead of the measure took the
       // whole line, and the 400 was left against the row's leading edge.
       const Key measure = ValueKey<Object>('measure');
 

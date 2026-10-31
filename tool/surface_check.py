@@ -63,10 +63,10 @@ CLASSIFIED = {
     'BoxStyle': {
         'flex': 'a share of a parent, and the appearance describes one box without one',
         'overflow': 'clipping and scrolling need a viewport neither output hands back',
-        'pin': 'where a band comes to rest in a viewport, which is a fact about scrolling and not '
-        'about the box at rest: the band looks the same pinned or not, and the two renderer '
+        'pin': 'where a bar comes to rest in a viewport, which is a fact about scrolling and not '
+        'about the box at rest: the bar looks the same pinned or not, and the two renderer '
         'suites scroll it instead',
-        'pinOffset': 'the room a pinned band keeps from its edge, which moves nothing until the '
+        'pinOffset': 'the room a pinned bar keeps from its edge, which moves nothing until the '
         'content scrolls past it',
         'fold': 'the look a box takes as it leaves its viewport, which is a fact about a scroll '
         'position rather than about the box at rest: the box is drawn at its resting look until '

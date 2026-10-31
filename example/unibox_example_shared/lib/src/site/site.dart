@@ -23,11 +23,11 @@ const String repositoryUrl = 'https://github.com/cedvdb/unibox';
 /// take a reader to, so a static document loses nothing it had.
 ///
 /// The order is the argument. The hero makes the claim, gives the three reasons for it, and
-/// settles them with two live renderings of one tree; the band under it answers what the
+/// settles them with two live renderings of one tree; the bar under it answers what the
 /// HTML branch is for — a page a search engine can read — and says how little of an
 /// application has to change for that; the vocabulary takes those renderings apart into the
 /// four nodes they never put a name to; and the catalogue closes the page with the design
-/// system every band above it is drawn with. A reader who stops after the second band has
+/// system every bar above it is drawn with. A reader who stops after the second bar has
 /// seen the reason to adopt this and the evidence that it works, which is the whole of what
 /// this page is for.
 UINode buildSitePage({
@@ -45,7 +45,7 @@ UINode buildSitePage({
     ),
     children: <UINode>[
       _header(palette, seed),
-      // The bands are the content of the page, so the web renders a `<main>`
+      // The sections are the content of the page, so the web renders a `<main>`
       // around them: a landmark is what a reader can jump to, and it says which
       // region the header and the footer are not.
       Box(
@@ -54,14 +54,14 @@ UINode buildSitePage({
         children: <UINode>[
           buildHeroSection(frame: frame, seed: seed),
           // Directly under the claim: the HTML branch of the diagram is the reason most
-          // readers are here, so the band that shows what a crawler is served comes
+          // readers are here, so the bar that shows what a crawler is served comes
           // before the parts the page is made of.
           buildIndexableSection(seed: seed),
           // The vocabulary follows the claim directly: the hero frames a whole tree, and
           // these are the nodes it never names — drawn once, as one card, and taken apart
           // in a list beside it.
           buildVocabularySection(seed: seed),
-          // The catalogue closes the page, because the design system is what every band
+          // The catalogue closes the page, because the design system is what every bar
           // above it is drawn with.
           buildMaterialSection(seed: seed),
         ],
@@ -71,7 +71,7 @@ UINode buildSitePage({
   );
 }
 
-/// The band above the page: the name of the site and the one place to go from it.
+/// The bar above the page: the name of the site and the one place to go from it.
 ///
 /// It is a `header` landmark and its link is the box that names the url, so the page keeps its
 /// outline and a reader without JavaScript can still follow it. The hairline is a
@@ -85,9 +85,9 @@ UINode _header(MaterialPalette palette, ExampleSeed seed) {
       BoxShadow(color: palette.outlineVariant, offsetY: 1, blurRadius: 0),
     ],
     children: <UINode>[
-      siteBand(
+      siteSection(
         vertical: 14,
-        // The header is the landmark, so its band adds no section of its own.
+        // The header is the landmark, so its bar adds no section of its own.
         element: BoxElement.div,
         child: Box(
           width: double.infinity,
@@ -179,7 +179,7 @@ UINode _siteLink(
   );
 }
 
-/// The band under the page: what it is, and where to read the rest.
+/// The bar under the page: what it is, and where to read the rest.
 UINode _footer(MaterialPalette palette) {
   return Box(
     width: double.infinity,
@@ -189,9 +189,9 @@ UINode _footer(MaterialPalette palette) {
       BoxShadow(color: palette.outlineVariant, offsetY: -1, blurRadius: 0),
     ],
     children: <UINode>[
-      siteBand(
+      siteSection(
         vertical: 28,
-        // The footer is the landmark, so its band adds no section of its own.
+        // The footer is the landmark, so its bar adds no section of its own.
         element: BoxElement.div,
         child: Box(
           width: double.infinity,

@@ -70,7 +70,7 @@ correctly Arabic, or guess from a `lang` — and a language is not a direction, 
 Azerbaijani, Kurdish and Punjabi are written in both scripts.
 | `Box.gridSpan` | one track: a card covers one column, and only a grid child covers more |
 | `Box.wrap` | off: a box is one line, and a child that does not fit runs past its edge until the box says otherwise |
-| `Box.pinOffset` | zero: a pinned band keeps none of the edge it pins to (`BoxStyle.resolvedPinOffset`) |
+| `Box.pinOffset` | zero: a pinned bar keeps none of the edge it pins to (`BoxStyle.resolvedPinOffset`) |
 | a link's paint | the browser's blue and underline: cancelled on an anchor, so a link looks like the box that states it |
 | `LinkNode.url` | nowhere on a `Box`, which is a container: a destination is the node's own field, and a disabled link writes no `href` |
 | `LinkNode` inside a link | reported: a link inside a link navigates twice |
@@ -158,7 +158,7 @@ targets share, in the order a browser applies it — the range first, then the c
 `BoxFold.looks` is the set a renderer eases, and it is the same set a transition covers,
 which is what makes a fold paint only. `validateTree` reports a fold that names
 a layout token, one that names nothing, one that takes more than the whole exit, one on
-a box that pins (a pinned band never leaves), one on a shaped box, a border whose width
+a box that pins (a pinned bar never leaves), one on a shaped box, a border whose width
 a fold would move, and one look eased by both a transition and a fold.
 
 ## Structure and semantics
