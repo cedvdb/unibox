@@ -43,7 +43,7 @@ with their target.
 | `minWidth`, `maxWidth`, ...         | `ConstrainedBox`                                    |
 | `backgroundColor`, `borderRadius`, `border` | `DecoratedBox` with a `BoxDecoration` |
 | `shadows`                           | a `CustomPaint` behind the box, painting each entry of the decoration's `boxShadow` clipped to the outside of the box — which is what CSS does, so a hairline is one pixel and a box with no fill does not paint its own rectangle |
-| `overflow: Overflow.hidden`         | `ClipRect`, inside the decoration so the shadow survives |
+| `overflow: Overflow.hidden`         | `ClipRect`, or a `ClipPath` to the padding box when the box draws a `border` or a `borderRadius`, inside the decoration so the shadow survives |
 | `GridNode.columns`                  | a `Row` of `Expanded` children at their factors inside an `IntrinsicWidth`, so a column is the widest content per unit and a width the grid was given is divided; `CrossAlign.stretch` adds an `IntrinsicHeight` |
 | `PositionedNode.alignment`          | `Positioned.fill` around an `Align`, with a directional alignment so a start or an end follows the writing direction |
 | `shape`                            | `CustomPaint` with a `Path`: the fill, then the border as a stroke along it |

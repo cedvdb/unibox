@@ -425,12 +425,21 @@ class FlutterBoxState extends State<FlutterBox> {
     );
   }
 
-  /// Clips [child] to the box, rounded when the box has a corner radius.
+  /// Clips [child] to the box's content, rounded when the box has a corner radius.
   ///
   /// A plain `ClipRect` cuts square corners, while CSS clips an element with
   /// `overflow` to its `border-radius`: a rounded card that hides what sticks out
   /// would be rounded in the browser and square in Flutter. The radius is the one
   /// the box paints with, so the clip and the decoration can never disagree.
+  ///
+  /// A box with a line is cut at the *inner* edge of that line, which is where a browser
+  /// cuts it: CSS clips an element's overflow to its padding box, and the padding box
+  /// starts inside the border. Flutter clipped the whole box, so a child that fills it —
+  /// the fill of a chosen segment, the tint of a hover — painted over the outline of the
+  /// pill around it, and in the browser it stopped at the line. The radius shrinks with
+  /// the inset, as CSS reduces an inner radius by the border's width, so the children are
+  /// cut with the curve of the line's inside rather than a curve that has moved away from
+  /// it.
   Widget _clipTo(Widget child, core.BoxStyle style) {
     final core.BoxShape? shape = style.shape;
 
@@ -438,9 +447,18 @@ class FlutterBoxState extends State<FlutterBox> {
       return ClipPath(clipper: UniboxShapeClipper(shape), child: child);
     }
 
-    final double? radius = style.borderRadius;
+    final double radius = style.borderRadius ?? 0;
+    final core.BoxBorder? border = style.border;
+    final double line = border != null && border.isVisible ? border.width : 0;
 
-    if (radius == null || radius <= 0) {
+    if (line > 0) {
+      return ClipPath(
+        clipper: _BorderBoxClipper(line: line, radius: radius),
+        child: child,
+      );
+    }
+
+    if (radius <= 0) {
       return ClipRect(child: child);
     }
 
@@ -2030,4 +2048,41 @@ class _NoOverscrollGlow extends ScrollBehavior {
     Widget child,
     ScrollableDetails details,
   ) => child;
+}
+
+/// The padding box of a box that draws a line: the box's content, cut square or round.
+///
+/// It is the region a browser clips an element's overflow to, and Flutter had none of its
+/// own: a `ClipRect` cuts the whole box, so the last `line` pixels on every side — the ones
+/// the border paints over — were the children's to paint, and a child that filled the box
+/// covered the line where it met it. A chosen segment's fill broke the outline of the pill
+/// around it and the tint of a hover lit a band the browser never lights; both targets now
+/// stop at the line.
+///
+/// The corner is the inside of the border's, which is the outer radius less the line, the
+/// way CSS reduces an inner radius by the border's width. A line wider than half the box has
+/// no content left to clip to, so the inset stops there rather than inverting the rectangle.
+class _BorderBoxClipper extends CustomClipper<Path> {
+  const _BorderBoxClipper({required this.line, required this.radius});
+
+  /// The width of the border painted on the box's edge.
+  final double line;
+
+  /// The radius the box's outer corner is drawn with.
+  final double radius;
+
+  @override
+  Path getClip(Size size) {
+    final double inset = math.min(line, size.shortestSide / 2);
+    final RRect inner = RRect.fromRectAndRadius(
+      Rect.fromLTRB(inset, inset, size.width - inset, size.height - inset),
+      Radius.circular(math.max(0, radius - inset)),
+    );
+
+    return Path()..addRRect(inner);
+  }
+
+  @override
+  bool shouldReclip(_BorderBoxClipper oldClipper) =>
+      oldClipper.line != line || oldClipper.radius != radius;
 }

@@ -33,10 +33,9 @@
   a look no state could light, and the shared radius drew a lozenge inside a lozenge — hovering it
   read as a second, smaller button appearing in the first. A floor is a constraint on a box's own
   size and the tints are a box, so they now take the floor and the exact size the shape takes; a
-  label taller than either still grows both. The tint is the pill's inside, and a page spends a
-  border inside the floor's box: a bordered pill a floor holds up is a frame bigger there than the
-  tree states, where the app paints the same pill with the border over its edge — the one
-  difference a border already has between the two hosts. A well with no surface of its own still
+  label taller than either still grows both. The tint is the pill's inside, cut inside the
+  shape's line where the browser cuts it, so a bordered pill a floor holds up is tinted up to its
+  outline on both hosts and no state paints over the line. A well with no surface of its own still
   draws one box with its tints as its own state style, nothing tints at rest, and
   `MaterialIconButton`, `MaterialChip`, `MaterialListTile` and `MaterialButton` — which pass an
   exact height, or paint their tints on the press itself — draw exactly what they did.

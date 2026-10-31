@@ -356,6 +356,53 @@ void main() {
       expect(decorationOf(tester), isNull);
     });
 
+    testWidgets('cuts what it hides at the inside of its line', (tester) async {
+      await pumpNode(
+        tester,
+        const core.Box(
+          width: 100,
+          height: 60,
+          borderRadius: 10,
+          border: core.BoxBorder(width: 2),
+          overflow: core.Overflow.hidden,
+          children: <core.UINode>[core.Box(height: 60)],
+        ),
+      );
+
+      final Path clip = tester
+          .widget<ClipPath>(inNode(find.byType(ClipPath)).first)
+          .clipper!
+          .getClip(const Size(100, 60));
+
+      // A browser clips an element's overflow to its padding box, so a child that fills a
+      // bordered box — the fill of a chosen segment, the tint of a hover — stops at the line
+      // instead of painting over it. Flutter clipped the whole box, and the line was the
+      // children's to cover.
+      expect(clip.getBounds(), const Rect.fromLTRB(2, 2, 98, 58));
+      // The corner is the inside of the border's: a radius of 10 less the 2 pixel line, so
+      // the children are cut with the curve the line's inner edge has.
+      expect(clip.contains(const Offset(3, 3)), isFalse);
+      expect(clip.contains(const Offset(12, 3)), isTrue);
+    });
+
+    testWidgets('cuts nothing when it hides nothing or draws no line', (
+      tester,
+    ) async {
+      await pumpNode(
+        tester,
+        const core.Box(
+          width: 100,
+          height: 60,
+          border: core.BoxBorder(width: 2),
+          children: <core.UINode>[core.Box(height: 60)],
+        ),
+      );
+
+      // A box that hides nothing leaves its children alone, which is what a browser does
+      // with a child that reaches over the line: the border paints below it.
+      expect(inNode(find.byType(ClipPath)), findsNothing);
+    });
+
     testWidgets('lets flat parameters override the style tokens', (
       tester,
     ) async {

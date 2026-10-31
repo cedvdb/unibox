@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- A box that hides its overflow now hides it *inside* its border, where a browser hides it:
+  `overflow: Overflow.hidden` on a bordered box cut the whole box, so a child that filled it
+  painted over the line — a chosen segment broke the outline of the pill around it, and the tint
+  of a hover lit the 1 pixel band a page leaves alone. The clip is the padding box, with the
+  corner reduced by the border's width, so the fill and the tint stop at the outline on both
+  targets and Material's segmented button keeps the line it draws around a chosen segment.
+
 - A shadow is painted the way CSS paints one: outside the border box, never through it. A box
   with no fill was handing its shadows to a `DecoratedBox`, which paints them as a second shape
   *behind* the box, so a hairline — `BoxShadow(offsetY: 1, blurRadius: 0)` on a row that paints
@@ -20,6 +27,7 @@
   less room divides what it has between the columns, so a label too long for its column is cut
   rather than widening the grid, a child the width does not draw keeps no column, and
   `CrossAlign.stretch` measures the height too, so every column can be as tall as the tallest.
+
 - An aligned `PositionedNode` child follows the writing direction, as the browser's class always
   did: `Align` was given `Alignment.centerRight` for a `centerEnd` child, so in a page written
   right to left the row mirrored and the control floating over it did not. It is now an

@@ -125,6 +125,18 @@ void main() {
       expect(html, contains('Salle de réunion'));
     });
 
+    test('hides its segments inside the line, as the app does', () {
+      final String html = render(button(width: 216));
+
+      // A box is measured as its border box and hides what leaves it, so a browser cuts a
+      // segment's fill — and the tint of a hover — at the inside of the 1 pixel line rather
+      // than over it: the outline Material's own segmented button keeps around a chosen
+      // segment. The Flutter renderer cuts the same rectangle (test/box_widget_test.dart
+      // in `unibox_flutter`).
+      expect(html, contains('box-sizing:border-box'));
+      expect(html, contains('overflow:hidden'));
+    });
+
     test('paints the rule at the start of the segment it opens', () {
       final String html = render(
         MaterialSegmentedButton(

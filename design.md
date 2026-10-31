@@ -233,6 +233,12 @@ never inherited (CSS does not inherit them either).
 - A state rule may only contribute the tokens of its state. The browser layers
   `:hover` over the resting rule exactly like the Flutter renderer merges a
   state style, so a state rule that restated the layout would reset it.
+- A box that hides what leaves it hides it *inside* its border, on both targets:
+  CSS clips an element's overflow to its padding box, and the Flutter renderer clips the
+  same rectangle, with the corner radius reduced by the border's width as CSS reduces it.
+  A child that fills a bordered box therefore stops at the line rather than painting over
+  it — a chosen segment keeps the outline of the pill around it, and a hover tint covers
+  the segment and not the pixel band a browser leaves alone.
 - Parity is *tested*, not assumed: `unibox_testing` lists the boxes every
   renderer has to present the same way and the texts every renderer has to
   typeset the same way, and each renderer suite reads the appearance back out of

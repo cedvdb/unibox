@@ -670,10 +670,10 @@ it: a pill bigger than its control has ends that look pressable and are not. The
 never a clamp — a label taller than it grows the region. The tints are a box of their own
 inside the shape, so they take the same floor and the same size: a `Sign in` pill held up
 by a 32 pixel floor tints all 32 of its pixels rather than the 20 of its label, and one a
-64 pixel floor widens tints across its whole width rather than the middle of it. A page
-spends a border inside the floor's box, so a bordered pill that a floor holds up paints a
-frame bigger there than it does in the app, where the border goes over the box's edge —
-the difference a border already has between the two hosts.
+64 pixel floor widens tints across its whole width rather than the middle of it. The
+shape's own line is drawn inside its box on both targets, and what the well hides is
+hidden inside that line — so a bordered pill a floor holds up is tinted up to its outline
+on the page and in the app, and no state ever paints over the line it belongs to.
 
 The ripple is **state, not a renderer feature**. A press adds a drop to a
 `MaterialInkStore`, a timer advances it every frame, and the view draws one box per

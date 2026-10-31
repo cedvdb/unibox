@@ -55,6 +55,45 @@ void main() {
     MaterialSegment(label: core.TextNode('Buy for good')),
   ];
 
+  testWidgets('keeps the line of the pill out of its segments', (
+    WidgetTester tester,
+  ) async {
+    final Finder control = find.byWidgetPredicate(
+      (Widget widget) =>
+          widget is FlutterBox && widget.box is MaterialSegmentedButton,
+    );
+
+    final Rect pill = await pumpControl(
+      tester,
+      MaterialSegmentedButton(
+        width: 216,
+        showSelectedIcon: false,
+        segments: const <MaterialSegment>[
+          MaterialSegment(label: core.TextNode('List')),
+          MaterialSegment(label: core.TextNode('Grid')),
+        ],
+        selected: 0,
+        onSelect: (int index) {},
+      ),
+    );
+    final Path clip = tester
+        .widget<ClipPath>(
+          find.descendant(of: control, matching: find.byType(ClipPath)).first,
+        )
+        .clipper!
+        .getClip(pill.size);
+
+    // The pill hides what leaves it, and it hides it inside its line, which is where a
+    // browser cuts the overflow of a bordered box: the chosen segment's fill stops at the
+    // outline and the tint of a hover stops there too. Flutter cut the whole box, so the
+    // chosen segment covered the line where it met it — the outline Material's own
+    // segmented button keeps around a chosen segment.
+    expect(
+      clip.getBounds(),
+      Rect.fromLTRB(1, 1, pill.width - 1, pill.height - 1),
+    );
+  });
+
   testWidgets('centres every label in its segment, like the browser', (
     WidgetTester tester,
   ) async {
