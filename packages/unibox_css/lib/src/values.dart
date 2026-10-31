@@ -1,6 +1,7 @@
 import 'package:unibox_core/unibox_core.dart' as core;
 
 import 'declarations.dart';
+import 'rules.dart';
 
 /// A number without a needless `.0`, which both CSS and a reader prefer.
 ///
@@ -153,6 +154,108 @@ String? cssScrollSnap(core.ScrollSnap? snap, core.Axis axis) => switch (snap) {
   core.ScrollSnap.page =>
     axis == core.Axis.horizontal ? 'x mandatory' : 'y mandatory',
 };
+
+/// The declarations of one frame of a fold, from [style] and the looks the fold moves.
+///
+/// A frame states only the looks that change, which is what a browser interpolates: the two
+/// ends of the travel, with each end stating a value even where the tree states none — a
+/// background that arrives out of nothing fades in from `transparent`, a radius out of none
+/// from `0`, and a shadow out of none from `none`, which a browser reads as the same list of
+/// shadows at zero alpha.
+CssDeclarations foldFrameDeclarations(
+  core.BoxStyle style, {
+  required Set<core.BoxProperty> looks,
+}) {
+  final core.BoxColor? backgroundColor = style.backgroundColor;
+  final core.BoxBorder? border = style.border;
+  final double? borderRadius = style.borderRadius;
+  final core.BoxBorderRadius? corners = style.corners;
+  final List<core.BoxShadow>? shadows = style.shadows;
+  final double? opacity = style.opacity;
+  final String? transform = cssTransform(style.transform);
+
+  return CssDeclarations()
+    ..addIf(
+      'background-color',
+      looks.contains(core.BoxProperty.backgroundColor)
+          ? (backgroundColor == null
+                ? 'transparent'
+                : cssColorOrRole(backgroundColor))
+          : null,
+    )
+    // Only the colour: a border's width is layout in a browser and paint in Flutter, so a
+    // fold may not move it, and `validateTree` reports a folded border that does.
+    ..addIf(
+      'border-color',
+      looks.contains(core.BoxProperty.borderColor)
+          ? (border == null ? 'transparent' : cssColorOrRole(border.color))
+          : null,
+    )
+    ..addIf(
+      'border-radius',
+      looks.contains(core.BoxProperty.borderRadius)
+          ? (corners == null
+                ? cssPixels(borderRadius ?? 0)
+                : cssCorners(corners))
+          : null,
+    )
+    ..addIf(
+      'box-shadow',
+      looks.contains(core.BoxProperty.shadows)
+          ? (shadows == null || shadows.isEmpty
+                ? 'none'
+                : cssBoxShadows(shadows))
+          : null,
+    )
+    ..addIf(
+      'opacity',
+      looks.contains(core.BoxProperty.opacity) ? cssNumber(opacity ?? 1) : null,
+    )
+    ..addIf(
+      'transform',
+      looks.contains(core.BoxProperty.transform) ? (transform ?? 'none') : null,
+    );
+}
+
+/// The `@keyframes` block a fold is written as: its two ends, and the name it is called by.
+///
+/// The resting look is one end and [core.BoxFold.to] the other, which is what makes a fold a
+/// *look becoming another look* rather than a second set of tokens to keep in step.
+CssKeyframes foldKeyframes(core.BoxStyle style) {
+  final core.BoxFold fold = style.fold!;
+  final Set<core.BoxProperty> looks = fold.looks;
+
+  return CssKeyframes(
+    from: foldFrameDeclarations(style, looks: looks),
+    to: foldFrameDeclarations(style.merge(fold.to), looks: looks),
+  );
+}
+
+/// The declarations that run a fold: which animation, how it eases, and what drives it.
+///
+/// The driver is the box's own visibility in the box that scrolls it — `view()` — so nothing
+/// names a scroll container, a number of pixels or the document: a hero at the top of a page
+/// and a hero inside an `overflow: auto` panel both fold over their own exit. `both` holds the
+/// first frame before the fold starts and the last after it ends, and `auto` is the duration a
+/// scroll timeline fills, so a browser that does not know it falls back to `0s` and paints the
+/// resting look rather than a broken one.
+CssDeclarations foldDeclarations(core.BoxStyle style) {
+  final core.BoxFold fold = style.fold!;
+
+  return CssDeclarations()
+    // The same block the sheet is given, from the same frames: one name, spelled once.
+    ..add('animation-name', foldKeyframes(style).name)
+    ..add('animation-duration', 'auto')
+    ..add('animation-timing-function', cssCurve(fold.curve))
+    ..add('animation-fill-mode', 'both')
+    ..add('animation-timeline', 'view()')
+    // The whole exit unless the fold finishes early: `over` is the range, and a browser takes
+    // it as the end of the range the animation runs over.
+    ..addIf(
+      'animation-range',
+      fold.over >= 1 ? null : 'exit 0% exit ${cssNumber(fold.over * 100)}%',
+    );
+}
 
 /// A model [core.BoxPin] as the CSS property that names its edge.
 ///

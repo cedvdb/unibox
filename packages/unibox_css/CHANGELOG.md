@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- A box that states `fold` is written as an animation the reader drives: `animation-timeline:
+  view()` so the subject is the box's own exit from whatever scrolls it, `animation-range: exit`
+  (or `exit 0% exit <over>%` when the fold finishes early), and `animation-duration: auto`, which
+  a browser without scroll-driven animations drops — the resting look it then paints is the one
+  the tree shows before anything moves. `CssKeyframes` is the new at-rule value, named by a hash
+  of its frames so one fold is one block, and `foldDeclarations` calls it from the box's rule.
+
 - A box that states `pin` is written as `position: sticky`, at `top: 0` for `BoxPin.start`
   and `bottom: 0` for `BoxPin.end`, with `pinOffset` as that inset — and with `z-index: 1`,
   because a sticky box is painted in the flow order it was written in and the content that

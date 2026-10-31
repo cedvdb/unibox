@@ -205,6 +205,16 @@ CssDeclarations boxDeclarations(
       ..add('z-index', '1');
   }
 
+  // A fold runs on the box's own exit from whatever scrolls it, so it names no scroll
+  // container and no distance: the two frames are a block of their own, and this rule calls it.
+  // A state rule leaves it out, as it leaves the pin out: restating an animation there would
+  // start it again from wherever the reader is.
+  final core.BoxFold? fold = declaredOnly ? null : style.fold;
+
+  if (fold != null) {
+    declarations.addAllIn(foldDeclarations(style));
+  }
+
   // A flex item keeps its content as a floor unless it is told not to, which is what
   // makes a column of listings refuse to shrink into a window. A Flutter `Expanded`
   // hands its child a tight size, so a box that states a `flex` states the floor away.

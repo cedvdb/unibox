@@ -93,6 +93,86 @@ void main() {
     });
   });
 
+  group('a box that folds', () {
+    test('runs an animation on the exit of the box itself', () {
+      final CssDeclarations declarations = boxDeclarations(
+        const core.BoxStyle(fold: core.BoxFold(to: core.BoxStyle(opacity: 0))),
+      );
+
+      // `view()` is the box's own visibility in the box that scrolls it, so nothing here names
+      // a scroll container, a document or a number of pixels.
+      expect(declarations.text, contains('animation-name:unibox-fold-'));
+      expect(declarations.text, contains('animation-duration:auto'));
+      expect(declarations.text, contains('animation-timeline:view()'));
+      expect(declarations.text, contains('animation-fill-mode:both'));
+      expect(declarations.text, contains('animation-timing-function:linear'));
+      expect(declarations.text, isNot(contains('animation-range')));
+    });
+
+    test(
+      'writes the two frames, from the look it starts in to the one it ends in',
+      () {
+        final CssKeyframes frames = foldKeyframes(
+          const core.BoxStyle(
+            backgroundColor: core.BoxColor.white,
+            fold: core.BoxFold(
+              to: core.BoxStyle(
+                backgroundColor: core.BoxColor.black,
+                opacity: 0,
+              ),
+            ),
+          ),
+        );
+
+        // Only the looks the fold moves, and both ends of each: the white hero fades to black and
+        // to nothing, and the padding it keeps is not in either frame.
+        expect(frames.from.text, 'background-color:#ffffff;opacity:1');
+        expect(frames.to.text, 'background-color:#000000;opacity:0');
+        expect(frames.name, startsWith('unibox-fold-'));
+        expect(frames.toString(), '@keyframes ${frames.name}{${frames.body}}');
+      },
+    );
+
+    test('names one block for one fold, however many boxes wear it', () {
+      const core.BoxStyle style = core.BoxStyle(
+        fold: core.BoxFold(to: core.BoxStyle(opacity: 0)),
+      );
+
+      expect(foldKeyframes(style).name, foldKeyframes(style).name);
+      expect(
+        foldKeyframes(style).name,
+        isNot(
+          foldKeyframes(
+            const core.BoxStyle(
+              fold: core.BoxFold(to: core.BoxStyle(opacity: 0.2)),
+            ),
+          ).name,
+        ),
+      );
+    });
+
+    test('finishes early when the fold takes part of the exit', () {
+      final CssDeclarations declarations = boxDeclarations(
+        const core.BoxStyle(
+          fold: core.BoxFold(to: core.BoxStyle(opacity: 0), over: 0.5),
+        ),
+      );
+
+      expect(declarations.text, contains('animation-range:exit 0% exit 50%'));
+    });
+
+    test('leaves the fold out of a state rule', () {
+      // Restating the animation in a `:hover` rule would start it again from wherever the
+      // reader is, which is the same reason the pin is left out.
+      final CssDeclarations declarations = boxDeclarations(
+        const core.BoxStyle(fold: core.BoxFold(to: core.BoxStyle(opacity: 0))),
+        declaredOnly: true,
+      );
+
+      expect(declarations.text, isNot(contains('animation')));
+    });
+  });
+
   group('a text', () {
     test('writes only the typography it states', () {
       expect(textDeclarations(const core.TextNode('Hi')).text, '');

@@ -41,6 +41,42 @@ final class CssRule {
       : '@media $media { $selector { ${declarations.text} } }';
 }
 
+/// One `@keyframes` block: the two frames it stands for, and the name an animation calls it by.
+///
+/// A class is a hash of the declarations it wears, which is what makes six listings one rule.
+/// Keyframes cannot work that way — they are not worn, they are called by name from an
+/// `animation-name` declaration — so the name is a hash of the frames instead: the same fold
+/// asked for twice is one block, and a look that comes back after being forgotten comes back
+/// under the name it had.
+final class CssKeyframes {
+  /// Creates a block from [from] to [to].
+  ///
+  /// [kind] only names the block (`unibox-fold-…`), so a page says what an at-rule is for.
+  const CssKeyframes({
+    required this.from,
+    required this.to,
+    this.kind = 'fold',
+  });
+
+  /// The declarations at the start of the travel.
+  final CssDeclarations from;
+
+  /// The declarations at the end of it.
+  final CssDeclarations to;
+
+  /// What the block is for, which is the prefix of [name].
+  final String kind;
+
+  /// The text of the frames, which is what [name] is a hash of.
+  String get body => 'from{${from.text}}to{${to.text}}';
+
+  /// The name an `animation-name` declaration reaches this block by.
+  String get name => classNameFor(kind, body);
+
+  @override
+  String toString() => '@keyframes $name{$body}';
+}
+
 /// The media condition a hover rule lives under.
 ///
 /// Hover is wrapped in `@media (hover: hover)` so a touch screen cannot get stuck in a
