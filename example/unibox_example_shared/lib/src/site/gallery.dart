@@ -848,7 +848,7 @@ UINode _pinnedBands(MaterialPalette palette) {
               pinOffset: 44,
               height: 44,
             ),
-            for (final (String name, String price) in _flats.take(5))
+            for (final (String name, String price) in _flats)
               _flatRow(palette, name, price),
           ],
         ),
@@ -875,63 +875,91 @@ UINode _pinnedBands(MaterialPalette palette) {
   );
 }
 
-/// Two folds, each moving a different paint and taking a different share of the exit.
+/// Three folds: the same band over the whole of its exit, over the first part of it, and one
+/// that gives up its elevation as well as its tint.
+///
+/// A fold is only legible if there is somewhere for it to run, so every panel holds more than
+/// it shows: the band above has its whole exit to travel through before the list runs out.
 UINode _folds(MaterialPalette palette) {
+  // One look, so the two ranges are seen against each other rather than guessed at.
+  const BoxFold whole = BoxFold(
+    to: BoxStyle(opacity: 0.1, transform: BoxTransform(scale: 0.62)),
+    curve: BoxCurve.easeOut,
+  );
+  const BoxFold early = BoxFold(
+    to: BoxStyle(opacity: 0.1, transform: BoxTransform(scale: 0.62)),
+    curve: BoxCurve.easeOut,
+    // Arrived once two fifths of the band has left, and then still.
+    over: 0.4,
+  );
+
   return GridNode(
     minItemWidth: 280,
-    maxColumns: 2,
+    maxColumns: 3,
     gap: 24,
     children: <UINode>[
       _specimen(
         palette,
-        'A hero that fades and shrinks as it leaves',
+        'Fades and shrinks over its whole exit',
         _viewport(
           palette,
           children: <UINode>[
-            _hero(
-              palette,
-              'Six flats, one tree',
-              height: 120,
-              fold: const BoxFold(
-                to: BoxStyle(opacity: 0, transform: BoxTransform(scale: 0.8)),
-                curve: BoxCurve.easeOut,
-                over: 0.8,
-              ),
-            ),
-            for (final (String name, String price) in _flats.take(4))
+            _hero(palette, 'Six flats, one tree', height: 160, fold: whole),
+            for (final (String name, String price) in _flats)
               _flatRow(palette, name, price),
           ],
         ),
       ),
       _specimen(
         palette,
-        'A title that loses its tint half way out',
+        'The same fold, over two fifths of the exit',
+        _viewport(
+          palette,
+          children: <UINode>[
+            _hero(palette, 'Six flats, one tree', height: 160, fold: early),
+            for (final (String name, String price) in _flats)
+              _flatRow(palette, name, price),
+          ],
+        ),
+      ),
+      _specimen(
+        palette,
+        'Gives up its elevation and its corners',
         _viewport(
           palette,
           children: <UINode>[
             Box(
               width: double.infinity,
-              height: 120,
+              height: 160,
               padding: const BoxSpacing.all(20),
-              backgroundColor: palette.secondaryContainer,
-              borderRadius: 12,
-              // Only the paint moves, and it has arrived by the time half the band has
-              // left: `over` is the range, so the tint is gone while the title is still
-              // in view.
+              backgroundColor: palette.surfaceContainerHigh,
+              borderRadius: 16,
+              shadows: MaterialElevation.level2,
+              // Three paints and no layout: a card that sinks into the panel as it leaves.
               fold: BoxFold(
-                to: BoxStyle(backgroundColor: palette.surface, borderRadius: 0),
-                over: 0.5,
+                to: BoxStyle(
+                  backgroundColor: palette.surface,
+                  borderRadius: 0,
+                  shadows: const <BoxShadow>[],
+                ),
+                curve: BoxCurve.easeInOut,
               ),
               children: <UINode>[
                 TextNode(
                   'Two rooms by the park',
                   style: MaterialTypography.headlineSmall.copyWith(
-                    color: palette.onSecondaryContainer,
+                    color: palette.onSurface,
+                  ),
+                ),
+                TextNode(
+                  '€1 460 a month',
+                  style: MaterialTypography.bodyMedium.copyWith(
+                    color: palette.onSurfaceVariant,
                   ),
                 ),
               ],
             ),
-            for (final (String name, String price) in _flats.take(4))
+            for (final (String name, String price) in _flats)
               _flatRow(palette, name, price),
           ],
         ),
@@ -1058,6 +1086,10 @@ UINode _flatRow(MaterialPalette palette, String name, String price) {
 }
 
 /// The flats every specimen scrolls past.
+///
+/// Eight of them, which is more than a panel is tall: a panel has to be able to scroll past
+/// everything in it, or a band cannot reach the edge it pins to and a band cannot leave far
+/// enough for its fold to arrive.
 const List<(String, String)> _flats = <(String, String)>[
   ('Garden loft', '€1 280'),
   ('Two rooms by the park', '€1 460'),
@@ -1065,6 +1097,8 @@ const List<(String, String)> _flats = <(String, String)>[
   ('Attic with a terrace', '€1 700'),
   ('One room in the old town', '€ 860'),
   ('House on the canal', '€2 100'),
+  ('Loft over the bakery', '€1 180'),
+  ('Chambre de bonne', '€ 640'),
 ];
 
 /// A segmented button that keeps the choice it was given.

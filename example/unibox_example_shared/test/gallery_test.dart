@@ -35,10 +35,10 @@ void main() {
           .where((Box box) => box.overflow == Overflow.scroll)
           .toList();
 
-      // Two rows of chips that overflow, two pagers, three pinned panels and two folding
+      // Two rows of chips that overflow, two pagers, three pinned panels and three folding
       // ones. A pager scrolls for a different reason — it settles on a child — so it is
       // counted here and told apart below.
-      expect(scrollers, hasLength(9));
+      expect(scrollers, hasLength(10));
       expect(_textsIn(scrollers.first), contains('Two rooms'));
       expect(_textsIn(scrollers[1]), contains('Garden'));
 
@@ -103,23 +103,30 @@ void main() {
           .where((Box box) => box.fold != null)
           .toList();
 
-      expect(folded, hasLength(2));
+      expect(folded, hasLength(3));
 
-      // One fades and shrinks, and takes most of its exit to do it…
-      final Box hero = folded.singleWhere(
-        (Box box) => box.fold!.looks.contains(BoxProperty.transform),
+      // Two bands fade and shrink over different shares of the same exit, so the range is
+      // what a reader compares…
+      final List<Box> fading = folded
+          .where((Box box) => box.fold!.looks.contains(BoxProperty.transform))
+          .toList();
+
+      expect(fading, hasLength(2));
+      expect(fading.map((Box box) => box.fold!.over).toSet(), <double>{
+        1,
+        0.4,
+      }, reason: 'one fold runs the whole exit, the other finishes early');
+      for (final Box box in fading) {
+        expect(box.fold!.looks, contains(BoxProperty.opacity));
+      }
+
+      // …and the third gives up an elevation, which is a paint none of the others move.
+      final Box card = folded.singleWhere(
+        (Box box) => box.fold!.looks.contains(BoxProperty.shadows),
       );
 
-      expect(hero.fold!.looks, contains(BoxProperty.opacity));
-      expect(hero.fold!.over, greaterThan(0.5));
-
-      // …the other moves colour and radius, and has arrived half way out.
-      final Box title = folded.singleWhere(
-        (Box box) => !box.fold!.looks.contains(BoxProperty.transform),
-      );
-
-      expect(title.fold!.looks, contains(BoxProperty.backgroundColor));
-      expect(title.fold!.over, 0.5);
+      expect(card.fold!.looks, contains(BoxProperty.backgroundColor));
+      expect(card.shadows, isNotEmpty);
 
       // A fold is for the box that leaves, so no band that stays carries one.
       for (final Box box in folded) {
