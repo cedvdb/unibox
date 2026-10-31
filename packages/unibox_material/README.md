@@ -788,8 +788,8 @@ MaterialSegmentedButton(
 | check | 18 pixels, a `MaterialCheckMark`, in place of the chosen segment's icon; `showSelectedIcon: false` keeps the icon |
 | icon | `iconSize` = 18, 8 from the label and 12 from the segment's edge |
 | label | `labelLarge`, `onSurface` or `onSecondaryContainer`, on one line: a text too long for its share is cut with an ellipsis |
-| dividers | a box as wide as the border's line and the colour of it, between two segments |
-| width | equal shares (`flex: 1`) when the button was given a width, and each segment as wide as its label when it was not |
+| dividers | a box as wide as the border's line and the colour of it, at the start of every segment but the first, layered over the segment it opens |
+| width | the segments are equal shares (`equalShares`), so a width divides it and no width hugs at the count of them |
 | disabled | the whole control at 38%, with no ink on any segment |
 
 The container is one box and each segment is a box around a `MaterialInkWell`, so the
@@ -798,20 +798,25 @@ keeps them inside the pill. The well's content is centred and its stack stretche
 that is what the well's `mainAlign` and `crossAlign` are for, and why a segment can
 say `width: double.infinity` and mean it on both targets.
 
-**Give it a width when its parent stretches it.** A segment only takes a share when
-there is a width to divide: without one each is as wide as its label, which is right for a
-pill in a row of its own — a horizontally scrolling row, where a share of no width is a
-contradiction rather than a measurement — and wrong for one a column or a grid track
-stretches, where the outline fills the cell while the segments stay at the left and two
-thirds of the control is empty. `width: double.infinity` fills the space the parent gives
-and divides it equally, which is what Material's segmented button does; the example's
-gallery does exactly that, and its listings page passes a fixed 216.
+**The shares are equal, whether or not the control has a width.** The pill is a row whose
+children are equal shares, so the widest segment — its label, its icon and its padding —
+sets the width of every segment. Without a width the pill hugs at the count of them, which
+is what a pill in a row of its own wants, a horizontally scrolling row included; a width
+divides it, which is what one a column or a grid track stretches wants. `width:
+double.infinity` fills the space the parent gives and divides it equally, which is what
+Material's own control does; the example's gallery does exactly that, and its listings page
+passes a fixed 216.
+
+The rule between two segments is drawn inside the segment it opens rather than between the
+two: a share is the whole of its width, so a box laid out between two shares would take
+room neither can divide, and would push the label off the centre of its own share.
 
 **A label is one line.** A segment is a share of the control's width and not a width of its
 own, so a label longer than that share — a translation, or any label at twice the text
 scale — gives way instead of widening the pill or painting over the segment beside it: a
 text is drawn with `maxLines: 1` and an ellipsis, and any other node is cut at the share.
-A hugging segment is untouched, because a row that scrolls has room for it.
+Only a parent narrower than the shares reaches it: the widest label is what set the share
+every other label is given.
 
 A chosen segment draws an 18 pixel check in place of its icon, which is what Material
 does, so a control of pictures still says which one is on. The check is a

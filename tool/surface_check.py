@@ -88,6 +88,9 @@ CLASSIFIED = {
         'wrap': 'where a wrap breaks its lines depends on the width the box is drawn at, which the '
         'appearance of one box at no particular width cannot carry; the node suites compare the '
         'rows at a stated width instead',
+        'equalShares': 'how wide a share is depends on the widest child, which the appearance of one '
+        'box at no particular width cannot carry; the renderer suites measure the shares instead '
+        '(and the browser one does it in a real layout)',
         'textStyle': 'typography is compared through `TextAppearance`, not through a box',
         'transition': 'spread into `transitionDuration` and `transitionCurve`',
         'visibleFrom': 'the width a box is drawn at, and the appearance describes a box at no '

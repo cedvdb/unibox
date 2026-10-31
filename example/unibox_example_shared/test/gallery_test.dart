@@ -7,10 +7,9 @@ void main() {
   group('the Material gallery', () {
     test('gives a segmented button the width its segments divide', () {
       // Measured at 375 and at 1440: the gallery's grid hands each of these buttons a
-      // cell, so a button without a width is a 40 pixel pill stretched across it with
-      // its segments hugging the left — two thirds of a control that is not there.
-      // With a width, each segment takes an equal share: 102, 102, 102 at 375 and
-      // 144, 144, 144 at 1440.
+      // cell, so a button without a width is a 40 pixel pill hugging three shares at the
+      // start of it — a control that occupies a third of the cell it was given. With a
+      // width the shares divide the cell: 102, 102, 102 at 375 and 144, 144, 144 at 1440.
       final List<MaterialSegmentedButton> buttons = _nodesOf(
         buildMaterialSection(),
       ).whereType<MaterialSegmentedButton>().toList();
@@ -19,9 +18,14 @@ void main() {
       for (final MaterialSegmentedButton button in buttons) {
         expect(button.width, double.infinity);
         expect(
-          button.children.whereType<Box>().where((Box box) => box.flex == 1),
-          hasLength(3),
-          reason: 'three segments share the width, so the dividers take none',
+          button.equalShares,
+          isTrue,
+          reason: 'the three segments are shares of the pill, and equal ones',
+        );
+        expect(
+          button.children.whereType<Box>().where((Box box) => box.flex != null),
+          isEmpty,
+          reason: 'a share is the row\'s answer, so no segment states a flex',
         );
       }
     });

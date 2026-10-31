@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- **Breaking: a segmented button's segments are the same width with or without a `width`.** The
+  control had two sizing rules, and only one of them was a segmented button: given a width, every
+  segment filled `1 / count` of it, and with no width each segment was as wide as its own label.
+  A two choice control measured on the consumer's page in a 250 pixel pill had segments of 137
+  and 109 — a button beside a visibly heavier one inside a single pill — where the screen it
+  replaces, drawn with Material's own `SegmentedButton` in Flutter, measures 151 and 147 in a 298
+  pixel pill: the control hugs its content, and every segment is the widest label's width. The
+  pill is now a row of `equalShares`: every segment is as wide as the widest one, the control hugs
+  at the count of them when it has no width to divide (125 and 125 in that 250 pixel pill), and a
+  width still divides equally. A label longer than its share is cut — one line, an ellipsis —
+  which is now reached only by a parent narrower than the segments rather than by a label longer
+  than its neighbour. The hairline between two segments is drawn inside the segment it opens and
+  layered over it, so it takes no room from any share and the label stays centred on its own.
+
 - `MaterialElevation.level0` is the rung below level one: a surface flush with the page, which
   casts no shadow. Material's ladder has six heights and this package stated five, so a card
   that deliberately sits at the page's own height had no name for it and wrote an empty list of

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- A row whose style states `equalShares` is a `Row` of `Expanded` children inside an
+  `IntrinsicWidth`: every child is measured at its max intrinsic width and laid out at the widest
+  one, which is the arithmetic Material's own segmented control uses. A parent with less room than
+  that divides what it has between the shares, so a label too long for its share is cut rather
+  than widening the row, and a child the width does not draw keeps no share.
 - An aligned `PositionedNode` child follows the writing direction, as the browser's class always
   did: `Align` was given `Alignment.centerRight` for a `centerEnd` child, so in a page written
   right to left the row mirrored and the control floating over it did not. It is now an

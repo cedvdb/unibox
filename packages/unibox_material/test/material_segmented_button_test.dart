@@ -13,7 +13,7 @@ const List<MaterialSegment> _segments = <MaterialSegment>[
 
 void main() {
   group('MaterialSegmentedButton', () {
-    test('is one rounded container of equal segments and dividers', () {
+    test('is one rounded container of equal shares', () {
       final MaterialSegmentedButton button = MaterialSegmentedButton(
         segments: _segments,
         selected: 1,
@@ -29,13 +29,14 @@ void main() {
         Overflow.hidden,
         reason: 'the fill of a chosen segment is cut to the rounded ends',
       );
-      // Three segments and the two rules between them.
-      expect(button.children, hasLength(5));
-      expect(button.children[1], isA<Box>());
-      expect((button.children[1] as Box).width, 1);
+      // The shares are the row's, not the segments': one token on the pill, and no rule
+      // laid out between two of them that would sit outside every share.
+      expect(button.equalShares, isTrue);
+      expect(button.children, hasLength(3));
+      expect(button.children, everyElement(isA<Box>()));
     });
 
-    test('shares a width equally, and lets a segment hug without one', () {
+    test('states no width of its own, whatever the labels say', () {
       MaterialSegmentedButton button({double? width}) =>
           MaterialSegmentedButton(
             segments: _segments,
@@ -44,53 +45,82 @@ void main() {
             width: width,
           );
 
-      for (final UINode child in <UINode>[
-        button(width: 300).children.first,
-        button(width: 300).children[2],
-        button(width: 300).children.last,
+      // A segment that states a width, a flex or a share would be a second answer to the
+      // question the pill already answered: `validateTree` reports one, and the two
+      // renderers would then measure it differently.
+      for (final MaterialSegmentedButton control in <MaterialSegmentedButton>[
+        button(),
+        button(width: 300),
       ]) {
-        expect((child as Box).flex, 1);
+        for (final UINode child in control.children) {
+          final Box segment = child as Box;
+          expect(segment.width, isNull);
+          expect(segment.flex, isNull);
+          expect(segment.widthFraction, isNull);
+        }
       }
 
-      // Without a width there is nothing to divide, and a `flex` in an unbounded row
-      // is a layout error in Flutter: every segment hugs its label instead.
-      expect((button().children.first as Box).flex, isNull);
+      // Without a width the pill hugs its shares; a width is the pill's own, and the
+      // shares divide it.
       expect(button().width, isNull);
+      expect(button(width: 300).width, 300);
     });
 
-    test('asks a segment to fill only a width it was given', () {
-      // A segment that shares the button's width fills its share; one that hugs its
-      // label has nothing to fill, and `double.infinity` there is a constraint with no
-      // bound behind it — Flutter refuses it in an unbounded row, a horizontally
-      // scrolling one included.
-      final MaterialSegmentedButton shared = MaterialSegmentedButton(
-        segments: _segments,
-        selected: 0,
-        onSelect: _select,
-        width: 300,
-      );
-      final MaterialSegmentedButton hugging = MaterialSegmentedButton(
-        segments: _segments,
-        selected: 0,
-        onSelect: _select,
-      );
+    test('fills the share it was given, and cuts a label at it', () {
+      // Every segment is a share of the pill — measured from the widest one when the pill
+      // hugs, divided when it was given a width — so a segment fills what it is handed in
+      // both cases, and a label too long for that width is cut inside it rather than
+      // pushing the segment wider.
+      for (final MaterialSegmentedButton control in <MaterialSegmentedButton>[
+        MaterialSegmentedButton(
+          segments: _segments,
+          selected: 0,
+          onSelect: _select,
+          width: 300,
+        ),
+        MaterialSegmentedButton(
+          segments: _segments,
+          selected: 0,
+          onSelect: _select,
+        ),
+      ]) {
+        for (final UINode child in control.children) {
+          final Box well = _wellBox(child as Box);
+          final Box content = _contentOf(well);
 
-      for (final UINode child in shared.children) {
-        if (child is! Box || child.width == 1) {
-          continue;
+          expect(well.width, double.infinity);
+          expect(content.width, double.infinity);
+          expect(
+            content.crossAlign,
+            CrossAlign.center,
+            reason: 'the label is centred in the share, not in the room beside a rule',
+          );
         }
-        final Box well = _wellBox(child);
-        expect(well.width, double.infinity);
-        expect(_contentOf(well).width, double.infinity);
       }
+    });
 
-      for (final UINode child in hugging.children) {
-        if (child is! Box || child.width == 1) {
-          continue;
-        }
-        final Box well = _wellBox(child);
-        expect(well.width, isNull);
-        expect(_contentOf(well).width, isNull);
+    test('lays the rule between two segments over the segment it opens', () {
+      final MaterialSegmentedButton button = MaterialSegmentedButton(
+        segments: _segments,
+        selected: 0,
+        onSelect: _select,
+      );
+
+      // The first segment begins at the pill's own border, and every later one begins with
+      // a line the colour of it. The line is positioned rather than laid out, so it takes
+      // no room from the share and the label stays centred on it.
+      expect(_ruleOf(button.children.first as Box), isNull);
+
+      for (final UINode child in button.children.skip(1)) {
+        final PositionedNode? rule = _ruleOf(child as Box);
+
+        expect(rule, isNotNull);
+        expect(rule!.alignment, BoxAlignment.centerStart);
+        expect((rule.child as Box).width, 1);
+        expect(
+          (rule.child as Box).backgroundColor,
+          const BoxColor.role(MaterialColorRole.outline),
+        );
       }
     });
 
@@ -110,7 +140,7 @@ void main() {
           const BoxBorder(color: BoxColor.role(MaterialColorRole.outline)),
         );
         expect(
-          (plain.children[1] as Box).backgroundColor,
+          (_ruleOf(plain.children[1] as Box)!.child as Box).backgroundColor,
           const BoxColor.role(MaterialColorRole.outline),
         );
 
@@ -128,9 +158,9 @@ void main() {
         );
 
         expect(themed.border, variant);
-        expect((themed.children[1] as Box).width, 2);
+        expect((_ruleOf(themed.children[1] as Box)!.child as Box).width, 2);
         expect(
-          (themed.children[1] as Box).backgroundColor,
+          (_ruleOf(themed.children[1] as Box)!.child as Box).backgroundColor,
           const BoxColor.role(MaterialColorRole.outlineVariant),
         );
       },
@@ -143,10 +173,7 @@ void main() {
         onSelect: _select,
       );
 
-      final List<Box> segments = <Box>[
-        for (final UINode child in button.children)
-          if (child is Box && child.width != 1) child,
-      ];
+      final List<Box> segments = button.children.whereType<Box>().toList();
 
       expect(segments, hasLength(3));
       expect(
@@ -166,8 +193,8 @@ void main() {
         onSelect: _select,
       );
       final List<BoxSemantics> semantics = <BoxSemantics>[
-        for (final UINode child in button.children)
-          if (child is Box && child.width != 1) _wellBox(child).semantics!,
+        for (final Box segment in button.children.whereType<Box>())
+          _wellBox(segment).semantics!,
       ];
 
       expect(semantics, hasLength(3));
@@ -292,9 +319,24 @@ void main() {
   });
 }
 
+/// The rule at the start of [segment], or `null` for the first segment of a pill.
+///
+/// A segment is a layer — the well under the rule it opens — so the rule is the
+/// positioned child of the stack the segment holds.
+PositionedNode? _ruleOf(Box segment) => (segment.children.single as StackNode)
+    .children
+    .whereType<PositionedNode>()
+    .firstOrNull;
+
 /// The box the ink well of [segment] draws.
+MaterialInkWell _wellOf(Box segment) => (segment.children.single as StackNode)
+    .children
+    .whereType<MaterialInkWell>()
+    .single;
+
+/// What the well of [segment] draws, with its state resolved.
 Box _wellBox(Box segment) {
-  final MaterialInkWell well = segment.children.single as MaterialInkWell;
+  final MaterialInkWell well = _wellOf(segment);
   final MaterialInkStore store = MaterialInkStore();
   final Box box = well.viewFor(store.state, store) as Box;
   store.dispose();

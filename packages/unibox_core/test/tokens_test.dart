@@ -565,6 +565,32 @@ void main() {
       );
     });
 
+    test('merges equalShares like every other layout token', () {
+      // The same shape as `wrap`: a bag that says "these children are not equal shares"
+      // has to be able to turn the rule off, so `false` survives a merge.
+      const BoxStyle shares = BoxStyle(
+        direction: Axis.horizontal,
+        equalShares: true,
+      );
+      const BoxStyle loose = BoxStyle(equalShares: false);
+
+      expect(shares.merge(const BoxStyle()).equalShares, isTrue);
+      expect(shares.merge(loose).equalShares, isFalse);
+      expect(loose.merge(shares).equalShares, isTrue);
+      expect(shares.copyWith().equalShares, isTrue);
+      expect(shares, isNot(loose));
+      expect(shares.toString(), contains('equalShares: true'));
+      expect(
+        const Box(
+          direction: Axis.horizontal,
+          equalShares: false,
+          styles: <BoxStyle>[shares],
+        ).computedStyle.equalShares,
+        isFalse,
+        reason: 'the flat parameter wins, as it does for every other token',
+      );
+    });
+
     test('implements value equality', () {
       const style = BoxStyle(
         direction: Axis.vertical,
@@ -1144,6 +1170,7 @@ void main() {
         crossAlign: CrossAlign.center,
         gap: 4,
         wrap: true,
+        equalShares: true,
         flex: 2,
         gridSpan: 3,
         overflow: Overflow.scroll,

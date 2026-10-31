@@ -848,6 +848,68 @@ void main() {
       expect(issue.message, contains('flex: 1'));
     });
 
+    test('accepts a row whose children are equal shares', () {
+      // The tree a segmented button is: one row, every child a share of it, and nothing on
+      // a child that would answer the question the row has already answered.
+      expect(
+        validateTree(
+          const Box(
+            direction: Axis.horizontal,
+            equalShares: true,
+            children: <UINode>[
+              Box(backgroundColor: BoxColor.white),
+              Box(backgroundColor: BoxColor.black),
+            ],
+          ),
+        ),
+        isEmpty,
+      );
+    });
+
+    test('reports shares in a column', () {
+      // A share is a width divided between the children, and a column divides a height:
+      // the browser would build the grid anyway and the app would measure the other axis.
+      const Box tree = Box(equalShares: true, children: <UINode>[Box(), Box()]);
+      final TreeIssue issue = validateTree(tree).single;
+
+      expect(issue.isError, isTrue);
+      expect(issue.message, contains('equalShares without direction'));
+    });
+
+    test('reports a box that both shares and wraps its children', () {
+      const Box tree = Box(
+        direction: Axis.horizontal,
+        equalShares: true,
+        wrap: true,
+        children: <UINode>[Box(), Box()],
+      );
+      final TreeIssue issue = validateTree(tree).single;
+
+      expect(issue.isError, isTrue);
+      expect(issue.message, contains('wraps its children'));
+    });
+
+    test('reports a child of equal shares that states a flex or a width', () {
+      // Both are a second answer to the share the row measured: a browser ignores the flex
+      // on a grid item and honours a width inside a track, where Flutter expands every
+      // share to the same tight width, so the two targets would draw two layouts.
+      for (final Box child in <Box>[
+        const Box(flex: 2),
+        const Box(width: 40),
+        const Box(widthFraction: 0.5),
+      ]) {
+        final Box tree = Box(
+          direction: Axis.horizontal,
+          equalShares: true,
+          children: <UINode>[child, const Box()],
+        );
+        final TreeIssue issue = validateTree(tree).single;
+
+        expect(issue.node, same(child));
+        expect(issue.isError, isTrue);
+      }
+    });
+
     test('reports a full-width box inside a row that scrolls', () {
       // The consumer's crash: a box that fills its width in a row that scrolls along it.
       // Flutter throws `BoxConstraints forces an infinite width` during layout, and the

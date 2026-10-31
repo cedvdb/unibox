@@ -1087,9 +1087,9 @@ const List<(String, String)> _flats = <(String, String)>[
 /// and the reason a segmented button needs no state of its own.
 UINode _segmentedView(int chosen, SegmentedStore store) {
   return MaterialSegmentedButton(
-    // The width the grid cell gives it, divided three ways. Without one each segment
-    // hugs its label while the outline still takes the cell — a pill with two thirds
-    // of it empty, which is the one thing a segmented button never is.
+    // The width the grid cell gives it, divided three ways. The segments are equal
+    // shares either way — the widest label sets all three — and a width is what puts
+    // them across the cell rather than hugging the start of it.
     width: double.infinity,
     segments: const <MaterialSegment>[
       MaterialSegment(label: TextNode('Day'), semanticsLabel: 'Per day'),
@@ -1123,7 +1123,7 @@ UINode _viewSwitchView(int chosen, ViewStore store) {
 
   return MaterialSegmentedButton(
     // The same width divided three ways, for the reason the day/week/month control
-    // states: a stretched pill whose segments hug is a pill with room to spare.
+    // states: a stretched pill takes the cell, and the three shares divide it.
     width: double.infinity,
     segments: <MaterialSegment>[
       MaterialSegment(

@@ -968,3 +968,60 @@ What that buys, stated as the invariants the feature has to keep:
   therefore be read right to left and still pin one inset to one side — deliberate for a badge on
   a physical corner, and a gap for a `padding` that means "the reading start". Adding those
   values is a change to the vocabulary rather than to this token, and it is the next one.
+
+### 5.21 Equal shares are a row's rule, not a component's
+
+`Box(equalShares: true)` says that every child of a row is as wide as the widest
+child's **max content**: three choices over `Day`, `Week` and `Month` are three
+`Month`s, and the row hugs at the count of them. Given a width, it divides that
+instead, and a share that no longer fits cuts what is inside it rather than widening
+the row.
+
+The rule lives on `Box` and not in `MaterialSegmentedButton`, which is what it was
+written for. A segmented button is the case that found it — Material's own control
+sizes each segment at `max(constraints.minWidth / count, widest child's max intrinsic
+width)`, clamped to `maxWidth / count`, so a pill with no width is a pill of equal
+segments and never one long button beside a short one — but the arithmetic is one
+thing a row can say, and a component cannot say it: `unibox_material` ships values and
+nodes, not renderer code, so a rule only that package knew would be a rule neither
+target could draw. What the component does own is the geometry (a pill of 40, its
+outline, the fill of the chosen segment) and the hairline between two segments, which
+therefore has to be drawn *inside* the segment it opens rather than laid out between
+the two: a box between two shares sits outside every share, and takes room neither can
+divide.
+
+**Two idioms, one invariant.** Neither target invents an equaliser:
+
+- a browser already has one — `display: grid; grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr)`. In an intrinsic sizing pass a `fr` track takes
+  the widest item's max-content contribution, and every track takes the same, so the
+  grid hugs at the count times that; with a definite width the tracks divide it
+  equally. The floor is zero rather than `auto`, which is what `1fr` alone means and
+  what would have kept the longest word from ever being cut: a share is a part of the
+  width the box was handed;
+- Flutter measures, which is the same rule in the arithmetic the SDK's own
+  `SegmentedButton` uses: each child's `getMaxIntrinsicWidth(double.infinity)`, the
+  largest one for every share, clamped to the room the parent offers. A `Row` of
+  `Expanded` children inside an `IntrinsicWidth` *is* that arithmetic — a flex
+  container reports `max(flex fraction) × total flex`, so the intrinsic width of `n`
+  expanded children is `n ×` the widest rather than the sum of their different
+  contents — and the constraint clamp is the narrower parent. `IntrinsicWidth`
+  around children that are not expanded would divide their sum, which is a different
+  number, and laying the children out at their own intrinsic width (a `Table`, a
+  `Flexible` row) is the hugging rule this replaced.
+
+**What the model refuses.** A share is a width divided between children, so the token
+on a column is reported: the axis has to be the one the renderer measures along. So is
+a wrapping box, whose lines are broken before the shares can be measured, and so is a
+child that states a `flex` (a weight on a share the row makes equal, ignored by a
+browser's grid item and honoured by Flutter's `Expanded`) or a width of its own
+(honoured inside a track by a browser, overwritten by the tight width Flutter gives a
+share). What a child *does* with the width it is handed is the child's business: a
+label that fills it and ellipsises is how a segmented button keeps one line.
+
+**Measured, because a share is a layout.** The appearance tables describe one box at
+no particular width and cannot carry this, so `tool/surface_check.py` records why the
+token is outside them, and the two renderer suites measure instead: a `Row`'s segments
+by their rectangles in Flutter, and the same segments by `getBoundingClientRect` in a
+browser, where the case that started it — two labels of 137 and 109 pixels inside one
+250 pixel pill — is 125 and 125.

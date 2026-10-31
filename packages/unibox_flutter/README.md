@@ -35,6 +35,7 @@ with their target.
 | no `direction`                      | `Column`, the same as `Axis.vertical`              |
 | `writingDirection`                  | a `Directionality` around the flex, so the row itself reverses |
 | `gap`                               | `SizedBox` separators between children              |
+| `equalShares`                      | a `Row` of `Expanded` children inside an `IntrinsicWidth`, so every share is the widest child's max content and a width the parent gives is divided |
 | `mainAlign` / `crossAlign`          | `mainAxisAlignment` / `crossAxisAlignment`, with `textBaseline` stated |
 | `crossAlign: CrossAlign.baseline`   | `CrossAxisAlignment.baseline` with `TextBaseline.alphabetic` |
 | `padding` / `margin`                | inner / outer `Padding`                             |

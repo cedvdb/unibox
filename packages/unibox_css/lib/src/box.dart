@@ -59,6 +59,19 @@ CssDeclarations boxDeclarations(
   final int? flex = style.flex;
   final double? aspectRatio = style.aspectRatio;
 
+  // A row whose children are equal shares is one auto-column grid. A `fr` track is the
+  // widest child's max-content width when the grid has no width to divide — which is what
+  // makes the box hug at the count of its children — and an equal part of the width it was
+  // given when it has one. That is the whole of the layout: no declaration states a size
+  // per child.
+  //
+  // Flutter reaches the same rule by measuring the children at their max intrinsic width
+  // and laying each out at the widest, so no track width is written on either target.
+  final bool shares =
+      !declaredOnly &&
+      (style.equalShares ?? false) &&
+      style.resolvedDirection == core.Axis.horizontal;
+
   final String? roleBackground = backgroundColor == null
       ? null
       : cssRoleReference(backgroundColor);
@@ -70,15 +83,30 @@ CssDeclarations boxDeclarations(
     ..add('box-sizing', 'border-box');
 
   if (!declaredOnly) {
-    declarations.add('display', 'flex');
-
-    if (style.wrap ?? false) {
+    if (shares) {
       declarations
-        ..add('flex-wrap', 'wrap')
-        // The lines are packed from the start of the box, which is what a Flutter `Wrap`
-        // does with its runs. A browser's `align-content: normal` stretches them over the
-        // height of the box instead, so a wrapped row in a tall box would sit in bands.
-        ..add('align-content', 'flex-start');
+        ..add('display', 'grid')
+        ..add('grid-auto-flow', 'column')
+        // Every child is a share: no track states a width of its own, so a child this
+        // width does not draw — `display: none` — takes no track either.
+        //
+        // The floor is zero rather than the child's min content, which is what `1fr` alone
+        // would give it: a share is a part of the width the box was handed, so a box in a
+        // parent too narrow for `count ×` the widest child shrinks every share instead of
+        // overflowing the parent with the longest word. That is the rule the Flutter
+        // renderer applies when it clamps the measured width to the room it was given.
+        ..add('grid-auto-columns', 'minmax(0, 1fr)');
+    } else {
+      declarations.add('display', 'flex');
+
+      if (style.wrap ?? false) {
+        declarations
+          ..add('flex-wrap', 'wrap')
+          // The lines are packed from the start of the box, which is what a Flutter `Wrap`
+          // does with its runs. A browser's `align-content: normal` stretches them over the
+          // height of the box instead, so a wrapped row in a tall box would sit in bands.
+          ..add('align-content', 'flex-start');
+      }
     }
   }
 
@@ -93,7 +121,7 @@ CssDeclarations boxDeclarations(
     )
     ..addIf(
       'flex-direction',
-      direction == null ? null : cssFlexDirection(direction),
+      shares || direction == null ? null : cssFlexDirection(direction),
     )
     ..addIf(
       'justify-content',

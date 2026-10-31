@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `Box.equalShares` states that the children of a row are equal shares of it: each one is as wide
+  as the widest child's max content, and the box hugs at the count of them until it is given a
+  width, which the shares then divide. `validateTree` reports it on a column, on a wrapping box,
+  and on a child that states a `flex` or a width of its own, because a share is the row's answer
+  rather than the child's.
 - A style that names a role colour keeps every other token when it is resolved. `BoxStyle.resolve`
   rebuilds the style field by field, and it had stopped carrying `wrap`, `pin`, `pinOffset`,
   `aspectRatio` and `fold` — so a themed box lost its wrap, its pin and its fold in Flutter, the

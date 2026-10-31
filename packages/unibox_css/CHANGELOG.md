@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- A row whose style states `equalShares` is one auto-column grid instead of a flex container:
+  `display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr)`, so a browser
+  equalises the tracks at the widest child's max content and divides a definite width between
+  them. The floor of zero is what lets a share shrink into a parent too narrow for them, and no
+  `flex-direction` is written: a grid has no main axis.
 - `writingDirection` is written as the `direction` declaration, which CSS inherits: a box states
   it once and the row it holds reverses, along with every logical edge inside it. A box that
   states none writes nothing, so the boxes inside a page written right to left do not overrule it.

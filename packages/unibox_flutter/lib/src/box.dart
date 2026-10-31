@@ -590,6 +590,12 @@ class FlutterBoxState extends State<FlutterBox> {
     final core.Axis direction = style.resolvedDirection;
     final double? gap = style.gap;
     final bool wrap = style.wrap ?? false;
+    // A row of equal shares. It is never a wrapping box (validateTree reports the pair) and
+    // never a column, so the only branch that has shares to lay out is the row's.
+    final bool shares =
+        !wrap &&
+        (style.equalShares ?? false) &&
+        direction == core.Axis.horizontal;
 
     // A wrapping box spaces its children itself, between two of them and between two
     // lines, which a `Wrap` does with two numbers; a flex adds a spacer child instead.
@@ -613,6 +619,7 @@ class FlutterBoxState extends State<FlutterBox> {
                 direction,
                 availableWidth: availableWidth,
                 flexible: !wrap,
+                share: shares,
               )
             : SizedBox(
                 key: _slots.putIfAbsent(index, GlobalKey.new),
@@ -672,7 +679,7 @@ class FlutterBoxState extends State<FlutterBox> {
     }
 
     if (direction == core.Axis.horizontal) {
-      return Row(
+      final Widget row = Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: mainAxisAlignment,
         crossAxisAlignment: crossAxisAlignment,
@@ -681,6 +688,17 @@ class FlutterBoxState extends State<FlutterBox> {
         textBaseline: uniboxTextBaseline,
         children: children,
       );
+
+      // Equal shares are the row's own width divided between the children, and a `Row`
+      // only ever divides the width it is given. `IntrinsicWidth` is what gives it the
+      // width the shares ask for — a flexible child reports its max intrinsic width, and the
+      // row multiplies the largest of them by the flex factors, so the answer is the count
+      // times the widest child, which is the same rule a browser writes as
+      // `grid-auto-columns: minmax(0, 1fr)`. The constraints clamp it: a row with less room
+      // than that gets the room it has, and every share is then an equal part of it — which
+      // is where a label too long for its share starts ellipsising rather than widening the
+      // row.
+      return shares ? IntrinsicWidth(child: row) : row;
     }
 
     return Column(
@@ -868,16 +886,23 @@ class FlutterBoxState extends State<FlutterBox> {
   /// [flexible] is off for the child of a wrapping box, which has no flex children: a
   /// `Wrap` lays each child out at its own size, so an `Expanded` in it is a Flutter
   /// error rather than a share. `validateTree` reports that tree instead.
+  ///
+  /// [share] is on for every child of a row of equal shares: the row measured them all and
+  /// gave each one width, so each is expanded at one whatever its own tokens say — the
+  /// share is the row's answer, and `validateTree` reports a `flex` or a width on a child
+  /// that would state one. A child the width does not draw still takes no share, which is
+  /// the `display: none` a browser gives it.
   Widget _buildChild(
     core.UINode node,
     core.Axis direction, {
     required double? availableWidth,
     bool flexible = true,
+    bool share = false,
   }) {
     final Widget child = renderNode(node, availableWidth: availableWidth);
 
     if (node is! core.Box) {
-      return child;
+      return share ? Expanded(child: child) : child;
     }
 
     final core.BoxStyle childStyle = node.computedStyle;
@@ -895,6 +920,11 @@ class FlutterBoxState extends State<FlutterBox> {
         child: SizedBox(width: 0, height: 0, child: child),
       );
     }
+
+    if (share) {
+      return Expanded(child: child);
+    }
+
     final double? mainSize = direction == core.Axis.horizontal
         ? childStyle.width
         : childStyle.height;

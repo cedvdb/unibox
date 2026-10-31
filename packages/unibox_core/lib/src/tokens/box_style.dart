@@ -40,6 +40,7 @@ final class BoxStyle {
     this.crossAlign,
     this.gap,
     this.wrap,
+    this.equalShares,
     this.flex,
     this.gridSpan,
     this.overflow,
@@ -131,6 +132,30 @@ final class BoxStyle {
   /// that scrolls along its main axis cannot wrap, so `validateTree` reports all three
   /// rather than drawing them two ways.
   final bool? wrap;
+
+  /// Whether the children are equal shares of the box's width.
+  ///
+  /// A share is the widest child's max-content width, so a row of three choices over the
+  /// labels "Day", "Week" and "Month" is as wide as three "Month"s: no share is narrower
+  /// than the widest one, and the box hugs at that count rather than at the sum of three
+  /// different labels. A box that was given a width divides it into the same number of
+  /// equal parts instead, and a share that no longer fits cuts what is inside it rather
+  /// than widening the box.
+  ///
+  /// It is the rule a segmented button is built on — Material's own control equalises its
+  /// segments at the widest label's max content — and it is a token rather than a rule of
+  /// that component because it is one thing a row can say, drawn with one idiom per
+  /// target: `grid-auto-flow: column` with `grid-auto-columns: 1fr` is a browser's answer,
+  /// and a flex container's children measured at their max intrinsic width and laid out at
+  /// the widest is Flutter's.
+  ///
+  /// Only a row divides a width, every child of it is a share, and a share is the row's
+  /// answer rather than its own: `validateTree` reports this token on a column, on a
+  /// wrapping box, on a child that states a [flex], and on a child that states its own
+  /// width. A rule between two shares is therefore drawn inside a share rather than
+  /// between them — a child laid out between them is outside every share, and would take
+  /// room the shares then do not divide.
+  final bool? equalShares;
 
   /// How much of the remaining space this box should take up.
   final int? flex;
@@ -391,6 +416,7 @@ final class BoxStyle {
       crossAlign: crossAlign,
       gap: gap,
       wrap: wrap,
+      equalShares: equalShares,
       flex: flex,
       gridSpan: gridSpan,
       overflow: overflow,
@@ -440,6 +466,7 @@ final class BoxStyle {
     CrossAlign? crossAlign,
     double? gap,
     bool? wrap,
+    bool? equalShares,
     int? flex,
     int? gridSpan,
     Overflow? overflow,
@@ -479,6 +506,7 @@ final class BoxStyle {
       crossAlign: crossAlign ?? this.crossAlign,
       gap: gap ?? this.gap,
       wrap: wrap ?? this.wrap,
+      equalShares: equalShares ?? this.equalShares,
       flex: flex ?? this.flex,
       gridSpan: gridSpan ?? this.gridSpan,
       overflow: overflow ?? this.overflow,
@@ -533,6 +561,7 @@ final class BoxStyle {
       crossAlign: other.crossAlign ?? crossAlign,
       gap: other.gap ?? gap,
       wrap: other.wrap ?? wrap,
+      equalShares: other.equalShares ?? equalShares,
       flex: other.flex ?? flex,
       gridSpan: other.gridSpan ?? gridSpan,
       overflow: other.overflow ?? overflow,
@@ -576,6 +605,7 @@ final class BoxStyle {
       other.crossAlign == crossAlign &&
       other.gap == gap &&
       other.wrap == wrap &&
+      other.equalShares == equalShares &&
       other.flex == flex &&
       other.gridSpan == gridSpan &&
       other.overflow == overflow &&
@@ -616,6 +646,7 @@ final class BoxStyle {
     crossAlign,
     gap,
     wrap,
+    equalShares,
     flex,
     gridSpan,
     overflow,
@@ -656,6 +687,7 @@ final class BoxStyle {
       if (crossAlign != null) 'crossAlign: $crossAlign',
       if (gap != null) 'gap: $gap',
       if (wrap != null) 'wrap: $wrap',
+      if (equalShares != null) 'equalShares: $equalShares',
       if (flex != null) 'flex: $flex',
       if (gridSpan != null) 'gridSpan: $gridSpan',
       if (overflow != null) 'overflow: $overflow',

@@ -33,6 +33,7 @@ renderer that consumes it.
 | a placed child | `positionedDeclarations`, `alignedDeclarations` |
 | a text, an image, a grid | `textDeclarations`, `imageDeclarations`, `gridDeclarations` |
 | a box | `boxDeclarations(style)` — the flex container, its paint, its typography |
+| a row of equal shares | a `boxDeclarations(style)` whose style states `equalShares`: one auto-column grid, `grid-auto-flow: column` and `grid-auto-columns: minmax(0, 1fr)`, because a browser equalises `fr` tracks at their widest content and divides a width between them |
 | the typography of a box | `typographyDeclarations(style)`, and `defaultTypographyDeclarations()` |
 | what a page starts from | `rootDeclarations()` — the typography of the model, and the tap highlight a touch browser would paint |
 | a transform, a transition | `cssTransform`, `cssTransition` |

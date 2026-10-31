@@ -90,6 +90,28 @@ void main() {
       );
     });
 
+    test('is one auto-column grid when its children are equal shares', () {
+      // The row states the rule and the browser resolves it: every child is a track of the
+      // same size, the widest child's max content when the row has no width to divide and
+      // an equal part of it when it has one.
+      final String html = toHtml(
+        const core.Box(
+          direction: core.Axis.horizontal,
+          equalShares: true,
+          children: <core.UINode>[core.TextNode('Day'), core.TextNode('Week')],
+        ),
+      );
+
+      expect(html, contains('display:grid'));
+      expect(html, contains('grid-auto-flow:column'));
+      expect(html, contains('grid-auto-columns:minmax(0, 1fr)'));
+      expect(
+        html,
+        isNot(contains('flex-direction')),
+        reason: 'a grid has no main axis for a flex direction to name',
+      );
+    });
+
     test('runs a fold on the box itself, from a block the page carries', () {
       final String html = toHtml(
         const core.Box(

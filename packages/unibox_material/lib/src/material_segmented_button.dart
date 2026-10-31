@@ -58,20 +58,25 @@ final class MaterialSegment {
 /// line, and `overflow: hidden` so the chosen segment's fill is cut to the rounded
 /// ends it reaches rather than needing a radius of its own. Each segment is a box
 /// around a [MaterialInkWell], so the tint and the ink cover the segment and not just
-/// its label; a 1 pixel rule between them is a box the colour of the outline.
+/// its label; the 1 pixel rule between two segments is a box the colour of the outline,
+/// layered over the segment it opens.
 ///
-/// **A width is what makes the shares equal.** Given a width, every segment fills a
-/// share of it (`flex: 1`) and the pill reads as a scale rather than as buttons of
-/// different weight. Without one there is nothing to divide, so each segment is as wide
-/// as its label — which is what a pill in a row of its own wants, a horizontally
-/// scrolling row included, and what makes a fixed width the answer for a control a
-/// column or a grid track stretches.
+/// **The shares are equal.** A segment is a share of the control and never a width of its
+/// own: the control measures its widest segment — the label, the icon beside it and the
+/// padding around both — and every segment is that wide, so a control of "Rent" beside
+/// "Rent to buy" is two equal halves rather than a button beside a bigger one. That is
+/// what Material's own `SegmentedButton` does, and it is the tree's own rule: the pill is
+/// a row whose children are `equalShares`. With no width the pill hugs its shares — a row
+/// that scrolls gets a control exactly as wide as its content, and the widest label sets
+/// the width of every segment — and a width divides that width equally instead, which is
+/// what a pill stretched across a cell wants. A share that the room does not stretch to
+/// cuts its label (see below) rather than widening the pill.
 ///
 /// **The line is the caller's.** [border] is the container's line *and* the rules
-/// between its segments, which are one hairline the model draws as a box; the default
-/// is Material's `outline`, and a theme that draws its segmented control with
-/// `outlineVariant` — Material's own `SegmentedButton` does — says so once rather than
-/// reaching into this package.
+/// between its segments — one hairline the model draws as a box, at the start of every
+/// segment but the first — and the default is Material's `outline`, so a theme that draws
+/// its segmented control with `outlineVariant` — Material's own `SegmentedButton` does —
+/// says so once rather than reaching into this package.
 ///
 /// **The chosen segment shows a check**, in place of the icon it would otherwise draw
 /// — Material's own behaviour, so a control that carries pictures still says which
@@ -83,8 +88,8 @@ final class MaterialSegment {
 /// a width of its own, so a label longer than that share — a translation, or any label at
 /// a larger text scale — gives way instead of widening the pill or painting over the
 /// segment beside it: a text is drawn with `maxLines: 1` and an ellipsis, and any other
-/// node is cut at the share. A label that hugs (a control with no `width`) is not touched,
-/// because a row that scrolls has room for it.
+/// node is cut at the share. Only a parent too narrow for `count ×` the widest segment
+/// reaches it, because the widest label is what set the share every other label is given.
 ///
 /// **A set of destinations is a set of links.** Give the segments a [MaterialSegment.url]
 /// and the control stops being a set of buttons: each unselected choice is one `<a href>`
@@ -121,8 +126,9 @@ final class MaterialSegmentedButton extends Box {
     BoxSpacing padding = _segmentPadding,
     double iconGap = _iconGap,
     BoxTextStyle labelStyle = MaterialTypography.labelLarge,
-    // A width shares the segments equally; without one each hugs its label, because a
-    // `flex` in an unbounded row is a layout error in Flutter.
+    // A width is divided equally between the segments; without one the pill is as wide as
+    // its shares and hugs them — a row that scrolls, or a control in the corner of a page.
+    // Both are one rule, `equalShares` below, so the width states no size of its own.
     super.width,
     super.margin,
     BoxTransition? transition,
@@ -144,15 +150,20 @@ final class MaterialSegmentedButton extends Box {
          overflow: Overflow.hidden,
          direction: Axis.horizontal,
          crossAlign: CrossAlign.stretch,
+         // Every segment is a share of the pill, and the shares are equal: the control
+         // measures its widest segment and gives each one that width, or divides the width
+         // it was given between them. One rule for both cases, so the tree says nothing
+         // about how wide a segment is.
+         equalShares: true,
          children: <UINode>[
-           for (int i = 0; i < segments.length; i++) ...<UINode>[
-             if (i > 0) _divider(border),
+           for (int i = 0; i < segments.length; i++)
              _segment(
                segment: segments[i],
                selected: i == selected,
                enabled: enabled,
                showSelectedIcon: showSelectedIcon,
-               equal: width != null,
+               first: i == 0,
+               border: border,
                height: height,
                padding: padding,
                iconGap: iconGap,
@@ -160,7 +171,6 @@ final class MaterialSegmentedButton extends Box {
                transition: transition,
                onTap: onSelect == null ? null : () => onSelect(i),
              ),
-           ],
          ],
        );
 
@@ -187,18 +197,27 @@ final class MaterialSegmentedButton extends Box {
     color: BoxColor.role(MaterialColorRole.outline),
   );
 
-  /// One segment: the fill, and a well over it that covers the whole segment.
+  /// One segment: the fill, a well over it that covers the whole segment, and the rule at
+  /// its start unless it is the first.
   ///
   /// The press and the destination are the same decision, so they are made here once: a
   /// segment with a url that is not the chosen one is an anchor and nothing else, the
   /// chosen one is the page the reader is on and takes no press, and a segment without a
   /// url selects.
+  ///
+  /// The stack is what lets the rule stay inside the segment: a share of the pill is the
+  /// whole of its width, so a line laid out before the segment's content would either take
+  /// room from it or push the label off the centre of the share. Layered over it instead,
+  /// the line is where the segment begins and the label stays centred on the segment — the
+  /// geometry Material's own control draws, where the divider is part of the segment's own
+  /// shape.
   static UINode _segment({
     required MaterialSegment segment,
     required bool selected,
     required bool enabled,
     required bool showSelectedIcon,
-    required bool equal,
+    required bool first,
+    required BoxBorder border,
     required double height,
     required BoxSpacing padding,
     required double iconGap,
@@ -220,53 +239,54 @@ final class MaterialSegmentedButton extends Box {
         : segment.icon;
 
     return Box(
-      // Equal shares when the button was given a width: Material gives every segment
-      // the same share, so the control reads as a scale rather than as buttons of
-      // different weight. Without a width there is nothing to divide — and a `flex` in
-      // an unbounded row is a layout error in Flutter — so a segment hugs its label.
-      flex: equal ? 1 : null,
+      // The fill of the chosen segment. The share itself is the pill's: every child of an
+      // `equalShares` row is one, so no segment states a width, a flex or a share.
       backgroundColor: selected ? _selectedFill : null,
       children: <UINode>[
-        MaterialInkWell(
-          onTap: link ? null : onTap,
-          url: url,
-          newTab: url != null && segment.newTab,
-          enabled: enabled,
-          ink: foreground,
-          // A height, not an infinity: the segment is already as tall as the control,
-          // and an infinite height inside a column is a constraint Flutter refuses.
-          //
-          // The width is the state's too: a segment that shares the button's width fills
-          // the share it was given, and one that hugs its label has no width to fill — an
-          // infinity there is a constraint with nothing behind it, which Flutter refuses
-          // the moment the control sits in an unbounded row, a horizontally scrolling one
-          // included.
-          width: equal ? double.infinity : null,
-          height: height,
-          mainAlign: MainAlign.center,
-          transition: transition ?? MaterialInkWell.defaultTransition,
-          semantics: _semanticsOf(segment, selected: selected, link: link),
-          child: Box(
-            padding: padding,
-            mainAlign: MainAlign.center,
-            crossAlign: CrossAlign.center,
-            width: equal ? double.infinity : null,
-            textStyle: labelStyle.merge(BoxTextStyle(color: foreground)),
-            children: <UINode>[
-              if (leading == null)
-                _labelOf(segment.label, equal: equal)
-              else
-                Box(
-                  direction: Axis.horizontal,
-                  crossAlign: CrossAlign.center,
-                  gap: iconGap,
-                  children: <UINode>[
-                    leading,
-                    _labelOf(segment.label, equal: equal, beside: true),
-                  ],
-                ),
-            ],
-          ),
+        StackNode(
+          children: <UINode>[
+            MaterialInkWell(
+              onTap: link ? null : onTap,
+              url: url,
+              newTab: url != null && segment.newTab,
+              enabled: enabled,
+              ink: foreground,
+              // A height, not an infinity: the segment is already as tall as the control,
+              // and an infinite height inside a column is a constraint Flutter refuses.
+              //
+              // The width is infinite because the share is what bounds it: the pill gave
+              // this segment its width, so the well fills exactly the share, and a tint or
+              // an ink that only covered the label would stop short of the rounded end the
+              // segment reaches.
+              width: double.infinity,
+              height: height,
+              mainAlign: MainAlign.center,
+              transition: transition ?? MaterialInkWell.defaultTransition,
+              semantics: _semanticsOf(segment, selected: selected, link: link),
+              child: Box(
+                padding: padding,
+                mainAlign: MainAlign.center,
+                crossAlign: CrossAlign.center,
+                width: double.infinity,
+                textStyle: labelStyle.merge(BoxTextStyle(color: foreground)),
+                children: <UINode>[
+                  if (leading == null)
+                    _labelOf(segment.label)
+                  else
+                    Box(
+                      direction: Axis.horizontal,
+                      crossAlign: CrossAlign.center,
+                      gap: iconGap,
+                      children: <UINode>[
+                        leading,
+                        _labelOf(segment.label, beside: true),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+            if (!first) _divider(border, height),
+          ],
         ),
       ],
     );
@@ -301,12 +321,12 @@ final class MaterialSegmentedButton extends Box {
         : BoxSemantics(label: label, current: BoxCurrent.page);
   }
 
-  /// The label of a segment: its own size, or the share the segment was given.
+  /// The label of a segment, in the share the segment was given.
   ///
-  /// A segment is a share of a control's width, not a width of its own, so a label long
-  /// enough to fill it — a translation, or any label at a large text scale — has to give
-  /// way rather than widen the pill or paint over the segment beside it. Two things say
-  /// so, and both are read by the two targets:
+  /// A segment is a share of the control's width and not a width of its own, so a label
+  /// long enough to fill it — a translation, or any label at a large text scale — has to
+  /// give way rather than widen the pill or paint over the segment beside it. Two things
+  /// say so, and both are read by the two targets:
   ///
   /// * the box around the label is **stretched**, which is what gives a text a width to
   ///   be cut at: Flutter hands the child of a stretched column a tight width and CSS
@@ -315,36 +335,27 @@ final class MaterialSegmentedButton extends Box {
   /// * the text itself is **one line**, cut with an ellipsis ([_fitted]) and centred in
   ///   the room it was given, which is what Material states for a segment's label.
   ///
+  /// There is no share to hug instead: every segment of a segmented button is a share, and
+  /// the widest label is what the share is. A label wider than one is only reached by a
+  /// parent too narrow for `count ×` that widest segment.
+  ///
   /// [beside] is the shape with a node in front of it. The model's `flex` is a share of
   /// the parent and not "take what is left", so the label fills the room beside the
   /// node: a short label is centred in that room rather than sitting against its icon.
   /// Flutter's own `SegmentedButton` uses a `Flexible` there, which this model has no
   /// word for; the difference shows at a width where the label is much shorter than its
   /// share, and it is the price of a label that can never overflow.
-  ///
-  /// Without a share there is nothing to cut at, so the label is drawn as it was given:
-  /// every node in a hugging segment is as wide as it wants to be.
-  static UINode _labelOf(
-    UINode label, {
-    required bool equal,
-    bool beside = false,
-  }) {
-    if (!equal) {
-      return label;
-    }
-
-    return Box(
-      // A share, at the one place that says so: the box fills the segment when it is the
-      // content's only child, and the room beside the node when it is the row's.
-      flex: beside ? 1 : null,
-      width: beside ? null : double.infinity,
-      // The room the text is given, and the cut when it is still too long: a node that
-      // is not a text cannot say how it gives way, so it is clipped at the share.
-      crossAlign: CrossAlign.stretch,
-      overflow: Overflow.hidden,
-      children: <UINode>[_fitted(label)],
-    );
-  }
+  static UINode _labelOf(UINode label, {bool beside = false}) => Box(
+    // A share, at the one place that says so: the box fills the segment when it is the
+    // content's only child, and the room beside the node when it is the row's.
+    flex: beside ? 1 : null,
+    width: beside ? null : double.infinity,
+    // The room the text is given, and the cut when it is still too long: a node that
+    // is not a text cannot say how it gives way, so it is clipped at the share.
+    crossAlign: CrossAlign.stretch,
+    overflow: Overflow.hidden,
+    children: <UINode>[_fitted(label)],
+  );
 
   /// [label] as a segment draws it: one line, centred, and an ellipsis when it does not fit.
   ///
@@ -381,13 +392,29 @@ final class MaterialSegmentedButton extends Box {
     );
   }
 
-  /// The rule between two segments: a hairline the colour of the border.
+  /// The rule between two segments: a hairline the colour of the border, at the start of
+  /// the segment it opens.
   ///
-  /// It is a box rather than a border, because it stands between two children rather than
-  /// around one, and it takes the width and colour the caller gave the container so that a
-  /// themed control wears one line rather than two.
-  static UINode _divider(BoxBorder border) =>
-      Box(width: border.width, backgroundColor: border.color);
+  /// It is a box rather than a border on the segment, because the caller names one line for
+  /// the pill and its rules and a border would draw all four sides of every segment; and it
+  /// is layered over the segment rather than laid out before it, because the segment is a
+  /// share of the pill and a line in its flow would either take a pixel of the share or
+  /// push the label off the share's centre. `centerStart` is where it sits: the middle of
+  /// the segment's starting edge, which is its left on a page written left to right and its
+  /// right on one written the other way.
+  ///
+  /// The height is the control's, stated rather than filled: a positioned box cannot
+  /// stretch to the layer it sits in, and an infinite height inside one is a fill the model
+  /// reports — a page that scrolls hands the pill's whole subtree no end on that axis, and
+  /// the renderer cannot tell that the pill's own height bounds it.
+  static UINode _divider(BoxBorder border, double height) => PositionedNode(
+    alignment: BoxAlignment.centerStart,
+    child: Box(
+      width: border.width,
+      height: height,
+      backgroundColor: border.color,
+    ),
+  );
 
   /// The fill of a chosen segment.
   static const BoxColor _selectedFill = BoxColor.role(
