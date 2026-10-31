@@ -437,6 +437,8 @@ void main() {
             children: <UINode>[TextNode('Unibox')],
           ),
           StackNode(
+            width: 80,
+            height: 24,
             children: <UINode>[
               PositionedNode(top: 0, left: 0, child: TextNode('badge')),
             ],
@@ -1131,9 +1133,52 @@ void main() {
       expect(validateTree(stack), isEmpty);
     });
 
+    test('reports a layer that places every child and states no size', () {
+      // A layer has no size of its own: Flutter's `Stack` takes the room it is handed, a
+      // browser's grid collapses to what is in its flow. With nothing in the flow, the same
+      // tree is a full screen in the application and nothing at all on the page.
+      final List<TreeIssue> issues = validateTree(
+        const StackNode(
+          children: <UINode>[
+            PositionedNode(
+              alignment: BoxAlignment.center,
+              child: TextNode('Open the map'),
+            ),
+          ],
+        ),
+      );
+
+      expect(issues, hasLength(1));
+      expect(issues.single.isError, isTrue);
+      expect(issues.single.message, contains('no child in its flow'));
+    });
+
+    test(
+      'accepts a layer that places every child and states its rectangle',
+      () {
+        expect(
+          validateTree(
+            const StackNode(
+              width: 200,
+              height: 120,
+              children: <UINode>[
+                PositionedNode(
+                  alignment: BoxAlignment.center,
+                  child: TextNode('Open the map'),
+                ),
+              ],
+            ),
+          ),
+          isEmpty,
+        );
+      },
+    );
+
     test('reports an alignment and an offset on one node', () {
       final List<TreeIssue> issues = validateTree(
         const StackNode(
+          width: 200,
+          height: 200,
           children: <UINode>[
             PositionedNode(
               bottom: 24,

@@ -21,6 +21,10 @@ void main() {
         borderRadius: 12,
         children: <core.UINode>[
           core.StackNode(
+            // A layer states the rectangle it places its children in: the box bounds it,
+            // and a browser would otherwise collapse the stack to nothing.
+            width: double.infinity,
+            height: double.infinity,
             children: <core.UINode>[
               core.PositionedNode(
                 left: 10,

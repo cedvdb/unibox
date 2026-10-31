@@ -70,6 +70,8 @@ class TreeIssue {
 /// Detected issues:
 /// * a [PositionedNode] whose parent is not a [StackNode], which silently drops
 ///   its offsets,
+/// * a stack with nothing in its flow and no rectangle of its own, which Flutter
+///   fills with the room it is handed while a browser collapses it,
 /// * a [LinkNode] nested inside another [LinkNode], which is invalid HTML and navigates
 ///   twice,
 /// * a control inside a link, which HTML forbids and neither target can undo: a press
@@ -370,6 +372,27 @@ void _validate(
             'A PositionedNode is only placed by a StackNode, but its parent is '
             '${parent?.runtimeType ?? 'the root'}. Its offsets are ignored and '
             'the child renders at its natural position.',
+      ),
+    );
+  }
+
+  // A layer places its children but does not size itself: Flutter's `Stack` takes the biggest
+  // constraints it is handed, while a browser's grid hugs what sits in its flow. A stack with
+  // nothing in the flow therefore fills on one target and collapses on the other — the site's
+  // two phones were empty in the document and drawn in the application — so a stack that only
+  // places its children states the rectangle it places them in.
+  if (node is StackNode &&
+      node.children.every((UINode child) => child is PositionedNode) &&
+      (node.width == null || node.height == null)) {
+    issues.add(
+      TreeIssue(
+        node: node,
+        severity: TreeIssueSeverity.error,
+        message:
+            "A StackNode with no child in its flow has no size of its own: Flutter's "
+            '`Stack` takes the room it is handed while a browser\'s grid collapses to '
+            'its content, so it fills on one target and is empty on the other. State a '
+            'width and a height, or give it a child that is not placed.',
       ),
     );
   }

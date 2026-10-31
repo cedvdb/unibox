@@ -652,7 +652,10 @@ stretching to fill the stack, and a `PositionedNode` with no offset is drawn lik
 plain child. A `PositionedNode` outside a stack is reported by `validateTree`,
 because its offsets would be silently ignored, and so is one that states an alignment
 and an offset together — the child fills the stack when it is aligned, so an offset
-would have nothing left to move.
+would have nothing left to move. A stack that places every child and states no size
+is reported too: it has nothing in its flow to be as big as, and the two targets then
+disagree — Flutter's `Stack` takes the room it is handed while a browser's grid
+collapses. State a width and a height, as a frame or a screen does.
 
 **A floating control** is an aligned child with a margin: it stays where the surface
 puts it while everything under it scrolls, and no window is measured to know where

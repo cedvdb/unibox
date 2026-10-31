@@ -355,7 +355,8 @@ always safe.
 ## Validation
 
 `validateTree(node)` reports the trees no renderer can honour: a `PositionedNode`
-outside a `StackNode`, a `LinkNode` nested inside another one, and a control inside
-one, and a scrolling
-box that also distributes its children along the main axis. Both renderers run it
-inside an assertion, so a broken tree fails while it is being built.
+outside a `StackNode`, a stack that places every child and states no size (Flutter
+fills the room it is handed and a browser collapses it), a `LinkNode` nested inside
+another one, and a control inside one, and a scrolling box that also distributes its
+children along the main axis. Both renderers run it inside an assertion, so a broken
+tree fails while it is being built.

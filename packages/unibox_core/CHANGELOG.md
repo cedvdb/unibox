@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- `validateTree` reports a `StackNode` that places every child and states no size. A layer
+  places its children but does not size itself, and the two targets answered the missing
+  rectangle differently: Flutter's `Stack` takes the room it is handed, while a browser's grid
+  hugs what is in its flow — so the site's two phones were empty in the document and drawn in
+  the application. State a width and a height, or give the layer a child that is not placed.
+
 - `GridNode.columns` states one column per child, in one row: `[1, 2, 1]` is
   `grid-template-columns: 1fr 2fr 1fr`, so every column is as wide as the widest content per unit
   times its own factor, and given a width the factors divide it. It is the grid's second form
