@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- A box that states `fold` paints the look it names as it leaves its viewport. A `_RenderFoldedBox`
+  layer interpolates the decoration, the opacity and the transform when it paints, from the box's
+  own exit, so a scroll repaints one layer: nothing is rebuilt and nothing is laid out again.
+  A box with no `Scrollable` above it keeps its resting look, and so does a box that leaves
+  through the bottom of the viewport, which a browser's `view()` would fold.
+
 - A box that states `pin` stays at the edge it names while its viewport scrolls. The flow is
   laid out exactly as before — a column, with the band's stated height left in its slot — and
   the band is drawn over the viewport by a layer that repaints itself into place as the scroll

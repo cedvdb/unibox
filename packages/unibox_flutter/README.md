@@ -47,6 +47,7 @@ with their target.
 | `shape` + `overflow: Overflow.hidden` | `ClipPath` to the same path                       |
 | `overflow: Overflow.scroll`         | `SingleChildScrollView`                             |
 | `pin` / `pinOffset`                 | the flow unchanged, with the band drawn over the viewport at the edge it names: a `_RenderPinnedBand` repaints it into place on every scroll, so nothing rebuilds and the band keeps its slot |
+| `fold`                              | a `_RenderFoldedBox` layer that interpolates the decoration, the opacity and the transform as it paints, from the box's own exit out of the viewport; nothing is rebuilt and nothing is laid out again |
 | `onTap` / `onLongPress`             | `GestureDetector`                                   |
 | `capturesPointer: false`            | `IgnorePointer`, so the hover, the cursor and the press reach the control under the box; `true` makes a leaf a `Listener` with an opaque hit test |
 | `LinkNode` (a box that names a destination) | `GestureDetector` + `MouseRegion(cursor: click)` + `Semantics(link: true)`, opening through `FlutterLinkScope` unless it has an `onTap`; `Enter` opens it and `Space` does not, as in a browser. It is a `Box`, so it is drawn by `FlutterBox` and needs no widget of its own |
@@ -75,6 +76,15 @@ renderings part: a browser pins it to the document, which scrolls a page even th
 tree holds no viewport, while Flutter draws it where the flow put it, because the surface
 an application is drawn on does not scroll. Put the scroll in the tree — a box with
 `overflow: Overflow.scroll` — and the two agree, which is what the example does.
+
+A **fold** is drawn the same way: a `_RenderFoldedBox` reads how far the box has left its
+viewport when it paints and interpolates the decoration, the opacity and the transform
+there, so a scroll costs a repaint of one layer. Two edges are worth knowing. A fold runs
+as the box leaves through the *top* of the viewport, which is the journey a hero makes as
+the content under it comes up; a box that leaves through the bottom keeps its resting look
+here while a browser's `view()` folds it. And a Flutter tree whose box has no `Scrollable`
+above it — the page of an application that does not scroll itself — keeps the resting look,
+where the served document folds as the reader scrolls it.
 
 `width`/`height: double.infinity` expands to fill the available space. Inside a
 flex parent the expanding child is wrapped in an `Expanded` (using `flex`, or
