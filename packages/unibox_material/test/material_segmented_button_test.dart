@@ -164,6 +164,10 @@ void main() {
         final Box segment = _gridOf(control).children.first as Box;
         final Box row = _contentOf(_wellBox(segment)).children.single as Box;
 
+        // The layer states that it fills the column, so the fill and the label span the
+        // segment rather than hugging their words, and the row inside it has a width to
+        // divide between the icon and the room beside it.
+        expect(segment.crossAlign, CrossAlign.stretch);
         expect(row.direction, Axis.horizontal);
         expect(row.width, double.infinity);
         expect((row.children.last as Box).flex, 1);

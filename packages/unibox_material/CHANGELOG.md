@@ -6,7 +6,9 @@
   centred in the room beside it, on both renderers. The row that holds the two asked for a
   portion of a width it did not state, so the document centred the icon and the words
   together while Flutter filled the room beside the icon; the row now fills the column the
-  segment was given, and the pair are drawn the same way.
+  segment was given, and the pair are drawn the same way. The segment's layer states that it
+  fills the column as well, so a chosen fill and its label span the segment in a document
+  rather than hugging their words.
 
 - **Breaking: a segmented button's segments are the same width with or without a `width`.** The
   control had two sizing rules, and only one of them was a segmented button: given a width, every

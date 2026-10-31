@@ -246,6 +246,11 @@ final class MaterialSegmentedButton extends Box {
       // The fill of the chosen segment. The column itself is the grid's: every child of a
       // stated grid is one, so no segment states a width, a flex or a factor.
       backgroundColor: selected ? _selectedFill : null,
+      // The stack fills the column, and everything below it fills the stack: a box that hugs
+      // its content is a stack of no width, and a browser resolved the well's `100%` against
+      // that nothing — the segment's fill and label were as wide as their words while Flutter
+      // drew them across the column.
+      crossAlign: CrossAlign.stretch,
       children: <UINode>[
         StackNode(
           children: <UINode>[

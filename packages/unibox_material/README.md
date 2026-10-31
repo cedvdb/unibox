@@ -815,9 +815,10 @@ room neither can divide, and would push the label off the centre of its own shar
 and is centred there, rather than the pair being centred as a group — the
 control's own choice, and one the tree has to state: a row is as wide as its
 content, so the row that holds the icon and the label fills the column the
-segment was given. Without that width the two targets drew the same pair
-differently: the document centred the icon and the words together while Flutter
-filled the room beside the icon.
+segment was given, and the layer around them states that it fills the column
+first. Without those widths the two targets drew the same segment differently:
+the document centred the icon and the words together, and its chosen fill hugged
+them, while Flutter drew both across the column.
 
 **A label is one line.** A segment is a share of the control's width and not a width of its
 own, so a label longer than that share — a translation, or any label at twice the text
