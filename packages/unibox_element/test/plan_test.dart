@@ -312,8 +312,8 @@ void shapedTests() {
       padding: core.BoxSpacing.all(12),
       children: <core.UINode>[core.TextNode('Meeting room')],
     );
-    const core.Box anchor = core.Box(
-      url: '/?category=meetingRoom',
+    const core.Box anchor = core.LinkNode(
+      '/?category=meetingRoom',
       padding: core.BoxSpacing.all(12),
       children: <core.UINode>[core.TextNode('Meeting room')],
     );
@@ -371,7 +371,7 @@ void shapedTests() {
 
     test('opens in a new tab when it says so', () {
       final ElementPlan plan = planOf(
-        const core.Box(url: '/rooms', newTab: true),
+        const core.LinkNode('/rooms', newTab: true),
       );
 
       expect(plan.attributes['target'], '_blank');
@@ -380,7 +380,7 @@ void shapedTests() {
 
     test('opens in the same tab by default', () {
       final ElementPlan plan = planNode(
-        const core.Box(url: '/rooms'),
+        const core.LinkNode('/rooms'),
         Stylesheet(),
       );
 
@@ -392,8 +392,8 @@ void shapedTests() {
       // The tag is the role: a role attribute on an `<a href>` would overrule the link,
       // and a `tabindex` would restate a tab stop the element already has.
       final ElementPlan plan = planOf(
-        const core.Box(
-          url: '/rooms',
+        const core.LinkNode(
+          '/rooms',
           semantics: core.BoxSemantics(
             role: core.BoxRole.button,
             label: 'Meeting room',
@@ -410,8 +410,8 @@ void shapedTests() {
 
     test('says which page it is with aria-current', () {
       final ElementPlan plan = planOf(
-        const core.Box(
-          url: '/rooms',
+        const core.LinkNode(
+          '/rooms',
           semantics: core.BoxSemantics(current: core.BoxCurrent.page),
         ),
       );
@@ -423,8 +423,8 @@ void shapedTests() {
       // A disabled control drops what it does and keeps what it looks like, and a browser
       // that followed the href anyway would do what Flutter refuses to do.
       final ElementPlan plan = planOf(
-        const core.Box(
-          url: '/rooms',
+        const core.LinkNode(
+          '/rooms',
           enabled: false,
           semantics: core.BoxSemantics(label: 'Rooms'),
         ),
@@ -439,8 +439,8 @@ void shapedTests() {
       // `<a>` is an element, not an attribute: a box that says it is one is written as one
       // whether or not it names a destination.
       final ElementPlan stated = planNode(
-        const core.Box(
-          url: '/rooms',
+        const core.LinkNode(
+          '/rooms',
           semantics: core.BoxSemantics(element: core.BoxElement.a),
         ),
         Stylesheet(),
@@ -462,8 +462,8 @@ void shapedTests() {
 
     test('needs no role beside an anchor, because the tag is the role', () {
       final ElementPlan plan = planNode(
-        const core.Box(
-          url: '/rooms',
+        const core.LinkNode(
+          '/rooms',
           semantics: core.BoxSemantics(
             element: core.BoxElement.a,
             role: core.BoxRole.link,
@@ -480,8 +480,8 @@ void shapedTests() {
       // a tree the debug build refuses: a plain `<nav>`. An href on it would be a link that
       // nothing follows, and a tab stop would make the broken tree reachable by keyboard.
       final ElementPlan plan = planNode(
-        const core.Box(
-          url: '/rooms',
+        const core.LinkNode(
+          '/rooms',
           semantics: core.BoxSemantics(element: core.BoxElement.nav),
         ),
         Stylesheet(),
@@ -497,7 +497,7 @@ void shapedTests() {
       // is still the thing a reader presses.
       final Stylesheet sheet = Stylesheet();
       final ElementPlan plan = planNodeWith(
-        const core.Box(url: '/rooms', width: 40, height: 40),
+        const core.LinkNode('/rooms', width: 40, height: 40),
         sheet,
       );
 

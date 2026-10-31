@@ -3,6 +3,7 @@ import 'nodes/box.dart';
 import 'nodes/embed_node.dart';
 import 'nodes/grid_node.dart';
 import 'nodes/image_node.dart';
+import 'nodes/link_node.dart';
 import 'nodes/overlay_node.dart';
 import 'nodes/positioned_node.dart';
 import 'nodes/stack_node.dart';
@@ -68,8 +69,8 @@ class TreeIssue {
 /// Detected issues:
 /// * a [PositionedNode] whose parent is not a [StackNode], which silently drops
 ///   its offsets,
-/// * a link nested inside another link — a [Box] with a `url` inside one — which is
-///   invalid HTML and navigates twice,
+/// * a [LinkNode] nested inside another [LinkNode], which is invalid HTML and navigates
+///   twice,
 /// * a control inside a link, which HTML forbids and neither target can undo: a press
 ///   would run the inner control and follow the link,
 /// * a box that scrolls along its main axis while distributing its children
@@ -791,7 +792,7 @@ void _validate(
 
   var nestedInAnchor = inAnchor;
 
-  if (node is Box && node.isAnchor) {
+  if (node is LinkNode) {
     if (inAnchor) {
       issues.add(
         TreeIssue(
@@ -817,7 +818,7 @@ void _validate(
         node: node,
         severity: TreeIssueSeverity.error,
         message:
-            'A box with a url cannot contain a control: HTML forbids interactive '
+            'A link cannot contain a control: HTML forbids interactive '
             'content inside <a>, so a press on the inner control would both run it '
             'and follow the link, and neither target can say which. Move the '
             'control beside the link, or make the link the control.',
@@ -833,13 +834,15 @@ void _validate(
     // A box that navigates is the `<a>` element, so an element it also names is lost: only
     // one tag is written, and an `<article>` that quietly became an anchor would be a
     // landmark the page stopped having.
-    if (node.isAnchor && element != BoxElement.div && element != BoxElement.a) {
+    if (node is LinkNode &&
+        element != BoxElement.div &&
+        element != BoxElement.a) {
       issues.add(
         TreeIssue(
           node: node,
           severity: TreeIssueSeverity.error,
           message:
-              'A box with a url is an <a>, so it cannot also be '
+              'A LinkNode is an <a>, so it cannot also be '
               'BoxElement.${element.name}: one element is written and the anchor is '
               'the one that navigates. Put the ${element.name} around the box, or give '
               'the url to a box inside it.',

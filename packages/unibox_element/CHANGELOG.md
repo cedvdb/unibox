@@ -7,18 +7,15 @@
   tree has to be harmless: it was a `<nav href="/rooms" tabindex="0">`, an anchor
   nothing followed in markup a keyboard could reach.
 
-- `LinkNode` is no longer planned: the anchor is the box that names a `url`, so there is one
-  plan for a link and no wrapper node to keep in step. `supportedNodes` names what is left.
-
 - `elementOf(box)` is the one place that decides which tag a box becomes: the element it
   states, or the anchor a `url` makes it. Every derived decision — the tag, the `href`, the
   class and the attributes — reads it, so they cannot disagree, and an anchor with no `href`
   is written as the placeholder it is.
 
-- A box with a `url` is planned as an `<a>`: the same class, the same declarations and the
-  same children, with the destination's `href` — and `target`/`rel` for `newTab` — written by
-  the new `linkAttributes`. The look key includes the tag, so a
-  url box and the same box without one are two looks: the anchor's rule carries the two
+- A `LinkNode` is planned as an `<a>`: the same class, the same declarations and the same
+  children it would have had as a box, with the destination's `href` — and `target`/`rel` for
+  `newTab` — written by the new `linkAttributes`. The look key includes the tag, so a link and
+  the same box without a destination are two looks: the anchor's rule carries the two
   declarations that cancel the browser's blue and underline.
 
 - `boxAttributes` writes no `role`, no `tabindex`, no `aria-checked` and no `aria-selected`

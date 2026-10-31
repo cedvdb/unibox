@@ -17,11 +17,11 @@ void main() {
     });
 
     testWidgets('throws for a link nested in a link', (tester) async {
-      const core.Box node = core.Box(
-        url: 'https://a.dev',
+      const core.Box node = core.LinkNode(
+        'https://a.dev',
         children: <core.UINode>[
-          core.Box(
-            url: 'https://b.dev',
+          core.LinkNode(
+            'https://b.dev',
             children: <core.UINode>[core.TextNode('inner')],
           ),
         ],

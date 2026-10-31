@@ -47,9 +47,9 @@ void main() {
 
     test('answers a destination that handles its own press', () {
       var followed = 0;
-      final UINode tree = Box(
+      final UINode tree = LinkNode(
+        '/listings',
         key: 'open',
-        url: '/listings',
         onTap: () => followed++,
         children: const <UINode>[TextNode('Listings')],
       );
@@ -62,9 +62,9 @@ void main() {
     test('leaves a destination with no handler to the browser', () {
       // The page has already followed the href; answering again would be a second answer to
       // one press.
-      final UINode tree = Box(
+      final UINode tree = LinkNode(
+        '/listings',
         key: 'open',
-        url: '/listings',
         children: const <UINode>[TextNode('Listings')],
       );
 

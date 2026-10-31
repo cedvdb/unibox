@@ -128,8 +128,8 @@ void main() {
       () {
         int pressed = 0;
         final DomView view = DomView.mount(
-          core.Box(
-            url: '/?category=meetingRoom',
+          core.LinkNode(
+            '/?category=meetingRoom',
             onTap: () => pressed++,
             children: <core.UINode>[const core.TextNode('Meeting room')],
           ),
@@ -157,15 +157,15 @@ void main() {
       final DomView view = DomView.mount(
         core.Box(
           children: <core.UINode>[
-            core.Box(
+            core.LinkNode(
+              '/a',
               key: 'modified',
-              url: '/a',
               onTap: () => pressed++,
               children: <core.UINode>[const core.TextNode('A')],
             ),
-            core.Box(
+            core.LinkNode(
+              '/b',
               key: 'newtab',
-              url: '/b',
               newTab: true,
               onTap: () => pressed++,
               children: <core.UINode>[const core.TextNode('B')],
@@ -213,8 +213,8 @@ void main() {
         // A destination with no callback is the browser’s: the listener must not swallow the
         // click it cannot answer, or the link would be dead on the one target that has one.
         final DomView view = DomView.mount(
-          core.Box(
-            url: '/?category=meetingRoom',
+          core.LinkNode(
+            '/?category=meetingRoom',
             children: <core.UINode>[const core.TextNode('Meeting room')],
           ),
           host(),

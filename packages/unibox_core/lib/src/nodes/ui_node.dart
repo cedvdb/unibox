@@ -8,12 +8,11 @@
 ///
 /// ## Naming
 ///
-/// A node only carries the `Node` suffix when its bare name would collide with
-/// a Flutter widget that consumers import next to this package. `Text`, `Image`,
-/// `Stack` and `Positioned` all exist in `flutter/widgets.dart`, so those nodes are
-/// named `TextNode`, `ImageNode`, `StackNode` and `PositionedNode`. `Box` has no
-/// Flutter counterpart and stays unsuffixed — and a link is not a node of its own at
-/// all: it is a `url` on the box that is one.
+/// A node only carries the `Node` suffix when its bare name would collide with a Flutter
+/// widget or an HTML element that a reader already knows. `Text`, `Image`, `Stack` and
+/// `Positioned` all exist in `flutter/widgets.dart`, so those nodes are named `TextNode`,
+/// `ImageNode`, `StackNode` and `PositionedNode`; `Link` is an HTML element, so the box that
+/// names a destination is `LinkNode`. `Box` collides with neither and stays unsuffixed.
 abstract class UINode {
   /// Creates a node.
   const UINode({this.key});

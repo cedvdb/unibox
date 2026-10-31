@@ -105,7 +105,7 @@ final UINode page = Box(
   children: <UINode>[
     TextNode('Apartments in Amsterdam', headingLevel: 1),
     TextNode('Forty-one flats, from a studio to a family home.'),
-    Box(url: 'apartments/amsterdam', children: <UINode>[TextNode('See all')]),
+    LinkNode('apartments/amsterdam', children: <UINode>[TextNode('See all')]),
   ],
 );
 
@@ -277,18 +277,17 @@ a static site, each host a single small file.
 
 ## The nodes
 
-There are nine node types. Each one is an immutable Dart object with a `const`
+There are ten node types. Each one is an immutable Dart object with a `const`
 constructor, and each one describes *what* it is rather than which framework draws
 it. Style values — colours, spacing, borders, typography — are separate objects
 that a node takes as parameters, so a look can be reused as one `const BoxStyle`
 instead of being repeated.
 
-The nine: [`Box`](#box), [`TextNode`](#textnode), [`ImageNode`](#imagenode),
-[`StackNode`](#stacknode-and-positionednode) with
+The ten: [`Box`](#box), [`TextNode`](#textnode), [`ImageNode`](#imagenode),
+[`LinkNode`](#links), [`StackNode`](#stacknode-and-positionednode) with
 [`PositionedNode`](#stacknode-and-positionednode), [`TextInputNode`](#textinputnode),
 [`StatefulNode`](#statefulnode), [`OverlayNode`](#overlaynode) and
-[`EmbedNode`](#embednode). There is no link node: a link is a [`url`](#links) on the
-box that is one.
+[`EmbedNode`](#embednode).
 
 Every node accepts a `key`. Renderers hand it to the target's own key mechanism, so
 when a list is reordered each child keeps its state: typed text stays in the field
@@ -297,8 +296,8 @@ it was typed into.
 ### Box
 
 The container. It lays children out in a row or a column, spaces them, sizes
-itself, paints a background, a border, rounded corners and shadows, reacts to
-taps and hover — and, with a `url`, *is* the link that a press follows.
+itself, paints a background, a border, rounded corners and shadows, and reacts to
+taps and hover. A box that names a destination is a [`LinkNode`](#links), which *is* a box.
 
 ```dart
 Box(
@@ -367,13 +366,6 @@ Box(
 | `semantics` | `BoxSemantics?` | none | What the box *is* for a screen reader: role, label, state, element. |
 | `stateStyles` | `Map<BoxState, BoxStyle>?` | none | Looks for `hover`, `focus`, `pressed` and `disabled`, layered over the resting one. |
 | `hoverStyle` | `BoxStyle?` | none | Shorthand for the `hover` entry of `stateStyles`. |
-
-**Navigation**
-
-| Parameter | Type | Default | Meaning |
-| --- | --- | --- | --- |
-| `url` | `String?` | none | The destination, when the box is a link rather than a container: the element *is* the anchor (`BoxSemantics.element: BoxElement.a`, which a url implies), so the web renders it as `<a href>` — the box's own look, children and states, a real href a crawler reads and a reader without JavaScript follows — and Flutter keeps the box's press and opens the url through the enclosing [`FlutterLinkScope`](#links). The whole box is pressable, padding included, and ink still starts where the finger landed. A disabled box writes no `href`. |
-| `newTab` | `bool` | `false` | Opens the destination elsewhere. The web renderer adds `target="_blank"` with `rel="noopener noreferrer"`; Flutter has no tab, so it is the host's business there. |
 
 **Styles**
 
@@ -563,43 +555,45 @@ a phone needs and the denser candidates are a free improvement on the web.
 
 ### Links
 
-A press that goes somewhere is a destination, and the model states it as `url` on the
-node that carries the press. The box itself becomes the anchor: on the web it is a real
-`<a href>` with its own look, its own children and its own states, so a crawler follows
-it, a reader without JavaScript uses it, and the whole control — padding, fill, ink — is
-what can be pressed. In Flutter the host decides what following a url means.
+`LinkNode` is a [box](#box) that names a destination. It *is* the box — the same element,
+the same look, the same children, the same press — with a `url` on it, so the whole of it is
+what a reader presses and, on the web, a real `<a href>` that a crawler follows and a page
+without JavaScript can use. A wrapper around a box cannot do that: it states no layout, so a
+control inside it keeps the `flex` share, the height and the padding the anchor should have
+had.
 
 ```dart
-// A control that is a destination: one element, one rule, one press.
-Box(
-  url: '/apartments/amsterdam',
+LinkNode(
+  '/apartments/amsterdam',
   padding: BoxSpacing.all(16),
   borderRadius: 12,
   children: <UINode>[TextNode('See all')],
 )
 ```
 
+It takes every parameter a `Box` takes, plus:
+
 | Parameter | Type | Default | Meaning |
 | --- | --- | --- | --- |
-| `url` | `String?` | none | The destination. The element becomes the anchor (`BoxSemantics.element: BoxElement.a`), and a disabled box writes no `href`. |
+| `url` | `String` | required | The destination. The element is the anchor (`BoxSemantics.element: BoxElement.a`), and a disabled link writes no `href`. |
 | `newTab` | `bool` | `false` | Opens elsewhere: `target="_blank"` with `rel="noopener noreferrer"` on the web. Flutter has no tab; the host decides there. |
 
 **Worth knowing.** In Flutter there is no browser, so the host decides what following a
-destination means: wrap the tree in `FlutterLinkScope(open: (url) => ...)` and every url
-calls it — unless the box has an `onTap`, which answers the press itself, the same way
-the web renderer cancels the navigation rather than doing both. A destination with
-neither a scope nor an `onTap` is reported in debug builds, because pressing it would do
-nothing. The browser's own link styling — underline and blue — is cancelled, so a link
-looks exactly like the box that states it. A box with `BoxSemantics(element:
-BoxElement.a)` and no `url` is an anchor with no destination: a placeholder a browser
-paints as text, which nothing follows and nothing can tab to.
+destination means: wrap the tree in `FlutterLinkScope(open: (url) => ...)` and every link
+calls it — unless the link has an `onTap`, which answers the press itself, the same way the
+web renderer cancels the navigation rather than doing both. A link with neither a scope nor
+an `onTap` is reported in debug builds, because pressing it would do nothing. The browser's
+own link styling — underline and blue — is cancelled, so a link looks exactly like the box
+it is. A box with `BoxSemantics(element: BoxElement.a)` and no destination is HTML's
+placeholder anchor: a browser paints it as text, nothing follows it and nothing can tab to
+it.
 
-**What cannot be one.** HTML forbids interactive content inside `<a>`, so a control inside
-a link is reported by `validateTree` rather than painted two ways: a chip with a remove
-cross is two nodes side by side, not one inside the other. A link inside a link is
-reported for the same reason — it would navigate twice. A box that names a landmark
-*and* a `url` is reported too, because only one tag is written and the anchor is the one
-that navigates.
+**What cannot be one.** HTML forbids interactive content inside `<a>`, so a control inside a
+link is reported by `validateTree` rather than painted two ways: a chip with a remove cross
+is two nodes side by side, not one inside the other. A link inside a link is reported for the
+same reason — it would navigate twice. A link that names a landmark (`element: article`)
+*and* a destination is reported too, because only one tag is written and the anchor is the
+one that navigates.
 
 ### StackNode and PositionedNode
 
@@ -814,7 +808,7 @@ which could not dismiss anything.
 
 ### EmbedNode
 
-The escape hatch, for what the nine nodes cannot describe: a chart from a package,
+The escape hatch, for what the ten nodes cannot describe: a chart from a package,
 a video player, an effect that only exists on one platform.
 
 A node carries **one implementation per renderer**, and each renderer draws the

@@ -2,15 +2,12 @@
 
 ## Unreleased
 
-- A link is a box with a `url`, so the click rule binds there and nowhere else: a plain
-  click is cancelled and answered, and a modifier, a middle click and a `newTab` stay the
-  browser's.
-
-- A box with a `url` and an `onTap` answers a press the way a link does: a plain click is
-  cancelled and the callback runs, while a modifier, a middle click and a `newTab` stay the
-  browser's. A box with a url and no callback binds nothing, so the browser follows the
-  `href`. The `Enter` key is not bound for an anchor — a browser turns `Enter` on a link into
-  a click the listener above already answers, and `Space` does nothing on a link.
+- A link is a `LinkNode` — a box that names a destination — so the click rule binds where the
+  press is and nowhere else: a plain click is cancelled and answered by the tree, while a
+  modifier, a middle click and a `newTab` stay the browser's. A link with no `onTap` binds
+  nothing, so the browser follows the `href`. `Enter` is not bound for an anchor, because a
+  browser already turns it into the click the listener above answers, and `Space` does nothing
+  on a link.
 
 - The view holds its stylesheet to the looks the page wears. A view lives as long as the page, so
   every look a store minted — a list whose styling follows its data, a ripple pressed in a new

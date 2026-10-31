@@ -377,6 +377,8 @@ void main() {
           MaterialInkWell(url: '/sign-in', child: const TextNode('Sign in')),
         );
 
+        // A link is a box, so the region a reader presses is the node that navigates.
+        expect(shape, isA<LinkNode>());
         expect(shape.url, '/sign-in');
         expect(shape.onTap, isNull);
         // A destination is pressable: the ink starts on tap-down even though nothing in the

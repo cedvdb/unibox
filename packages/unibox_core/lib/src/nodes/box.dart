@@ -81,8 +81,6 @@ class Box extends UINode {
     this.stateStyles,
     this.enabled = true,
     this.semantics,
-    this.url,
-    this.newTab = false,
     this.onTap,
     this.onTapDown,
     this.onLongPress,
@@ -371,28 +369,16 @@ class Box extends UINode {
 
   // Navigation.
 
-  /// The destination of this box, when the box is a link rather than a container.
+  /// The destination of this box, when it is a link.
   ///
-  /// A url makes the box itself an anchor: the web renders the element as `<a href>`, with
-  /// the box's own look, its children and its states unchanged, so the control a crawler
-  /// reads is the control a reader presses — no runtime needed, and the url can be copied,
-  /// bookmarked or opened in a new tab. The Flutter renderer keeps the box's gesture and its
-  /// pressed state and opens the url through the host's link scope, which is why this is a
-  /// token on the control and not a wrapper around it: ink, focus and press belong to the box.
-  ///
-  /// Use it on a control that is a destination — a button, a card, a segment — and on a
-  /// leaf as well: a picture or a line of text is the same token on a box that holds only
-  /// that leaf, which is one element and one rule rather than a wrapper around one.
-  ///
-  /// A disabled box writes no `href`: the element still says what it is, and a reader is
-  /// told it is disabled, but nothing navigates and no tab stop is added.
-  final String? url;
+  /// A box on its own is a container, so the answer here is `null`: a destination belongs to
+  /// a [LinkNode], which is a box that names one. This is a getter rather than a field so
+  /// that every renderer can ask the question of the node it was handed — `isAnchor` is its
+  /// only reader — without first asking which type it is.
+  String? get url => null;
 
-  /// Whether [url] opens in a new tab, on the web.
-  ///
-  /// Flutter has no tab, so the Flutter renderer ignores it: following a url is the host's
-  /// decision there, and the host decides it once, in the link scope.
-  final bool newTab;
+  /// Whether [url] opens in a new tab, on the web. A plain box has no destination.
+  bool get newTab => false;
 
   // Actions.
 

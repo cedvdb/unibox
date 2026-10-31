@@ -65,7 +65,7 @@ final String page = toDocument(
 | the other languages of the same page | `alternates:` — the `hreflang` links, the whole set on every page of it |
 | the address of this page | `canonical:` — per language, or two translations compete as one |
 | the language a reader gets | the address (`/de/…`): a crawler sends no `Accept-Language` and keeps no cookie |
-| a language switch | a `url` on the box that names the other address, which is followable and crawlable like any other link |
+| a language switch | a `LinkNode` to the other address, which is followable and crawlable like any other link |
 
 `toDocument` translates nothing: it writes the strings it is given and states which language they
 are written in. A catalogue — `.arb`, plurals, dates, numbers, collation — belongs to the
@@ -85,7 +85,7 @@ repainting it. It is decided here, once, before a second renderer exists to disa
 A node this renderer cannot draw throws rather than being skipped: a tree built for
 another target fails loudly instead of shipping a page with a piece missing.
 
-**A box with a `url` is an `<a>`.** The tag, the `href` and the two declarations that
+**A `LinkNode` is an `<a>`.** It is a box, so the tag, the `href` and the two declarations that
 cancel a browser's link paint are the whole difference: the class stays the box's own look,
 the children stay where they were, and the element takes the pointer even with nothing
 inside it. There is no `role` and no `tabindex` on it — the tag is the role, and an anchor is

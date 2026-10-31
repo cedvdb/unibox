@@ -171,6 +171,52 @@ void main() {
       expect(html, contains('href="/sign-in"'));
     });
 
+    test(
+      'draws the box the same well would draw, and differs by the anchor',
+      () {
+        // The well builds one region and only its type changes, so a linked well and a well
+        // with a callback have to look alike: the same declarations, one class apart from the
+        // two that cancel what a browser paints on a link.
+        final Stylesheet plain = Stylesheet();
+        final Stylesheet linked = Stylesheet();
+        final ElementPlan withTap = planNode(
+          MaterialInkWell(
+            onTap: () {},
+            borderRadius: 12,
+            padding: const core.BoxSpacing.all(8),
+            child: const core.TextNode('Sign in'),
+          ),
+          plain,
+        );
+        final ElementPlan withUrl = planNode(
+          MaterialInkWell(
+            url: '/sign-in',
+            borderRadius: 12,
+            padding: const core.BoxSpacing.all(8),
+            child: const core.TextNode('Sign in'),
+          ),
+          linked,
+        );
+
+        String ruleOf(Stylesheet sheet, ElementPlan plan) => sheet
+            .rulesSince((classes: 0, states: 0))
+            .firstWhere((String r) => r.startsWith('.${plan.className!}{'));
+
+        // The body, not the selector: the classes differ, which is the one thing that should.
+        String withoutLinkResets(String rule) => rule
+            .substring(rule.indexOf('{') + 1)
+            .replaceAll('color:inherit;', '')
+            .replaceAll('text-decoration:none;', '');
+
+        final String a = withoutLinkResets(ruleOf(plain, withTap));
+        final String b = withoutLinkResets(ruleOf(linked, withUrl));
+
+        expect(withTap.tag, isNot('a'));
+        expect(withUrl.tag, 'a');
+        expect(b, a, reason: 'a link draws the box it would have drawn');
+      },
+    );
+
     test('opens in a new tab when it says so', () {
       final String html = render(
         MaterialInkWell(

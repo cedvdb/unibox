@@ -21,7 +21,7 @@ again would draw the same tree two ways, which is the drift this repository exis
 | what does a page still need? | `sheet.mark` and `sheet.rulesSince(mark)`, the rules added since a renderer wrote the sheet — so a page is appended to, not rewritten |
 | which rules may go? | `sheet.retain(classes)`, which forgets every rule of a class the page does not wear |
 | may a destination be followed? | `isRiskyUrl`, `safeUrlValue` — a script url becomes `#` |
-| which element is a link? | `linkAttributes(url, newTab:)` — the `href`, and the `target`/`rel` a new tab needs — for the box that navigates, which *is* the `<a>` |
+| which element is a link? | `linkAttributes(url, newTab:)` — the `href`, and the `target`/`rel` a new tab needs — for a `LinkNode`, which *is* the `<a>` |
 | which tag does a box become? | `elementOf(box)` — the element it states, or the anchor a `url` makes it; an anchor with no destination is a placeholder, and names none |
 | what does a control announce? | `boxAttributes(box)` — no `role`, no `tabindex` and no control state on an anchor, because the tag is the role |
 | how is an embed drawn? | the renderer says, through `PlanOptions.embed` |

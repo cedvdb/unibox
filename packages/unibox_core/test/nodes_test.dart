@@ -143,6 +143,34 @@ void main() {
     });
   });
 
+  group('LinkNode', () {
+    test('is a box that names a destination', () {
+      const LinkNode link = LinkNode(
+        'https://unibox.dev',
+        padding: BoxSpacing.all(12),
+        children: <UINode>[TextNode('Unibox')],
+      );
+
+      // The destination is the box: the look, the children and the layout are its own, which
+      // is what lets a link be a control rather than a wrapper around one.
+      expect(link, isA<Box>());
+      expect(link.url, 'https://unibox.dev');
+      expect(link.isAnchor, isTrue);
+      expect(link.newTab, isFalse);
+      expect(link.computedStyle.padding, const BoxSpacing.all(12));
+      expect((link.children.single as TextNode).text, 'Unibox');
+    });
+
+    test('defaults to the same tab and no destination of its own', () {
+      const Box plain = Box();
+
+      expect(plain.url, isNull);
+      expect(plain.newTab, isFalse);
+      expect(plain.isAnchor, isFalse);
+      expect(const LinkNode('/x', newTab: true).newTab, isTrue);
+    });
+  });
+
   group('StackNode', () {
     test('layers its children in paint order', () {
       const stack = StackNode(
@@ -281,19 +309,21 @@ void main() {
         const Box(),
         const TextNode('text'),
         const ImageNode('image.png'),
+        const LinkNode('https://unibox.dev'),
         const StackNode(),
         const PositionedNode(child: TextNode('positioned')),
         const TextInputNode(),
       ];
 
-      expect(nodes, hasLength(6));
-      expect(nodes.map((node) => node.runtimeType).toSet(), hasLength(6));
+      expect(nodes, hasLength(7));
+      expect(nodes.map((node) => node.runtimeType).toSet(), hasLength(7));
     });
 
     test('is unkeyed by default', () {
       expect(const Box().key, isNull);
       expect(const TextNode('text').key, isNull);
       expect(const ImageNode('image.png').key, isNull);
+      expect(const LinkNode('https://unibox.dev').key, isNull);
       expect(const StackNode().key, isNull);
       expect(const PositionedNode(child: TextNode('x')).key, isNull);
       expect(const TextInputNode().key, isNull);
@@ -304,6 +334,7 @@ void main() {
         Box(key: 'box'),
         TextNode('text', key: 'text'),
         ImageNode('image.png', key: 'image'),
+        LinkNode('https://unibox.dev', key: 'link'),
         StackNode(key: 'stack'),
         PositionedNode(child: TextNode('x'), key: 'positioned'),
         TextInputNode(key: 'input'),
@@ -313,6 +344,7 @@ void main() {
         'box',
         'text',
         'image',
+        'link',
         'stack',
         'positioned',
         'input',

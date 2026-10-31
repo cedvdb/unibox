@@ -23,8 +23,8 @@ Widget Function(Widget child) opener(List<String> opened) =>
 /// ink that starts on tap-down, and only gains a destination.
 void main() {
   group('a box with a url', () {
-    const core.Box room = core.Box(
-      url: '/?category=meetingRoom',
+    const core.Box room = core.LinkNode(
+      '/?category=meetingRoom',
       padding: core.BoxSpacing.all(12),
       children: <core.UINode>[core.TextNode('Meeting room')],
     );
@@ -48,8 +48,8 @@ void main() {
 
       await pumpNode(
         tester,
-        core.Box(
-          url: '/?category=meetingRoom',
+        core.LinkNode(
+          '/?category=meetingRoom',
           onTap: () => taps++,
           children: <core.UINode>[const core.TextNode('Meeting room')],
         ),
@@ -81,9 +81,8 @@ void main() {
 
       await pumpNode(
         tester,
-        const core.Box(
-          url: '/?category=meetingRoom',
-          // A component written for a button: the tag decides, so the box says "link"
+        const core.LinkNode(
+          '/?category=meetingRoom', // A component written for a button: the tag decides, so the box says "link"
           // and drops the pressed state a link cannot have.
           semantics: core.BoxSemantics(
             role: core.BoxRole.button,
@@ -116,8 +115,8 @@ void main() {
 
       await pumpNode(
         tester,
-        core.Box(
-          url: '/?category=meetingRoom',
+        core.LinkNode(
+          '/?category=meetingRoom',
           onTapDown: (core.BoxTapEvent event) => presses.add(event.position),
           width: 200,
           height: 48,

@@ -47,7 +47,7 @@ with their target.
 | `shape` + `overflow: Overflow.hidden` | `ClipPath` to the same path                       |
 | `overflow: Overflow.scroll`         | `SingleChildScrollView`                             |
 | `onTap` / `onLongPress`             | `GestureDetector`                                   |
-| `url` (a box that navigates)        | `GestureDetector` + `MouseRegion(cursor: click)` + `Semantics(link: true)`, opening through `FlutterLinkScope` unless the box has an `onTap`; `Enter` opens it and `Space` does not, as in a browser |
+| `LinkNode` (a box that names a destination) | `GestureDetector` + `MouseRegion(cursor: click)` + `Semantics(link: true)`, opening through `FlutterLinkScope` unless it has an `onTap`; `Enter` opens it and `Space` does not, as in a browser. It is a `Box`, so it is drawn by `FlutterBox` and needs no widget of its own |
 | `newTab` on a box                   | web only, ignored by the Flutter renderer |
 | `onHover` / `hoverStyle`            | `MouseRegion` and the hovered token set             |
 | `onScroll`                          | `NotificationListener<ScrollUpdateNotification>` around the scroll view, reporting `metrics.pixels` when the notification's `depth` is zero |
@@ -360,10 +360,9 @@ FlutterLinkScope(
 );
 ```
 
-A box with a `url` is a click-cursor region that a screen reader hears as a link, and it
-opens with `Enter` — not with `Space`, which a browser does nothing with on an anchor. A
-box with an `onTap` is handled by the tree and the scope is not asked: one press, one
-answer, and the web renderer says the same thing by cancelling the navigation rather than
+A `LinkNode` is a click-cursor region that a screen reader hears as a link, and it opens
+with `Enter` — not with `Space`, which a browser does nothing with on an anchor. A link
+with an `onTap` is handled by the tree and the scope is not asked: one press, one answer, and the web renderer says the same thing by cancelling the navigation rather than
 loading the document too. A destination with neither a scope nor an `onTap` is reported as
 a host configuration error in debug builds instead of silently doing nothing.
 

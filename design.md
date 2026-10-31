@@ -62,7 +62,8 @@ All nodes extend `abstract class UINode`.
 5. **`PositionedNode`**: Direct child of `StackNode` (`top`, `right`, `bottom`, `left`, `child`).
 6. **`TextInputNode`**: `value`, `placeholder`, `obscureText`, `multiline`, `maxLines`, `onChanged`, `onSubmitted`.
 
-There is no link node: a link is a `url` on the box that is one (§5.5).
+4. **`LinkNode`** (extends `Box`): `url`, `newTab` — the box that *is* the anchor, with
+   every box parameter it needs to be a card, a button or a segment (§5.5).
 
 ---
 
@@ -74,9 +75,10 @@ There is no link node: a link is a `url` on the box that is one (§5.5).
 - `Box` with `overflow: Overflow.scroll` wraps in `SingleChildScrollView`.
 - `onTap` maps to `GestureDetector`.
 - `onHover` maps to `MouseRegion`.
-- A `Box` with a `url` is a click-cursor region that says `Semantics(link: true)`, opens
-  through `FlutterLinkScope` unless it has an `onTap`, and activates with `Enter`. The box
-  keeps its own gesture, so its pressed state and its ink stay its own.
+- `LinkNode` is a `Box`, so it needs no widget of its own: it is a click-cursor region that
+  says `Semantics(link: true)`, opens through `FlutterLinkScope` unless it has an `onTap`,
+  and activates with `Enter`. The box keeps its own gesture, so its pressed state and its
+  ink stay its own.
 - `StackNode` / `PositionedNode` map to Flutter `Stack` and `Positioned`.
 - `TextInputNode` renders managed `TextField`.
 
@@ -86,8 +88,8 @@ There is no link node: a link is a `url` on the box that is one (§5.5).
 - Map layout to CSS flexbox (`display: flex`, `gap`, etc.); a box without a
   direction is a flex column.
 - `width == double.infinity` maps to `100%`.
-- A `Box` with a `url` is a native `<a>` tag with `href` and `target`: the box's own
-  class and declarations, plus the two that cancel what a browser paints on every link.
+- `LinkNode` is a native `<a>` tag with `href` and `target`: the box's own class and
+  declarations, plus the two that cancel what a browser paints on every link.
 - `StackNode` renders `<div style="position: relative">`.
 - `PositionedNode` renders `<div style="position: absolute">`.
 - `TextInputNode` renders `<input>` or `<textarea>`.
@@ -292,16 +294,16 @@ never inherited (CSS does not inherit them either).
   `BoxSemantics.role` is one the user can act on. A plain container never does.
 - **A destination is a link, not a callback.** An interaction that has to work
   without the application is an `<a href>` or a form; a press that waits for an
-  engine to arrive is neither. So a control that *navigates* says where it goes,
-  with `Box.url`, and the box itself becomes the anchor: the same look, the same
-  children, the same press — and, on the web, a real `href` a crawler can follow,
-  a reader without the runtime can use, and anyone can copy or open in a new tab.
-  A callback is for a press that changes state (§5.10), and a leaf — a picture, a line of
-  text — is the same token on a box that holds only that leaf. `Box(url:)` is the primitive
-  because the box is already the control: it owns its gesture, its pressed state,
-  its ink and its semantics, and wrapping it in a link would put a second gesture
-  and a second semantics node around it.
-- **The tag is the role.** A box that navigates is an `<a href>`, which is the
+  engine to arrive is neither. So a node that *navigates* names its destination, and the
+  node is the element: `LinkNode` is a `Box` — the same look, the same children, the same
+  press — with a `url` on it, so on the web it is a real `<a href>` a crawler can follow, a
+  reader without the runtime can use, and anyone can copy or open in a new tab. It is a
+  *node* rather than a field on `Box` because a destination is not style: it brings its own
+  attributes, its own press, its own activation and its own content model, and a picture or a
+  line of text is the same node wrapping that leaf. It is not a *wrapper* because a wrapper states no layout: the
+  control inside one keeps the `flex` share, the height and the padding the anchor should
+  have had, and its press is a press the link never sees.
+- **The tag is the role.** A link is an `<a href>`, which is the
   whole of what a link is, so an explicit `role`, a `tabindex` and the states of a
   control (`aria-checked`, `aria-selected`) are not written for it, and a
   component that passed `BoxRole.button` announces a link without changing
@@ -396,8 +398,8 @@ never inherited (CSS does not inherit them either).
   when the element does not already imply it.
 - Structure that HTML forbids is a tree error, not a rendering surprise: a
   `BoxElement.li` outside a `ul` or an `ol` is reported by `validateTree`.
-- What stays host work: navigation between documents (a `url` on the box that presses,
-  or the host's router), `aria-current`, figure captions, tables, and anything that describes the
+- What stays host work: navigation between documents (a `LinkNode`, or the host's
+  router), `aria-current`, figure captions, tables, and anything that describes the
   *document* rather than the tree (see 5.6).
 - Motion is a token before it is an embed. `BoxTransition` states a duration and a
   curve, and the curve is one of the five CSS and Flutter define with the same

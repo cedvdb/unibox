@@ -99,8 +99,8 @@ UINode _header(MaterialPalette palette, ExampleSeed seed) {
               crossAlign: CrossAlign.center,
               gap: 20,
               children: <UINode>[
-                Box(
-                  url: './',
+                LinkNode(
+                  './',
                   children: <UINode>[
                     TextNode('Unibox', style: MaterialTypography.titleMedium),
                   ],
@@ -139,8 +139,8 @@ UINode _siteLink(
   MaterialPalette palette, {
   bool newTab = false,
 }) {
-  return Box(
-    url: url,
+  return LinkNode(
+    url,
     newTab: newTab,
     padding: const BoxSpacing.symmetric(horizontal: 10, vertical: 6),
     borderRadius: 8,

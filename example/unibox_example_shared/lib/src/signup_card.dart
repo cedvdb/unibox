@@ -211,12 +211,11 @@ UINode _closeRow(TapCallback onDismiss) {
     direction: Axis.horizontal,
     mainAlign: MainAlign.end,
     children: <UINode>[
-      Box(
-        url: ExampleRoutes.listings,
+      LinkNode(
+        ExampleRoutes.listings,
         onTap: onDismiss,
         padding: const BoxSpacing.symmetric(horizontal: 12, vertical: 6),
-        borderRadius: 8,
-        // A name: the label the reader is told about is the text, and a role would be
+        borderRadius: 8, // A name: the label the reader is told about is the text, and a role would be
         // dropped anyway — the anchor is the role.
         semantics: const BoxSemantics(label: 'Close'),
         stateStyles: <BoxState, BoxStyle>{
@@ -438,8 +437,8 @@ UINode _footer(SignupFormState state, TapCallback onSubmit) {
         mainAlign: MainAlign.center,
         textStyle: ExampleType.link,
         children: <UINode>[
-          Box(
-            url: 'https://unibox.dev',
+          LinkNode(
+            'https://unibox.dev',
             newTab: true,
             children: <UINode>[TextNode('Read the docs')],
           ),

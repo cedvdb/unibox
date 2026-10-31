@@ -2,37 +2,34 @@
 
 ## Unreleased
 
-- `Box.url` makes the box itself a link: `Box(url: '/?category=meetingRoom', …)` is an
-  `<a href>` on the web — its own look, its children and its press, so the whole control is
-  pressable and a crawler reads where it goes — and the same box with a hand cursor and a
-  link announcement in Flutter, opening through the host's link scope. It is the primitive
-  a *control-shaped* destination needed, because a wrapper carries no layout and can only
-  wrap a leaf. `newTab` is the web's. A disabled box writes no `href`,
-  and `Box.isAnchor` is the one place either renderer asks whether it is one.
+- **Breaking: `LinkNode` is a `Box` that names a destination.** A link was a wrapper around a
+  child, and a wrapper states no layout: the control inside one kept the `flex` share, the
+  height and the padding the anchor should have had, and in Flutter a press inside it was a
+  press the link never saw. The node is now the box itself —
+  `LinkNode('/rooms/1', padding: …, children: <UINode>[…])` — so a destination can be a
+  button, a card or a segment as easily as a line of text, with its own attributes (`url`,
+  `newTab`), its own press and its own content model. `LinkNode(url, child: x)` becomes
+  `LinkNode(url, children: <UINode>[x])`. A destination is a node rather than a field on
+  `Box` because it is not style: it is the one thing on a box that brings an element token, a
+  press, an activation key and a role with it.
 
-- **Breaking: `LinkNode` is gone.** A link is a `url` on the box that is one, so
-  `LinkNode(url, child: x)` becomes `Box(url: url, children: <UINode>[x])`, `newTab` and
-  `onTap` included. There is one way to say "this navigates" and one node that says it,
-  which means a destination can be a button, a card or a segment as easily as a line of
-  text — and a control inside a link, which no target could resolve, is now impossible to
-  build by accident without `validateTree` saying so. `replayPresses` reads the box's
-  `onTap` like any other press.
+- `BoxElement.a` names the anchor, so the element a node becomes is always the element token:
+  a `LinkNode` implies `a`, stating both is consistent, and a link that names a landmark *and*
+  a destination is reported instead of one of them winning silently. Stating `a` on a plain
+  box writes an `<a>` with no `href` — HTML's own placeholder anchor, which nothing follows
+  and nothing can tab to.
 
-- `BoxElement.a` names the anchor, so the element a box becomes is always the element token:
-  a `url` implies `a` rather than overriding what the box stated, stating both is consistent,
-  and a box that names a landmark *and* a destination is reported instead of one of them
-  winning silently. Stating `a` with no `url` writes an `<a>` with no `href` — HTML's own
-  placeholder anchor, which nothing follows and nothing can tab to.
+- An anchor is focusable without asking: an `<a href>` is in the browser's tab order, so a
+  `LinkNode` is in Flutter's too (`Box.isFocusable`), and the two targets agree about what a
+  keyboard can reach.
 
-- An anchor is focusable without asking: a `<a href>` is in the browser's tab order, so a
-  box with a `url` is in Flutter's too (`Box.isFocusable`), and the two targets agree about
-  what a keyboard can reach.
+- `validateTree` reports two constructs HTML forbids and no renderer can resolve: a
+  `LinkNode` inside another `LinkNode`, and a control inside one (a box with callbacks or a
+  role the reader can act on, or a text field). It also reports a link that names a landmark.
 
-- `validateTree` reports two constructs HTML forbids and no renderer can resolve: a link
-  inside a link — a `url` box inside another, in either order — and a control inside a link
-  (a box with callbacks or a role the reader can act on, or a text field). It also reports a
-  box that is a `url` *and* a named `BoxSemantics.element`, because only one tag is written
-  and the anchor is the one that navigates.
+- `Box` gains an overridable `url`/`newTab` that answer `null` and `false`: the two questions
+  every renderer asks of a node, answered by `LinkNode` and by nobody else, so a plan needs
+  no type test to know whether it is drawing a link.
 
 - `validateTree` reports a box that fills an axis it was handed no end on: a box with
   `width: double.infinity` inside a row that scrolls along that axis, or inside any parent

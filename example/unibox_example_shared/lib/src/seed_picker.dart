@@ -34,13 +34,12 @@ UINode seedPicker({required ExampleSeed current}) {
         // name belongs on the element that navigates. A box wrapped in another box that
         // carried the url would put the name on an element inside the anchor, and a
         // control inside a link is what `validateTree` refuses.
-        Box(
-          url: '?seed=${seed.name}',
+        LinkNode(
+          '?seed=${seed.name}',
           width: 22,
           height: 22,
           borderRadius: 11,
-          backgroundColor: seed.accent,
-          // The seed in force is ringed: a swatch of its own accent does not say which
+          backgroundColor: seed.accent, // The seed in force is ringed: a swatch of its own accent does not say which
           // of the six the page is drawn with.
           border: BoxBorder(
             width: seed == current ? 2 : 1,

@@ -31,6 +31,7 @@ void main() {
       expect(const TextNode('Hi').debugName, 'text');
       expect(const GridNode(minItemWidth: 200).debugName, 'grid');
       expect(const ImageNode('a.png', alt: 'A').debugName, 'image');
+      expect(const LinkNode('/x').debugName, 'link');
       expect(const TextInputNode().debugName, 'text-input');
       expect(const StackNode().debugName, 'stack');
       expect(const OverlayNode(child: Box()).debugName, 'overlay');

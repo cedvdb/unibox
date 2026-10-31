@@ -412,60 +412,108 @@ UINode _inkWellView(
   // with neither stays one box, which is what it has always been.
   final bool layered = fill != null || border != null || slop > 0;
 
-  UINode shape({required bool interactive}) => Box(
-    onTap: interactive ? onTap : null,
-    onTapDown: interactive && pressable ? press : null,
-    onLongPress: interactive ? onLongPress : null,
-    onHover: interactive ? onHover : null,
-    // The anchor goes where the press is: on the shape when the shape is the region, and
-    // on the target around it when one was added, because an `<a>` inside an `<a>` is not
-    // a link at all.
-    url: interactive ? url : null,
-    newTab: interactive && newTab,
-    enabled: enabled,
-    margin: interactive ? margin : null,
-    flex: interactive ? flex : null,
-    semantics: interactive ? resolvedSemantics : null,
-    width: width,
-    height: height,
-    backgroundColor: fill,
-    border: border,
-    shadows: shadows,
-    textStyle: textStyle,
-    borderRadius: borderRadius,
-    overflow: Overflow.hidden,
-    mainAlign: mainAlign,
-    crossAlign: resolvedCross,
-    transition: transition,
-    // With no surface of its own the tints are the shape, so they stay on this box.
-    hoverStyle: layered ? null : tints.hoverStyle,
-    stateStyles: layered ? null : tints.stateStyles,
-    children: <UINode>[if (layered) tints else stack],
-  );
+  /// The region the well draws, as the link [interactive] says it may be.
+  ///
+  /// The anchor goes where the press is: on the shape when the shape is the region, and on
+  /// the target around it when one was added, because an `<a>` inside an `<a>` is not a link
+  /// at all. A link is a box, so this is one node either way — the type is the only
+  /// difference, which is why the reason for it is stated here and nowhere else.
+  UINode shape({required bool interactive}) {
+    final Box box = Box(
+      onTap: interactive ? onTap : null,
+      onTapDown: interactive && pressable ? press : null,
+      onLongPress: interactive ? onLongPress : null,
+      onHover: interactive ? onHover : null,
+      enabled: enabled,
+      margin: interactive ? margin : null,
+      flex: interactive ? flex : null,
+      semantics: interactive ? resolvedSemantics : null,
+      width: width,
+      height: height,
+      backgroundColor: fill,
+      border: border,
+      shadows: shadows,
+      textStyle: textStyle,
+      borderRadius: borderRadius,
+      overflow: Overflow.hidden,
+      mainAlign: mainAlign,
+      crossAlign: resolvedCross,
+      transition: transition,
+      // With no surface of its own the tints are the shape, so they stay on this box.
+      hoverStyle: layered ? null : tints.hoverStyle,
+      stateStyles: layered ? null : tints.stateStyles,
+      children: <UINode>[if (layered) tints else stack],
+    );
+
+    return interactive ? _linked(box, url, newTab: newTab) : box;
+  }
 
   if (slop == 0) {
     // One box: the region a caller presses is the region it paints.
     return shape(interactive: true);
   }
 
-  return Box(
-    onTap: onTap,
-    onTapDown: pressable ? press : null,
-    onLongPress: onLongPress,
-    onHover: onHover,
-    url: url,
+  return _linked(
+    Box(
+      onTap: onTap,
+      onTapDown: pressable ? press : null,
+      onLongPress: onLongPress,
+      onHover: onHover,
+      enabled: enabled,
+      margin: margin,
+      width: width,
+      height: tapTargetHeight,
+      flex: flex,
+      // The shape is painted in the middle of the target, so the room a finger gets is
+      // the same above and below the pill it aims at.
+      mainAlign: MainAlign.center,
+      crossAlign: CrossAlign.center,
+      semantics: resolvedSemantics,
+      children: <UINode>[shape(interactive: false)],
+    ),
+    url,
     newTab: newTab,
-    enabled: enabled,
-    margin: margin,
-    width: width,
-    height: tapTargetHeight,
-    flex: flex,
-    // The shape is painted in the middle of the target, so the room a finger gets is
-    // the same above and below the pill it aims at.
-    mainAlign: MainAlign.center,
-    crossAlign: CrossAlign.center,
-    semantics: resolvedSemantics,
-    children: <UINode>[shape(interactive: false)],
+  );
+}
+
+/// [box] as the link [url] names, or [box] itself when the well names no destination.
+///
+/// The well builds its region once and only its *type* changes, because a link is a box: no
+/// wrapper, no second layout, and the press stays on the node that paints. The fields copied
+/// here are the ones a well states — a token it grows has to be added, and the suite holds a
+/// linked well and a callback well to the same declarations, so a forgotten one is a
+/// difference a test sees rather than a component that paints two ways.
+UINode _linked(Box box, String? url, {required bool newTab}) {
+  if (url == null) {
+    return box;
+  }
+
+  return LinkNode(
+    url,
+    newTab: newTab,
+    key: box.key,
+    onTap: box.onTap,
+    onTapDown: box.onTapDown,
+    onLongPress: box.onLongPress,
+    onHover: box.onHover,
+    enabled: box.enabled,
+    margin: box.margin,
+    flex: box.flex,
+    semantics: box.semantics,
+    width: box.width,
+    height: box.height,
+    backgroundColor: box.backgroundColor,
+    border: box.border,
+    shadows: box.shadows,
+    textStyle: box.textStyle,
+    borderRadius: box.borderRadius,
+    overflow: box.overflow,
+    mainAlign: box.mainAlign,
+    crossAlign: box.crossAlign,
+    transition: box.transition,
+    hoverStyle: box.hoverStyle,
+    stateStyles: box.stateStyles,
+    children: box.children,
   );
 }
 

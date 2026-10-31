@@ -172,8 +172,8 @@ void main() {
         overflow: Overflow.scroll,
         children: <UINode>[
           TextNode('Hello'),
-          Box(
-            url: 'https://unibox.dev',
+          LinkNode(
+            'https://unibox.dev',
             children: <UINode>[TextNode('Unibox')],
           ),
           StackNode(
@@ -410,10 +410,10 @@ void main() {
     });
 
     test('errors on a link nested in a link', () {
-      const Box tree = Box(
-        url: 'https://a.dev',
+      const LinkNode tree = LinkNode(
+        'https://a.dev',
         children: <UINode>[
-          Box(url: 'https://b.dev', children: <UINode>[TextNode('inner')]),
+          LinkNode('https://b.dev', children: <UINode>[TextNode('inner')]),
         ],
       );
 
@@ -428,19 +428,19 @@ void main() {
     test('accepts links that are siblings', () {
       const Box tree = Box(
         children: <UINode>[
-          Box(url: 'https://a.dev', children: <UINode>[TextNode('a')]),
-          Box(url: 'https://b.dev', children: <UINode>[TextNode('b')]),
+          LinkNode('https://a.dev', children: <UINode>[TextNode('a')]),
+          LinkNode('https://b.dev', children: <UINode>[TextNode('b')]),
         ],
       );
 
       expect(validateTree(tree), isEmpty);
     });
 
-    test('errors on a box that navigates inside another one', () {
-      const Box tree = Box(
-        url: '/rooms',
+    test('errors on a link inside another one', () {
+      const LinkNode tree = LinkNode(
+        '/rooms',
         children: <UINode>[
-          Box(url: '/rooms/1', children: <UINode>[TextNode('One')]),
+          LinkNode('/rooms/1', children: <UINode>[TextNode('One')]),
         ],
       );
 
@@ -451,9 +451,9 @@ void main() {
       expect(issue.message, contains('nested'));
     });
 
-    test('errors on a control inside a box that navigates', () {
-      const Box tree = Box(
-        url: '/rooms',
+    test('errors on a control inside a link', () {
+      const LinkNode tree = LinkNode(
+        '/rooms',
         children: <UINode>[
           Box(onTap: _noop, children: <UINode>[TextNode('Remove')]),
         ],
@@ -465,27 +465,27 @@ void main() {
       expect(issue.message, contains('interactive content'));
     });
 
-    test('accepts a box that navigates around plain content', () {
-      const Box tree = Box(
-        url: '/rooms',
+    test('accepts a link around plain content', () {
+      const LinkNode tree = LinkNode(
+        '/rooms',
         children: <UINode>[TextNode('Meeting room'), ImageNode('room.png')],
       );
 
       expect(validateTree(tree), isEmpty);
     });
 
-    test('accepts a box that names the anchor it already is', () {
-      const Box tree = Box(
-        url: '/rooms',
+    test('accepts a link that names the anchor it already is', () {
+      const LinkNode tree = LinkNode(
+        '/rooms',
         semantics: BoxSemantics(element: BoxElement.a),
       );
 
       expect(validateTree(tree), isEmpty);
     });
 
-    test('errors on a box that is an anchor and a landmark at once', () {
-      const Box tree = Box(
-        url: '/rooms',
+    test('errors on a link that is a landmark as well', () {
+      const LinkNode tree = LinkNode(
+        '/rooms',
         semantics: BoxSemantics(element: BoxElement.article),
       );
 
@@ -753,10 +753,10 @@ void main() {
       const Box tree = Box(
         children: <UINode>[
           Box(children: <UINode>[PositionedNode(top: 0, child: TextNode('a'))]),
-          Box(
-            url: 'https://a.dev',
+          LinkNode(
+            'https://a.dev',
             children: <UINode>[
-              Box(url: 'https://b.dev', children: <UINode>[TextNode('b')]),
+              LinkNode('https://b.dev', children: <UINode>[TextNode('b')]),
             ],
           ),
         ],

@@ -28,9 +28,9 @@ host that renders it.
 
 ## The model in eight lines
 
-- A screen is an immutable Dart tree of nodes: `Box` (which is also the link, when it
-  carries a `url`), `TextNode`, `ImageNode`, `StackNode` + `PositionedNode`,
-  `TextInputNode`, `StatefulNode`, `OverlayNode`, `GridNode`, `EmbedNode`.
+- A screen is an immutable Dart tree of nodes: `Box`, `TextNode`, `ImageNode`, `LinkNode`
+  (a `Box` that names a destination), `StackNode` + `PositionedNode`, `TextInputNode`,
+  `StatefulNode`, `OverlayNode`, `GridNode`, `EmbedNode`.
 - One tree, two renderings: `renderFlutter(tree, theme: …)` or `tree.toWidget(theme: …)`
   in a Flutter app, and `toDocument(tree, theme: …)` or `tree.toHtml(theme: …)` in
   `unibox_html` for a page a crawler reads. A tree that names colour roles needs the
@@ -84,8 +84,8 @@ host that renders it.
    Better: keep the tree in a library that imports no renderer at all, the way
    `example/unibox_example_shared/` does, and let the host import both.
 2. **The node names are not Flutter's.** `TextNode`, not `Text`; `ImageNode`, not
-   `Image`; `StackNode`, `PositionedNode`. `Box` keeps its bare name because Flutter
-   has no `Box`, and a link is not a node of its own: it is a `url` on one.
+   `Image`; `StackNode`, `PositionedNode`, `LinkNode`. `Box` keeps its bare name because
+   Flutter has no `Box`.
 3. **Flat parameters beat style bags.** `Box.computedStyle` merges `styles`
    left to right, then the flat parameters. A state style
    (`hoverStyle`, `stateStyles`) overlays the resting one; `disabled` overlays all.
@@ -129,10 +129,9 @@ host that renders it.
     not announced as a button and is not keyboard reachable. Add
     `semantics: BoxSemantics(role: BoxRole.button, label: '…')`.
 11. **A link is a destination; a button is an action.** A place a reader can go is a
-    `url` — on the control itself, `Box(url: '/rooms/1', …)`, which is a real `href` on
-    the web and what a page without a client runtime follows and a crawler reads. A
-    leaf is the same token on a box that holds only that leaf: a picture, a line of
-    text. A control that opens a dialog or changes something in
+    `LinkNode` — a box that names a destination, so the whole control is the `<a href>`
+    a page without a client runtime follows and a crawler reads, and a picture or a line
+    of text is the same node around that leaf. A control that opens a dialog or changes something in
     place is a `Box(onTap: …)` with the button role, and it carries no url: a press that
     is both a dialog and a page load is the flash a reader sees before the dialog they
     asked for. A control inside a link is invalid HTML and `validateTree` reports it —
@@ -190,8 +189,8 @@ host that renders it.
 | `DefaultTextStyle` | `Box(textStyle: BoxTextStyle(...))`, inherited by the texts inside |
 | `Image.network(src, fit:)` | `ImageNode(src, fit: ImageFit.cover, alt: '…')` |
 | `GestureDetector(onTap:)` | `Box(onTap: …)` |
-| `Navigator.push`, `go_router`, an `InkWell` that goes somewhere | `Box(url: '/rooms/1', …)` — the box *is* the `<a href>`: one href for the crawler, a real press for a reader without the runtime, and the box keeps its ripple. `newTab: true` adds `target`/`rel` on the web. Give it an `onTap` only when the tree must answer the press instead of navigating |
-| `Hyperlink` around a picture or a line of text | `Box(url: …, children: <UINode>[theLeaf])` — the leaf form, and the same token a button uses |
+| `Navigator.push`, `go_router`, an `InkWell` that goes somewhere | `LinkNode('/rooms/1', …)` — a box that names a destination, so it *is* the `<a href>`: one href for the crawler, a real press for a reader without the runtime, and the box keeps its ripple. `newTab: true` adds `target`/`rel` on the web. Give it an `onTap` only when the tree must answer the press instead of navigating |
+| `Hyperlink` around a picture or a line of text | `LinkNode(url, children: <UINode>[theLeaf])` — the leaf form, and the same node a button uses |
 | `MouseRegion` | `Box(onHover: (bool hovered) { … })` |
 | `Opacity(opacity:)` | `opacity:` on the box |
 | `Transform.scale`, `Transform.rotate` | `transform: BoxTransform(scale:, rotation:, offsetX:, offsetY:)` |
@@ -244,7 +243,7 @@ host that renders it.
 | `color`, `font-size`, `font-weight`, `line-height`, `letter-spacing` | the same tokens on `TextNode` or `BoxTextStyle` |
 | `text-decoration: underline`, `text-decoration-color` | `decoration: TextDecoration.underline`, `decorationColor:` — `none`, `lineThrough`, `underline`; `double`, `wavy` and `overline` are not in the model, because Flutter draws one solid line and has no overline |
 | `overflow: hidden` / `auto` | `overflow: Overflow.hidden` / `Overflow.scroll` |
-| `<a href>` | `Box(url: …)`, which *is* the `<a href>` |
+| `<a href>` | `LinkNode(url, …)`, which *is* the `<a href>` |
 | `<a>` with no `href` | `semantics: BoxSemantics(element: BoxElement.a)`: a placeholder that nothing follows |
 | `<img src alt>` | `ImageNode(src, alt: …)` |
 | `<h1>`–`<h6>` | `TextNode('…', headingLevel: 1)` |
@@ -586,8 +585,8 @@ UINode buildListingsPage(SiteCopy copy) => … TextNode(copy.title) …
 - **Ship the copy and the routes together.** A German page whose links and canonical still point at
   the English addresses is the bug localised sites actually have: take both from the language tag.
 - **The address is the locale.** `/de/…`, not a cookie or `Accept-Language`, because a crawler
-  sends neither. A language switch is a `url` on the box that names the other address —
-  followable and crawlable like any other link — and a language change inside the app is a
+  sends neither. A language switch is a `LinkNode` to the other address — followable and
+  crawlable like any other link — and a language change inside the app is a
   `Store` publish.
 - **One document per language, each naming the whole set.** `lang` is what it is written in,
   `canonical` is its own address, and `alternates` are the others:

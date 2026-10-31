@@ -186,8 +186,8 @@ UINode _navigationItem(
   required bool current,
   required TapCallback onTap,
 }) {
-  return Box(
-    url: url,
+  return LinkNode(
+    url,
     onTap: onTap,
     direction: Axis.horizontal,
     mainAlign: MainAlign.center,

@@ -23,8 +23,8 @@
   A caller who passed `onTap` gives the url or the callback to the well; one who relied on
   the 16 pixel padding states it where the room belongs.
 
-- `MaterialInkWell` takes `url` (and `newTab`): the well becomes a destination, and the
-  anchor goes wherever the press goes — the shape in the plain case, the outer box when the
+- `MaterialInkWell` takes `url` (and `newTab`): the well becomes a `LinkNode` — a box that names
+  a destination — and the anchor goes wherever the press goes: the shape in the plain case, the outer box when the
   well paints a surface, and the target when `tapTargetHeight` adds one. A url makes the well
   pressable with no callback, so it still ripples on tap-down.
 

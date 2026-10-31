@@ -194,8 +194,8 @@ void main() {
   group('a link', () {
     test('is an anchor a crawler follows, with real text inside it', () {
       final String html = toHtml(
-        const core.Box(
-          url: '/listings',
+        const core.LinkNode(
+          '/listings',
           children: <core.UINode>[core.TextNode('Listings')],
         ),
       );
@@ -207,8 +207,8 @@ void main() {
 
     test('hands no opener to the page it opens in a new tab', () {
       final String html = toHtml(
-        const core.Box(
-          url: 'https://example.com',
+        const core.LinkNode(
+          'https://example.com',
           newTab: true,
           children: <core.UINode>[core.TextNode('Elsewhere')],
         ),
@@ -222,7 +222,7 @@ void main() {
       // A browser paints every link blue and underlined, which the Flutter renderer
       // cannot draw.
       final String html = toHtml(
-        const core.Box(url: '/x', children: <core.UINode>[core.TextNode('Go')]),
+        const core.LinkNode('/x', children: <core.UINode>[core.TextNode('Go')]),
       );
 
       expect(html, contains('color:inherit'));
