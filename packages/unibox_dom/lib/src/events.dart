@@ -25,6 +25,10 @@ List<void Function()> bindNode(core.UINode node, web.Element element) {
 
   switch (node) {
     case final core.Box box when box.enabled:
+      // A link is the node that names a destination, and a destination is pressed once: the
+      // rule below depends on knowing which of the two this box is.
+      final core.LinkNode? link = box is core.LinkNode ? box : null;
+
       // The long press is bound first because it may have to swallow the click that ends it, and a
       // listener only runs before the ones added after it.
       if (box.onLongPress case final core.LongPressCallback onLongPress) {
@@ -32,8 +36,8 @@ List<void Function()> bindNode(core.UINode node, web.Element element) {
       }
 
       if (box.onTap case final core.TapCallback onTap) {
-        if (box.isAnchor) {
-          _bindLinkClick(on, onTap: onTap, newTab: box.newTab);
+        if (link != null) {
+          _bindLinkClick(on, onTap: onTap, newTab: link.newTab);
         } else {
           on('click', (web.Event event) => onTap());
         }
@@ -54,7 +58,7 @@ List<void Function()> bindNode(core.UINode node, web.Element element) {
       // A link activates with `Enter` on its own and the browser turns that into a click,
       // which the listener above answers, so binding the key as well would press twice. A
       // `Space` on a link does nothing anywhere, and nothing here is where it belongs.
-      if (box.isInteractive && box.onTap != null && !box.isAnchor) {
+      if (box.isInteractive && box.onTap != null && link == null) {
         _bindActivationKey(on, box.onTap!);
       }
 

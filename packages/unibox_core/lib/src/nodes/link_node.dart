@@ -75,12 +75,19 @@ final class LinkNode extends Box {
   });
 
   /// The destination.
-  @override
   final String url;
 
   /// Whether the destination opens in a new tab, on the web.
-  @override
   final bool newTab;
+
+  /// Whether a reader can reach the link with the keyboard.
+  ///
+  /// Yes, and without asking: an `<a href>` is in the browser's tab order, so a link is in
+  /// Flutter's too, and a destination that a keyboard could reach in a browser and not in
+  /// Flutter is the drift this model exists to prevent. A hidden link is not reachable, the
+  /// same rule the role follows.
+  @override
+  bool get isFocusable => !(semantics?.hidden ?? false);
 
   /// The name this node answers to in an inspector.
   ///

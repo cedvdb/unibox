@@ -20,16 +20,12 @@
   and nothing can tab to.
 
 - An anchor is focusable without asking: an `<a href>` is in the browser's tab order, so a
-  `LinkNode` is in Flutter's too (`Box.isFocusable`), and the two targets agree about what a
-  keyboard can reach.
+  `LinkNode` is in Flutter's too (`LinkNode.isFocusable`, which a hidden link loses), and the
+  two targets agree about what a keyboard can reach.
 
 - `validateTree` reports two constructs HTML forbids and no renderer can resolve: a
   `LinkNode` inside another `LinkNode`, and a control inside one (a box with callbacks or a
   role the reader can act on, or a text field). It also reports a link that names a landmark.
-
-- `Box` gains an overridable `url`/`newTab` that answer `null` and `false`: the two questions
-  every renderer asks of a node, answered by `LinkNode` and by nobody else, so a plan needs
-  no type test to know whether it is drawing a link.
 
 - `validateTree` reports a box that fills an axis it was handed no end on: a box with
   `width: double.infinity` inside a row that scrolls along that axis, or inside any parent

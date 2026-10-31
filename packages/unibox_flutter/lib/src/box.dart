@@ -173,8 +173,8 @@ class FlutterBoxState extends State<FlutterBox> {
     final core.BoxStyle style = _resolvedStyle(box)
         .resolve(UniboxThemeScope.of(context) ?? core.UniboxTheme.none);
 
-    // A box that navigates asks the host once, while an inherited widget can be read.
-    _open = box.enabled && box.isAnchor
+    // A link asks the host once, while an inherited widget can be read.
+    _open = box.enabled && box is core.LinkNode
         ? FlutterLinkScope.maybeOf(context)
         : null;
 
@@ -708,14 +708,15 @@ class FlutterBoxState extends State<FlutterBox> {
   /// pointer cursor and no focus, so disabling never moves anything and only
   /// removes what the user can do.
   ///
-  /// A box with a url is the anchor: the pointer over it is a hand, the press that the box
+  /// A link is the anchor: the pointer over it is a hand, the press that the box
   /// itself does not answer opens the destination through the host's scope, and a screen
   /// reader is told it is a link. The gesture stays the box's, which is what keeps the
   /// pressed state and the ink a well starts on tap-down working — wrapping the box in a
   /// wrapper would put a second gesture and a second semantics node around it.
   Widget _applyInteractions(Widget content, core.Box box) {
     final bool interactive = box.isInteractive;
-    final bool link = box.enabled && box.isAnchor;
+    final core.LinkNode? destination = box is core.LinkNode ? box : null;
+    final bool link = destination != null && box.enabled;
     final bool focusable = box.isFocusable && box.enabled;
     final bool tracksState =
         box.enabled &&
@@ -729,7 +730,7 @@ class FlutterBoxState extends State<FlutterBox> {
     if (link) {
       assert(
         _open != null || box.onTap != null,
-        'Unibox: "${box.url}" is a box that navigates, but no FlutterLinkScope is '
+        'Unibox: "${destination.url}" is a link, but no FlutterLinkScope is '
         'above it and the box has no onTap, so pressing it does nothing. Wrap the '
         'tree in a FlutterLinkScope(open: ...) or give the Box an onTap callback.',
       );
@@ -797,8 +798,8 @@ class FlutterBoxState extends State<FlutterBox> {
 
     if (onTap != null) {
       onTap();
-    } else if (box.isAnchor) {
-      _open?.call(box.url!);
+    } else if (box is core.LinkNode) {
+      _open?.call(box.url);
     }
   }
 
@@ -812,7 +813,7 @@ class FlutterBoxState extends State<FlutterBox> {
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
     final core.Box box = widget.box;
     final LogicalKeyboardKey key = event.logicalKey;
-    final bool link = box.enabled && box.isAnchor;
+    final bool link = box.enabled && box is core.LinkNode;
     final bool isActivationKey =
         key == LogicalKeyboardKey.enter || key == LogicalKeyboardKey.space;
 
@@ -882,7 +883,7 @@ class FlutterBoxState extends State<FlutterBox> {
   /// documented there as a pointer affordance.
   Widget _describeToSemantics(Widget content, core.Box box) {
     final core.BoxSemantics? semantics = box.semantics;
-    final bool link = box.isAnchor;
+    final bool link = box is core.LinkNode;
     final bool focusable = box.isFocusable && box.enabled;
     final core.LongPressCallback? longPress = box.enabled
         ? box.onLongPress

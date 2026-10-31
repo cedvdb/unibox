@@ -155,18 +155,20 @@ void main() {
       // is what lets a link be a control rather than a wrapper around one.
       expect(link, isA<Box>());
       expect(link.url, 'https://unibox.dev');
-      expect(link.isAnchor, isTrue);
       expect(link.newTab, isFalse);
       expect(link.computedStyle.padding, const BoxSpacing.all(12));
       expect((link.children.single as TextNode).text, 'Unibox');
     });
 
-    test('defaults to the same tab and no destination of its own', () {
-      const Box plain = Box();
-
-      expect(plain.url, isNull);
-      expect(plain.newTab, isFalse);
-      expect(plain.isAnchor, isFalse);
+    test('is reachable with a keyboard because an anchor is', () {
+      // A container is only focusable when a role says so; a link is in the browser's tab
+      // order without asking, so it is in Flutter's too. A hidden one is not.
+      expect(const Box().isFocusable, isFalse);
+      expect(const LinkNode('/x').isFocusable, isTrue);
+      expect(
+        const LinkNode('/x', semantics: BoxSemantics(hidden: true)).isFocusable,
+        isFalse,
+      );
       expect(const LinkNode('/x', newTab: true).newTab, isTrue);
     });
   });

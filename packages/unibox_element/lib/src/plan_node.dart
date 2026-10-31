@@ -41,16 +41,16 @@ ElementPlan _planOf(
   ),
 };
 
-/// The element [box] becomes: the one it states, or the anchor a `url` makes it.
+/// The element [box] becomes: the one it states, or the anchor a link makes it.
 ///
-/// `href` is what makes a link, so a url on a plain box *is* an anchor and the tag follows
-/// from it — but a box that already names an element keeps the one it named, and validation
+/// `href` is what makes a link, so a [core.LinkNode] *is* an anchor and the tag follows from
+/// it — but a link that already names an element keeps the one it named, and validation
 /// reports the pair that cannot both be written. Nothing else in the plan has to know the
 /// difference: an anchor is a link, and every derived decision reads this.
 core.BoxElement elementOf(core.Box box) {
   final core.BoxElement stated = box.semantics?.element ?? core.BoxElement.div;
 
-  return box.isAnchor && stated == core.BoxElement.div
+  return box is core.LinkNode && stated == core.BoxElement.div
       ? core.BoxElement.a
       : stated;
 }
@@ -188,12 +188,12 @@ ElementPlan _planBox(core.Box box, Stylesheet sheet, PlanOptions options) {
     // nothing, and spreading two maps into a third for every box on the page is a map nobody
     // reads.
     attributes: <String, String>{
-      // Only an anchor gets an href: a disabled one names no destination, an anchor with no
-      // url is a placeholder, and a box whose element is something else is a tree
-      // `validateTree` reports — writing an href nothing can follow would make the reported
-      // tree look like it works.
-      if (box.url case final String url when box.enabled && anchor)
-        ...linkAttributes(url, newTab: box.newTab),
+      // Only a link gets an href, and only a disabled one loses it — the element keeps saying
+      // what it is, and a browser that followed the href anyway would do what Flutter refuses
+      // to do. A link whose element is not an anchor is a tree `validateTree` reports, and an
+      // href nothing can follow would make the reported tree look like it works.
+      if (box case final core.LinkNode link when link.enabled && anchor)
+        ...linkAttributes(link.url, newTab: link.newTab),
       ...boxAttributes(box),
       ...nodeAttributes(box),
     },
@@ -295,10 +295,10 @@ Map<String, String> boxAttributes(core.Box box) {
     attributes['aria-disabled'] = 'true';
   }
 
-  // A box that names a url never states a tab stop: an anchor already has one, and one that
-  // is not an anchor is a tree the validator reports, which must not add a control the page
+  // A link never states a tab stop: an anchor already has one, and a link whose element is
+  // not an anchor is a tree the validator reports, which must not add a control the page
   // cannot honour — a `<nav href>` that a keyboard could reach would be exactly that.
-  if (!anchor && !box.isAnchor && box.isFocusable && box.enabled) {
+  if (!anchor && box is! core.LinkNode && box.isFocusable && box.enabled) {
     attributes['tabindex'] = '0';
   }
 

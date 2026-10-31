@@ -61,7 +61,7 @@ and the difference would show:
 | `Box.gridSpan` | one track: a card covers one column, and only a grid child covers more |
 | `Box.wrap` | off: a box is one line, and a child that does not fit runs past its edge until the box says otherwise |
 | a link's paint | the browser's blue and underline: cancelled on an anchor, so a link looks like the box that states it |
-| `LinkNode.url` | no destination on a plain box: a box is a container, and a link is the node that names one. A disabled link writes no `href` |
+| `LinkNode.url` | nowhere on a `Box`, which is a container: a destination is the node's own field, and a disabled link writes no `href` |
 | `LinkNode` inside a link | reported: a link inside a link navigates twice |
 
 What is left to the host, because only the host can answer it: the font family (a

@@ -7,15 +7,15 @@ import 'support/tree.dart';
 /// The control the bar offers for [label]: the destination, or the button that opens the
 /// form.
 ///
-/// Both are boxes, and the difference is the token: a destination has a `url`, which a
-/// reader without a client runtime follows, and the sign-up form has only an `onTap`,
+/// Both are boxes, and the difference is the node: a destination is a `LinkNode`, which a
+/// reader without a client runtime follows, and the sign-up form is a `Box` with an `onTap`,
 /// because an account is an action and not a place to go. The page behind the bar carries
 /// the same words in headings, so only a box that acts can be the match.
 Box navControl(UINode page, String label) => flatten(page)
     .whereType<Box>()
     .firstWhere(
       (Box box) =>
-          (box.url != null || box.onTap != null) &&
+          (box is LinkNode || box.onTap != null) &&
           textsIn(box).contains(label),
     );
 
@@ -63,18 +63,18 @@ void main() {
 
     test('offers a swatch per seed, as a link to this page with that seed', () {
       final Box page = RecordingHost().frame();
-      final List<Box> swatches = flatten(page)
-          .whereType<Box>()
-          .where((Box box) => box.url?.startsWith('?seed=') ?? false)
+      final List<LinkNode> swatches = flatten(page)
+          .whereType<LinkNode>()
+          .where((LinkNode link) => link.url.startsWith('?seed='))
           .toList();
 
       expect(swatches, hasLength(ExampleSeed.values.length));
-      expect(swatches.map((Box box) => box.url), <String>[
+      expect(swatches.map((LinkNode link) => link.url), <String>[
         for (final ExampleSeed seed in ExampleSeed.values) '?seed=${seed.name}',
       ]);
       // Each swatch is painted with the accent its seed grows and says which one it
       // is, because a circle of colour has no text to read.
-      for (final Box swatch in swatches) {
+      for (final LinkNode swatch in swatches) {
         final ExampleSeed seed = ExampleSeed.values[swatches.indexOf(swatch)];
 
         expect(swatch.backgroundColor, seed.accent);
@@ -85,9 +85,8 @@ void main() {
     test('rings the seed the page is drawn with', () {
       final Box page = RecordingHost().frame(seed: ExampleSeed.rose);
       final Map<String, double?> widths = <String, double?>{
-        for (final Box box in flatten(page).whereType<Box>())
-          if (box.url?.startsWith('?seed=') ?? false)
-            box.url!: box.border?.width,
+        for (final LinkNode link in flatten(page).whereType<LinkNode>())
+          if (link.url.startsWith('?seed=')) link.url: link.border?.width,
       };
 
       expect(widths['?seed=rose'], 2);
@@ -97,10 +96,10 @@ void main() {
     test('offers a link per destination and a button for the form', () {
       final Box page = RecordingHost().frame();
 
-      // A destination is a document, so it carries a `url`; an account is an action, so it
+      // A destination is a document, so it is a `LinkNode`; an account is an action, so it
       // is a button beside the navigation.
-      expect(navControl(page, 'Apartments').url, isNotNull);
-      expect(navControl(page, 'Sign up').url, isNull);
+      expect(navControl(page, 'Apartments'), isA<LinkNode>());
+      expect(navControl(page, 'Sign up'), isNot(isA<LinkNode>()));
       expect(navControl(page, 'Sign up').semantics?.role, BoxRole.button);
     });
 
@@ -138,7 +137,7 @@ void main() {
       // role to get there — and it names none, because the tag is the role.
       final Box item = navLabelBox(RecordingHost().frame(), 'Apartments');
 
-      expect(item.url, isNotNull);
+      expect(item, isA<LinkNode>());
       expect(item.semantics?.role, BoxRole.none);
       expect(item.isFocusable, isTrue);
       expect(item.stateStyle(BoxState.hover), isNotNull);

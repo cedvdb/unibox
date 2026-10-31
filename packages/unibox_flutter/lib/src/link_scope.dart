@@ -21,7 +21,7 @@ typedef FlutterLinkOpener = FutureOr<void> Function(String url);
 /// itself, so one press has one answer: the rule the web renderer states by cancelling the
 /// navigation instead of loading the document as well. A destination with neither a scope
 /// nor an `onTap` would look tappable and do nothing, so rendering one is reported as a host
-/// configuration error in debug builds. `Box.newTab` only affects the web renderer.
+/// configuration error in debug builds. `LinkNode.newTab` only affects the web renderer.
 class FlutterLinkScope extends InheritedWidget {
   /// Creates a scope that opens destinations with [open].
   const FlutterLinkScope({required this.open, required super.child, super.key});

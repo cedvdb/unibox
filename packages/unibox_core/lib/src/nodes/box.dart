@@ -367,19 +367,6 @@ class Box extends UINode {
   /// interaction: a box without a role stays out of the tab order.
   final BoxSemantics? semantics;
 
-  // Navigation.
-
-  /// The destination of this box, when it is a link.
-  ///
-  /// A box on its own is a container, so the answer here is `null`: a destination belongs to
-  /// a [LinkNode], which is a box that names one. This is a getter rather than a field so
-  /// that every renderer can ask the question of the node it was handed — `isAnchor` is its
-  /// only reader — without first asking which type it is.
-  String? get url => null;
-
-  /// Whether [url] opens in a new tab, on the web. A plain box has no destination.
-  bool get newTab => false;
-
   // Actions.
 
   /// Called when the box is tapped.
@@ -510,19 +497,8 @@ class Box extends UINode {
   /// Whether this box defines a distinct hovered appearance.
   bool get hasHoverStyle => stateStyle(BoxState.hover) != null;
 
-  /// Whether this box is an anchor: it names a destination.
-  ///
-  /// A fact about the node, not about its state: a disabled anchor keeps the element it
-  /// is and loses the `href`, the way a disabled control keeps its look and drops its
-  /// callbacks.
-  bool get isAnchor => url != null;
-
   /// Whether the box can be reached with the keyboard.
-  ///
-  /// An anchor is focusable without asking, because it is one on the web: a `<a href>` is
-  /// in the tab order, and a target that is in the tab order in a browser and out of it in
-  /// Flutter is the drift `BoxSemantics.isFocusable` exists to prevent.
-  bool get isFocusable => isAnchor || (semantics?.isFocusable ?? false);
+  bool get isFocusable => semantics?.isFocusable ?? false;
 
   /// Whether this box has an interaction handler it can run.
   ///

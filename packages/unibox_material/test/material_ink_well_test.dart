@@ -379,7 +379,7 @@ void main() {
 
         // A link is a box, so the region a reader presses is the node that navigates.
         expect(shape, isA<LinkNode>());
-        expect(shape.url, '/sign-in');
+        expect((shape as LinkNode).url, '/sign-in');
         expect(shape.onTap, isNull);
         // A destination is pressable: the ink starts on tap-down even though nothing in the
         // tree answers the tap, because the press is what opens it.
@@ -399,8 +399,10 @@ void main() {
       // one box inside it — an `<a>` inside an `<a>` would be no link at all.
       final Box tints = shape.children.single as Box;
 
-      expect(shape.url, '/sign-in');
-      expect(tints.url, isNull);
+      expect(shape, isA<LinkNode>());
+      expect((shape as LinkNode).url, '/sign-in');
+      // The tints are a box inside the anchor, not a second one.
+      expect(tints, isNot(isA<LinkNode>()));
       expect(shape.backgroundColor, isNotNull);
     });
 
@@ -418,12 +420,12 @@ void main() {
         );
         final Box shape = target.children.single as Box;
 
-        // The room a finger gets is the region that navigates, and the pill inside it names
-        // no destination of its own.
-        expect(target.url, '/sign-in');
+        // The room a finger gets is the region that navigates, and the pill inside it is not
+        // a second link — an `<a>` inside an `<a>` is no link at all.
+        expect(target, isA<LinkNode>());
+        expect((target as LinkNode).url, '/sign-in');
         expect(target.newTab, isTrue);
-        expect(shape.url, isNull);
-        expect(shape.newTab, isFalse);
+        expect(shape, isNot(isA<LinkNode>()));
       },
     );
   });
