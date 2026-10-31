@@ -28,9 +28,9 @@ const String boot = '../../flutter/app.js';
 /// [build] is the commit the document was rendered from. A tab opened before a deploy and the
 /// deployed page look identical, down to a layout the new build has fixed, so the document
 /// carries the one fact that separates them.
-String buildExampleDocument({String? build}) {
-  return toDocument(
-    ExamplePageNode(photoPrefix: '../../'),
+Document buildExampleDocument({String? build}) {
+  return Document(
+    node: ExamplePageNode(photoPrefix: '../../'),
     head: DocumentHead(
       title: 'Apartments — Unibox',
       description:
@@ -61,9 +61,9 @@ String buildExampleDocument({String? build}) {
 /// first sign of a reader, or when the browser is idle. Nobody has to touch the frame to see the
 /// application, and what that costs the host page is what a takeover costs: the frame arrives as
 /// markup and becomes an engine, which is the trade the whole library is about.
-String buildTakeoverDocument({String? build}) {
-  return toDocument(
-    ExamplePageNode(photoPrefix: '../../'),
+Document buildTakeoverDocument({String? build}) {
+  return Document(
+    node: ExamplePageNode(photoPrefix: '../../'),
     head: DocumentHead(
       title: 'Apartments, taken over by Flutter — Unibox',
       description:

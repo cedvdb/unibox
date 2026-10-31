@@ -15,6 +15,7 @@ command line tool, and, for a host whose backend is not Dart, compiled to JavaSc
 | --- | --- |
 | a tree as a fragment | `toHtml(tree)`, or `tree.toHtml()`, with the one `<style>` element in front of it |
 | a tree as a page | `toDocument(head: DocumentHead(title: …), lang: …)` — the fragment, a `<head>` and the stylesheet |
+| a page as a value | `Document(node: …, head: …).write()` — the page, its language and its head, for a build that writes several |
 | a page in one language of several | `toDocument(lang: …, head: DocumentHead(alternates: …))` — the language it is written in, and the `hreflang` links that pair it with its translations |
 | a page an application takes over | `toDocument(takeover: Takeover(boot: …))` — the bundle prefetched, the recorders, the boot on a signal |
 | what a document is | a snapshot of a state: initial state, overlays open, no listeners |
@@ -74,6 +75,28 @@ supplied.
 element. The renderer owns the order — the metadata and the links before the stylesheet, the
 stylesheet before `raw` — so a fetch starts with the document, a host rule of equal specificity can
 restate what the page starts with, and a font face still arrives before the text that uses it.
+
+## A page as a value
+
+`toDocument` is one call for one page, which is all a host with one page needs. A build that
+writes several holds them as `Document` values beside the paths they are served at:
+
+```dart
+final List<({String path, Document document})> pages =
+    <({String path, Document document})>[
+      (path: 'index.html', document: home),
+      (path: 'de/index.html', document: homeInGerman),
+    ];
+
+for (final ({String path, Document document}) page in pages) {
+  File('site/${page.path}').writeAsStringSync(page.document.write());
+}
+```
+
+The list is the site. Writing it is one loop, and anything else that has to know what the site
+contains — a sitemap, a redirect table, a test that every page states its own `canonical` — reads
+the same list instead of restating the paths, which is how a sitemap and the pages it lists drift
+apart.
 
 ## Escaping, which is the whole security surface
 

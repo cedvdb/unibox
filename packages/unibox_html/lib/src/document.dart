@@ -63,6 +63,70 @@ final class DocumentScript {
   }
 }
 
+/// A page as a value: the tree, the language it is written in, the head that names it, and the
+/// host's choices for how it is written.
+///
+/// [toDocument] is the whole of this in one call, and stays the shorter path for a host that
+/// writes one page. This is for the host that writes several: a build holds a list of documents
+/// beside the addresses they are served at, writes them all the same way, and can hand the same
+/// list to anything else that has to know what the site contains — a sitemap, a router, a test
+/// that every page states its own address.
+///
+/// ```dart
+/// final Document listings = Document(
+///   node: ListingsPage(flats),
+///   head: const DocumentHead(title: 'Apartments in Amsterdam'),
+/// );
+///
+/// File('site/listings/index.html').writeAsStringSync(listings.write());
+/// ```
+final class Document {
+  /// Creates a page.
+  const Document({
+    required this.node,
+    this.lang = 'en',
+    this.head = const DocumentHead(),
+    this.scripts = const <DocumentScript>[],
+    this.theme,
+    this.showOverlays = false,
+    this.takeover,
+  });
+
+  /// The tree, drawn into the body.
+  final core.UINode node;
+
+  /// The language the page is written in: an attribute of the root element rather than a head
+  /// element, which is why it sits beside [head] and not in it.
+  final String lang;
+
+  /// What the page says about itself: a title, an address, its translations, the resources it
+  /// needs in the head.
+  final DocumentHead head;
+
+  /// The scripts the host needs, deferred, in the order they should run.
+  final List<DocumentScript> scripts;
+
+  /// The values a tree that names colour roles is drawn with.
+  final core.UniboxTheme? theme;
+
+  /// Whether an overlay is written open, for a page whose published state *is* a dialog.
+  final bool showOverlays;
+
+  /// What turns the page into an application, when it is one.
+  final Takeover? takeover;
+
+  /// This page as HTML: [toDocument] with every field of this value.
+  String write() => toDocument(
+    node,
+    lang: lang,
+    head: head,
+    scripts: scripts,
+    theme: theme,
+    showOverlays: showOverlays,
+    takeover: takeover,
+  );
+}
+
 /// The tree as a page: the head a crawler reads, then the tree in the body.
 ///
 /// A document is what a search engine, a link preview and a reader without JavaScript
@@ -100,6 +164,9 @@ final class DocumentScript {
 /// reader is given is the host's decision, and the address is the only place a crawler can
 /// read it from — so `/de/apartments/` is the German page, and a header or a cookie would be a
 /// page no crawler ever sees.
+///
+/// A host that writes several pages holds them as [Document] values instead, one per address,
+/// and writes each with the same call.
 String toDocument(
   core.UINode node, {
   String lang = 'en',

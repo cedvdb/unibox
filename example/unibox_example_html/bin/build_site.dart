@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:unibox_example_html/document.dart';
 import 'package:unibox_example_html/site/site_document.dart';
+import 'package:unibox_html/unibox_html.dart';
 
 /// Writes the site to static files: one page, and the example it compares.
 ///
@@ -25,12 +26,28 @@ void main(List<String> arguments) {
   // build it came from and a stale tab can be told from a live one.
   final String? build = _option(arguments, 'build');
 
-  _write(out, 'index.html', buildSiteDocument(build: build));
+  // The site is these pages, one per address: a document beside the path it is served at. The
+  // list is the site — writing it is the loop below, and anything else that has to know what the
+  // site contains reads the same list instead of restating it.
+  final List<({String path, Document document})> pages =
+      <({String path, Document document})>[
+        (path: 'index.html', document: buildSiteDocument(build: build)),
+        (
+          path: 'web/listings/index.html',
+          document: buildExampleDocument(build: build),
+        ),
+        // The same tree, the other way to make it interactive: HTML first, Flutter when
+        // touched. It is what the comparison's right frame shows, and the only page of the
+        // three that downloads an engine.
+        (
+          path: 'web/takeover/index.html',
+          document: buildTakeoverDocument(build: build),
+        ),
+      ];
 
-  _write(out, 'web/listings/index.html', buildExampleDocument(build: build));
-  // The same tree, the other way to make it interactive: HTML first, Flutter when touched. It is what
-  // the comparison's right frame shows, and the only page of the three that downloads an engine.
-  _write(out, 'web/takeover/index.html', buildTakeoverDocument(build: build));
+  for (final ({String path, Document document}) page in pages) {
+    _write(out, page.path, page.document.write());
+  }
 }
 
 /// Writes [document] to [path] below [out].

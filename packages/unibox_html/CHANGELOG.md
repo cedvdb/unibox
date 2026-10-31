@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- `Document`: a page as a value — the tree, `lang`, `head` and the host's choices for how it is
+  written — with `write()` for the HTML. `toDocument` stays the one-page call; a build that
+  writes several holds a list of `Document` beside the paths they are served at and writes them
+  the same way, and the same list is what a sitemap or a router can read instead of restating
+  the addresses. The example now builds from that list: the three pages it writes are stated
+  once, and the takeover page is one entry among them rather than a third hand-written call.
+
 - `DocumentLink`: a `<link>` in the head as a value — `rel`, `href`, `as`, `type` and
   `crossorigin` — with `DocumentLink.preload` and `DocumentLink.prefetch` for the two a host
   usually wants. It replaces `DocumentHead.prefetch`, which could only say one thing

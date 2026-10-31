@@ -23,12 +23,12 @@ import 'iframe_node.dart';
 /// `unibox-build`. A tab opened before a deploy and the deployed page look the same, down to a
 /// layout the new build has already fixed, so the one thing that separates them is a fact
 /// carried by the document itself.
-String buildSiteDocument({
+Document buildSiteDocument({
   ExampleSeed seed = ExampleSeed.defaultSeed,
   String? build,
 }) {
-  return toDocument(
-    sitePageTree(seed: seed),
+  return Document(
+    node: sitePageTree(seed: seed),
     head: DocumentHead(
       title: 'Unibox — SEO-friendly Flutter Web without duplicating your UI',
       description:

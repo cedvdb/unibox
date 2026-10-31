@@ -354,8 +354,8 @@ flutter test
 The host is a handful of files: `lib/document.dart` puts `ExamplePageNode` in a document (language, title, description,
 the `html, body` height and the font stack), and `lib/site/` holds the site's own
 document and its root — the page, its `<iframe>` frame, and the palette the page's
-roles resolve against. `bin/build_site.dart` writes the site page and the two states
-of the example:
+roles resolve against. `bin/build_site.dart` writes the site page and the example's two
+documents, one per address, from a list of `Document` values:
 
 ```shell
 cd example/unibox_example_html

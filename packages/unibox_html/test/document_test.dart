@@ -300,5 +300,33 @@ void main() {
       expect(html, contains('<body><span'));
       expect(html, contains('>Hi</span></body>'));
     });
+
+    test('writes the same page when it is held as a value', () {
+      // A `Document` is the arguments of `toDocument` as one value, so a build can carry a list
+      // of pages beside their addresses. Every field has to reach the renderer: a value that
+      // dropped one would write a page that is not the one the host described.
+      const Document page = Document(
+        node: core.TextNode('Wohnungen'),
+        lang: 'de',
+        head: DocumentHead(
+          title: 'Wohnungen',
+          canonical: 'https://example.com/de/apartments/',
+        ),
+        scripts: <DocumentScript>[DocumentScript(src: 'app.js')],
+      );
+
+      expect(
+        page.write(),
+        toDocument(
+          const core.TextNode('Wohnungen'),
+          lang: 'de',
+          head: const DocumentHead(
+            title: 'Wohnungen',
+            canonical: 'https://example.com/de/apartments/',
+          ),
+          scripts: const <DocumentScript>[DocumentScript(src: 'app.js')],
+        ),
+      );
+    });
   });
 }
