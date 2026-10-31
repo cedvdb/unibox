@@ -37,10 +37,8 @@ String buildExampleDocument({String? build}) {
           'Six apartments with a map beside the listings on a wide screen and the '
           'listings alone on a narrow one, from the same node tree.',
       meta: <String, String>{'unibox-build': ?build, 'unibox-page': 'example'},
-      raw: <String>[
-        fontPreloadLinks('../../'),
-        '<style>${fontFaceCss('../../')}$pageCss</style>',
-      ],
+      links: fontPreloadLinks('../../'),
+      raw: <String>['<style>${fontFaceCss('../../')}$pageCss</style>'],
     ),
     theme: ExamplePalette.themeFor(ExampleSeed.defaultSeed),
     // A document that runs itself rather than one that becomes an application. The client renderer

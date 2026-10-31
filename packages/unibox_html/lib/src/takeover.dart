@@ -1,5 +1,6 @@
 import 'client/all.dart';
 import 'client/boot.dart';
+import 'document_head.dart';
 
 /// A page that an application takes over, in one argument.
 ///
@@ -53,6 +54,7 @@ final class Takeover {
     bootScript(boot, policy: policy),
   ];
 
-  /// The url to prefetch, so a boot that waits for a signal is never a boot on a cold cache.
-  String get prefetch => boot;
+  /// The link that fetches the loader while the reader reads, so a boot that waits for a
+  /// signal is never a boot on a cold cache.
+  DocumentLink get prefetch => DocumentLink.prefetch(boot, as: 'script');
 }

@@ -28,11 +28,19 @@ to the host. They arrive as one value, `DocumentHead`, beside the tree:
 final String page = toDocument(
   tree,
   lang: 'de',
-  head: const DocumentHead(
+  head: DocumentHead(
     title: 'Wohnungen in Amsterdam',
     description: 'Einundvierzig Wohnungen zur Miete.',
     image: 'https://example.com/cards/amsterdam.jpg',
     canonical: 'https://example.com/de/apartments/',
+    links: const <DocumentLink>[
+      DocumentLink.preload(
+        'assets/fonts/roboto-400.woff2',
+        as: 'font',
+        type: 'font/woff2',
+        crossorigin: true,
+      ),
+    ],
   ),
 );
 ```
@@ -45,10 +53,16 @@ final String page = toDocument(
 | `canonical` | `<link rel="canonical">` | the one address of two that serve the same page |
 | `alternates` | `<link rel="alternate" hreflang>` | the same page in its other languages |
 | `meta` | `<meta name="…" content="…">` | a tag this package does not know |
-| `prefetch` | `<link rel="prefetch" as="script">` | a bundle the page is likely to ask for |
+| `links` | `<link rel="…">`, from a `DocumentLink` | a font, an image or a bundle fetched before anything asks |
 | `raw` | verbatim | markup this package does not describe |
 
 `DocumentHead.raw([…])` is the shorthand for a host that only has the last one to say.
+
+A link is a value rather than markup because the attribute that matters is the one a host leaves
+out: a font preload with no `crossorigin` is fetched twice, once for the preload and once for the
+`@font-face` that names it, which is worse than not preloading at all. `DocumentLink.preload`
+requires `as` for the same reason — a browser sets a request's priority and headers from it, and a
+guess is not a fetch.
 
 Everything but `raw` is escaped, and every url goes through `safeUrl`, so a title or a canonical
 address that came from data cannot end the element it is written into. `raw` is the door for the
@@ -57,9 +71,9 @@ verbatim, which is why it is the host's own text and never a string assembled fr
 supplied.
 
 `lang` is not part of the value, because it is an attribute of the root element rather than a head
-element. The renderer owns the order — the metadata and the prefetches before the stylesheet, the
-stylesheet before `raw` — so a fetch starts with the document, a host rule of equal specificity
-can restate what the page starts with, and a font face still arrives before the text that uses it.
+element. The renderer owns the order — the metadata and the links before the stylesheet, the
+stylesheet before `raw` — so a fetch starts with the document, a host rule of equal specificity can
+restate what the page starts with, and a font face still arrives before the text that uses it.
 
 ## Escaping, which is the whole security surface
 

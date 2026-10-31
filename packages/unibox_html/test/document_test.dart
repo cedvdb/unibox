@@ -212,12 +212,45 @@ void main() {
       // sheet starts the fetch with the page instead of after it.
       final String html = toDocument(
         const core.Box(),
-        head: const DocumentHead(prefetch: <String>['app.js']),
+        head: const DocumentHead(
+          links: <DocumentLink>[DocumentLink.prefetch('app.js', as: 'script')],
+        ),
       );
 
       expect(
         html.indexOf('<link rel="prefetch" href="app.js" as="script">'),
         allOf(isNot(-1), lessThan(html.indexOf('<style data-unibox-css>'))),
+      );
+    });
+
+    test('names a font before the stylesheet, with the crossorigin it needs', () {
+      // Without `crossorigin` a browser fetches the file twice — once for the preload and once
+      // for the `@font-face` that names it — which is worse than not preloading at all. The
+      // attribute is a field rather than something a host has to remember to write.
+      final String html = toDocument(
+        const core.Box(),
+        head: const DocumentHead(
+          links: <DocumentLink>[
+            DocumentLink.preload(
+              'assets/fonts/roboto-400.woff2',
+              as: 'font',
+              type: 'font/woff2',
+              crossorigin: true,
+            ),
+          ],
+        ),
+      );
+
+      expect(
+        html,
+        contains(
+          '<link rel="preload" href="assets/fonts/roboto-400.woff2" as="font" '
+          'type="font/woff2" crossorigin>',
+        ),
+      );
+      expect(
+        html.indexOf('<link rel="preload"'),
+        lessThan(html.indexOf('<style data-unibox-css>')),
       );
     });
 
@@ -249,11 +282,15 @@ void main() {
           canonical: 'javascript:alert(1)',
           alternates: <String, String>{'en': 'javascript:alert(1)'},
           image: 'javascript:alert(1)',
+          links: <DocumentLink>[
+            DocumentLink.preload('javascript:alert(1)', as: 'script'),
+          ],
         ),
       );
 
       expect(html, contains('href="#"'));
       expect(html, contains('<meta property="og:image" content="#">'));
+      expect(html, contains('<link rel="preload" href="#" as="script">'));
       expect(html, isNot(contains('javascript:')));
     });
 

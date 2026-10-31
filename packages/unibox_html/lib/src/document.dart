@@ -181,11 +181,11 @@ String toDocument(
     );
   }
 
-  // Fetched at a low priority while the reader reads, so a boot that waits for intent is
-  // never a boot on a cold cache. The download is not what the reader pays for; the
-  // execution is. Written before the stylesheet, so the fetch starts with the document.
-  for (final String url in head.prefetch) {
-    buffer.write('<link rel="prefetch" href="${safeUrl(url)}" as="script">');
+  // A resource named before anything asks for it starts its fetch with the document instead
+  // of after it: the download is not what a reader pays for, the execution is. Written before
+  // the stylesheet for the same reason.
+  for (final DocumentLink link in head.links) {
+    buffer.write(link.write());
   }
 
   buffer.write('<style data-unibox-css>${rendered.css}</style>');
@@ -203,9 +203,7 @@ String toDocument(
   // and when the boot may start. Added before the host's own scripts, because the recorders
   // have to exist before the application asks what the reader did.
   if (takeover != null) {
-    buffer.write(
-      '<link rel="prefetch" href="${safeUrl(takeover.prefetch)}" as="script">',
-    );
+    buffer.write(takeover.prefetch.write());
 
     for (final String script in takeover.scripts) {
       buffer.write(

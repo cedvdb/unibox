@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- `DocumentLink`: a `<link>` in the head as a value — `rel`, `href`, `as`, `type` and
+  `crossorigin` — with `DocumentLink.preload` and `DocumentLink.prefetch` for the two a host
+  usually wants. It replaces `DocumentHead.prefetch`, which could only say one thing
+  (`rel="prefetch" as="script"`), and it is what a font preload should be written with: a
+  preload with no `crossorigin` is fetched twice, once for the preload and once for the
+  `@font-face` that names it, and no string of markup says so. `Takeover.prefetch` is now the
+  `DocumentLink` it always wrote out by hand. The example's own `fontPreloadLinks` returns
+  links instead of markup, so the site's two documents state their fonts through the same value
+  a host would.
+
 - `DocumentHead`: the page's own metadata as one value, so `toDocument` takes `head:` where it
   took seven arguments that had to agree with each other — `title`, `description`, `canonical`,
   `alternates`, `meta`, `prefetch` and the list of raw markup. `DocumentHead.raw([…])` is a head

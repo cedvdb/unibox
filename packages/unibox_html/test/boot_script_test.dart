@@ -141,7 +141,11 @@ void main() {
     test('prefetches the bundle, so the boot is never on a cold cache', () {
       final String html = toDocument(
         const core.Box(),
-        head: const DocumentHead(prefetch: <String>['flutter_bootstrap.js']),
+        head: const DocumentHead(
+          links: <DocumentLink>[
+            DocumentLink.prefetch('flutter_bootstrap.js', as: 'script'),
+          ],
+        ),
       );
 
       expect(

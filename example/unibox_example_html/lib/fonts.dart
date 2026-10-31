@@ -1,3 +1,5 @@
+import 'package:unibox_html/unibox_html.dart';
+
 /// The family both hosts ship.
 ///
 /// The Flutter app bundles the same files through `flutter: fonts:` in its
@@ -27,14 +29,19 @@ const List<String> fontPreloadWeights = <String>['400', '500'];
 ///
 /// `crossorigin` is required even for a same-origin font: without it the browser fetches the file
 /// twice, once for the preload and once for the `@font-face`, which is worse than not preloading.
-String fontPreloadLinks(String prefix) {
+/// It is a field of `DocumentLink` rather than a string this file assembles, because it is the
+/// attribute a host leaves out and no test can see a missing one.
+List<DocumentLink> fontPreloadLinks(String prefix) {
   return fontPreloadWeights
       .map(
-        (String weight) =>
-            '<link rel="preload" href="${prefix}assets/fonts/roboto-$weight.woff2" '
-            'as="font" type="font/woff2" crossorigin>',
+        (String weight) => DocumentLink.preload(
+          '${prefix}assets/fonts/roboto-$weight.woff2',
+          as: 'font',
+          type: 'font/woff2',
+          crossorigin: true,
+        ),
       )
-      .join();
+      .toList();
 }
 
 /// The `@font-face` rules of the family, one per weight.

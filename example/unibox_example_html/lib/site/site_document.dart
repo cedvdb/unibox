@@ -36,10 +36,8 @@ String buildSiteDocument({
           'as real HTML and CSS to a search engine, and draw it as Flutter widgets in '
           'the app.',
       meta: <String, String>{'unibox-build': ?build, 'unibox-page': 'site'},
-      raw: <String>[
-        fontPreloadLinks(''),
-        '<style>${fontFaceCss('')}$siteCss</style>',
-      ],
+      links: fontPreloadLinks(''),
+      raw: <String>['<style>${fontFaceCss('')}$siteCss</style>'],
     ),
     theme: siteThemeFor(seed),
     // A site a crawler reads is a document: the recorders are what a reader who interacts

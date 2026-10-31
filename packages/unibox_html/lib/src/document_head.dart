@@ -1,3 +1,5 @@
+import 'escape.dart';
+
 /// The head of a document: what a crawler reads, a link preview shows and the first paint
 /// needs.
 ///
@@ -35,7 +37,7 @@ final class DocumentHead {
     this.canonical,
     this.alternates = const <String, String>{},
     this.meta = const <String, String>{},
-    this.prefetch = const <String>[],
+    this.links = const <DocumentLink>[],
     this.raw = const <String>[],
   });
 
@@ -95,12 +97,13 @@ final class DocumentHead {
   /// than `name`, and that the fields above do not cover, belongs in [raw].
   final Map<String, String> meta;
 
-  /// Urls to fetch at a low priority while the reader reads.
+  /// Resources to fetch before anything asks for them: the font a host ships, the image the
+  /// first paint needs, the bundle the page is likely to load.
   ///
-  /// Written as `<link rel="prefetch" as="script">`, so it is a script prefetch: for a bundle
-  /// the page is likely to ask for. It is placed before the stylesheet, so the download
-  /// starts with the document instead of after it.
-  final List<String> prefetch;
+  /// Written in the order given and before the stylesheet, so a fetch starts with the
+  /// document instead of after it — which is the difference between a font that arrives with
+  /// the text and one that arrives a round trip behind it.
+  final List<DocumentLink> links;
 
   /// Markup written verbatim, after the stylesheet and before the tree.
   ///
@@ -110,4 +113,106 @@ final class DocumentHead {
   /// arrive before the text that uses them. Structured data belongs here too, because
   /// `application/ld+json` is a script element rather than a tag this value could describe.
   final List<String> raw;
+}
+
+/// A `<link>` a document names before anything uses it.
+///
+/// Written as a value rather than as markup for the reason `DocumentScript` is: the attributes
+/// a browser needs are easy to leave out in exactly the case that matters, and nothing about a
+/// string of markup says so. A font preload without `crossorigin` is fetched twice — once for
+/// the preload and once for the `@font-face` that names it — which is worse than no preload at
+/// all, and it is the mistake this type exists to make impossible.
+///
+/// ```dart
+/// const DocumentHead(
+///   links: <DocumentLink>[
+///     DocumentLink.preload(
+///       'assets/fonts/roboto-400.woff2',
+///       as: 'font',
+///       type: 'font/woff2',
+///       crossorigin: true,
+///     ),
+///   ],
+/// );
+/// ```
+final class DocumentLink {
+  /// Creates a link.
+  const DocumentLink({
+    required this.rel,
+    required this.href,
+    this.as,
+    this.type,
+    this.crossorigin = false,
+  });
+
+  /// A resource fetched ahead of the document asking for it.
+  ///
+  /// [as] is what the browser sets the request's priority and headers from, and the
+  /// specification requires it for a preload; [type] lets it skip a fetch it cannot use.
+  const DocumentLink.preload(
+    String href, {
+    required String as,
+    String? type,
+    bool crossorigin = false,
+  }) : this(
+         rel: 'preload',
+         href: href,
+         as: as,
+         type: type,
+         crossorigin: crossorigin,
+       );
+
+  /// A resource fetched at a low priority, for a page likely to ask for it later.
+  ///
+  /// A boot that waits for a signal is never a boot on a cold cache because of one of these.
+  const DocumentLink.prefetch(String href, {String? as, String? type})
+    : this(rel: 'prefetch', href: href, as: as, type: type);
+
+  /// How the document relates to what it names: `'preload'`, `'prefetch'`, `'preconnect'`,
+  /// `'manifest'`, `'icon'`.
+  final String rel;
+
+  /// The url, relative to the document unless it is absolute.
+  final String href;
+
+  /// What the browser will use the resource as: `'script'`, `'font'`, `'image'`, `'style'`.
+  final String? as;
+
+  /// The MIME type, which a browser may use to skip a fetch it cannot use.
+  final String? type;
+
+  /// Whether the request is a CORS one.
+  ///
+  /// A bare `crossorigin` attribute means `anonymous`, which is what a font needs even when it
+  /// is served from the same origin: without it the browser fetches the file twice.
+  final bool crossorigin;
+
+  /// This link as HTML.
+  String write() {
+    final StringBuffer buffer = StringBuffer('<link rel="')
+      ..write(escapeAttribute(rel))
+      ..write('" href="')
+      ..write(safeUrl(href))
+      ..write('"');
+
+    final String? asValue = as;
+
+    if (asValue != null) {
+      buffer.write(' as="${escapeAttribute(asValue)}"');
+    }
+
+    final String? typeValue = type;
+
+    if (typeValue != null) {
+      buffer.write(' type="${escapeAttribute(typeValue)}"');
+    }
+
+    if (crossorigin) {
+      buffer.write(' crossorigin');
+    }
+
+    buffer.write('>');
+
+    return buffer.toString();
+  }
 }
