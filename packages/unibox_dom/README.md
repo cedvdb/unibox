@@ -89,6 +89,12 @@ Client only, so its suite runs in a browser:
 (cd packages/unibox_dom && dart test -p chrome)
 ```
 
+A suite runs in an iframe of the runner's own page, which is why a test must never let the browser
+follow a link: the click navigates the frame, the suite's channel goes with it, and `dart test` waits
+for a result that can no longer arrive instead of failing — one CI job sat on this step for six
+hours that way. A test that presses a link it expects the browser to keep reads the press from a
+listener further up and cancels it there, which is what `test/events_test.dart` does.
+
 ## Depends on
 
 `unibox_core`, `unibox_css`, `unibox_element` and `package:web`. It is compiled by the host

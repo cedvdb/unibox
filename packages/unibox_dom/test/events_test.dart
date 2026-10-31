@@ -1,6 +1,8 @@
 @TestOn('browser')
 library;
 
+import 'dart:js_interop';
+
 import 'package:test/test.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
 import 'package:unibox_dom/unibox_dom.dart';
@@ -220,13 +222,35 @@ void main() {
           host(),
         );
 
-        final web.Event plain = web.MouseEvent(
-          'click',
-          web.MouseEventInit(bubbles: true, cancelable: true),
-        );
-        view.element.dispatchEvent(plain);
+        // The press is read one listener further up, and cancelled there. A click the tree
+        // leaves alone is a click the browser *follows*, and a suite runs in an iframe of the
+        // runner's own page: navigating it takes the suite's channel with it, so the runner
+        // waits for a result that can no longer arrive — `dart test` sat on this step for six
+        // hours rather than failing. Reading the event first and cancelling it second keeps the
+        // browser out of the harness without changing the fact the renderer is held to.
+        bool? swallowed;
+        final web.EventListener watch = ((web.Event event) {
+          swallowed = event.defaultPrevented;
+          event.preventDefault();
+        }).toJS;
 
-        expect(plain.defaultPrevented, isFalse);
+        web.document.addEventListener('click', watch);
+        try {
+          view.element.dispatchEvent(
+            web.MouseEvent(
+              'click',
+              web.MouseEventInit(bubbles: true, cancelable: true),
+            ),
+          );
+        } finally {
+          web.document.removeEventListener('click', watch);
+        }
+
+        expect(
+          swallowed,
+          isFalse,
+          reason: 'a press the tree cannot answer stays the browser’s',
+        );
         expect(view.element.getAttribute('href'), '/?category=meetingRoom');
 
         view.dispose();
