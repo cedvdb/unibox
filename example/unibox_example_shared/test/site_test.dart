@@ -280,6 +280,7 @@ void main() {
         'Tabs',
         'Secondary tabs',
         'Pages',
+        'Sticky bands',
         'Dialog',
         'Type scale',
         'Colour roles',

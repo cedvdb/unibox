@@ -35,10 +35,11 @@ void main() {
           .where((Box box) => box.overflow == Overflow.scroll)
           .toList();
 
-      // Two rows of chips that overflow, and two pagers: the `Pages` block, and the one under the
-      // tabs. A pager scrolls for a different reason — it settles on a child — so it is counted here
-      // and told apart below.
-      expect(scrollers, hasLength(4));
+      // Two rows of chips that overflow, two pagers and the sticky list: the `Pages` block,
+      // the pager under the tabs, and the block whose bar pins. A pager scrolls for a
+      // different reason — it settles on a child — so it is counted here and told apart
+      // below.
+      expect(scrollers, hasLength(5));
       expect(_textsIn(scrollers.first), contains('Two rooms'));
       expect(_textsIn(scrollers[1]), contains('Garden'));
 
@@ -55,6 +56,32 @@ void main() {
       expect(paged.first.page, 0);
       expect(paged.last.page, isNull);
       expect(_textsIn(paged.last), contains('Three'));
+    });
+
+    test('keeps the bar of its sticky list inside the box that scrolls it', () {
+      final List<UINode> nodes = _nodesOf(buildMaterialSection());
+      final List<Box> pinned = nodes
+          .whereType<Box>()
+          .where((Box box) => box.pin == BoxPin.start)
+          .toList();
+
+      expect(pinned, hasLength(1));
+
+      final Box bar = pinned.single;
+
+      // A band is drawn by the box that scrolls it, from the height it states: the two are
+      // the contract the model asks for, and the catalogue is where a caller reads them.
+      expect(bar.height, isNotNull);
+      expect(bar.height!.isFinite, isTrue);
+      // It is drawn over the rows that pass beneath it, so it paints its own surface.
+      expect(bar.backgroundColor, isNotNull);
+
+      final Box viewport = nodes.whereType<Box>().singleWhere(
+        (Box box) => box.children.contains(bar),
+      );
+
+      expect(viewport.overflow, Overflow.scroll);
+      expect(viewport.height, isNotNull);
     });
 
     test(

@@ -101,6 +101,15 @@ UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
         ),
         _section(
           palette,
+          'Sticky bands',
+          _stickyBands(palette),
+          note:
+              'A hero, a bar and a list in one scrolling box: the hero leaves, the bar '
+              'comes to rest at the top of the box, and the rows run under it. `pin: '
+              'BoxPin.start` is the whole of it. Scroll it.',
+        ),
+        _section(
+          palette,
           'Dialog',
           DialogDemo(seed: seed),
           note: 'An OverlayNode: in the tree only while it is open.',
@@ -781,8 +790,105 @@ UINode _pager(MaterialPalette palette) {
   );
 }
 
-/// A segmented button that keeps the choice it was given.
+/// A list whose toolbar stays: the hero scrolls away, the bar comes to rest, the rows run
+/// under it.
 ///
+/// The bar states the height its pin needs — the room its slot keeps in the flow is that
+/// number — and paints a surface of its own, because a band drawn over the rows that pass
+/// beneath it has to cover them. `pinOffset` is left out here: nothing above the bar stays,
+/// so the band keeps none of the edge.
+///
+/// It is one scrolling box with four children, and that is the whole of the trick: the same
+/// node is a sticky toolbar in a browser and a band carried over the viewport in Flutter,
+/// with no script on either.
+UINode _stickyBands(MaterialPalette palette) {
+  const double hero = 132;
+  const double bar = 56;
+  const double row = 44;
+
+  const List<(String, String)> flats = <(String, String)>[
+    ('Garden loft', '€1 280'),
+    ('Two rooms by the park', '€1 460'),
+    ('Studio, sixth floor', '€ 920'),
+    ('Attic with a terrace', '€1 700'),
+    ('One room in the old town', '€ 860'),
+  ];
+
+  return Box(
+    width: double.infinity,
+    // Three children of the viewport and a little to spare: enough to scroll the hero away
+    // and watch the bar settle, which is as much as a catalogue block can show.
+    height: 260,
+    overflow: Overflow.scroll,
+    borderRadius: 12,
+    children: <UINode>[
+      Box(
+        width: double.infinity,
+        height: hero,
+        padding: const BoxSpacing.all(20),
+        backgroundColor: palette.primaryContainer,
+        children: <UINode>[
+          TextNode(
+            'Six flats, one tree',
+            style: MaterialTypography.headlineSmall.copyWith(
+              color: palette.onPrimaryContainer,
+            ),
+          ),
+        ],
+      ),
+      Box(
+        key: 'sticky-toolbar',
+        width: double.infinity,
+        height: bar,
+        pin: BoxPin.start,
+        padding: const BoxSpacing.symmetric(horizontal: 16),
+        backgroundColor: palette.surfaceContainerHigh,
+        direction: Axis.horizontal,
+        crossAlign: CrossAlign.center,
+        mainAlign: MainAlign.spaceBetween,
+        children: <UINode>[
+          TextNode(
+            'Results',
+            style: MaterialTypography.labelLarge.copyWith(
+              color: palette.onSurface,
+            ),
+          ),
+          TextNode(
+            '6 of 24',
+            style: MaterialTypography.labelMedium.copyWith(
+              color: palette.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+      for (final (String name, String price) in flats)
+        Box(
+          width: double.infinity,
+          height: row,
+          padding: const BoxSpacing.symmetric(horizontal: 16),
+          direction: Axis.horizontal,
+          crossAlign: CrossAlign.center,
+          mainAlign: MainAlign.spaceBetween,
+          children: <UINode>[
+            TextNode(
+              name,
+              style: MaterialTypography.bodyMedium.copyWith(
+                color: palette.onSurface,
+              ),
+            ),
+            TextNode(
+              price,
+              style: MaterialTypography.bodyMedium.copyWith(
+                color: palette.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+    ],
+  );
+}
+
+/// A segmented button that keeps the choice it was given.
 /// The choice is the state: the view puts the segment the store says is chosen into
 /// the button, and a press asks for another one — the same shape as the dialog demo,
 /// and the reason a segmented button needs no state of its own.
