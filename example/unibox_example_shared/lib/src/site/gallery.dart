@@ -800,12 +800,11 @@ UINode _pager(MaterialPalette palette) {
   );
 }
 
-/// Three bands that stay, one per edge and inset: a toolbar that comes to rest under
-/// a hero, a second bar that stops under the first, and an action bar at the end.
+/// Three bands that stay, one per edge and inset: a toolbar that comes to rest under a hero,
+/// a second bar that stops under the first, and an action bar at the end.
 ///
-/// Every band states the height its slot keeps in the flow and paints its own surface,
-/// because a band is drawn over the content that passes beneath it — and each one is a
-/// child of the box that scrolls it, which is the only place a band can be pinned from.
+/// Every band is a [MaterialAppBar] — a component, not a `Box` written out — so the specimens
+/// show what a page built from this library looks like rather than what the tokens look like.
 UINode _pinnedBands(MaterialPalette palette) {
   return GridNode(
     minItemWidth: 280,
@@ -817,13 +816,19 @@ UINode _pinnedBands(MaterialPalette palette) {
         'A toolbar at the start, under a hero',
         _viewport(
           palette,
-          // The bar's surface, so the strip a pull reveals is the bar's colour.
-          background: palette.surfaceContainerHigh,
+          background: MaterialAppBar.surface,
           children: <UINode>[
-            _hero(palette, 'Six flats, one tree', height: 96),
-            _band(palette, 'Results', trailing: '6 of 24', pin: BoxPin.start),
+            MaterialLargeAppBar(
+              title: const TextNode('Six flats, one tree'),
+              height: 136,
+            ),
+            MaterialAppBar(
+              title: const TextNode('Results'),
+              trailing: const TextNode('6 of 24'),
+              pin: BoxPin.start,
+            ),
             for (final (String name, String price) in _flats)
-              _flatRow(palette, name, price),
+              _flatTile(name, price),
           ],
         ),
       ),
@@ -832,28 +837,25 @@ UINode _pinnedBands(MaterialPalette palette) {
         'Two bars, the second under the first',
         _viewport(
           palette,
-          // The bar's surface, so the strip a pull reveals is the bar's colour.
-          background: palette.surfaceContainerHigh,
+          background: MaterialAppBar.surface,
           children: <UINode>[
-            _band(
-              palette,
-              'Filters',
-              trailing: '3',
+            MaterialAppBar(
+              title: const TextNode('Filters'),
+              trailing: const TextNode('3'),
               pin: BoxPin.start,
-              height: 44,
-              background: palette.surfaceContainerHighest,
+              color: const BoxColor.role(
+                MaterialColorRole.surfaceContainerHigh,
+              ),
             ),
-            // The inset is the height of the bar above it: `pinOffset` is the same
-            // number, written twice because the two bands are siblings.
-            _band(
-              palette,
-              'Two rooms',
+            // The inset is the height of the bar above it: `pinOffset` is the same number,
+            // written twice because the two bars are siblings.
+            MaterialAppBar(
+              title: const TextNode('Two rooms'),
               pin: BoxPin.start,
-              pinOffset: 44,
-              height: 44,
+              pinOffset: MaterialAppBar.topHeight,
             ),
-            for (final (String name, String price) in _flats)
-              _flatRow(palette, name, price),
+            for (final (String name, String price) in _flats.take(6))
+              _flatTile(name, price),
           ],
         ),
       ),
@@ -862,17 +864,14 @@ UINode _pinnedBands(MaterialPalette palette) {
         'A bar at the end, whatever the list is doing',
         _viewport(
           palette,
-          // The bar's surface, so the strip a pull reveals is the bar's colour.
-          background: palette.surfaceContainerHigh,
+          background: MaterialAppBar.surface,
           children: <UINode>[
             for (final (String name, String price) in _flats)
-              _flatRow(palette, name, price),
-            _band(
-              palette,
-              'Continue',
-              trailing: '5 of 6 picked',
+              _flatTile(name, price),
+            MaterialAppBar(
+              title: const TextNode('Continue'),
+              trailing: const TextNode('5 of 6 picked'),
               pin: BoxPin.end,
-              height: 52,
             ),
           ],
         ),
@@ -881,8 +880,8 @@ UINode _pinnedBands(MaterialPalette palette) {
   );
 }
 
-/// Three folds: the same band over the whole of its exit, over the first part of it, and one
-/// that gives up its elevation as well as its tint.
+/// Three folds: one band over the whole of its exit, the same band over the first part of it,
+/// and a card that gives up its elevation as well as its tint.
 ///
 /// A fold is only legible if there is somewhere for it to run, so every panel holds more than
 /// it shows: the band above has its whole exit to travel through before the list runs out.
@@ -909,10 +908,14 @@ UINode _folds(MaterialPalette palette) {
         'Fades and shrinks over its whole exit',
         _viewport(
           palette,
+          background: MaterialLargeAppBar.surface,
           children: <UINode>[
-            _hero(palette, 'Six flats, one tree', height: 160, fold: whole),
+            MaterialLargeAppBar(
+              title: const TextNode('Six flats, one tree'),
+              fold: whole,
+            ),
             for (final (String name, String price) in _flats)
-              _flatRow(palette, name, price),
+              _flatTile(name, price),
           ],
         ),
       ),
@@ -921,52 +924,39 @@ UINode _folds(MaterialPalette palette) {
         'The same fold, over two fifths of the exit',
         _viewport(
           palette,
+          background: MaterialLargeAppBar.surface,
           children: <UINode>[
-            _hero(palette, 'Six flats, one tree', height: 160, fold: early),
+            MaterialLargeAppBar(
+              title: const TextNode('Six flats, one tree'),
+              fold: early,
+            ),
             for (final (String name, String price) in _flats)
-              _flatRow(palette, name, price),
+              _flatTile(name, price),
           ],
         ),
       ),
       _specimen(
         palette,
-        'Gives up its elevation and its corners',
+        'A tinted bar that loses its tint',
         _viewport(
           palette,
+          background: MaterialLargeAppBar.surface,
           children: <UINode>[
-            Box(
-              width: double.infinity,
-              height: 160,
-              padding: const BoxSpacing.all(20),
-              backgroundColor: palette.surfaceContainerHigh,
-              borderRadius: 16,
-              shadows: MaterialElevation.level2,
-              // Three paints and no layout: a card that sinks into the panel as it leaves.
-              fold: BoxFold(
+            MaterialAppBar(
+              title: const TextNode('Two rooms by the park'),
+              trailing: const TextNode('€1 460'),
+              color: const BoxColor.role(MaterialColorRole.primaryContainer),
+              // The bar arrives as the plain one it becomes: a colour and no layout, so the
+              // rows under it never move while it does.
+              fold: const BoxFold(
                 to: BoxStyle(
-                  backgroundColor: palette.surface,
-                  borderRadius: 0,
-                  shadows: const <BoxShadow>[],
+                  backgroundColor: BoxColor.role(MaterialColorRole.surface),
                 ),
                 curve: BoxCurve.easeInOut,
               ),
-              children: <UINode>[
-                TextNode(
-                  'Two rooms by the park',
-                  style: MaterialTypography.headlineSmall.copyWith(
-                    color: palette.onSurface,
-                  ),
-                ),
-                TextNode(
-                  '€1 460 a month',
-                  style: MaterialTypography.bodyMedium.copyWith(
-                    color: palette.onSurfaceVariant,
-                  ),
-                ),
-              ],
             ),
             for (final (String name, String price) in _flats)
-              _flatRow(palette, name, price),
+              _flatTile(name, price),
           ],
         ),
       ),
@@ -991,113 +981,32 @@ UINode _specimen(MaterialPalette palette, String caption, UINode child) {
   );
 }
 
-/// The viewport a specimen is seen through: a panel that scrolls its own content.
+/// The viewport a specimen is seen through: a Material panel that scrolls its own content.
+///
+/// [background] is the colour a pull past either end reveals, because a scrolling box shows its
+/// own surface there — the bar's colour for a panel with a bar at its edge, so the pull reads as
+/// that bar gaining room rather than as a gap in the list.
 UINode _viewport(
   MaterialPalette palette, {
   required List<UINode> children,
-  double height = 200,
-  // The colour a pull past either end reveals, which is the box's own background: a panel whose
-  // bar is `surfaceContainerHigh` states that, so pulling it reads as the bar gaining room
-  // rather than as a gap above it.
   BoxColor? background,
+  double height = 200,
 }) {
   return Box(
     width: double.infinity,
     height: height,
     overflow: Overflow.scroll,
     borderRadius: 12,
-    border: BoxBorder(color: palette.outlineVariant),
-    backgroundColor: background ?? palette.surfaceContainerLow,
+    backgroundColor: background ?? palette.surface,
     children: children,
   );
 }
 
-/// The band above the list a specimen scrolls: a picture band with a headline in it.
-UINode _hero(
-  MaterialPalette palette,
-  String title, {
-  required double height,
-  BoxFold? fold,
-}) {
-  return Box(
-    width: double.infinity,
-    height: height,
-    padding: const BoxSpacing.all(20),
-    backgroundColor: palette.primaryContainer,
-    fold: fold,
-    children: <UINode>[
-      TextNode(
-        title,
-        style: MaterialTypography.headlineSmall.copyWith(
-          color: palette.onPrimaryContainer,
-        ),
-      ),
-    ],
-  );
-}
-
-/// A band that can be pinned: a label, a count, and a surface of its own.
-UINode _band(
-  MaterialPalette palette,
-  String label, {
-  String? trailing,
-  BoxPin? pin,
-  double? pinOffset,
-  double height = 48,
-  BoxColor? background,
-}) {
-  return Box(
-    width: double.infinity,
-    height: height,
-    pin: pin,
-    pinOffset: pinOffset,
-    padding: const BoxSpacing.symmetric(horizontal: 16),
-    backgroundColor: background ?? palette.surfaceContainerHigh,
-    // A hairline under the band, so it reads as chrome of its own rather than as a gap in the
-    // list once the rows are passing beneath it.
-    border: BoxBorder(color: palette.outlineVariant),
-    direction: Axis.horizontal,
-    crossAlign: CrossAlign.center,
-    mainAlign: MainAlign.spaceBetween,
-    children: <UINode>[
-      TextNode(
-        label,
-        style: MaterialTypography.labelLarge.copyWith(color: palette.onSurface),
-      ),
-      if (trailing != null)
-        TextNode(
-          trailing,
-          style: MaterialTypography.labelMedium.copyWith(
-            color: palette.onSurfaceVariant,
-          ),
-        ),
-    ],
-  );
-}
-
-/// One flat a specimen scrolls past: a name on the left, a rent on the right.
-UINode _flatRow(MaterialPalette palette, String name, String price) {
-  return Box(
-    width: double.infinity,
-    height: 34,
-    padding: const BoxSpacing.symmetric(horizontal: 16),
-    direction: Axis.horizontal,
-    crossAlign: CrossAlign.center,
-    mainAlign: MainAlign.spaceBetween,
-    children: <UINode>[
-      TextNode(
-        name,
-        style: MaterialTypography.bodyMedium.copyWith(color: palette.onSurface),
-      ),
-      TextNode(
-        price,
-        style: MaterialTypography.bodyMedium.copyWith(
-          color: palette.onSurfaceVariant,
-        ),
-      ),
-    ],
-  );
-}
+/// One flat in a panel: a Material list tile, with its rent at the end of the row.
+UINode _flatTile(String name, String price) => MaterialListTile(
+  title: TextNode(name),
+  trailing: TextNode(price, style: MaterialListTile.subtitleTextStyle),
+);
 
 /// The flats every specimen scrolls past.
 ///

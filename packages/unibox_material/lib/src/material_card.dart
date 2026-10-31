@@ -95,6 +95,7 @@ final class MaterialCard extends Box {
     super.height,
     super.margin,
     super.transition,
+    super.fold,
     super.hoverStyle,
     super.stateStyles,
     super.enabled,

@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- `MaterialAppBar` is the small top app bar as a `Box`: a title at the start, a node at the end,
+  `titleLarge` on the bar's own surface, a hairline under it, and a stated height — so the same
+  component is a header or a band, depending on whether it states `pin: BoxPin.start` or
+  `BoxPin.end`. It publishes `topHeight`, `surface` and `hairline`.
+- `MaterialLargeAppBar` is the band with air above its headline: 152 pixels, the title in
+  `headlineMedium` on the floor of it, the same surface as the small bar, and a `fold:` — the
+  look it takes as it leaves the box that scrolls it. Material's own collapse is a layout
+  change and no renderer here eases one, so what folds is the paint.
+- `MaterialCard` takes `fold:`, for a card that is the band a page opens with.
+
 - **A button's 64 by 40 minimum is the press's, not the pill's.** `MaterialInkWell` takes
   `minWidth` and `minHeight` and `MaterialButton` states them there, so the fill hugs a control
   that is never smaller than the button it paints. Before, a caller's four pixels of vertical

@@ -291,6 +291,61 @@ specification's numbers instead is what `MaterialPalette.light` and `.dark` are 
 `BoxColor.role(...)`: a role is a colour a theme answers, and this is the call that
 builds the theme.
 
+## The app bars
+
+Two bands, and both are `Box`es: `MaterialAppBar` is the small top app bar, and
+`MaterialLargeAppBar` is the one with air above its headline, which folds as it leaves.
+
+```dart
+Box(
+  height: 480,
+  overflow: Overflow.scroll,
+  // The colour a pull past the end reveals — the box's own background, so it is the bar's.
+  backgroundColor: MaterialAppBar.surface,
+  children: <UINode>[
+    MaterialLargeAppBar(
+      title: const TextNode('Six flats, one tree'),
+      fold: const BoxFold(
+        to: BoxStyle(opacity: 0.1, transform: BoxTransform(scale: 0.62)),
+        curve: BoxCurve.easeOut,
+      ),
+    ),
+    MaterialAppBar(
+      title: const TextNode('Results'),
+      trailing: const TextNode('6 of 24'),
+      pin: BoxPin.start,
+    ),
+    for (final Flat flat in flats) MaterialListTile(title: TextNode(flat.name)),
+  ],
+)
+```
+
+| Token | `MaterialAppBar` | `MaterialLargeAppBar` |
+| --- | --- | --- |
+| height | `topHeight` — 64 | `largeHeight` — 152 |
+| surface | `surface` — `surfaceContainer`, which the list states too | `surface` — the same role |
+| type | the title in `titleLarge` on `onSurface` | the title in `headlineMedium`, on the floor of the band |
+| the band's edge | `pinned` by stating `pin: BoxPin.start`, with `pinOffset` for a second bar | it *folds* instead: `fold:` is a look, and the height it states is the room the flow keeps |
+
+**A bar is pinned by stating the edge**, because that is the token: `pin: BoxPin.start`
+comes to rest at the top of the box that scrolls it, `BoxPin.end` at the bottom, and
+`pinOffset: MaterialAppBar.topHeight` stops a second bar under the first. `validateTree`
+reports a pinned band with no height, one that is not a child of the box that scrolls it,
+and one that also states a fold — a band that stays never leaves, so it never folds.
+
+**The pair share one colour, and that is the point.** A pull past the end of a scrolling box
+reveals the box's own background, so a panel that holds an app bar states
+`backgroundColor: MaterialAppBar.surface` and the pull reads as the bar gaining room rather
+than as a gap in the list. That is why the colour is published as a constant and not only
+kept as a default.
+
+**What the large bar is not.** Material collapses a large app bar into a small one as the
+content scrolls, which is a *layout* change: the band's height and the room it takes both
+move, and nothing here eases a layout — a frame of an eased layout is a picture the two
+engines cannot be held to. A fold paints the band out instead: it fades and shrinks about its
+centre while the flow keeps its height. A tree that wants the space back states a state and
+swaps the band for a small one, which is a rebuild and not a fold.
+
 ## The card
 
 `MaterialCard` is the other half of the package: a Material 3 surface with

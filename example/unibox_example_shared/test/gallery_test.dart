@@ -120,13 +120,16 @@ void main() {
         expect(box.fold!.looks, contains(BoxProperty.opacity));
       }
 
-      // …and the third gives up an elevation, which is a paint none of the others move.
-      final Box card = folded.singleWhere(
-        (Box box) => box.fold!.looks.contains(BoxProperty.shadows),
+      // …and the third moves a colour and nothing else, which is a paint neither of the others
+      // touches: a tinted bar that arrives as the plain one.
+      final Box tinted = folded.singleWhere(
+        (Box box) =>
+            !box.fold!.looks.contains(BoxProperty.opacity) &&
+            box.fold!.looks.contains(BoxProperty.backgroundColor),
       );
 
-      expect(card.fold!.looks, contains(BoxProperty.backgroundColor));
-      expect(card.shadows, isNotEmpty);
+      expect(tinted.fold!.to.backgroundColor, isNotNull);
+      expect(tinted.backgroundColor, isNotNull);
 
       // A fold is for the box that leaves, so no band that stays carries one.
       for (final Box box in folded) {

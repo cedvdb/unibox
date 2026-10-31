@@ -1114,7 +1114,9 @@ paint a background, because each is drawn over the content that passes beneath i
 The box states a surface too, and it is the surface a pull past either end reveals: a host
 lets a scroller be pulled, and the gap that opens is the box's own `backgroundColor`. State
 the bar's colour there and the pull reads as the bar gaining room; leave it out and the pull
-shows whatever is behind the box.
+shows whatever is behind the box. `unibox_material` makes that one statement instead of two:
+`MaterialAppBar.surface` is the colour the bar paints *and* the colour a list under it
+states.
 
 ### A look that arrives as the reader scrolls
 
