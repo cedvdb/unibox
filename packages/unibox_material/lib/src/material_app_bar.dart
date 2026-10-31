@@ -25,10 +25,9 @@ import 'material_typography.dart';
 /// what [topHeight] is for — and a bar that is not pinned states it too, so the same component
 /// can be either.
 ///
-/// **The colour the pull reveals is [surface].** A panel that is pulled past its end reveals its
-/// own background, so a list that scrolls under this bar states `backgroundColor: MaterialAppBar.
-/// surface` and the pull reads as the bar gaining room rather than as a gap. That is why the
-/// colour is a published constant and not only a default.
+/// **It states a container, not the page.** A bar is `surfaceContainer` and the screen behind it
+/// is `surface`, so a list scrolling under it reads as passing beneath something. The page is the
+/// scaffold's business, which is why the two are different roles and not one constant.
 ///
 /// **What it is not.** It is not a scaffold: the bar and the list are two children of the tree,
 /// in the order they are drawn, and where they sit is the layout's business. Nor is it a colour
@@ -116,11 +115,12 @@ final class MaterialAppBar extends Box {
   /// flow — and this is the height Material gives one.
   static const double topHeight = 64;
 
-  /// The surface the bar paints, and the surface its list states.
+  /// The colour the bar paints: Material's `surfaceContainer`, one step above the page.
   ///
-  /// Material tints the bar against the page so that a list scrolling under it reads as
-  /// passing beneath something. A panel that is pulled past its end shows its own background,
-  /// so the list states this same colour and the pull is the bar gaining room.
+  /// A bar states a container and the screen behind it states `surface` — that difference is what
+  /// makes the band read as a band, and it is why `MaterialScaffold` names a colour of its own
+  /// rather than reusing this one. A list that is pulled past its end reveals the page, not the
+  /// bar, so a scrolling list has nothing to state: the scaffold is already behind it.
   static const BoxColor surface = BoxColor.role(
     MaterialColorRole.surfaceContainer,
   );

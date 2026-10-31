@@ -27,10 +27,21 @@
   `MaterialIconButton`, `MaterialChip`, `MaterialListTile` and `MaterialButton` — which pass an
   exact height, or paint their tints on the press itself — draw exactly what they did.
 
-- `MaterialScaffold` is the screen as a `Box`: an app bar that stays, a body under it, and one
-  surface behind both — so a body with no background of its own shows the bar's colour and a pull
-  past either end reveals that colour rather than the page. The bar it holds states no `pin`,
-  because it is outside the scroll; a bar that pins is the one inside the body.
+- **A scaffold is a page, and its app bar is a container above it.** `MaterialScaffold` painted
+  `MaterialAppBar.surface` behind the bar *and* the body, so a screen was one colour and its bar
+  was invisible: the band read as the first row of the list. It now paints
+  `MaterialScaffold.surface` — Material's `surface`, the page — and the bar keeps
+  `surfaceContainer`, which is Material's own arrangement and the difference that makes a top app
+  bar read as one. A pull past either end of the body reveals the page, so a scrolling list states
+  no colour of its own.
+
+- **A band and a body span the screen.** `MaterialScaffold` stretches its children: a column that
+  hugged its content gave a bar the width of its own title, so `Apartments` sat in a band 280
+  pixels wide inside a 600-pixel phone. A bar is as wide as the screen it is on, whatever it says.
+
+- `MaterialScaffold` is the screen as a `Box`: an app bar that stays and a body under it, both as
+  wide as the screen. The bar it holds states no `pin`, because it is outside the scroll; a bar
+  that pins is the one inside the body.
 
 - `MaterialAppBar` is the small top app bar as a `Box`: a title at the start, a node at the end,
   `titleLarge` on the bar's own surface, a hairline under it, and a stated height — so the same

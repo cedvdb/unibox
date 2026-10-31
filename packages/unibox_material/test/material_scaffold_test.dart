@@ -4,7 +4,7 @@ import 'package:unibox_material/unibox_material.dart';
 
 void main() {
   group('MaterialScaffold', () {
-    test('puts the app bar above the body, on one surface', () {
+    test('puts the app bar above the body on the page', () {
       final MaterialScaffold screen = MaterialScaffold(
         appBar: MaterialAppBar(title: const TextNode('Apartments')),
         body: const Box(height: double.infinity, overflow: Overflow.scroll),
@@ -14,9 +14,33 @@ void main() {
       expect(screen.children, hasLength(2));
       expect(screen.children.first, isA<MaterialAppBar>());
       expect(screen.children.last, isA<Box>());
-      // The surface the bar paints is the surface behind the body — which is the colour a pull
-      // past either end of the body reveals, so the two cannot disagree.
-      expect(screen.backgroundColor, MaterialAppBar.surface);
+      expect(screen.backgroundColor, MaterialScaffold.surface);
+    });
+
+    test('draws the page a step below the container the band paints', () {
+      // Material's arrangement, and the one that makes a band read as a band: `surface` behind the
+      // screen and `surfaceContainer` for the bar. One colour behind both is a bar that disappears
+      // into its list, which is what this test is here to stop happening again.
+      expect(
+        MaterialScaffold.surface,
+        const BoxColor.role(MaterialColorRole.surface),
+      );
+      expect(
+        MaterialScaffold.surface,
+        isNot(MaterialAppBar.surface),
+        reason: 'the page and the band are two different roles',
+      );
+    });
+
+    test('stretches the band and the body across the screen', () {
+      final MaterialScaffold screen = MaterialScaffold(
+        appBar: MaterialAppBar(title: const TextNode('24')),
+        body: const Box(height: double.infinity, overflow: Overflow.scroll),
+      );
+
+      // A column hugs its children by default, which hands a bar with a short title the width of
+      // its words: a band only as wide as the screen if the screen says so.
+      expect(screen.crossAlign, CrossAlign.stretch);
     });
 
     test('fills the surface it is drawn on', () {

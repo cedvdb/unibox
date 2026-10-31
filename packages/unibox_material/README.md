@@ -319,11 +319,17 @@ pin is the one inside the body. A band that scrolls away with the content and co
 rest at the edge is not a scaffold — it is a child of a scrolling box, which is the case the
 next section is about.
 
-**One surface behind both.** The scaffold paints `MaterialAppBar.surface` behind the bar and
-the body, so a body with no background of its own shows the bar's colour under its content,
-and a pull past either end opens a gap of that same colour rather than a strip of the page. A
-body that painted its own surface would reveal that instead, which is why this one is left
-out.
+**The page and the bar are two colours.** The scaffold paints `MaterialScaffold.surface` — the
+page the screen is drawn on — and the bar paints `MaterialAppBar.surface`, one step up the
+container ladder. That is Material's own arrangement and it is what makes a bar read as a band
+rather than as the first row of its list; a single colour behind both is a bar that disappears.
+A pull past either end of the body opens a gap of the scaffold's colour, so the list slides over
+the page, which is the thing the page is for.
+
+**A band and a body span the screen.** The scaffold's column stretches its children instead of
+hugging their content, so a bar whose title is short is still as wide as the phone it is in. A
+column left to its default width gives the bar the width of its words, which is the one thing a
+top app bar never is.
 
 **A body that reports its scroll is a bar that can follow it.** The body states `onScroll`, a
 store keeps the offset, and the view is drawn again with a bar whose height is the next number:
@@ -346,8 +352,6 @@ Two bands, and both are `Box`es: `MaterialAppBar` is the small top app bar, and
 Box(
   height: 480,
   overflow: Overflow.scroll,
-  // The colour a pull past the end reveals — the box's own background, so it is the bar's.
-  backgroundColor: MaterialAppBar.surface,
   children: <UINode>[
     MaterialLargeAppBar(
       title: const TextNode('Six flats, one tree'),
@@ -369,7 +373,7 @@ Box(
 | Token | `MaterialAppBar` | `MaterialLargeAppBar` |
 | --- | --- | --- |
 | height | `topHeight` — 64 | `largeHeight` — 152 |
-| surface | `surface` — `surfaceContainer`, which the list states too | `surface` — the same role |
+| surface | `surface` — `surfaceContainer`, one step above the page | `surface` — the same role |
 | type | the title in `titleLarge` on `onSurface` | the title in `headlineMedium`, on the floor of the band |
 | the band's edge | `pinned` by stating `pin: BoxPin.start`, with `pinOffset` for a second bar | `pinned` the same way — the height a store drives stays at the top — or `fold:`, a look for a band that leaves |
 
@@ -379,11 +383,11 @@ comes to rest at the top of the box that scrolls it, `BoxPin.end` at the bottom,
 reports a pinned band with no height, one that is not a child of the box that scrolls it,
 and one that also states a fold — a band that stays never leaves, so it never folds.
 
-**The pair share one colour, and that is the point.** A pull past the end of a scrolling box
-reveals the box's own background, so a panel that holds an app bar states
-`backgroundColor: MaterialAppBar.surface` and the pull reads as the bar gaining room rather
-than as a gap in the list. That is why the colour is published as a constant and not only
-kept as a default.
+**The pair share one container, and the screen behind them is another.** Material draws every top
+app bar on `surfaceContainer`, so a large bar and the small one it becomes are the same colour; the
+page they sit on is `MaterialScaffold.surface`. A list that is pulled past its end reveals that
+page, so it states no colour of its own: the scaffold is already behind it. Both roles are
+published as constants because a screen that wants the pair in another theme needs the names.
 
 **What the large bar is not.** Material collapses a large app bar into a small one as the
 content scrolls, which is a *layout* change: the band's height and the room it takes both

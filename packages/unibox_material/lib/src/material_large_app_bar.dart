@@ -113,10 +113,10 @@ final class MaterialLargeAppBar extends Box {
   /// The height of a large top app bar, in logical pixels.
   static const double largeHeight = 152;
 
-  /// The surface the band paints, and the surface its list states.
+  /// The colour the band paints: Material's `surfaceContainer`, one step above the page.
   ///
-  /// The same role the small bar uses: Material draws all of its top app bars on one surface, so
-  /// a band and the bar it becomes share a colour — and a panel that is pulled past its end shows
-  /// its own background, which is this one.
+  /// The same role the small bar uses, because Material draws all of its top app bars on one
+  /// container — a large bar and the small one it becomes share a colour, and the page they sit on
+  /// is `MaterialScaffold.surface`, which is a different one.
   static const BoxColor surface = MaterialAppBar.surface;
 }

@@ -51,14 +51,19 @@ void main() {
       },
     );
 
-    test('publishes the surface its list states', () {
-      // A pull past the end of a scrolling box reveals the box's own background, so a panel that
-      // holds this bar states this colour and the pull reads as the bar gaining room.
+    test('paints the container one step above the page', () {
+      // The screen behind a bar is the scaffold's `surface`; the bar itself is a container, which
+      // is the difference that makes a band read as a band.
       final MaterialAppBar bar = MaterialAppBar(
         title: const TextNode('Results'),
       );
 
       expect(bar.backgroundColor, MaterialAppBar.surface);
+      expect(
+        bar.backgroundColor,
+        isNot(MaterialScaffold.surface),
+        reason: 'a bar the colour of the page is the first row of the list',
+      );
     });
 
     test('puts the title at the start and the trailing node at the end', () {

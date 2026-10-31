@@ -1,6 +1,6 @@
 import 'package:unibox_core/unibox_core.dart';
 
-import 'material_app_bar.dart';
+import 'material_palette.dart';
 
 /// A Material 3 scaffold: an app bar that stays, and a body under it.
 ///
@@ -30,11 +30,15 @@ import 'material_app_bar.dart';
 /// bar that should scroll away and come to rest at the edge is not a scaffold: it is a band inside
 /// a scrolling box, which is what `pin: BoxPin.start` states.
 ///
-/// **The surface is one colour, and it is what a pull reveals.** The scaffold paints
-/// [MaterialAppBar.surface] behind the bar and the body, so a body with no background of its own
-/// shows the bar's colour under its content — and a pull past either end of the body opens a gap
-/// of that same colour rather than a strip of the page. A body that painted a surface of its own
-/// would reveal that instead, which is why this one is left out.
+/// **The page and the bar are two colours.** The scaffold paints
+/// [MaterialScaffold.surface] — Material's `surface`, the page a screen is drawn on — and the bar
+/// paints `MaterialAppBar.surface`, one step up the container ladder. That is what makes a bar
+/// read as a band rather than as the first row of a list, and it is Material's own arrangement:
+/// a top app bar states `surfaceContainer`, the screen behind it states `surface`.
+///
+/// **A pull reveals the page.** A pull past either end of the body opens a gap of the scaffold's
+/// colour, so a body with no background of its own shows the page under its content and the pull
+/// reads as the screen moving rather than as a strip of something else.
 ///
 /// **The body fills, or it does not.** `height: double.infinity` is the whole of the rest of the
 /// screen — the form a scrolling body takes — and a body that states nothing takes its own height,
@@ -44,13 +48,13 @@ import 'material_app_bar.dart';
 final class MaterialScaffold extends Box {
   /// Creates a scaffold with [appBar] above [body].
   ///
-  /// `color` is the surface behind both, and the rest are the scaffold's own tokens: the size it
-  /// fills, its margin, and what it says to a reader.
+  /// `color` is the page the screen is drawn on, and the rest are the scaffold's own tokens: the
+  /// size it fills, its margin, and what it says to a reader.
   factory MaterialScaffold({
     Object? key,
     UINode? appBar,
     required UINode body,
-    BoxColor color = MaterialAppBar.surface,
+    BoxColor color = surface,
     double width = double.infinity,
     double height = double.infinity,
     BoxSpacing? margin,
@@ -64,6 +68,9 @@ final class MaterialScaffold extends Box {
         margin: margin,
         backgroundColor: color,
         semantics: semantics,
+        // A band and a body span the screen: the column stretches them instead of hugging
+        // their content, so a bar with a short title is still as wide as the phone it is in.
+        crossAlign: CrossAlign.stretch,
         children: <UINode>[?appBar, body],
       ),
     );
@@ -76,6 +83,14 @@ final class MaterialScaffold extends Box {
         margin: box.margin,
         backgroundColor: box.backgroundColor,
         semantics: box.semantics,
+        crossAlign: box.crossAlign,
         children: box.children,
       );
+
+  /// The page a screen is drawn on, and the colour a pull past the body reveals.
+  ///
+  /// Material's `surface`: the screen's own background, one step below the container a top app
+  /// bar paints. Stating the two as one colour is what made a bar disappear into its list, so the
+  /// scaffold and the bar name different roles on purpose.
+  static const BoxColor surface = BoxColor.role(MaterialColorRole.surface);
 }
