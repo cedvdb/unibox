@@ -603,17 +603,14 @@ ElementPlan _planOverlay(
   Stylesheet sheet,
   PlanOptions options,
 ) {
-  final String layer = sheet.classFor(
-    'overlay',
-    overlayDeclarations(node.alignment),
-  );
+  final String layer = sheet.classFor('overlay', overlayDeclarations());
   final String barrier = sheet.classFor(
     'overlay-barrier',
     overlayBarrierDeclarations(node.barrierColor),
   );
   final String content = sheet.classFor(
     'overlay-content',
-    overlayContentDeclarations(),
+    overlayContentDeclarations(node.alignment),
   );
 
   // The barrier is the overlay's own element for behaviour: it is the one part of the layer whose

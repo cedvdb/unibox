@@ -491,6 +491,11 @@ escapes the clipping and the scrolling of the boxes around it:
 - `Escape` calls `onDismiss` while the overlay has focus;
 - a `FocusScope` with closed-loop traversal keeps Tab inside the content, and the
   focus that was on the page goes back to it when the overlay leaves;
+- the content is bounded by the room the window gives it, and a dialog taller than
+  that room scrolls: the layer is a scroll view whose content is the size of the
+  window, so the same card is the same height here as on the web;
+- the barrier rides inside the scroll view, so a press beside a long dialog is
+  still a press on the scrim;
 - the layer is announced as a route, so a screen reader enters it as a dialog;
 - the node itself takes no room: the portal's child is empty.
 

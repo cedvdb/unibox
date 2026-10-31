@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- `OverlayAppearance.scrolls` says that the layer bounds its content and scrolls what does not
+  fit — the fact that keeps the two renderings of a long dialog the same height. It is read
+  from `overflow: auto` on the layer on the web and from the scroll view between the layer and
+  the content in Flutter, and the alignment is read from the content's block margins now,
+  which is where a layer that scrolls puts it.
+
 - `BoxAppearance.aspectRatio`, with a case that states a ratio and nothing else, so a
   renderer that drops it — or writes it as a pixel height — fails its own suite. The
   fact is the ratio the output declares, `aspect-ratio` on one side and `AspectRatio`

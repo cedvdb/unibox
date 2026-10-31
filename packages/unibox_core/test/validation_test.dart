@@ -617,6 +617,31 @@ void main() {
       expect(issue.message, contains('scrolls along that axis'));
     });
 
+    test('reports a full-height box used as an overlay content', () {
+      // An overlay's content is laid out in a scrollport the size of the window on both
+      // targets — the web's layer bounds it and Flutter draws it in a scroll view — so a
+      // dialog that fills its height has nothing to fill and asks for infinite room.
+      const OverlayNode tree = OverlayNode(
+        onDismiss: _noop,
+        child: Box(height: double.infinity),
+      );
+      final TreeIssue issue = validateTree(tree).single;
+
+      expect(issue.node, same(tree.child));
+      expect(issue.isError, isTrue);
+      expect(issue.message, contains('height: double.infinity'));
+    });
+
+    test('accepts a dialog taller than the window as an overlay content', () {
+      // The height a dialog states is its own; the room it is drawn in is what bounds it.
+      const OverlayNode tree = OverlayNode(
+        onDismiss: _noop,
+        child: Box(width: 280, height: 900),
+      );
+
+      expect(validateTree(tree), isEmpty);
+    });
+
     test('reports a full-width box a flex parent passes no width to', () {
       // The row is not scrolling itself; it was handed no end by the row above it, and a
       // flex hands its children what it was handed.

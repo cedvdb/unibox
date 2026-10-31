@@ -25,7 +25,8 @@ output *does* with the same node. This package writes that down once:
   count. A case states the width it is laid out at, because a span is counted in
   tracks and the count comes from the width.
 - [`OverlayAppearance`](lib/src/overlay_appearance.dart) describes how an overlay
-  is presented: the colour of its barrier and where its content sits.
+  is presented: the colour of its barrier, where its content sits, and that the
+  layer bounds the content and scrolls what does not fit.
 - [`overlayCases`](lib/src/overlay_cases.dart) is the overlay table: one case per
   token, and one with both.
 - [`textCases`](lib/src/text_cases.dart) is the text table: one case per token,
@@ -88,6 +89,16 @@ then fall back differently — Flutter tops the child out, a browser uses its bo
 edge. The alignment itself is in the table, because both outputs declare it; what
 each host does with a child that has nothing to align is where the two stop
 agreeing, so a row that aligns on the baseline is a row of text.
+
+An overlay's bound is at the same edge. `OverlayAppearance.scrolls` is in the table
+because both outputs say it — `overflow: auto` on the layer, a scroll view between
+the layer and the content — but the height it produces is a measurement, and a
+string renderer emits markup rather than a laid-out page. Each renderer suite pins
+the measurement instead: `packages/unibox_dom/test/overlay_test.dart` mounts a
+dialog taller than the browser window and reads the content's box back out of the
+document, and `packages/unibox_flutter/test/overlay_widget_test.dart` pumps one into
+a fixed surface and drags it. A difference there is a card drawn at a different
+height, which is how the drift was found.
 
 The geometry of a `BoxShape` is not in the table either, for a different reason: it
 is exact on both targets, but it is *not a fact one rendering can read back and the

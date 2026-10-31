@@ -276,8 +276,11 @@ if (state.details != null)
 
 The node states the policy — `onDismiss`, `barrierDismissible`, `barrierColor`
 and `alignment` — and the renderer presents it: Flutter through an `OverlayPortal`
-on the root overlay, the web as a fixed layer. `validateTree` reports the one
-combination that does nothing: a dismissible barrier with no `onDismiss`.
+on the root overlay, the web as a fixed layer. The layer is the window on both, so
+the content is bounded by it and a dialog taller than the window scrolls rather
+than growing past it. `validateTree` reports the two combinations that do nothing:
+a dismissible barrier with no `onDismiss`, and a content that fills its height,
+which a room without an end cannot give it.
 
 ## Inheritance
 

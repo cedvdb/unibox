@@ -259,4 +259,50 @@ void main() {
       );
     });
   });
+
+  group('an overlay', () {
+    test('bounds its content to the window and scrolls what does not fit', () {
+      // A flex item that is taller than the box it is centred in simply grows past it, so
+      // a dialog holding more than the window was as tall as its content here and no taller
+      // than the window in Flutter — one node, two heights. The layer is the scrollport,
+      // which is what the Flutter renderer draws with a scroll view over the same layer.
+      final CssDeclarations layer = overlayDeclarations();
+
+      expect(layer['position'], 'fixed');
+      expect(layer['inset'], '0');
+      expect(layer['display'], 'flex');
+      expect(layer['overflow'], 'auto');
+    });
+
+    test(
+      'places its content by a margin, so a tall one keeps its start edge',
+      () {
+        // An alignment keyword centres an item that is bigger than its box *outside* the box,
+        // and the top of a dialog put there is above the scrollport where no scroll reaches.
+        // Auto margins centre what fits and fall back to zero when it does not.
+        expect(
+          overlayContentDeclarations(core.OverlayAlignment.center).text,
+          'margin-block-end:auto;margin-block-start:auto;margin-inline:auto;'
+          'position:relative',
+        );
+        expect(
+          overlayContentDeclarations(core.OverlayAlignment.top).text,
+          contains('margin-block-end:auto;margin-block-start:0'),
+        );
+        expect(
+          overlayContentDeclarations(core.OverlayAlignment.bottom).text,
+          contains('margin-block-end:0;margin-block-start:auto'),
+        );
+      },
+    );
+
+    test('scrims the page from the window, so scrolling cannot carry it away', () {
+      // An absolutely positioned scrim belongs to the layer's scrollable content: at the end
+      // of a long dialog it would have scrolled off and left the page undimmed.
+      expect(
+        overlayBarrierDeclarations(const core.BoxColor(0x52000000))['position'],
+        'fixed',
+      );
+    });
+  });
 }

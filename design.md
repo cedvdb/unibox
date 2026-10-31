@@ -601,8 +601,19 @@ breaking change for a host stylesheet that names it.
 - An overlay is never drawn in the flow of its parent. A target that cannot
   present one must say so; rendering the content inline would make the same tree
   a modal on one side and a paragraph on the other.
-- `validateTree` reports the one combination that cannot do anything: a
-  dismissible barrier with no `onDismiss`.
+- The layer is the window, and it bounds the content. A dialog holding more than
+  the window scrolls inside it on both targets — a scroll view over the layer in
+  Flutter, `overflow: auto` on the layer in the browser — because the alternative
+  is two answers to one question: a flex item centred in a box is allowed to be
+  taller than it, so the web drew the example's sign-up card at the height of its
+  content while Flutter drew it at the height of the frame, and the same node came
+  out two heights. The placement is a margin for the same reason: a keyword that
+  centres an oversize item puts its start edge outside the scrollport, where no
+  scroll reaches, while an auto margin centres what fits and falls back to zero
+  when it does not.
+- `validateTree` reports the two combinations that cannot do anything: a
+  dismissible barrier with no `onDismiss`, and a content that fills its height,
+  which the layer has no end for.
 - Dismissing is interaction, so on the web it waits for the client build; the
   server writes the layer and its barrier so the page looks right first.
 

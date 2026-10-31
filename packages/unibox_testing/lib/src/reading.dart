@@ -455,7 +455,10 @@ int _spanOf(
 /// The presentation this renderer gave the root overlay of [html].
 ///
 /// The barrier colour comes from the rule its own element wears and the alignment from the
-/// keywords the layer is given, so neither is read from the node.
+/// margins the content is placed by, so neither is read from the node. A margin rather than
+/// an alignment keyword, because a layer that bounds its content scrolls, and a scrollport
+/// loses the start edge of an item that a keyword centres — see `overlayContentDeclarations`
+/// in `unibox_css`.
 OverlayAppearance overlayAppearanceIn(String html) {
   final Map<String, Map<String, String>> rules = rulesOf(html);
   final List<String> classes = RegExp(r'class="([^"]+)"')
@@ -463,18 +466,24 @@ OverlayAppearance overlayAppearanceIn(String html) {
       .map((RegExpMatch match) => match.group(1)!)
       .toList(growable: false);
 
-  // The layer, then the barrier it holds: the first two classes of the rendering.
+  // The layer, the barrier it holds, then the content the layer places.
   final Map<String, String> layer =
       rules[classes.first] ?? const <String, String>{};
   final Map<String, String> barrier =
       rules[classes.length > 1 ? classes[1] : ''] ?? const <String, String>{};
+  final Map<String, String> content =
+      rules[classes.length > 2 ? classes[2] : ''] ?? const <String, String>{};
 
   return OverlayAppearance(
     barrierColor: colorOf(barrier['background-color'])!,
-    alignment: switch (layer['align-items']) {
-      'start' => core.OverlayAlignment.top,
-      'end' => core.OverlayAlignment.bottom,
+    alignment: switch ((
+      content['margin-block-start'],
+      content['margin-block-end'],
+    )) {
+      ('0', 'auto') => core.OverlayAlignment.top,
+      ('auto', '0') => core.OverlayAlignment.bottom,
       _ => core.OverlayAlignment.center,
     },
+    scrolls: layer['overflow'] == 'auto',
   );
 }

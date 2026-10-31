@@ -266,30 +266,34 @@ CssDeclarations linkDeclarations() => CssDeclarations()
 /// what the model requires: an overlay is never drawn in the flow of its parent, and the
 /// element says so rather than the tree.
 ///
-/// The layer is a flex container that centres what it holds, so the alignment is a pair of
-/// keywords rather than a measurement of the window.
-CssDeclarations overlayDeclarations(core.OverlayAlignment alignment) {
-  final String vertical = switch (alignment) {
-    core.OverlayAlignment.center => 'center',
-    core.OverlayAlignment.top => 'start',
-    core.OverlayAlignment.bottom => 'end',
-  };
-
-  return CssDeclarations()
-    ..add('position', 'fixed')
-    ..add('inset', '0')
-    ..add('display', 'flex')
-    ..add('align-items', vertical)
-    ..add('justify-content', 'center');
-}
+/// The layer is a flex container, and it is the box the content is measured against: it is
+/// the size of the window, so an item placed in it by a margin — see
+/// [overlayContentDeclarations] — is centred in the room it was given and knows how much
+/// that is. `overflow: auto` bounds the content to the layer: a flex item that is taller
+/// than the box it is centred in otherwise grows past it and spills out of both ends, which
+/// made a dialog holding more than the window as tall as its content here and no taller
+/// than the window in Flutter — the two renderings disagreeing about the height of one card.
+/// Scrolling is how a browser reaches what that bound would hide, and it is what the
+/// Flutter renderer does with a scroll view, so a dialog that does not fit can be read on
+/// both. The scroll goes on the layer and not on the content so that the scrollbar sits at
+/// the edge of the window rather than inside a dialog's own width, and so that a box's
+/// shadow — which paints outside it — is not cut off at the content's bounds.
+CssDeclarations overlayDeclarations() => CssDeclarations()
+  ..add('position', 'fixed')
+  ..add('inset', '0')
+  ..add('display', 'flex')
+  ..add('overflow', 'auto');
 
 /// The declarations of the scrim behind an overlay.
 ///
-/// Absolute inside the fixed layer, so it covers the page and not the content: a press
-/// that reaches it never reaches a handler behind it.
+/// `fixed` rather than `absolute` because the layer scrolls: an absolutely positioned
+/// scrim belongs to the layer's scrollable content, so scrolling to the end of a long
+/// dialog would carry the scrim off the screen and leave the page behind it undimmed. It
+/// covers the window and stays there, under the content and over the page, so a press that
+/// reaches it never reaches a handler behind it.
 CssDeclarations overlayBarrierDeclarations(core.BoxColor color) =>
     CssDeclarations()
-      ..add('position', 'absolute')
+      ..add('position', 'fixed')
       ..add('inset', '0')
       ..add('background-color', cssColorOrRole(color));
 
@@ -297,5 +301,27 @@ CssDeclarations overlayBarrierDeclarations(core.BoxColor color) =>
 ///
 /// Positioned, so it paints above the scrim: a static sibling would sit under it and be
 /// dimmed with the page behind it, which is not what a modal looks like.
-CssDeclarations overlayContentDeclarations() =>
-    CssDeclarations()..add('position', 'relative');
+///
+/// The placement is a margin and not an alignment keyword, and `auto` is what makes it
+/// survive the bound the layer puts on it. `align-items: center` and `justify-content:
+/// center` place an item that is smaller than the box and lose the start edge of one that
+/// is bigger: the middle of a tall dialog would be put in the middle of the window and its
+/// top would sit above the scrollport, where no scroll reaches. Auto margins centre it while
+/// there is room and fall back to zero when there is not, which is the same placement with
+/// the start edge kept, and it is what Flutter's `Align` inside a scroll view does.
+CssDeclarations overlayContentDeclarations(core.OverlayAlignment alignment) {
+  final String start = switch (alignment) {
+    core.OverlayAlignment.top => '0',
+    core.OverlayAlignment.center || core.OverlayAlignment.bottom => 'auto',
+  };
+  final String end = switch (alignment) {
+    core.OverlayAlignment.bottom => '0',
+    core.OverlayAlignment.center || core.OverlayAlignment.top => 'auto',
+  };
+
+  return CssDeclarations()
+    ..add('position', 'relative')
+    ..add('margin-inline', 'auto')
+    ..add('margin-block-start', start)
+    ..add('margin-block-end', end);
+}

@@ -14,9 +14,19 @@ OverlayAppearance appearanceOf(WidgetTester tester) {
       (Widget widget) => widget is ModalBarrier && widget.color != null,
     ),
   );
+  // The nearest `Align` above the content is the one the node placed it with.
   final Align align = tester.widget<Align>(
     find.ancestor(of: find.text('Overlay'), matching: find.byType(Align)).first,
   );
+  // A content that does not fit is reached by scrolling, which is what the layer does
+  // with the room it has: the scroll view is between the layer and the content.
+  final bool scrolls = find
+      .ancestor(
+        of: find.text('Overlay'),
+        matching: find.byType(SingleChildScrollView),
+      )
+      .evaluate()
+      .isNotEmpty;
 
   return OverlayAppearance(
     barrierColor: core.BoxColor(barrier.color!.toARGB32()),
@@ -25,6 +35,7 @@ OverlayAppearance appearanceOf(WidgetTester tester) {
       Alignment.bottomCenter => core.OverlayAlignment.bottom,
       _ => core.OverlayAlignment.center,
     },
+    scrolls: scrolls,
   );
 }
 

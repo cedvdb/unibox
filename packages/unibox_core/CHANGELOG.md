@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `validateTree` reports a box that fills its height as an overlay's content. The layer is a
+  scrollport the size of the window on both targets, so the content is laid out with no end
+  on that axis and `height: double.infinity` asks for infinite room — the construct a box
+  that fills a scrolling parent is already reported for.
+
 - `LinkNode.of(box, url)` is a box as a link: the same children, the same behaviour and the
   same look, with a destination added. The look travels as one `BoxStyle`
   (`Box.computedStyle`), so a token `Box` gains can never be forgotten by it — what a reader

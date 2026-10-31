@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- An overlay's layer bounds its content and scrolls what does not fit. `overlayDeclarations()`
+  writes `overflow: auto` on the fixed layer, and the content is placed by a margin —
+  `overlayContentDeclarations(alignment)`: `margin-inline: auto` and one block margin at
+  `auto` — where the layer used to write `align-items` and `justify-content`. A flex item is
+  allowed to be taller than the box it is centred in, so a dialog holding more than the
+  window was as tall as its content on the page while Flutter drew it no taller than the
+  window: one node, two heights, which the example's sign-up card showed. A margin rather
+  than a keyword because a keyword puts the start edge of an oversize item outside the
+  scrollport, where no scroll reaches, while an auto margin centres what fits and falls back
+  to zero when it does not. `overlayBarrierDeclarations` scrims with `position: fixed` for
+  the same reason — an absolutely positioned scrim belongs to the scroll and would be
+  carried off the screen at the end of a long dialog — and `overlayDeclarations` no longer
+  takes the alignment, which is the content's placement now.
+
 - `boxDeclarations` takes `anchor:`, which adds the two declarations a browser gives every
   link — `color: inherit`, `text-decoration: none` — to the box's own rule. A box that
   navigates is painted by its look and not by the user agent, and the two declarations are

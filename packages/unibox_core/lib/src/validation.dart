@@ -1087,11 +1087,20 @@ void _validate(
 /// hands its children the space it was handed. A grid is the exception: it gives every
 /// child a measured track whether or not its own width had an end, because the count and
 /// the width come from an arithmetic rule rather than from the parent.
+///
+/// An overlay unbinds the vertical axis for the same reason a scroll view does: its content
+/// is laid out in a scrollport the size of the window, so a dialog taller than the window is
+/// reached by scrolling rather than by growing past it — on both targets, since the web's
+/// layer bounds its content too. A child that fills that axis therefore has no end to fill.
 (bool, bool) _roomForChild(
   UINode node,
   bool unboundedWidth,
   bool unboundedHeight,
 ) {
+  if (node is OverlayNode) {
+    return (unboundedWidth, true);
+  }
+
   if (node is GridNode) {
     return (false, unboundedHeight);
   }

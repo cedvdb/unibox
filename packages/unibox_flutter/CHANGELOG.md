@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- An overlay's content is bounded by the window, and scrolls when it is taller: `FlutterOverlay`
+  draws it in a `SingleChildScrollView` whose content is at least the room the overlay has.
+  A dialog holding more than the window was cut off at the window here and drawn at the
+  height of its content on the web — one node, two heights, which the example's sign-up card
+  showed — and both targets bound it now, with the rest a scroll away. The scroll view is the
+  layer, so the scrim moved inside it: a scroll view covering the layer would take the
+  presses the barrier answers.
+
 - `FlutterLink` is gone, and `link_node.dart` is `link_scope.dart`. A `LinkNode` is a `Box`, so
   `FlutterBox` draws it: the file keeps the one thing a host supplies — `FlutterLinkScope` and
   its `FlutterLinkOpener` — and the node needs no widget of its own.

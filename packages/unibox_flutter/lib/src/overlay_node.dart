@@ -14,6 +14,11 @@ import 'values.dart';
 /// focus stays inside the content while it is shown and goes back where it was
 /// when the node leaves, and the whole thing is announced as a route.
 ///
+/// The content is bounded by the room the window gives it: it is drawn in a scroll
+/// view whose content is at least that room, so a dialog holding more than the
+/// window scrolls rather than growing past it — the height the web renderer gives
+/// the same node, where the layer is a flex container with `overflow: auto`.
+///
 /// An overlay never occupies room in its parent: the portal's own child is
 /// empty, and everything it draws lives in the overlay above.
 ///
@@ -103,24 +108,47 @@ class FlutterOverlayState extends State<FlutterOverlay> {
           },
           child: FocusScope(
             node: _scope,
-            child: Stack(
-              children: <Widget>[
-                Positioned.fill(
-                  child: ModalBarrier(
-                    color: toColor(
-                      theme == null
-                          ? node.barrierColor
-                          : theme.resolve(node.barrierColor),
+            // The layer is the window, and the content is bounded by it. A dialog holding
+            // more than the window scrolls here, exactly as it does on the web, where the
+            // layer is a flex container with `overflow: auto`: without the scroll the same
+            // card came out as tall as its content in one rendering and no taller than the
+            // window in the other, which is the drift these two files exist to prevent.
+            child: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) =>
+                  SingleChildScrollView(
+                    child: Stack(
+                      children: <Widget>[
+                        // Inside the scroll view and not beside it: a scroll view that covered
+                        // the layer would take the press itself and the scrim would stop
+                        // dismissing, and a scrim pinned under the content's room covers every
+                        // part of the window whatever the content is.
+                        Positioned.fill(
+                          child: ModalBarrier(
+                            color: toColor(
+                              theme == null
+                                  ? node.barrierColor
+                                  : theme.resolve(node.barrierColor),
+                            ),
+                            dismissible:
+                                node.barrierDismissible && dismiss != null,
+                            onDismiss: dismiss,
+                          ),
+                        ),
+                        // What the alignment places is at least the layer: shorter than it, the
+                        // content is centred in the window; taller, it is placed from the edge
+                        // the alignment names and the scroll reaches the rest.
+                        ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight,
+                          ),
+                          child: Align(
+                            alignment: _alignment,
+                            child: renderFlutter(node.child, theme: theme),
+                          ),
+                        ),
+                      ],
                     ),
-                    dismissible: node.barrierDismissible && dismiss != null,
-                    onDismiss: dismiss,
                   ),
-                ),
-                Align(
-                  alignment: _alignment,
-                  child: renderFlutter(node.child, theme: theme),
-                ),
-              ],
             ),
           ),
         ),

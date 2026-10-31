@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- An overlay's class carries the placement of its content rather than of its layer:
+  `_planOverlay` asks `overlayContentDeclarations(node.alignment)`. The alignment became a
+  margin on the content — the layer scrolls what does not fit, and an item a keyword centres
+  loses the start edge no scroll can reach — so the rule that states it is the content's.
+
 - A `url` on a box whose element is not an anchor writes no `href` and no `tabindex`. The
   pair is reported by `validateTree`, but the render a release build makes of a reported
   tree has to be harmless: it was a `<nav href="/rooms" tabindex="0">`, an anchor

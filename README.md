@@ -802,9 +802,16 @@ UINode details(StoreFrontState state, StoreFrontStore store) => Box(
 **On each target.** Flutter presents it through an `OverlayPortal` on the root
 overlay, so it escapes the clipping and scrolling of the boxes around it: a
 barrier, `Escape`, focus kept inside and handed back on exit. The web renders a
-fixed layer with the barrier and the alignment, and the interaction waits for the
-client build. `validateTree` reports a dismissible barrier with no `onDismiss`,
-which could not dismiss anything.
+fixed layer that holds the barrier and the content, and the interaction waits for
+the client build.
+
+**The layer is the window, and it bounds the content.** A dialog holding more than
+the window is a scroll away rather than a taller box: both targets lay the content
+out in the room the window gives and scroll the rest, so the same card is the same
+height on both — a dialog that grew past the window used to be as tall as its
+content on the web and cut off at the window in Flutter. `validateTree` reports a
+dismissible barrier with no `onDismiss`, which could not dismiss anything, and a
+content that fills its height, which the room it is drawn in has no end for.
 
 ### EmbedNode
 
