@@ -188,10 +188,11 @@ ElementPlan _planBox(core.Box box, Stylesheet sheet, PlanOptions options) {
     // nothing, and spreading two maps into a third for every box on the page is a map nobody
     // reads.
     attributes: <String, String>{
-      // A disabled anchor names no destination: the element keeps saying it is one, and a
-      // browser that followed the href anyway would do what Flutter refuses to do. An
-      // anchor with no url at all is a placeholder, and it names none.
-      if (box.url case final String url when box.enabled)
+      // Only an anchor gets an href: a disabled one names no destination, an anchor with no
+      // url is a placeholder, and a box whose element is something else is a tree
+      // `validateTree` reports — writing an href nothing can follow would make the reported
+      // tree look like it works.
+      if (box.url case final String url when box.enabled && anchor)
         ...linkAttributes(url, newTab: box.newTab),
       ...boxAttributes(box),
       ...nodeAttributes(box),
@@ -294,7 +295,10 @@ Map<String, String> boxAttributes(core.Box box) {
     attributes['aria-disabled'] = 'true';
   }
 
-  if (!anchor && box.isFocusable && box.enabled) {
+  // A box that names a url never states a tab stop: an anchor already has one, and one that
+  // is not an anchor is a tree the validator reports, which must not add a control the page
+  // cannot honour — a `<nav href>` that a keyboard could reach would be exactly that.
+  if (!anchor && !box.isAnchor && box.isFocusable && box.enabled) {
     attributes['tabindex'] = '0';
   }
 

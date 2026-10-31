@@ -475,6 +475,23 @@ void shapedTests() {
       expect(plan.attributes, isNot(contains('role')));
     });
 
+    test('writes no href and no tab stop for a url on some other element', () {
+      // `validateTree` reports the pair, so this is the render a release build would make of
+      // a tree the debug build refuses: a plain `<nav>`. An href on it would be a link that
+      // nothing follows, and a tab stop would make the broken tree reachable by keyboard.
+      final ElementPlan plan = planNode(
+        const core.Box(
+          url: '/rooms',
+          semantics: core.BoxSemantics(element: core.BoxElement.nav),
+        ),
+        Stylesheet(),
+      );
+
+      expect(plan.tag, 'nav');
+      expect(plan.attributes, isNot(contains('href')));
+      expect(plan.attributes, isNot(contains('tabindex')));
+    });
+
     test('takes the pointer even with nothing inside it', () {
       // A painted leaf takes no pointer; an anchor is never a decoration, so an empty one
       // is still the thing a reader presses.
