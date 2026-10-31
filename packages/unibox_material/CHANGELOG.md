@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `MaterialScaffold` is the screen as a `Box`: an app bar that stays, a body under it, and one
+  surface behind both — so a body with no background of its own shows the bar's colour and a pull
+  past either end reveals that colour rather than the page. The bar it holds states no `pin`,
+  because it is outside the scroll; a bar that pins is the one inside the body.
+
 - `MaterialAppBar` is the small top app bar as a `Box`: a title at the start, a node at the end,
   `titleLarge` on the bar's own surface, a hairline under it, and a stated height — so the same
   component is a header or a band, depending on whether it states `pin: BoxPin.start` or

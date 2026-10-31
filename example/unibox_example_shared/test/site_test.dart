@@ -280,6 +280,7 @@ void main() {
         'Tabs',
         'Secondary tabs',
         'Pages',
+        'Scaffold',
         'App bars',
         'Pinned bands',
         'Folds',

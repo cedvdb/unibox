@@ -291,6 +291,45 @@ specification's numbers instead is what `MaterialPalette.light` and `.dark` are 
 `BoxColor.role(...)`: a role is a colour a theme answers, and this is the call that
 builds the theme.
 
+## The scaffold
+
+`MaterialScaffold` is the screen: an app bar that stays, and a body under it.
+
+```dart
+MaterialScaffold(
+  appBar: MaterialAppBar(title: const TextNode('Apartments'), trailing: const TextNode('24')),
+  body: Box(
+    // The body fills the room the bar leaves — `height: 100%` on the page, an `Expanded` in
+    // Flutter — and scrolls its own content.
+    height: double.infinity,
+    overflow: Overflow.scroll,
+    children: <UINode>[
+      // A bar inside the body pins at the body's top edge, which is already under the app bar,
+      // so a screen built this way needs no `pinOffset`.
+      MaterialAppBar(title: const TextNode('Two rooms'), pin: BoxPin.start),
+      for (final Flat flat in flats) MaterialListTile(title: TextNode(flat.name)),
+    ],
+  ),
+)
+```
+
+**The app bar is the scaffold's, and it does not move.** That is what a scaffold is for: the
+bar sits outside the scroll, so it states no `pin` and no `pinOffset`, and the bar that *does*
+pin is the one inside the body. A band that scrolls away with the content and comes back to
+rest at the edge is not a scaffold — it is a child of a scrolling box, which is the case the
+next section is about.
+
+**One surface behind both.** The scaffold paints `MaterialAppBar.surface` behind the bar and
+the body, so a body with no background of its own shows the bar's colour under its content,
+and a pull past either end opens a gap of that same colour rather than a strip of the page. A
+body that painted its own surface would reveal that instead, which is why this one is left
+out.
+
+**The body fills, or it does not.** `height: double.infinity` is the rest of the screen — the
+form a scrolling body takes — and a body that states nothing takes its own height, which is
+what a screen that fits wants. The scaffold does not size it for the caller: a flex child
+would hand the body an unbounded axis, and a scroll view cannot be laid out in one.
+
 ## The app bars
 
 Two bands, and both are `Box`es: `MaterialAppBar` is the small top app bar, and

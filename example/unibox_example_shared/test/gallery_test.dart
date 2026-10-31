@@ -35,10 +35,10 @@ void main() {
           .where((Box box) => box.overflow == Overflow.scroll)
           .toList();
 
-      // Two rows of chips that overflow, two pagers, three pinned panels and three folding
-      // ones. A pager scrolls for a different reason — it settles on a child — so it is
-      // counted here and told apart below.
-      expect(scrollers, hasLength(10));
+      // Two rows of chips that overflow, two pagers, the screen's body, three pinned panels
+      // and three folding ones. A pager scrolls for a different reason — it settles on a child
+      // — so it is counted here and told apart below.
+      expect(scrollers, hasLength(11));
       expect(_textsIn(scrollers.first), contains('Two rooms'));
       expect(_textsIn(scrollers[1]), contains('Garden'));
 
@@ -78,7 +78,7 @@ void main() {
           (Box box) =>
               box is MaterialAppBar && box.pin == null && box.fold == null,
         ),
-        hasLength(2),
+        hasLength(3),
       );
       // Two large ones: the specimen, and the band the first pinned panel opens with.
       expect(
@@ -97,14 +97,14 @@ void main() {
           .where((Box box) => box.pin != null)
           .toList();
 
-      // Four bands across three panels: the toolbar under the hero, the pair that sits one
-      // under the other, and the action bar at the end.
-      expect(pinned, hasLength(4));
-      expect(pinned.where((Box box) => box.pin == BoxPin.start), hasLength(3));
+      // Five bands: the toolbar under the hero, the pair that sits one under the other, the
+      // action bar at the end, and the one inside the scaffold's body.
+      expect(pinned, hasLength(5));
+      expect(pinned.where((Box box) => box.pin == BoxPin.start), hasLength(4));
       expect(pinned.where((Box box) => box.pin == BoxPin.end), hasLength(1));
       expect(
         pinned.where((Box box) => (box.pinOffset ?? 0) == 0),
-        hasLength(3),
+        hasLength(4),
         reason:
             'the toolbar, the filters and the action bar keep none of the edge',
       );

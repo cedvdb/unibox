@@ -101,6 +101,15 @@ UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
         ),
         _section(
           palette,
+          'Scaffold',
+          _screen(palette),
+          note:
+              'A screen: `MaterialScaffold` puts an app bar above a body that fills what is '
+              'left, on one surface — so the bar needs no pin, and the filter bar inside the '
+              'body comes to rest under it with no inset. Scroll the body.',
+        ),
+        _section(
+          palette,
           'App bars',
           _appBars(palette),
           note:
@@ -805,6 +814,49 @@ UINode _pager(MaterialPalette palette) {
             ),
           ],
         ),
+    ],
+  );
+}
+
+/// A screen rather than a specimen: an app bar that stays, and a body that scrolls under it.
+///
+/// This is the composition a page starts from, and the one place the catalogue shows what the two
+/// bars are for. The app bar is the scaffold's and never moves, so it needs no `pin`; the filter
+/// bar inside the body pins at the body's own top edge — already under the app bar — which is why
+/// a screen built this way needs no `pinOffset` either.
+UINode _screen(MaterialPalette palette) {
+  return Box(
+    // A phone-shaped surface, so a screen that fills its parent has one to fill.
+    width: 320,
+    height: 460,
+    borderRadius: 20,
+    border: BoxBorder(color: palette.outlineVariant),
+    overflow: Overflow.hidden,
+    children: <UINode>[
+      MaterialScaffold(
+        appBar: MaterialAppBar(
+          title: const TextNode('Apartments'),
+          trailing: const TextNode('24'),
+        ),
+        // The body fills the room the bar leaves and scrolls its own content; it states no
+        // surface, so the scaffold's shows under it and a pull reveals that same colour.
+        body: Box(
+          height: double.infinity,
+          overflow: Overflow.scroll,
+          children: <UINode>[
+            MaterialAppBar(
+              title: const TextNode('Two rooms'),
+              trailing: const TextNode('3'),
+              pin: BoxPin.start,
+              color: const BoxColor.role(
+                MaterialColorRole.surfaceContainerHigh,
+              ),
+            ),
+            for (final (String name, String price) in _flats)
+              _flatTile(name, price),
+          ],
+        ),
+      ),
     ],
   );
 }
