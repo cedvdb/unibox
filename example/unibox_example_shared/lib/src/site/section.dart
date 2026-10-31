@@ -53,11 +53,16 @@ UINode siteBand({
 /// It is an `h2`, because the page has one `h1` — the claim in the hero — and the
 /// outline a crawler and a screen reader build the page from is the reason a band
 /// is a section rather than a pile of boxes.
+///
+/// [lead] is optional: a band whose name is the whole of what it has to say is named
+/// by its title alone, and a second line under it would only repeat it.
 UINode siteHeading(
   MaterialPalette palette, {
   required String title,
-  required String lead,
+  String? lead,
 }) {
+  final String? leadText = lead;
+
   return Box(
     width: double.infinity,
     maxWidth: 760,
@@ -68,12 +73,13 @@ UINode siteHeading(
         style: MaterialTypography.headlineMedium,
         headingLevel: 2,
       ),
-      TextNode(
-        lead,
-        style: MaterialTypography.bodyLarge.copyWith(
-          color: palette.onSurfaceVariant,
+      if (leadText != null)
+        TextNode(
+          leadText,
+          style: MaterialTypography.bodyLarge.copyWith(
+            color: palette.onSurfaceVariant,
+          ),
         ),
-      ),
     ],
   );
 }

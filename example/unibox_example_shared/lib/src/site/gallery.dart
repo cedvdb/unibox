@@ -28,13 +28,7 @@ UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
       children: <UINode>[
         // The palette the catalogue documents is chosen in the page's header, and every
         // specimen and hex below follows the seed it names.
-        siteHeading(
-          palette,
-          title: 'Material 3, as values and nodes',
-          lead:
-              'Every component, then the type scale and the colour roles it is '
-              'drawn with — all of them nodes the two renderers already draw.',
-        ),
+        siteHeading(palette, title: 'Material'),
         // Components first: they are what a page is built from, and the scale and the
         // palette are what those components name.
         _section(

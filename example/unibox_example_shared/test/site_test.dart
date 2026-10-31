@@ -59,7 +59,7 @@ void main() {
           '2|HTML and CSS',
           '2|Flutter',
           '2|Make Flutter Web pages indexable',
-          '2|Material 3, as values and nodes',
+          '2|Material',
           '3|Type scale',
           '3|Navigation bar',
           '3|Dialog',
@@ -86,7 +86,7 @@ void main() {
         '2|Flutter',
         '2|Make Flutter Web pages indexable',
         '2|Just boxes',
-        '2|Material 3, as values and nodes',
+        '2|Material',
       ]);
     });
 
