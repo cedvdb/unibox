@@ -114,6 +114,50 @@ void main() {
       );
     });
 
+    test('frames its screens and its bars with a line and no shape', () {
+      // A rounded frame that also clips cut the corners off what it held: the tab view lost
+      // the page's hairline, and each screen lost the corners of the bar it opens with. The
+      // line is the outline that says where a panel begins; a corner missing from it reads
+      // as a cropped panel rather than as a shape.
+      final List<Box> nodes = _nodesOf(buildMaterialSection())
+          .whereType<Box>()
+          .toList();
+
+      // A bar's frame holds the bar. A screen's holds the plate that places the whole
+      // screen, so the frame is the outlined box a scaffold is drawn in.
+      final List<Box> bars = nodes
+          .where(
+            (Box box) =>
+                box.children.length == 1 &&
+                (box.children.single is MaterialAppBar ||
+                    box.children.single is MaterialLargeAppBar),
+          )
+          .toList();
+      final List<Box> screens = nodes
+          .where((Box box) => box.border != null)
+          .where(
+            (Box box) =>
+                _nodesOf(box).any((UINode node) => node is MaterialScaffold),
+          )
+          .toList();
+
+      expect(bars, hasLength(3), reason: 'one frame per bar specimen');
+      expect(screens, hasLength(2), reason: 'one frame per screen');
+
+      for (final Box frame in <Box>[...bars, ...screens]) {
+        expect(
+          frame.borderRadius,
+          isNull,
+          reason: 'a rounded frame cuts the corners of what it holds',
+        );
+        expect(
+          frame.overflow,
+          isNot(Overflow.hidden),
+          reason: 'a frame with nothing to round has nothing to clip',
+        );
+      }
+    });
+
     test('pins the app bar of the screen that says it stays', () {
       final List<UINode> nodes = _nodesOf(buildMaterialSection());
       final List<Box> pinned = nodes

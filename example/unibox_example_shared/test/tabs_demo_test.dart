@@ -1,4 +1,5 @@
 import 'package:test/test.dart';
+import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_example_shared/unibox_example_shared.dart';
 
 void main() {
@@ -70,6 +71,23 @@ void main() {
         expect(const TabsDemoState().pageWidth, lessThanOrEqualTo(344 - 64));
       },
     );
+
+    test('draws the page under the bar as a square view', () {
+      // A scrolling box clips what it draws to its own outline, so a rounded view cut
+      // the corners off the page inside it: the page paints the hairline that says where
+      // the view begins and ends, and a corner missing from that hairline reads as a
+      // cropped page rather than as a shape.
+      final TabsDemoStore store = TabsDemoStore();
+      final Box view = TabsDemo().viewFor(store.state, store) as Box;
+      final Box pager = view.children.last as Box;
+
+      expect(pager.overflow, Overflow.scroll);
+      expect(
+        pager.borderRadius,
+        isNull,
+        reason: 'a radius here crops the corners of the page it scrolls',
+      );
+    });
 
     test('refuses a tab that is not there', () {
       final TabsDemoStore store = TabsDemoStore();

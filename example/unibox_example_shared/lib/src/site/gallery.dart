@@ -713,7 +713,9 @@ UINode _tabsView(
         snap: ScrollSnap.page,
         page: state.selected,
         onScroll: store.scrolledTo,
-        borderRadius: 12,
+        // No radius here: a scroll box clips to its corners, so a rounded view cut the
+        // corners off the page drawn inside it. The page carries the outline that says
+        // where the view begins and ends, and it is square.
         children: <UINode>[
           for (final (int index, String caption) in captions.indexed)
             Box(
@@ -861,14 +863,14 @@ const BoxColor _pageColor = BoxColor.role(
 /// The width is the card's, not a number: `double.infinity` here is "fill the column", which is the
 /// same sentence on both targets — CSS stretches a grid item and Flutter hands the cell a tight
 /// width. A number was what put a 320-pixel phone in the corner of a 450-pixel card.
+///
+/// The frame draws a line and no shape: rounded and clipping, it cut the corners off the app bar at
+/// the top of the screen, which is a band of its own rather than a corner of the frame.
 UINode _phone(MaterialPalette palette, UINode screen) {
   return Box(
     width: double.infinity,
     height: _screenHeight,
-    borderRadius: 20,
     border: BoxBorder(color: palette.outlineVariant),
-    // The screen's corners are the frame's, so the frame clips it.
-    overflow: Overflow.hidden,
     // The screen fills the frame: a layer hugs its content, and a screen placed in one that
     // was never given a width is a stack of no width — a document drew two empty phones
     // while Flutter, whose stack takes the room it is handed, drew them.
@@ -1041,15 +1043,14 @@ UINode _appBars(MaterialPalette palette) {
 }
 
 /// A bar in the surface a page would put it on, so the bar's own colour reads against it.
+///
+/// The frame draws a line and no shape: rounded and clipping, it cut the corners off the bar, which
+/// is a band of its own rather than a corner of the frame.
 UINode _framed(MaterialPalette palette, UINode bar) {
   return Box(
     width: double.infinity,
     backgroundColor: palette.surface,
-    borderRadius: 12,
     border: BoxBorder(color: palette.outlineVariant),
-    // The bar is flush with the rounded edge, so the frame clips it: without this the bar's
-    // corners would square off the frame's.
-    overflow: Overflow.hidden,
     children: <UINode>[bar],
   );
 }
