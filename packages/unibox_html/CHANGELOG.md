@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `Document.at(url)`: the same page with an address, which is the one thing a build knows and a
+  page does not. The address becomes the page's `canonical` url and every other field is kept, so
+  a build can take the pages it was handed and give each one the address it is served at — and a
+  sitemap built from the same list cannot list an address a page denies.
+
 - `Document`: a page as a value — the tree, `lang`, `head` and the host's choices for how it is
   written — with `write()` for the HTML. `toDocument` stays the one-page call; a build that
   writes several holds a list of `Document` beside the paths they are served at and writes them

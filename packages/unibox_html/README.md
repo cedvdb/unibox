@@ -98,6 +98,14 @@ contains — a sitemap, a redirect table, a test that every page states its own 
 the same list instead of restating the paths, which is how a sitemap and the pages it lists drift
 apart.
 
+A page does not know the address it will be served at; a build does. `page.at(url)` is the same
+page with that address as its canonical url, so the list can be built before the deployment
+address is known, and each page still states one:
+
+```dart
+final Document served = home.at('https://example.com/unibox/');
+```
+
 ## Escaping, which is the whole security surface
 
 Everything a node carries is a `String` from the application, so one of them containing a

@@ -125,6 +125,32 @@ final class Document {
     showOverlays: showOverlays,
     takeover: takeover,
   );
+
+  /// This page as it is served at [address], which is the one thing a build knows and a page
+  /// does not.
+  ///
+  /// The address becomes the canonical url: the address a search engine attributes the page to
+  /// when two of them serve the same content, which is why it can only be stated once the build
+  /// has decided where the page goes. Every other field is kept, so a build can take the pages
+  /// it was handed and give each one its address without knowing how it was built.
+  Document at(String address) => Document(
+    node: node,
+    lang: lang,
+    head: DocumentHead(
+      title: head.title,
+      description: head.description,
+      image: head.image,
+      canonical: address,
+      alternates: head.alternates,
+      meta: head.meta,
+      links: head.links,
+      raw: head.raw,
+    ),
+    scripts: scripts,
+    theme: theme,
+    showOverlays: showOverlays,
+    takeover: takeover,
+  );
 }
 
 /// The tree as a page: the head a crawler reads, then the tree in the body.

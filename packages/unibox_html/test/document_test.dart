@@ -328,5 +328,33 @@ void main() {
         ),
       );
     });
+
+    test('takes the address a build gives it, and keeps the rest', () {
+      // The one thing a build knows and a page does not is where it is served. Everything else
+      // survives, so a build can hand a page an address after it was written.
+      const Document page = Document(
+        node: core.TextNode('Wohnungen'),
+        lang: 'de',
+        head: DocumentHead(
+          title: 'Wohnungen',
+          description: 'Einundvierzig Wohnungen.',
+          meta: <String, String>{'unibox-page': 'listings'},
+        ),
+        scripts: <DocumentScript>[DocumentScript(src: 'app.js')],
+      );
+
+      final String html = page.at('https://example.com/de/apartments/').write();
+
+      expect(
+        html,
+        contains(
+          '<link rel="canonical" href="https://example.com/de/apartments/">',
+        ),
+      );
+      expect(html, contains('<title>Wohnungen</title>'));
+      expect(html, contains('<meta name="unibox-page" content="listings">'));
+      expect(html, contains('<script src="app.js" defer></script>'));
+      expect(html, contains('<html lang="de">'));
+    });
   });
 }
