@@ -274,8 +274,9 @@ UINode signupView(SignupState state, SignupStore store) =>
 ```
 
 The view returns one tree for the state, so every state a component can be in is
-an ordinary tree the renderers already draw. A view draws no overlay: a dialog is
-not part of the model yet.
+an ordinary tree the renderers already draw. A view draws no overlay of its own:
+a dialog is an `OverlayNode` in the tree the view returns, so the state decides
+whether it is there and the node decides how it is presented.
 
 `Store` names no platform, and `StateStore` is the ready made implementation: a
 value, a listener list that belongs to this package, and a guarded setter, so a

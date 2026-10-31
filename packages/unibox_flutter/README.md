@@ -510,8 +510,8 @@ written once for every node an application defines:
   `dispose` on the store;
 - the view's tree is rendered in place, so it inherits the typography and the
   layout of the boxes around it;
-- the view returns one tree; a dialog is not part of the model yet, so nothing in
-  this layer is modal.
+- the view returns one tree; a dialog is an `OverlayNode` in it, presented through
+  the root overlay, so nothing in this layer is modal.
 
 ## Overlays
 

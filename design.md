@@ -549,9 +549,10 @@ never inherited (CSS does not inherit them either).
 - The view returns one tree for the state. Every state a component can be in — a
   pending request, a result, an error — is therefore an ordinary tree that the
   renderers, `validateTree` and the conformance table already handle. A view draws
-  no overlay: a dialog is not part of the model yet, and adding one is a decision
-  about the view's shape and each renderer's modal layer, which §5.13 answered by making
-  an overlay a node.
+  no overlay of its own: a dialog is an `OverlayNode` in the tree the view returns
+  (§5.13), so the state decides whether it is there and the node decides how it is
+  presented — there is no second slot on the view to fill, and nothing about a
+  dialog that a view has to know.
 - A store is pure Dart, in the core. `StateStore` keeps its own listener list and
   a guarded `state` setter, so the model keeps its promise of no package
   dependencies and one store still runs in Flutter, in a browser and in a

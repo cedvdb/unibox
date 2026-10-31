@@ -28,8 +28,9 @@ import 'ui_node.dart';
 /// **The view is a function of state.** [viewFor] returns one tree for the
 /// current state, so every state a component can be in — a pending request, a
 /// result, an error — is an ordinary tree that the renderers, `validateTree` and
-/// the conformance table already know how to handle. A view draws no overlay: a
-/// dialog is not part of the model yet.
+/// the conformance table already know how to handle. A view draws no overlay of its
+/// own: a dialog is an [OverlayNode] in the tree the view returns, so the state
+/// decides whether it is there and the node decides how it is presented.
 ///
 /// A renderer reaches any stateful node through [StatefulNode]<[Object],
 /// [Store]<[Object]>, because generics are covariant and every instantiation is

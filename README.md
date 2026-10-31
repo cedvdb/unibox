@@ -717,7 +717,9 @@ UINode signupView(SignupState state, SignupStore store) => Box(
 
 The view returns one tree for the state, so every state a page can be in — a
 pending request, a result, an error — is an ordinary tree the renderers already
-know how to draw. A view draws no overlay: a dialog is not part of the model yet.
+know how to draw. A view draws no overlay of its own: a dialog is an
+[`OverlayNode`](#overlaynode) in the tree the view returns, so the state decides
+whether it exists and the node decides how it is presented.
 
 **State lives in a store, not in the node.** [`Store`](packages/unibox_core/README.md#state)
 is the contract and `StateStore` is the ready-made implementation in the same
