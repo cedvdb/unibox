@@ -244,6 +244,7 @@ host that renders it.
 | `text-decoration: underline`, `text-decoration-color` | `decoration: TextDecoration.underline`, `decorationColor:` — `none`, `lineThrough`, `underline`; `double`, `wavy` and `overline` are not in the model, because Flutter draws one solid line and has no overline |
 | `overflow: hidden` / `auto` | `overflow: Overflow.hidden` / `Overflow.scroll` |
 | `position: sticky; top: 0` | `pin: BoxPin.start`, on a child of the box that scrolls, with the band's `height` stated: it stays at the edge of that box and keeps its slot in the flow. `bottom: 0` is `BoxPin.end`; the `<header>` above it is `pinOffset:` — the same number as the header's height |
+| an animation driven by the scroll (`animation-timeline: view()`, `@keyframes`) | `fold: BoxFold(to: BoxStyle(…))` on the box that leaves: paint tokens only, and `over:` for the share of its exit the fold takes |
 | `<a href>` | `LinkNode(url, …)`, which *is* the `<a href>` |
 | `<a>` with no `href` | `semantics: BoxSemantics(element: BoxElement.a)`: a placeholder that nothing follows |
 | `<img src alt>` | `ImageNode(src, alt: …)` |

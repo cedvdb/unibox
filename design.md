@@ -198,6 +198,16 @@ never inherited (CSS does not inherit them either).
   above it is the one documented asymmetry: a browser pins it to the document, which
   scrolls a page, and Flutter has no viewport to pin it to, which the Flutter README
   records beside `srcSet`.
+- A fold is the third kind of motion, and the first that is a *position* rather than a
+  state or a clock. A state changes and a transition hides the swap; a fold does not
+  change anything — it paints another look the further the box has travelled out of its
+  viewport, so what the tree describes is one thing at every offset and the reader chooses
+  where the clock stops. That is why it may not move a layout: a frame of an eased layout
+  is a picture neither engine can be held to, while a frame of an eased *look* is a number
+  both render them identically. The web gets the position from `view()` on the element
+  itself and the app from the box's own rectangle in the viewport; a browser without
+  scroll-driven animations ignores the animation and shows the resting look, which is what
+  every target shows before anything scrolls.
 - Filling a width needs a width to fill. `width: double.infinity` means "as wide as I
   am offered": Flutter hands a child the incoming constraint, and a browser resolves
   `100%` against its parent's width — which, for a column that hugs its content, is

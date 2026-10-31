@@ -354,6 +354,7 @@ Box(
 | `opacity` | `double?` | solid | `0` (invisible) to `1` (solid). The box keeps its room either way. |
 | `transform` | `BoxTransform?` | none | Moves, turns or scales the box about its centre (`scale`, `rotation` in degrees, `offsetX`/`offsetY` in pixels, `fractionX`/`fractionY` in multiples of the box's own size). The fractions are the offsets that need no measurement — one tab, half a width — and they compose with the pixels. It paints differently without taking different room, so text inside never reflows. |
 | `transition` | `BoxTransition?` | none | How long a change of the paint, the opacity or the transform takes, and how it eases. See [motion](#motion). |
+| `fold` | `BoxFold?` | none | The look the box takes as it leaves the box that scrolls it: `to` states the paint at the end of the travel, `over` how much of the exit the fold takes, and `curve` how it eases. Paint only — the same looks a `transition` eases — so nothing is laid out again as the reader scrolls. See [motion](#motion). |
 
 **Interaction**
 
@@ -1071,6 +1072,44 @@ transition: const BoxTransition(
 The four paint properties share a timing, because a `BoxDecoration` interpolates as one
 on Flutter; a box that needs two paint speeds nests a box, and `validateTree` says
 so instead of the renderer approximating.
+
+### A look that arrives as the reader scrolls
+
+`BoxFold` is the second kind of motion, and the only one the *reader* drives: a box
+paints the look it names the further it has travelled out of the viewport that scrolls
+it. It is what a hero does as a toolbar comes up under it.
+
+```dart
+Box(
+  height: 132,
+  padding: const BoxSpacing.all(20),
+  backgroundColor: BoxColor.role(MaterialColorRole.primaryContainer),
+  fold: const BoxFold(
+    // The look at the end of the travel: the hero fades and shrinks a little.
+    to: BoxStyle(opacity: 0, transform: BoxTransform(scale: 0.75)),
+    // …and it is gone by the time three quarters of it has left.
+    over: 0.75,
+    curve: BoxCurve.easeOut,
+  ),
+  children: <UINode>[TextNode('Six flats, one tree', headingLevel: 1)],
+)
+```
+
+The travel is the box's own exit — its leading edge at the top of the viewport to its
+trailing edge leaving it — so no number of pixels is stated, and a hero of 200 folds
+over 200 without being edited. `over` is the only number there is: it is how much of
+that exit the fold takes, which is how `1 - t * 1.5` is written down.
+
+It is paint only, for the reason above: the background, the border colour, the corner
+radius, the shadows, the opacity and the transform. Nothing below the box moves, and
+nothing is laid out again while it runs — on the web the browser interpolates two
+keyframes it was served, and in Flutter the layer repaints. A tree that names a layout
+token in `fold.to`, folds a box that also pins, or eases one look with both a transition
+and a fold is reported by `validateTree`.
+
+A browser without scroll-driven animations ignores the animation and paints the resting
+look, which is exactly what the tree shows before anything moves; a Flutter tree with no
+scrollable above the box keeps its resting look for the same reason.
 
 ## Semantics
 
