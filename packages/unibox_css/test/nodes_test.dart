@@ -19,6 +19,21 @@ void main() {
       );
     });
 
+    test('states the direction the words flow in, and claims none when it has none', () {
+      final CssDeclarations rtl = boxDeclarations(
+        const core.BoxStyle(writingDirection: core.WritingDirection.rtl),
+      );
+
+      expect(rtl['direction'], 'rtl');
+      expect(
+        boxDeclarations(const core.BoxStyle()).has('direction'),
+        isFalse,
+        reason:
+            'a box that states none inherits the page, and stating `ltr` here '
+            'would overrule a page written right to left',
+      );
+    });
+
     test('says nothing about a wrap a box does not state', () {
       final CssDeclarations declarations = boxDeclarations(
         const core.BoxStyle(direction: core.Axis.horizontal),

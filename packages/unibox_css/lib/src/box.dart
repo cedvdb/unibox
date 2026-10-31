@@ -37,6 +37,7 @@ CssDeclarations boxDeclarations(
   final core.Axis? direction = declaredOnly
       ? style.direction
       : style.resolvedDirection;
+  final core.WritingDirection? writingDirection = style.writingDirection;
   final core.MainAlign? mainAlign = declaredOnly
       ? style.mainAlign
       : style.mainAlign ?? core.MainAlign.start;
@@ -82,6 +83,14 @@ CssDeclarations boxDeclarations(
   }
 
   declarations
+    // The direction the words flow in, which decides which side `start` is: a row
+    // reverses and a `text-align: start` moves with it, and the page's direction is what
+    // everything that states none inherits. It is stated by the box rather than resolved,
+    // because a tree that says nothing keeps the document's answer.
+    ..addIf(
+      'direction',
+      writingDirection == null ? null : cssWritingDirection(writingDirection),
+    )
     ..addIf(
       'flex-direction',
       direction == null ? null : cssFlexDirection(direction),

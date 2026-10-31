@@ -85,6 +85,21 @@ void main() {
       expect(declarations['gap'], '16px');
     });
 
+    test('carries the direction the words flow in to the element', () {
+      // The class is where the web keeps it: `direction` is inherited, so a region states
+      // its own once and everything inside it reads that way.
+      final Map<String, String> declarations = declarationsOf(
+        const core.Box(writingDirection: core.WritingDirection.rtl),
+      );
+
+      expect(declarations['direction'], 'rtl');
+      expect(
+        declarationsOf(const core.Box()).containsKey('direction'),
+        isFalse,
+        reason: 'the page states the direction, and a box that says nothing inherits it',
+      );
+    });
+
     test('is the model default when nothing sets the token', () {
       // Not the browser's default: a box with no direction is a column because the model says so.
       final Map<String, String> declarations = declarationsOf(const core.Box());

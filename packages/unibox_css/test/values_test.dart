@@ -86,6 +86,13 @@ void main() {
       expect(cssFlexDirection(core.Axis.vertical), 'column');
     });
 
+    test('names the direction the words flow in', () {
+      // The same two words the `dir` attribute takes, so the element and the page cannot
+      // describe one page two ways.
+      expect(cssWritingDirection(core.WritingDirection.ltr), 'ltr');
+      expect(cssWritingDirection(core.WritingDirection.rtl), 'rtl');
+    });
+
     test('distributes as CSS does', () {
       expect(cssJustifyContent(core.MainAlign.start), 'start');
       expect(cssJustifyContent(core.MainAlign.center), 'center');

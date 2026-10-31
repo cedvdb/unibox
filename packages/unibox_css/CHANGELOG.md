@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `writingDirection` is written as the `direction` declaration, which CSS inherits: a box states
+  it once and the row it holds reverses, along with every logical edge inside it. A box that
+  states none writes nothing, so the boxes inside a page written right to left do not overrule it.
+
 - A box that scrolls keeps its overscroll to itself: `overscroll-behavior: contain` is written
   beside `overflow`, so a panel that reaches its end does not hand the rest of the scroll to the
   page. Flutter's viewport keeps that overscroll already, and the browser chaining it is what made

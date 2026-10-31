@@ -112,6 +112,18 @@ String cssFlexDirection(core.Axis axis) => switch (axis) {
   core.Axis.vertical => 'column',
 };
 
+/// A model [core.WritingDirection] as the CSS `direction` keyword, which is also the
+/// value the `dir` attribute of the root element takes.
+///
+/// The property is inherited, so a box that states one hands it to everything inside it
+/// and a box that states none keeps the page's — the same inheritance a Flutter
+/// `Directionality` gives the same token.
+String cssWritingDirection(core.WritingDirection direction) =>
+    switch (direction) {
+      core.WritingDirection.ltr => 'ltr',
+      core.WritingDirection.rtl => 'rtl',
+    };
+
 /// A model [core.MainAlign] as the CSS `justify-content` keyword.
 String cssJustifyContent(core.MainAlign align) => switch (align) {
   core.MainAlign.start => 'start',
