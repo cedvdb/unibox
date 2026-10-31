@@ -180,11 +180,16 @@ void main() {
       web.Element anchorFor(String key) =>
           view.element.querySelector('[data-unibox-key="$key"]')!;
 
+      // Neither press may be acted on by the browser: a click it keeps is a document it loads,
+      // and this document is the suite. The destination is what neither assertion is about — the
+      // modifier and the target are — so it is taken off for the length of the two presses.
       final web.Event meta = web.MouseEvent(
         'click',
         web.MouseEventInit(bubbles: true, cancelable: true, metaKey: true),
       );
-      anchorFor('modified').dispatchEvent(meta);
+      anchorFor('modified')
+        ..removeAttribute('href')
+        ..dispatchEvent(meta);
 
       expect(meta.defaultPrevented, isFalse);
       expect(
@@ -197,7 +202,9 @@ void main() {
         'click',
         web.MouseEventInit(bubbles: true, cancelable: true),
       );
-      anchorFor('newtab').dispatchEvent(tabbed);
+      anchorFor('newtab')
+        ..removeAttribute('href')
+        ..dispatchEvent(tabbed);
 
       expect(tabbed.defaultPrevented, isFalse);
       expect(
@@ -209,53 +216,53 @@ void main() {
       view.dispose();
     });
 
-    test(
-      'answers no press it has no handler for, so the browser follows it',
-      () {
-        // A destination with no callback is the browser’s: the listener must not swallow the
-        // click it cannot answer, or the link would be dead on the one target that has one.
-        final DomView view = DomView.mount(
-          core.LinkNode(
-            '/?category=meetingRoom',
-            children: <core.UINode>[const core.TextNode('Meeting room')],
+    test('answers no press it has no handler for, so the press stays the browser’s', () {
+      // A destination with no callback is the browser’s: the listener must not swallow the
+      // click it cannot answer, or the link would be dead on the one target that has one.
+      final DomView view = DomView.mount(
+        core.LinkNode(
+          '/?category=meetingRoom',
+          children: <core.UINode>[const core.TextNode('Meeting room')],
+        ),
+        host(),
+      );
+
+      expect(view.element.tagName.toLowerCase(), 'a');
+      expect(view.element.getAttribute('href'), '/?category=meetingRoom');
+
+      // What the renderer decided is read from the event itself, from one listener further
+      // up the page — never by letting the browser act on it. An unanswered click on a link
+      // is a click the browser *follows*, and a suite runs in an iframe of the runner's own
+      // page: following it navigates the suite away, so `dart test` waits for a result that
+      // can no longer arrive. That is not a failure anybody can read — the step sat there for
+      // six hours once. The destination is taken off the element for the length of the press
+      // so the follow cannot happen anywhere, and it is asserted above, where it belongs.
+      bool? swallowed;
+      final web.EventListener watch = ((web.Event event) {
+        swallowed = event.defaultPrevented;
+      }).toJS;
+
+      web.document.addEventListener('click', watch);
+      try {
+        view.element.removeAttribute('href');
+        view.element.dispatchEvent(
+          web.MouseEvent(
+            'click',
+            web.MouseEventInit(bubbles: true, cancelable: true),
           ),
-          host(),
         );
+      } finally {
+        web.document.removeEventListener('click', watch);
+      }
 
-        // The press is read one listener further up, and cancelled there. A click the tree
-        // leaves alone is a click the browser *follows*, and a suite runs in an iframe of the
-        // runner's own page: navigating it takes the suite's channel with it, so the runner
-        // waits for a result that can no longer arrive — `dart test` sat on this step for six
-        // hours rather than failing. Reading the event first and cancelling it second keeps the
-        // browser out of the harness without changing the fact the renderer is held to.
-        bool? swallowed;
-        final web.EventListener watch = ((web.Event event) {
-          swallowed = event.defaultPrevented;
-          event.preventDefault();
-        }).toJS;
+      expect(
+        swallowed,
+        isFalse,
+        reason: 'a press the tree cannot answer stays the browser’s',
+      );
 
-        web.document.addEventListener('click', watch);
-        try {
-          view.element.dispatchEvent(
-            web.MouseEvent(
-              'click',
-              web.MouseEventInit(bubbles: true, cancelable: true),
-            ),
-          );
-        } finally {
-          web.document.removeEventListener('click', watch);
-        }
-
-        expect(
-          swallowed,
-          isFalse,
-          reason: 'a press the tree cannot answer stays the browser’s',
-        );
-        expect(view.element.getAttribute('href'), '/?category=meetingRoom');
-
-        view.dispose();
-      },
-    );
+      view.dispose();
+    });
   });
 }
 
