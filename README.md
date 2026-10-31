@@ -1073,6 +1073,31 @@ The four paint properties share a timing, because a `BoxDecoration` interpolates
 on Flutter; a box that needs two paint speeds nests a box, and `validateTree` says
 so instead of the renderer approximating.
 
+### A band that stays
+
+Before the motion, the thing most pages need first: chrome that does not scroll
+away. `pin` names the edge and `pinOffset` the room a bar above it takes.
+
+```dart
+Box(
+  height: 480,
+  overflow: Overflow.scroll,
+  children: <UINode>[
+    Box(height: 96, backgroundColor: BoxColor.role(MaterialColorRole.primaryContainer)),
+    // Filters come to rest at the top of the box…
+    Box(key: 'filters', height: 44, pin: BoxPin.start, backgroundColor: …),
+    // …and the chip row stops underneath them: the inset is the height above it.
+    Box(key: 'chips', height: 44, pin: BoxPin.start, pinOffset: 44, backgroundColor: …),
+    for (final UINode row in rows) row,
+  ],
+)
+```
+
+A band at the other end is the same token with `BoxPin.end`: a “Continue” bar that
+waits at the bottom of a long form until the reader reaches the end of it. Both
+bands state a height — that number is the room the flow keeps for them — and both
+paint a background, because each is drawn over the content that passes beneath it.
+
 ### A look that arrives as the reader scrolls
 
 `BoxFold` is the second kind of motion, and the only one the *reader* drives: a box
@@ -1106,6 +1131,26 @@ nothing is laid out again while it runs — on the web the browser interpolates 
 keyframes it was served, and in Flutter the layer repaints. A tree that names a layout
 token in `fold.to`, folds a box that also pins, or eases one look with both a transition
 and a fold is reported by `validateTree`.
+
+A second fold, of a different paint and a shorter range — a title band that loses its tint
+once half of it has left, which is `over: 0.5`:
+
+```dart
+Box(
+  height: 120,
+  padding: const BoxSpacing.all(20),
+  backgroundColor: BoxColor.role(MaterialColorRole.secondaryContainer),
+  borderRadius: 12,
+  fold: BoxFold(
+    to: BoxStyle(
+      backgroundColor: BoxColor.role(MaterialColorRole.surface),
+      borderRadius: 0,
+    ),
+    over: 0.5,
+  ),
+  children: <UINode>[TextNode('Two rooms by the park')],
+)
+```
 
 A browser without scroll-driven animations ignores the animation and paints the resting
 look, which is exactly what the tree shows before anything moves; a Flutter tree with no

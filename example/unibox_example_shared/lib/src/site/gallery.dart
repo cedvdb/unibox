@@ -101,12 +101,22 @@ UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
         ),
         _section(
           palette,
-          'Sticky bands',
-          _stickyBands(palette),
+          'Pinned bands',
+          _pinnedBands(palette),
           note:
-              'A hero, a bar and a list in one scrolling box: the hero folds away as it '
-              'leaves, the bar comes to rest at the top of the box, and the rows run under '
-              'it — `pin: BoxPin.start` and `fold` between them. Scroll the box.',
+              'A band that stays at the edge of the box that scrolls it, and keeps its slot '
+              'in the flow while it does: `pin: BoxPin.start` comes to rest at the top, '
+              '`BoxPin.end` at the bottom, and `pinOffset` stops it under the bar above it. '
+              'Scroll each panel.',
+        ),
+        _section(
+          palette,
+          'Folds',
+          _folds(palette),
+          note:
+              'The look a band takes as it leaves the box that scrolls it: `fold` eases the '
+              'paint, `over` is how much of its own exit it takes, and nothing is laid out '
+              'again while it runs. Scroll each panel.',
         ),
         _section(
           palette,
@@ -790,109 +800,272 @@ UINode _pager(MaterialPalette palette) {
   );
 }
 
-/// A list whose toolbar stays: the hero scrolls away, the bar comes to rest, the rows run
-/// under it.
+/// Three bands that stay, one per edge and inset: a toolbar that comes to rest under
+/// a hero, a second bar that stops under the first, and an action bar at the end.
 ///
-/// The bar states the height its pin needs — the room its slot keeps in the flow is that
-/// number — and paints a surface of its own, because a band drawn over the rows that pass
-/// beneath it has to cover them. `pinOffset` is left out here: nothing above the bar stays,
-/// so the band keeps none of the edge.
-///
-/// It is one scrolling box with four children, and that is the whole of the trick: the same
-/// node is a sticky toolbar in a browser and a band carried over the viewport in Flutter,
-/// with no script on either.
-UINode _stickyBands(MaterialPalette palette) {
-  const double hero = 132;
-  const double bar = 56;
-  const double row = 44;
-
-  const List<(String, String)> flats = <(String, String)>[
-    ('Garden loft', '€1 280'),
-    ('Two rooms by the park', '€1 460'),
-    ('Studio, sixth floor', '€ 920'),
-    ('Attic with a terrace', '€1 700'),
-    ('One room in the old town', '€ 860'),
-  ];
-
-  return Box(
-    width: double.infinity,
-    // Three children of the viewport and a little to spare: enough to scroll the hero away
-    // and watch the bar settle, which is as much as a catalogue block can show.
-    height: 260,
-    overflow: Overflow.scroll,
-    borderRadius: 12,
+/// Every band states the height its slot keeps in the flow and paints its own surface,
+/// because a band is drawn over the content that passes beneath it — and each one is a
+/// child of the box that scrolls it, which is the only place a band can be pinned from.
+UINode _pinnedBands(MaterialPalette palette) {
+  return GridNode(
+    minItemWidth: 280,
+    maxColumns: 3,
+    gap: 24,
     children: <UINode>[
-      Box(
-        width: double.infinity,
-        height: hero,
-        padding: const BoxSpacing.all(20),
-        backgroundColor: palette.primaryContainer,
-        // The hero folds as it leaves: by the time the bar has come to rest it is gone, which is
-        // the whole of the motion a results page needs. See `fold` in the README.
-        fold: const BoxFold(
-          to: BoxStyle(opacity: 0, transform: BoxTransform(scale: 0.75)),
-          curve: BoxCurve.easeOut,
-        ),
-        children: <UINode>[
-          TextNode(
-            'Six flats, one tree',
-            style: MaterialTypography.headlineSmall.copyWith(
-              color: palette.onPrimaryContainer,
-            ),
-          ),
-        ],
-      ),
-      Box(
-        key: 'sticky-toolbar',
-        width: double.infinity,
-        height: bar,
-        pin: BoxPin.start,
-        padding: const BoxSpacing.symmetric(horizontal: 16),
-        backgroundColor: palette.surfaceContainerHigh,
-        direction: Axis.horizontal,
-        crossAlign: CrossAlign.center,
-        mainAlign: MainAlign.spaceBetween,
-        children: <UINode>[
-          TextNode(
-            'Results',
-            style: MaterialTypography.labelLarge.copyWith(
-              color: palette.onSurface,
-            ),
-          ),
-          TextNode(
-            '6 of 24',
-            style: MaterialTypography.labelMedium.copyWith(
-              color: palette.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-      for (final (String name, String price) in flats)
-        Box(
-          width: double.infinity,
-          height: row,
-          padding: const BoxSpacing.symmetric(horizontal: 16),
-          direction: Axis.horizontal,
-          crossAlign: CrossAlign.center,
-          mainAlign: MainAlign.spaceBetween,
+      _specimen(
+        palette,
+        'A toolbar at the start, under a hero',
+        _viewport(
+          palette,
           children: <UINode>[
-            TextNode(
-              name,
-              style: MaterialTypography.bodyMedium.copyWith(
-                color: palette.onSurface,
-              ),
+            _hero(palette, 'Six flats, one tree', height: 96),
+            _band(palette, 'Results', trailing: '6 of 24', pin: BoxPin.start),
+            for (final (String name, String price) in _flats)
+              _flatRow(palette, name, price),
+          ],
+        ),
+      ),
+      _specimen(
+        palette,
+        'Two bars, the second under the first',
+        _viewport(
+          palette,
+          children: <UINode>[
+            _band(
+              palette,
+              'Filters',
+              trailing: '3',
+              pin: BoxPin.start,
+              height: 44,
+              background: palette.surfaceContainerHighest,
             ),
-            TextNode(
-              price,
-              style: MaterialTypography.bodyMedium.copyWith(
-                color: palette.onSurfaceVariant,
-              ),
+            // The inset is the height of the bar above it: `pinOffset` is the same
+            // number, written twice because the two bands are siblings.
+            _band(
+              palette,
+              'Two rooms',
+              pin: BoxPin.start,
+              pinOffset: 44,
+              height: 44,
+            ),
+            for (final (String name, String price) in _flats.take(5))
+              _flatRow(palette, name, price),
+          ],
+        ),
+      ),
+      _specimen(
+        palette,
+        'A bar at the end, whatever the list is doing',
+        _viewport(
+          palette,
+          children: <UINode>[
+            for (final (String name, String price) in _flats)
+              _flatRow(palette, name, price),
+            _band(
+              palette,
+              'Continue',
+              trailing: '5 of 6 picked',
+              pin: BoxPin.end,
+              height: 52,
             ),
           ],
+        ),
+      ),
+    ],
+  );
+}
+
+/// Two folds, each moving a different paint and taking a different share of the exit.
+UINode _folds(MaterialPalette palette) {
+  return GridNode(
+    minItemWidth: 280,
+    maxColumns: 2,
+    gap: 24,
+    children: <UINode>[
+      _specimen(
+        palette,
+        'A hero that fades and shrinks as it leaves',
+        _viewport(
+          palette,
+          children: <UINode>[
+            _hero(
+              palette,
+              'Six flats, one tree',
+              height: 120,
+              fold: const BoxFold(
+                to: BoxStyle(opacity: 0, transform: BoxTransform(scale: 0.8)),
+                curve: BoxCurve.easeOut,
+                over: 0.8,
+              ),
+            ),
+            for (final (String name, String price) in _flats.take(4))
+              _flatRow(palette, name, price),
+          ],
+        ),
+      ),
+      _specimen(
+        palette,
+        'A title that loses its tint half way out',
+        _viewport(
+          palette,
+          children: <UINode>[
+            Box(
+              width: double.infinity,
+              height: 120,
+              padding: const BoxSpacing.all(20),
+              backgroundColor: palette.secondaryContainer,
+              borderRadius: 12,
+              // Only the paint moves, and it has arrived by the time half the band has
+              // left: `over` is the range, so the tint is gone while the title is still
+              // in view.
+              fold: BoxFold(
+                to: BoxStyle(backgroundColor: palette.surface, borderRadius: 0),
+                over: 0.5,
+              ),
+              children: <UINode>[
+                TextNode(
+                  'Two rooms by the park',
+                  style: MaterialTypography.headlineSmall.copyWith(
+                    color: palette.onSecondaryContainer,
+                  ),
+                ),
+              ],
+            ),
+            for (final (String name, String price) in _flats.take(4))
+              _flatRow(palette, name, price),
+          ],
+        ),
+      ),
+    ],
+  );
+}
+
+/// A specimen and the line under it, which is what the block is showing.
+UINode _specimen(MaterialPalette palette, String caption, UINode child) {
+  return Box(
+    width: double.infinity,
+    gap: 8,
+    children: <UINode>[
+      TextNode(
+        caption,
+        style: MaterialTypography.labelMedium.copyWith(
+          color: palette.onSurfaceVariant,
+        ),
+      ),
+      child,
+    ],
+  );
+}
+
+/// The viewport a specimen is seen through: a panel that scrolls its own content.
+UINode _viewport(
+  MaterialPalette palette, {
+  required List<UINode> children,
+  double height = 200,
+}) {
+  return Box(
+    width: double.infinity,
+    height: height,
+    overflow: Overflow.scroll,
+    borderRadius: 12,
+    border: BoxBorder(color: palette.outlineVariant),
+    children: children,
+  );
+}
+
+/// The band above the list a specimen scrolls: a picture band with a headline in it.
+UINode _hero(
+  MaterialPalette palette,
+  String title, {
+  required double height,
+  BoxFold? fold,
+}) {
+  return Box(
+    width: double.infinity,
+    height: height,
+    padding: const BoxSpacing.all(20),
+    backgroundColor: palette.primaryContainer,
+    fold: fold,
+    children: <UINode>[
+      TextNode(
+        title,
+        style: MaterialTypography.headlineSmall.copyWith(
+          color: palette.onPrimaryContainer,
+        ),
+      ),
+    ],
+  );
+}
+
+/// A band that can be pinned: a label, a count, and a surface of its own.
+UINode _band(
+  MaterialPalette palette,
+  String label, {
+  String? trailing,
+  BoxPin? pin,
+  double? pinOffset,
+  double height = 48,
+  BoxColor? background,
+}) {
+  return Box(
+    width: double.infinity,
+    height: height,
+    pin: pin,
+    pinOffset: pinOffset,
+    padding: const BoxSpacing.symmetric(horizontal: 16),
+    backgroundColor: background ?? palette.surfaceContainerHigh,
+    direction: Axis.horizontal,
+    crossAlign: CrossAlign.center,
+    mainAlign: MainAlign.spaceBetween,
+    children: <UINode>[
+      TextNode(
+        label,
+        style: MaterialTypography.labelLarge.copyWith(color: palette.onSurface),
+      ),
+      if (trailing != null)
+        TextNode(
+          trailing,
+          style: MaterialTypography.labelMedium.copyWith(
+            color: palette.onSurfaceVariant,
+          ),
         ),
     ],
   );
 }
+
+/// One flat a specimen scrolls past: a name on the left, a rent on the right.
+UINode _flatRow(MaterialPalette palette, String name, String price) {
+  return Box(
+    width: double.infinity,
+    height: 34,
+    padding: const BoxSpacing.symmetric(horizontal: 16),
+    direction: Axis.horizontal,
+    crossAlign: CrossAlign.center,
+    mainAlign: MainAlign.spaceBetween,
+    children: <UINode>[
+      TextNode(
+        name,
+        style: MaterialTypography.bodyMedium.copyWith(color: palette.onSurface),
+      ),
+      TextNode(
+        price,
+        style: MaterialTypography.bodyMedium.copyWith(
+          color: palette.onSurfaceVariant,
+        ),
+      ),
+    ],
+  );
+}
+
+/// The flats every specimen scrolls past.
+const List<(String, String)> _flats = <(String, String)>[
+  ('Garden loft', '€1 280'),
+  ('Two rooms by the park', '€1 460'),
+  ('Studio, sixth floor', '€ 920'),
+  ('Attic with a terrace', '€1 700'),
+  ('One room in the old town', '€ 860'),
+  ('House on the canal', '€2 100'),
+];
 
 /// A segmented button that keeps the choice it was given.
 /// The choice is the state: the view puts the segment the store says is chosen into

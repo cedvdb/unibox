@@ -35,11 +35,10 @@ void main() {
           .where((Box box) => box.overflow == Overflow.scroll)
           .toList();
 
-      // Two rows of chips that overflow, two pagers and the sticky list: the `Pages` block,
-      // the pager under the tabs, and the block whose bar pins. A pager scrolls for a
-      // different reason — it settles on a child — so it is counted here and told apart
-      // below.
-      expect(scrollers, hasLength(5));
+      // Two rows of chips that overflow, two pagers, three pinned panels and two folding
+      // ones. A pager scrolls for a different reason — it settles on a child — so it is
+      // counted here and told apart below.
+      expect(scrollers, hasLength(9));
       expect(_textsIn(scrollers.first), contains('Two rooms'));
       expect(_textsIn(scrollers[1]), contains('Garden'));
 
@@ -58,46 +57,74 @@ void main() {
       expect(_textsIn(paged.last), contains('Three'));
     });
 
-    test('folds the hero of its sticky list as it leaves', () {
+    test('shows a band at each edge, and one that stops under another', () {
+      final List<UINode> nodes = _nodesOf(buildMaterialSection());
+      final List<Box> pinned = nodes
+          .whereType<Box>()
+          .where((Box box) => box.pin != null)
+          .toList();
+
+      // Four bands across three panels: the toolbar under the hero, the pair that sits one
+      // under the other, and the action bar at the end.
+      expect(pinned, hasLength(4));
+      expect(pinned.where((Box box) => box.pin == BoxPin.start), hasLength(3));
+      expect(pinned.where((Box box) => box.pin == BoxPin.end), hasLength(1));
+      expect(
+        pinned.where((Box box) => (box.pinOffset ?? 0) == 0),
+        hasLength(3),
+        reason:
+            'the toolbar, the filters and the action bar keep none of the edge',
+      );
+      expect(
+        pinned.where((Box box) => (box.pinOffset ?? 0) > 0),
+        hasLength(1),
+        reason: 'one band stops under the band above it',
+      );
+
+      for (final Box band in pinned) {
+        // The contract a band keeps: a stated height for its slot, a surface of its own,
+        // and a parent that scrolls it.
+        expect(band.height, isNotNull);
+        expect(band.height!.isFinite, isTrue);
+        expect(band.backgroundColor, isNotNull);
+
+        final Box viewport = nodes.whereType<Box>().singleWhere(
+          (Box box) => box.children.contains(band),
+        );
+
+        expect(viewport.overflow, Overflow.scroll);
+        expect(viewport.height, isNotNull);
+      }
+    });
+
+    test('uses a different paint and a different range for each fold', () {
       final List<Box> folded = _nodesOf(buildMaterialSection())
           .whereType<Box>()
           .where((Box box) => box.fold != null)
           .toList();
 
-      expect(folded, hasLength(1));
+      expect(folded, hasLength(2));
 
-      final Box hero = folded.single;
-
-      // Paint only, and not the band: a pinned box never leaves its viewport, so it never folds.
-      expect(hero.pin, isNull);
-      expect(hero.fold!.looks, contains(BoxProperty.opacity));
-      expect(hero.fold!.to.opacity, 0);
-    });
-
-    test('keeps the bar of its sticky list inside the box that scrolls it', () {
-      final List<UINode> nodes = _nodesOf(buildMaterialSection());
-      final List<Box> pinned = nodes
-          .whereType<Box>()
-          .where((Box box) => box.pin == BoxPin.start)
-          .toList();
-
-      expect(pinned, hasLength(1));
-
-      final Box bar = pinned.single;
-
-      // A band is drawn by the box that scrolls it, from the height it states: the two are
-      // the contract the model asks for, and the catalogue is where a caller reads them.
-      expect(bar.height, isNotNull);
-      expect(bar.height!.isFinite, isTrue);
-      // It is drawn over the rows that pass beneath it, so it paints its own surface.
-      expect(bar.backgroundColor, isNotNull);
-
-      final Box viewport = nodes.whereType<Box>().singleWhere(
-        (Box box) => box.children.contains(bar),
+      // One fades and shrinks, and takes most of its exit to do it…
+      final Box hero = folded.singleWhere(
+        (Box box) => box.fold!.looks.contains(BoxProperty.transform),
       );
 
-      expect(viewport.overflow, Overflow.scroll);
-      expect(viewport.height, isNotNull);
+      expect(hero.fold!.looks, contains(BoxProperty.opacity));
+      expect(hero.fold!.over, greaterThan(0.5));
+
+      // …the other moves colour and radius, and has arrived half way out.
+      final Box title = folded.singleWhere(
+        (Box box) => !box.fold!.looks.contains(BoxProperty.transform),
+      );
+
+      expect(title.fold!.looks, contains(BoxProperty.backgroundColor));
+      expect(title.fold!.over, 0.5);
+
+      // A fold is for the box that leaves, so no band that stays carries one.
+      for (final Box box in folded) {
+        expect(box.pin, isNull);
+      }
     });
 
     test(
