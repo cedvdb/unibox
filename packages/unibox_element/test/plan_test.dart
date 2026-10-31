@@ -176,6 +176,33 @@ void main() {
 
       expect(centred.className, isNot(start.className));
     });
+
+    test('keeps two texts apart when only one of them is a heading', () {
+      // A heading's class carries the reset that takes a browser's own heading look apart, so
+      // a heading and a plain text of the same typography are two looks. Sharing one let
+      // whichever was planned first answer for both — and when that was a plain text, the
+      // `<h2>` wore a class that said nothing about its element and the user agent drew it at
+      // `1.5em` with `0.83em` margins: a dialog's title a third taller, and the card with it.
+      final Stylesheet sheet = Stylesheet();
+      final ElementPlan plain = planNode(const core.TextNode('Flat'), sheet);
+      final ElementPlan heading = planNode(
+        const core.TextNode('Flat', headingLevel: 2),
+        sheet,
+      );
+
+      expect(heading.className, isNot(plain.className));
+      expect(
+        sheet.css,
+        contains('.${heading.className}{'),
+        reason: 'a heading has a rule of its own to state the reset in',
+      );
+      expect(
+        RegExp('\\.${RegExp.escape(heading.className!)}\\{([^}]*)\\}')
+            .firstMatch(sheet.css)!
+            .group(1),
+        contains('margin:0'),
+      );
+    });
   });
 
   group('a sheet forgets what nothing wears', () {

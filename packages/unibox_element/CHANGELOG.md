@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- A heading wears a class of its own: whether a text is a heading is part of the look the sheet
+  remembers. `textDeclarations` writes the reset that cancels a user agent's heading margin,
+  size and weight, and the look it was filed under did not say so — a plain text of the same
+  typography, planned first, minted the class the `<h2>` then wore, and the markup said nothing
+  about the element: the browser drew the example's sign-up title at `1.5em` with `0.83em`
+  margins, a third taller than Flutter drew the same node, and the card with it.
+
 - A box that states `capturesPointer: false` is planned with `pointer-events: none` however
   much it holds, so a decoration over a control no longer takes the hover, the cursor or the
   press in the corner it covers; `true` writes `auto` for a leaf that is a target of its own.

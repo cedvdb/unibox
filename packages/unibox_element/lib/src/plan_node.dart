@@ -353,12 +353,19 @@ Map<String, String> nodeAttributes(core.UINode node) {
 
 ElementPlan _planText(core.TextNode node, Stylesheet sheet) {
   final String className = sheet.classForLook(
-    // A text's look is its typography and the three things it adds to it.
+    // A text's look is its typography and the three things it adds to it. Whether it is a
+    // heading belongs to it, for the reason a box's key carries its tag: the class of a
+    // heading carries the reset a browser's own heading look is taken apart by, so a heading
+    // and a plain text of the same typography are two looks. Sharing one let whichever was
+    // planned first answer for both — and when that was a plain text, its class said nothing
+    // about the element and the user agent's `1.5em` size and `0.83em` margins showed through,
+    // which drew a dialog's heading a third taller than Flutter's.
     (
       style: node.computedStyle,
       align: node.textAlign,
       lines: node.maxLines,
       overflow: node.overflow,
+      heading: node.headingLevel != null,
     ),
     'text',
     () => textDeclarations(node),

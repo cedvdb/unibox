@@ -28,6 +28,32 @@ void main() {
       );
     });
 
+    test('keeps the reset a heading needs, whatever was planned first', () {
+      // A heading's class carries the reset a browser's own heading look is taken apart by.
+      // A plain text with the same typography planned first used to mint the class both wore,
+      // and its rule said nothing about the element: the `<h2>` fell back to the user agent's
+      // `1.5em` size and `0.83em` margins, which drew the example's sign-up card taller here
+      // than in Flutter.
+      final String html = toHtml(
+        const core.Box(
+          children: <core.UINode>[
+            core.TextNode('Apartments'),
+            core.TextNode('Join Unibox', headingLevel: 2),
+          ],
+        ),
+      );
+      final String heading = RegExp(r'<h2 class="([^"]+)"')
+          .firstMatch(html)!
+          .group(1)!;
+      final String rule = RegExp('\\.${RegExp.escape(heading)}\\{([^}]*)\\}')
+          .firstMatch(html)!
+          .group(1)!;
+
+      expect(rule, contains('margin:0'));
+      expect(rule, contains('font-size:inherit'));
+      expect(rule, contains('font-weight:inherit'));
+    });
+
     test('carries the name of its node, and its key when it has one', () {
       final String html = toHtml(const core.TextNode('Hi', key: 'greeting'));
 

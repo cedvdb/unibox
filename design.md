@@ -405,7 +405,12 @@ never inherited (CSS does not inherit them either).
   `Semantics(header: true, headingLevel: n)` in Flutter. The element brings no look
   of its own — the renderer cancels the user agent's margin, size and weight —
   because typography is the tree's business. `BoxRole.heading` stays for a heading
-  that cannot be written as one run of text.
+  that cannot be written as one run of text. The cancellation is in the heading's
+  own class, which is why a heading and a plain text of the same typography are two
+  looks: sharing one let whichever was planned first answer for both, and a plain
+  text planned before the card's title gave the `<h2>` a class that said nothing
+  about its element — the user agent's `1.5em` size then came back and the same
+  card stood a third taller on the page than in the app.
 - The two targets are not equally expressive, and the gap is documented instead of
   papered over: HTML has landmarks (`main`, `nav`, `header`, `footer`, `aside`) and
   Flutter has none, so a landmark is structure a browser gets and a Flutter screen

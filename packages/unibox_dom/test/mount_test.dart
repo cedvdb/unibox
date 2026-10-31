@@ -96,5 +96,33 @@ void main() {
 
       view.dispose();
     });
+
+    test('takes a browser\'s own heading look apart', () {
+      // What a heading is *drawn* as, not what its class says: a user agent gives `h1`-`h6` a
+      // `1.5em` size and `0.83em` margins of its own, and the model has no place for either.
+      // Measured here because only a browser can say whether the reset arrived — the tree
+      // states 22 pixels, and a `<h2>` that inherits nothing from it computes 33.
+      const core.UINode tree = core.Box(
+        textStyle: core.BoxTextStyle(fontSize: 22),
+        children: <core.UINode>[
+          // A plain text of the same typography, planned first: it used to mint the class
+          // the heading wore, and the heading then kept the user agent's look.
+          core.TextNode('Apartments'),
+          core.TextNode('Join Unibox', headingLevel: 2),
+        ],
+      );
+
+      final web.HTMLDivElement element = host();
+      final DomView view = DomView.mount(tree, element);
+      final web.CSSStyleDeclaration style = web.window.getComputedStyle(
+        element.querySelector('h2')!,
+      );
+
+      expect(style.fontSize, '22px');
+      expect(style.marginTop, '0px');
+      expect(style.marginBottom, '0px');
+
+      view.dispose();
+    });
   });
 }
