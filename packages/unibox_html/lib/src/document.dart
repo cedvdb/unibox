@@ -1,4 +1,5 @@
 import 'package:unibox_core/unibox_core.dart' as core;
+import 'package:unibox_css/unibox_css.dart';
 
 import 'document_head.dart';
 import 'escape.dart';
@@ -85,6 +86,7 @@ final class Document {
   const Document({
     required this.node,
     this.lang = 'en',
+    this.writingDirection,
     this.head = const DocumentHead(),
     this.scripts = const <DocumentScript>[],
     this.theme,
@@ -98,6 +100,16 @@ final class Document {
   /// The language the page is written in: an attribute of the root element rather than a head
   /// element, which is why it sits beside [head] and not in it.
   final String lang;
+
+  /// The direction the page is written in, or `null` to write no `dir` at all.
+  ///
+  /// It is the `dir` attribute of the same root element as [lang], and the two are
+  /// deliberately separate: a language is not a direction. Azerbaijani, Kurdish and
+  /// Punjabi are written in both scripts, and a page in Arabic can hold a region — a
+  /// quotation, a code block, a price — that reads left to right. Everything inside
+  /// inherits this, so a page written right to left states it once here and a box only
+  /// states its own where a region differs.
+  final core.WritingDirection? writingDirection;
 
   /// What the page says about itself: a title, an address, its translations, the resources it
   /// needs in the head.
@@ -119,6 +131,7 @@ final class Document {
   String write() => toDocument(
     node,
     lang: lang,
+    writingDirection: writingDirection,
     head: head,
     scripts: scripts,
     theme: theme,
@@ -136,6 +149,7 @@ final class Document {
   Document at(String address) => Document(
     node: node,
     lang: lang,
+    writingDirection: writingDirection,
     head: DocumentHead(
       title: head.title,
       description: head.description,
@@ -193,9 +207,19 @@ final class Document {
 ///
 /// A host that writes several pages holds them as [Document] values instead, one per address,
 /// and writes each with the same call.
+///
+/// [writingDirection] is the `dir` attribute of the same root element as [lang], and it is
+/// what everything on the page that states no direction of its own inherits. Unset writes
+/// no attribute at all, so the page reads in the browser's direction and nothing is
+/// claimed on its behalf; a page translated into Arabic states [core.WritingDirection.rtl]
+/// once here, and a region inside it that is not in Arabic states its own on the box.
+/// Language and direction are two attributes and not one because a language is not a
+/// direction: a page can be Dutch and hold an Arabic quotation, and a language can be
+/// written in either script.
 String toDocument(
   core.UINode node, {
   String lang = 'en',
+  core.WritingDirection? writingDirection,
   DocumentHead head = const DocumentHead(),
   List<DocumentScript> scripts = const <DocumentScript>[],
   core.UniboxTheme? theme,
@@ -309,8 +333,15 @@ String toDocument(
     buffer.write(script.write());
   }
 
+  // The direction of the whole page, stated on the root element so that every box that
+  // names none inherits it: the same one attribute `dir="auto"` would occupy, with the
+  // answer given rather than guessed from the first character of the text.
+  final String direction = writingDirection == null
+      ? ''
+      : ' dir="${cssWritingDirection(writingDirection)}"';
+
   return '<!DOCTYPE html>'
-      '<html lang="${escapeAttribute(lang)}">'
+      '<html lang="${escapeAttribute(lang)}"$direction>'
       '<head>${buffer.toString()}</head>'
       '<body>${writeElement(rendered.plan)}</body>'
       '</html>';

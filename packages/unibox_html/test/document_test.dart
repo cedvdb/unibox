@@ -21,6 +21,38 @@ void main() {
       );
     });
 
+    test('states the direction the page is written in', () {
+      // The direction is an attribute of the root element, like the language, and it is
+      // what every box that names none inherits.
+      expect(
+        toDocument(
+          const core.TextNode('مرحبا'),
+          lang: 'ar',
+          writingDirection: core.WritingDirection.rtl,
+        ),
+        contains('<html lang="ar" dir="rtl">'),
+      );
+    });
+
+    test('claims no direction for a page that states none', () {
+      // A direction is not derived from a language: Azerbaijani, Kurdish and Punjabi are
+      // written in both scripts, and a page in Arabic can hold a region that reads left to
+      // right. The attribute is written when the page states it, never inferred.
+      expect(toDocument(const core.TextNode('Hi')), isNot(contains('dir=')));
+    });
+
+    test('keeps the direction when a build gives the page its address', () {
+      // `at` rewrites the document, and a field it forgets is a field the page loses —
+      // the direction is forwarded like the language it sits beside.
+      const Document page = Document(
+        node: core.TextNode('مرحبا'),
+        lang: 'ar',
+        writingDirection: core.WritingDirection.rtl,
+      );
+
+      expect(page.at('https://example.com/ar/').write(), contains('dir="rtl"'));
+    });
+
     test('carries the title a result links and a tab shows', () {
       expect(
         toDocument(

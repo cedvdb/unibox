@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `toDocument(writingDirection: …)` and `Document(writingDirection: …)` write `dir` on the root
+  element, beside `lang` and never derived from it: everything on the page that states no
+  direction inherits it, and a page that states none writes no attribute at all.
+
 - `Document.at(url)`: the same page with an address, which is the one thing a build knows and a
   page does not. The address becomes the page's `canonical` url and every other field is kept, so
   a build can take the pages it was handed and give each one the address it is served at — and a

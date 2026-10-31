@@ -151,6 +151,7 @@ final String page = toDocument(
 | The document states | With |
 | --- | --- |
 | the language it is written in | `lang:` — one document per language, not one page that swaps its text |
+| the direction it is written in | `writingDirection:` — the `dir` of the root element, which every box that states none inherits, so a region in another script states its own on the box |
 | the other languages of the same page | `head.alternates` — the `hreflang` links, the whole set on every page of it |
 | the address of this page | `head.canonical` — per language, or two translations compete as one |
 | the language a reader gets | the address (`/de/…`): a crawler sends no `Accept-Language` and keeps no cookie |
@@ -162,6 +163,12 @@ application, which may depend on `intl`; a tree that read the locale from its co
 a document at all, because a document is rendered with no context. That costs the copy nothing:
 because it arrives as a value, a string the translation is missing is a compile error in every
 language rather than a blank on one page.
+
+The direction is a second attribute and not a reading of the first. `lang="ar"` does not by itself
+say `dir="rtl"`, because a language is not a direction: a page in Arabic can hold a quotation, a
+code block or a price that reads left to right, and Azerbaijani, Kurdish and Punjabi are written in
+both scripts. A page that states no direction writes none, and the browser's own answer — left to
+right — is what it reads in; nothing is inferred on the page's behalf.
 
 ## The element plan
 
