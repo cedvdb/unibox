@@ -997,6 +997,9 @@ UINode _viewport(
     overflow: Overflow.scroll,
     borderRadius: 12,
     border: BoxBorder(color: palette.outlineVariant),
+    // The panel states the surface a pull past its end reveals: a host bounces a scroller at its
+    // edges, and a transparent panel would show the page through the gap above its pinned bar.
+    backgroundColor: palette.surfaceContainerLow,
     children: children,
   );
 }
@@ -1042,6 +1045,9 @@ UINode _band(
     pinOffset: pinOffset,
     padding: const BoxSpacing.symmetric(horizontal: 16),
     backgroundColor: background ?? palette.surfaceContainerHigh,
+    // A hairline under the band, so it reads as chrome of its own rather than as a gap in the
+    // list once the rows are passing beneath it.
+    border: BoxBorder(color: palette.outlineVariant),
     direction: Axis.horizontal,
     crossAlign: CrossAlign.center,
     mainAlign: MainAlign.spaceBetween,
