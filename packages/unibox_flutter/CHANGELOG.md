@@ -28,6 +28,14 @@
   rather than widening the grid, a child the width does not draw keeps no column, and
   `CrossAlign.stretch` measures the height too, so every column can be as tall as the tallest.
 
+- `crossAlign: CrossAlign.stretch` fills the children that state no size across the direction
+  and leaves the rest alone, which is what `align-items: stretch` does with a flex item whose
+  cross size is not `auto`. Flutter's `CrossAxisAlignment.stretch` gave every child a tight
+  width, and a tight width wins over the child's own: a tab strip that states 280 came out as
+  wide as the band, a pager that states 240 showed three pages at once, and a stateful view
+  could not keep a width it named. The stretch is now stated to the child instead of imposed
+  on it, and a box that names its own cross size keeps it.
+
 - An aligned `PositionedNode` child follows the writing direction, as the browser's class always
   did: `Align` was given `Alignment.centerRight` for a `centerEnd` child, so in a page written
   right to left the row mirrored and the control floating over it did not. It is now an

@@ -215,7 +215,14 @@ never inherited (CSS does not inherit them either).
   did: the price stopped half way across the card. The model's answer is the parent's
   `crossAlign: CrossAlign.stretch`, which both targets honour (a flex `stretch`, a
   `CrossAxisAlignment.stretch`), and a component that holds a row states it —
-  `MaterialCard` stretches what it holds for exactly this reason.
+  `MaterialCard` stretches what it holds for exactly this reason. A stretch fills
+  what states no size there and leaves the rest alone: a child that names its own
+  `width` keeps it, as a browser leaves a flex item whose cross size is not `auto`
+  alone, and a child that names a `maxWidth` stops at the cap rather than at the
+  track. So the renderer says "you are stretched" rather than handing the child a
+  tight width, because a tight constraint wins over the child's own tokens — the
+  reason the catalogue's tab strips and its pager came out as wide as the band in
+  Flutter while the document kept them narrow.
 - Platform chrome belongs to the tree. A node never keeps a decoration its
   platform adds by itself — no Material underline under a field, no user agent
   border, focus ring or padding around an input, no user agent underline under a

@@ -6,6 +6,20 @@ import 'package:unibox_flutter/unibox_flutter.dart';
 
 import 'support/harness.dart';
 
+/// A store with nothing to publish: the view of [_FixedWidthNode] is all a test reads.
+final class _FixedStore extends core.StateStore<int> {
+  _FixedStore() : super(0);
+}
+
+/// A view that states its own width, the way a specimen in a band does.
+core.UINode _fixedView(int state, _FixedStore store) =>
+    const core.Box(key: 'view', width: 120, height: 10);
+
+/// A stateful node whose view is narrower than the column that holds it.
+final class _FixedWidthNode extends core.StatefulNode<int, _FixedStore> {
+  _FixedWidthNode() : super(create: _FixedStore.new, view: _fixedView);
+}
+
 void main() {
   group('Box layout', () {
     testWidgets('renders a flex container for an empty box', (tester) async {
@@ -194,6 +208,109 @@ void main() {
       expect(
         tester.getSize(find.byKey(nodeKey)).width,
         tester.getSize(find.byType(Center)).width,
+      );
+    });
+
+    testWidgets('keeps the width a child states under a stretching column', (
+      WidgetTester tester,
+    ) async {
+      await pumpNode(
+        tester,
+        const core.Box(
+          width: 300,
+          crossAlign: core.CrossAlign.stretch,
+          children: <core.UINode>[
+            core.Box(key: 'fixed', width: 100, height: 10),
+            core.Box(key: 'filled', height: 10),
+          ],
+        ),
+      );
+
+      final Rect control = tester.getRect(find.byKey(nodeKey));
+      final Rect fixed = tester.getRect(
+        find.byKey(const ValueKey<Object>('fixed')),
+      );
+      final Rect filled = tester.getRect(
+        find.byKey(const ValueKey<Object>('filled')),
+      );
+
+      // `align-items: stretch` fills an item whose width is `auto` and leaves one that
+      // states its own alone, so the two children of a stretching column are not the same
+      // width. A tight share would have made the first one 300 too.
+      expect(fixed.width, 100);
+      expect(fixed.left, control.left);
+      expect(filled.width, 300);
+    });
+
+    testWidgets('keeps the height a child states under a stretching row', (
+      WidgetTester tester,
+    ) async {
+      await pumpNode(
+        tester,
+        const core.Box(
+          width: 300,
+          height: 200,
+          direction: core.Axis.horizontal,
+          crossAlign: core.CrossAlign.stretch,
+          children: <core.UINode>[
+            core.Box(key: 'fixed', width: 10, height: 80),
+            core.Box(key: 'filled', width: 10),
+          ],
+        ),
+      );
+
+      final Rect control = tester.getRect(find.byKey(nodeKey));
+      final Rect fixed = tester.getRect(
+        find.byKey(const ValueKey<Object>('fixed')),
+      );
+      final Rect filled = tester.getRect(
+        find.byKey(const ValueKey<Object>('filled')),
+      );
+
+      expect(fixed.height, 80);
+      expect(fixed.top, control.top);
+      expect(filled.height, 200);
+    });
+
+    testWidgets('fills a text across a stretching column', (
+      WidgetTester tester,
+    ) async {
+      await pumpNode(
+        tester,
+        const core.Box(
+          width: 300,
+          crossAlign: core.CrossAlign.stretch,
+          children: <core.UINode>[
+            core.TextNode('A line that the column measures.'),
+          ],
+        ),
+      );
+
+      // A text has no width of its own: a browser stretches its block to the line, and a
+      // text that hugged its glyphs here would wrap somewhere else.
+      expect(
+        tester.getSize(find.text('A line that the column measures.')).width,
+        300,
+      );
+    });
+
+    testWidgets('lets a stateful view keep its width when it is stretched', (
+      WidgetTester tester,
+    ) async {
+      await pumpNode(
+        tester,
+        core.Box(
+          width: 300,
+          crossAlign: core.CrossAlign.stretch,
+          children: <core.UINode>[_FixedWidthNode()],
+        ),
+      );
+
+      // The view is the element the parent stretches, so the width it states is the width
+      // it keeps — a specimen in a band is not made as wide as the band.
+      expect(
+        tester.getSize(find.byKey(const ValueKey<Object>('view'))).width,
+        120,
       );
     });
 

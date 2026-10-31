@@ -184,6 +184,11 @@ class FlutterBoxState extends State<FlutterBox> {
     final core.BoxStyle style = _resolvedStyle(box)
         .resolve(UniboxThemeScope.of(context) ?? core.UniboxTheme.none);
 
+    // A stretching parent says so here instead of handing a tight width: a box that states
+    // a size of its own keeps it, which is what `align-items: stretch` does to a flex item
+    // whose cross size is not `auto`.
+    final Axis? stretchedAcross = _StretchedAcross.maybeOf(context);
+
     // A link asks the host once, while an inherited widget can be read.
     _open = box.enabled && box is core.LinkNode
         ? FlutterLinkScope.maybeOf(context)
@@ -210,6 +215,10 @@ class FlutterBoxState extends State<FlutterBox> {
                 ),
           )
         : _buildFlow(box, style, pinned, availableWidth: null);
+
+    // The flag stops at the item it reached: this box was the child the parent stretched,
+    // and what it holds is laid out by its own flex, not by the parent's.
+    content = _StretchedAcross(flexDirection: null, child: content);
 
     // A direction wraps the flow and never sits inside it: a `Row` reads
     // `Directionality` when it lays its children out, so the inherited widget has to be
@@ -330,7 +339,11 @@ class FlutterBoxState extends State<FlutterBox> {
       }
     }
 
-    content = _applyDimensions(content, style);
+    content = _applyDimensions(
+      content,
+      style,
+      stretchedAcross: stretchedAcross,
+    );
     content = _applyLook(content, style, box, fold: fold);
     content = _applyInteractions(content, box);
 
@@ -631,6 +644,9 @@ class FlutterBoxState extends State<FlutterBox> {
     final core.Axis direction = style.resolvedDirection;
     final double? gap = style.gap;
     final bool wrap = style.wrap ?? false;
+    final core.CrossAlign crossAlign =
+        style.crossAlign ?? core.CrossAlign.start;
+    final bool stretch = crossAlign == core.CrossAlign.stretch;
 
     // A wrapping box spaces its children itself, between two of them and between two
     // lines, which a `Wrap` does with two numbers; a flex adds a spacer child instead.
@@ -654,6 +670,7 @@ class FlutterBoxState extends State<FlutterBox> {
                 direction,
                 availableWidth: availableWidth,
                 flexible: !wrap,
+                stretch: stretch,
               )
             : SizedBox(
                 key: _slots.putIfAbsent(index, GlobalKey.new),
@@ -662,8 +679,6 @@ class FlutterBoxState extends State<FlutterBox> {
       );
     }
 
-    final core.CrossAlign crossAlign =
-        style.crossAlign ?? core.CrossAlign.start;
     final MainAxisAlignment mainAxisAlignment = toMainAxisAlignment(
       style.mainAlign ?? core.MainAlign.start,
     );
@@ -682,9 +697,17 @@ class FlutterBoxState extends State<FlutterBox> {
       );
     }
 
-    final CrossAxisAlignment crossAxisAlignment = toCrossAxisAlignment(
-      crossAlign,
-    );
+    // A stretch is not Flutter's `CrossAxisAlignment.stretch`: that hands every child a
+    // tight width, and a tight constraint wins over the child's own `width`, so a box that
+    // states 280 came out as wide as the band while the browser left it at 280. The model's
+    // stretch is CSS's: an item whose cross size is `auto` fills the line, and one that
+    // states a size keeps it. So the children are placed at the cross start and each one
+    // decides — `_stretchedChild` tells a box it is stretched, and fills a leaf that has no
+    // size of its own.
+    final CrossAxisAlignment crossAxisAlignment =
+        crossAlign == core.CrossAlign.stretch
+        ? CrossAxisAlignment.start
+        : toCrossAxisAlignment(crossAlign);
 
     // A stack is a layer, not a flow child, so it takes the box's own constraints
     // instead of a flex's: a flex hands its children an unbounded main axis, and a
@@ -915,11 +938,12 @@ class FlutterBoxState extends State<FlutterBox> {
     core.Axis direction, {
     required double? availableWidth,
     bool flexible = true,
+    bool stretch = false,
   }) {
-    final Widget child = renderNode(node, availableWidth: availableWidth);
+    Widget child = renderNode(node, availableWidth: availableWidth);
 
     if (node is! core.Box) {
-      return child;
+      return stretch ? _stretchedChild(child, node, direction) : child;
     }
 
     final core.BoxStyle childStyle = node.computedStyle;
@@ -936,6 +960,10 @@ class FlutterBoxState extends State<FlutterBox> {
         maintainState: true,
         child: SizedBox(width: 0, height: 0, child: child),
       );
+    }
+
+    if (stretch) {
+      child = _stretchedChild(child, node, direction);
     }
 
     final double? mainSize = direction == core.Axis.horizontal
@@ -963,9 +991,66 @@ class FlutterBoxState extends State<FlutterBox> {
     return Expanded(flex: hasFlex ? flex : 1, child: child);
   }
 
+  /// [child] as the child of a stretching flex: filled across [direction]'s other axis
+  /// unless it states a size of its own.
+  ///
+  /// A box, or the view of a stateful node, decides for itself — it knows whether it states
+  /// a width, and [_StretchedAcross] lets it fill when it does not. A leaf has no renderer
+  /// to ask, so the decision is made here: a picture keeps its intrinsic size, a stack that
+  /// states one keeps it, an overlay is out of the flow, and every other leaf fills the line
+  /// — which is what a browser does to a block whose cross size is `auto`.
+  Widget _stretchedChild(Widget child, core.UINode node, core.Axis direction) {
+    if (node is core.Box || node is core.StatefulNode) {
+      return _StretchedAcross(flexDirection: toAxis(direction), child: child);
+    }
+
+    final bool sized = switch (node) {
+      // A picture keeps its own size: a replaced element's width is its intrinsic one,
+      // so a browser's stretch does not reach it either.
+      core.ImageNode() => true,
+      // A layer is not drawn in the flow of its parent, so there is no line to fill.
+      core.OverlayNode() => true,
+      final core.StackNode stack =>
+        direction == core.Axis.vertical
+            ? stack.width != null
+            : stack.height != null,
+      _ => false,
+    };
+
+    if (sized) {
+      return child;
+    }
+
+    return direction == core.Axis.vertical
+        ? SizedBox(width: double.infinity, child: child)
+        : SizedBox(height: double.infinity, child: child);
+  }
+
   /// Applies the fixed sizes, the aspect ratio and the min/max constraints of [style].
-  Widget _applyDimensions(Widget content, core.BoxStyle style) {
+  ///
+  /// [stretchedAcross] is the direction of a parent flex that stretches this box, when
+  /// one does. CSS fills an item whose cross size is `auto` and leaves one that states its
+  /// own size alone, so a box without a size on that axis fills the line here; a maximum
+  /// still caps it, because the fill goes inside the constraints at the end.
+  Widget _applyDimensions(
+    Widget content,
+    core.BoxStyle style, {
+    Axis? stretchedAcross,
+  }) {
     Widget result = content;
+
+    if (stretchedAcross != null) {
+      final bool acrossWidth = stretchedAcross == Axis.vertical;
+      final bool statesSize = acrossWidth
+          ? style.width != null || style.widthFraction != null
+          : style.height != null || style.heightFraction != null;
+
+      if (!statesSize) {
+        result = acrossWidth
+            ? SizedBox(width: double.infinity, child: result)
+            : SizedBox(height: double.infinity, child: result);
+      }
+    }
 
     // The ratio goes *inside* the sizes and not around them: a box that states a width
     // hands the ratio a width to measure, and the ratio gives the height back. Wrapped
@@ -2085,4 +2170,31 @@ class _BorderBoxClipper extends CustomClipper<Path> {
   @override
   bool shouldReclip(_BorderBoxClipper oldClipper) =>
       oldClipper.line != line || oldClipper.radius != radius;
+}
+
+/// Says that the box below is the child of a flex that stretches it across one axis.
+///
+/// A stretch cannot be expressed by handing the child a tight size: a tight constraint wins
+/// over the child's own `width`, while a browser only stretches an item whose cross size is
+/// `auto`. The flag therefore travels down instead of a constraint, the first box it reaches
+/// uses it to fill its own cross axis when it states no size there, and it clears the flag for
+/// what that box holds. It reaches the view of a stateful node for the same reason — the view
+/// is the element the parent stretches — and a box that states its own size ignores it.
+class _StretchedAcross extends InheritedWidget {
+  /// Marks [child] as stretched by a flex that runs along [flexDirection], or clears the
+  /// mark when [flexDirection] is `null`.
+  const _StretchedAcross({required this.flexDirection, required super.child});
+
+  /// The direction of the parent's flex, or `null` below the box the flag reached.
+  final Axis? flexDirection;
+
+  /// The axis of the flex that stretches the box being built, or `null` when the box is not
+  /// the child of one.
+  static Axis? maybeOf(BuildContext context) => context
+      .dependOnInheritedWidgetOfExactType<_StretchedAcross>()
+      ?.flexDirection;
+
+  @override
+  bool updateShouldNotify(_StretchedAcross oldWidget) =>
+      oldWidget.flexDirection != flexDirection;
 }

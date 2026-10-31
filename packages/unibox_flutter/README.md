@@ -37,6 +37,7 @@ with their target.
 | `gap`                               | `SizedBox` separators between children              |
 | `mainAlign` / `crossAlign`          | `mainAxisAlignment` / `crossAxisAlignment`, with `textBaseline` stated |
 | `crossAlign: CrossAlign.baseline`   | `CrossAxisAlignment.baseline` with `TextBaseline.alphabetic` |
+| `crossAlign: CrossAlign.stretch`    | children placed at the cross start, and each one filled across the line when it states no size there |
 | `padding` / `margin`                | inner / outer `Padding`                             |
 | `width`, `height`                   | `SizedBox`                                          |
 | `aspectRatio`                       | `AspectRatio`, inside the sizes so it divides one of them |
@@ -105,7 +106,19 @@ where the served document folds as the reader scrolls it.
 flex parent the expanding child is wrapped in an `Expanded` (using `flex`, or
 `1` when unspecified), elsewhere it is a `SizedBox` that fills the bounded
 parent. An infinite dimension in an unbounded parent is a layout error, exactly
-like a tight infinite `SizedBox` in plain Flutter.
+like a tight infinite `SizedBox` in plain Flutter. A child that also states a maximum on
+that axis is not a flex child at all: CSS gives it `min(100%, max-width)` and the
+container's alignment places the result, which is what a band's measure is.
+
+`crossAlign: CrossAlign.stretch` is not Flutter's `CrossAxisAlignment.stretch`.
+The model's is CSS's: an item whose cross size is `auto` fills the line, and one
+that states its own `width` (or `height`, across a row) keeps it. A tight
+constraint would override that width, so the flex places its children at the
+cross start and a small inherited flag says "you are stretched"; the first box it
+reaches fills the line when it states no size there, and clears the flag for what
+it holds. That is why a stateful node's view is stretched like the element it is,
+and why a specimen that states 280 stays 280 instead of becoming as wide as the
+band.
 
 ## Semantics
 

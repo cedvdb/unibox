@@ -102,6 +102,10 @@ host that renders it.
      distributes nothing unless the parent gave the row a width. A row that must
      distribute is inside a column that stretches, or has a `width`.
 
+   A `stretch` fills only what states no size across the axis: a child with its own
+   `width` keeps it, so a specimen stays at 280 in a band that stretches, and a child
+   with a `maxWidth` stops at the cap.
+
    Say what you mean: `direction`, `crossAlign: CrossAlign.stretch` on a band, and a
    width on a row that distributes.
 5. **Dimensions are `double?` in logical pixels.** `double.infinity` fills the space
