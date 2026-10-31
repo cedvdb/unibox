@@ -38,6 +38,12 @@ double _topOf(WidgetTester tester, String key) =>
     tester.getTopLeft(find.byKey(ValueKey<Object>(key))).dy -
     tester.getTopLeft(find.byKey(const ValueKey<Object>('viewport'))).dy;
 
+/// The distance from the left edge of the viewport to the left edge of [key], which is the
+/// width the box states and the cross alignment it is placed by.
+double _leftOf(WidgetTester tester, String key) =>
+    tester.getTopLeft(find.byKey(ValueKey<Object>(key))).dx -
+    tester.getTopLeft(find.byKey(const ValueKey<Object>('viewport'))).dx;
+
 /// Drags the viewport by [dy] and lets the scroll settle.
 Future<void> _scroll(WidgetTester tester, double dy) async {
   await tester.drag(
@@ -220,6 +226,36 @@ void main() {
 
       expect(_topOf(tester, 'toolbar'), 100);
       expect(inNode(find.byType(SingleChildScrollView)), findsNothing);
+    });
+
+    testWidgets('gives a band the width its cross alignment asks for', (
+      tester,
+    ) async {
+      await pumpNode(
+        tester,
+        core.Box(
+          key: 'viewport',
+          width: 300,
+          height: 400,
+          overflow: core.Overflow.scroll,
+          crossAlign: core.CrossAlign.center,
+          children: <core.UINode>[
+            _band('band', height: 60, width: 100, pin: core.BoxPin.start),
+            _band('results', height: 600),
+          ],
+        ),
+      );
+
+      await _scroll(tester, 200);
+
+      // The layer that carries the band is the width of the viewport; the band inside it is
+      // the width the box states, placed by the box's alignment — which is what a flex item
+      // in a centred column is, so the two targets give the band the same rectangle.
+      expect(
+        tester.getSize(find.byKey(const ValueKey<Object>('band'))).width,
+        100,
+      );
+      expect(_leftOf(tester, 'band'), 100);
     });
 
     testWidgets('leaves a box without a pin in a plain scroll view', (
