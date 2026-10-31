@@ -7,6 +7,7 @@ import 'box_shape.dart';
 import 'box_spacing.dart';
 import 'box_text_style.dart';
 import 'box_transform.dart';
+import 'box_fold.dart';
 import 'box_transition.dart';
 import 'unibox_theme.dart';
 
@@ -62,6 +63,7 @@ final class BoxStyle {
     this.shape,
     this.textStyle,
     this.transition,
+    this.fold,
     this.opacity,
     this.transform,
     this.visibleFrom,
@@ -285,6 +287,14 @@ final class BoxStyle {
   /// look swaps instantly.
   final BoxTransition? transition;
 
+  /// The look this box takes as it leaves the box that scrolls it.
+  ///
+  /// Unset means the box keeps one look all the way out of view. A fold is paint only — the
+  /// looks [BoxTransition] eases — because it is driven by a position rather than by a state,
+  /// and the two targets then interpolate the same numbers instead of running their own layout
+  /// algorithms on every frame.
+  final BoxFold? fold;
+
   /// How opaque the box is, from `0` (invisible) to `1` (solid).
   ///
   /// Unset means solid. The space the box occupies stays the same: an invisible
@@ -425,6 +435,7 @@ final class BoxStyle {
     BoxShape? shape,
     BoxTextStyle? textStyle,
     BoxTransition? transition,
+    BoxFold? fold,
     double? opacity,
     BoxTransform? transform,
     double? visibleFrom,
@@ -462,6 +473,7 @@ final class BoxStyle {
       shape: shape ?? this.shape,
       textStyle: textStyle ?? this.textStyle,
       transition: transition ?? this.transition,
+      fold: fold ?? this.fold,
       opacity: opacity ?? this.opacity,
       transform: transform ?? this.transform,
       visibleFrom: visibleFrom ?? this.visibleFrom,
@@ -514,6 +526,7 @@ final class BoxStyle {
       shape: other.shape ?? shape,
       textStyle: textStyle?.merge(other.textStyle) ?? other.textStyle,
       transition: other.transition ?? transition,
+      fold: other.fold ?? fold,
       opacity: other.opacity ?? opacity,
       transform: other.transform ?? transform,
       visibleFrom: other.visibleFrom ?? visibleFrom,
@@ -555,6 +568,7 @@ final class BoxStyle {
       other.shape == shape &&
       other.textStyle == textStyle &&
       other.transition == transition &&
+      other.fold == fold &&
       other.opacity == opacity &&
       other.transform == transform &&
       other.visibleFrom == visibleFrom &&
@@ -593,6 +607,7 @@ final class BoxStyle {
     shape,
     textStyle,
     transition,
+    fold,
     opacity,
     transform,
   ]);
@@ -630,6 +645,7 @@ final class BoxStyle {
       if (shape != null) 'shape: $shape',
       if (textStyle != null) 'textStyle: $textStyle',
       if (transition != null) 'transition: $transition',
+      if (fold != null) 'fold: $fold',
       if (opacity != null) 'opacity: $opacity',
       if (transform != null) 'transform: $transform',
       if (visibleFrom != null) 'visibleFrom: $visibleFrom',

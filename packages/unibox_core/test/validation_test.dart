@@ -305,6 +305,127 @@ void main() {
       expect(issues.single.isError, isFalse);
     });
 
+    test('accepts a hero that folds as it leaves', () {
+      expect(
+        validateTree(
+          const Box(
+            height: 400,
+            overflow: Overflow.scroll,
+            children: <UINode>[
+              Box(
+                height: 132,
+                fold: BoxFold(
+                  to: BoxStyle(
+                    opacity: 0,
+                    transform: BoxTransform(scale: 0.75),
+                  ),
+                  curve: BoxCurve.easeOut,
+                  over: 0.75,
+                ),
+              ),
+              Box(height: 60, pin: BoxPin.start),
+            ],
+          ),
+        ),
+        isEmpty,
+      );
+    });
+
+    test('reports a fold that names a layout token', () {
+      // A layout that eases moves everything around the box on every frame, and the two engines
+      // would draw a different picture in between: a fold is paint only.
+      final List<TreeIssue> issues = validateTree(
+        const Box(
+          height: 132,
+          fold: BoxFold(to: BoxStyle(height: 56, padding: BoxSpacing.all(8))),
+        ),
+      );
+
+      expect(issues, hasLength(1));
+      expect(issues.single.isError, isTrue);
+      expect(issues.single.message, contains('height, padding'));
+      expect(issues.single.message, contains('paint only'));
+    });
+
+    test('reports a fold that names no look', () {
+      final List<TreeIssue> issues = validateTree(
+        const Box(height: 132, fold: BoxFold(to: BoxStyle())),
+      );
+
+      expect(issues, hasLength(1));
+      expect(issues.single.message, contains('names no look'));
+    });
+
+    test('reports a fold that takes more than the whole exit', () {
+      final List<TreeIssue> issues = validateTree(
+        const Box(
+          height: 132,
+          fold: BoxFold(to: BoxStyle(opacity: 0), over: 2),
+        ),
+      );
+
+      expect(issues, hasLength(1));
+      expect(issues.single.isError, isTrue);
+      expect(issues.single.message, contains('over 2.0'));
+    });
+
+    test('reports a box that both pins and folds', () {
+      // A pinned band stays at the edge of its viewport, so its own exit never begins.
+      final List<TreeIssue> issues = validateTree(
+        const Box(
+          height: 400,
+          overflow: Overflow.scroll,
+          children: <UINode>[
+            Box(
+              height: 60,
+              pin: BoxPin.start,
+              fold: BoxFold(to: BoxStyle(opacity: 0)),
+            ),
+          ],
+        ),
+      );
+
+      expect(issues, hasLength(1));
+      expect(issues.single.message, contains('opposite journeys'));
+    });
+
+    test('reports a fold that changes a border width', () {
+      // A border width is layout in a browser and paint in Flutter, which is the one property
+      // no animation here may touch.
+      final List<TreeIssue> issues = validateTree(
+        const Box(
+          height: 132,
+          border: BoxBorder(color: BoxColor.white),
+          fold: BoxFold(to: BoxStyle(border: BoxBorder(width: 2))),
+        ),
+      );
+
+      expect(issues, hasLength(1));
+      expect(issues.single.message, contains('only its colour eases'));
+    });
+
+    test('reports a fold and a transition over the same look', () {
+      final List<TreeIssue> issues = validateTree(
+        const Box(
+          height: 132,
+          transition: BoxTransition(
+            duration: Duration(milliseconds: 150),
+            parts: <BoxTransitionPart>[
+              BoxTransitionPart(
+                properties: <BoxProperty>{BoxProperty.opacity},
+                duration: Duration(milliseconds: 120),
+              ),
+            ],
+          ),
+          fold: BoxFold(to: BoxStyle(opacity: 0)),
+        ),
+      );
+
+      expect(issues, hasLength(1));
+      expect(issues.single.isError, isTrue);
+      expect(issues.single.message, contains('opacity'));
+    });
+
     test('accepts a well formed tree', () {
       const Box tree = Box(
         direction: Axis.vertical,

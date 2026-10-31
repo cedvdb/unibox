@@ -129,6 +129,28 @@ const Box(
 `validateTree` reports a transition that changes nothing and one declared on a
 state style instead of the resting one, where no renderer would apply it.
 
+`BoxFold` is the other kind of motion, and the one the reader drives: a box paints
+another look the further it has travelled out of the viewport that scrolls it.
+
+```dart
+const Box(
+  height: 132,
+  fold: BoxFold(
+    to: BoxStyle(opacity: 0, transform: BoxTransform(scale: 0.75)),
+    over: 0.75,
+  ),
+)
+```
+
+The travel is the box's own exit, so nothing states a number of pixels; `over` is the
+share of that exit the fold completes over, and `progressAt` is the arithmetic both
+targets share, in the order a browser applies it — the range first, then the curve.
+`BoxFold.looks` is the set a renderer eases, and it is the same set a transition covers,
+which is what makes a fold paint only. `validateTree` reports a fold that names
+a layout token, one that names nothing, one that takes more than the whole exit, one on
+a box that pins (a pinned band never leaves), one on a shaped box, a border whose width
+a fold would move, and one look eased by both a transition and a fold.
+
 ## Structure and semantics
 
 A node says what it is as well as how it looks, and none of it changes a pixel:

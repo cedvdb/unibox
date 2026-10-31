@@ -2,6 +2,7 @@ import '../callbacks.dart';
 import '../enums.dart';
 import '../tokens/box_border.dart';
 import '../tokens/box_color.dart';
+import '../tokens/box_fold.dart';
 import '../tokens/box_border_radius.dart';
 import '../tokens/box_semantics.dart';
 import '../tokens/box_shadow.dart';
@@ -74,6 +75,7 @@ class Box extends UINode {
     this.shape,
     this.textStyle,
     this.transition,
+    this.fold,
     this.opacity,
     this.transform,
     this.visibleFrom,
@@ -289,6 +291,18 @@ class Box extends UINode {
   /// `DefaultTextStyle`. It never affects layout.
   final BoxTextStyle? textStyle;
 
+  /// The look this box takes as it leaves the box that scrolls it.
+  ///
+  /// A hero that fades and shrinks as a toolbar comes up under it is a fold: the scroll is
+  /// the clock, and the box paints the look it names the further it has travelled out of
+  /// view. Paint only — the tokens [BoxTransition] eases — so the layout of everything below
+  /// it never moves, and nothing is rebuilt as the reader scrolls.
+  ///
+  /// The travel is the box's own exit from the viewport, so no number of pixels is stated.
+  /// `validateTree` reports a fold that names a layout token, one that names nothing, and one
+  /// on a box that pins, which does not leave.
+  final BoxFold? fold;
+
   /// How one look of this box becomes another.
   ///
   /// A state style names the tokens that change; this says how long the
@@ -471,6 +485,7 @@ class Box extends UINode {
     shape: shape,
     textStyle: textStyle,
     transition: transition,
+    fold: fold,
     opacity: opacity,
     transform: transform,
     visibleFrom: visibleFrom,

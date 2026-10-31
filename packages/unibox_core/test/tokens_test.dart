@@ -307,6 +307,74 @@ void main() {
       expect(const BoxStyle(pin: BoxPin.end).resolvedPinOffset, 0);
     });
 
+    test(
+      'carries the look a box folds into, and how much of the exit it takes',
+      () {
+        const fold = BoxFold(
+          to: BoxStyle(opacity: 0),
+          curve: BoxCurve.easeOut,
+          over: 0.5,
+        );
+        const style = BoxStyle(fold: fold);
+
+        expect(style.fold, fold);
+        expect(style.copyWith().fold, fold);
+        expect(style, const BoxStyle(fold: fold));
+        expect(style.toString(), contains('fold: BoxFold('));
+        expect(
+          style
+              .merge(const BoxStyle(fold: BoxFold(to: BoxStyle(opacity: 1))))
+              .fold!
+              .to
+              .opacity,
+          1,
+          reason: 'an overlay wins, like every other token',
+        );
+      },
+    );
+
+    test('names the looks a fold moves', () {
+      // The set a renderer eases, and the set a fold that names nothing is reported for.
+      expect(
+        const BoxFold(
+          to: BoxStyle(
+            backgroundColor: BoxColor.white,
+            opacity: 0,
+            transform: BoxTransform(scale: 0.5),
+          ),
+        ).looks,
+        <BoxProperty>{
+          BoxProperty.backgroundColor,
+          BoxProperty.opacity,
+          BoxProperty.transform,
+        },
+      );
+      expect(const BoxFold(to: BoxStyle()).isEmpty, isTrue);
+    });
+
+    test('clamps the progress of a fold to its own range', () {
+      const BoxFold fold = BoxFold(to: BoxStyle(opacity: 0));
+
+      expect(
+        fold.progressAt(-1),
+        0,
+        reason: 'a box that has not moved is at rest',
+      );
+      expect(fold.progressAt(0.25), 0.25);
+      expect(fold.progressAt(2), 1, reason: 'a box that has left stays folded');
+
+      // `over` is the range rather than the curve: `0.5` finishes the look half way out, which
+      // is how `1 - t * 1.5` is stated.
+      expect(
+        const BoxFold(to: BoxStyle(opacity: 0), over: 0.5).progressAt(0.25),
+        0.5,
+      );
+      expect(
+        const BoxFold(to: BoxStyle(opacity: 0), over: 0.5).progressAt(0.6),
+        1,
+      );
+    });
+
     test('carries the ratio a box keeps between its sides', () {
       const style = BoxStyle(aspectRatio: 1.5, width: 320);
 

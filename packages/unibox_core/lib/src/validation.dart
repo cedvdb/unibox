@@ -12,6 +12,7 @@ import 'nodes/text_node.dart';
 import 'nodes/ui_node.dart';
 import 'tokens/box_border.dart';
 import 'tokens/box_color.dart';
+import 'tokens/box_fold.dart';
 import 'tokens/box_semantics.dart';
 import 'tokens/box_shadow.dart';
 import 'tokens/box_shape.dart';
@@ -530,6 +531,168 @@ void _validate(
               'BoxPin.end — or drop the offset.',
         ),
       );
+    }
+
+    // A fold is a look that arrives as the box leaves its viewport, so it may only name the
+    // looks a box paints. A layout token would move everything around the box on every frame,
+    // which is the one thing a transition and a fold both refuse: two engines interpolating a
+    // layout give two different pictures in between.
+    final BoxFold? fold = style.fold;
+
+    if (fold != null) {
+      final List<String> moves = <String>[
+        if (fold.to.direction != null) 'direction',
+        if (fold.to.mainAlign != null) 'mainAlign',
+        if (fold.to.crossAlign != null) 'crossAlign',
+        if (fold.to.gap != null) 'gap',
+        if (fold.to.wrap != null) 'wrap',
+        if (fold.to.flex != null) 'flex',
+        if (fold.to.gridSpan != null) 'gridSpan',
+        if (fold.to.overflow != null) 'overflow',
+        if (fold.to.snap != null) 'snap',
+        if (fold.to.page != null) 'page',
+        if (fold.to.pin != null) 'pin',
+        if (fold.to.pinOffset != null) 'pinOffset',
+        if (fold.to.width != null) 'width',
+        if (fold.to.height != null) 'height',
+        if (fold.to.aspectRatio != null) 'aspectRatio',
+        if (fold.to.widthFraction != null) 'widthFraction',
+        if (fold.to.heightFraction != null) 'heightFraction',
+        if (fold.to.minWidth != null) 'minWidth',
+        if (fold.to.maxWidth != null) 'maxWidth',
+        if (fold.to.minHeight != null) 'minHeight',
+        if (fold.to.maxHeight != null) 'maxHeight',
+        if (fold.to.padding != null) 'padding',
+        if (fold.to.margin != null) 'margin',
+        if (fold.to.shape != null) 'shape',
+        if (fold.to.textStyle != null) 'textStyle',
+        if (fold.to.transition != null) 'transition',
+        if (fold.to.fold != null) 'fold',
+        if (fold.to.visibleFrom != null) 'visibleFrom',
+        if (fold.to.visibleUntil != null) 'visibleUntil',
+      ];
+
+      if (moves.isNotEmpty) {
+        issues.add(
+          TreeIssue(
+            node: node,
+            severity: TreeIssueSeverity.error,
+            message:
+                'A fold names ${moves.join(', ')}, and a fold is paint only: the background, '
+                'the border colour, the corner radius, the shadows, the opacity and the '
+                'transform. A layout that eased would move everything around the box on every '
+                'frame, and the two targets would draw a different picture in between. Ease '
+                'one of the paint tokens, or move the layout with a state instead.',
+          ),
+        );
+      }
+
+      // Reported only when the fold names nothing at all: a fold that names a layout token has
+      // already been told what a fold may ease, and a second message would repeat it.
+      if (fold.isEmpty && moves.isEmpty) {
+        issues.add(
+          TreeIssue(
+            node: node,
+            message:
+                'A fold names no look, so it eases nothing: fold.to states no paint token. '
+                'Name the background, the opacity, the transform or another look the box '
+                'paints, or drop the fold.',
+          ),
+        );
+      }
+
+      if (fold.over <= 0 || fold.over > 1) {
+        issues.add(
+          TreeIssue(
+            node: node,
+            severity: TreeIssueSeverity.error,
+            message:
+                "A fold completes over ${fold.over} of the box's exit, and a fold takes at "
+                'most the whole of it: use a number above 0 and up to 1.',
+          ),
+        );
+      }
+
+      // A pinned band does not leave: it is held at the edge of the viewport while the content
+      // moves past it, so its own exit never begins and the fold would never arrive.
+      if (style.pin != null) {
+        issues.add(
+          TreeIssue(
+            node: node,
+            severity: TreeIssueSeverity.error,
+            message:
+                'A box both pins and folds, and the two describe opposite journeys: a pinned '
+                'band stays at the edge of its viewport, so it never leaves and the fold never '
+                'arrives. Pin the band that stays, and fold the one above it that scrolls '
+                'away.',
+          ),
+        );
+      }
+
+      // A shaped box paints a path through a layer of its own, which a fold cannot reach: the
+      // layer draws the fill and the stroke, and the box paints no background of its own.
+      if (style.shape != null) {
+        issues.add(
+          TreeIssue(
+            node: node,
+            severity: TreeIssueSeverity.error,
+            message:
+                'A folded box states a shape, and a shape paints its fill and its stroke through '
+                'a layer of its own: a fold reaches the background, the border colour, the '
+                'radius, the shadows, the opacity and the transform, and none of them is what '
+                'the path is painted with. Fold the box around the shape, or drop the fold.',
+          ),
+        );
+      }
+
+      // A border's colour eases; its width is layout in a browser and paint in Flutter, which is
+      // the one property this repository refuses to animate for exactly that reason.
+      final BoxBorder? border = style.border;
+      final BoxBorder? foldedBorder = fold.to.border;
+
+      if (foldedBorder != null &&
+          (border == null ||
+              border.width != foldedBorder.width ||
+              border.cap != foldedBorder.cap)) {
+        issues.add(
+          TreeIssue(
+            node: node,
+            severity: TreeIssueSeverity.error,
+            message:
+                'A fold changes the width or the cap of a border, and only its colour eases: a '
+                'browser animates a border width as a layout change and Flutter as paint, so '
+                'the two would disagree on every frame. State the same numbers at both ends, '
+                'and fold the colour.',
+          ),
+        );
+      }
+
+      // A transition eases a state change and a fold eases the scroll; over one property they
+      // would fight, and not the same way on the two targets.
+      final BoxTransition? transition = style.transition;
+
+      if (transition != null) {
+        final Set<BoxProperty> folded = fold.looks;
+
+        for (final BoxTransitionPart part in transition.parts) {
+          final Set<BoxProperty> both = part.properties.intersection(folded);
+
+          if (both.isNotEmpty) {
+            issues.add(
+              TreeIssue(
+                node: node,
+                severity: TreeIssueSeverity.error,
+                message:
+                    'A box eases ${both.map((BoxProperty look) => look.name).join(', ')} with '
+                    'both a transition and a fold, and the two are driven by different things: '
+                    'a browser lets the animated look win while the scroll moves, and Flutter '
+                    'composes the two. Ease it with one of them.',
+              ),
+            );
+            break;
+          }
+        }
+      }
     }
 
     // A span is a statement about the grid around the box: outside one there are no

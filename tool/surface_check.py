@@ -70,6 +70,9 @@ CLASSIFIED = {
         'suites scroll it instead',
         'pinOffset': 'the room a pinned band keeps from its edge, which moves nothing until the '
         'content scrolls past it',
+        'fold': 'the look a box takes as it leaves its viewport, which is a fact about a scroll '
+        'position rather than about the box at rest: the box is drawn at its resting look until '
+        'it moves, so the two renderer suites scroll it instead',
         'heightFraction': 'the table carries the width fraction only; a height fraction is pinned '
         'by the node suites',
         'minWidth': 'a constraint rather than a measurement: the output reports the size it settled on',

@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- `Box(fold: BoxFold(to: …, over: …, curve: …))` is a look that arrives as the box leaves the
+  box that scrolls it: the reader's scroll is the clock, so a hero fades and shrinks as a
+  toolbar comes up under it. It is paint only — the background, the border colour, the radius,
+  the shadows, the opacity and the transform — because a frame of an eased layout is a picture
+  neither engine can be held to, and the travel is the box's own exit so no number of pixels is
+  written down. `BoxFold.progressAt` is the arithmetic both targets share and `looks` is the set
+  they ease. `validateTree` reports a fold that names a layout token, one that names nothing,
+  one that takes more than the whole exit, one on a box that pins, one on a shaped box, a
+  border whose width it would move, and one look eased by both a transition and a fold.
+
 - `LinkNode.of` keeps a box's `capturesPointer`: the field arrived after the conversion was
   written, and the constructor did not forward it either, so a box that asked to be decoration
   came back as a link that swallows the press it was told to pass on. The forwarding list is
