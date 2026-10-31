@@ -158,10 +158,11 @@ going to sign in. That is the difference between a migration and a page, and it 
 can start with one screen.
 
 **What it does not do.** Rendering is not the whole of search. Unibox does not choose a url,
-write the copy, fill the metadata, produce `robots.txt` or a sitemap, set a canonical or a
-redirect, or deploy the result — the application still owns all of that, which is where it
-belongs. What Unibox removes is the canvas between a crawler and the page, and the second UI
-that used to sit beside it.
+write the copy, decide where a page is served from, produce `robots.txt`, or deploy the result —
+the application still owns all of that, which is where it belongs. What it does with those
+decisions once they are made is state them: a `canonical` address, a title and a description in
+the head a crawler reads, and the markup a link preview shows. What Unibox removes is the canvas
+between a crawler and the page, and the second UI that used to sit beside it.
 
 ## Serving a tree
 

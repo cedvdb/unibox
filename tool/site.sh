@@ -6,7 +6,7 @@
 # Usage:
 #   tool/site.sh                          # for http://localhost:8000/
 #   tool/site.sh --base=/unibox/          # the path GitHub Pages serves from
-#   tool/site.sh --url=https://…/unibox/  # adds a sitemap for that address
+#   tool/site.sh --url=https://…/unibox/  # canonical addresses, and a sitemap
 #   tool/site.sh --serve                  # builds, then serves build/site
 #
 # Everything lands in build/site, which is the directory a static host publishes.
@@ -38,6 +38,10 @@ done
 [[ "$base" == /* ]] || base="/$base"
 [[ "$base" == */ ]] || base="$base/"
 
+# The address the pages are served from, normalised once: it is written into every page's
+# canonical url and into the sitemap the build writes from them.
+[[ -z "$url" || "$url" == */ ]] || url="$url/"
+
 root="$(pwd)"
 site="$root/build/site"
 
@@ -61,7 +65,7 @@ step 'Rendering the pages'
 build="$(git -C "$root" rev-parse HEAD 2>/dev/null || true)"
 rm -rf "$site"
 (cd example/unibox_example_html &&
-  dart run bin/build_site.dart --out="$site" ${build:+--build="$build"}) \
+  dart run bin/build_site.dart --out="$site" ${build:+--build="$build"} ${url:+--url="$url"}) \
   || fail 'the site render'
 
 step 'Building the Flutter web app'
@@ -133,7 +137,10 @@ dart compile js -O4 \
   example/unibox_example_html/web/main.client.dart \
   -o "$site/web/main.client.js"
 
-step 'Writing robots, sitemap and .nojekyll' 
+step 'Writing robots and .nojekyll'
+# The sitemap is the build's: it is written from the pages themselves, at the canonical
+# addresses they state, so it cannot list an address a page denies. This step only points a
+# crawler at it.
 cat >"$site/robots.txt" <<'ROBOTS'
 # The Flutter build is a canvas with no text of its own for a crawler to read; the
 # web rendering carries the markup, so it is the one that gets indexed.
@@ -143,13 +150,6 @@ Disallow: /flutter/
 ROBOTS
 
 if [[ -n "$url" ]]; then
-  [[ "$url" == */ ]] || url="$url/"
-  cat >"$site/sitemap.xml" <<SITEMAP
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>${url}</loc></url>
-</urlset>
-SITEMAP
   printf 'Sitemap: %ssitemap.xml\n' "$url" >>"$site/robots.txt"
 fi
 

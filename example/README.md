@@ -353,9 +353,10 @@ flutter test
 
 The host is a handful of files: `lib/document.dart` puts `ExamplePageNode` in a document (language, title, description,
 the `html, body` height and the font stack), and `lib/site/` holds the site's own
-document and its root — the page, its `<iframe>` frame, and the palette the page's
-roles resolve against. `bin/build_site.dart` writes the site page and the example's two
-documents, one per address, from a list of `Document` values:
+document, its root — the page, its `<iframe>` frame, and the palette the page's
+roles resolve against — and `pages.dart`, the list of pages the build writes.
+`bin/build_site.dart` writes the site page and the example's two documents, one per
+address, from that list of `Document` values:
 
 ```shell
 cd example/unibox_example_html
@@ -383,10 +384,12 @@ confirmation a live region. None of that changed a pixel, which is what the sema
 tokens are for; open the export in a reader or a crawler and the outline is there.
 
 The document also arrives with what a search engine reads before any script runs:
-`<html lang="en">`, one `<title>` and one description
-(`buildSiteDocument()`, `buildExampleDocument(page:)`), the text and the `role`
-attributes as markup, and a `robots.txt` next to it. A sitemap would need the address
-the page is served from, so `tool/site.sh --url=…` writes one when it is given it.
+`<html lang="en">`, one `<title>` and one description (`buildSiteDocument()`,
+`buildExampleDocument()`), the text and the `role` attributes as markup, and a
+`robots.txt` next to it. The address a page is served at is the one thing the build knows and
+the page does not, so `tool/site.sh --url=…` gives every page its `canonical` url and writes
+`sitemap.xml` from the same list the pages are written from — one entry per page, at the
+address that page claims.
 
 The page's links are real: the header and the footer are boxes that name a url — so one
 node is both the look and the `<a href>` — and the frames are `<iframe>`s, so a crawler

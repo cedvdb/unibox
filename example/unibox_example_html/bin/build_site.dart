@@ -1,22 +1,26 @@
 import 'dart:io';
 
-import 'package:unibox_example_html/document.dart';
-import 'package:unibox_example_html/site/site_document.dart';
+import 'package:unibox_example_html/site/pages.dart';
 import 'package:unibox_html/unibox_html.dart';
 
 /// Writes the site to static files: one page, and the example it compares.
 ///
 /// ```sh
-/// dart run bin/build_site.dart --out=build/site --build=$(git rev-parse HEAD)
+/// dart run bin/build_site.dart --out=build/site --build=$(git rev-parse HEAD) \
+///   --url=https://example.com/unibox/
 /// ```
 ///
-/// Two documents. `index.html` is the **site** — one page of four bands: the claim with the
-/// comparison inside it, the markup a search engine is served, the vocabulary that names the
-/// nodes the claim never drew, and the Material catalogue the page is drawn with, which closes
-/// it. `web/listings/` is the **example**: the same tree as the left frame of the comparison,
-/// and a takeover document — it prefetches the bundle `flutter build web` writes beside it and
-/// boots it when a reader arrives, so the page a crawler reads and the application a reader
-/// uses are one document.
+/// Three documents, one per address. `index.html` is the **site** — one page of four bands: the
+/// claim with the comparison inside it, the markup a search engine is served, the vocabulary
+/// that names the nodes the claim never drew, and the Material catalogue the page is drawn with,
+/// which closes it. `web/listings/` is the **example**: the same tree as the left frame of the
+/// comparison. `web/takeover/` is the same tree the other way — it prefetches the bundle
+/// `flutter build web` writes beside it and boots it when a reader arrives, so the page a
+/// crawler reads and the application a reader uses are one document.
+///
+/// `--url` is where the site is served from: with it, every page states its canonical address
+/// and a sitemap is written beside them from the same list. Without it, neither — a canonical
+/// address is not something a build can guess.
 ///
 /// One document for the example, not one per state: the sign-up form is a dialog, and a dialog is
 /// not a page.
@@ -25,28 +29,23 @@ void main(List<String> arguments) {
   // `tool/site.sh` passes the commit it writes into `version.txt`, so a document can name the
   // build it came from and a stale tab can be told from a live one.
   final String? build = _option(arguments, 'build');
+  // Where the site is served from, when the build knows: it is what turns each path into the
+  // canonical address a search engine files the page under.
+  final String? url = _option(arguments, 'url');
 
-  // The site is these pages, one per address: a document beside the path it is served at. The
-  // list is the site — writing it is the loop below, and anything else that has to know what the
-  // site contains reads the same list instead of restating it.
-  final List<({String path, Document document})> pages =
-      <({String path, Document document})>[
-        (path: 'index.html', document: buildSiteDocument(build: build)),
-        (
-          path: 'web/listings/index.html',
-          document: buildExampleDocument(build: build),
-        ),
-        // The same tree, the other way to make it interactive: HTML first, Flutter when
-        // touched. It is what the comparison's right frame shows, and the only page of the
-        // three that downloads an engine.
-        (
-          path: 'web/takeover/index.html',
-          document: buildTakeoverDocument(build: build),
-        ),
-      ];
+  final List<({String path, Document document})> pages = sitePages(
+    build: build,
+    url: url,
+  );
 
   for (final ({String path, Document document}) page in pages) {
     _write(out, page.path, page.document.write());
+  }
+
+  // From the same list, at the addresses the pages themselves claim: a sitemap that disagrees
+  // with the page it lists files it under an address that page denies.
+  if (url != null) {
+    _write(out, 'sitemap.xml', sitemapOf(pages));
   }
 }
 
