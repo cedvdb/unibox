@@ -30,6 +30,10 @@ jobs:
   build:
     name: Build the site
     runs-on: ubuntu-latest
+    # The same bound `ci.yml` gives its jobs, for the same reason: `tool/verify.sh` runs the browser
+    # suite here too, and a suite that never reports would otherwise hold this queue for the six-hour
+    # default — with `cancel-in-progress: false`, blocking every deploy behind it.
+    timeout-minutes: 30
     outputs:
       pages: ${{ steps.pages.outputs.enabled }}
     steps:
