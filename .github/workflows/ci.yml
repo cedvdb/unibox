@@ -14,10 +14,15 @@ concurrency:
 # the version they verify against — and so an assistant cannot spend an hour on a failure that
 # is only its own SDK.
 
+# Every job states a timeout, because the default is six hours — not a bound anybody chose. A browser
+# suite that never reported held the test job for exactly that long, and since a new push cancels the
+# run in progress the queue looked busy rather than stuck. A job that hangs now fails in minutes and
+# names the step it hung in.
 jobs:
   analyze:
     name: Format and analyze
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - name: Read the Flutter version
@@ -42,6 +47,7 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - name: Read the Flutter version
@@ -91,11 +97,15 @@ jobs:
   scale:
     name: Scale benchmark
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
+      - name: Read the Flutter version
+        id: flutter-version
+        run: echo "version=$(cat .flutter-version)" >> "$GITHUB_OUTPUT"
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
+          flutter-version: ${{ steps.flutter-version.outputs.version }}
           channel: stable
           cache: true
       - name: Resolve the workspace
@@ -110,6 +120,7 @@ jobs:
   docs:
     name: API docs
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - name: Read the Flutter version
@@ -149,6 +160,7 @@ jobs:
   site:
     name: The site
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - name: Read the Flutter version
