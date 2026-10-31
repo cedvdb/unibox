@@ -94,17 +94,20 @@ void main() {
   });
 
   group('a box that scrolls', () {
-    test('keeps its overscroll to itself, and shows none of it', () {
-      // A browser hands the rest of a scroll to the page once the box reaches its end, and keeps
-      // the overscroll effect of its own; Flutter's viewport absorbs both. `none` is the value
-      // that says both things — `contain` would stop the chaining and still rubber-band the box,
-      // dragging its content down and showing the viewport's background above it.
-      expect(
-        boxDeclarations(const core.BoxStyle(overflow: core.Overflow.scroll))
-            .text,
-        contains('overscroll-behavior:none'),
-      );
-    });
+    test(
+      'keeps its overscroll to itself, and shows its own surface for it',
+      () {
+        // A browser hands the rest of a scroll to the page once the box reaches its end; Flutter's
+        // viewport keeps it. `contain` is what makes the two agree, and it leaves the host the
+        // pull that says "this is the end" — a pull whose gap is the box's own background, so a
+        // panel that states its surface never shows the page through it.
+        expect(
+          boxDeclarations(const core.BoxStyle(overflow: core.Overflow.scroll))
+              .text,
+          contains('overscroll-behavior:contain'),
+        );
+      },
+    );
 
     test('says nothing about overscroll for a box that does not scroll', () {
       expect(

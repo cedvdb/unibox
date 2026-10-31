@@ -817,6 +817,8 @@ UINode _pinnedBands(MaterialPalette palette) {
         'A toolbar at the start, under a hero',
         _viewport(
           palette,
+          // The bar's surface, so the strip a pull reveals is the bar's colour.
+          background: palette.surfaceContainerHigh,
           children: <UINode>[
             _hero(palette, 'Six flats, one tree', height: 96),
             _band(palette, 'Results', trailing: '6 of 24', pin: BoxPin.start),
@@ -830,6 +832,8 @@ UINode _pinnedBands(MaterialPalette palette) {
         'Two bars, the second under the first',
         _viewport(
           palette,
+          // The bar's surface, so the strip a pull reveals is the bar's colour.
+          background: palette.surfaceContainerHigh,
           children: <UINode>[
             _band(
               palette,
@@ -858,6 +862,8 @@ UINode _pinnedBands(MaterialPalette palette) {
         'A bar at the end, whatever the list is doing',
         _viewport(
           palette,
+          // The bar's surface, so the strip a pull reveals is the bar's colour.
+          background: palette.surfaceContainerHigh,
           children: <UINode>[
             for (final (String name, String price) in _flats)
               _flatRow(palette, name, price),
@@ -990,6 +996,10 @@ UINode _viewport(
   MaterialPalette palette, {
   required List<UINode> children,
   double height = 200,
+  // The colour a pull past either end reveals, which is the box's own background: a panel whose
+  // bar is `surfaceContainerHigh` states that, so pulling it reads as the bar gaining room
+  // rather than as a gap above it.
+  BoxColor? background,
 }) {
   return Box(
     width: double.infinity,
@@ -997,9 +1007,7 @@ UINode _viewport(
     overflow: Overflow.scroll,
     borderRadius: 12,
     border: BoxBorder(color: palette.outlineVariant),
-    // The panel states the surface a pull past its end reveals: a host bounces a scroller at its
-    // edges, and a transparent panel would show the page through the gap above its pinned bar.
-    backgroundColor: palette.surfaceContainerLow,
+    backgroundColor: background ?? palette.surfaceContainerLow,
     children: children,
   );
 }

@@ -1111,6 +1111,11 @@ waits at the bottom of a long form until the reader reaches the end of it. Both
 bands state a height — that number is the room the flow keeps for them — and both
 paint a background, because each is drawn over the content that passes beneath it.
 
+The box states a surface too, and it is the surface a pull past either end reveals: a host
+lets a scroller be pulled, and the gap that opens is the box's own `backgroundColor`. State
+the bar's colour there and the pull reads as the bar gaining room; leave it out and the pull
+shows whatever is behind the box.
+
 ### A look that arrives as the reader scrolls
 
 `BoxFold` is the second kind of motion, and the only one the *reader* drives: a box

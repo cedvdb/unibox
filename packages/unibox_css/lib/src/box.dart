@@ -175,14 +175,14 @@ CssDeclarations boxDeclarations(
 
   declarations
     ..addIf('overflow', overflow == null ? null : cssOverflow(overflow))
-    // A browser hands the rest of a scroll to the page once the box reaches its end, and keeps
-    // the overscroll effect of its own on top of that; Flutter's viewport absorbs both. `none`
-    // is the one value that says so: `contain` stops the chaining but still rubber-bands the
-    // element, which drags the content down and shows the viewport's background above it — a
-    // strip of the box behind its own first child, which no tree asks for.
+    // A browser hands the rest of a scroll to the page once the box reaches its end; Flutter's
+    // viewport keeps it. `contain` is what makes the two agree — and the pull the box keeps is
+    // the host telling the reader they are at the end, which is worth keeping: it reveals the
+    // box's own `backgroundColor`, so a box that states its surface is a box whose pull shows
+    // that surface and never the page behind it.
     ..addIf(
       'overscroll-behavior',
-      overflow == core.Overflow.scroll ? 'none' : null,
+      overflow == core.Overflow.scroll ? 'contain' : null,
     )
     ..addIf(
       'scroll-snap-type',

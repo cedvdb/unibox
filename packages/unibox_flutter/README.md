@@ -75,9 +75,10 @@ and a browser paints nothing when a panel is pulled past its end. That wash is c
 is the one thing a node never keeps, so pulling a box past its end shows only its content.
 The physics, the devices a drag may use and the scrollbar stay the host's: the box says what
 it looks like, not how a platform scrolls. On the web the same statement is
-`overscroll-behavior: none`, which stops the scroll chaining into the page *and* the browser's
-own rubber band — a band drags the content down and opens a strip of the box above its first
-child, which no tree asks for. An iOS application still bounces, because the platform does.
+`overscroll-behavior: contain`, which stops the scroll chaining into the page while leaving the
+box the pull that says "this is the end". What that pull reveals is the box's own
+`backgroundColor` — so a panel that states the surface of the bar at its edge shows that surface
+and never the page through a gap, on either target.
 
 A **pin** is drawn by the box that scrolls: the band comes out of the flow, its slot stays
 in it, and a `_RenderPinnedBand` repaints it at the edge it named — so a scroll costs a
