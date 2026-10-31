@@ -869,11 +869,21 @@ UINode _phone(MaterialPalette palette, UINode screen) {
     border: BoxBorder(color: palette.outlineVariant),
     // The screen's corners are the frame's, so the frame clips it.
     overflow: Overflow.hidden,
+    // The screen fills the frame: a layer hugs its content, and a screen placed in one that
+    // was never given a width is a stack of no width — a document drew two empty phones
+    // while Flutter, whose stack takes the room it is handed, drew them.
+    crossAlign: CrossAlign.stretch,
     children: <UINode>[
       Box(
         height: double.infinity,
         children: <UINode>[
           StackNode(
+            // A layer has no size of its own, and this one holds nothing but the screen it
+            // places: stating both sides is what gives it a rectangle to place the screen
+            // in. A stack without one collapsed to nothing in a document — two empty
+            // phones — while Flutter, whose stack takes the room it is handed, drew them.
+            width: double.infinity,
+            height: double.infinity,
             children: <UINode>[
               PositionedNode(alignment: BoxAlignment.center, child: screen),
             ],

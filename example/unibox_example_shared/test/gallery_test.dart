@@ -32,6 +32,34 @@ void main() {
       }
     });
 
+    test('gives a layer that places every child a rectangle', () {
+      // A layer has no size of its own: the catalogue's two phones place a whole screen and
+      // nothing in their flow, so without a stated rectangle they were empty in the document
+      // and drawn in the app — Flutter's stack takes the room it is handed, a browser's grid
+      // collapses. The map, which places labels and pins, states one for the same reason.
+      final List<StackNode> stacks = _nodesOf(buildMaterialSection())
+          .whereType<StackNode>()
+          .toList();
+
+      expect(stacks, isNotEmpty);
+      for (final StackNode stack in stacks) {
+        if (stack.children.any((UINode child) => child is! PositionedNode)) {
+          continue;
+        }
+
+        expect(
+          stack.width,
+          isNotNull,
+          reason: 'the layer states its rectangle',
+        );
+        expect(
+          stack.height,
+          isNotNull,
+          reason: 'the layer states its rectangle',
+        );
+      }
+    });
+
     test('lets the rows of chips scroll rather than widen the page', () {
       // Four chips need 368 pixels and a phone's cell gives 311, so a row that neither
       // shrinks nor scrolls pushes the page sideways: the gallery measured a 400 pixel

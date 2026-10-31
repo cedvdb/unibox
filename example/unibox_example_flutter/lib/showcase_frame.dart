@@ -21,9 +21,15 @@ UINode showcaseFrame({required String src, required String title}) =>
 /// height the tree gave the frame: together they are the `height: 100%` the document's frame
 /// states, in the vocabulary both targets already share.
 UINode _filled(UINode child) => Box(
+  width: double.infinity,
   height: double.infinity,
   children: <UINode>[
     StackNode(
+      // The layer states the rectangle it places the frame in: a box that hugs its content
+      // is a stack of no width, and a document drew the frame while the app, whose stack
+      // takes the room it is handed, put nothing in its window.
+      width: double.infinity,
+      height: double.infinity,
       children: <UINode>[
         PositionedNode(alignment: BoxAlignment.center, child: child),
       ],
