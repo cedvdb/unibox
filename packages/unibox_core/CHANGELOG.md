@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- `Box.capturesPointer` says whether the pointer may land on a box, and `null` keeps today's
+  rule: a box with children, a callback or a state style takes it, and a painted leaf lets it
+  through. `false` says the box is decoration whatever it holds, so the hover, the cursor and
+  the press reach the control under it — a count over a button's corner is a picture, not the
+  first place a thumb lands.
+
 - `validateTree` reports a box that fills its height as an overlay's content. The layer is a
   scrollport the size of the window on both targets, so the content is laid out with no end
   on that axis and `height: double.infinity` asks for infinite room — the construct a box

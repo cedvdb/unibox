@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **An icon button's count no longer takes the pointer.** The badge is decoration —
+  `capturesPointer: false` — so the corner it covers keeps the control's hover, hand and press
+  instead of answering with an arrow and no ink. The pill looks the same: 16 tall, `error`
+  behind `onError`, pinned to the `topEnd` corner, out of the reading order.
+
 - **The elevation scale is the design file's ladder, not Flutter's drawing.** A level is now
   one shade instead of three layers, fitted to `doc/shadows_material_3_pink_seed.png`: level one
   is `0 0.55px 0.61px` in black at 34% and clears within two and a half dp, where the three

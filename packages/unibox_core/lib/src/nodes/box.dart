@@ -80,6 +80,7 @@ class Box extends UINode {
     this.hoverStyle,
     this.stateStyles,
     this.enabled = true,
+    this.capturesPointer,
     this.semantics,
     this.onTap,
     this.onTapDown,
@@ -357,6 +358,15 @@ class Box extends UINode {
   /// technologies, but keeps its layout and still renders its
   /// [BoxState.disabled] style. Disabling a box therefore never moves anything.
   final bool enabled;
+
+  /// Whether the pointer may land on this box, or `null` to let the box decide.
+  ///
+  /// Left unset, a box that holds children, answers a callback or paints a state
+  /// takes the pointer, and a painted leaf does not — so a press reaches the control
+  /// the leaf was drawn for. `false` says the box is decoration whatever it holds: a
+  /// badge over a button gives the hover, the cursor and the press to the button under
+  /// it instead of swallowing them in a corner that looks alive and is not.
+  final bool? capturesPointer;
 
   // Accessibility.
 

@@ -47,6 +47,7 @@ with their target.
 | `shape` + `overflow: Overflow.hidden` | `ClipPath` to the same path                       |
 | `overflow: Overflow.scroll`         | `SingleChildScrollView`                             |
 | `onTap` / `onLongPress`             | `GestureDetector`                                   |
+| `capturesPointer: false`            | `IgnorePointer`, so the hover, the cursor and the press reach the control under the box; `true` makes a leaf a `Listener` with an opaque hit test |
 | `LinkNode` (a box that names a destination) | `GestureDetector` + `MouseRegion(cursor: click)` + `Semantics(link: true)`, opening through `FlutterLinkScope` unless it has an `onTap`; `Enter` opens it and `Space` does not, as in a browser. It is a `Box`, so it is drawn by `FlutterBox` and needs no widget of its own |
 | `newTab` on a box                   | web only, ignored by the Flutter renderer |
 | `onHover` / `hoverStyle`            | `MouseRegion` and the hovered token set             |

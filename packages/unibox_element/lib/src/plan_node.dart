@@ -120,11 +120,12 @@ ElementPlan _planBox(core.Box box, Stylesheet sheet, PlanOptions options) {
           box.onLongPress != null ||
           box.onHover != null);
   final bool capturesPointer =
-      anchor ||
-      box.children.isNotEmpty ||
-      listens ||
-      box.stateStyle(core.BoxState.hover) != null ||
-      box.stateStyle(core.BoxState.pressed) != null;
+      box.capturesPointer ??
+      (anchor ||
+          box.children.isNotEmpty ||
+          listens ||
+          box.stateStyle(core.BoxState.hover) != null ||
+          box.stateStyle(core.BoxState.pressed) != null);
 
   final bool holdsThreshold = box.children.any(
     (core.UINode child) => child is core.Box && child.hasThreshold,

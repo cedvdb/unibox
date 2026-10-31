@@ -289,6 +289,15 @@ never inherited (CSS does not inherit them either).
   Flutter-only.
 - `enabled: false` suppresses callbacks, keeps the node in the accessibility
   tree as disabled, and never changes layout.
+- **A decoration takes no pointer.** A box that paints something *over* a control —
+  a count over a button's corner — would otherwise be the element the pointer finds
+  there, and the control under it would never see the hover, the hand or the press it
+  looks like it offers. `Box.capturesPointer: false` says the box is a picture: the web
+  writes `pointer-events: none` and Flutter wraps it in `IgnorePointer`, which are the
+  same statement, so the corner behaves the way it looks. Left unset the box decides,
+  because the rule is not “paint nothing” but “paint nothing that is a target”: a box
+  with children, a callback or a state style takes the pointer, and a painted leaf lets
+  it through to whatever it was drawn for.
 - Styling a state uses `stateStyles`, never a per-platform mechanism.
 - Keyboard focus is opt-in: a box joins the tab order only when its
   `BoxSemantics.role` is one the user can act on. A plain container never does.

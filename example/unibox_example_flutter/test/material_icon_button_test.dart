@@ -1,4 +1,6 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
 import 'package:unibox_flutter/unibox_flutter.dart';
@@ -114,5 +116,54 @@ void main() {
     expect(badge.flagsCollection.isHidden, isTrue);
 
     handle.dispose();
+  });
+
+  /// The centre of the count: the corner a thumb aims at first.
+  Offset badgeCentre(WidgetTester tester) => tester.getCenter(
+    find.byWidgetPredicate(
+      (Widget widget) => widget is FlutterBox && widget.box.height == 16,
+    ),
+  );
+
+  testWidgets('lets a press on the count reach the control', (
+    WidgetTester tester,
+  ) async {
+    // The badge is decoration: a press in the corner it covers is the control's press, so it
+    // runs the callback and starts the ink where the finger landed.
+    int pressed = 0;
+
+    await tester.pumpWidget(page(badgeCount: 3, onTap: () => pressed++));
+
+    final int before = find.byType(Positioned).evaluate().length;
+
+    await tester.tapAt(badgeCentre(tester));
+    await tester.pump();
+
+    expect(pressed, 1);
+    expect(
+      find.byType(Positioned).evaluate().length,
+      before + 1,
+      reason: 'the press starts a drop of ink',
+    );
+  });
+
+  testWidgets('keeps the hand over the count', (WidgetTester tester) async {
+    // The cursor is the well's, and only a pointer inside the well finds it: an arrow here is
+    // a corner that does nothing.
+    await tester.pumpWidget(page(badgeCount: 3, onTap: () {}));
+
+    final TestGesture mouse = await tester.createGesture(
+      kind: PointerDeviceKind.mouse,
+    );
+    await mouse.addPointer();
+    addTearDown(mouse.removePointer);
+
+    await mouse.moveTo(badgeCentre(tester));
+    await tester.pump();
+
+    expect(
+      RendererBinding.instance.mouseTracker.debugDeviceActiveCursor(1),
+      SystemMouseCursors.click,
+    );
   });
 }

@@ -169,6 +169,8 @@ void main() {
       );
       // A count nobody is told is a picture, so the pill stays out of the reading order.
       expect(pill.semantics?.hidden, isTrue);
+      // And it is a picture to the pointer too: the corner it covers belongs to the control.
+      expect(pill.capturesPointer, isFalse);
       expect((pill.children.single as TextNode).text, '3');
       // The control still says what it is, once.
       expect(_boxOf(_well(button)).semantics?.label, 'Notifications');

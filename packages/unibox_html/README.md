@@ -93,6 +93,13 @@ already in the tab order — so the markup a crawler reads is the control a read
 `unibox_dom` binds the press: a plain click is cancelled and answered by the tree, and a
 modifier, a middle click or a `newTab` stays the browser's.
 
+**A box says whether the pointer may land on it.** Left unset, the class states what the box
+is: `pointer-events: auto` for a box that holds children, answers a callback or paints a
+state, and `none` for a painted leaf, so a decoration never stands in front of the control
+it was drawn for. `capturesPointer: false` states `none` whatever the box holds — a badge
+over a button's corner — and `true` states `auto` for a leaf that is a target of its own.
+The flag is part of the class, so two boxes that differ only by it are two rules.
+
 ## Held to the same appearance
 
 `test/conformance_test.dart` renders every case in `unibox_testing` and reads the

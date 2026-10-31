@@ -785,6 +785,16 @@ class FlutterBoxState extends State<FlutterBox> {
       );
     }
 
+    // A decoration takes no pointer, so the hover, the cursor and the press reach the control
+    // under it — the web writes the same thing as `pointer-events: none`. A box that says it
+    // does take one becomes a target of its own, where CSS would write `auto`.
+    final bool? capturesPointer = box.capturesPointer;
+    if (capturesPointer == false) {
+      result = IgnorePointer(child: result);
+    } else if (capturesPointer == true && !interactive && !link) {
+      result = Listener(behavior: HitTestBehavior.opaque, child: result);
+    }
+
     return _describeToSemantics(result, box);
   }
 

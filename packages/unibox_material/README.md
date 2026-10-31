@@ -504,7 +504,10 @@ labelled text, 16 pixels tall and as wide as the number needs, pinned to the top
 corner of the square — which is the corner of the glyph once the 8 pixel inset is taken
 off. It sits in a `StackNode` over the square instead of beside it, so a count can never
 grow the target the finger needs, and it is hidden from a screen reader: a count nobody is
-told is a picture, and the control's own `label` is where the fact belongs.
+told is a picture, and the control's own `label` is where the fact belongs. It is hidden
+from the *pointer* as well — `capturesPointer: false` — because the corner it covers is
+the first place a thumb lands: a badge that took the pointer there was a square whose
+hover, hand and press stopped at a picture, on both targets.
 
 **What Material draws that this does not.** A toggle icon button states `aria-pressed` and
 changes its shape when it is on; this node has one shape, so a toggle is the caller's

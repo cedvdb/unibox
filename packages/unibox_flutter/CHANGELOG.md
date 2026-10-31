@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- A box that states `capturesPointer: false` is wrapped in an `IgnorePointer`, so a press, a
+  hover and the cursor pass through it to the control underneath — the same statement the web
+  writes as `pointer-events: none`. `true` makes a leaf a `Listener` with an opaque hit test,
+  which is what `auto` means for a box that would otherwise let the pointer through. A Material
+  icon button's count has the pointer wrong in Flutter too: the glyph-sized square's corner
+  answered nothing, so a hover there showed a plain arrow and a press did not run the control.
+
 - An overlay's content is bounded by the window, and scrolls when it is taller: `FlutterOverlay`
   draws it in a `SingleChildScrollView` whose content is at least the room the overlay has.
   A dialog holding more than the window was cut off at the window here and drawn at the

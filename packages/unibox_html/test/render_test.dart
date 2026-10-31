@@ -115,6 +115,31 @@ void main() {
       expect(html, contains(':hover'));
     });
 
+    test('lets a decoration keep the pointer off itself', () {
+      // A badge over a control holds a child, so the browser would aim a press at the badge
+      // and the control would never see the corner a thumb lands on. `pointer-events: none`
+      // is the same statement `IgnorePointer` makes in Flutter.
+      expect(
+        toHtml(
+          const core.Box(
+            capturesPointer: false,
+            children: <core.UINode>[core.TextNode('3')],
+          ),
+        ),
+        contains('pointer-events:none'),
+      );
+
+      // A leaf is not a target on either side unless it says so.
+      expect(
+        toHtml(const core.Box(width: 16, height: 16)),
+        contains('pointer-events:none'),
+      );
+      expect(
+        toHtml(const core.Box(width: 16, height: 16, capturesPointer: true)),
+        contains('pointer-events:auto'),
+      );
+    });
+
     test('starts hidden when it only appears above a width', () {
       // Mobile first: a browser without container queries draws the narrow layout rather
       // than a broken wide one.

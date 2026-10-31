@@ -303,4 +303,37 @@ void main() {
       expect(html, contains('href="/spots/abc/book"'));
     });
   });
+
+  group('a Material control in a document', () {
+    /// The declarations of the class [plan] wears.
+    String ruleOf(Stylesheet sheet, ElementPlan plan) => sheet
+        .rulesSince((classes: 0, states: 0))
+        .firstWhere((String rule) => rule.startsWith('.${plan.className!}{'));
+
+    test('keeps the pointer off the count and on the control', () {
+      // The badge is a picture: `pointer-events: none` hands the corner it covers back to the
+      // control, so the hover, the hand and the press there are the control's.
+      final Stylesheet sheet = Stylesheet();
+      final ElementPlan row = planNode(
+        MaterialIconButton(
+          icon: MaterialIcon.codePoint(0xe9b2),
+          label: 'Filters',
+          badgeCount: 3,
+          onTap: () {},
+        ),
+        sheet,
+      );
+      final ElementPlan square = row.children.single;
+      final ElementPlan control = square.children.first.children.single;
+      final ElementPlan badge = square.children.last.children.single;
+
+      expect(
+        square.children,
+        hasLength(2),
+        reason: 'the control and the count',
+      );
+      expect(ruleOf(sheet, badge), contains('pointer-events:none'));
+      expect(ruleOf(sheet, control), contains('pointer-events:auto'));
+    });
+  });
 }

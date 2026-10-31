@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- A box that states `capturesPointer: false` is planned with `pointer-events: none` however
+  much it holds, so a decoration over a control no longer takes the hover, the cursor or the
+  press in the corner it covers; `true` writes `auto` for a leaf that is a target of its own.
+  The flag is part of the class, like the pointer the box was already given.
+
 - An overlay's class carries the placement of its content rather than of its layer:
   `_planOverlay` asks `overlayContentDeclarations(node.alignment)`. The alignment became a
   margin on the content — the layer scrolls what does not fit, and an item a keyword centres

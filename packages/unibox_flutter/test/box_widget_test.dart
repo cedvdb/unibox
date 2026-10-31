@@ -404,6 +404,62 @@ void main() {
     });
   });
 
+  group('Box pointer capture', () {
+    /// A control with a picture over its corner: the shape a badge is drawn in.
+    core.UINode control({
+      required bool? badgeTakesPointer,
+      required void Function() onTap,
+    }) => core.StackNode(
+      width: 40,
+      height: 40,
+      children: <core.UINode>[
+        core.Box(width: 40, height: 40, onTap: onTap),
+        core.PositionedNode(
+          alignment: core.BoxAlignment.topEnd,
+          child: core.Box(
+            width: 24,
+            height: 24,
+            capturesPointer: badgeTakesPointer,
+            backgroundColor: core.BoxColor.white,
+            children: <core.UINode>[const core.TextNode('3')],
+          ),
+        ),
+      ],
+    );
+
+    testWidgets('lets a press through a decoration to the control under it', (
+      tester,
+    ) async {
+      // A badge over a button holds a child, so left to itself it is the box a press lands
+      // on — and the control under it never hears about the corner a thumb aims at first.
+      var taps = 0;
+
+      await pumpNode(
+        tester,
+        control(badgeTakesPointer: false, onTap: () => taps++),
+      );
+
+      await tester.tapAt(tester.getCenter(find.text('3')));
+
+      expect(taps, 1);
+    });
+
+    testWidgets('takes the pointer when the box says it does', (tester) async {
+      // The same tree without the token: the picture is a target of its own, which is the
+      // behaviour the badge has to opt out of rather than the one it gets by accident.
+      var taps = 0;
+
+      await pumpNode(
+        tester,
+        control(badgeTakesPointer: null, onTap: () => taps++),
+      );
+
+      await tester.tapAt(tester.getCenter(find.text('3')));
+
+      expect(taps, 0);
+    });
+  });
+
   group('Box overflow', () {
     testWidgets('clips overflowing content', (tester) async {
       await pumpNode(

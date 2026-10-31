@@ -215,7 +215,9 @@ final class MaterialIconButton extends Box {
   /// is once the 8 pixel inset is taken off: a 16 pixel pill in the corner of a 40 pixel
   /// control sits over the last 16 pixels of the glyph rather than in the middle of the
   /// padding. It is hidden from a screen reader — a count nobody is told is a picture,
-  /// and the control's own [label] is where the fact belongs.
+  /// and the control's own [label] is where the fact belongs — and it takes no pointer,
+  /// so the corner it covers is the control's: the same hover, the same hand, the same
+  /// press and the same ink.
   static UINode _badge(int count) => PositionedNode(
     alignment: BoxAlignment.topEnd,
     child: Box(
@@ -227,6 +229,7 @@ final class MaterialIconButton extends Box {
       mainAlign: MainAlign.center,
       crossAlign: CrossAlign.center,
       semantics: const BoxSemantics(hidden: true),
+      capturesPointer: false,
       textStyle: MaterialTypography.labelSmall.copyWith(
         color: const BoxColor.role(MaterialColorRole.onError),
       ),
