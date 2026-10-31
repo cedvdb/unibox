@@ -81,8 +81,9 @@ class TreeIssue {
 /// * a box that aligns on the baseline without a row to align, where the two
 ///   targets lay the children out differently,
 /// * a pin the nearest viewport cannot honour — one inside a box that scrolls
-///   sideways, one inside a box that only clips, an end pin with no height to keep
-///   its slot, and a negative inset — plus an inset with no pin to hold it,
+///   sideways, one inside a box that only clips, one that is not a child of the box
+///   that scrolls it, an end pin with no height to keep its slot, a share of the box,
+///   and a negative inset — plus an inset with no pin to hold it,
 /// * an aspect ratio that cannot divide anything — a ratio next to a width and a
 ///   height, or one that is not positive,
 /// * a list item whose parent is not a list, and a caption whose parent is not a
@@ -449,6 +450,26 @@ void _validate(
         );
       }
 
+      // A band is drawn by the box that scrolls it, over that box's own viewport: a pin
+      // nested inside another box takes its room in the flow of that box, and neither target
+      // could then paint it at the viewport's edge. A browser would pin it within the box it
+      // sits in — which is where it would stop, not where the scroll ends — so the two would
+      // also disagree about the point it settles.
+      if (scrollingAncestor != null && parent != scrollingAncestor) {
+        issues.add(
+          TreeIssue(
+            node: node,
+            severity: TreeIssueSeverity.error,
+            message:
+                'A pinned box has to be a child of the box that scrolls it, but its parent '
+                'is ${parent?.runtimeType ?? 'the root'}. A browser pins it inside its own '
+                'parent and Flutter draws it at the edge of the viewport, so the two come to '
+                'rest in different places. Make the band a child of the box that states '
+                'overflow: Overflow.scroll, or drop the pin.',
+          ),
+        );
+      }
+
       final double? pinOffset = style.pinOffset;
 
       if (pinOffset != null && pinOffset < 0) {
@@ -461,6 +482,24 @@ void _validate(
                 'inset is a distance inward: a negative one would place the band outside '
                 'the viewport it pins to. Leave it unset for an edge with no header above '
                 'it.',
+          ),
+        );
+      }
+
+      // The slot a pinned band keeps in the flow is the height the tree states, which is what
+      // keeps the children below it still. A share of the box would grow the band in a
+      // browser's flex layout and change nothing in Flutter, which draws the band from the
+      // height it was given.
+      if ((style.flex ?? 0) > 0) {
+        issues.add(
+          TreeIssue(
+            node: node,
+            severity: TreeIssueSeverity.error,
+            message:
+                'A pinned box states flex: ${style.flex}, and a pinned band keeps the height '
+                'it was given: a share of the box would grow it in a browser and change '
+                'nothing in Flutter. Give the band the height it should have, or drop the '
+                'share.',
           ),
         );
       }

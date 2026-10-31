@@ -243,6 +243,47 @@ void main() {
       expect(issues.single.isError, isTrue);
     });
 
+    test('reports a pin that is not a child of the box that scrolls it', () {
+      // A band is drawn by the box that scrolls it, over that box's own viewport: from one
+      // level down the flow already has a parent, and a browser would pin the band inside
+      // that parent rather than to the edge of the viewport.
+      final List<TreeIssue> issues = validateTree(
+        const Box(
+          height: 400,
+          overflow: Overflow.scroll,
+          children: <UINode>[
+            Box(
+              padding: BoxSpacing.all(8),
+              children: <UINode>[Box(height: 60, pin: BoxPin.start)],
+            ),
+          ],
+        ),
+      );
+
+      expect(issues, hasLength(1));
+      expect(issues.single.isError, isTrue);
+      expect(
+        issues.single.message,
+        contains('child of the box that scrolls it'),
+      );
+    });
+
+    test('reports a pinned box that asks for a share of the box', () {
+      // A band keeps the height it states — that is the slot the flow holds open — while a
+      // browser would grow it with the free space it has.
+      final List<TreeIssue> issues = validateTree(
+        const Box(
+          height: 400,
+          overflow: Overflow.scroll,
+          children: <UINode>[Box(height: 60, pin: BoxPin.start, flex: 1)],
+        ),
+      );
+
+      expect(issues, hasLength(1));
+      expect(issues.single.isError, isTrue);
+      expect(issues.single.message, contains('flex: 1'));
+    });
+
     test('reports a negative inset', () {
       final List<TreeIssue> issues = validateTree(
         const Box(

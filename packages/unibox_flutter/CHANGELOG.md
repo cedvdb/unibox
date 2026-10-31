@@ -7,10 +7,13 @@
   the band is drawn over the viewport by a layer that repaints itself into place as the scroll
   offset changes, so nothing rebuilds and a field inside the band keeps its state. It paints
   above the content that scrolls under it and takes a press there, which a band left in the
-  flow order would lose. A pin inside a box that scrolls sideways, a pin inside a box that only
-  clips, and a pinned box with no height are reported by `validateTree` and drawn in the flow.
-  So is a pin at the top of a tree with no scrolling box above it: the web pins it to the
+  flow order would lose. A band that is not a child of the box that scrolls it, a pin inside a
+  box that scrolls sideways, a pin inside a box that only clips, a pinned box with no height
+  and one that also asks for a `flex` share are reported by `validateTree` and drawn in the
+  flow. So is a pin at the top of a tree with no scrolling box above it: the web pins it to the
   document, while the surface an application is drawn on does not scroll.
+- The catalogue on the site shows a sticky band: a hero, a toolbar that stays and a list that
+  runs under it, in one scrolling box.
 
 - A box that states `capturesPointer: false` is wrapped in an `IgnorePointer`, so a press, a
   hover and the cursor pass through it to the control underneath — the same statement the web

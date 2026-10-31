@@ -15,6 +15,10 @@
   height: the slot the flow keeps is that number, so a pin without one is reported. So is a pin
   inside a box that scrolls sideways, a pin inside a box that only clips
   (`Overflow.hidden` never moves), a negative inset, and an inset with no pin to hold it.
+  A band is also a child of the box that scrolls it — from one level down a browser pins it
+  inside *that* box, so the two targets would come to rest in different places — and it keeps
+  the height it states, so a `flex` share on it is reported rather than honoured by one
+  target and ignored by the other.
 
 - `Box.capturesPointer` says whether the pointer may land on a box, and `null` keeps today's
   rule: a box with children, a callback or a state style takes it, and a painted leaf lets it
