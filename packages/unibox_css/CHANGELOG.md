@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- A box that scrolls keeps its overscroll to itself: `overscroll-behavior: contain` is written
+  beside `overflow`, so a panel that reaches its end does not hand the rest of the scroll to the
+  page. Flutter's viewport absorbs that overscroll already, and the browser's scroll chaining is
+  what made an inner list scroll the page out from under the reader.
+
 - A box that scrolls keeps its children at the size the tree states: `scrollRules` writes
   `flex-shrink: 0` for the children of any `overflow: auto` box, not only for a pager's pages.
   A flex item shrinks to fit by default, so a hero, a bar and five rows inside a box shorter than
