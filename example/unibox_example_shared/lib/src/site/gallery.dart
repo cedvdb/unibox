@@ -104,9 +104,9 @@ UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
           'Sticky bands',
           _stickyBands(palette),
           note:
-              'A hero, a bar and a list in one scrolling box: the hero leaves, the bar '
-              'comes to rest at the top of the box, and the rows run under it. `pin: '
-              'BoxPin.start` is the whole of it. Scroll it.',
+              'A hero, a bar and a list in one scrolling box: the hero folds away as it '
+              'leaves, the bar comes to rest at the top of the box, and the rows run under '
+              'it — `pin: BoxPin.start` and `fold` between them. Scroll the box.',
         ),
         _section(
           palette,
@@ -827,6 +827,12 @@ UINode _stickyBands(MaterialPalette palette) {
         height: hero,
         padding: const BoxSpacing.all(20),
         backgroundColor: palette.primaryContainer,
+        // The hero folds as it leaves: by the time the bar has come to rest it is gone, which is
+        // the whole of the motion a results page needs. See `fold` in the README.
+        fold: const BoxFold(
+          to: BoxStyle(opacity: 0, transform: BoxTransform(scale: 0.75)),
+          curve: BoxCurve.easeOut,
+        ),
         children: <UINode>[
           TextNode(
             'Six flats, one tree',

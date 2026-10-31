@@ -58,6 +58,22 @@ void main() {
       expect(_textsIn(paged.last), contains('Three'));
     });
 
+    test('folds the hero of its sticky list as it leaves', () {
+      final List<Box> folded = _nodesOf(buildMaterialSection())
+          .whereType<Box>()
+          .where((Box box) => box.fold != null)
+          .toList();
+
+      expect(folded, hasLength(1));
+
+      final Box hero = folded.single;
+
+      // Paint only, and not the band: a pinned box never leaves its viewport, so it never folds.
+      expect(hero.pin, isNull);
+      expect(hero.fold!.looks, contains(BoxProperty.opacity));
+      expect(hero.fold!.to.opacity, 0);
+    });
+
     test('keeps the bar of its sticky list inside the box that scrolls it', () {
       final List<UINode> nodes = _nodesOf(buildMaterialSection());
       final List<Box> pinned = nodes
