@@ -75,6 +75,24 @@ void main() {
       );
     });
 
+    test('renders a pinned band as a sticky element above what it covers', () {
+      // A fragment asserted against the declaration itself: the band has to be sticky, at
+      // the edge it named, with the stacking a browser does not give it for free.
+      final String html = toHtml(
+        const core.Box(
+          height: 400,
+          overflow: core.Overflow.scroll,
+          children: <core.UINode>[
+            core.Box(height: 60, pin: core.BoxPin.start, pinOffset: 48),
+          ],
+        ),
+      );
+
+      expect(html, contains('position:sticky'));
+      expect(html, contains('top:48px'));
+      expect(html, contains('z-index:1'));
+    });
+
     test('writes the role the box asks for, keeping the element it names', () {
       // A `<nav>` is a navigation landmark by itself; `role="link"` is the box saying
       // something else about it.

@@ -154,6 +154,16 @@ String? cssScrollSnap(core.ScrollSnap? snap, core.Axis axis) => switch (snap) {
     axis == core.Axis.horizontal ? 'x mandatory' : 'y mandatory',
 };
 
+/// A model [core.BoxPin] as the CSS property that names its edge.
+///
+/// `top` and `bottom` rather than a logical pairing: the two edges a pin holds are the
+/// vertical ones, and a vertical scroller is what the model lets one sit in. The value is
+/// the box's own inset, written next to the property.
+String cssPinEdge(core.BoxPin pin) => switch (pin) {
+  core.BoxPin.start => 'top',
+  core.BoxPin.end => 'bottom',
+};
+
 /// A model [core.FontWeight] as the number CSS wants.
 ///
 /// The model names four weights and CSS accepts any hundreds value; the number is

@@ -41,6 +41,58 @@ void main() {
     });
   });
 
+  group('a box that pins', () {
+    test(
+      'sticks to the edge it names, above the content that scrolls under it',
+      () {
+        final CssDeclarations declarations = boxDeclarations(
+          const core.BoxStyle(pin: core.BoxPin.start),
+        );
+
+        expect(declarations.text, contains('position:sticky'));
+        expect(declarations.text, contains('top:0'));
+        expect(
+          declarations.text,
+          contains('z-index:1'),
+          reason:
+              'a sticky box is painted in the flow order it was written in, so '
+              'content that follows it would paint over it',
+        );
+      },
+    );
+
+    test('keeps the inset it is given, at the end edge', () {
+      final CssDeclarations declarations = boxDeclarations(
+        const core.BoxStyle(pin: core.BoxPin.end, pinOffset: 64),
+      );
+
+      expect(declarations.text, contains('position:sticky'));
+      expect(declarations.text, contains('bottom:64px'));
+      expect(declarations.text, isNot(contains('top:')));
+    });
+
+    test('leaves the pin out of a state rule', () {
+      // A state rule restates only the tokens the state changes: a `:hover` that repeated
+      // the pin would reset the stacking the resting rule set up.
+      final CssDeclarations declarations = boxDeclarations(
+        const core.BoxStyle(pin: core.BoxPin.start),
+        declaredOnly: true,
+      );
+
+      expect(declarations.text, isNot(contains('sticky')));
+      expect(declarations.text, isNot(contains('z-index')));
+    });
+
+    test('says nothing for a box that does not pin', () {
+      final CssDeclarations declarations = boxDeclarations(
+        const core.BoxStyle(),
+      );
+
+      expect(declarations.text, isNot(contains('sticky')));
+      expect(declarations.text, isNot(contains('z-index')));
+    });
+  });
+
   group('a text', () {
     test('writes only the typography it states', () {
       expect(textDeclarations(const core.TextNode('Hi')).text, '');

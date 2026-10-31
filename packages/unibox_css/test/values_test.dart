@@ -112,6 +112,13 @@ void main() {
       expect(cssOverflow(core.Overflow.scroll), 'auto');
     });
 
+    test('names the edge a pin holds', () {
+      // The two edges a pin holds are the vertical ones, so they are written as the
+      // physical properties rather than as a logical pairing.
+      expect(cssPinEdge(core.BoxPin.start), 'top');
+      expect(cssPinEdge(core.BoxPin.end), 'bottom');
+    });
+
     test('aligns text as CSS does', () {
       expect(cssTextAlign(core.TextAlign.left), 'left');
       expect(cssTextAlign(core.TextAlign.center), 'center');

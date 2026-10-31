@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- A box that states `pin` is written as `position: sticky`, at `top: 0` for `BoxPin.start`
+  and `bottom: 0` for `BoxPin.end`, with `pinOffset` as that inset — and with `z-index: 1`,
+  because a sticky box is painted in the flow order it was written in and the content that
+  scrolls under it would otherwise paint over it. `cssPinEdge` names the property. The three
+  declarations belong to the resting rule: a state rule never restates them, and a shaped box
+  is `sticky` where it used to be `relative`.
+
 - An overlay's layer bounds its content and scrolls what does not fit. `overlayDeclarations()`
   writes `overflow: auto` on the fixed layer, and the content is placed by a margin —
   `overlayContentDeclarations(alignment)`: `margin-inline: auto` and one block margin at

@@ -182,6 +182,29 @@ CssDeclarations boxDeclarations(
     ..addIf('opacity', opacity == null ? null : cssNumber(opacity))
     ..addIf('transform', cssTransform(style.transform));
 
+  // A pinned box stays at one edge of the box that scrolls it, once it would have
+  // scrolled past, and keeps its slot in the flow: `position: sticky` is the whole of it,
+  // and it is the same declaration whether the nearest scroll container is a box with
+  // `overflow: auto` or the document, which is why a server-rendered page that scrolls
+  // itself needs nothing from the client.
+  //
+  // `z-index` is stated with it because sticky positions the box in the flow order it was
+  // written in, so content that follows it would paint over it as it scrolls under; one
+  // level is enough, and it is why the pinned band covers the results rather than the
+  // reverse.
+  //
+  // A state rule leaves the three out: a pin is a relation to the viewport, not a look a
+  // `:hover` could change, and restating `position` there would reset the stacking the
+  // resting rule set up.
+  final core.BoxPin? pin = declaredOnly ? null : style.pin;
+
+  if (pin != null) {
+    declarations
+      ..add('position', 'sticky')
+      ..add(cssPinEdge(pin), cssPixels(style.resolvedPinOffset))
+      ..add('z-index', '1');
+  }
+
   // A flex item keeps its content as a floor unless it is told not to, which is what
   // makes a column of listings refuse to shrink into a window. A Flutter `Expanded`
   // hands its child a tight size, so a box that states a `flex` states the floor away.
@@ -270,8 +293,10 @@ CssDeclarations shapeDeclarations(core.BoxStyle style, core.BoxShape shape) {
 
   return CssDeclarations()
     // The layer is absolutely positioned, and `isolation` keeps its negative `z-index` inside
-    // this box instead of letting it fall behind an ancestor.
-    ..add('position', 'relative')
+    // this box instead of letting it fall behind an ancestor. A pinned box is `sticky` here
+    // instead of `relative`: both are positioned, so both hold the layer, and only the pin can
+    // be the one that moves with the viewport.
+    ..add('position', style.pin == null ? 'relative' : 'sticky')
     ..add('isolation', 'isolate')
     ..addIf('clip-path', clips ? 'url(#${cssShapeClipId(shape)})' : null)
     ..add('--unibox-shape-fill', fillReference ?? 'none')

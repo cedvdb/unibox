@@ -36,6 +36,7 @@ renderer that consumes it.
 | the typography of a box | `typographyDeclarations(style)`, and `defaultTypographyDeclarations()` |
 | what a page starts from | `rootDeclarations()` — the typography of the model, and the tap highlight a touch browser would paint |
 | a transform, a transition | `cssTransform`, `cssTransition` |
+| a pin's edge | `cssPinEdge(...)` → `top` for `BoxPin.start`, `bottom` for `BoxPin.end` |
 
 `CssDeclarations` is a list and not a map because CSS allows a property to be written
 twice — a fallback — and because `text` is the text a class name is hashed from, which
