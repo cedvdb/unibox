@@ -242,6 +242,33 @@ void main() {
       );
     });
 
+    testWidgets('centres a box that fills only up to a measure', (
+      tester,
+    ) async {
+      // `width: 100%; max-width: 400px` in a centred row is 400 wide and 200 from either
+      // edge — the shape every band of the site is. Expanded instead of the measure took the
+      // whole line, and the 400 was left against the row's leading edge.
+      const Key measure = ValueKey<Object>('measure');
+
+      await pumpNode(
+        tester,
+        const core.Box(
+          direction: core.Axis.horizontal,
+          width: double.infinity,
+          mainAlign: core.MainAlign.center,
+          children: <core.UINode>[
+            core.Box(key: 'measure', width: double.infinity, maxWidth: 400),
+          ],
+        ),
+      );
+
+      final double rowLeft = tester.getTopLeft(find.byKey(nodeKey)).dx;
+      final Rect child = tester.getRect(find.byKey(measure));
+
+      expect(child.width, 400);
+      expect(child.left - rowLeft, 200);
+    });
+
     testWidgets('honours min and max constraints', (tester) async {
       await pumpNode(
         tester,

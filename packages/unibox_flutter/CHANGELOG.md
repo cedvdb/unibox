@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- A box that fills only up to a measure is no longer an `Expanded` in the row that holds it.
+  `width: double.infinity` with a `maxWidth` is CSS's `min(100%, max-width)`, which the
+  container's alignment then places; claiming the whole line left that alignment nothing to
+  move, so a centred band's 1080-pixel column was drawn against the row's leading edge.
+
 - A row whose style states `equalShares` is a `Row` of `Expanded` children inside an
   `IntrinsicWidth`: every child is measured at its max intrinsic width and laid out at the widest
   one, which is the arithmetic Material's own segmented control uses. A parent with less room than

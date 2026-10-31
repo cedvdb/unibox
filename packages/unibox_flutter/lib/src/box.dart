@@ -928,8 +928,15 @@ class FlutterBoxState extends State<FlutterBox> {
     final double? mainSize = direction == core.Axis.horizontal
         ? childStyle.width
         : childStyle.height;
+    // A box that fills only *up to a measure* is not a flex child. CSS gives it
+    // `min(100%, max-width)`, so the container's own alignment can then place the result on
+    // the line — and an `Expanded` would claim the whole line and leave that alignment
+    // nothing to move, which put a centred band's 1080-pixel column against its left edge.
+    final double? mainMax = direction == core.Axis.horizontal
+        ? childStyle.maxWidth
+        : childStyle.maxHeight;
     final int? flex = childStyle.flex;
-    final bool expands = mainSize == double.infinity;
+    final bool expands = mainSize == double.infinity && mainMax == null;
     final bool hasFlex = flex != null && flex > 0;
 
     if (!expands && !hasFlex) {
