@@ -1368,7 +1368,9 @@ the performance budget, the site build and the numbers this page quotes.
 `tool/site.sh` builds the site: one page at `/` — the claim, the example drawn by both
 renderers side by side, the vocabulary that names the nodes the page had not drawn, and the
 Material catalogue the page is built with, which closes it — plus the
-example itself at `/web/` and its Flutter build at `/flutter/`. Every band of the page
+example itself at `/web/`, and the Flutter build at `/flutter/`, whose root is that same
+site page drawn by the other renderer and whose `/flutter/listings/` is the example on its
+own. Every band of the page
 is a node tree: the two frames of the comparison are the one thing the model cannot
 describe, and they arrive through `EmbedNode`.
 `--serve` previews the result locally. [`.github/workflows/pages.yml`](.github/workflows/pages.yml)

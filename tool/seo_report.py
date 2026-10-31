@@ -47,7 +47,7 @@ DOCUMENTS = [
     ('index.html', 'html    /'),
     ('web/listings/index.html', 'html    /web/listings/'),
     ('web/signup/index.html', 'html    /web/signup/'),
-    ('flutter/index.html', 'flutter /flutter/listings/'),
+    ('flutter/index.html', 'flutter /flutter/'),
 ]
 
 

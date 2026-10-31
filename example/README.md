@@ -15,7 +15,7 @@ with.
 | Package | Role |
 | --- | --- |
 | `unibox_example_shared` | The example as one node (`ExamplePageNode`, with `ExampleState` and `ExampleStore`) and the parts it is built from (`buildExamplePage`, `buildApartmentsPage`, `buildSignupDialog`); the site as one node (`buildSitePage`) and its four bands (`buildHeroSection` — the claim and the diagram under it — `buildIndexableSection` — what a search engine is served, and what Flutter does with the page afterwards — `buildVocabularySection` — the nodes the page had not drawn, beside the same card taken apart — and `buildMaterialSection` — the catalogue that closes it); plus the palette. The listings are a `GridNode` of `MaterialCard`s, so the example also shows the design-system package. Pure Dart, no renderer. |
-| `unibox_example_flutter` | Flutter host: one file (`lib/main.dart`) — the surface and the link policy. |
+| `unibox_example_flutter` | Flutter host: `lib/main.dart` sends the address to one of two trees, `lib/site.dart` is the site page drawn by Flutter, and `lib/surface.dart`, `lib/page_address.dart` and `lib/showcase_frame.dart` are the three things a node cannot know — the surface, the address and a frame. |
 | `unibox_example_html` | HTML host: the site's document, the example's document, the shipped font faces, the one `<iframe>` node the comparison needs, and the build script — no page trees, which live in the shared package. |
 
 Neither host holds state. The page owns it in `ExampleStore`: the Flutter host renders
@@ -260,7 +260,9 @@ The example itself is not a page of the site any more. Its one document —
 `build/site/web/listings/index.html` — exists because the left frame has to load it. The
 sign-up form is a dialog over that page and not an address of its own: nothing links to it,
 and a browser without the client bundle shows the page with the form closed. The Flutter
-build sits beside it at `build/site/flutter/`, with the same one route.
+build sits beside it at `build/site/flutter/`, and its root draws the *site page*: the same
+tree as `/`, by the other renderer, so the two can be compared. `/flutter/listings/` is the
+example on its own, which is the page the right frame is.
 
 `tool/site.sh` builds the whole thing into `build/site`, a directory any static host
 can publish:
@@ -273,6 +275,7 @@ tool/site.sh --base=/unibox/ --url=https://cedvdb.github.io/unibox/
 | Path | What it is |
 | --- | --- |
 | `/` | The site: the claim and the diagram, then the vocabulary, then the catalogue that closes it, as one page |
+| `/flutter/` | The same site page, drawn by Flutter — the two renderings of one tree, one address apart, which is what makes them comparable |
 | `/web/listings/` | The example as a document that runs itself — the left frame, real HTML a reader can inspect and act on |
 | `/flutter/listings/` | The same example, built by Flutter — the right frame |
 | `/flutter/app.js` | The loader a document boots the application through, with the base path `flutter_bootstrap.js` cannot know |
@@ -332,10 +335,12 @@ Pages on and re-running the workflow publishes the same build.
 
 ## Flutter app
 
-The host is `lib/main.dart`: a `MaterialApp` for the surface, a
-`FlutterLinkScope` for what following a link means, and a `FlutterStateful` for
-the page. The web runner is checked in (`web/index.html`), so a browser build
-needs no scaffolding step:
+The host is `lib/main.dart`, which reads the address once and hands the reader to one of two
+trees: `lib/site.dart` — the site page, drawn by `renderFlutter` — at the root of the build,
+and `ExampleApp` — the example — everywhere else. Both draw on the same `surface`, so the two
+renderings of the page cannot disagree about the font or the scheme, and `lib/showcase_frame.dart`
+answers the comparison's two frames, with a real `iframe` in a browser. The web runner is checked
+in (`web/index.html`), so a browser build needs no scaffolding step:
 
 ```shell
 cd example/unibox_example_flutter

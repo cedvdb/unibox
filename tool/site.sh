@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 #
-# Builds the static site: the documents `unibox_html` writes, the Flutter build of the same
-# tree, and one landing page that shows them side by side.
+# Builds the static site: the documents `unibox_html` writes, the same page and the same
+# example drawn by Flutter, and the addresses that let a reader hold the two renderings side
+# by side.
 #
 # Usage:
 #   tool/site.sh                          # for http://localhost:8000/
@@ -115,8 +116,10 @@ PATCH
 
 # A static host has no rewrite rule, so a Flutter route is a real file. The build's
 # absolute base href is what lets the copied document resolve its assets from a
-# deeper path. One route: the example is one page, and the sign-up form is a dialog
-# over it rather than an address of its own.
+# deeper path. One route: the build's root draws the site page, and the entry below
+# it draws the example on its own — the page the HTML rendering frames, and the one
+# a reader opens to compare the two renderings. The example is one page, and the
+# sign-up form is a dialog over it rather than an address of its own.
 for route in listings; do
   mkdir -p "$site/flutter/$route"
   cp "$site/flutter/index.html" "$site/flutter/$route/index.html"

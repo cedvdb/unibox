@@ -13,6 +13,9 @@ dependencies:
   unibox_core: ^0.1.0
   unibox_example_shared: ^0.1.0
   unibox_flutter: ^0.1.0
+  # The browser's own objects: the document's address, which routing reads, and the
+  # `iframe` a frame of the site's comparison is. Only the web build uses either.
+  web: ^1.1.1
 
 dev_dependencies:
   flutter_test:

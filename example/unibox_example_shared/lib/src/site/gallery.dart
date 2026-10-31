@@ -869,7 +869,18 @@ UINode _phone(MaterialPalette palette, UINode screen) {
     border: BoxBorder(color: palette.outlineVariant),
     // The screen's corners are the frame's, so the frame clips it.
     overflow: Overflow.hidden,
-    children: <UINode>[screen],
+    children: <UINode>[
+      Box(
+        height: double.infinity,
+        children: <UINode>[
+          StackNode(
+            children: <UINode>[
+              PositionedNode(alignment: BoxAlignment.center, child: screen),
+            ],
+          ),
+        ],
+      ),
+    ],
   );
 }
 
