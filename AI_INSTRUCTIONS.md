@@ -173,6 +173,7 @@ host that renders it.
 | `AspectRatio(aspectRatio: 1.5, child: …)` | `aspectRatio: 1.5` on the box |
 | `Column(children: …)` | `Box(children: …)` — a column is the default |
 | `Row(children: …)` | `Box(direction: Axis.horizontal, children: …)` |
+| `Directionality(textDirection: TextDirection.rtl, child: …)` | `writingDirection: WritingDirection.rtl` on the box that owns the region — inherited, like the widget |
 | `mainAxisAlignment` / `crossAxisAlignment` | `mainAlign` / `crossAlign` |
 | `CrossAxisAlignment.baseline` | `crossAlign: CrossAlign.baseline` on a **row** — on a column `validateTree` reports it, because Flutter draws it as `start` and a browser shifts the children sideways |
 | `Expanded(child: …)` | `flex: 1` on the child box |
@@ -233,6 +234,7 @@ host that renders it.
 | --- | --- |
 | `<div>` | `Box` |
 | `display: flex; flex-direction: row` | `Box(direction: Axis.horizontal)` |
+| `dir="rtl"`, `direction: rtl` | `writingDirection: WritingDirection.rtl` on the region, or `toDocument(writingDirection: …)` for the page — a language is not a direction, so `lang="ar"` says nothing about it |
 | `justify-content` / `align-items` | `mainAlign` / `crossAlign` |
 | `gap` | `gap` |
 | `padding` / `margin` | `padding` / `margin` (`BoxSpacing`) |

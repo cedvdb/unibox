@@ -924,3 +924,47 @@ What that buys, stated as the invariants the feature has to keep:
   build step writes every language in one process, so a global would make output depend on
   write order), and a key catalogue in core (a key map gives up the compiler's help and would
   be the first dependency the model cannot have).
+
+### 5.20 A writing direction is a region's, and the page states its own
+
+- `WritingDirection` is the direction the words flow in — `ltr` or `rtl` — and it is not `Axis`.
+  A row lays its children along one axis whichever way the words in it read: Arabic in a row is
+  the same rectangle with the children packed from the other side. Naming it after the text
+  would be wrong for the same reason it is not the axis: `direction` in CSS moves a flex row,
+  its logical edges and its scrollbar, and `dir` on a page moves all of that at once.
+- **It inherits, and it has no default in the model.** CSS inherits `direction` and Flutter's
+  `Directionality` is an ambient inherited widget, so a box states one and everything inside it
+  reads that way — which makes it the second token, after typography, that a box hands to its
+  descendants. Resolving an unset one is the one place the model refuses to answer, and the
+  reason is not a host's convenience: a direction belongs to the script the words are written
+  in, and the model cannot read words it did not write. A stated `ltr` would overrule a page
+  that is correctly Arabic, and a guess from `lang` would be wrong for the languages written in
+  both scripts. So a box that says nothing inherits from the box above it, and the root of that
+  inheritance is the page: `dir` on `<html>` in a document (§5.19's `lang` sits beside it, and
+  the two are deliberately separate attributes), and the application's own `Directionality` in
+  Flutter. A tree written right to left states it once, at its root.
+- **No `auto`.** CSS's `dir="auto"` reads the first strong character of the text, and Flutter
+  has no counterpart: a value only one target can honour is a bug here (§4). "Let the text
+  decide" is a page that states nothing, not a third value.
+- **Named `WritingDirection` and not `TextDirection`.** `dart:ui` declares `TextDirection`, Flutter
+  re-exports it, and an SDK declaration loses to a package declaration without a diagnostic
+  (§5.1) — the silent half of the collision rule. `BoxDirection` was the other candidate and
+  reads against `BoxStyle.direction`, which is an `Axis`; "writing direction" is also the term the
+  CSS specification uses, so the web renderer needs no translation of the word itself.
+- **Neither renderer keeps a table of what mirrors.** The direction is one declaration in the
+  class and one `Directionality` around the flex, and every `start`/`end` the two engines already
+  understand follows from it. That is the whole implementation, and it is why the token costs
+  nothing on either target.
+- **The names that were already reading ones are now resolved that way.** `BoxAlignment.topStart`
+  is the corner the words begin at, and both targets were not saying so: the web mapped it to
+  `justify-content: start`, which follows the direction, while Flutter mapped it to
+  `Alignment.topLeft`, which does not — so an aligned child in a right-to-left page landed on the
+  mirrored side of the control the page had drawn. It is an `AlignmentDirectional` now, which is
+  the whole of the fix, and it is the case that shows why the physical names in §5.20's next
+  paragraph are the ones worth being suspicious of.
+- **What it does not do yet, stated rather than implied.** The physical vocabulary stays physical:
+  `BoxSpacing.left`, `PositionedNode.left` and `BoxBorderRadius.topLeft` keep the edge they name
+  in either direction, and `TextAlign` has `left` and `right` but no `start` and `end`. A tree can
+  therefore be read right to left and still pin one inset to one side — deliberate for a badge on
+  a physical corner, and a gap for a `padding` that means "the reading start". Adding those
+  values is a change to the vocabulary rather than to this token, and it is the next one.

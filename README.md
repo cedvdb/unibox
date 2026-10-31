@@ -329,6 +329,7 @@ Box(
 | --- | --- | --- | --- |
 | `children` | `List<UINode>` | empty | The nodes laid out inside. |
 | `direction` | `Axis?` | column | `Axis.horizontal` is a row, `Axis.vertical` a column. |
+| `writingDirection` | `WritingDirection?` | inherited | The direction the words flow in: `rtl` packs a row from the other side, carries `start`/`end` with it, and is inherited by everything inside the box. It is not `direction` — a row is still a row — and the page states the same value as `dir` on `<html>`. |
 | `mainAlign` | `MainAlign?` | start | Distribution along the direction: `start`, `center`, `end`, `spaceBetween`, `spaceAround`, `spaceEvenly`. |
 | `crossAlign` | `CrossAlign?` | start | Alignment across the direction: `start`, `center`, `end`, `stretch`, `baseline`. A baseline is a horizontal line, so it is a row's alignment: a column that states one is reported by `validateTree`. |
 | `gap` | `double?` | none | Space between two children, and between two lines of a wrapping box. For space at the edges, use `padding`. |
@@ -412,8 +413,10 @@ size the tree gave it instead of collapsing differently on each side.
 
 **Worth knowing.** A box without a direction is a **column**, not "whatever the
 platform does", so `gap` and the alignments work in every box. Nothing is inherited
-from a box to its children except typography: a box never pushes its padding, gap or
-alignment down.
+from a box to its children except typography and the writing direction: a box never
+pushes its padding, gap or alignment down, and those two are the tokens CSS and
+Flutter inherit as well — `font` and `direction` in one, `DefaultTextStyle` and
+`Directionality` in the other.
 
 **A baseline is a row's alignment.** `crossAlign: CrossAlign.baseline` sits the
 children on the alphabetic baseline of their first line of text — the one alignment
@@ -636,7 +639,7 @@ StackNode(
 | `StackNode.width`, `height` | `double?` | largest child | The box the stack occupies. |
 | `PositionedNode.child` | `UINode` | required | The node being placed. |
 | `PositionedNode.top`, `right`, `bottom`, `left` | `double?` | auto | Distances from the edges of the stack. At least one is needed to place it. |
-| `PositionedNode.alignment` | `BoxAlignment?` | none | Where in the stack the child sits, instead of at offsets: the child fills the stack and the alignment places it. This is how a control floats at the bottom centre of a surface at any window size. |
+| `PositionedNode.alignment` | `BoxAlignment?` | none | Where in the stack the child sits, instead of at offsets: the child fills the stack and the alignment places it. This is how a control floats at the bottom centre of a surface at any window size. The names are reading ones — `topStart` is the corner the words begin at — so a page written right to left mirrors without a second tree. |
 
 **Worth knowing.** A stack does not clip: a child that sticks out is still drawn,
 which is what CSS does by default and what `Stack` does with `Clip.none`. A child
