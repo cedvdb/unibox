@@ -104,9 +104,11 @@ UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
           'Scaffold',
           _screens(palette),
           note:
-              'A screen: `MaterialScaffold` puts an app bar above a body that fills what is '
-              'left, on one surface — so the bar needs no pin, and the filter bar inside the '
-              'body comes to rest under it with no inset. Scroll the body.',
+              'A screen: `MaterialScaffold` draws a page with a band above it and a body that '
+              'fills the rest. The bar states a container and the page a surface, so the band '
+              'reads as one. Scroll either body: the first bar stays, and the second states the '
+              'height a store hands it — and a document runs no store, so this page shows the '
+              'frame that screen opens in.',
         ),
         _section(
           palette,
@@ -801,11 +803,11 @@ UINode _pager(MaterialPalette palette) {
 
 /// Two screens, one per thing a top app bar can do: stay where it is, or give its height back.
 ///
-/// Both are `MaterialScaffold`s, because a scaffold is what a screen is: the frame, the surface a
-/// pull reveals, and a body whose scroll a bar can be wired to.
+/// Both are `MaterialScaffold`s, because a scaffold is what a screen is: the page it is drawn on,
+/// the band above it in a container of its own, and a body whose scroll a bar can be wired to.
 UINode _screens(MaterialPalette palette) {
   return GridNode(
-    minItemWidth: 320,
+    minItemWidth: 360,
     maxColumns: 2,
     gap: 24,
     children: <UINode>[
@@ -815,6 +817,7 @@ UINode _screens(MaterialPalette palette) {
         _phone(
           palette,
           MaterialScaffold(
+            color: _pageColor,
             body: Box(
               height: double.infinity,
               overflow: Overflow.scroll,
@@ -842,17 +845,36 @@ UINode _screens(MaterialPalette palette) {
   );
 }
 
-/// The phone-shaped surface a screen is drawn on.
+/// The height the catalogue gives a screen, in logical pixels.
 ///
-/// A scaffold fills the surface it is drawn on, so a catalogue needs one with a size: a 320 by 460
-/// panel, rounded and clipped, is the smallest thing that reads as a screen.
+/// One number for the frame and for the screen inside it, because a `StatefulNode` cannot take a
+/// share of the box it is in: it states no style of its own, so a view that said
+/// `height: double.infinity` would be laid out in an unbounded column and thrown on. A screen that
+/// is a stateful node states the height the panel gives it, and a screen that is a plain box says
+/// `double.infinity` — the same rectangle either way.
+const double _screenHeight = 420;
+
+/// The page a catalogue screen is drawn on.
+///
+/// White, which is what the cards around it are painted with. Material's `surface` is a tone below
+/// the container a bar paints, and that difference is the whole of what makes a band read as a
+/// band — on a card that is itself tinted, a faint difference is not enough to see.
+const BoxColor _pageColor = BoxColor.role(
+  MaterialColorRole.surfaceContainerLowest,
+);
+
+/// The screen-shaped surface a screen is drawn on: as wide as the card, and a stated height.
+///
+/// The width is the card's, not a number: `double.infinity` here is "fill the column", which is the
+/// same sentence on both targets — CSS stretches a grid item and Flutter hands the cell a tight
+/// width. A number was what put a 320-pixel phone in the corner of a 450-pixel card.
 UINode _phone(MaterialPalette palette, UINode screen) {
   return Box(
-    width: 320,
-    height: 460,
+    width: double.infinity,
+    height: _screenHeight,
     borderRadius: 20,
     border: BoxBorder(color: palette.outlineVariant),
-    // The scaffold's corners are the frame's, so the frame clips it.
+    // The screen's corners are the frame's, so the frame clips it.
     overflow: Overflow.hidden,
     children: <UINode>[screen],
   );
@@ -917,6 +939,10 @@ final class CollapsingAppBarStore extends StateStore<CollapsingAppBarState> {
 }
 
 /// The screen: a bar whose height and title follow the collapse, and the list under it.
+///
+/// The height is stated, not shared: a `StatefulNode` carries no style, so the renderer has nothing
+/// to turn into a flexible child — the view states the room the panel gives it instead of asking
+/// for `double.infinity`, which is a number in an unbounded column.
 UINode _collapsingScreen(
   CollapsingAppBarState state,
   CollapsingAppBarStore store,
@@ -924,13 +950,15 @@ UINode _collapsingScreen(
   final double t = state.progress;
 
   return MaterialScaffold(
+    color: _pageColor,
+    height: _screenHeight,
     body: Box(
       height: double.infinity,
       overflow: Overflow.scroll,
       onScroll: store.scrolledTo,
       children: <UINode>[
         MaterialLargeAppBar(
-          title: const TextNode('Apartments'),
+          title: const TextNode('Saved'),
           // The two numbers a pinned sliver app bar states: how tall it opens, and how small it
           // comes to rest. Everything between them is the store's.
           height:
@@ -969,8 +997,8 @@ UINode _appBars(MaterialPalette palette) {
         _framed(
           palette,
           MaterialAppBar(
-            title: const TextNode('Apartments'),
-            trailing: const TextNode('24'),
+            title: const TextNode('Shortlist'),
+            trailing: const TextNode('12'),
           ),
         ),
       ),
@@ -991,7 +1019,7 @@ UINode _appBars(MaterialPalette palette) {
         'The large one, with air above its headline',
         _framed(
           palette,
-          MaterialLargeAppBar(title: const TextNode('Apartments')),
+          MaterialLargeAppBar(title: const TextNode('Garden loft')),
         ),
       ),
     ],
@@ -1017,6 +1045,9 @@ UINode _specimen(MaterialPalette palette, String caption, UINode child) {
   return Box(
     width: double.infinity,
     gap: 8,
+    // The sample fills the specimen: a card is as wide as the column it is in, and a sample that
+    // hugged its content would be a component sitting in the corner of its own card.
+    crossAlign: CrossAlign.stretch,
     children: <UINode>[
       TextNode(
         caption,

@@ -21,7 +21,9 @@ void main() {
             body: Center(
               child: SizedBox(
                 width: 320,
-                height: 460,
+                // The height the demo states for its screen: a stateful node takes no share of the
+                // column it is in, so the view says how tall it is.
+                height: 420,
                 child: renderFlutter(CollapsingAppBarDemo()),
               ),
             ),
@@ -32,7 +34,7 @@ void main() {
 
     /// The bar is the pinned box the title is drawn in: the band, not the box padding it.
     Finder bar() => find.ancestor(
-      of: find.text('Apartments'),
+      of: find.text('Saved'),
       matching: find.byWidgetPredicate(
         (Widget widget) => widget is FlutterBox && widget.box.pin != null,
       ),
@@ -59,6 +61,6 @@ void main() {
       reason: 'a bar that pins stays at the top of the box that scrolls it',
     );
     // And it is still there to press: what is left of the bar keeps the surface it had.
-    expect(find.text('Apartments'), findsOneWidget);
+    expect(find.text('Saved'), findsOneWidget);
   });
 }
