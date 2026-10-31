@@ -1,5 +1,7 @@
+import 'dart:math' as math;
+
 import 'package:flutter/gestures.dart';
-import 'package:flutter/semantics.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
@@ -52,6 +54,14 @@ class FlutterBoxState extends State<FlutterBox> {
 
   /// The page this box was last moved to, so a rebuild with the same page leaves the reader alone.
   int? _appliedPage;
+
+  /// The slot each pinned band keeps in the flow, by the index of its child.
+  ///
+  /// A band is drawn over the viewport rather than in the flow, and the flow holds its
+  /// room open with a box of the height the tree states for it. Where that slot is — which
+  /// is where the band settles back to — is a fact only its own layout knows, and the band
+  /// reads it from this key.
+  final Map<int, GlobalKey> _slots = <int, GlobalKey>{};
 
   /// How this box opens its destination, or `null` when it has none and no scope above it.
   ///
@@ -178,12 +188,19 @@ class FlutterBoxState extends State<FlutterBox> {
         ? FlutterLinkScope.maybeOf(context)
         : null;
 
+    final List<core.Box> pinned = _pinnedBands(box, style);
+
     Widget content = _holdsThreshold
         ? LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) =>
-                _buildContent(box, style, availableWidth: constraints.maxWidth),
+                _buildFlow(
+                  box,
+                  style,
+                  pinned,
+                  availableWidth: constraints.maxWidth,
+                ),
           )
-        : _buildContent(box, style, availableWidth: null);
+        : _buildFlow(box, style, pinned, availableWidth: null);
 
     _applyPage(style);
 
@@ -193,19 +210,23 @@ class FlutterBoxState extends State<FlutterBox> {
       content = _inheritTypography(context, content, textStyle);
     }
 
+    // A pinned child needs a viewport of its own — `_buildFlow` built one when it found
+    // one — so the box only scrolls through a plain scroll view when nothing pins.
     if (style.overflow == core.Overflow.scroll) {
-      content = SingleChildScrollView(
-        scrollDirection: toAxis(style.resolvedDirection),
-        controller: _scroll,
-        // A pager settles on a child instead of wherever the finger stopped. The physics is
-        // the whole of it: a page is a child the size of the box, so the viewport's own
-        // boundaries are the children's, and the two targets agree because CSS snaps to the
-        // child's own `scroll-snap-align` edge.
-        physics: style.snap == core.ScrollSnap.page
-            ? const PageScrollPhysics()
-            : null,
-        child: content,
-      );
+      if (pinned.isEmpty) {
+        content = SingleChildScrollView(
+          scrollDirection: toAxis(style.resolvedDirection),
+          controller: _scroll,
+          // A pager settles on a child instead of wherever the finger stopped. The physics is
+          // the whole of it: a page is a child the size of the box, so the viewport's own
+          // boundaries are the children's, and the two targets agree because CSS snaps to the
+          // child's own `scroll-snap-align` edge.
+          physics: style.snap == core.ScrollSnap.page
+              ? const PageScrollPhysics()
+              : null,
+          child: content,
+        );
+      }
 
       final core.ScrollCallback? onScroll = box.onScroll;
       if (onScroll != null) {
@@ -506,6 +527,10 @@ class FlutterBoxState extends State<FlutterBox> {
   /// apply to every box instead of only to the ones that spelled the direction
   /// out.
   ///
+  /// [slots] names the children that are drawn over the viewport instead of in the flow,
+  /// with the height each keeps: the flow keeps their room, so nothing below them moves
+  /// while they are pinned.
+  ///
   /// A box without children still renders its flex container. It lays out
   /// nothing either way, but the web renderer marks every box as a flex
   /// container, so leaving the empty one out would make the two trees describe
@@ -514,6 +539,7 @@ class FlutterBoxState extends State<FlutterBox> {
     core.Box box,
     core.BoxStyle style, {
     required double? availableWidth,
+    Map<int, double>? slots,
   }) {
     final core.Axis direction = style.resolvedDirection;
     final double? gap = style.gap;
@@ -531,13 +557,21 @@ class FlutterBoxState extends State<FlutterBox> {
               : SizedBox(height: gap),
         );
       }
+
+      final double? slot = slots?[index];
+
       children.add(
-        _buildChild(
-          box.children[index],
-          direction,
-          availableWidth: availableWidth,
-          flexible: !wrap,
-        ),
+        slot == null
+            ? _buildChild(
+                box.children[index],
+                direction,
+                availableWidth: availableWidth,
+                flexible: !wrap,
+              )
+            : SizedBox(
+                key: _slots.putIfAbsent(index, GlobalKey.new),
+                height: slot,
+              ),
       );
     }
 
@@ -609,6 +643,156 @@ class FlutterBoxState extends State<FlutterBox> {
       crossAxisAlignment: crossAxisAlignment,
       textBaseline: uniboxTextBaseline,
       children: children,
+    );
+  }
+
+  /// The content of the box inside its viewport.
+  ///
+  /// A box that holds a pinned band is laid out by [_buildPinnedContent]: a
+  /// `SingleChildScrollView` lays its whole content out in one box, so a child of it has
+  /// nowhere to stay while the content moves past. Every other box is a flex container.
+  Widget _buildFlow(
+    core.Box box,
+    core.BoxStyle style,
+    List<core.Box> pinned, {
+    required double? availableWidth,
+  }) => pinned.isEmpty
+      ? _buildContent(box, style, availableWidth: availableWidth)
+      : _buildPinnedContent(box, style, availableWidth: availableWidth);
+
+  /// The children of [box] that pin to the edge of its viewport.
+  ///
+  /// A pin holds a vertical edge, so only a box that scrolls down has edges to pin to: a
+  /// pin in any other box is reported by `validateTree`, and drawing it in the flow is
+  /// the one answer both targets give for a tree it refuses.
+  static List<core.Box> _pinnedBands(core.Box box, core.BoxStyle style) {
+    if (style.overflow != core.Overflow.scroll ||
+        style.resolvedDirection != core.Axis.vertical) {
+      return const <core.Box>[];
+    }
+
+    return <core.Box>[
+      for (final core.UINode child in box.children)
+        if (child is core.Box && child.computedStyle.pin != null) child,
+    ];
+  }
+
+  /// [child] placed across the axis a viewport cannot align on its own.
+  ///
+  /// A band drawn over the viewport is handed the whole width of it, tight, where a column
+  /// hands a child the room it asks for and places it by the box's `crossAlign`. Only a
+  /// stretched child wants the whole width; the rest are wrapped.
+  Widget _aligned(Widget child, core.CrossAlign crossAlign) {
+    final AlignmentGeometry? alignment = toBandAlignment(crossAlign);
+
+    return alignment == null
+        ? child
+        : Align(alignment: alignment, child: child);
+  }
+
+  /// The content of a box that holds pinned bands: the flow it always had, with the
+  /// bands drawn over it.
+  ///
+  /// A pinned band is lifted out of the flow and painted over the viewport at the edge it
+  /// named, driven by the scroll offset of this box: it comes to rest at
+  /// [core.BoxPin.start] or [core.BoxPin.end] once the content would have carried it past,
+  /// and settles back into the flow when its slot comes up. That is what a browser states
+  /// with `position: sticky`, and it is why the band paints above the content: a band drawn
+  /// in the flow order it was written in would be painted over by the content that scrolls
+  /// under it, and a browser only escapes that with the `z-index` it writes beside the
+  /// position.
+  ///
+  /// The slot keeps the room the band takes — the height the tree states for it — so the
+  /// children below it never move, which is the promise a pin makes. Laying the flow out
+  /// exactly as before is the other half of it: `gap`, `crossAlign` and `mainAlign` stay a
+  /// flex container's, so the trees that already exist are drawn as they were.
+  Widget _buildPinnedContent(
+    core.Box box,
+    core.BoxStyle style, {
+    required double? availableWidth,
+  }) {
+    final Map<int, double> slots = <int, double>{};
+    final List<Widget> bands = <Widget>[];
+
+    for (var index = 0; index < box.children.length; index++) {
+      final core.UINode child = box.children[index];
+      final core.Box? band = child is core.Box ? child : null;
+      final core.BoxStyle? bandStyle = band?.computedStyle;
+      final core.BoxPin? pin = bandStyle?.pin;
+      final double? height = bandStyle?.height;
+
+      // A band with no height of its own has no slot to hold open, so it stays in the
+      // flow: `validateTree` reports it, and drawing it as an ordinary child is the one
+      // answer both targets give for a pin they cannot honour.
+      if (band == null || pin == null || height == null || !height.isFinite) {
+        continue;
+      }
+
+      slots[index] = height;
+      bands.add(
+        _pinnedBand(
+          _buildChild(band, core.Axis.vertical, availableWidth: availableWidth),
+          scroll: _scroll,
+          pin: pin,
+          slot: _slots.putIfAbsent(index, GlobalKey.new),
+          height: height,
+          inset: bandStyle!.resolvedPinOffset,
+          crossAlign: style.crossAlign ?? core.CrossAlign.start,
+        ),
+      );
+    }
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: <Widget>[
+        // Filled rather than sized by its content: a stack hands a child loose
+        // constraints, and a scroll view handed a loose height is as tall as the content
+        // it was given, which is a viewport with nothing to scroll.
+        Positioned.fill(
+          child: SingleChildScrollView(
+            scrollDirection: toAxis(style.resolvedDirection),
+            controller: _scroll,
+            child: _buildContent(
+              box,
+              style,
+              availableWidth: availableWidth,
+              slots: slots,
+            ),
+          ),
+        ),
+        ...bands,
+      ],
+    );
+  }
+
+  /// [band] drawn at the edge it pins to, over the content that scrolls under it.
+  ///
+  /// The layer takes the whole viewport and paints the band at the place the scroll offset
+  /// puts it, so a scroll repaints the band instead of rebuilding it: the subtree is built
+  /// once and painted wherever the edge is, which is also what keeps the band's own
+  /// subtree — a field, a menu — alive while it is being carried around.
+  Widget _pinnedBand(
+    Widget band, {
+    required ScrollController? scroll,
+    required core.BoxPin pin,
+    required GlobalKey slot,
+    required double height,
+    required double inset,
+    required core.CrossAlign crossAlign,
+  }) {
+    if (scroll == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Positioned.fill(
+      child: _PinnedBand(
+        scroll: scroll,
+        pin: pin,
+        slot: slot,
+        height: height,
+        inset: inset,
+        child: _aligned(band, crossAlign),
+      ),
     );
   }
 
@@ -1072,3 +1256,269 @@ final class _BoxTransformTween extends Tween<core.BoxTransform> {
 /// The curve is an `Interval` when the look waits for another one to settle, which
 /// is how a delay is expressed without a controller.
 typedef _Timing = ({Duration duration, Curve curve});
+
+/// A band drawn over its viewport at the edge it pins to.
+///
+/// It lays out like any child of the drawing stack it sits in — the whole width of the
+/// viewport, the height the tree states for it — and paints at the place the scroll offset
+/// puts it. Painting rather than rebuilding is what makes the pin cheap: a scroll asks the
+/// layer to repaint, the band's own subtree is built once, and a field or a menu inside it
+/// keeps its state while it is being carried around.
+///
+/// The slot the band keeps in the flow is a [RenderObject] of its own, and the band reads
+/// its position from it in [RenderBox.performLayout] — after the flow has been laid out and
+/// before anything is painted, so the first frame is drawn where the band belongs.
+class _PinnedBand extends SingleChildRenderObjectWidget {
+  const _PinnedBand({
+    required this.scroll,
+    required this.pin,
+    required this.slot,
+    required this.height,
+    required this.inset,
+    required super.child,
+  });
+
+  /// The scroll offset the band follows.
+  ///
+  /// The controller rather than its position: a band is built before the viewport it
+  /// belongs to is, so the position it will follow does not exist yet at that moment.
+  final ScrollController scroll;
+
+  /// The edge it comes to rest at.
+  final core.BoxPin pin;
+
+  /// The slot it keeps in the flow, whose position is where it settles back to.
+  final GlobalKey slot;
+
+  /// The height it keeps, in logical pixels, which is also the slot's.
+  final double height;
+
+  /// The room it keeps from the edge while it is pinned.
+  final double inset;
+
+  @override
+  _RenderPinnedBand createRenderObject(BuildContext context) =>
+      _RenderPinnedBand(scroll, pin, slot, height, inset);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderPinnedBand renderObject,
+  ) {
+    renderObject
+      ..scroll = scroll
+      ..pin = pin
+      ..slot = slot
+      ..height = height
+      ..inset = inset;
+  }
+}
+
+/// Where a [_PinnedBand] paints: the layout of a box, the geometry of a sticky one.
+class _RenderPinnedBand extends RenderProxyBox {
+  _RenderPinnedBand(
+    this._scroll,
+    this._pin,
+    this._slot,
+    this._height,
+    this._inset,
+  );
+
+  ScrollController _scroll;
+  core.BoxPin _pin;
+  GlobalKey _slot;
+  double _height;
+  double _inset;
+
+  set scroll(ScrollController value) {
+    if (identical(value, _scroll)) {
+      return;
+    }
+
+    if (attached) {
+      _scroll.removeListener(_scrollChanged);
+      value.addListener(_scrollChanged);
+    }
+
+    _scroll = value;
+    markNeedsLayout();
+  }
+
+  set pin(core.BoxPin value) {
+    if (value == _pin) {
+      return;
+    }
+
+    _pin = value;
+    markNeedsLayout();
+  }
+
+  set slot(GlobalKey value) {
+    if (identical(value, _slot)) {
+      return;
+    }
+
+    _slot = value;
+    markNeedsLayout();
+  }
+
+  set height(double value) {
+    if (value == _height) {
+      return;
+    }
+
+    _height = value;
+    markNeedsLayout();
+  }
+
+  set inset(double value) {
+    if (value == _inset) {
+      return;
+    }
+
+    _inset = value;
+    markNeedsLayout();
+  }
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _scroll.addListener(_scrollChanged);
+  }
+
+  @override
+  void detach() {
+    _scroll.removeListener(_scrollChanged);
+    super.detach();
+  }
+
+  /// Redraws the band where the offset now puts it.
+  ///
+  /// A band that moved is also a rectangle a screen reader has to be told about, and
+  /// marking both is what keeps the announced box where the painted one is. With no
+  /// semantics owner — the ordinary case — the second call is a flag check.
+  void _scrollChanged() {
+    markNeedsPaint();
+    markNeedsSemanticsUpdate();
+  }
+
+  @override
+  void performLayout() {
+    final RenderBox? child = this.child;
+    final BoxConstraints constraints = this.constraints;
+
+    if (child != null) {
+      // The band keeps the width the viewport hands it and the height it states, which is
+      // the room its slot holds in the flow; a viewport that is itself unconstrained across
+      // leaves the band its own width rather than an infinity no box can be laid out in.
+      child.layout(
+        BoxConstraints.tightFor(
+          width: constraints.hasBoundedWidth ? constraints.maxWidth : null,
+          height: _height,
+        ),
+        parentUsesSize: true,
+      );
+    }
+
+    // The layer fills the viewport, and takes the band's own height where the viewport was
+    // not given an end to fill.
+    size = constraints.constrain(
+      Size(
+        constraints.hasBoundedWidth ? constraints.maxWidth : 0,
+        constraints.hasBoundedHeight ? constraints.maxHeight : _height,
+      ),
+    );
+  }
+
+  /// The place the band is painted, in this layer's coordinates.
+  ///
+  /// At rest it is where the flow put it. Once the content would have carried it past the
+  /// edge it named, it keeps that edge's distance, and it goes no further than the box it
+  /// is drawn in allows — the box a browser keeps a sticky element inside, which is why a
+  /// band that has nothing after it never comes away from its slot.
+  ///
+  /// Read when the band is painted rather than once per layout: a scroll repaints without
+  /// laying anything out, and the place a band belongs is a fact about the scroll offset.
+  double get _top {
+    if (!_scroll.hasClients) {
+      return 0;
+    }
+
+    final ScrollPosition position = _scroll.position;
+
+    if (!position.hasViewportDimension || !position.hasContentDimensions) {
+      return 0;
+    }
+
+    final double viewport = position.viewportDimension;
+    final double scroll = position.pixels;
+    final double edge = _pin == core.BoxPin.start
+        ? _inset
+        : viewport - _inset - _height;
+    final double at = _slotTop ?? edge;
+
+    if (_pin == core.BoxPin.start) {
+      // It is never lifted above its slot, and never past the end of the content.
+      final double end = position.maxScrollExtent + viewport - scroll - _height;
+
+      return math.min(math.max(at, edge), end);
+    }
+
+    // The end edge is the mirror of the start one: never pushed below its slot, never
+    // above the start of the content.
+    return math.max(math.min(at, edge), -scroll);
+  }
+
+  /// Where the slot sits right now, in this layer's coordinates: where the band would be
+  /// if it did not pin.
+  ///
+  /// Read from the slot's own place in the tree rather than counted from the children above
+  /// it, which would mean laying them out here a second time. The scroll offset is part of
+  /// the transform, so this is the position on screen and not the position in the content.
+  double? get _slotTop {
+    final RenderObject? found = _slot.currentContext?.findRenderObject();
+    final RenderObject? layer = parent;
+
+    if (found is! RenderBox || !found.attached || layer == null) {
+      return null;
+    }
+
+    final RenderBox slot = found;
+
+    return slot.localToGlobal(Offset.zero, ancestor: layer).dy -
+        localToGlobal(Offset.zero, ancestor: layer).dy;
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    final RenderBox? child = this.child;
+
+    if (child != null) {
+      context.paintChild(child, offset + Offset(0, _top));
+    }
+  }
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
+    final RenderBox? child = this.child;
+
+    if (child == null) {
+      return false;
+    }
+
+    return result.addWithPaintOffset(
+      offset: Offset(0, _top),
+      position: position,
+      hitTest: (BoxHitTestResult result, Offset transformed) =>
+          child.hitTest(result, position: transformed),
+    );
+  }
+
+  // The band is laid out where the flow would have put it and painted elsewhere, so the
+  // offset it was painted at is the one everything else has to be told about: the position
+  // a test reads, the rectangle a screen reader announces, and the box a press lands in.
+  @override
+  void applyPaintTransform(RenderBox child, Matrix4 transform) {
+    transform.multiply(Matrix4.translationValues(0, _top, 0));
+  }
+}

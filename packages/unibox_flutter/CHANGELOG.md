@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- A box that states `pin` stays at the edge it names while its viewport scrolls. The flow is
+  laid out exactly as before — a column, with the band's stated height left in its slot — and
+  the band is drawn over the viewport by a layer that repaints itself into place as the scroll
+  offset changes, so nothing rebuilds and a field inside the band keeps its state. It paints
+  above the content that scrolls under it and takes a press there, which a band left in the
+  flow order would lose. A pin inside a box that scrolls sideways, a pin inside a box that only
+  clips, and a pinned box with no height are reported by `validateTree` and drawn in the flow.
+  So is a pin at the top of a tree with no scrolling box above it: the web pins it to the
+  document, while the surface an application is drawn on does not scroll.
+
 - A box that states `capturesPointer: false` is wrapped in an `IgnorePointer`, so a press, a
   hover and the cursor pass through it to the control underneath — the same statement the web
   writes as `pointer-events: none`. `true` makes a leaf a `Listener` with an opaque hit test,

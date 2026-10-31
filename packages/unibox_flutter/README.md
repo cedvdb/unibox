@@ -46,6 +46,7 @@ with their target.
 | `shape`                            | `CustomPaint` with a `Path`: the fill, then the border as a stroke along it |
 | `shape` + `overflow: Overflow.hidden` | `ClipPath` to the same path                       |
 | `overflow: Overflow.scroll`         | `SingleChildScrollView`                             |
+| `pin` / `pinOffset`                 | the flow unchanged, with the band drawn over the viewport at the edge it names: a `_RenderPinnedBand` repaints it into place on every scroll, so nothing rebuilds and the band keeps its slot |
 | `onTap` / `onLongPress`             | `GestureDetector`                                   |
 | `capturesPointer: false`            | `IgnorePointer`, so the hover, the cursor and the press reach the control under the box; `true` makes a leaf a `Listener` with an opaque hit test |
 | `LinkNode` (a box that names a destination) | `GestureDetector` + `MouseRegion(cursor: click)` + `Semantics(link: true)`, opening through `FlutterLinkScope` unless it has an `onTap`; `Enter` opens it and `Space` does not, as in a browser. It is a `Box`, so it is drawn by `FlutterBox` and needs no widget of its own |
@@ -65,6 +66,15 @@ The scroll offset is the one report whose **edges** differ from the browser's: a
 bounce reports negative pixels and a value past the end, while `scrollTop` clamps at zero
 and at the content's height. In the middle of the range the two numbers agree, which is
 where a folding header or a "back to the top" control reads them.
+
+A **pin** is drawn by the box that scrolls: the band comes out of the flow, its slot stays
+in it, and a `_RenderPinnedBand` repaints it at the edge it named — so a scroll costs a
+repaint and not a rebuild, and a field inside the band keeps its state while it is carried
+around. A pin that has no scrolling box above it in the tree is the one place the two
+renderings part: a browser pins it to the document, which scrolls a page even though the
+tree holds no viewport, while Flutter draws it where the flow put it, because the surface
+an application is drawn on does not scroll. Put the scroll in the tree — a box with
+`overflow: Overflow.scroll` — and the two agree, which is what the example does.
 
 `width`/`height: double.infinity` expands to fill the available space. Inside a
 flex parent the expanding child is wrapped in an `Expanded` (using `flex`, or
