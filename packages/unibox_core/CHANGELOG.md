@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- `PagerNode` is the pager: a `Box` that settles on one child at a time, so a `Box` no longer
+  knows what a page is. It carries the index (`index`), the page the pager came to rest on
+  (`onPageChanged`), and the invariant that every child is the size of the box — which is what
+  makes a browser's snap edge and Flutter's page edge the same one. `Box.page`, `Box.snap` and
+  the `ScrollSnap` enum are gone: a box settles nowhere, and a pager is the node that does. The
+  move a tree asks for is a jump on both targets, because a browser's programmatic scroll takes
+  no duration and no curve.
+- `validateTree` reports a pager with no main-axis size, a page that is not the size of its
+  pager, a child that is not a `Box`, an `index` past the last page, and a pinned band inside
+  one — a band pinned to a viewport that shows one page at a time would be painted over the
+  page that replaced it.
+- `PageChangedCallback` is the settled report: the page a pager came to rest on, whether the
+  reader swiped there or the tree asked for it.
+
 - `validateTree` reports a `StackNode` that places every child and states no size. A layer
   places its children but does not size itself, and the two targets answered the missing
   rectangle differently: Flutter's `Stack` takes the room it is handed, while a browser's grid

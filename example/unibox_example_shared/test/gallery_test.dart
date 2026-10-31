@@ -66,7 +66,9 @@ void main() {
       // document in a 375 pixel window before these rows scrolled.
       final List<Box> scrollers = _nodesOf(buildMaterialSection())
           .whereType<Box>()
-          .where((Box box) => box.overflow == Overflow.scroll)
+          // The resolved overflow rather than the flat one: a pager is a scroller because of what
+          // the node *is*, so it states no `overflow` of its own and still belongs in the count.
+          .where((Box box) => box.computedStyle.overflow == Overflow.scroll)
           .toList();
 
       // Two rows of chips that overflow, two pagers, and the scrolling body of each of the two
@@ -76,18 +78,19 @@ void main() {
       expect(_textsIn(scrollers.first), contains('Two rooms'));
       expect(_textsIn(scrollers[1]), contains('Garden'));
 
-      final List<Box> paged = scrollers
-          .where((Box box) => box.snap == ScrollSnap.page)
-          .toList();
+      final List<PagerNode> paged = scrollers.whereType<PagerNode>().toList();
 
       expect(paged, hasLength(2));
       // One is told which page it shows, and that is the one a press can move; the other is left to
       // the reader, which is what a pager is in a document.
-      expect(paged.where((Box box) => box.page != null), hasLength(1));
+      expect(
+        paged.where((PagerNode pager) => pager.index != null),
+        hasLength(1),
+      );
       // The tabs come first in the catalogue, and theirs is the pager a press can move; the `Pages`
       // block is left to the reader, which is what a pager is in a document.
-      expect(paged.first.page, 0);
-      expect(paged.last.page, isNull);
+      expect(paged.first.index, 0);
+      expect(paged.last.index, isNull);
       expect(_textsIn(paged.last), contains('Three'));
     });
 

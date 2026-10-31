@@ -47,6 +47,7 @@ DOCUMENTS = [
     'docs/nodes/text-input.md',
     'docs/nodes/stateful.md',
     'docs/nodes/grid.md',
+    'docs/nodes/pager.md',
     'docs/nodes/overlay.md',
     'docs/nodes/embed.md',
     'RELEASE.md',

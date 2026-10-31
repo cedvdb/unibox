@@ -76,6 +76,51 @@ List<void Function()> bindNode(core.UINode node, web.Element element) {
         });
       }
 
+      if (box case final core.PagerNode pager
+          when pager.onPageChanged != null) {
+        // Where a swipe came to rest, as the index under the start edge. `scrollend` is the
+        // browser's own settled event; a browser without it gets a debounced `scroll`, which is
+        // the same answer a moment later rather than a different one. The index read here is the
+        // same one Flutter derives from the viewport, so a store keeps one number for both.
+        final core.PageChangedCallback onPageChanged = pager.onPageChanged!;
+        final bool horizontal =
+            box.computedStyle.resolvedDirection == core.Axis.horizontal;
+        int last = pager.index ?? -1;
+
+        void report() {
+          final double extent = horizontal
+              ? element.clientWidth.toDouble()
+              : element.clientHeight.toDouble();
+
+          if (extent <= 0) {
+            return;
+          }
+
+          final int settled =
+              ((horizontal ? element.scrollLeft : element.scrollTop) / extent)
+                  .round();
+
+          if (settled != last) {
+            last = settled;
+            onPageChanged(settled);
+          }
+        }
+
+        // Two events and one answer: `scrollend` is the browser's own settled event, and the
+        // debounce is what a browser without it has — a listener for an event that never fires
+        // costs nothing, and the dedupe below means the two can never report twice. The index read
+        // here is the same one Flutter derives from the viewport, so a store keeps one number.
+        on('scrollend', (web.Event event) => report());
+
+        Timer? timer;
+
+        on('scroll', (web.Event event) {
+          timer?.cancel();
+          timer = Timer(const Duration(milliseconds: 120), report);
+        });
+        undo.add(() => timer?.cancel());
+      }
+
       if (box.onHover case final core.HoverCallback onHover) {
         // `enter` and `leave` rather than `over` and `out`: those two fire for every child the
         // pointer crosses, so a control made of several boxes would report a hover dozens of times

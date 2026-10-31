@@ -5,6 +5,7 @@ import 'nodes/grid_node.dart';
 import 'nodes/image_node.dart';
 import 'nodes/link_node.dart';
 import 'nodes/overlay_node.dart';
+import 'nodes/pager_node.dart';
 import 'nodes/positioned_node.dart';
 import 'nodes/stack_node.dart';
 import 'nodes/text_input_node.dart';
@@ -400,44 +401,110 @@ void _validate(
   if (node is Box) {
     final BoxStyle style = node.computedStyle;
 
-    // A snap on a box that cannot scroll is a token that can do nothing: the renderers
-    // write it and no gesture ever reads it.
-    if (style.snap != null &&
-        style.snap != ScrollSnap.none &&
-        style.overflow != Overflow.scroll) {
-      issues.add(
-        TreeIssue(
-          node: node,
-          message:
-              'A box snaps (snap: ScrollSnap.${style.snap!.name}) without '
-              'overflow: Overflow.scroll, so nothing scrolls and nothing settles. '
-              'Set overflow, or drop the snap.',
-        ),
-      );
-    }
+    // A pager is a box that settles on a child, and the three things that make that work are
+    // also the three ways a tree can say something the two targets would resolve differently:
+    // which page it is on, how big a page is, and whether the children are that big. The rules
+    // below are those three, plus the one band a pager cannot hold.
+    if (node is PagerNode) {
+      final int pages = node.children.length;
+      final int? index = node.index;
+      final bool sideways = style.resolvedDirection == Axis.horizontal;
+      final String axis = sideways ? 'width' : 'height';
+      final double? extent = sideways ? style.width : style.height;
+      final bool sized =
+          extent != null && (extent == double.infinity || extent > 0);
 
-    // A page is a position in a pager, so it needs one: a box that settles nowhere has no pages to
-    // be on, and a reader's swipe is the only thing that could have moved it.
-    if (style.page != null && style.snap != ScrollSnap.page) {
-      issues.add(
-        TreeIssue(
-          node: node,
-          message:
-              'A box states page: ${style.page} without snap: ScrollSnap.page, so '
-              'nothing tells it where its pages begin. Set the snap, or drop the page.',
-        ),
-      );
-    }
+      if (index != null && index < 0) {
+        issues.add(
+          TreeIssue(
+            node: node,
+            message:
+                'A pager states index: $index, and a page cannot be before the first '
+                'one, which is 0.',
+          ),
+        );
+      } else if (index != null && index >= pages) {
+        issues.add(
+          TreeIssue(
+            node: node,
+            message:
+                'A pager states index: $index and holds $pages '
+                '${pages == 1 ? 'child' : 'children'}, so there is no page to show. '
+                'Count the index from 0, or drop it to leave the pager where it is.',
+          ),
+        );
+      }
 
-    if (style.page != null && style.page! < 0) {
-      issues.add(
-        TreeIssue(
-          node: node,
-          message:
-              'A box states page: ${style.page}, and a page cannot be before the '
-              'first one.',
-        ),
-      );
+      // A page is the size of the pager — that is the whole of the relation, and it is what
+      // makes a browser's snap edge and Flutter's page edge the same one. Without a stated
+      // size a page is as big as its content, and the two targets then stop in different
+      // places; with children that state another size, they do the same.
+      if (!sized) {
+        issues.add(
+          TreeIssue(
+            node: node,
+            severity: TreeIssueSeverity.error,
+            message:
+                'A pager states no $axis, so its pages have no size to be: a browser '
+                'snaps to each child\'s own edge and Flutter to the viewport\'s, and the '
+                'two come to rest in different places. State $axis — a number, or '
+                'double.infinity to fill the parent.',
+          ),
+        );
+      }
+
+      for (final UINode child in node.children) {
+        if (child is! Box) {
+          issues.add(
+            TreeIssue(
+              node: child,
+              severity: TreeIssueSeverity.error,
+              message:
+                  'A page has to be a Box that states the $axis of the pager it is in, '
+                  'and this one is a ${child.runtimeType}. Wrap it in a Box, so the page '
+                  'is the size the pager states.',
+            ),
+          );
+
+          continue;
+        }
+
+        final BoxStyle childStyle = child.computedStyle;
+        final double? childExtent = sideways
+            ? childStyle.width
+            : childStyle.height;
+
+        if (sized && childExtent != extent) {
+          issues.add(
+            TreeIssue(
+              node: child,
+              severity: TreeIssueSeverity.error,
+              message:
+                  'A page is the size of its pager: this pager states $axis: $extent '
+                  'and this child states ${childExtent ?? 'nothing'}, so the two '
+                  'targets snap to different stops — a browser to the child\'s own edge, '
+                  'Flutter to the viewport\'s. State $axis: $extent on the child.',
+            ),
+          );
+        }
+
+        // A band is drawn by the box that scrolls it, over that box's own viewport — and a
+        // pager's viewport holds one page at a time, so a pin inside one would be painted
+        // over content that has already moved on.
+        if (childStyle.pin != null) {
+          issues.add(
+            TreeIssue(
+              node: child,
+              severity: TreeIssueSeverity.error,
+              message:
+                  'A pinned box inside a pager has nothing to stay at: the pager shows '
+                  'one page at a time, so the band would be drawn over the page that '
+                  'replaced it. Pin inside a box that scrolls and settles nowhere '
+                  'instead, or drop the pin.',
+            ),
+          );
+        }
+      }
     }
 
     // A pin is a relation to the nearest viewport, so it is read against the boxes above the
@@ -574,8 +641,6 @@ void _validate(
         if (fold.to.flex != null) 'flex',
         if (fold.to.gridSpan != null) 'gridSpan',
         if (fold.to.overflow != null) 'overflow',
-        if (fold.to.snap != null) 'snap',
-        if (fold.to.page != null) 'page',
         if (fold.to.pin != null) 'pin',
         if (fold.to.pinOffset != null) 'pinOffset',
         if (fold.to.width != null) 'width',

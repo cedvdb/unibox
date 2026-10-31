@@ -1,6 +1,6 @@
 # The nodes
 
-The eleven node types of [`unibox_core`](../../packages/unibox_core/README.md), in ten
+The twelve node types of [`unibox_core`](../../packages/unibox_core/README.md), in eleven
 pages: `PositionedNode` is documented beside the `StackNode` it places in. A page holds
 the parameters a node takes, the defaults the model gives it, and what each renderer does
 with it.
@@ -15,6 +15,7 @@ with it.
 | `TextInputNode` | a single line field, a password field or a text area | [TextInputNode](text-input.md) |
 | `StatefulNode` | a store, a view, and the lifecycle a renderer calls | [StatefulNode](stateful.md) |
 | `GridNode` | columns that follow the width, or a row of stated factors | [GridNode](grid.md) |
+| `PagerNode` | a box that settles on one child at a time | [PagerNode](pager.md) |
 | `OverlayNode` | a dialog, a sheet or a menu, and the policy behind it | [OverlayNode](overlay.md) |
 | `EmbedNode` | one implementation per renderer, for what the model cannot describe | [EmbedNode](embed.md) |
 

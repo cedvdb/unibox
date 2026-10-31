@@ -37,6 +37,7 @@ renderer that consumes it.
 | what a page starts from | `rootDeclarations()` — the typography of the model, and the tap highlight a touch browser would paint |
 | a transform, a transition | `cssTransform`, `cssTransition` |
 | a pin's edge | `cssPinEdge(...)` → `top` for `BoxPin.start`, `bottom` for `BoxPin.end` |
+| a pager | `boxDeclarations(style, pager: true)` writes `scroll-snap-type` for the box's own axis, and `pagerRules(className, pager: true)` makes its children the stops |
 | a fold | `foldKeyframes(style)` → a `CssKeyframes` value, and `foldDeclarations(style)` → the `animation-*` that runs it on `view()` |
 
 `CssDeclarations` is a list and not a map because CSS allows a property to be written

@@ -762,9 +762,9 @@ share, and still no measurement: a stack takes the size of the child it lays out
 between tabs rather than sliding, because where the next label *starts* is the one distance
 this tree cannot state.
 
-It does not page between tabs: a swipe needs a controlled scroll position, and the model
-reports an offset (`Box.onScroll`) without setting one. The pager is `Box(snap:
-ScrollSnap.page)`, which pages by drag; a tab press swaps the page instead of sliding to it.
+It does not page between tabs: a swipe needs a pager under the bar, and a tab press swaps the
+page rather than moving one. `PagerNode` is the pager — it pages by drag and reports the page it
+settled on — and the example's tabs demo composes it with a `MaterialTabBar` over one store.
 
 `MaterialSegmentedButton` is two to five choices in one divided pill.
 

@@ -123,47 +123,68 @@ void main() {
       expect(issues.single.message, contains('without a decoration'));
     });
 
-    test('accepts a pager', () {
+    test('accepts a pager whose pages are the size of the box', () {
       expect(
         validateTree(
-          const Box(
-            overflow: Overflow.scroll,
-            snap: ScrollSnap.page,
-            children: <UINode>[Box(width: 100), Box(width: 100)],
+          const PagerNode(
+            height: 96,
+            children: <UINode>[Box(height: 96), Box(height: 96)],
           ),
         ),
         isEmpty,
       );
     });
 
-    test('reports a snap on a box that cannot scroll', () {
-      // Nothing scrolls, so nothing settles: the token would be written and never read.
+    test('reports a pager with no size for its pages to be', () {
+      // A page is the size of the pager, so a pager that states none leaves a page as big as
+      // its content: a browser then snaps to the child's own edge and Flutter to the viewport's.
       final List<TreeIssue> issues = validateTree(
-        const Box(snap: ScrollSnap.page),
+        const PagerNode(children: <UINode>[Box(height: 96)]),
       );
 
       expect(issues, hasLength(1));
-      expect(issues.single.message, contains('snap: ScrollSnap.page'));
+      expect(issues.single.message, contains('states no height'));
     });
 
-    test('reports a page on a box that does not snap', () {
-      // A page is a position in a pager, so a box that settles nowhere has no pages to be on.
+    test('reports a page that is not the size of its pager', () {
+      // The child's own edge and the viewport's are the same only while this holds, which is
+      // why the rule is stated instead of trusted.
       final List<TreeIssue> issues = validateTree(
-        const Box(overflow: Overflow.scroll, page: 1),
-      );
-
-      expect(issues, hasLength(1));
-      expect(issues.single.message, contains('page: 1'));
-      expect(issues.single.message, contains('ScrollSnap.page'));
-    });
-
-    test('accepts a page on a pager', () {
-      expect(
-        validateTree(
-          const Box(overflow: Overflow.scroll, snap: ScrollSnap.page, page: 1),
+        const PagerNode(
+          height: 96,
+          children: <UINode>[Box(height: 96), Box(height: 48)],
         ),
-        isEmpty,
       );
+
+      expect(issues, hasLength(1));
+      expect(issues.single.message, contains('this child states 48'));
+    });
+
+    test('reports an index past the last page', () {
+      final List<TreeIssue> issues = validateTree(
+        const PagerNode(
+          height: 96,
+          index: 2,
+          children: <UINode>[Box(height: 96), Box(height: 96)],
+        ),
+      );
+
+      expect(issues, hasLength(1));
+      expect(issues.single.message, contains('there is no page to show'));
+    });
+
+    test('reports a band inside a pager', () {
+      // The pager shows one page at a time, so a band pinned to its viewport would be painted
+      // over the page that replaced it.
+      final List<TreeIssue> issues = validateTree(
+        const PagerNode(
+          height: 96,
+          children: <UINode>[Box(height: 96, pin: BoxPin.start)],
+        ),
+      );
+
+      expect(issues, hasLength(1));
+      expect(issues.single.message, contains('inside a pager'));
     });
 
     test('accepts a pin inside a box that scrolls down', () {

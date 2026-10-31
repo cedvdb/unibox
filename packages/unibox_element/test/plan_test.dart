@@ -72,11 +72,7 @@ void main() {
       // children it lays out — the one place a parent can describe its own children.
       final Stylesheet sheet = Stylesheet();
       final ElementPlan plan = planNode(
-        const core.Box(
-          direction: core.Axis.horizontal,
-          overflow: core.Overflow.scroll,
-          snap: core.ScrollSnap.page,
-        ),
+        const core.PagerNode(direction: core.Axis.horizontal),
         sheet,
       );
 
@@ -93,9 +89,11 @@ void main() {
       // a flex item shrinks to fit by default, and three pages that shrink into the width of one
       // leave the box nothing to scroll — a pager with one page.
       expect(sheet.css, contains('.${plan.className} > *{flex-shrink:0}'));
+      // The node is the scroll, so the tree never says `overflow` for one.
+      expect(sheet.css, contains('overflow:auto'));
     });
 
-    test('a box that does not snap writes nothing about snapping', () {
+    test('a box that is not a pager writes nothing about snapping', () {
       final Stylesheet sheet = Stylesheet();
       planNode(const core.Box(overflow: core.Overflow.scroll), sheet);
 

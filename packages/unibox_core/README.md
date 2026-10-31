@@ -13,7 +13,8 @@ Flutter or the web renderer. Renderers live in `unibox_flutter`, `unibox_css` an
 | `LinkNode`        | a `Box` that names a destination: the link a press follows    |
 | `TextNode`        | a run of text                                                 |
 | `ImageNode`       | a network or bundled image                                    |
-| `StackNode`       | layered children, with `PositionedNode` placing them           |
+| `StackNode`       | layered children, with `PositionedNode` placing them          |
+| `PagerNode`       | a `Box` that settles on one child at a time, and reports it    |
 | `TextInputNode`   | a single line or multiline field                              |
 | `StatefulNode`    | a subtree that owns a `Store` and draws the tree of its state |
 | `GridNode`        | equal columns whose count follows the width, or stated ones   |

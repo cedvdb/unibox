@@ -286,52 +286,6 @@ void main() {
       );
     });
 
-    test('carries where a scrolling box settles', () {
-      const style = BoxStyle(overflow: Overflow.scroll, snap: ScrollSnap.page);
-
-      expect(style.snap, ScrollSnap.page);
-      expect(style.copyWith().snap, ScrollSnap.page);
-      expect(
-        style,
-        const BoxStyle(overflow: Overflow.scroll, snap: ScrollSnap.page),
-      );
-      expect(style.toString(), contains('snap: ScrollSnap.page'));
-      // An overlay wins, like every other token.
-      expect(
-        style.merge(const BoxStyle(snap: ScrollSnap.none)).snap,
-        ScrollSnap.none,
-      );
-    });
-
-    test('carries the page a pager shows, and 0 is a page', () {
-      // The position of a pager, which is the one way to move one: a tree drawn twice with the same
-      // page does not move the second time, and `copyWith` has to treat 0 as a value and not as
-      // "unchanged" — the bug every nullable int field invites.
-      const style = BoxStyle(
-        overflow: Overflow.scroll,
-        snap: ScrollSnap.page,
-        page: 2,
-      );
-
-      expect(style.page, 2);
-      expect(style.copyWith().page, 2);
-      expect(style.copyWith(page: 0).page, 0);
-      expect(
-        style,
-        const BoxStyle(
-          overflow: Overflow.scroll,
-          snap: ScrollSnap.page,
-          page: 2,
-        ),
-      );
-      expect(style.toString(), contains('page: 2'));
-      expect(
-        style.merge(const BoxStyle(page: 1)).page,
-        1,
-        reason: 'an overlay wins, like every other token',
-      );
-    });
-
     test('carries the edge a box pins to, and the inset it keeps', () {
       const style = BoxStyle(pin: BoxPin.start, pinOffset: 12);
 
@@ -1147,8 +1101,6 @@ void main() {
         flex: 2,
         gridSpan: 3,
         overflow: Overflow.scroll,
-        snap: ScrollSnap.page,
-        page: 1,
         pin: BoxPin.start,
         pinOffset: 6,
         width: 10,

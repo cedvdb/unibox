@@ -166,8 +166,11 @@ List<CssRule> scrollRules(String className, core.BoxStyle style) {
 /// the box lays them out, so `> *` names exactly the pages. The other half — that a page is the
 /// size the tree states rather than a share of the box — is [scrollRules], because a pager
 /// scrolls.
-List<CssRule> snapRules(String className, core.BoxStyle style) {
-  if (style.snap != core.ScrollSnap.page) {
+///
+/// [pager] is a parameter rather than a token read off the style: a pager is a node, and a
+/// `BoxStyle` names no such thing any more.
+List<CssRule> pagerRules(String className, {required bool pager}) {
+  if (!pager) {
     return const <CssRule>[];
   }
 

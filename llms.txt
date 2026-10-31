@@ -24,14 +24,14 @@ coding agent needs are in [AGENTS.md](AGENTS.md), and a human contributing needs
   rules, repository map, commands, and the touch points for a token, a node type,
   a parity fix or an example change.
 - [README.md](README.md): the user guide. The model, serving a tree, a summary of the
-  eleven nodes and of the Material components, typography, motion, semantics, and
+  twelve nodes and of the Material components, typography, motion, semantics, and
   what the host owns.
 - [design.md](design.md): why the model looks like this — defaults, precedence,
   dimensions, parity, interaction, non-goals, compatibility.
 
 ## The node reference
 
-- [docs/nodes/README.md](docs/nodes/README.md): the eleven node types in ten pages —
+- [docs/nodes/README.md](docs/nodes/README.md): the twelve node types in eleven pages —
   `PositionedNode` beside its stack — with the parameters a node takes, the model's
   defaults and what each target does.
 - [docs/nodes/box.md](docs/nodes/box.md): the container, its layout and paint tokens, and
@@ -50,6 +50,8 @@ coding agent needs are in [AGENTS.md](AGENTS.md), and a human contributing needs
   renderer calls.
 - [docs/nodes/grid.md](docs/nodes/grid.md): columns that follow the width, a row of stated
   factors, and the child that spans them.
+- [docs/nodes/pager.md](docs/nodes/pager.md): a box that settles on one child at a time,
+  the reported page, and the jump it moves with.
 - [docs/nodes/overlay.md](docs/nodes/overlay.md): a dialog, a sheet or a menu, and the
   policy behind it.
 - [docs/nodes/embed.md](docs/nodes/embed.md): one implementation per renderer, for what the

@@ -81,6 +81,9 @@ All nodes extend `abstract class UINode`.
   ink stay its own.
 - `StackNode` / `PositionedNode` map to Flutter `Stack` and `Positioned`.
 - `TextInputNode` renders managed `TextField`.
+- `PagerNode` is the scroll view above with `PageScrollPhysics`: `index` is applied with a jump
+  after the frame that laid the pager out, and `onPageChanged` is the page read back from the
+  viewport at the end of a scroll. It is a `Box`, so it needs no widget of its own.
 
 ### The web (`unibox_html`)
 - Provide `toHtml(UINode)` for a fragment and `toDocument(UINode, head: …)` for a page.
@@ -93,6 +96,9 @@ All nodes extend `abstract class UINode`.
 - `StackNode` renders `<div style="position: relative">`.
 - `PositionedNode` renders `<div style="position: absolute">`.
 - `TextInputNode` renders `<input>` or `<textarea>`.
+- `PagerNode` renders the same `<div>` with `overflow: auto`, `scroll-snap-type` for its own axis
+  and `scroll-snap-align: start` on its children; the index is a `scrollTo` without easing, and
+  the settled page is read from `scrollend`.
 
 ---
 

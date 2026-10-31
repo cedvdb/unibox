@@ -150,11 +150,11 @@ host that renders it.
     node needs `unibox_dom`'s `events.dart` to know it. A component whose control answers in the app and
     not on the page is that gap, and it is silent — nothing throws.
 
-14. **A pager you tell a page to, you must not listen to.** `Box(page: …)` moves the box, and
-    `Box(onScroll: …)` reports every offset of that move: read as the reader's, they undo the
-    press that started it, and the tab a reader chose never appears chosen. Keep the two apart
-    — a field naming the page you sent it to, cleared when the offset arrives there — or keep
-    one direction only.
+14. **A pager reports where it came to rest, not every offset.** `PagerNode(index: …)` states which
+    child to show and `onPageChanged` reports the one the reader landed on, so one store can drive
+    both the pager and a bar above it with no marker to tell a press from a swipe. Reach for
+    `PagerNode` rather than a scrolling `Box` when a view should settle on a child: the node states
+    the scroll, holds the index, and requires every page to be its own size.
 
 15. **Copy is a value, and the locale is an argument.** The tree holds strings, so a
     translation is another call of the same builder: pass a `const` copy object

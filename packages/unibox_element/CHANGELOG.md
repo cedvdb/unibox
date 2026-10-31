@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `PagerNode` is planned as its own thing: the element carries `scroll-snap-type` and its
+  children carry `scroll-snap-align`, and the class a pager wears is kept apart from the class of
+  an ordinary scroller, because the child rule is part of what the class stands for.
+
 - `boxAttributes` writes `aria-pressed` for `BoxSemantics.pressed`, so a toggle button states
   whether it is on: a chip and a segment were written as an ordinary button with no state, and
   the fill and the check were the only things saying which choice was on. Both `true` and

@@ -271,14 +271,12 @@ void _pageTests() {
   web.Element pagerHost(int page) {
     final web.HTMLDivElement element = host();
     DomView.mount(
-      core.Box(
+      core.PagerNode(
         key: 'pager',
         width: 120,
         height: 80,
         direction: core.Axis.horizontal,
-        overflow: core.Overflow.scroll,
-        snap: core.ScrollSnap.page,
-        page: page,
+        index: page,
         children: <core.UINode>[
           for (int index = 0; index < 3; index++)
             core.Box(
@@ -296,8 +294,8 @@ void _pageTests() {
   }
 
   test('a pager starts on the page the tree names, without sliding there', () {
-    // The first application is a jump, so the box is already on its page when the view returns — a
-    // pager that slid into place as it appeared would be a flash nobody asked for.
+    // The move is a jump, so the pager is already on its page when the view returns — one that
+    // slid into place as it appeared would be a flash nobody asked for.
     final web.Element pager = pagerHost(1).children.item(0)!;
 
     expect(pager.scrollLeft, 120);
@@ -305,5 +303,33 @@ void _pageTests() {
     // And the box is a scroller with three pages, so the offset is reachable at all.
     expect(pager.getAttribute('data-unibox-key'), 'pager');
     expect(pager.className, startsWith('unibox-box-'));
+  });
+
+  test('reports the page the reader came to rest on', () {
+    // The settled index is what a bar above the pager follows, and the browser says it once the
+    // scroll has stopped rather than on every frame of the swipe.
+    final List<int> settled = <int>[];
+    final web.HTMLDivElement element = host();
+
+    DomView.mount(
+      core.PagerNode(
+        key: 'pager',
+        width: 120,
+        height: 80,
+        direction: core.Axis.horizontal,
+        onPageChanged: settled.add,
+        children: <core.UINode>[
+          for (int index = 0; index < 3; index++)
+            core.Box(key: 'page-$index', width: 120, height: 80),
+        ],
+      ),
+      element,
+    );
+
+    final web.Element pager = element.children.item(0)!;
+    pager.scrollLeft = 240;
+    pager.dispatchEvent(web.Event('scrollend'));
+
+    expect(settled, <int>[2]);
   });
 }

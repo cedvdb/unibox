@@ -53,8 +53,12 @@ class FlutterBoxState extends State<FlutterBox> {
   /// list and then correct it.
   ScrollController? _scroll;
 
-  /// The page this box was last moved to, so a rebuild with the same page leaves the reader alone.
-  int? _appliedPage;
+  /// The page this box was last told to show, so a rebuild that states the same one leaves
+  /// the reader where they are.
+  ///
+  /// A page is a position rather than a controller, and a reader may have swiped away from the
+  /// one the tree last named: applying it again on every rebuild would drag them back.
+  int? _appliedIndex;
 
   /// The slot each pinned band keeps in the flow, by the index of its child.
   ///
@@ -93,23 +97,23 @@ class FlutterBoxState extends State<FlutterBox> {
     super.dispose();
   }
 
-  /// Slides a pager to the page the tree says it shows, when that is not where it already is.
+  /// Moves a pager to the child the tree says it shows, when that is not where it was last sent.
   ///
-  /// A page is a position and not a command, so the box moves only when the value differs from the
-  /// one it last applied: a rebuild that states the same page leaves a reader mid-swipe alone, which
-  /// is the difference between a description and a controller. It happens after the frame, because
-  /// the extent of a page is the viewport's and that is only known once the box has been laid out.
-  void _applyPage(core.BoxStyle style) {
-    final int? page = style.page;
+  /// A page is a position and not a command, so the pager moves only when the value differs from
+  /// the one it last applied: a rebuild that states the same index leaves a reader mid-swipe
+  /// alone, which is the difference between a description and a controller. The move itself is a
+  /// jump — a browser's programmatic scroll can be given neither a duration nor a curve, so an
+  /// eased one here would be an animation only Flutter has, and the two renderings would differ
+  /// by exactly the thing the model refuses to leave to a host. It happens after the frame,
+  /// because a page is the viewport's size and that is only known once the box has been laid out.
+  void _applyIndex(core.PagerNode? pager) {
+    final int? index = pager?.index;
 
-    if (page == null || page == _appliedPage) {
+    if (index == null || index == _appliedIndex) {
       return;
     }
 
-    // The first application is a jump: a pager that slides into place on the frame it appears is a
-    // flash, and the reader did not ask for the movement. Every later one is the press that asked.
-    final bool first = _appliedPage == null;
-    _appliedPage = page;
+    _appliedIndex = index;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final ScrollController? controller = _scroll;
@@ -118,19 +122,7 @@ class FlutterBoxState extends State<FlutterBox> {
         return;
       }
 
-      final double target = page * controller.position.viewportDimension;
-
-      if (first) {
-        controller.jumpTo(target);
-
-        return;
-      }
-
-      controller.animateTo(
-        target,
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOutCubic,
-      );
+      controller.jumpTo(index * controller.position.viewportDimension);
     });
   }
 
@@ -196,6 +188,10 @@ class FlutterBoxState extends State<FlutterBox> {
 
     final List<core.Box> pinned = _pinnedBands(box, style);
 
+    // A pager is a node rather than a token, so the renderer reads it here: the physics below, the
+    // index it is told to show and the settled page it reports all come from it.
+    final core.PagerNode? pager = box is core.PagerNode ? box : null;
+
     // A fold is driven by whatever scrolls the box, which is the nearest `Scrollable` and not
     // necessarily this box: a hero inside a scrolling column folds over that column's scroll.
     // No scrollable above it means the box never leaves, so it keeps its resting look.
@@ -234,7 +230,7 @@ class FlutterBoxState extends State<FlutterBox> {
       );
     }
 
-    _applyPage(style);
+    _applyIndex(pager);
 
     final core.BoxTextStyle textStyle =
         style.textStyle ?? const core.BoxTextStyle();
@@ -250,12 +246,10 @@ class FlutterBoxState extends State<FlutterBox> {
           scrollDirection: toAxis(style.resolvedDirection),
           controller: _scroll,
           // A pager settles on a child instead of wherever the finger stopped. The physics is
-          // the whole of it: a page is a child the size of the box, so the viewport's own
-          // boundaries are the children's, and the two targets agree because CSS snaps to the
-          // child's own `scroll-snap-align` edge.
-          physics: style.snap == core.ScrollSnap.page
-              ? const PageScrollPhysics()
-              : null,
+          // the whole of it: a page is a child the size of the box — the rule `validateTree`
+          // states — so the viewport's own boundaries are the children's, and the two targets
+          // agree because CSS snaps to the child's own `scroll-snap-align` edge.
+          physics: pager == null ? null : const PageScrollPhysics(),
           child: content,
         );
       }
@@ -270,16 +264,36 @@ class FlutterBoxState extends State<FlutterBox> {
       );
 
       final core.ScrollCallback? onScroll = box.onScroll;
-      if (onScroll != null) {
+      final core.PageChangedCallback? onPageChanged = pager?.onPageChanged;
+
+      if (onScroll != null || onPageChanged != null) {
         // *Around* the scroll view: a notification travels up from the scrollable to its
         // ancestors, so a listener inside it hears nothing.
-        content = NotificationListener<ScrollUpdateNotification>(
+        content = NotificationListener<ScrollNotification>(
           // A scrollable nested in the content notifies this listener too, at a greater
           // depth: only this box's own viewport is reported, which is what the browser's
           // non-bubbling `scroll` event gives for free.
-          onNotification: (ScrollUpdateNotification notification) {
-            if (notification.depth == 0) {
-              onScroll(notification.metrics.pixels);
+          onNotification: (ScrollNotification notification) {
+            if (notification.depth != 0) {
+              return false;
+            }
+
+            final ScrollMetrics metrics = notification.metrics;
+
+            if (onScroll != null && notification is ScrollUpdateNotification) {
+              onScroll(metrics.pixels);
+            }
+
+            // A page is where the pager came to rest, so this is the end of a gesture or of the
+            // move the tree asked for — never the frames in between. The index is read back from
+            // the viewport rather than remembered, so a swipe and a stated index are the same
+            // answer, which is what lets a store keep one number and follow both.
+            if (onPageChanged != null &&
+                notification is ScrollEndNotification &&
+                metrics.viewportDimension > 0) {
+              onPageChanged(
+                (metrics.pixels / metrics.viewportDimension).round(),
+              );
             }
 
             return false;
@@ -776,6 +790,13 @@ class FlutterBoxState extends State<FlutterBox> {
   /// pin in any other box is reported by `validateTree`, and drawing it in the flow is
   /// the one answer both targets give for a tree it refuses.
   static List<core.Box> _pinnedBands(core.Box box, core.BoxStyle style) {
+    if (box is core.PagerNode) {
+      // A pager's viewport holds one child at a time, so a band pinned to it would be painted
+      // over the page that replaced it. `validateTree` reports the tree; drawing it in the flow
+      // is the one answer both targets give for a tree they refuse.
+      return const <core.Box>[];
+    }
+
     if (style.overflow != core.Overflow.scroll ||
         style.resolvedDirection != core.Axis.vertical) {
       return const <core.Box>[];

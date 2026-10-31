@@ -90,8 +90,8 @@ UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
           'Pages',
           _pager(palette),
           note:
-              'A scrolling box that settles: `snap: ScrollSnap.page` moves one child at '
-              'a time. Swipe it sideways.',
+              'A pager: `PagerNode` settles on one child at a time, and its children are the '
+              'size the tree states. Swipe it sideways.',
         ),
         _section(
           palette,
@@ -571,13 +571,13 @@ UINode _secondaryTabs(MaterialPalette palette) {
   );
 }
 
-/// Three tabs over a pager: pressing a tab slides the page, and swiping a page moves the bar.
+/// Three tabs over a pager: pressing a tab moves the page, and swiping a page moves the bar.
 ///
 /// This is what `MaterialTabs` cannot be on its own: a pager needs a page the size of the box, and
 /// the size of a tab's page is the layout's business. So the demo composes the two halves — a
-/// [MaterialTabBar] and a snapping box — over one store, which is the model's answer to "one state,
-/// two views". The index travels into the box as `page`, and back out of it as the offset the box
-/// reports, so neither half can disagree with the other.
+/// [MaterialTabBar] and a [PagerNode] — over one store, which is the model's answer to "one state,
+/// two views". The index travels into the pager as `index`, and back out of it as the page it
+/// settled on, so neither half can disagree with the other.
 final class TabsDemo extends StatefulNode<TabsDemoState, TabsDemoStore> {
   /// Creates the demo, with [palette] answering its colour roles.
   factory TabsDemo({MaterialPalette? palette}) => TabsDemo._(
@@ -593,10 +593,10 @@ final class TabsDemo extends StatefulNode<TabsDemoState, TabsDemoStore> {
 
 /// Which tab is chosen, and how wide the tab view is.
 ///
-/// The width is state because it is what turns an offset into a page: a pager reports pixels, and
-/// the bar speaks in indices, so something has to know the divisor. Here, because the demo draws a
-/// table of a fixed size — the bar, the pager and every page are the same width, which is what puts
-/// the page under the tab that shows it and leaves no strip of view narrower than the bar above it.
+/// The width is state because the bar and the pages are drawn at the same number: the bar is as
+/// wide as the page under it, so a tab sits above the page it shows and the view is never a
+/// narrower strip than the row above it. The pager itself needs no divisor any more — it reports
+/// the page it came to rest on, not the offset it travelled.
 ///
 /// A page has to be a number in the tree, and the number has to fit the column the table is drawn
 /// in: a phone's band leaves 280 pixels of a 344 pixel window, so the table is a specimen at every
@@ -627,50 +627,25 @@ final class TabsDemoState {
 
 /// The store of [TabsDemo]: one index, from a press or from a swipe.
 ///
-/// It holds the two directions apart, because the pager and the bar are wired to each other. A
-/// press chooses a page and the pager *slides* to it, reporting every offset on the way; read as
-/// choices, those offsets send the bar back to where the slide started, and the tab that was
-/// pressed never appears chosen. So a press leaves a marker behind, and the offsets of the slide
-/// it asked for are ignored until the pager arrives. A swipe sets no marker — every offset a
-/// reader makes is theirs.
+/// Both ways in end the same way — a press names a page, and a swipe reports the one the pager
+/// came to rest on — so the whole of the state is the index, and nothing has to tell the two
+/// apart. That is what a settled report buys: read as offsets, the frames of a press's own move
+/// sent the bar back to where the move started, which took a marker to undo.
 final class TabsDemoStore extends StateStore<TabsDemoState> {
   /// Creates the store on page 0.
   TabsDemoStore() : super(const TabsDemoState());
 
-  /// The page a press sent the pager to, while it is still on its way there.
-  int? _sent;
-
   /// Chooses the tab at [index].
-  void choose(int index) {
-    final int chosen = index.clamp(0, 2);
-    _sent = chosen;
-    _select(chosen);
-  }
+  void choose(int index) => _select(index.clamp(0, 2));
 
-  /// Follows the reader's swipe: the offset becomes the page it landed on.
-  ///
-  /// Rounded rather than floored, because a swipe that stops three quarters of the way to the next
-  /// page settles on it: the bar should say where the pager came to rest, not where it started.
-  void scrolledTo(double offset) {
-    final int index = (offset / state.pageWidth).round();
-    final int? sent = _sent;
-
-    if (sent != null) {
-      // Still arriving where a press sent it: an offset between two pages says nothing about
-      // what the reader wants, and the one that reaches the page hands the pager back.
-      if (index == sent) {
-        _sent = null;
-      }
-
-      return;
-    }
-
+  /// Follows the pager: the page it came to rest on, however it got there.
+  void settled(int index) {
     if (index != state.selected) {
       _select(index);
     }
   }
 
-  /// Shows the page at [index] without claiming the pager is on its way there.
+  /// Shows the page at [index].
   void _select(int index) =>
       state = TabsDemoState(selected: index, pageWidth: state.pageWidth);
 }
@@ -705,14 +680,12 @@ UINode _tabsView(
           MaterialTab(label: TextNode('Reviews')),
         ],
       ),
-      Box(
+      PagerNode(
         width: state.pageWidth,
         height: 96,
         direction: Axis.horizontal,
-        overflow: Overflow.scroll,
-        snap: ScrollSnap.page,
-        page: state.selected,
-        onScroll: store.scrolledTo,
+        index: state.selected,
+        onPageChanged: store.settled,
         // No radius here: a scroll box clips to its corners, so a rounded view cut the
         // corners off the page drawn inside it. The page carries the outline that says
         // where the view begins and ends, and it is square.
@@ -752,22 +725,21 @@ UINode _page(MaterialPalette palette, String text) {
   );
 }
 
-/// A pager: a horizontal scrolling box that settles on a child instead of between two.
+/// A pager: a horizontal box that settles on a child instead of between two.
 ///
-/// The box is exactly one page wide, which is the contract `ScrollSnap.page` states — a page is a
-/// child the size of the box. Stated that way, the two targets agree for a reason rather than by
-/// luck: CSS snaps to the child's own `scroll-snap-align` edge, and Flutter's page physics snaps to
-/// the viewport's, which is the same edge when the two are the same width.
+/// The pager is exactly one page wide, which is the contract `PagerNode` states — a page is a
+/// child the size of the box, and `validateTree` reports a child that is not. Stated that way, the
+/// two targets agree for a reason rather than by luck: CSS snaps to the child's own
+/// `scroll-snap-align` edge, and Flutter's page physics snaps to the viewport's, which is the same
+/// edge when the two are the same width.
 UINode _pager(MaterialPalette palette) {
   const double page = 240;
   const double height = 120;
 
-  return Box(
+  return PagerNode(
     width: page,
     height: height,
     direction: Axis.horizontal,
-    overflow: Overflow.scroll,
-    snap: ScrollSnap.page,
     borderRadius: 12,
     children: <UINode>[
       for (final (int index, String caption) in <String>[

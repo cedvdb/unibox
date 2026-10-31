@@ -157,13 +157,11 @@ void _pageTests() {
         width: 120,
         height: 80,
         child: renderFlutter(
-          core.Box(
+          core.PagerNode(
             width: 120,
             height: 80,
             direction: core.Axis.horizontal,
-            overflow: core.Overflow.scroll,
-            snap: core.ScrollSnap.page,
-            page: page,
+            index: page,
             children: <core.UINode>[
               for (int index = 0; index < 3; index++)
                 core.Box(
@@ -179,7 +177,7 @@ void _pageTests() {
     ),
   );
 
-  testWidgets('a pager slides to the page the tree names', (
+  testWidgets('a pager jumps to the page the tree names', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(pager(0));
@@ -192,7 +190,9 @@ void _pageTests() {
     await tester.pumpWidget(pager(2));
     await tester.pumpAndSettle();
 
-    // The extent of a page is the viewport's, and the box is one page wide.
+    // The extent of a page is the viewport's, and the box is one page wide. A jump and not a
+    // slide: a browser's programmatic scroll takes no duration and no curve, so an eased move
+    // here would be an animation only one target has.
     expect(controller.offset, 240);
   });
 

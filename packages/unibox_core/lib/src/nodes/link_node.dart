@@ -37,8 +37,6 @@ final class LinkNode extends Box {
     super.flex,
     super.gridSpan,
     super.overflow,
-    super.snap,
-    super.page,
     super.width,
     super.height,
     super.aspectRatio,

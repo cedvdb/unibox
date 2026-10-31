@@ -107,15 +107,18 @@ void main() {
     test(
       'states the shrink once for a pager, on the box and not on the stops',
       () {
-        const style = core.BoxStyle(
+        const core.BoxStyle style = core.BoxStyle(
           overflow: core.Overflow.scroll,
-          snap: core.ScrollSnap.page,
         );
 
         expect(
-          snapRules('unibox-box-1f3c9a7b', style).single.declarations.text,
+          pagerRules(
+            'unibox-box-1f3c9a7b',
+            pager: true,
+          ).single.declarations.text,
           'scroll-snap-align:start',
         );
+        expect(pagerRules('unibox-box-1f3c9a7b', pager: false), isEmpty);
         expect(scrollRules('unibox-box-1f3c9a7b', style), hasLength(1));
       },
     );

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- A pager is written from the node rather than from a token: `boxDeclarations(style, pager: true)`
+  emits `scroll-snap-type` for the box's own axis, and `pagerRules(className, pager: true)` makes
+  its children the stops. `cssScrollSnap` is now `cssScrollSnapType(axis)` and `snapRules` is
+  `pagerRules`, because a box no longer states that it settles.
+
 - A grid that states its columns writes one explicit `minmax(0, Nfr)` track per child — the
   `1fr 2fr 1fr` of the specification, with a floor of zero so a column shrinks into a parent too
   narrow for it — and both forms now state `align-items` from the model's own default rather than

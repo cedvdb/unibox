@@ -50,6 +50,7 @@ with their target.
 | `shape`                            | `CustomPaint` with a `Path`: the fill, then the border as a stroke along it |
 | `shape` + `overflow: Overflow.hidden` | `ClipPath` to the same path                       |
 | `overflow: Overflow.scroll`         | `SingleChildScrollView`                             |
+| `PagerNode`                         | the same scroll view with `PageScrollPhysics`, so a drag settles on a child rather than between two; `index` is applied after the frame that laid it out, and `onPageChanged` is read from the viewport at the end of a scroll. It is a `Box`, so it is drawn by `FlutterBox` and needs no widget of its own |
 | `pin` / `pinOffset`                 | the flow unchanged, with the band drawn over the viewport at the edge it names: a `_RenderPinnedBand` repaints it into place on every scroll, so nothing rebuilds and the band keeps its slot |
 | `fold`                              | a `_RenderFoldedBox` layer that interpolates the decoration, the opacity and the transform as it paints, from the box's own exit out of the viewport; nothing is rebuilt and nothing is laid out again |
 | `onTap` / `onLongPress`             | `GestureDetector`                                   |

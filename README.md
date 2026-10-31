@@ -289,7 +289,7 @@ a static site, each host a single small file.
 
 ## The nodes
 
-There are eleven node types. Each one is an immutable Dart object with a `const`
+There are twelve node types. Each one is an immutable Dart object with a `const`
 constructor, and each one describes *what* it is rather than which framework draws
 it. Style values — colours, spacing, borders, typography — are separate objects
 that a node takes as parameters, so a look can be reused as one `const BoxStyle`
@@ -304,7 +304,7 @@ when a list is reordered each child keeps its state: typed text stays in the fie
 it was typed into.
 
 The nodes are documented one page at a time — the parameters, the defaults the model
-gives each one, and what each target does with it. That is ten pages for the eleven
+gives each one, and what each target does with it. That is eleven pages for the twelve
 nodes, because `PositionedNode` is documented beside the `StackNode` it places in. The
 reference is [`docs/nodes`](docs/nodes/README.md).
 
@@ -318,8 +318,9 @@ reference is [`docs/nodes`](docs/nodes/README.md).
 | `TextInputNode` | A single line field, a password field, or a text area. | [TextInputNode](docs/nodes/text-input.md) |
 | `StatefulNode` | A subtree that owns a store and draws the tree of its state. | [StatefulNode](docs/nodes/stateful.md) |
 | `GridNode` | Equal columns whose count follows the width of the box, or a row of stated factors. | [GridNode](docs/nodes/grid.md) |
+| `PagerNode` | A `Box` that settles on one child at a time, and reports the page it came to rest on. | [PagerNode](docs/nodes/pager.md) |
 | `OverlayNode` | Content drawn above the page: a dialog, a sheet, a menu. | [OverlayNode](docs/nodes/overlay.md) |
-| `EmbedNode` | The escape hatch, for what the eleven nodes cannot describe. | [EmbedNode](docs/nodes/embed.md) |
+| `EmbedNode` | The escape hatch, for what the twelve nodes cannot describe. | [EmbedNode](docs/nodes/embed.md) |
 
 The values a node takes are documented once, for both targets: [colours](#colours),
 [roles and theming](#roles-and-theming), [typography](#typography), [motion](#motion)

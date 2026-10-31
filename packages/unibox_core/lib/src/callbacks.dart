@@ -20,6 +20,18 @@ typedef HoverCallback = void Function(bool isHovered);
 /// call re-renders the subtree on every frame of a drag: throttle in the store, not here.
 typedef ScrollCallback = void Function(double offset);
 
+/// Called when a pager comes to rest on a child, with which child it is.
+///
+/// [index] counts along the pager's own axis, from `0`. It is the settled answer and not
+/// the offset, because a pager snaps: every offset between two pages is a number the
+/// reader is passing through, and a bar that named one of them would show a tab nobody
+/// chose. A pager also reports its own move — the one the tree asked for — when that move
+/// arrives, so a store that keeps the index hears about every way the pager got where it is
+/// and needs no marker to tell them apart.
+///
+/// It fires once per resting place, so a store may publish on it directly.
+typedef PageChangedCallback = void Function(int index);
+
 /// Called whenever the text of an input node changes.
 typedef TextChangedCallback = void Function(String text);
 

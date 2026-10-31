@@ -156,16 +156,15 @@ String cssOverflow(core.Overflow overflow) => switch (overflow) {
   core.Overflow.scroll => 'auto',
 };
 
-/// How a scrolling box settles, as `scroll-snap-type`, or `null` for a box that does not.
+/// How a pager settles, as `scroll-snap-type`.
 ///
-/// The axis is the box's own, which is why this is a function of the style rather than of the
-/// token alone: a row of pages pages sideways and a column of pages pages down, and CSS wants
-/// that axis written out.
-String? cssScrollSnap(core.ScrollSnap? snap, core.Axis axis) => switch (snap) {
-  null || core.ScrollSnap.none => null,
-  core.ScrollSnap.page =>
-    axis == core.Axis.horizontal ? 'x mandatory' : 'y mandatory',
-};
+/// The axis is the pager's own, which is why this is a function of the direction rather than of
+/// a token: a row of pages pages sideways and a column of pages pages down, and CSS wants that
+/// axis written out. The `x`/`y` pair is the physical one, because the box's direction is a
+/// physical axis in this model — a `writingDirection` of rtl reorders the pages, it does not
+/// turn the row into a column.
+String cssScrollSnapType(core.Axis axis) =>
+    axis == core.Axis.horizontal ? 'x mandatory' : 'y mandatory';
 
 /// The declarations of one frame of a fold, from [style] and the looks the fold moves.
 ///

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- The tabs' own documentation points at `PagerNode` for the pager rather than at a token: the
+  component still swaps its page on a press, and the example's tabs demo composes a
+  `MaterialTabBar` with a `PagerNode` over one store when a swipe is wanted.
+
 - A selected `MaterialChip` and the chosen segment of a `MaterialSegmentedButton` say
   `aria-pressed` on the web — `true` for the choice that is on and `false` for the ones that are
   off — which is the state Flutter already announced as `toggled`. A chip or a segment that is a

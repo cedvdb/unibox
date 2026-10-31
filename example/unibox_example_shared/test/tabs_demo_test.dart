@@ -4,57 +4,36 @@ import 'package:unibox_example_shared/unibox_example_shared.dart';
 
 void main() {
   group('the tabs demo', () {
-    /// The offset of page [index] in [store], which is the width the demo states.
-    double at(TabsDemoStore store, int index) => index * store.state.pageWidth;
-
-    test('is not undone by the slide a press starts', () {
+    test('takes a press as the page it names', () {
       final TabsDemoStore store = TabsDemoStore();
 
       store.choose(1);
 
-      // The pager slides to page 1 and reports every offset on the way. Read as choices,
-      // those offsets would send the bar back to 0 and the pressed tab would never appear
-      // chosen — which is what a browser did before the store held the two apart.
-      for (final double part in <double>[0, 0.13, 0.4, 0.75, 0.99]) {
-        store.scrolledTo(at(store, 0) + part * store.state.pageWidth);
-
-        expect(
-          store.state.selected,
-          1,
-          reason: 'an offset $part of the way is the slide, not a choice',
-        );
-      }
-
-      store.scrolledTo(at(store, 1));
       expect(store.state.selected, 1);
     });
 
-    test('follows the reader again once the pager has arrived', () {
+    test('takes a swipe as the page the pager settled on', () {
+      // The pager reports the page it came to rest on, never the offsets on the way there, so the
+      // bar follows a swipe and a press with the same number — and needs no marker to tell them
+      // apart, which is what the offsets it used to read required.
       final TabsDemoStore store = TabsDemoStore();
 
-      store.choose(2);
-      store.scrolledTo(at(store, 2));
+      store.settled(2);
+      expect(store.state.selected, 2);
 
-      // The pager is where the press sent it, so the next offset is the reader's.
-      store.scrolledTo(at(store, 1));
-      expect(store.state.selected, 1);
-
-      store.scrolledTo(at(store, 0));
+      store.settled(0);
       expect(store.state.selected, 0);
     });
 
-    test('takes a swipe as the page it settles on', () {
+    test('ignores a settle that names the page it is already on', () {
+      // A pager reports its own move when it arrives, so the press that asked for it hears the
+      // same index a second time: publishing again would rebuild for a state that did not change.
       final TabsDemoStore store = TabsDemoStore();
 
-      store.scrolledTo(at(store, 0) + 0.75 * store.state.pageWidth);
-      expect(
-        store.state.selected,
-        1,
-        reason: 'three quarters of the way to the next page settles on it',
-      );
+      store.choose(1);
+      store.settled(1);
 
-      store.scrolledTo(at(store, 2));
-      expect(store.state.selected, 2);
+      expect(store.state.selected, 1);
     });
 
     test(
@@ -73,15 +52,16 @@ void main() {
     );
 
     test('draws the page under the bar as a square view', () {
-      // A scrolling box clips what it draws to its own outline, so a rounded view cut
-      // the corners off the page inside it: the page paints the hairline that says where
-      // the view begins and ends, and a corner missing from that hairline reads as a
-      // cropped page rather than as a shape.
+      // A pager clips what it draws to its own outline, so a rounded view cut the corners off
+      // the page inside it: the page paints the hairline that says where the view begins and
+      // ends, and a corner missing from that hairline reads as a cropped page rather than as a
+      // shape.
       final TabsDemoStore store = TabsDemoStore();
       final Box view = TabsDemo().viewFor(store.state, store) as Box;
-      final Box pager = view.children.last as Box;
+      final UINode pager = view.children.last;
 
-      expect(pager.overflow, Overflow.scroll);
+      expect(pager, isA<PagerNode>());
+      expect((pager as PagerNode).computedStyle.overflow, Overflow.scroll);
       expect(
         pager.borderRadius,
         isNull,

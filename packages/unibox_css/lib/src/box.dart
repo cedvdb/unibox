@@ -32,6 +32,7 @@ CssDeclarations boxDeclarations(
   bool capturesPointer = true,
   bool declaredOnly = false,
   bool anchor = false,
+  bool pager = false,
   core.BoxElement element = core.BoxElement.div,
 }) {
   final core.Axis? direction = declaredOnly
@@ -195,7 +196,12 @@ CssDeclarations boxDeclarations(
     )
     ..addIf(
       'scroll-snap-type',
-      cssScrollSnap(style.snap, style.resolvedDirection),
+      // A pager is the node, not a token: the plan says so and the declarations follow. A state
+      // rule leaves it out, like the pin below, because `:hover` cannot change where a box
+      // settles.
+      pager && !declaredOnly
+          ? cssScrollSnapType(style.resolvedDirection)
+          : null,
     )
     ..addIf('opacity', opacity == null ? null : cssNumber(opacity))
     ..addIf('transform', cssTransform(style.transform));

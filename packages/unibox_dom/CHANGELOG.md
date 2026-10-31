@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `PagerNode` is moved and reported from the node: `index` is applied with a `scrollTo` that does
+  not ease — a browser's smooth scroll takes no duration and no curve, so the move is a jump on
+  both targets — and `onPageChanged` reports the page the pager came to rest on, from the
+  browser's own `scrollend`, with a debounced `scroll` for a browser that lacks it.
+
 - A link is a `LinkNode` — a box that names a destination — so the click rule binds where the
   press is and nowhere else: a plain click is cancelled and answered by the tree, while a
   modifier, a middle click and a `newTab` stay the browser's. A link with no `onTap` binds

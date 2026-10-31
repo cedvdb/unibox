@@ -110,6 +110,9 @@ ElementPlan _planBox(core.Box box, Stylesheet sheet, PlanOptions options) {
   // the anchor, and they cannot disagree about it.
   final bool anchor = element == core.BoxElement.a;
   final String tag = element.name;
+  // A pager is a node rather than a token, so the plan is where the renderer learns it: the
+  // declarations and the child rule below are the two halves of what a page settles on.
+  final bool pager = box is core.PagerNode;
   // A painted leaf takes no pointer: it has nothing to press, and letting it be the
   // target would put a decoration in front of the control it was drawn for. A link is
   // never that decoration: an anchor with nothing inside it is still the thing to press.
@@ -153,6 +156,7 @@ ElementPlan _planBox(core.Box box, Stylesheet sheet, PlanOptions options) {
       interactive: interactive,
       pointer: capturesPointer,
       threshold: holdsThreshold,
+      pager: pager,
       hover: box.hoverStyle,
       states: _StateStyles.of(box.stateStyles),
     ),
@@ -163,6 +167,7 @@ ElementPlan _planBox(core.Box box, Stylesheet sheet, PlanOptions options) {
         interactive: interactive,
         capturesPointer: capturesPointer,
         anchor: anchor,
+        pager: pager,
         element: element,
       );
 
@@ -183,7 +188,7 @@ ElementPlan _planBox(core.Box box, Stylesheet sheet, PlanOptions options) {
     states: (String name) => <CssRule>[
       ...stateRules(box, name),
       ...scrollRules(name, style),
-      ...snapRules(name, style),
+      ...pagerRules(name, pager: pager),
       ...thresholdRules(
         name,
         from: style.visibleFrom,

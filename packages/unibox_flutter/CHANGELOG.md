@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- `PagerNode` is drawn by `FlutterBox`, with page physics for the settle, a jump to `index` after
+  the frame that laid the pager out, and `onPageChanged` read back from the viewport when a
+  scroll ends. The move is no longer animated: a browser's programmatic scroll takes no duration
+  and no curve, so an eased one here was an animation only this target had. A pager holds no
+  pinned bands, which is the one tree `validateTree` refuses.
+
 - A box that hides its overflow now hides it *inside* its border, where a browser hides it:
   `overflow: Overflow.hidden` on a bordered box cut the whole box, so a child that filled it
   painted over the line — a chosen segment broke the outline of the pill around it, and the tint

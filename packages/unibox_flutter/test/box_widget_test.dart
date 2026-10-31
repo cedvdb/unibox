@@ -820,10 +820,8 @@ void main() {
       // comes to rest on one, which is the whole difference from a list.
       await pumpNode(
         tester,
-        const core.Box(
+        const core.PagerNode(
           height: 100,
-          overflow: core.Overflow.scroll,
-          snap: core.ScrollSnap.page,
           children: <core.UINode>[
             core.Box(height: 100, minHeight: 100),
             core.Box(height: 100, minHeight: 100),
@@ -846,6 +844,30 @@ void main() {
           .position
           .pixels;
       expect(offset % 100, 0, reason: 'it came to rest on a page boundary');
+    });
+
+    testWidgets('reports the page it came to rest on', (tester) async {
+      // The settled index is the answer a bar above the pager needs, and it is read back from
+      // the viewport rather than remembered: a swipe and a stated index answer the same way.
+      final List<int> pages = <int>[];
+
+      await pumpNode(
+        tester,
+        core.PagerNode(
+          width: 100,
+          height: 100,
+          onPageChanged: pages.add,
+          children: <core.UINode>[
+            const core.Box(width: 100, height: 100),
+            const core.Box(width: 100, height: 100),
+          ],
+        ),
+      );
+
+      await tester.drag(find.byKey(nodeKey), const Offset(0, -60));
+      await tester.pumpAndSettle();
+
+      expect(pages, contains(1));
     });
 
     testWidgets('reports how far its own content has scrolled', (tester) async {

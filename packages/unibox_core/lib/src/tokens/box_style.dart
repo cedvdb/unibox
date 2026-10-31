@@ -43,8 +43,6 @@ final class BoxStyle {
     this.flex,
     this.gridSpan,
     this.overflow,
-    this.snap,
-    this.page,
     this.pin,
     this.pinOffset,
     this.width,
@@ -155,24 +153,6 @@ final class BoxStyle {
 
   /// How overflowing content is treated.
   final Overflow? overflow;
-
-  /// Where the box comes to rest when a scroll gesture ends.
-  ///
-  /// Only meaningful with [overflow] of [Overflow.scroll]: a box that does not scroll has
-  /// nothing to settle. [ScrollSnap.page] makes it a pager — it moves one child at a time,
-  /// along the box's own axis, and stops on a child rather than between two.
-  final ScrollSnap? snap;
-
-  /// The page a snapping box shows, counted along its own axis, or `null` for wherever it is.
-  ///
-  /// This is the one way to *move* a pager, and it is a position rather than a controller: a tree
-  /// drawn twice with the same page does not move the second time, and a tree drawn with another
-  /// page slides one child. It is discrete on purpose — a continuous offset belongs to the reader'
-  /// finger, and a renderer that set one on every rebuild would fight it.
-  ///
-  /// Only meaningful with [snap] of [ScrollSnap.page]: [ScrollSnap] says where the box settles and
-  /// this says where it is told to settle, which `validateTree` reports when only one is given.
-  final int? page;
 
   // Position.
 
@@ -394,8 +374,6 @@ final class BoxStyle {
       flex: flex,
       gridSpan: gridSpan,
       overflow: overflow,
-      snap: snap,
-      page: page,
       pin: pin,
       pinOffset: pinOffset,
       width: width,
@@ -443,8 +421,6 @@ final class BoxStyle {
     int? flex,
     int? gridSpan,
     Overflow? overflow,
-    ScrollSnap? snap,
-    int? page,
     BoxPin? pin,
     double? pinOffset,
     double? width,
@@ -482,8 +458,6 @@ final class BoxStyle {
       flex: flex ?? this.flex,
       gridSpan: gridSpan ?? this.gridSpan,
       overflow: overflow ?? this.overflow,
-      snap: snap ?? this.snap,
-      page: page ?? this.page,
       pin: pin ?? this.pin,
       pinOffset: pinOffset ?? this.pinOffset,
       width: width ?? this.width,
@@ -536,8 +510,6 @@ final class BoxStyle {
       flex: other.flex ?? flex,
       gridSpan: other.gridSpan ?? gridSpan,
       overflow: other.overflow ?? overflow,
-      snap: other.snap ?? snap,
-      page: other.page ?? page,
       pin: other.pin ?? pin,
       pinOffset: other.pinOffset ?? pinOffset,
       width: other.width ?? width,
@@ -579,8 +551,6 @@ final class BoxStyle {
       other.flex == flex &&
       other.gridSpan == gridSpan &&
       other.overflow == overflow &&
-      other.snap == snap &&
-      other.page == page &&
       other.pin == pin &&
       other.pinOffset == pinOffset &&
       other.width == width &&
@@ -619,8 +589,6 @@ final class BoxStyle {
     flex,
     gridSpan,
     overflow,
-    snap,
-    page,
     pin,
     pinOffset,
     width,
@@ -659,8 +627,6 @@ final class BoxStyle {
       if (flex != null) 'flex: $flex',
       if (gridSpan != null) 'gridSpan: $gridSpan',
       if (overflow != null) 'overflow: $overflow',
-      if (snap != null) 'snap: $snap',
-      if (page != null) 'page: $page',
       if (pin != null) 'pin: $pin',
       if (pinOffset != null) 'pinOffset: $pinOffset',
       if (width != null) 'width: $width',
