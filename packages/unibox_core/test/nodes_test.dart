@@ -168,6 +168,7 @@ void main() {
         children: const <UINode>[TextNode('One')],
         padding: const BoxSpacing.all(8),
         backgroundColor: BoxColors.blue,
+        capturesPointer: false,
         semantics: const BoxSemantics(role: BoxRole.button, label: 'One'),
         onTap: _noop,
       );
@@ -180,6 +181,7 @@ void main() {
       expect(link.semantics, box.semantics);
       expect(link.onTap, same(box.onTap));
       expect(link.enabled, box.enabled);
+      expect(link.capturesPointer, isFalse);
       // The look survives whole, because it travels as one bag: a token `Box` gains cannot be
       // forgotten by this conversion. The flat accessors of the copy answer null, which is
       // what a bag states and what every renderer reads instead.

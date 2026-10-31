@@ -66,6 +66,7 @@ final class LinkNode extends Box {
     super.hoverStyle,
     super.stateStyles,
     super.enabled,
+    super.capturesPointer,
     super.semantics,
     this.newTab = false,
     super.onTap,
@@ -81,7 +82,8 @@ final class LinkNode extends Box {
   /// its behaviour and its resolved look. The look travels as one [BoxStyle]
   /// ([Box.computedStyle]), which is why a token `Box` gains never has to be added here — it
   /// is already in the bag. The facets that are not style are the ones a reader keeps in
-  /// step: the children, `enabled`, `semantics`, the two state bags and the callbacks.
+  /// step: the children, `enabled`, `capturesPointer`, `semantics`, the two state bags and the
+  /// callbacks.
   ///
   /// The copy therefore states its look as a bag, and its flat accessors — `padding`,
   /// `backgroundColor` and the rest — answer `null`. Nothing renders differently, because a
@@ -96,6 +98,7 @@ final class LinkNode extends Box {
       hoverStyle: box.hoverStyle,
       stateStyles: box.stateStyles,
       enabled: box.enabled,
+      capturesPointer: box.capturesPointer,
       semantics: box.semantics,
       onTap: box.onTap,
       onTapDown: box.onTapDown,

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `LinkNode.of` keeps a box's `capturesPointer`: the field arrived after the conversion was
+  written, and the constructor did not forward it either, so a box that asked to be decoration
+  came back as a link that swallows the press it was told to pass on. The forwarding list is
+  the cost of a node that is a box, and this is the first field it caught.
+
 - `Box(pin: …, pinOffset: …)` keeps a band at the edge of the box that scrolls it:
   `BoxPin.start` is the top of the viewport, `BoxPin.end` the bottom, and `pinOffset` is the
   room a header above it takes. The band keeps its slot in the flow — nothing below it moves —
