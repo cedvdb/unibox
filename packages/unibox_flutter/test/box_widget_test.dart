@@ -39,6 +39,40 @@ void main() {
       expect(row.mainAxisSize, MainAxisSize.min);
     });
 
+    testWidgets('packs a row from the side the words start on', (tester) async {
+      // Arabic in a row is the same rectangle with the children packed from the other
+      // side: one token, and not a second tree or a mirrored alignment.
+      const Key first = ValueKey<Object>('first');
+
+      await pumpNode(
+        tester,
+        const core.Box(
+          direction: core.Axis.horizontal,
+          writingDirection: core.WritingDirection.rtl,
+          children: <core.UINode>[
+            core.Box(key: 'first', width: 20, height: 20),
+            core.Box(width: 60, height: 20),
+          ],
+        ),
+      );
+
+      // The box hugs its children and is 80 wide, so the first child of the row is the one
+      // against its right edge.
+      final double nodeLeft = tester.getTopLeft(find.byKey(nodeKey)).dx;
+
+      expect(tester.getTopLeft(find.byKey(first)).dx - nodeLeft, 60);
+    });
+
+    testWidgets('adds no direction of its own when it states none', (
+      tester,
+    ) async {
+      await pumpNode(tester, const core.Box());
+
+      // The harness already wraps every node in an LTR `Directionality`; a box that says
+      // nothing adds none, so the direction a tree inherits is the application's own.
+      expect(inNode(find.byType(Directionality)), findsNothing);
+    });
+
     testWidgets('maps a vertical direction to a Column', (tester) async {
       await pumpNode(
         tester,

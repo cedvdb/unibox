@@ -23,6 +23,24 @@ BoxDecoration decorationOf(WidgetTester tester) =>
 
 void main() {
   group('a stateful root', () {
+    testWidgets('keeps a token a role colour made it resolve', (tester) async {
+      // `resolve` rebuilds the style field by field, and it is the Flutter renderer that
+      // calls it, so a field it forgot was a token a themed box lost here and kept in the
+      // browser: this box wraps because `wrap` survives the lookup.
+      await pumpNode(
+        tester,
+        const core.Box(
+          direction: core.Axis.horizontal,
+          wrap: true,
+          backgroundColor: core.BoxColor.role(AppColor.primary),
+          children: <core.UINode>[core.Box(width: 10, height: 10)],
+        ),
+        theme: theme,
+      );
+
+      expect(inNode(find.byType(Wrap)), findsOneWidget);
+    });
+
     testWidgets('answers the roles of the theme it is given', (tester) async {
       await tester.pumpWidget(
         Directionality(

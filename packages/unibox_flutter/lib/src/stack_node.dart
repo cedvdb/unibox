@@ -69,7 +69,13 @@ class FlutterStack extends StatelessWidget {
     if (alignment != null) {
       return Positioned.fill(
         key: toFlutterKey(node.key),
-        child: Align(alignment: toAlignment(alignment), child: child),
+        // A start and an end follow the writing direction, which is what the browser's
+        // `justify-content: start` means: a control at the end of a line sits at the left of
+        // a page written right to left, on both targets.
+        child: Align(
+          alignment: toDirectionalAlignment(alignment),
+          child: child,
+        ),
       );
     }
 

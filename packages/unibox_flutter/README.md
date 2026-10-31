@@ -33,6 +33,7 @@ with their target.
 | `direction: Axis.horizontal`        | `Row`                                              |
 | `direction: Axis.vertical`          | `Column`                                           |
 | no `direction`                      | `Column`, the same as `Axis.vertical`              |
+| `writingDirection`                  | a `Directionality` around the flex, so the row itself reverses |
 | `gap`                               | `SizedBox` separators between children              |
 | `mainAlign` / `crossAlign`          | `mainAxisAlignment` / `crossAxisAlignment`, with `textBaseline` stated |
 | `crossAlign: CrossAlign.baseline`   | `CrossAxisAlignment.baseline` with `TextBaseline.alphabetic` |
@@ -42,7 +43,7 @@ with their target.
 | `minWidth`, `maxWidth`, ...         | `ConstrainedBox`                                    |
 | `backgroundColor`, `borderRadius`, `border`, `shadows` | `DecoratedBox` with a `BoxDecoration`, one entry of its `boxShadow` per shadow |
 | `overflow: Overflow.hidden`         | `ClipRect`, inside the decoration so the shadow survives |
-| `PositionedNode.alignment`          | `Positioned.fill` around an `Align`                 |
+| `PositionedNode.alignment`          | `Positioned.fill` around an `Align`, with a directional alignment so a start or an end follows the writing direction |
 | `shape`                            | `CustomPaint` with a `Path`: the fill, then the border as a stroke along it |
 | `shape` + `overflow: Overflow.hidden` | `ClipPath` to the same path                       |
 | `overflow: Overflow.scroll`         | `SingleChildScrollView`                             |

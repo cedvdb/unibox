@@ -122,6 +122,18 @@ TextAlign toTextAlign(core.TextAlign align) {
   };
 }
 
+/// Converts a Unibox [core.WritingDirection] to a Flutter [TextDirection].
+///
+/// The name is Flutter's rather than the model's: `TextDirection` is what the framework
+/// calls the direction of a style, and the same value also decides which way a `Flex`
+/// lays its children out.
+TextDirection toTextDirection(core.WritingDirection direction) {
+  return switch (direction) {
+    core.WritingDirection.ltr => TextDirection.ltr,
+    core.WritingDirection.rtl => TextDirection.rtl,
+  };
+}
+
 /// Converts a Unibox [core.TextOverflow] to a Flutter [TextOverflow].
 TextOverflow toTextOverflow(core.TextOverflow overflow) {
   return switch (overflow) {
@@ -290,19 +302,6 @@ BoxDecoration? toDecoration(core.BoxStyle style) {
         : shadows.map(toBoxShadow).toList(growable: false),
   );
 }
-
-/// [alignment] as Flutter's own.
-Alignment toAlignment(core.BoxAlignment alignment) => switch (alignment) {
-  core.BoxAlignment.topStart => Alignment.topLeft,
-  core.BoxAlignment.topCenter => Alignment.topCenter,
-  core.BoxAlignment.topEnd => Alignment.topRight,
-  core.BoxAlignment.centerStart => Alignment.centerLeft,
-  core.BoxAlignment.center => Alignment.center,
-  core.BoxAlignment.centerEnd => Alignment.centerRight,
-  core.BoxAlignment.bottomStart => Alignment.bottomLeft,
-  core.BoxAlignment.bottomCenter => Alignment.bottomCenter,
-  core.BoxAlignment.bottomEnd => Alignment.bottomRight,
-};
 
 /// The single alignment a box states with a main and a cross one.
 ///

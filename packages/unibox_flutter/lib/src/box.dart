@@ -211,6 +211,20 @@ class FlutterBoxState extends State<FlutterBox> {
           )
         : _buildFlow(box, style, pinned, availableWidth: null);
 
+    // A direction wraps the flow and never sits inside it: a `Row` reads
+    // `Directionality` when it lays its children out, so the inherited widget has to be
+    // above the flex. That is also where CSS puts the inherited `direction` — on the
+    // element, which its children inherit — so a box that states one reverses its
+    // children without a second tree, and a box that states none keeps the closest one
+    // above it, ending at the application's own.
+    final core.WritingDirection? writingDirection = style.writingDirection;
+    if (writingDirection != null) {
+      content = Directionality(
+        textDirection: toTextDirection(writingDirection),
+        child: content,
+      );
+    }
+
     _applyPage(style);
 
     final core.BoxTextStyle textStyle =

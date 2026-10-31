@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- An aligned `PositionedNode` child follows the writing direction, as the browser's class always
+  did: `Align` was given `Alignment.centerRight` for a `centerEnd` child, so in a page written
+  right to left the row mirrored and the control floating over it did not. It is now an
+  `AlignmentDirectional`, the same mapping the stack's own alignment already used, and the
+  physical `toAlignment` mapping is gone rather than left for a second caller to pick up.
+
+- A box that states `writingDirection` wraps its content in a `Directionality`: the flex reads it
+  when it lays its children out, so a row reverses and nothing else in the tree changes. A box
+  that states none adds no `Directionality` of its own, so the direction a tree inherits is the
+  application's own.
+
 - A box that scrolls paints no overscroll decoration: its viewport runs under a scroll
   configuration that passes the host's physics, drag devices and scrollbar through and drops its
   `GlowingOverscrollIndicator`. A Material application tints or stretches a scroll view pulled

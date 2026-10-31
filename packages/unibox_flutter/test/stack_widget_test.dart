@@ -302,5 +302,52 @@ void main() {
         reason: 'the child is at the bottom, not filling the stack',
       );
     });
+    testWidgets('puts an aligned child at the reading end of a stack', (
+      tester,
+    ) async {
+      // `centerEnd` names where the line ends and not the right edge: the browser's
+      // `justify-content: end` follows the writing direction, so the app has to follow it
+      // too, or a page translated into Arabic mirrors the row and not the control floating
+      // over it.
+      await pumpNode(tester, _alignedEndPatch(null));
+
+      expect(
+        _patchRect(tester).right,
+        moreOrLessEquals(
+          tester.getRect(find.byType(Stack)).right,
+          epsilon: 0.5,
+        ),
+      );
+
+      await pumpNode(tester, _alignedEndPatch(core.WritingDirection.rtl));
+
+      expect(
+        _patchRect(tester).left,
+        moreOrLessEquals(tester.getRect(find.byType(Stack)).left, epsilon: 0.5),
+      );
+    });
   });
 }
+
+/// A layer with one patch aligned to the reading end of its middle row, written in
+/// [writingDirection].
+core.Box _alignedEndPatch(core.WritingDirection? writingDirection) => core.Box(
+  writingDirection: writingDirection,
+  width: 300,
+  height: 200,
+  children: <core.UINode>[
+    const core.StackNode(
+      children: <core.UINode>[
+        core.Box(width: double.infinity, height: double.infinity),
+        core.PositionedNode(
+          alignment: core.BoxAlignment.centerEnd,
+          child: core.Box(key: 'patch', width: 40, height: 40),
+        ),
+      ],
+    ),
+  ],
+);
+
+/// Where that patch landed.
+Rect _patchRect(WidgetTester tester) =>
+    tester.getRect(find.byKey(const ValueKey<Object>('patch')));
