@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- `MaterialElevation.level0` is the rung below level one: a surface flush with the page, which
+  casts no shadow. Material's ladder has six heights and this package stated five, so a card
+  that deliberately sits at the page's own height had no name for it and wrote an empty list of
+  shadows itself. `level0` is an empty list rather than `null`, which would fall back to a
+  card's resting shadow. The example's catalogue now draws one card at each of the six heights,
+  with the two highest sharing `surfaceContainerHighest` — the end of the palette's tone
+  ladder — so the shadow alone carries the last step.
+
+
 - **A hover, focus or press tint covers the pill, not the label.** A well that paints a surface of
   its own is two boxes — the shape, which takes the press and clips, and the layer the three tints
   are painted on — and that layer took only the exact `width` and `height` it was given. A pill held

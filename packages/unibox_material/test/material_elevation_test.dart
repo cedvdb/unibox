@@ -39,6 +39,18 @@ void main() {
       ]);
     });
 
+    test('states level zero as the page, which casts nothing', () {
+      // The ladder's first card is the page itself: the design file draws six cards and
+      // only five of them cast a shadow. Level zero is a level all the same — the name a
+      // card uses when it is deliberately flush with the page — so it is an empty list
+      // rather than `null`, which would fall back to a card's own resting shadow.
+      expect(MaterialElevation.level0, isEmpty);
+      expect(
+        const MaterialCard(shadows: MaterialElevation.level0).shadows,
+        isEmpty,
+      );
+    });
+
     test('rises: every level casts further than the one below it', () {
       const List<List<BoxShadow>> levels = <List<BoxShadow>>[
         MaterialElevation.level1,

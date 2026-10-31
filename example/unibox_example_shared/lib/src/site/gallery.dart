@@ -66,7 +66,7 @@ UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
           'Cards and tiles',
           _cards(palette),
           note:
-              'Three heights on the surface Material tints to match, the two other '
+              'All six heights on the surface Material tints to match, the two other '
               'shapes a card comes in, and a row that says who it is.',
         ),
         _section(
@@ -1166,21 +1166,30 @@ UINode _fields(MaterialPalette palette) {
   );
 }
 
-/// Three cards climbing the elevation scale, the two other shapes a card comes in,
+/// Six cards climbing the elevation scale, the two other shapes a card comes in,
 /// and two tiled rows.
 ///
 /// Material states elevation twice over: the shadow a surface casts and the tone it
 /// is tinted with. A shadow alone is 12% black over a few pixels, so a card raised on
 /// the page's own tone reads as flat; each height here takes the pair Material pairs —
-/// `level1` on `surfaceContainerLow`, `level2` on `surfaceContainer`, `level3` on
-/// `surfaceContainerHigh` — which is what makes the climb visible, and what Flutter's
-/// own card does with its tint.
+/// `level0` on `surfaceContainerLowest` up to `level3` on `surfaceContainerHigh` — which
+/// is what makes the climb visible, and what Flutter's own card does with its tint. The
+/// palette has five container tones for six heights, so the two highest cards share
+/// `surfaceContainerHighest` and the shadow is what tells them apart: level zero, which
+/// casts none, is the page's own height and reads as one.
 UINode _cards(MaterialPalette palette) {
   return GridNode(
     minItemWidth: 300,
     maxColumns: 3,
     gap: 24,
     children: <UINode>[
+      _heightCard(
+        palette,
+        title: 'Level 0',
+        note: 'surfaceContainerLowest · no shadow',
+        shadows: MaterialElevation.level0,
+        surface: palette.surfaceContainerLowest,
+      ),
       _heightCard(
         palette,
         title: 'Level 1',
@@ -1201,6 +1210,22 @@ UINode _cards(MaterialPalette palette) {
         note: 'surfaceContainerHigh',
         shadows: MaterialElevation.level3,
         surface: palette.surfaceContainerHigh,
+      ),
+      _heightCard(
+        palette,
+        title: 'Level 4',
+        note: 'surfaceContainerHighest',
+        shadows: MaterialElevation.level4,
+        surface: palette.surfaceContainerHighest,
+      ),
+      // The tone ladder runs out one rung before the shadow ladder does, so the last
+      // card repeats the tone above it: a browser and an app both read the shadow.
+      _heightCard(
+        palette,
+        title: 'Level 5',
+        note: 'surfaceContainerHighest · shadow only',
+        shadows: MaterialElevation.level5,
+        surface: palette.surfaceContainerHighest,
       ),
       // The two shapes a card comes in besides the raised one: a line instead of a
       // shadow, and a tone with neither.

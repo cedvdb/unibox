@@ -195,11 +195,13 @@ void main() {
       );
     });
 
-    test('raises one card per level, on the surface Material tints with it', () {
+    test('raises one card at each of the six heights, on the tone it is tinted with', () {
       // Elevation is two values in Material, not one: the shadow a surface casts and
-      // the tone it is tinted with. A card that took the shadow alone would be three
-      // cards that look alike once a browser has blurred 12% black over the page's own
-      // tone, so the catalogue pairs them — and this is the pair, written down.
+      // the tone it is tinted with. A card that took the shadow alone would be six cards
+      // that look alike once a browser has blurred 12% black over the page's own tone, so
+      // the catalogue pairs them — and this is the ladder, written down. The palette has
+      // five container tones for six heights, so the top two share the highest one, and
+      // the shadow is the only half that still tells them apart.
       final MaterialPalette palette = ExamplePalette.materialFor(
         ExampleSeed.defaultSeed,
       );
@@ -207,41 +209,52 @@ void main() {
           .whereType<MaterialCard>()
           .toList();
 
-      MaterialCard raised(List<BoxShadow> shadows) => cards.singleWhere(
-        // The ambient layer names the level, and a `BoxShadow` compares by value.
-        (MaterialCard card) => card.shadows?.lastOrNull == shadows.last,
+      MaterialCard titled(String title) => cards.singleWhere(
+        (MaterialCard card) => _textsIn(card).contains(title),
       );
 
-      expect(
-        raised(MaterialElevation.level1).backgroundColor,
-        palette.surfaceContainerLow,
-      );
-      expect(
-        raised(MaterialElevation.level2).backgroundColor,
-        palette.surfaceContainer,
-      );
-      expect(
-        raised(MaterialElevation.level3).backgroundColor,
-        palette.surfaceContainerHigh,
-      );
+      final List<(String, List<BoxShadow>, BoxColor)>
+      ladder = <(String, List<BoxShadow>, BoxColor)>[
+        ('Level 0', MaterialElevation.level0, palette.surfaceContainerLowest),
+        ('Level 1', MaterialElevation.level1, palette.surfaceContainerLow),
+        ('Level 2', MaterialElevation.level2, palette.surfaceContainer),
+        ('Level 3', MaterialElevation.level3, palette.surfaceContainerHigh),
+        ('Level 4', MaterialElevation.level4, palette.surfaceContainerHighest),
+        ('Level 5', MaterialElevation.level5, palette.surfaceContainerHighest),
+      ];
 
-      // The two shapes beside the raised one: one draws a line where the other draws a
+      for (final (String title, List<BoxShadow> shadows, BoxColor tone)
+          in ladder) {
+        final MaterialCard card = titled(title);
+
+        expect(
+          card.backgroundColor,
+          tone,
+          reason: '$title sits on the tone Material pairs with it',
+        );
+        expect(
+          card.shadows ?? const <BoxShadow>[],
+          shadows,
+          reason: '$title casts that level\'s shadow',
+        );
+      }
+
+      // The two shapes beside the raised ones: one draws a line where the others draw a
       // tone, and neither casts anything — an empty list of shadows is that statement.
-      bool castsNothing(MaterialCard card) => card.shadows?.isEmpty ?? true;
+      final MaterialCard outlined = titled('Outlined');
+      final MaterialCard filled = titled('Filled');
 
+      expect(outlined.shadows, isEmpty);
       expect(
-        cards.where(
-          (MaterialCard card) => castsNothing(card) && card.border != null,
-        ),
-        hasLength(1),
+        outlined.border?.color,
+        const BoxColor.role(MaterialColorRole.outlineVariant),
         reason: 'the outlined card is the one that draws a line instead of a shadow',
       );
+      expect(filled.shadows, isEmpty);
       expect(
-        cards.where(
-          (MaterialCard card) => castsNothing(card) && card.border == null,
-        ),
-        hasLength(1),
-        reason: 'the filled card is the one with neither',
+        filled.border,
+        isNull,
+        reason: 'the filled card is the one with neither a line nor a shadow',
       );
     });
   });

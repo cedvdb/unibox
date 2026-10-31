@@ -1169,13 +1169,15 @@ what is chosen through its own `pressed`.
 
 ## Elevation
 
-Material states five levels for a raised surface, and a level here is what the design file
-`doc/shadows_material_3_pink_seed.png` draws at that height: **one shade**, cast at 34% black at
-level one and 40% above it, that grows wider as the surface rises. A box takes a list of
-`BoxShadow`s, so a level is a list of one.
+Material states six heights for a surface, from the one flush with the page to the highest it
+names, and a level here is what the design file `doc/shadows_material_3_pink_seed.png` draws at
+that height: **one shade**, cast at 34% black at level one and 40% above it, that grows wider as
+the surface rises. Level zero casts nothing at all. A box takes a list of `BoxShadow`s, so a
+level is a list of one — or of none.
 
 | Level | Offset, blur, shade | Material gives it to |
 | --- | --- | --- |
+| `level0` | no shadow | a surface at the page's own height |
 | `level1` | `0 0.55px 0.61px` in black at 34% | a card, a sheet, a raised button |
 | `level2` | `0 0.95px 2.35px` in black at 40% | a card under the pointer |
 | `level3` | `0 1.25px 3.9px` in black at 40% | a dialog, a date picker, a floating action button |
@@ -1201,8 +1203,9 @@ rather than papered over by a test that compares the two.
 
 **A level is also a surface.** Material states elevation twice over, and the tonal half is the
 half that shows: a shadow of 34% black over two pixels barely reads on a page of the same
-tone. `level1` goes with `surfaceContainerLow`, `level2` with `surfaceContainer` and `level3`
-with `surfaceContainerHigh`, so a card raised higher takes both halves:
+tone. `level0` goes with `surfaceContainerLowest`, `level1` with `surfaceContainerLow`,
+`level2` with `surfaceContainer`, `level3` with `surfaceContainerHigh` and `level4` with
+`surfaceContainerHighest`, so a card raised higher takes both halves:
 
 ```dart
 MaterialCard(
@@ -1212,8 +1215,12 @@ MaterialCard(
 )
 ```
 
-The catalogue in the example draws the three pairs side by side, which is what makes the
-climb visible at all.
+The palette's tonal ladder holds five container tones for six heights, so `level5` wears
+`surfaceContainerHighest` too and the shadow alone carries the last step — which is where
+Material's own tone ladder ends, rather than a sixth tone this palette does not have.
+
+The catalogue in the example draws all six pairs in one grid, which is what makes the climb
+visible at all.
 
 A component names the level it rests at rather than writing a shadow, which is what keeps
 `MaterialCard`, `MaterialDialog` and `MaterialBottomSheet` in step: an app that replaces one

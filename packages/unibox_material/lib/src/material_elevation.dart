@@ -3,7 +3,8 @@ import 'package:unibox_core/unibox_core.dart';
 /// Material 3's elevation levels, as the shadow each one casts.
 ///
 /// A level is **one shadow**. Material's ladder is a single shade that grows wider and
-/// falls further as a surface rises, not a stack of layers: five heights, one shade each.
+/// falls further as a surface rises, not a stack of layers: six heights, one shade each —
+/// level zero casts nothing at all.
 ///
 /// **Where the numbers come from.** `doc/shadows_material_3_pink_seed.png` in this
 /// package is the ladder this package copies — six cards, levels 0 to 5, a pink seed
@@ -31,16 +32,32 @@ import 'package:unibox_core/unibox_core.dart';
 /// the ladder's numbers rather than against a `Card`.
 ///
 /// **A level is also a surface.** Material states elevation twice over — the shadow a
-/// surface casts, and the tone it is tinted with — so [level1] goes with
-/// `surfaceContainerLow`, [level2] with `surfaceContainer` and [level3] with
-/// `surfaceContainerHigh`. Both halves are values in this package, shadows here and a
-/// role in [MaterialPalette], so a card names the pair and the catalogue beside it
-/// shows the height the two make between them.
+/// surface casts, and the tone it is tinted with — so [level0] goes with
+/// `surfaceContainerLowest`, [level1] with `surfaceContainerLow`, [level2] with
+/// `surfaceContainer` and [level3] with `surfaceContainerHigh`. Both halves are values in
+/// this package, shadows here and a role in [MaterialPalette], so a card names the pair
+/// and the catalogue beside it shows the height the two make between them.
+///
+/// The tone ladder is one rung shorter than this one: it holds five container tones for
+/// six heights, so [level4] and [level5] both wear `surfaceContainerHighest` and the
+/// shadow alone carries the last step. That is where Material's own tonal ladder ends,
+/// and it is written here rather than papered over by a sixth tone the palette does not
+/// have.
 ///
 /// The levels are what a component asks for by name — a card rests at [level1], a
 /// dialog is raised at [level3] — so an application that replaces one of them
 /// replaces it everywhere, and no component keeps a shadow of its own.
 abstract final class MaterialElevation {
+  /// Level zero: a surface flush with the page, which casts no shadow.
+  ///
+  /// The ladder's first card is the page itself — no shade, and
+  /// `surfaceContainerLowest` rather than a container tone above it. It is a level rather
+  /// than an absence so the climb from the page to [level5] can be written as one ladder:
+  /// a component that names it states `shadows: MaterialElevation.level0` instead of an
+  /// empty list of its own, and a surface that renders nothing behind it is a decision
+  /// rather than a forgotten token.
+  static const List<BoxShadow> level0 = <BoxShadow>[];
+
   /// Level one: a resting card, a sheet, a raised button.
   ///
   /// The ladder's `Level 1` — `54, 33, 15, 5, 1` under the edge against its `54, 32, 14, 4,
