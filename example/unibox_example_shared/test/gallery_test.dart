@@ -57,6 +57,39 @@ void main() {
       expect(_textsIn(paged.last), contains('Three'));
     });
 
+    test('dresses its bands as app bars rather than hand-built boxes', () {
+      final List<Box> nodes = _nodesOf(buildMaterialSection())
+          .whereType<Box>()
+          .toList();
+
+      // Every band in the catalogue is the component that draws one — a pinned bar, the bar a
+      // fold leaves behind, the ones the static specimens show — so nothing here teaches a
+      // reader to write the same thing out of a `Box`.
+      for (final Box band in nodes.where((Box box) => box.pin != null)) {
+        expect(band, isA<MaterialAppBar>());
+      }
+      for (final Box band in nodes.where((Box box) => box.fold != null)) {
+        expect(band, anyOf(isA<MaterialAppBar>(), isA<MaterialLargeAppBar>()));
+      }
+
+      // And the bars have a specimen of their own, not only a part in the panels.
+      expect(
+        nodes.where(
+          (Box box) =>
+              box is MaterialAppBar && box.pin == null && box.fold == null,
+        ),
+        hasLength(2),
+      );
+      // Two large ones: the specimen, and the band the first pinned panel opens with.
+      expect(
+        nodes.where(
+          (Box box) =>
+              box is MaterialLargeAppBar && box.fold == null && box.pin == null,
+        ),
+        hasLength(2),
+      );
+    });
+
     test('shows a band at each edge, and one that stops under another', () {
       final List<UINode> nodes = _nodesOf(buildMaterialSection());
       final List<Box> pinned = nodes

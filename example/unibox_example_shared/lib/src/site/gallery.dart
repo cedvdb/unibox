@@ -101,6 +101,15 @@ UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
         ),
         _section(
           palette,
+          'App bars',
+          _appBars(palette),
+          note:
+              'The band a page opens with, and the one a list scrolls under: '
+              '`MaterialAppBar` states the height its slot keeps and the surface its list '
+              'shares, and the `pin` it is given is what makes it stay.',
+        ),
+        _section(
+          palette,
           'Pinned bands',
           _pinnedBands(palette),
           note:
@@ -797,6 +806,68 @@ UINode _pager(MaterialPalette palette) {
           ],
         ),
     ],
+  );
+}
+
+/// The two app bars as components: the small one, one with a glyph before its title, and the
+/// large one a page opens with.
+///
+/// The panels that follow show them in motion — pinned, and folded — but a component is also
+/// worth a specimen of its own, the way every other component in this catalogue has one.
+UINode _appBars(MaterialPalette palette) {
+  const BoxColor onPlain = BoxColor.role(MaterialColorRole.onSurfaceVariant);
+
+  return GridNode(
+    minItemWidth: 280,
+    maxColumns: 3,
+    gap: 24,
+    children: <UINode>[
+      _specimen(
+        palette,
+        'A title, and a node at the end',
+        _framed(
+          palette,
+          MaterialAppBar(
+            title: const TextNode('Apartments'),
+            trailing: const TextNode('24'),
+          ),
+        ),
+      ),
+      _specimen(
+        palette,
+        'A glyph before the title',
+        _framed(
+          palette,
+          MaterialAppBar(
+            leading: glyphList(onPlain),
+            title: const TextNode('Results'),
+            trailing: const TextNode('6 of 24'),
+          ),
+        ),
+      ),
+      _specimen(
+        palette,
+        'The large one, with air above its headline',
+        _framed(
+          palette,
+          MaterialLargeAppBar(title: const TextNode('Apartments')),
+        ),
+      ),
+    ],
+  );
+}
+
+/// A bar in the surface a page would put it on, so the bar's own colour reads against it.
+UINode _framed(MaterialPalette palette, UINode bar) {
+  return Box(
+    width: double.infinity,
+    backgroundColor: palette.surface,
+    borderRadius: 12,
+    border: BoxBorder(color: palette.outlineVariant),
+    // The bar is flush with the rounded edge, so the frame clips it: without this the bar's
+    // corners would square off the frame's.
+    overflow: Overflow.hidden,
+    children: <UINode>[bar],
   );
 }
 
