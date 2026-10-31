@@ -20,7 +20,7 @@ Widget widget = card.toWidget(theme: myTheme);
 ```
 
 Every node type also exports the widget it renders to — `FlutterBox`,
-`FlutterText`, `FlutterTextInput`, `FlutterLink`, `FlutterImage`, `FlutterStack`,
+`FlutterText`, `FlutterTextInput`, `FlutterImage`, `FlutterStack`,
 `FlutterOverlay`, `FlutterStateful` — so a host or a test can address a rendered
 node without depending on its position in the tree. The the web renderer package exports the
 same shape under its own prefix, which is the rule: a renderer's classes are named
@@ -47,6 +47,8 @@ with their target.
 | `shape` + `overflow: Overflow.hidden` | `ClipPath` to the same path                       |
 | `overflow: Overflow.scroll`         | `SingleChildScrollView`                             |
 | `onTap` / `onLongPress`             | `GestureDetector`                                   |
+| `url` (a box that navigates)        | `GestureDetector` + `MouseRegion(cursor: click)` + `Semantics(link: true)`, opening through `FlutterLinkScope` unless the box has an `onTap`; `Enter` opens it and `Space` does not, as in a browser |
+| `newTab` on a box                   | web only, ignored by the Flutter renderer |
 | `onHover` / `hoverStyle`            | `MouseRegion` and the hovered token set             |
 | `onScroll`                          | `NotificationListener<ScrollUpdateNotification>` around the scroll view, reporting `metrics.pixels` when the notification's `depth` is zero |
 
@@ -335,17 +337,21 @@ An unbounded width — a grid inside a horizontal scroll view, or in a row that
 lets its children be as wide as they like — gets one column of `minItemWidth`,
 which is the answer `columnsFor` gives and the one that needs no surface.
 
-## Link mapping
+## Navigation mapping
 
-| Unibox   | Flutter                                        |
-| -------- | ---------------------------------------------- |
-| `child`  | the rendered child                             |
-| `onTap`  | `GestureDetector.onTap`, which answers the press |
-| `url`    | followed through `FlutterLinkScope`             |
-| `newTab` | web only, ignored by the Flutter renderer      |
+The destination is a token on the control, not a node around it, so there is nothing here
+that a box does not already do:
 
-Flutter has no browser of its own, so the host application decides what
-following a link means and the renderer only reports the destination:
+| Unibox   | Flutter                                                        |
+| -------- | -------------------------------------------------------------- |
+| `url`    | a hand cursor, `Semantics(link: true)`, and a press that opens it through `FlutterLinkScope` |
+| `onTap`  | `GestureDetector.onTap`, which answers the press instead of the scope |
+| `onTapDown` | `GestureDetector.onTapDown`, which is where a ripple starts     |
+| `newTab` | web only, ignored by the Flutter renderer                       |
+| `BoxElement.a` with no `url` | a plain box: with no `href` there is nothing to follow and nothing to announce |
+
+Flutter has no browser of its own, so the host application decides what following a
+destination means and the renderer only reports it:
 
 ```dart
 FlutterLinkScope(
@@ -354,12 +360,16 @@ FlutterLinkScope(
 );
 ```
 
-Links render as a click-cursor region that is exposed to screen readers as a
-link. A node with an `onTap` is handled by the tree and the scope is not asked: one
-press, one answer, and the web renderer says the same thing by cancelling the
-navigation rather than loading the document too. A link with neither a scope nor an
-`onTap` is reported as a host configuration error in debug builds instead of silently
-doing nothing.
+A box with a `url` is a click-cursor region that a screen reader hears as a link, and it
+opens with `Enter` — not with `Space`, which a browser does nothing with on an anchor. A
+box with an `onTap` is handled by the tree and the scope is not asked: one press, one
+answer, and the web renderer says the same thing by cancelling the navigation rather than
+loading the document too. A destination with neither a scope nor an `onTap` is reported as
+a host configuration error in debug builds instead of silently doing nothing.
+
+Because the gesture stays the box's own, its pressed state and the ink a `MaterialInkWell`
+starts on tap-down are its own too: a component is a destination by being given a url, and
+the control a reader presses is the control a crawler reads.
 
 ## Stack mapping
 

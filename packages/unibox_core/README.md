@@ -9,10 +9,9 @@ Flutter or the web renderer. Renderers live in `unibox_flutter`, `unibox_css` an
 
 | Type              | Purpose                                                      |
 | ----------------- | ------------------------------------------------------------ |
-| `Box`             | flex container, the primary building block                    |
+| `Box`             | flex container, the primary building block — and, with a `url`, the link a press follows |
 | `TextNode`        | a run of text                                                 |
 | `ImageNode`       | a network or bundled image                                    |
-| `LinkNode`        | a link wrapping one child                                     |
 | `StackNode`       | layered children, with `PositionedNode` placing them           |
 | `TextInputNode`   | a single line or multiline field                              |
 | `StatefulNode`    | a subtree that owns a `Store` and draws the tree of its state |
@@ -60,7 +59,9 @@ and the difference would show:
 | `Box.shape` | the rectangle: a box paints its border box, and a corner radius rounds it |
 | `Box.gridSpan` | one track: a card covers one column, and only a grid child covers more |
 | `Box.wrap` | off: a box is one line, and a child that does not fit runs past its edge until the box says otherwise |
-| `LinkNode` styling | the typography of its box: no link colour, no underline |
+| a link's paint | the browser's blue and underline: cancelled on an anchor, so a link looks like the box that states it |
+| `Box.url` | unset: a box is a container, and a box that navigates is written as one. A disabled one writes no `href` |
+| `Box.url` inside a link | reported: a link inside a link navigates twice |
 
 What is left to the host, because only the host can answer it: the font family (a
 font file is an asset), the colour of a placeholder, a caret or a selection, the
@@ -133,7 +134,7 @@ A node says what it is as well as how it looks, and none of it changes a pixel:
 | Token | Meaning |
 | --- | --- |
 | `TextNode.headingLevel` | the text is a heading of level 1 to 6: `<h1>`–`<h6>` on the web, `Semantics(header: true, headingLevel: n)` in Flutter |
-| `BoxSemantics.element` | the element the box becomes: `div`, `main`, `nav`, `header`, `footer`, `aside`, `section`, `article`, `form`, `figure`, `ul`, `ol` or `li` |
+| `BoxSemantics.element` | the element the box becomes: `div`, `main`, `nav`, `header`, `footer`, `aside`, `section`, `article`, `form`, `figure`, `ul`, `ol`, `li` or `a` |
 | `BoxSemantics.role` | the ARIA role of a hand drawn control: button, checkbox, switch, link or heading |
 | `BoxSemantics.expanded`, `.selected`, `.pressed`, `.hidden`, `.liveRegion` | the state a reader announces and a browser exposes as `aria-expanded`, `aria-selected`, `aria-pressed`, `aria-hidden` and `aria-live` |
 | `BoxSemantics.current` | which item of a set the box is: `aria-current` (`BoxCurrent.page`, `.step`, `.location`) |
@@ -148,6 +149,42 @@ technologies and never focusable, so it cannot be reached by keyboard either.
 `validateTree` reports a `BoxElement.li` whose parent is not a `ul` or an `ol` —
 the one combination HTML forbids — and the renderers report the issues they cannot
 compensate for.
+
+## Navigation
+
+A press that goes somewhere is a destination, and the model says so: `Box.url` makes
+the box itself an `<a href>`, with its look, its children and its press unchanged. A
+callback (`Box.onTap`) is for a press that *does* something — opens a dialog, submits a
+form, toggles a filter — and a leaf is the same token on a box that holds only that leaf:
+a picture, a line of text.
+
+```dart
+// The whole segment is the link: padding, fill, ink and all.
+Box(
+  url: '/?category=meetingRoom',
+  padding: BoxSpacing.symmetric(horizontal: 12, vertical: 6),
+  onTapDown: startInk,
+  children: <UINode>[TextNode('Meeting room')],
+)
+```
+
+| The box says | and the model answers |
+| --- | --- |
+| `url` | a destination: the element is the anchor — `BoxSemantics(element: BoxElement.a)`, which the url implies — so the web writes `<a href>`, and a `newTab` adds `target` and `rel` |
+| `element: BoxElement.a` and no `url` | an anchor with no destination: a placeholder a browser paints as text, which nothing follows and nothing can tab to |
+| nothing | a container, or a control with a callback — never an anchor |
+| `url` and `enabled: false` | no `href`: a disabled control drops what it does, and a link that still navigated would be the drift |
+| `url` and `onTap` | both: the callback answers the press and the `href` stays for a reader without a runtime, a new tab and a crawler |
+| `url` and `stateStyles` | the tints of a press, unchanged: the anchor is the box, so its states are its own |
+
+A box that says it is an `article` *and* names a destination is reported, because one tag is
+written and the anchor is the one that navigates: put the landmark around the link.
+
+Two constructs are reported rather than painted differently: a link inside a link, and a
+control inside a link — HTML forbids interactive content in `<a>`, and neither target can
+say whether the inner press runs or navigates. Compose them as siblings, or make the
+control the destination: a chip with a remove cross is two nodes, not one inside the
+other.
 
 ## Your own component
 
@@ -277,6 +314,7 @@ always safe.
 ## Validation
 
 `validateTree(node)` reports the trees no renderer can honour: a `PositionedNode`
-outside a `StackNode`, a `LinkNode` nested in another `LinkNode`, and a scrolling
+outside a `StackNode`, a `Box` with a `url` nested in another one, and a control inside
+one, and a scrolling
 box that also distributes its children along the main axis. Both renderers run it
 inside an assertion, so a broken tree fails while it is being built.

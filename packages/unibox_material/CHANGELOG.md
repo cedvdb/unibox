@@ -13,6 +13,36 @@
   example's suite pins each level against the ladder's measured rows instead of against a
   `Card`.
 
+- **Breaking: `MaterialCard` is a surface, not a press.** `onTap`, `onLongPress` and
+  `onHover` are gone from all four constructors, and the default padding is no longer 16.
+  Flutter's `Card` has neither: a press belongs to the ink *inside* the card, which is the
+  only composition that can paint a tint over the surface and clip the ink to its corners,
+  and padding on the surface is room no press can reach. The recipe is *surface outside,
+  ink inside, padding on the ink layer*:
+  `MaterialCard(overflow: Overflow.hidden, children: [MaterialInkWell(url: ..., padding: BoxSpacing.all(16), child: content)])`.
+  A caller who passed `onTap` gives the url or the callback to the well; one who relied on
+  the 16 pixel padding states it where the room belongs.
+
+- `MaterialInkWell` takes `url` (and `newTab`): the well becomes a destination, and the
+  anchor goes wherever the press goes — the shape in the plain case, the outer box when the
+  well paints a surface, and the target when `tapTargetHeight` adds one. A url makes the well
+  pressable with no callback, so it still ripples on tap-down.
+
+- `MaterialInkWell` takes `shadows` and `textStyle`, so one well can be a whole surface: an
+  interactive card is one element instead of a card around a well, with no ring of padding a
+  press cannot reach and no equal-height problem in a grid.
+
+- `MaterialButton`, `MaterialIconButton`, `MaterialListTile`, `MaterialChip` and
+  `MaterialSegment` forward a `url` and a `newTab` to the well that carries their press, so a
+  component is a destination by being given one. A chip with a url says which page it is
+  (`aria-current`) instead of whether it is pressed, and it refuses an `onRemove`: a control
+  inside a link is invalid HTML, so the two are composed side by side.
+
+- `MaterialSegmentedButton` with segments that have a `url` is a set of links: each unchosen
+  choice is one `<a href>`, the chosen one is the page being read — no link, not in the tab
+  order, `aria-current="page"` — and `onSelect` is optional, because the destination is the
+  press.
+
 - `MaterialCard.filled` and `MaterialCard.outlined` say that they cast no shadow, instead
   of passing `null` through to a constructor whose default is the level one shadow. Nothing
   draws differently — a `null` shadow already painted nothing — but the signature now reads

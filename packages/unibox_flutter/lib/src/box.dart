@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
 
 import 'keys.dart';
+import 'link_scope.dart';
 import 'render.dart';
 import 'shape.dart';
 import 'stack_node.dart';
@@ -51,6 +52,12 @@ class FlutterBoxState extends State<FlutterBox> {
 
   /// The page this box was last moved to, so a rebuild with the same page leaves the reader alone.
   int? _appliedPage;
+
+  /// How this box opens its destination, or `null` when it has none and no scope above it.
+  ///
+  /// Read while building, so the gesture and the keyboard can both use it: an inherited
+  /// widget is looked up during build, not in the handler a press runs.
+  FlutterLinkOpener? _open;
 
   @override
   void didChangeDependencies() {
@@ -165,6 +172,11 @@ class FlutterBoxState extends State<FlutterBox> {
     final core.Box box = widget.box;
     final core.BoxStyle style = _resolvedStyle(box)
         .resolve(UniboxThemeScope.of(context) ?? core.UniboxTheme.none);
+
+    // A box that navigates asks the host once, while an inherited widget can be read.
+    _open = box.enabled && box.isAnchor
+        ? FlutterLinkScope.maybeOf(context)
+        : null;
 
     Widget content = _holdsThreshold
         ? LayoutBuilder(
@@ -695,8 +707,15 @@ class FlutterBoxState extends State<FlutterBox> {
   /// A disabled box keeps the same widget shape but serves no handler, no
   /// pointer cursor and no focus, so disabling never moves anything and only
   /// removes what the user can do.
+  ///
+  /// A box with a url is the anchor: the pointer over it is a hand, the press that the box
+  /// itself does not answer opens the destination through the host's scope, and a screen
+  /// reader is told it is a link. The gesture stays the box's, which is what keeps the
+  /// pressed state and the ink a well starts on tap-down working — wrapping the box in a
+  /// wrapper would put a second gesture and a second semantics node around it.
   Widget _applyInteractions(Widget content, core.Box box) {
     final bool interactive = box.isInteractive;
+    final bool link = box.enabled && box.isAnchor;
     final bool focusable = box.isFocusable && box.enabled;
     final bool tracksState =
         box.enabled &&
@@ -707,7 +726,26 @@ class FlutterBoxState extends State<FlutterBox> {
 
     Widget result = content;
 
-    if (box.onTap != null || box.onLongPress != null || box.onTapDown != null) {
+    if (link) {
+      assert(
+        _open != null || box.onTap != null,
+        'Unibox: "${box.url}" is a box that navigates, but no FlutterLinkScope is '
+        'above it and the box has no onTap, so pressing it does nothing. Wrap the '
+        'tree in a FlutterLinkScope(open: ...) or give the Box an onTap callback.',
+      );
+
+      result = GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => _activate(box),
+        onLongPress: interactive ? box.onLongPress : null,
+        onTapDown: interactive ? _handleTapDown : null,
+        onTapUp: interactive ? (TapUpDetails _) => _setPressed(false) : null,
+        onTapCancel: interactive ? () => _setPressed(false) : null,
+        child: result,
+      );
+    } else if (box.onTap != null ||
+        box.onLongPress != null ||
+        box.onTapDown != null) {
       result = GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: interactive ? box.onTap : null,
@@ -731,9 +769,11 @@ class FlutterBoxState extends State<FlutterBox> {
       );
     }
 
-    if (interactive || tracksState) {
+    if (interactive || link || tracksState) {
       result = MouseRegion(
-        cursor: interactive ? SystemMouseCursors.click : MouseCursor.defer,
+        cursor: interactive || link
+            ? SystemMouseCursors.click
+            : MouseCursor.defer,
         onEnter: tracksState
             ? (PointerEnterEvent event) => _setHovered(true)
             : null,
@@ -747,24 +787,47 @@ class FlutterBoxState extends State<FlutterBox> {
     return _describeToSemantics(result, box);
   }
 
+  /// Runs what a press of [box] does: its own handler, or its destination.
+  ///
+  /// One function for the pointer and for the keyboard, so that a control cannot answer
+  /// one and be dead to the other. The handler wins over the opener, which is the rule a
+  /// web renderer states: a press the tree answers does not also load the page it names.
+  void _activate(core.Box box) {
+    final core.TapCallback? onTap = box.onTap;
+
+    if (onTap != null) {
+      onTap();
+    } else if (box.isAnchor) {
+      _open?.call(box.url!);
+    }
+  }
+
   /// Activates the box from the keyboard.
   ///
-  /// Enter and Space are what a button does everywhere: Enter fires on the way
-  /// down, Space on the way up, and both show the pressed state in between.
+  /// Enter and Space are what a button does everywhere: Enter fires on the way down,
+  /// Space on the way up, and both show the pressed state in between. A link is the
+  /// exception, and on both targets: `Enter` opens it and `Space` does nothing, because
+  /// that is what a browser does with an `<a href>` and a Flutter that disagreed would be
+  /// the drift this model exists to prevent.
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
     final core.Box box = widget.box;
     final LogicalKeyboardKey key = event.logicalKey;
+    final bool link = box.enabled && box.isAnchor;
     final bool isActivationKey =
         key == LogicalKeyboardKey.enter || key == LogicalKeyboardKey.space;
 
-    if (!isActivationKey || !box.isInteractive) {
+    if (!isActivationKey || (!box.isInteractive && !link)) {
+      return KeyEventResult.ignored;
+    }
+
+    if (key == LogicalKeyboardKey.space && !box.isInteractive) {
       return KeyEventResult.ignored;
     }
 
     if (event is KeyDownEvent) {
       _setPressed(true);
       if (key == LogicalKeyboardKey.enter) {
-        box.onTap?.call();
+        _activate(box);
       }
       return KeyEventResult.handled;
     }
@@ -772,7 +835,7 @@ class FlutterBoxState extends State<FlutterBox> {
     if (event is KeyUpEvent) {
       _setPressed(false);
       if (key == LogicalKeyboardKey.space) {
-        box.onTap?.call();
+        _activate(box);
       }
     }
 
@@ -819,12 +882,13 @@ class FlutterBoxState extends State<FlutterBox> {
   /// documented there as a pointer affordance.
   Widget _describeToSemantics(Widget content, core.Box box) {
     final core.BoxSemantics? semantics = box.semantics;
+    final bool link = box.isAnchor;
     final bool focusable = box.isFocusable && box.enabled;
     final core.LongPressCallback? longPress = box.enabled
         ? box.onLongPress
         : null;
 
-    if (semantics == null && box.enabled && longPress == null) {
+    if (semantics == null && box.enabled && longPress == null && !link) {
       return content;
     }
 
@@ -833,17 +897,23 @@ class FlutterBoxState extends State<FlutterBox> {
     final String? label = semantics?.label;
 
     return Semantics(
-      container: semantics != null || longPress != null,
+      container: semantics != null || longPress != null || link,
       // A label replaces the contents, so the accessible name cannot drift
       // away from what the screen reader reads.
       excludeSemantics: label != null,
-      button: role == core.BoxRole.button,
-      link: role == core.BoxRole.link,
+      // A destination is a link whatever role a component gave it: the web has no role
+      // attribute to write on an `<a href>`, and a reader that heard "button" here and
+      // "link" there would be reading two different trees.
+      button: role == core.BoxRole.button && !link,
+      link: link || role == core.BoxRole.link,
       header: role == core.BoxRole.heading,
       checked: role == core.BoxRole.checkbox ? checked : null,
       // A switch is on or off, and so is a toggle button: Flutter states both with
-      // `toggled`, and the web with `aria-checked` and `aria-pressed` respectively.
-      toggled: role == core.BoxRole.switch_ ? checked : semantics?.pressed,
+      // `toggled`, and the web with `aria-checked` and `aria-pressed` respectively. A
+      // link is neither, for the same reason it announces no button.
+      toggled: link
+          ? null
+          : (role == core.BoxRole.switch_ ? checked : semantics?.pressed),
       label: label,
       enabled: box.enabled,
       focusable: focusable,

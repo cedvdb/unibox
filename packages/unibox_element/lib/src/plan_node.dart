@@ -29,7 +29,6 @@ ElementPlan _planOf(
   final core.Box box => _planBox(box, sheet, options),
   final core.TextNode text => _planText(text, sheet),
   final core.ImageNode image => _planImage(image, sheet),
-  final core.LinkNode link => _planLink(link, sheet, options),
   final core.GridNode grid => _planGrid(grid, sheet, options),
   final core.StackNode stack => _planStack(stack, sheet, options),
   final core.TextInputNode field => _planTextInput(field, sheet),
@@ -41,6 +40,20 @@ ElementPlan _planOf(
     'No HTML renderer for ${node.runtimeType} yet: this target draws $supportedNodes.',
   ),
 };
+
+/// The element [box] becomes: the one it states, or the anchor a `url` makes it.
+///
+/// `href` is what makes a link, so a url on a plain box *is* an anchor and the tag follows
+/// from it — but a box that already names an element keeps the one it named, and validation
+/// reports the pair that cannot both be written. Nothing else in the plan has to know the
+/// difference: an anchor is a link, and every derived decision reads this.
+core.BoxElement elementOf(core.Box box) {
+  final core.BoxElement stated = box.semantics?.element ?? core.BoxElement.div;
+
+  return box.isAnchor && stated == core.BoxElement.div
+      ? core.BoxElement.a
+      : stated;
+}
 
 /// How a renderer plans an embed, whose payload only it can read.
 ///
@@ -87,14 +100,19 @@ final class PlanOptions {
 }
 
 /// What this renderer draws so far, named for the message a missing one prints.
-const String supportedNodes = 'a Box, a TextNode, an ImageNode and a LinkNode';
+const String supportedNodes = 'a Box, a TextNode and an ImageNode';
 
 ElementPlan _planBox(core.Box box, Stylesheet sheet, PlanOptions options) {
   final core.BoxStyle style = box.computedStyle;
 
-  final core.BoxElement element = box.semantics?.element ?? core.BoxElement.div;
+  final core.BoxElement element = elementOf(box);
+  // One flag for the tag, the href, the class and the attributes: a box that navigates is
+  // the anchor, and they cannot disagree about it.
+  final bool anchor = element == core.BoxElement.a;
+  final String tag = element.name;
   // A painted leaf takes no pointer: it has nothing to press, and letting it be the
-  // target would put a decoration in front of the control it was drawn for.
+  // target would put a decoration in front of the control it was drawn for. A link is
+  // never that decoration: an anchor with nothing inside it is still the thing to press.
   final bool listens =
       box.enabled &&
       (box.onTap != null ||
@@ -102,6 +120,7 @@ ElementPlan _planBox(core.Box box, Stylesheet sheet, PlanOptions options) {
           box.onLongPress != null ||
           box.onHover != null);
   final bool capturesPointer =
+      anchor ||
       box.children.isNotEmpty ||
       listens ||
       box.stateStyle(core.BoxState.hover) != null ||
@@ -117,7 +136,10 @@ ElementPlan _planBox(core.Box box, Stylesheet sheet, PlanOptions options) {
     // below are drawn from these seven and from nothing else.
     (
       style: style,
-      element: element,
+      // The tag, not the element it came from: an anchor's class is the look plus the two
+      // link resets, so a url box and the same box without one are two looks and must not
+      // share the answer the sheet remembered.
+      tag: tag,
       interactive: interactive,
       pointer: capturesPointer,
       threshold: holdsThreshold,
@@ -130,6 +152,7 @@ ElementPlan _planBox(core.Box box, Stylesheet sheet, PlanOptions options) {
         style,
         interactive: interactive,
         capturesPointer: capturesPointer,
+        anchor: anchor,
         element: element,
       );
 
@@ -159,12 +182,20 @@ ElementPlan _planBox(core.Box box, Stylesheet sheet, PlanOptions options) {
   );
 
   return ElementPlan(
-    tag: element.name,
+    tag: tag,
     className: className,
     // Only the attributes that are actually written: a box carries a role, a label, a key or
     // nothing, and spreading two maps into a third for every box on the page is a map nobody
     // reads.
-    attributes: boxAttributes(box)..addAll(nodeAttributes(box)),
+    attributes: <String, String>{
+      // A disabled anchor names no destination: the element keeps saying it is one, and a
+      // browser that followed the href anyway would do what Flutter refuses to do. An
+      // anchor with no url at all is a placeholder, and it names none.
+      if (box.url case final String url when box.enabled)
+        ...linkAttributes(url, newTab: box.newTab),
+      ...boxAttributes(box),
+      ...nodeAttributes(box),
+    },
     children: <ElementPlan>[
       // A shape is painted by a layer of its own, which comes first so the content sits over
       // it — and behind it in `z-index`, since the layer is absolutely positioned.
@@ -225,7 +256,18 @@ final class _StateStyles {
 /// for one its element does not imply: a `<nav>` is a navigation landmark without a
 /// `role="navigation"` next to it, and `role="link"` on a `<div>` is the only way to say
 /// what that div means.
+///
+/// A box that navigates is an `<a href>`, which is the whole of what a link is: a role would
+/// overrule the tag, a `tabindex` would restate a tab stop it already has, and
+/// `aria-checked` and `aria-selected` are states ARIA allows on a control and not on a
+/// link. What a destination can say about itself is `aria-current`, which is kept. A
+/// component that used to announce "button" now announces "link" without passing anything
+/// different, which is the point: the tag decides, not the caller.
+///
+/// The tag is read from the node rather than passed in, because it *is* the node's: a flag
+/// a caller can forget is a flag that makes a link announce itself as a button.
 Map<String, String> boxAttributes(core.Box box) {
+  final bool anchor = elementOf(box) == core.BoxElement.a;
   final core.BoxSemantics? semantics = box.semantics;
   final core.BoxRole role = semantics?.role ?? core.BoxRole.none;
   final core.BoxElement element = semantics?.element ?? core.BoxElement.div;
@@ -236,7 +278,7 @@ Map<String, String> boxAttributes(core.Box box) {
   final bool isCheckable =
       role == core.BoxRole.checkbox || role == core.BoxRole.switch_;
 
-  if (roleName != null && roleName != impliedRoleOf(element)) {
+  if (!anchor && roleName != null && roleName != impliedRoleOf(element)) {
     attributes['role'] = roleName;
   }
 
@@ -244,7 +286,7 @@ Map<String, String> boxAttributes(core.Box box) {
     attributes['aria-label'] = label;
   }
 
-  if (isCheckable && checked != null) {
+  if (!anchor && isCheckable && checked != null) {
     attributes['aria-checked'] = '$checked';
   }
 
@@ -252,7 +294,7 @@ Map<String, String> boxAttributes(core.Box box) {
     attributes['aria-disabled'] = 'true';
   }
 
-  if (box.isFocusable && box.enabled) {
+  if (!anchor && box.isFocusable && box.enabled) {
     attributes['tabindex'] = '0';
   }
 
@@ -263,7 +305,7 @@ Map<String, String> boxAttributes(core.Box box) {
     attributes['aria-expanded'] = '$expanded';
   }
 
-  if (selected != null) {
+  if (!anchor && selected != null) {
     attributes['aria-selected'] = '$selected';
   }
 
@@ -364,27 +406,17 @@ int? _pixels(double? value) {
   return value.round();
 }
 
-ElementPlan _planLink(
-  core.LinkNode node,
-  Stylesheet sheet,
-  PlanOptions options,
-) {
-  final String className = sheet.classFor('link', linkDeclarations());
-  final bool newTab = node.newTab;
-
-  return ElementPlan(
-    tag: 'a',
-    className: className,
-    attributes: <String, String>{
-      'href': safeUrlValue(node.url),
-      if (newTab) 'target': '_blank',
-      // A link that opens a new tab hands the opener to the page it opens unless it is
-      // told not to.
-      if (newTab) 'rel': 'noopener noreferrer',
-      ...nodeAttributes(node),
-    },
-    children: <ElementPlan>[planNode(node.child, sheet, options: options)],
-  );
+/// The attributes that make an element a link: where it goes, and where it opens.
+///
+/// One function for both producers, because a `<a>` the model wrote by hand and one a box
+/// became have to be the same link: the same scheme check, and the same `rel` on a tab a
+/// page opens, which otherwise hands the opener to the document it loads.
+Map<String, String> linkAttributes(String url, {required bool newTab}) {
+  return <String, String>{
+    'href': safeUrlValue(url),
+    if (newTab) 'target': '_blank',
+    if (newTab) 'rel': 'noopener noreferrer',
+  };
 }
 
 ElementPlan _planGrid(

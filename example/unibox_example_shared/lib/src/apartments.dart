@@ -538,7 +538,6 @@ UINode _filterChip(
 UINode _card(Apartment apartment, String photoPrefix, {bool ahead = false}) {
   return MaterialCard(
     semantics: const BoxSemantics(element: BoxElement.article),
-    padding: const BoxSpacing.all(0),
     direction: Axis.vertical,
     gap: 0,
     overflow: Overflow.hidden,

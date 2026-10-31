@@ -409,10 +409,10 @@ void main() {
       bool followed = false;
       final web.HTMLDivElement element = host();
       final DomView view = DomView.mount(
-        core.LinkNode(
-          '/listings',
+        core.Box(
+          url: '/listings',
           onTap: () => followed = true,
-          child: const core.TextNode('Listings'),
+          children: <core.UINode>[const core.TextNode('Listings')],
         ),
         element,
       );

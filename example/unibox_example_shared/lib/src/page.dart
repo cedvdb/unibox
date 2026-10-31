@@ -171,47 +171,42 @@ UINode _navigationBar({
   );
 }
 
-/// One destination of the navigation: a link around a label, highlighted while its
-/// page is open.
+/// One destination of the navigation: a label that is the link.
 ///
-/// The link is the control. Its `href` is what makes the item work without a client
-/// runtime — a static page follows it and lands on the document the destination
-/// names — and its `onTap` is what happens instead once there is one: the store
-/// switches the page and the browser does not load the document as well. The box
-/// inside keeps its own role and `aria-current`, because the label is what a reader
-/// and a screen reader see; the anchor is what is pressed.
+/// The box *is* the anchor, so the whole item is pressable — its padding and its
+/// highlight included. Its `url` is what makes it work without a client runtime: a static
+/// page follows the `href` and lands on the document the destination names. Its `onTap`
+/// is what happens instead once there is a runtime: the store switches the page and the
+/// browser does not load the document as well. It names no role — the tag is the role —
+/// and what it does say is `aria-current`, because it is the node that knows which item
+/// is the page being read.
 UINode _navigationItem(
   ExamplePage page, {
   required String url,
   required bool current,
   required TapCallback onTap,
 }) {
-  return LinkNode(
-    url,
+  return Box(
+    url: url,
     onTap: onTap,
-    child: Box(
-      direction: Axis.horizontal,
-      mainAlign: MainAlign.center,
-      padding: const BoxSpacing.symmetric(horizontal: 12, vertical: 6),
-      borderRadius: 8,
-      backgroundColor: current
-          ? BoxColor.role(ExampleColor.accentSurface)
-          : null,
-      textStyle: current ? ExampleType.navCurrent : ExampleType.nav,
-      semantics: BoxSemantics(
-        role: BoxRole.link,
-        // The page the reader is on: `aria-current` on the web, the selected item of
-        // a set in Flutter.
-        current: current ? BoxCurrent.page : null,
-      ),
-      stateStyles: <BoxState, BoxStyle>{
-        BoxState.hover: BoxStyle(
-          backgroundColor: BoxColor.role(ExampleColor.accentSurface),
-        ),
-      },
-      transition: ExampleType.transition,
-      children: <UINode>[TextNode(page.label)],
+    direction: Axis.horizontal,
+    mainAlign: MainAlign.center,
+    padding: const BoxSpacing.symmetric(horizontal: 12, vertical: 6),
+    borderRadius: 8,
+    backgroundColor: current ? BoxColor.role(ExampleColor.accentSurface) : null,
+    textStyle: current ? ExampleType.navCurrent : ExampleType.nav,
+    semantics: BoxSemantics(
+      // The page the reader is on: `aria-current` on the web, the selected item of a set
+      // in Flutter.
+      current: current ? BoxCurrent.page : null,
     ),
+    stateStyles: <BoxState, BoxStyle>{
+      BoxState.hover: BoxStyle(
+        backgroundColor: BoxColor.role(ExampleColor.accentSurface),
+      ),
+    },
+    transition: ExampleType.transition,
+    children: <UINode>[TextNode(page.label)],
   );
 }
 
@@ -219,7 +214,7 @@ UINode _navigationItem(
 ///
 /// The sign-up form is a dialog over whatever page is being read, so the control is
 /// a box that names the button role and carries an `onTap` — nothing more. A
-/// `LinkNode` here would tell a crawler, a context menu and a reader without the
+/// `url` here would tell a crawler, a context menu and a reader without the
 /// client runtime that an account is a document, and the browser would load
 /// a document on top of the dialog the runtime had just opened.
 ///

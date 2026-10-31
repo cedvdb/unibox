@@ -62,6 +62,8 @@ final class MaterialListTile extends Box {
     UINode? trailing,
     bool dense = false,
     TapCallback? onTap,
+    String? url,
+    bool newTab = false,
     LongPressCallback? onLongPress,
     HoverCallback? onHover,
     bool enabled = true,
@@ -130,6 +132,8 @@ final class MaterialListTile extends Box {
       margin: margin,
       inkWell: MaterialInkWell(
         onTap: onTap,
+        url: url,
+        newTab: newTab,
         onLongPress: onLongPress,
         onHover: onHover,
         enabled: enabled,

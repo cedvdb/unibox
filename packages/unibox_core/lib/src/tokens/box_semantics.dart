@@ -20,8 +20,9 @@ enum BoxRole {
   /// Carries a trailing underscore because `switch` is a reserved word.
   switch_,
 
-  /// A link region that is not a `LinkNode`, for example an icon that opens a
-  /// page in a new context.
+  /// A link the tree cannot name a destination for: a control whose press is a
+  /// callback, such as an icon the host opens a page from. A box with a `url` needs
+  /// no role — the anchor is the role — and writing one is dropped.
   link,
 
   /// A heading; structural, so it is not focusable.
@@ -129,7 +130,16 @@ enum BoxElement {
   /// The caption of a [figure]: the line that describes it, which a screen reader
   /// reads out as the figure's name. Anywhere outside a figure it is invalid HTML
   /// and `validateTree` reports it.
-  figcaption;
+  figcaption,
+
+  /// An anchor: a link, whether or not the box names a destination.
+  ///
+  /// `url` makes the element one without asking, because a `href` on anything else is
+  /// not a link at all. Stating it explicitly is what writes an `<a>` with no `href` — a
+  /// placeholder, which a browser paints as text and no reader can follow — and it is the
+  /// token that `url` and this enum have to agree about: a box that says it is an
+  /// `article` *and* names a destination is reported, because one tag is written.
+  a;
 
   /// Whether the element is a landmark of the page.
   ///

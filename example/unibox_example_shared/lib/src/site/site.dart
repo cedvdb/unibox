@@ -72,7 +72,7 @@ UINode buildSitePage({
 
 /// The band above the page: the name of the site and the one place to go from it.
 ///
-/// It is a `header` landmark and its link is a `LinkNode`, so the page keeps its
+/// It is a `header` landmark and its link is the box that names the url, so the page keeps its
 /// outline and a reader without JavaScript can still follow it. The hairline is a
 /// shadow with no blur, because a `BoxBorder` draws on all four sides.
 UINode _header(MaterialPalette palette, ExampleSeed seed) {
@@ -99,12 +99,11 @@ UINode _header(MaterialPalette palette, ExampleSeed seed) {
               crossAlign: CrossAlign.center,
               gap: 20,
               children: <UINode>[
-                LinkNode(
-                  './',
-                  child: TextNode(
-                    'Unibox',
-                    style: MaterialTypography.titleMedium,
-                  ),
+                Box(
+                  url: './',
+                  children: <UINode>[
+                    TextNode('Unibox', style: MaterialTypography.titleMedium),
+                  ],
                 ),
                 // The palette the page is drawn with, beside the name it belongs to:
                 // a reader changes the whole page, not the catalogue at the bottom of it.
@@ -129,30 +128,32 @@ UINode _header(MaterialPalette palette, ExampleSeed seed) {
   );
 }
 
-/// One link of the header or the footer: a label, tinted while the pointer is on it.
+/// One link of the header or the footer: a label that is the anchor, tinted while the
+/// pointer is on it.
+///
+/// The look and the destination are one node, so the tint covers exactly the region a press
+/// can land in — a link wrapped around a box would tint a box the anchor does not cover.
 UINode _siteLink(
   String label,
   String url,
   MaterialPalette palette, {
   bool newTab = false,
 }) {
-  return LinkNode(
-    url,
+  return Box(
+    url: url,
     newTab: newTab,
-    child: Box(
-      padding: const BoxSpacing.symmetric(horizontal: 10, vertical: 6),
-      borderRadius: 8,
-      transition: MaterialInkWell.defaultTransition,
-      hoverStyle: BoxStyle(backgroundColor: palette.surfaceContainer),
-      children: <UINode>[
-        TextNode(
-          label,
-          style: MaterialTypography.labelLarge.copyWith(
-            color: palette.onSurfaceVariant,
-          ),
+    padding: const BoxSpacing.symmetric(horizontal: 10, vertical: 6),
+    borderRadius: 8,
+    transition: MaterialInkWell.defaultTransition,
+    hoverStyle: BoxStyle(backgroundColor: palette.surfaceContainer),
+    children: <UINode>[
+      TextNode(
+        label,
+        style: MaterialTypography.labelLarge.copyWith(
+          color: palette.onSurfaceVariant,
         ),
-      ],
-    ),
+      ),
+    ],
   );
 }
 

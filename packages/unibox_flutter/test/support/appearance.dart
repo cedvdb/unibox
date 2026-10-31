@@ -280,7 +280,6 @@ bool _isNodeRenderer(Widget widget) {
   return widget is FlutterBox ||
       widget is FlutterText ||
       widget is FlutterTextInput ||
-      widget is FlutterLink ||
       widget is FlutterImage ||
       widget is FlutterStack;
 }

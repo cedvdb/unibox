@@ -6,7 +6,6 @@ import 'embed_node.dart';
 import 'grid_node.dart';
 import 'image_node.dart';
 import 'keys.dart';
-import 'link_node.dart';
 import 'overlay_node.dart';
 import 'stack_node.dart';
 import 'stateful_node.dart';
@@ -105,10 +104,6 @@ Widget renderNode(core.UINode node, {double? availableWidth}) {
     final core.GridNode grid => FlutterGrid(
       node: grid,
       key: toFlutterKey(grid.key),
-    ),
-    final core.LinkNode link => FlutterLink(
-      node: link,
-      key: toFlutterKey(link.key),
     ),
     final core.StackNode stack => FlutterStack(
       node: stack,

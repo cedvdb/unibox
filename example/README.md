@@ -252,7 +252,7 @@ model cannot describe, and they arrive through `ShowcaseFrame`/`EmbedNode`.
 There is one `h1` (the claim), an `h2` for each branch of the diagram, for the catalogue
 and for the vocabulary, and an `h3` per block of the catalogue, so the outline a crawler and
 a screen reader build the page from is the outline a reader sees. The header and the
-footer are landmarks, the links are real `LinkNode`s, and the page needs no route: a
+footer are landmarks, the links are real `<a href>`s, and the page needs no route: a
 reader scrolls from the claim to the evidence, which is a thing a static document can do
 without a click.
 
@@ -388,14 +388,15 @@ The document also arrives with what a search engine reads before any script runs
 attributes as markup, and a `robots.txt` next to it. A sitemap would need the address
 the page is served from, so `tool/site.sh --url=…` writes one when it is given it.
 
-The page's links are real: the header and the footer are `LinkNode`s and the frames are
-`<iframe>`s, so a crawler follows all of them without JavaScript. Nothing links to the
+The page's links are real: the header and the footer are boxes that name a url — so one
+node is both the look and the `<a href>` — and the frames are `<iframe>`s, so a crawler
+follows all of them without JavaScript. Nothing links to the
 example itself — it is drawn in the frames, and it is not a destination of this page.
 Inside the frame the example carries one more: its bar is a `<nav>` whose destination is
 an `<a href>` naming the document that draws it. The sign-up control is not a link — it
 opens a dialog over the page — so a crawler sees one document of the example and the one
-link into it. A page that has to be found makes sense as a `LinkNode` with a real url,
-which is the router work this project has deliberately not built.
+link into it. A page that has to be found makes sense as a `url` on the control that
+names it, which is the router work this project has deliberately not built.
 
 The static export is the document on its own: the markup, the stylesheet with its state rules
 and its container queries, and nothing that answers a press. What answers them is the client

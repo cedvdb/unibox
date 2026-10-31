@@ -29,7 +29,10 @@ void main() {
         padding: core.BoxSpacing.all(16),
         children: <core.UINode>[
           core.TextNode('Hello', headingLevel: 1),
-          core.LinkNode('/listings', child: core.TextNode('Listings')),
+          core.Box(
+            url: '/listings',
+            children: <core.UINode>[core.TextNode('Listings')],
+          ),
         ],
       );
 

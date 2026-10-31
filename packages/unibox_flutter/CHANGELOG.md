@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- `FlutterLink` is gone, and `link_node.dart` is `link_scope.dart`: with no link node to
+  render, the file holds the one thing a host supplies — `FlutterLinkScope` and its
+  `FlutterLinkOpener`. A destination is a `url` on a box, drawn by `FlutterBox`.
+
+- A box with a `url` renders as the link it is: a hand cursor, `Semantics(link: true)`, and a
+  press that runs the box's own `onTap` or, without one, opens the url through the enclosing
+  `FlutterLinkScope`. The box keeps its gesture, so its pressed state and the ink a
+  `MaterialInkWell` starts on tap-down are still its own — which is why the url is on the box
+  rather than wrapped around it. A destination with neither a scope nor an `onTap` is
+  reported in debug builds.
+
+- A link is activated by `Enter` and not by `Space`, on both targets: a box with a url joins
+  the tab order, `Enter` opens it, and `Space` is left alone because a browser does nothing
+  with it on an `<a href>`. The role a link is announced with wins over the one a component
+  passed, so a button turned into a destination is announced as a link rather than as both.
+
 - A box that states `wrap: true` renders as a `Wrap`: its children break into runs at the
   width they are given, `gap` spaces a run and the runs, and `mainAlign` and `crossAlign`
   distribute one run and place a child in it.

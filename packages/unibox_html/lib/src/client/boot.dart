@@ -29,7 +29,8 @@ library;
 /// unbidden ships no boot script at all — the script is optional by design, and a page without
 /// it is a page that stays a document. And an interaction that has to work without the
 /// application is a link or a form, not a press that waits for an engine to arrive: the model
-/// already says so, because a destination is a `LinkNode` and a page load is free.
+/// already says so, because a destination is a `url` on the box that carries it, and a page
+/// load is free.
 enum BootPolicy {
   /// At once, as the script runs: the page is the application.
   ///

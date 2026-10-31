@@ -250,12 +250,12 @@ CssDeclarations textInputDeclarations({core.BoxSpacing? padding}) {
     ..add('resize', 'none');
 }
 
-/// The declarations of a link.
+/// The declarations that cancel the look a browser gives every link.
 ///
-/// A link inherits the colour and the underline of the text around it, because the model
-/// has no look for a link: a tree that wants one styles the `Box` or the `TextNode` it
-/// wraps. Without this a browser paints every link blue and underlined, which is a look
-/// the Flutter renderer cannot draw.
+/// A link inherits the colour and drops the underline, because the model has no look for
+/// one: a box that names a `url` is painted by its own tokens, and these two are folded
+/// into that box's class. Without them a browser paints every link blue and underlined,
+/// which is a look the Flutter renderer cannot draw.
 CssDeclarations linkDeclarations() => CssDeclarations()
   ..add('color', 'inherit')
   ..add('text-decoration', 'none');

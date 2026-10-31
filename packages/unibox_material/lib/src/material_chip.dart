@@ -38,6 +38,13 @@ import 'material_typography.dart';
 /// asset. [removeSemanticsLabel] is what that target announces: a row of applied
 /// filters should say which one it removes, because eleven chips that all say "Remove"
 /// tell a reader nothing about what is about to go.
+///
+/// **A chip can be a destination.** [url] makes the pill an anchor instead of a press:
+/// the browser follows it with no runtime, a crawler reads it, and the chip still tints
+/// and ripples. A selected destination chip says `aria-current="page"` instead of
+/// `aria-pressed`, because a pressed state belongs to a button and the chip is a link
+/// now. It cannot also carry [onRemove]: a remove target inside a link is interactive
+/// content in an `<a>`, which `validateTree` reports and this constructor refuses.
 final class MaterialChip extends Box {
   /// Creates a chip around [label].
   ///
@@ -53,6 +60,8 @@ final class MaterialChip extends Box {
     bool selected = false,
     UINode? leading,
     TapCallback? onTap,
+    String? url,
+    bool newTab = false,
     HoverCallback? onHover,
     UINode? trailing,
     TapCallback? onRemove,
@@ -68,7 +77,14 @@ final class MaterialChip extends Box {
     super.margin,
     BoxTransition? transition,
     super.key,
-  }) : super(
+  }) : assert(
+         url == null || onRemove == null,
+         'A chip with a url cannot also carry onRemove: the remove target is a '
+         'control inside a link, which HTML forbids — and a press on it would both '
+         'remove the chip and follow the link. Put a linked chip beside the applied '
+         'ones, or make the cross a sibling of the chip rather than a child of it.',
+       ),
+       super(
          borderRadius: borderRadius,
          // The shape is the well's now, because the target is taller than it: the chip
          // is as tall as the finger it is aimed at, and paints the 32 pixel pill in the
@@ -82,6 +98,8 @@ final class MaterialChip extends Box {
          children: <UINode>[
            MaterialInkWell(
              onTap: onTap,
+             url: url,
+             newTab: newTab,
              onHover: onHover,
              enabled: enabled,
              // Material's 32: `labelLarge`'s 20 pixel line with six above and below,
@@ -107,9 +125,17 @@ final class MaterialChip extends Box {
                    hasRemove: onRemove != null,
                  ),
              transition: transition ?? MaterialInkWell.defaultTransition,
-             semantics: onTap == null
-                 ? null
-                 : BoxSemantics(role: BoxRole.button, pressed: selected),
+             // A chip that navigates is a link: it can say which page it is, and not
+             // whether it is pressed, because `aria-pressed` is a button's state and a
+             // link is not a button. The role is the tag's; a component that passed one
+             // would have it dropped for the same reason.
+             semantics: url != null
+                 ? (selected
+                       ? const BoxSemantics(current: BoxCurrent.page)
+                       : null)
+                 : (onTap == null
+                       ? null
+                       : BoxSemantics(role: BoxRole.button, pressed: selected)),
              child: _content(
                label: label,
                leading: leading,

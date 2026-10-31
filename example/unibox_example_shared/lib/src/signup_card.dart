@@ -200,30 +200,31 @@ Box buildSignupCard({
   );
 }
 
-/// The way out for a reader on a static page: a link back to the listings.
+/// The way out for a reader on a static page: a destination back to the listings.
 ///
-/// The link goes to the document the dialog covers, so a page without a runtime still
-/// has a way out; with one, the same press dismisses the dialog in place and the
-/// document is not loaded as well.
+/// The control and the destination are one node, so the whole of it is pressable and the
+/// `href` names the document the dialog covers: a page without a runtime still has a way
+/// out, and with one the same press dismisses the dialog in place and the document is not
+/// loaded as well.
 UINode _closeRow(TapCallback onDismiss) {
   return Box(
     direction: Axis.horizontal,
     mainAlign: MainAlign.end,
     children: <UINode>[
-      LinkNode(
-        ExampleRoutes.listings,
+      Box(
+        url: ExampleRoutes.listings,
         onTap: onDismiss,
-        child: Box(
-          padding: const BoxSpacing.symmetric(horizontal: 12, vertical: 6),
-          borderRadius: 8,
-          semantics: const BoxSemantics(role: BoxRole.button, label: 'Close'),
-          stateStyles: <BoxState, BoxStyle>{
-            BoxState.hover: BoxStyle(
-              backgroundColor: BoxColor.role(ExampleColor.accentSurface),
-            ),
-          },
-          children: <UINode>[TextNode('Close', style: ExampleType.nav)],
-        ),
+        padding: const BoxSpacing.symmetric(horizontal: 12, vertical: 6),
+        borderRadius: 8,
+        // A name: the label the reader is told about is the text, and a role would be
+        // dropped anyway — the anchor is the role.
+        semantics: const BoxSemantics(label: 'Close'),
+        stateStyles: <BoxState, BoxStyle>{
+          BoxState.hover: BoxStyle(
+            backgroundColor: BoxColor.role(ExampleColor.accentSurface),
+          ),
+        },
+        children: <UINode>[TextNode('Close', style: ExampleType.nav)],
       ),
     ],
   );
@@ -437,10 +438,10 @@ UINode _footer(SignupFormState state, TapCallback onSubmit) {
         mainAlign: MainAlign.center,
         textStyle: ExampleType.link,
         children: <UINode>[
-          LinkNode(
-            'https://unibox.dev',
+          Box(
+            url: 'https://unibox.dev',
             newTab: true,
-            child: TextNode('Read the docs'),
+            children: <UINode>[TextNode('Read the docs')],
           ),
         ],
       ),

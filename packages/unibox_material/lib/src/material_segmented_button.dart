@@ -8,7 +8,17 @@ import 'material_typography.dart';
 /// One choice of a [MaterialSegmentedButton]: a label, and optionally an icon.
 final class MaterialSegment {
   /// Creates a segment around [label].
-  const MaterialSegment({required this.label, this.icon, this.semanticsLabel});
+  ///
+  /// [url] makes this choice a destination instead of a press, the way a box with a url
+  /// is an anchor: a control that switches the list under the reader is a button, and one
+  /// that is a place is a link. [newTab] is the web's.
+  const MaterialSegment({
+    required this.label,
+    this.icon,
+    this.semanticsLabel,
+    this.url,
+    this.newTab = false,
+  });
 
   /// What the segment says.
   final UINode label;
@@ -18,6 +28,16 @@ final class MaterialSegment {
 
   /// What a screen reader calls the segment, when the label is not enough.
   final String? semanticsLabel;
+
+  /// Where this choice leads, when it is a destination rather than a press.
+  ///
+  /// A segment with a url does not call the control's `onSelect`: the press belongs to
+  /// the browser (and, in Flutter, to the host's link scope). The chosen one is then the
+  /// page the reader is on — not a link to itself — and says so with `aria-current`.
+  final String? url;
+
+  /// Whether [url] opens in a new tab, on the web.
+  final bool newTab;
 }
 
 /// A Material 3 segmented button: two to five choices in one divided pill.
@@ -66,11 +86,19 @@ final class MaterialSegment {
 /// node is cut at the share. A label that hugs (a control with no `width`) is not touched,
 /// because a row that scrolls has room for it.
 ///
-/// **What Material draws that this does not.** The container announces no
+/// **A set of destinations is a set of links.** Give the segments a [MaterialSegment.url]
+/// and the control stops being a set of buttons: each unselected choice is one `<a href>`
+/// with the segment's padding and fill, so a crawler reads where the choices lead, a page
+/// with no runtime follows them, and the ink still ripples because the anchor is the well.
+/// The chosen one is the page the reader is on: it is not a link to itself, it is not in
+/// the tab order, and it says `aria-current="page"`. [onSelect] is then not called for a
+/// segment that has a url — the destination is the press.
+///
+/// **What Material draws that this does not.** A set of selecting segments announces no
 /// `radiogroup`: a radio promises arrow keys between the choices and a single tab stop
 /// for the set, and a box activates with `Enter` and `Space` alone — on both targets,
-/// which is why `BoxRole` has no radio either. Each segment is a toggle button that
-/// says whether it is pressed (`aria-pressed`, Flutter's `toggled`), which is true of
+/// which is why `BoxRole` has no radio either. Each selecting segment is a toggle button
+/// that says whether it is pressed (`aria-pressed`, Flutter's `toggled`), which is true of
 /// the control without promising behaviour the model cannot keep. A disabled control
 /// fades as one (38%), rather than drawing `onSurface` at 12% under a 38% label, which
 /// the model cannot say without an alpha role per token.
@@ -84,7 +112,7 @@ final class MaterialSegmentedButton extends Box {
   MaterialSegmentedButton({
     required List<MaterialSegment> segments,
     required int selected,
-    required void Function(int index) onSelect,
+    void Function(int index)? onSelect,
     bool enabled = true,
     bool showSelectedIcon = true,
     double height = controlHeight,
@@ -99,7 +127,13 @@ final class MaterialSegmentedButton extends Box {
     super.margin,
     BoxTransition? transition,
     super.key,
-  }) : super(
+  }) : assert(
+         onSelect != null ||
+             segments.every((MaterialSegment segment) => segment.url != null),
+         'A segment that is not a destination needs an onSelect to answer its '
+         'press: give the control an onSelect, or give every segment a url.',
+       ),
+       super(
          height: height,
          // A disabled segmented button fades as one control rather than greying each
          // segment: Material draws the label at 38%, and one opacity is what this
@@ -124,7 +158,7 @@ final class MaterialSegmentedButton extends Box {
                iconGap: iconGap,
                labelStyle: labelStyle,
                transition: transition,
-               onTap: () => onSelect(i),
+               onTap: onSelect == null ? null : () => onSelect(i),
              ),
            ],
          ],
@@ -154,6 +188,11 @@ final class MaterialSegmentedButton extends Box {
   );
 
   /// One segment: the fill, and a well over it that covers the whole segment.
+  ///
+  /// The press and the destination are the same decision, so they are made here once: a
+  /// segment with a url that is not the chosen one is an anchor and nothing else, the
+  /// chosen one is the page the reader is on and takes no press, and a segment without a
+  /// url selects.
   static UINode _segment({
     required MaterialSegment segment,
     required bool selected,
@@ -165,9 +204,13 @@ final class MaterialSegmentedButton extends Box {
     required double iconGap,
     required BoxTextStyle labelStyle,
     required BoxTransition? transition,
-    required TapCallback onTap,
+    required TapCallback? onTap,
   }) {
     final BoxColor foreground = _foregroundOf(selected);
+    final bool link = segment.url != null;
+    // A destination is not the page it points at: the chosen one is where the reader
+    // already is, so it names no url and there is nothing left to press.
+    final String? url = link && !selected ? segment.url : null;
     // Material puts the check of the chosen segment *in place of* its icon, so a
     // control that carries pictures still says which one is chosen. The mark is drawn
     // from boxes ([MaterialCheckMark]): a glyph from a font is a host asset, and this
@@ -185,7 +228,9 @@ final class MaterialSegmentedButton extends Box {
       backgroundColor: selected ? _selectedFill : null,
       children: <UINode>[
         MaterialInkWell(
-          onTap: onTap,
+          onTap: link ? null : onTap,
+          url: url,
+          newTab: url != null && segment.newTab,
           enabled: enabled,
           ink: foreground,
           // A height, not an infinity: the segment is already as tall as the control,
@@ -200,11 +245,7 @@ final class MaterialSegmentedButton extends Box {
           height: height,
           mainAlign: MainAlign.center,
           transition: transition ?? MaterialInkWell.defaultTransition,
-          semantics: BoxSemantics(
-            role: BoxRole.button,
-            label: segment.semanticsLabel,
-            pressed: selected,
-          ),
+          semantics: _semanticsOf(segment, selected: selected, link: link),
           child: Box(
             padding: padding,
             mainAlign: MainAlign.center,
@@ -229,6 +270,35 @@ final class MaterialSegmentedButton extends Box {
         ),
       ],
     );
+  }
+
+  /// What one segment says to a screen reader.
+  ///
+  /// A destination is a link — the tag is its role, so the node adds a name and nothing
+  /// else — and the chosen one names the page the reader is on. A segment that selects is
+  /// a button, and says whether it is the chosen one.
+  static BoxSemantics? _semanticsOf(
+    MaterialSegment segment, {
+    required bool selected,
+    required bool link,
+  }) {
+    final String? label = segment.semanticsLabel;
+
+    if (!link) {
+      return BoxSemantics(
+        role: BoxRole.button,
+        label: label,
+        pressed: selected,
+      );
+    }
+
+    if (!selected) {
+      return label == null ? null : BoxSemantics(label: label);
+    }
+
+    return label == null
+        ? const BoxSemantics(current: BoxCurrent.page)
+        : BoxSemantics(label: label, current: BoxCurrent.page);
   }
 
   /// The label of a segment: its own size, or the share the segment was given.

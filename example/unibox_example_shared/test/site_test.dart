@@ -153,9 +153,9 @@ void main() {
       // Six dots next to the wordmark: a palette is the whole page, so it is chosen where
       // the page begins rather than above the catalogue that explains it.
       final List<UINode> page = _flatten(buildSitePage(frame: _frame)).toList();
-      final List<LinkNode> swatches = page
-          .whereType<LinkNode>()
-          .where((LinkNode link) => link.url.startsWith('?seed='))
+      final List<Box> swatches = page
+          .whereType<Box>()
+          .where((Box box) => box.url?.startsWith('?seed=') ?? false)
           .toList();
 
       expect(swatches, hasLength(ExampleSeed.values.length));
@@ -169,9 +169,9 @@ void main() {
         contains('Unibox'),
       );
 
-      final Box rose =
-          swatches.firstWhere((LinkNode link) => link.url == '?seed=rose').child
-              as Box;
+      final Box rose = swatches.firstWhere(
+        (Box box) => box.url == '?seed=rose',
+      );
 
       expect(rose.border?.width, 2, reason: 'the palette in force is ringed');
     });
@@ -240,13 +240,15 @@ void main() {
       'offers the source, and shows the example instead of linking to it',
       () {
         final UINode page = buildSitePage(frame: _frame);
-        final List<LinkNode> links = <LinkNode>[
+        // A destination is the box that carries the url: the source link, the wordmark,
+        // the palette swatches.
+        final List<Box> links = <Box>[
           for (final UINode node in _flatten(page))
-            if (node is LinkNode) node,
+            if (node is Box && node.url != null) node,
         ];
 
         expect(
-          links.map((LinkNode link) => link.url),
+          links.map((Box link) => link.url),
           containsAll(<String>[repositoryUrl, '$repositoryUrl#readme']),
         );
 
@@ -254,8 +256,9 @@ void main() {
         // that is the only way it is seen from here.
         expect(
           links.where(
-            (LinkNode link) =>
-                link.url.startsWith('web/') || link.url.startsWith('flutter/'),
+            (Box link) =>
+                link.url!.startsWith('web/') ||
+                link.url!.startsWith('flutter/'),
           ),
           isEmpty,
         );

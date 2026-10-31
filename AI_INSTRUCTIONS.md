@@ -28,9 +28,9 @@ host that renders it.
 
 ## The model in eight lines
 
-- A screen is an immutable Dart tree of nodes: `Box`, `TextNode`, `ImageNode`,
-  `LinkNode`, `StackNode` + `PositionedNode`, `TextInputNode`, `StatefulNode`,
-  `OverlayNode`, `GridNode`, `EmbedNode`.
+- A screen is an immutable Dart tree of nodes: `Box` (which is also the link, when it
+  carries a `url`), `TextNode`, `ImageNode`, `StackNode` + `PositionedNode`,
+  `TextInputNode`, `StatefulNode`, `OverlayNode`, `GridNode`, `EmbedNode`.
 - One tree, two renderings: `renderFlutter(tree, theme: …)` or `tree.toWidget(theme: …)`
   in a Flutter app, and `toDocument(tree, theme: …)` or `tree.toHtml(theme: …)` in
   `unibox_html` for a page a crawler reads. A tree that names colour roles needs the
@@ -84,8 +84,8 @@ host that renders it.
    Better: keep the tree in a library that imports no renderer at all, the way
    `example/unibox_example_shared/` does, and let the host import both.
 2. **The node names are not Flutter's.** `TextNode`, not `Text`; `ImageNode`, not
-   `Image`; `StackNode`, `PositionedNode`, `LinkNode`. `Box` keeps its bare name
-   because Flutter has no `Box`.
+   `Image`; `StackNode`, `PositionedNode`. `Box` keeps its bare name because Flutter
+   has no `Box`, and a link is not a node of its own: it is a `url` on one.
 3. **Flat parameters beat style bags.** `Box.computedStyle` merges `styles`
    left to right, then the flat parameters. A state style
    (`hoverStyle`, `stateStyles`) overlays the resting one; `disabled` overlays all.
@@ -128,12 +128,15 @@ host that renders it.
 10. **Give an interactive box semantics.** A box with `onTap` and no `semantics` is
     not announced as a button and is not keyboard reachable. Add
     `semantics: BoxSemantics(role: BoxRole.button, label: '…')`.
-11. **A link is a destination; a button is an action.** `LinkNode` is for a place a
-    reader can go — its `url` is a real `href`, which is what a page without a client
-    runtime follows and what a crawler reads. A control that opens a dialog or changes
-    something in place is a `Box(onTap: …)` with the button role, and it carries no
-    link: a press that is both a dialog and a page load is the flash a reader sees
-    before the dialog they asked for.
+11. **A link is a destination; a button is an action.** A place a reader can go is a
+    `url` — on the control itself, `Box(url: '/rooms/1', …)`, which is a real `href` on
+    the web and what a page without a client runtime follows and a crawler reads. A
+    leaf is the same token on a box that holds only that leaf: a picture, a line of
+    text. A control that opens a dialog or changes something in
+    place is a `Box(onTap: …)` with the button role, and it carries no url: a press that
+    is both a dialog and a page load is the flash a reader sees before the dialog they
+    asked for. A control inside a link is invalid HTML and `validateTree` reports it —
+    put the two beside each other.
 12. **Key a list.** Children of a list that can reorder take `key:` — the id of the
     model they describe — or typed text follows the position instead of the row. The
     same key is written on the element the node drew (`data-unibox-key`), so give it a
@@ -187,6 +190,8 @@ host that renders it.
 | `DefaultTextStyle` | `Box(textStyle: BoxTextStyle(...))`, inherited by the texts inside |
 | `Image.network(src, fit:)` | `ImageNode(src, fit: ImageFit.cover, alt: '…')` |
 | `GestureDetector(onTap:)` | `Box(onTap: …)` |
+| `Navigator.push`, `go_router`, an `InkWell` that goes somewhere | `Box(url: '/rooms/1', …)` — the box *is* the `<a href>`: one href for the crawler, a real press for a reader without the runtime, and the box keeps its ripple. `newTab: true` adds `target`/`rel` on the web. Give it an `onTap` only when the tree must answer the press instead of navigating |
+| `Hyperlink` around a picture or a line of text | `Box(url: …, children: <UINode>[theLeaf])` — the leaf form, and the same token a button uses |
 | `MouseRegion` | `Box(onHover: (bool hovered) { … })` |
 | `Opacity(opacity:)` | `opacity:` on the box |
 | `Transform.scale`, `Transform.rotate` | `transform: BoxTransform(scale:, rotation:, offsetX:, offsetY:)` |
@@ -204,14 +209,14 @@ host that renders it.
 | `FilledButton`, `TextButton`, `OutlinedButton`, `ElevatedButton` | `MaterialButton.filled(…)`, `.text(…)`, `.outlined(…)` or `.tonal(…)` — a label on a fill with the ink of a press; all four paint 40 tall and at least 64 wide, and `padding`, `height`, `minWidth` and `iconGap` restyle them |
 | `showDialog`, `Dialog` | `MaterialDialog(title:, content:, actions:, onDismiss:)` — an `OverlayNode`, not a call |
 | `showModalBottomSheet` | `MaterialBottomSheet(title:, content:, actions:)` — the same overlay at the bottom |
-| `SegmentedButton`, a `ToggleButtons` row | `MaterialSegmentedButton(segments:, selected:, onSelect:)` — one pill of segments, the chosen one filled; with a `width` they share it equally, and without one each is as wide as its label, so give it a width when its parent stretches it. `border` is the line around the pill and between its segments |
+| `SegmentedButton`, a `ToggleButtons` row | `MaterialSegmentedButton(segments:, selected:, onSelect:)` — one pill of segments, the chosen one filled; with a `width` they share it equally, and without one each is as wide as its label, so give it a width when its parent stretches it. `border` is the line around the pill and between its segments. A segment with a `url` is a destination: one `<a href>` per unchosen choice, no `onSelect`, and `aria-current` on the chosen one |
 | `NavigationBar`, `BottomNavigationBar` | `MaterialNavigationBar(destinations:, selected:, onSelect:)` — one 80 pixel row of equal shares, the chosen destination on a `secondaryContainer` pill; where it sits is the tree's business, so being at the bottom is the last row of a column or a `PositionedNode` |
 | `Chip`, `FilterChip`, `ChoiceChip` | `MaterialChip(label:, selected:, leading:, onTap:)` — 32 pixels tall, an outline when unselected, the secondary container when chosen; `padding`, `height` and `gap` make a denser one, and `onRemove` adds a close target whose name is `removeSemanticsLabel` |
 | `Icon(Icons.check)`, under a chosen chip or segment | `MaterialCheckMark(color:, size:)` — Material's tick drawn from two bars, no font asset needed |
-| `InkWell`, `InkResponse` | `MaterialInkWell(onTap:, borderRadius:, ink:, child:)` — a state layer plus the ink a press spreads; it paints no surface, so the filled box goes around it |
+| `InkWell`, `InkResponse` | `MaterialInkWell(onTap:, borderRadius:, ink:, child:)` — a state layer plus the ink a press spreads; it paints no surface, so the filled box goes around it. `url:` makes it a destination instead of a callback, and `fill:`/`border:`/`shadows:` give it the surface so one node can be a whole control |
 | `StatefulWidget` + `setState` around a tree | `StatefulNode` + a `StateStore` |
 | `GridView`, a `Wrap` of cards | `GridNode(minItemWidth:, maxColumns:, gap:)` — equal columns that follow the width, no breakpoint; a card that interrupts the row states `gridSpan:` on its box |
-| `Card` | `MaterialCard` (from `unibox_material`) |
+| `Card` | `MaterialCard` (from `unibox_material`) — surface only: it has no padding and no press, so `Card(child: InkWell(…))` becomes `MaterialCard(children: [MaterialInkWell(url: …, padding: BoxSpacing.all(16), child: …)])` |
 | `Icon` | `MaterialIcon.codePoint(Symbols.home.codePoint)`, or `MaterialIcon.ligature('home')` when the font is not tree-shaken anyway |
 | `IconButton`, `FilledButton.tonalIcon` around one glyph | `MaterialIconButton(icon:, label:, onTap:, variant:, badgeCount:)` — a glyph in a 40 pixel square in the four Material 3 shapes, `label` for a screen reader because a glyph names nothing, and `badgeCount` for the count pill over the corner |
 | `ListTile` | `MaterialListTile` (from `unibox_material`) |
@@ -239,7 +244,8 @@ host that renders it.
 | `color`, `font-size`, `font-weight`, `line-height`, `letter-spacing` | the same tokens on `TextNode` or `BoxTextStyle` |
 | `text-decoration: underline`, `text-decoration-color` | `decoration: TextDecoration.underline`, `decorationColor:` — `none`, `lineThrough`, `underline`; `double`, `wavy` and `overline` are not in the model, because Flutter draws one solid line and has no overline |
 | `overflow: hidden` / `auto` | `overflow: Overflow.hidden` / `Overflow.scroll` |
-| `<a href>` | `LinkNode(url, child: …)` |
+| `<a href>` | `Box(url: …)`, which *is* the `<a href>` |
+| `<a>` with no `href` | `semantics: BoxSemantics(element: BoxElement.a)`: a placeholder that nothing follows |
 | `<img src alt>` | `ImageNode(src, alt: …)` |
 | `<h1>`–`<h6>` | `TextNode('…', headingLevel: 1)` |
 | `<main>`, `<nav>`, `<ul>`/`<li>`, `<article>` | `semantics: BoxSemantics(element: BoxElement.main)`, `.nav`, `.ul` + `.li`, `.article` |
@@ -580,8 +586,9 @@ UINode buildListingsPage(SiteCopy copy) => … TextNode(copy.title) …
 - **Ship the copy and the routes together.** A German page whose links and canonical still point at
   the English addresses is the bug localised sites actually have: take both from the language tag.
 - **The address is the locale.** `/de/…`, not a cookie or `Accept-Language`, because a crawler
-  sends neither. A language switch is a `LinkNode` to the other address — followable and crawlable
-  like any other link — and a language change inside the app is a `Store` publish.
+  sends neither. A language switch is a `url` on the box that names the other address —
+  followable and crawlable like any other link — and a language change inside the app is a
+  `Store` publish.
 - **One document per language, each naming the whole set.** `lang` is what it is written in,
   `canonical` is its own address, and `alternates` are the others:
 
@@ -634,7 +641,7 @@ UINode buildListingsPage(SiteCopy copy) => … TextNode(copy.title) …
 | --- | --- |
 | Every `Box` parameter and its default | [`README.md#box`](README.md#box) |
 | Text, typography and inheritance | [`README.md#textnode`](README.md#textnode), [`#typography`](README.md#typography) |
-| Images, links, stacks, inputs, embeds | [`#imagenode`](README.md#imagenode), [`#linknode`](README.md#linknode), [`#stacknode-and-positionednode`](README.md#stacknode-and-positionednode), [`#textinputnode`](README.md#textinputnode), [`#embednode`](README.md#embednode) |
+| Images, links, stacks, inputs, embeds | [`#imagenode`](README.md#imagenode), [`#links`](README.md#links), [`#stacknode-and-positionednode`](README.md#stacknode-and-positionednode), [`#textinputnode`](README.md#textinputnode), [`#embednode`](README.md#embednode) |
 | A dialog, a sheet, a banner | [`#overlaynode`](README.md#overlaynode), and the policy in [`packages/unibox_core/README.md#overlays`](packages/unibox_core/README.md#overlays) |
 | State, a store and a lifecycle | [`#statefulnode`](README.md#statefulnode), and the rules in [`packages/unibox_core/README.md#state`](packages/unibox_core/README.md#state) |
 | Material type roles and components | [`packages/unibox_material/README.md`](packages/unibox_material/README.md) |

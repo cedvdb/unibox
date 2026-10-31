@@ -30,32 +30,33 @@ UINode seedPicker({required ExampleSeed current}) {
     textStyle: ExampleType.muted,
     children: <UINode>[
       for (final ExampleSeed seed in ExampleSeed.values)
-        LinkNode(
-          '?seed=${seed.name}',
-          child: Box(
-            width: 22,
-            height: 22,
-            borderRadius: 11,
-            backgroundColor: seed.accent,
-            // The seed in force is ringed: a swatch of its own accent does not say
-            // which of the six the page is drawn with.
-            border: BoxBorder(
-              width: seed == current ? 2 : 1,
-              color: BoxColor.role(
-                seed == current ? ExampleColor.text : ExampleColor.border,
-              ),
+        // The swatch is the link: a destination with no text has to name itself, and the
+        // name belongs on the element that navigates. A box wrapped in another box that
+        // carried the url would put the name on an element inside the anchor, and a
+        // control inside a link is what `validateTree` refuses.
+        Box(
+          url: '?seed=${seed.name}',
+          width: 22,
+          height: 22,
+          borderRadius: 11,
+          backgroundColor: seed.accent,
+          // The seed in force is ringed: a swatch of its own accent does not say which
+          // of the six the page is drawn with.
+          border: BoxBorder(
+            width: seed == current ? 2 : 1,
+            color: BoxColor.role(
+              seed == current ? ExampleColor.text : ExampleColor.border,
             ),
-            semantics: BoxSemantics(
-              role: BoxRole.link,
-              label: seed == current
-                  ? '${seed.label} palette, in force'
-                  : '${seed.label} palette',
-            ),
-            stateStyles: const <BoxState, BoxStyle>{
-              BoxState.hover: BoxStyle(transform: BoxTransform(scale: 1.15)),
-            },
-            transition: ExampleType.transition,
           ),
+          semantics: BoxSemantics(
+            label: seed == current
+                ? '${seed.label} palette, in force'
+                : '${seed.label} palette',
+          ),
+          stateStyles: const <BoxState, BoxStyle>{
+            BoxState.hover: BoxStyle(transform: BoxTransform(scale: 1.15)),
+          },
+          transition: ExampleType.transition,
         ),
     ],
   );

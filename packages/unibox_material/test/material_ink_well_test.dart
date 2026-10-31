@@ -359,4 +359,70 @@ void main() {
       store.dispose();
     });
   });
+
+  group('a well that navigates', () {
+    /// The box the well draws, with no drop in flight.
+    Box view(MaterialInkWell well) {
+      final MaterialInkStore store = MaterialInkStore();
+      final Box box = _view(well, store);
+      store.dispose();
+
+      return box;
+    }
+
+    test(
+      'puts the destination where it puts the press, and ripples for it',
+      () {
+        final Box shape = view(
+          MaterialInkWell(url: '/sign-in', child: const TextNode('Sign in')),
+        );
+
+        expect(shape.url, '/sign-in');
+        expect(shape.onTap, isNull);
+        // A destination is pressable: the ink starts on tap-down even though nothing in the
+        // tree answers the tap, because the press is what opens it.
+        expect(shape.onTapDown, isNotNull);
+      },
+    );
+
+    test('keeps the destination on the surface when the well paints one', () {
+      final Box shape = view(
+        MaterialInkWell(
+          url: '/sign-in',
+          fill: const BoxColor.role(MaterialColorRole.primary),
+          child: const TextNode('Sign in'),
+        ),
+      );
+      // The layered case: the outer box is the surface and the anchor, and the tints are
+      // one box inside it — an `<a>` inside an `<a>` would be no link at all.
+      final Box tints = shape.children.single as Box;
+
+      expect(shape.url, '/sign-in');
+      expect(tints.url, isNull);
+      expect(shape.backgroundColor, isNotNull);
+    });
+
+    test(
+      'puts the destination on the target when a target carries the press',
+      () {
+        final Box target = view(
+          MaterialInkWell(
+            url: '/sign-in',
+            height: 32,
+            tapTargetHeight: 48,
+            newTab: true,
+            child: const TextNode('Sign in'),
+          ),
+        );
+        final Box shape = target.children.single as Box;
+
+        // The room a finger gets is the region that navigates, and the pill inside it names
+        // no destination of its own.
+        expect(target.url, '/sign-in');
+        expect(target.newTab, isTrue);
+        expect(shape.url, isNull);
+        expect(shape.newTab, isFalse);
+      },
+    );
+  });
 }

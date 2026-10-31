@@ -108,4 +108,153 @@ void main() {
       store.dispose();
     });
   });
+
+  group('an ink well that navigates', () {
+    /// How many anchors [html] holds: a control is one destination, never two.
+    int anchorsIn(String html) => RegExp('<a ').allMatches(html).length;
+
+    String render(core.UINode node) =>
+        toHtml(node, theme: MaterialPalette.light.theme);
+
+    test('is one anchor, with the look of the well and no role', () {
+      final String html = render(
+        MaterialInkWell(
+          url: '/sign-in',
+          padding: const core.BoxSpacing.all(16),
+          borderRadius: 12,
+          child: const core.TextNode('Sign in'),
+        ),
+      );
+
+      expect(anchorsIn(html), 1);
+      expect(html, contains('href="/sign-in"'));
+      // The tag is the role: a `role="button"` would overrule the link, and a tabindex
+      // would restate the tab stop an anchor already has.
+      expect(html, isNot(contains('role="button"')));
+      expect(html, isNot(contains('tabindex')));
+      // The whole well is the anchor, padding included: the room is pressable.
+      expect(html, contains('padding:16px'));
+      expect(html, contains('border-radius:12px'));
+    });
+
+    test('is one anchor when the well paints a surface', () {
+      // A layered well keeps its fill, its line and its clip on the outer box, so the
+      // anchor is that box and the tints are inside it.
+      final String html = render(
+        MaterialInkWell(
+          url: '/sign-in',
+          fill: const core.BoxColor.role(MaterialColorRole.primary),
+          borderRadius: 12,
+          child: const core.TextNode('Sign in'),
+        ),
+      );
+
+      expect(anchorsIn(html), 1);
+      expect(html, contains('href="/sign-in"'));
+      expect(html, isNot(contains('role="button"')));
+    });
+
+    test('is one anchor when a taller target carries the press', () {
+      // The target owns the press *and* the href, because an `<a>` inside an `<a>` is not
+      // a link at all: the shape inside it names no destination.
+      final String html = render(
+        MaterialInkWell(
+          url: '/sign-in',
+          height: 32,
+          tapTargetHeight: 48,
+          borderRadius: 8,
+          child: const core.TextNode('Sign in'),
+        ),
+      );
+
+      expect(anchorsIn(html), 1);
+      expect(html, contains('href="/sign-in"'));
+    });
+
+    test('opens in a new tab when it says so', () {
+      final String html = render(
+        MaterialInkWell(
+          url: '/sign-in',
+          newTab: true,
+          child: const core.TextNode('Sign in'),
+        ),
+      );
+
+      expect(html, contains('target="_blank"'));
+      expect(html, contains('rel="noopener noreferrer"'));
+    });
+  });
+
+  group('a segmented button of destinations', () {
+    String renderCatalogue() => toHtml(
+      MaterialSegmentedButton(
+        selected: 1,
+        width: 300,
+        segments: const <MaterialSegment>[
+          MaterialSegment(label: core.TextNode('Day'), url: '/?period=day'),
+          MaterialSegment(label: core.TextNode('Week'), url: '/?period=week'),
+          MaterialSegment(label: core.TextNode('Month'), url: '/?period=month'),
+        ],
+      ),
+      theme: MaterialPalette.light.theme,
+    );
+
+    test('draws every unselected choice as one anchor', () {
+      final String html = renderCatalogue();
+
+      expect(RegExp('<a ').allMatches(html).length, 2);
+      expect(html, contains('href="/?period=day"'));
+      expect(html, contains('href="/?period=month"'));
+      expect(html, isNot(contains('role="button"')));
+    });
+
+    test('marks the chosen one as the page, without a link to itself', () {
+      final String html = renderCatalogue();
+
+      expect(html, isNot(contains('href="/?period=week"')));
+      expect(html, contains('aria-current="page"'));
+      expect(html, isNot(contains('tabindex')));
+    });
+  });
+
+  group('a card in a document', () {
+    test('is a surface: no role, no tab stop, no hand and no padding ring', () {
+      final Stylesheet sheet = Stylesheet();
+      final ElementPlan plan = planNode(
+        MaterialCard(
+          children: <core.UINode>[const core.TextNode('Two nights')],
+        ),
+        sheet,
+      );
+      final String rule = sheet
+          .rulesSince((classes: 0, states: 0))
+          .firstWhere((String rule) => rule.startsWith('.${plan.className!}{'));
+
+      // The card is content, not a control: a press belongs to the ink inside it.
+      expect(plan.attributes, isNot(contains('role')));
+      expect(plan.attributes, isNot(contains('tabindex')));
+      expect(rule, isNot(contains('cursor:pointer')));
+      expect(rule, isNot(contains('padding')));
+    });
+
+    test('is one anchor when its whole surface is the destination', () {
+      // The recipe the card documents: surface outside, ink inside, padding on the ink.
+      final String html = toHtml(
+        MaterialCard(
+          overflow: core.Overflow.hidden,
+          children: <core.UINode>[
+            MaterialInkWell(
+              url: '/spots/abc/book',
+              padding: const core.BoxSpacing.all(16),
+              child: const core.TextNode('Book'),
+            ),
+          ],
+        ),
+        theme: MaterialPalette.light.theme,
+      );
+
+      expect(RegExp('<a ').allMatches(html).length, 1);
+      expect(html, contains('href="/spots/abc/book"'));
+    });
+  });
 }

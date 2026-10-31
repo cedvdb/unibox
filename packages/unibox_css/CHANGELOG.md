@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `boxDeclarations` takes `anchor:`, which adds the two declarations a browser gives every
+  link — `color: inherit`, `text-decoration: none` — to the box's own rule. A box that
+  navigates is painted by its look and not by the user agent, and the two declarations are
+  in the anchor's class rather than in a global rule, so a look still costs one rule.
+
 - A box that states `wrap: true` is a `flex-wrap: wrap` container whose lines are packed
   from the start (`align-content: flex-start`), which is what a Flutter `Wrap` does with
   its runs and not what a browser does by default.

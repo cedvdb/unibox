@@ -310,7 +310,7 @@ the conformance table already pins — the class is a combination, not a new tok
 
 | Token | Value | Why |
 | --- | --- | --- |
-| padding | `16` on every edge | the room Material gives card content |
+| padding | none | Flutter's `Card` pads nothing: padding on the surface is room no press inside it can reach |
 | background | `BoxColors.white` | the surface, until a colour scheme exists |
 | radius | `12` | the medium shape of Material 3 |
 | shadows | `MaterialCard.elevatedShadows` — `MaterialElevation.level1` | elevation level one: the design file's ladder, one shade cast at 34% black |
@@ -330,11 +330,34 @@ MaterialCard(
 )
 ```
 
-The layout and interaction of a box come through too — `direction`, `gap`,
-`width`, `flex`, `onTap`, `stateStyles`, `semantics`, ... — so a clickable card
-states `onTap` and its role, not a wrapper component. What the card does not
-expose is a style bag: its own tokens are flat parameters, so a bag would lose to
-them. A `Box` around it is the escape hatch, and it is the box this class builds.
+The layout of a box comes through too — `direction`, `gap`, `width`, `flex`,
+`stateStyles`, `semantics`, ... — but the press does not: a card is a surface, the way
+Flutter's `Card` is, and the press belongs to the ink inside it. That is the only
+composition that can work, because a well paints its tints and its ink *under* its child,
+so a well around the card would paint them behind an opaque surface:
+
+```dart
+// The whole card is the destination: ink inside, padding on the ink.
+MaterialCard(
+  overflow: Overflow.hidden,
+  children: <UINode>[
+    MaterialInkWell(
+      url: '/spots/abc/book',
+      padding: const BoxSpacing.all(16),
+      child: content,
+    ),
+  ],
+)
+```
+
+A pressable card can also be **one node**: `MaterialInkWell` already paints a fill, a line,
+a radius, a clip and a padding, and it takes `shadows` and `textStyle` as well — so a well
+given the card's tokens is a card that inks, with no second box and no ring of padding
+nothing can reach. `MaterialCard` stays for the static surface.
+
+What the card does not expose is a style bag: its own tokens are flat parameters, so a
+bag would lose to them. A `Box` around it is the escape hatch, and it is the box this
+class builds.
 
 **What it is not.** Material takes a card's surface from a colour scheme
 (`surfaceContainerLow`), and its three official variants differ by tone: the surface
@@ -520,6 +543,8 @@ Box(
 | transition | 100ms, so a tint eases instead of flashing |
 | ink | `onSurface`, 12% where the press landed, 280 pixels wide at the end, gone after 450ms |
 | role | `BoxRole.button` when it can be tapped |
+| `url` | the region is a destination instead of a callback: one `<a href>`, wherever the press is |
+| `shadows`, `textStyle` | the well can be a whole surface — a card — rather than a press inside one |
 
 The ripple is **state, not a renderer feature**. A press adds a drop to a
 `MaterialInkStore`, a timer advances it every frame, and the view draws one box per
@@ -544,6 +569,14 @@ can hit taller than the shape it paints, with the shape centred in it: Material 
 shape — a tint is the shape — so the extra room takes the press and paints nothing, and
 a drop that lands in it still starts where the pill would see the press. It is layout
 and not paint: a row of chips is as tall as the target.
+
+**A well can be a destination.** `url` puts the anchor wherever the press is — on the shape
+in the plain case, on the outer box when the well paints a surface, and on the target when
+`tapTargetHeight` adds one — which is one rule: where the press goes, the `href` goes. An
+anchor is pressable with no callback, so the ink still starts on tap-down; an `<a>` inside
+an `<a>` is not a link at all, which is why a shape inside a taller target names nothing.
+The web follows the `href` with no runtime and a crawler reads it; Flutter opens it through
+the host's link scope while the box keeps its ripple and its press state.
 
 What it is not is a timeline the host owns: the ink is a state machine and a timer,
 so a press costs a rebuild of one subtree per frame for 450ms. On the web that rebuild
@@ -657,10 +690,27 @@ does, so a control of pictures still says which one is on. The check is a
 is a host asset and this package ships none — and `showSelectedIcon: false` leaves the
 icon where it is for a control whose fill is enough.
 
+**A set of destinations is a set of links.** Give the segments a `url` and the control
+stops being a set of buttons: each unchosen choice is one `<a href>` with the segment's
+padding and fill, so a crawler reads where they lead and a page with no runtime follows
+them. The chosen one is the page the reader is on — no link to itself, not in the tab
+order, `aria-current="page"` — and `onSelect` is not called for a segment that has a url,
+because the destination is the press:
+
+```dart
+MaterialSegmentedButton(
+  selected: 1,
+  segments: const <MaterialSegment>[
+    MaterialSegment(label: TextNode('Day'), url: '/?period=day'),
+    MaterialSegment(label: TextNode('Week'), url: '/?period=week'),
+  ],
+)
+```
+
 **What stays approximate.** The container is not a `radiogroup`, because `BoxSemantics`
-has no group role: every segment is a button that says whether it is the chosen one. A
-disabled control fades as one at 38% rather than drawing `onSurface` at 12% under a 38%
-label, which would need an alpha role per token.
+has no group role: every selecting segment is a button that says whether it is the chosen
+one. A disabled control fades as one at 38% rather than drawing `onSurface` at 12% under a
+38% label, which would need an alpha role per token.
 
 ## The text field
 

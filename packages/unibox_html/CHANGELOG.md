@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- A link is the box that names a `url`, so a document has one anchor shape rather than two:
+  a `LinkNode` and a url box wrote different classes for the same link, and the wrapper's
+  anchor carried none of the layout.
+
+- A box with a `url` is written as an `<a href>` with the box's own class and children,
+  instead of a `<div role="button">`: a page a crawler can follow, a reader without the
+  runtime can use, and anyone can copy or open in a new tab. Nothing else about the element
+  changes, and the document still carries no listener — the press belongs to the host's
+  runtime.
+
 - A card's shadow sits at the same height on the page as in the app: the stylesheet writes a
   shadow's blur in the unit a browser reads, so the level one shadow under a card has the width
   and the weight of the one in the application instead of a darker, tighter band on the web.

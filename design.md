@@ -52,15 +52,17 @@ All nodes extend `abstract class UINode`.
    - **Visuals:** `padding`, `margin`, `backgroundColor`, `borderRadius` (`double?`), `corners`
      (`BoxBorderRadius?` — the four radii, for a shape that is not round everywhere), `border`,
      `shadows`.
-   - **Actions:** `onTap`, `onLongPress`, `onHover`.
+   - **Actions:** `onTap`, `onTapDown`, `onLongPress`, `onHover`.
+   - **Navigation:** `url`, `newTab` — the box is the `<a href>` when it names one (§5.5).
    - **Tokens/Overrides:** Optional `style: BoxStyle?` and `hoverStyle: BoxStyle?`.
    - `computedStyle`: Helper that overlays explicit flat parameters onto `style`.
 2. **`TextNode`**: `text`, `fontSize`, `fontWeight`, `color`, `textAlign`, `maxLines`, `overflow`.
 3. **`ImageNode`**: `src`, `alt`, `width`, `height`, `fit`, `borderRadius`.
-4. **`LinkNode`**: `url`, `child`, `newTab`, optional `onTap`.
-5. **`StackNode`**: Container for layered children (`children: List<UINode>`).
-6. **`PositionedNode`**: Direct child of `StackNode` (`top`, `right`, `bottom`, `left`, `child`).
-7. **`TextInputNode`**: `value`, `placeholder`, `obscureText`, `multiline`, `maxLines`, `onChanged`, `onSubmitted`.
+4. **`StackNode`**: Container for layered children (`children: List<UINode>`).
+5. **`PositionedNode`**: Direct child of `StackNode` (`top`, `right`, `bottom`, `left`, `child`).
+6. **`TextInputNode`**: `value`, `placeholder`, `obscureText`, `multiline`, `maxLines`, `onChanged`, `onSubmitted`.
+
+There is no link node: a link is a `url` on the box that is one (§5.5).
 
 ---
 
@@ -72,7 +74,9 @@ All nodes extend `abstract class UINode`.
 - `Box` with `overflow: Overflow.scroll` wraps in `SingleChildScrollView`.
 - `onTap` maps to `GestureDetector`.
 - `onHover` maps to `MouseRegion`.
-- `LinkNode` renders child with tap navigation.
+- A `Box` with a `url` is a click-cursor region that says `Semantics(link: true)`, opens
+  through `FlutterLinkScope` unless it has an `onTap`, and activates with `Enter`. The box
+  keeps its own gesture, so its pressed state and its ink stay its own.
 - `StackNode` / `PositionedNode` map to Flutter `Stack` and `Positioned`.
 - `TextInputNode` renders managed `TextField`.
 
@@ -82,7 +86,8 @@ All nodes extend `abstract class UINode`.
 - Map layout to CSS flexbox (`display: flex`, `gap`, etc.); a box without a
   direction is a flex column.
 - `width == double.infinity` maps to `100%`.
-- `LinkNode` outputs a native `<a>` tag with `href` and `target`.
+- A `Box` with a `url` is a native `<a>` tag with `href` and `target`: the box's own
+  class and declarations, plus the two that cancel what a browser paints on every link.
 - `StackNode` renders `<div style="position: relative">`.
 - `PositionedNode` renders `<div style="position: absolute">`.
 - `TextInputNode` renders `<input>` or `<textarea>`.
@@ -285,6 +290,38 @@ never inherited (CSS does not inherit them either).
 - Styling a state uses `stateStyles`, never a per-platform mechanism.
 - Keyboard focus is opt-in: a box joins the tab order only when its
   `BoxSemantics.role` is one the user can act on. A plain container never does.
+- **A destination is a link, not a callback.** An interaction that has to work
+  without the application is an `<a href>` or a form; a press that waits for an
+  engine to arrive is neither. So a control that *navigates* says where it goes,
+  with `Box.url`, and the box itself becomes the anchor: the same look, the same
+  children, the same press — and, on the web, a real `href` a crawler can follow,
+  a reader without the runtime can use, and anyone can copy or open in a new tab.
+  A callback is for a press that changes state (§5.10), and a leaf — a picture, a line of
+  text — is the same token on a box that holds only that leaf. `Box(url:)` is the primitive
+  because the box is already the control: it owns its gesture, its pressed state,
+  its ink and its semantics, and wrapping it in a link would put a second gesture
+  and a second semantics node around it.
+- **The tag is the role.** A box that navigates is an `<a href>`, which is the
+  whole of what a link is, so an explicit `role`, a `tabindex` and the states of a
+  control (`aria-checked`, `aria-selected`) are not written for it, and a
+  component that passed `BoxRole.button` announces a link without changing
+  anything. What a destination can say about itself is `aria-current`. On Flutter
+  the same rule is `Semantics(link: true)`: the accessible tree says what the
+  element says.
+- **`<a>` is an element, so the element token can say it.** `BoxSemantics.element:
+  BoxElement.a` is an anchor and `url` implies one — the tag comes from the element
+  in every case, which is why a box that names a destination *and* a landmark is
+  reported rather than one of them silently winning. Stating the element alone is a
+  placeholder anchor: no `href`, so nothing follows it and nothing tabs to it.
+- **A press the tree answers is still a link.** A box with both a `url` and an
+  `onTap` runs the handler and does not navigate — the web cancels the click and
+  Flutter does not call the opener — while the `href` stays for a reader without
+  the runtime, for a new tab and for a crawler. A modifier, a middle click and
+  `newTab` stay the browser's, in both cases.
+- **A link cannot contain a control.** HTML forbids interactive content inside
+  `<a>`, and neither target can say whether a press on the inner control runs it
+  or follows the link, so `validateTree` reports it (§5.4). The destination and
+  the control are composed as siblings, or the control *is* the destination.
 - Dragging, scrolling gestures and pointer move tracking are out of scope.
 
 ### 5.6 Non-goals
@@ -359,8 +396,8 @@ never inherited (CSS does not inherit them either).
   when the element does not already imply it.
 - Structure that HTML forbids is a tree error, not a rendering surprise: a
   `BoxElement.li` outside a `ul` or an `ol` is reported by `validateTree`.
-- What stays host work: navigation between documents (a `LinkNode` or the host's
-  router), `aria-current`, figure captions, tables, and anything that describes the
+- What stays host work: navigation between documents (a `url` on the box that presses,
+  or the host's router), `aria-current`, figure captions, tables, and anything that describes the
   *document* rather than the tree (see 5.6).
 - Motion is a token before it is an embed. `BoxTransition` states a duration and a
   curve, and the curve is one of the five CSS and Flutter define with the same
@@ -806,8 +843,8 @@ What that buys, stated as the invariants the feature has to keep:
   another — so a builder takes the editions it needs from a single value, never a `String`
   from one place and a path from another.
 - The address is the source of truth, because a crawler sends no `Accept-Language` and
-  keeps no cookie: `/de/apartments/` is the German page, and a language switch is a `LinkNode`
-  to the other address — followable, crawlable and shareable, the same shape the example's
+  keeps no cookie: `/de/apartments/` is the German page, and a language switch is a `url`
+  on the box that names the other address — followable, crawlable and shareable, the same shape the example's
   palette picker uses to be a page a crawler can reach. A state in a store is the honest
   answer for a language change inside an application; a link is the honest answer for a
   page that has to be found.

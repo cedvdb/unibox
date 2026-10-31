@@ -2,15 +2,16 @@ import 'package:test/test.dart';
 import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_material/unibox_material.dart';
 
-void _tap() {}
-
 void main() {
   group('MaterialCard', () {
     test('is a box with the defaults Material gives a card', () {
       const card = MaterialCard();
 
       expect(card, isA<Box>());
-      expect(card.padding, const BoxSpacing.all(16));
+      // No padding: Flutter's `Card` has none either, and a card that padded would have a
+      // ring no press inside it can reach. Null rather than a zero, so the rule declares
+      // nothing at all.
+      expect(card.padding, isNull);
       expect(
         card.backgroundColor,
         const BoxColor.role(MaterialColorRole.surfaceContainerLow),
@@ -63,20 +64,23 @@ void main() {
       expect(card.computedStyle.textStyle, const BoxTextStyle(fontSize: 12));
     });
 
-    test('passes the layout and the interaction it is given to the box', () {
+    test('passes the layout it is given to the box, and takes no press', () {
       const card = MaterialCard(
         direction: Axis.horizontal,
         gap: 8,
         width: 320,
         flex: 1,
-        onTap: _tap,
       );
 
       expect(card.direction, Axis.horizontal);
       expect(card.computedStyle.gap, 8);
       expect(card.computedStyle.width, 320);
       expect(card.computedStyle.flex, 1);
-      expect(card.onTap, _tap);
+      // A surface is not a control: the press belongs to the ink well inside the card, so
+      // the card has no tap, no hand cursor and no tab stop of its own.
+      expect(card.onTap, isNull);
+      expect(card.isInteractive, isFalse);
+      expect(card.isFocusable, isFalse);
     });
 
     test('typesets the texts inside it without a style of their own', () {

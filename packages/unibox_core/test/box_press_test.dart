@@ -45,18 +45,33 @@ void main() {
       expect(answered, hasLength(1));
     });
 
-    test('follows a link that answers a press itself', () {
+    test('answers a destination that handles its own press', () {
       var followed = 0;
-      final UINode tree = LinkNode(
+      final UINode tree = Box(
         key: 'open',
-        '/listings',
+        url: '/listings',
         onTap: () => followed++,
-        child: const TextNode('Listings'),
+        children: const <UINode>[TextNode('Listings')],
       );
 
       replayPresses(tree, const <BoxPress>[BoxPress(key: 'open')]);
 
       expect(followed, 1);
+    });
+
+    test('leaves a destination with no handler to the browser', () {
+      // The page has already followed the href; answering again would be a second answer to
+      // one press.
+      final UINode tree = Box(
+        key: 'open',
+        url: '/listings',
+        children: const <UINode>[TextNode('Listings')],
+      );
+
+      expect(
+        replayPresses(tree, const <BoxPress>[BoxPress(key: 'open')]),
+        isEmpty,
+      );
     });
 
     test('drops a key the tree does not have', () {

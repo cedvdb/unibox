@@ -3,10 +3,10 @@ import 'nodes/box.dart';
 import 'nodes/embed_node.dart';
 import 'nodes/grid_node.dart';
 import 'nodes/image_node.dart';
-import 'nodes/link_node.dart';
 import 'nodes/overlay_node.dart';
 import 'nodes/positioned_node.dart';
 import 'nodes/stack_node.dart';
+import 'nodes/text_input_node.dart';
 import 'nodes/text_node.dart';
 import 'nodes/ui_node.dart';
 import 'tokens/box_border.dart';
@@ -68,8 +68,10 @@ class TreeIssue {
 /// Detected issues:
 /// * a [PositionedNode] whose parent is not a [StackNode], which silently drops
 ///   its offsets,
-/// * a [LinkNode] nested inside another [LinkNode], which is invalid HTML and
-///   navigates twice,
+/// * a link nested inside another link — a [Box] with a `url` inside one — which is
+///   invalid HTML and navigates twice,
+/// * a control inside a link, which HTML forbids and neither target can undo: a press
+///   would run the inner control and follow the link,
 /// * a box that scrolls along its main axis while distributing its children
 ///   with [Box.mainAlign], which pushes overflowing children out of reach,
 /// * a box that fills an axis it was given no end on — the width inside a row
@@ -99,7 +101,7 @@ List<TreeIssue> validateTree(UINode root, {UniboxTheme? theme}) {
   _validate(
     root,
     parent: null,
-    inLink: false,
+    inAnchor: false,
     theme: theme,
     inGrid: false,
     definiteHeight: null,
@@ -320,7 +322,7 @@ void _validateFilledAxis({
 void _validate(
   UINode node, {
   required UINode? parent,
-  required bool inLink,
+  required bool inAnchor,
   required UniboxTheme? theme,
   required bool inGrid,
   required double? definiteHeight,
@@ -787,27 +789,63 @@ void _validate(
     );
   }
 
-  var nestedInLink = inLink;
+  var nestedInAnchor = inAnchor;
 
-  if (node is LinkNode) {
-    if (inLink) {
+  if (node is Box && node.isAnchor) {
+    if (inAnchor) {
       issues.add(
         TreeIssue(
           node: node,
           severity: TreeIssueSeverity.error,
           message:
-              'A LinkNode cannot contain another LinkNode: HTML forbids nested '
-              '<a> elements, and the double navigation is not something either '
-              'target can undo. Move the inner link out of the outer one.',
+              'A link cannot contain another link, but this one is inside one: '
+              'HTML forbids nested <a> elements, and the double navigation is not '
+              'something either target can undo. Move the inner link out of the '
+              'outer one.',
         ),
       );
     }
-    nestedInLink = true;
+
+    nestedInAnchor = true;
+  } else if (inAnchor &&
+      (node is TextInputNode ||
+          (node is Box &&
+              node.enabled &&
+              (node.isInteractive || node.isFocusable)))) {
+    issues.add(
+      TreeIssue(
+        node: node,
+        severity: TreeIssueSeverity.error,
+        message:
+            'A box with a url cannot contain a control: HTML forbids interactive '
+            'content inside <a>, so a press on the inner control would both run it '
+            'and follow the link, and neither target can say which. Move the '
+            'control beside the link, or make the link the control.',
+      ),
+    );
   }
 
   if (node is Box) {
     final BoxStyle style = node.computedStyle;
     final MainAlign? mainAlign = style.mainAlign;
+    final BoxElement element = node.semantics?.element ?? BoxElement.div;
+
+    // A box that navigates is the `<a>` element, so an element it also names is lost: only
+    // one tag is written, and an `<article>` that quietly became an anchor would be a
+    // landmark the page stopped having.
+    if (node.isAnchor && element != BoxElement.div && element != BoxElement.a) {
+      issues.add(
+        TreeIssue(
+          node: node,
+          severity: TreeIssueSeverity.error,
+          message:
+              'A box with a url is an <a>, so it cannot also be '
+              'BoxElement.${element.name}: one element is written and the anchor is '
+              'the one that navigates. Put the ${element.name} around the box, or give '
+              'the url to a box inside it.',
+        ),
+      );
+    }
 
     if (style.overflow == Overflow.scroll &&
         mainAlign != null &&
@@ -1026,7 +1064,7 @@ void _validate(
     _validate(
       child,
       parent: node,
-      inLink: nestedInLink,
+      inAnchor: nestedInAnchor,
       theme: theme,
       inGrid: inGrid || node is GridNode,
       definiteHeight: node is GridNode ? null : childDefiniteHeight,

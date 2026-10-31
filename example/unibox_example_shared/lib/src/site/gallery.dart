@@ -938,6 +938,7 @@ UINode _cards(MaterialPalette palette) {
       MaterialCard.outlined(
         width: double.infinity,
         gap: 8,
+        padding: const BoxSpacing.all(16),
         color: palette.surface,
         children: <UINode>[
           TextNode('Outlined', style: MaterialTypography.titleMedium),
@@ -948,6 +949,7 @@ UINode _cards(MaterialPalette palette) {
       MaterialCard.filled(
         width: double.infinity,
         gap: 8,
+        padding: const BoxSpacing.all(16),
         color: palette.surfaceContainerHighest,
         children: <UINode>[
           TextNode('Filled', style: MaterialTypography.titleMedium),
@@ -1009,6 +1011,7 @@ UINode _heightCard(
   return MaterialCard(
     width: double.infinity,
     gap: 8,
+    padding: const BoxSpacing.all(16),
     shadows: shadows,
     color: surface,
     children: <UINode>[

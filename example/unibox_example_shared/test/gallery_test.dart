@@ -81,8 +81,8 @@ void main() {
       expect(_nodesOf(section).whereType<MaterialCard>().isEmpty, isFalse);
       expect(
         _nodesOf(section)
-            .whereType<LinkNode>()
-            .where((LinkNode link) => link.url.startsWith('?seed=')),
+            .whereType<Box>()
+            .where((Box box) => box.url?.startsWith('?seed=') ?? false),
         isEmpty,
       );
     });

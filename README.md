@@ -105,7 +105,7 @@ final UINode page = Box(
   children: <UINode>[
     TextNode('Apartments in Amsterdam', headingLevel: 1),
     TextNode('Forty-one flats, from a studio to a family home.'),
-    LinkNode('apartments/amsterdam', child: TextNode('See all')),
+    Box(url: 'apartments/amsterdam', children: <UINode>[TextNode('See all')]),
   ],
 );
 
@@ -235,7 +235,7 @@ for (final SiteEdition edition in SiteEdition.all) {
 `lang` says which language the page is written in; `alternates` says which other addresses carry the
 same page, so a search engine pairs the translations instead of keeping one and hiding the rest. The
 locale comes from the address rather than a cookie or `Accept-Language`, because a crawler sends
-neither, and a language switch is a [link](#linknode) to the other address — followable by a reader
+neither, and a language switch is a [link](#links) to the other address — followable by a reader
 and by a crawler. Copy stays a value passed into the tree (`SiteCopy.de`), so a string a language is
 missing is a compile error; an `.arb` catalogue, plurals and date formats live in the application's
 own package, which the tree never sees.
@@ -277,17 +277,18 @@ a static site, each host a single small file.
 
 ## The nodes
 
-There are eleven node types. Each one is an immutable Dart object with a `const`
+There are nine node types. Each one is an immutable Dart object with a `const`
 constructor, and each one describes *what* it is rather than which framework draws
 it. Style values — colours, spacing, borders, typography — are separate objects
 that a node takes as parameters, so a look can be reused as one `const BoxStyle`
 instead of being repeated.
 
-The ten: [`Box`](#box), [`TextNode`](#textnode), [`ImageNode`](#imagenode),
-[`LinkNode`](#linknode), [`StackNode`](#stacknode-and-positionednode) with
+The nine: [`Box`](#box), [`TextNode`](#textnode), [`ImageNode`](#imagenode),
+[`StackNode`](#stacknode-and-positionednode) with
 [`PositionedNode`](#stacknode-and-positionednode), [`TextInputNode`](#textinputnode),
 [`StatefulNode`](#statefulnode), [`OverlayNode`](#overlaynode) and
-[`EmbedNode`](#embednode).
+[`EmbedNode`](#embednode). There is no link node: a link is a [`url`](#links) on the
+box that is one.
 
 Every node accepts a `key`. Renderers hand it to the target's own key mechanism, so
 when a list is reordered each child keeps its state: typed text stays in the field
@@ -296,8 +297,8 @@ it was typed into.
 ### Box
 
 The container. It lays children out in a row or a column, spaces them, sizes
-itself, paints a background, a border, rounded corners and shadows, and reacts to
-taps and hover.
+itself, paints a background, a border, rounded corners and shadows, reacts to
+taps and hover — and, with a `url`, *is* the link that a press follows.
 
 ```dart
 Box(
@@ -366,6 +367,13 @@ Box(
 | `semantics` | `BoxSemantics?` | none | What the box *is* for a screen reader: role, label, state, element. |
 | `stateStyles` | `Map<BoxState, BoxStyle>?` | none | Looks for `hover`, `focus`, `pressed` and `disabled`, layered over the resting one. |
 | `hoverStyle` | `BoxStyle?` | none | Shorthand for the `hover` entry of `stateStyles`. |
+
+**Navigation**
+
+| Parameter | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `url` | `String?` | none | The destination, when the box is a link rather than a container: the element *is* the anchor (`BoxSemantics.element: BoxElement.a`, which a url implies), so the web renders it as `<a href>` — the box's own look, children and states, a real href a crawler reads and a reader without JavaScript follows — and Flutter keeps the box's press and opens the url through the enclosing [`FlutterLinkScope`](#links). The whole box is pressable, padding included, and ink still starts where the finger landed. A disabled box writes no `href`. |
+| `newTab` | `bool` | `false` | Opens the destination elsewhere. The web renderer adds `target="_blank"` with `rel="noopener noreferrer"`; Flutter has no tab, so it is the host's business there. |
 
 **Styles**
 
@@ -553,29 +561,45 @@ Flutter cannot: they become `<img>` attributes (`srcset`, `sizes`, `loading`,
 before the picture arrives). Flutter loads a single source, so ship `src` at the size
 a phone needs and the denser candidates are a free improvement on the web.
 
-### LinkNode
+### Links
 
-A link around one child. It renders as a real `<a href>` on the web, so it works
-without JavaScript and a crawler can follow it.
+A press that goes somewhere is a destination, and the model states it as `url` on the
+node that carries the press. The box itself becomes the anchor: on the web it is a real
+`<a href>` with its own look, its own children and its own states, so a crawler follows
+it, a reader without JavaScript uses it, and the whole control — padding, fill, ink — is
+what can be pressed. In Flutter the host decides what following a url means.
 
 ```dart
-LinkNode('https://unibox.dev', child: TextNode('Read the docs'));
+// A control that is a destination: one element, one rule, one press.
+Box(
+  url: '/apartments/amsterdam',
+  padding: BoxSpacing.all(16),
+  borderRadius: 12,
+  children: <UINode>[TextNode('See all')],
+)
 ```
 
 | Parameter | Type | Default | Meaning |
 | --- | --- | --- | --- |
-| `url` | `String` | required | The destination. |
-| `child` | `UINode` | required | What is drawn inside the link; exactly one node. |
-| `newTab` | `bool` | `false` | Opens elsewhere. The web renderer adds `target="_blank"` with `rel="noopener noreferrer"`. |
-| `onTap` | `TapCallback?` | none | Answers the press. The tree handles it and the link is not followed: on the web a plain click cancels the navigation, and Flutter calls the handler instead of the enclosing opener. Leave it unset for a link that is a destination. |
+| `url` | `String?` | none | The destination. The element becomes the anchor (`BoxSemantics.element: BoxElement.a`), and a disabled box writes no `href`. |
+| `newTab` | `bool` | `false` | Opens elsewhere: `target="_blank"` with `rel="noopener noreferrer"` on the web. Flutter has no tab; the host decides there. |
 
-**Worth knowing.** In Flutter there is no browser, so the host decides what
-following a link means: wrap the tree in `FlutterLinkScope(open: (url) => ...)` and
-every link calls it — unless the node has an `onTap`, which answers the press itself,
-the same way the web renderer cancels the navigation rather than doing both. A link
-with neither a scope nor an `onTap` is reported in debug builds, because tapping it
-would do nothing. The browser's own link styling — underline and blue — is turned
-off, so a link looks exactly like the text the tree describes.
+**Worth knowing.** In Flutter there is no browser, so the host decides what following a
+destination means: wrap the tree in `FlutterLinkScope(open: (url) => ...)` and every url
+calls it — unless the box has an `onTap`, which answers the press itself, the same way
+the web renderer cancels the navigation rather than doing both. A destination with
+neither a scope nor an `onTap` is reported in debug builds, because pressing it would do
+nothing. The browser's own link styling — underline and blue — is cancelled, so a link
+looks exactly like the box that states it. A box with `BoxSemantics(element:
+BoxElement.a)` and no `url` is an anchor with no destination: a placeholder a browser
+paints as text, which nothing follows and nothing can tab to.
+
+**What cannot be one.** HTML forbids interactive content inside `<a>`, so a control inside
+a link is reported by `validateTree` rather than painted two ways: a chip with a remove
+cross is two nodes side by side, not one inside the other. A link inside a link is
+reported for the same reason — it would navigate twice. A box that names a landmark
+*and* a `url` is reported too, because only one tag is written and the anchor is the one
+that navigates.
 
 ### StackNode and PositionedNode
 
@@ -790,7 +814,7 @@ which could not dismiss anything.
 
 ### EmbedNode
 
-The escape hatch, for what the eleven nodes cannot describe: a chart from a package,
+The escape hatch, for what the nine nodes cannot describe: a chart from a package,
 a video player, an effect that only exists on one platform.
 
 A node carries **one implementation per renderer**, and each renderer draws the

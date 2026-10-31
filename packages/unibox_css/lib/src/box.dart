@@ -1,6 +1,7 @@
 import 'package:unibox_core/unibox_core.dart' as core;
 
 import 'declarations.dart';
+import 'nodes.dart';
 import 'shape.dart';
 import 'values.dart';
 
@@ -21,11 +22,16 @@ import 'values.dart';
 /// restated the whole layout would reset the direction and the alignments of the
 /// resting rule, so hovering a row would turn it into a column. A transition is
 /// declared on the resting rule only, for the same reason.
+///
+/// [anchor] says the box is the `<a>` element rather than a container, so the two
+/// declarations a browser gives every link are cancelled here — a box that navigates is
+/// painted by its own look, not by the user agent's blue and underline.
 CssDeclarations boxDeclarations(
   core.BoxStyle style, {
   bool interactive = false,
   bool capturesPointer = true,
   bool declaredOnly = false,
+  bool anchor = false,
   core.BoxElement element = core.BoxElement.div,
 }) {
   final core.Axis? direction = declaredOnly
@@ -199,6 +205,13 @@ CssDeclarations boxDeclarations(
 
   declarations.addIf('cursor', interactive ? 'pointer' : null);
   declarations.add('pointer-events', capturesPointer ? 'auto' : 'none');
+
+  // An anchor is the one element whose look the browser states for it: a link is painted
+  // blue and underlined. The tree's look is the box's, so the two are cancelled — into
+  // the anchor's own class, which is what keeps one rule per look.
+  if (anchor && !declaredOnly) {
+    declarations.addAllIn(linkDeclarations());
+  }
 
   final CssDeclarations? typography = typographyDeclarations(
     style.textStyle ?? const core.BoxTextStyle(),

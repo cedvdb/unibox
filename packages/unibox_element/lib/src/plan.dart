@@ -81,6 +81,9 @@ String? impliedRoleOf(core.BoxElement element) => switch (element) {
   core.BoxElement.figure => 'figure',
   core.BoxElement.ul || core.BoxElement.ol => 'list',
   core.BoxElement.li => 'listitem',
+  // An anchor is a link with or without an `href`, which is why a box that states this
+  // element and no destination needs no `role` beside it.
+  core.BoxElement.a => 'link',
   // A caption names the figure it belongs to; no role says that, the tag does.
   core.BoxElement.figcaption => null,
   core.BoxElement.div => null,

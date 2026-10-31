@@ -172,7 +172,10 @@ void main() {
         overflow: Overflow.scroll,
         children: <UINode>[
           TextNode('Hello'),
-          LinkNode('https://unibox.dev', child: TextNode('Unibox')),
+          Box(
+            url: 'https://unibox.dev',
+            children: <UINode>[TextNode('Unibox')],
+          ),
           StackNode(
             children: <UINode>[
               PositionedNode(top: 0, left: 0, child: TextNode('badge')),
@@ -407,18 +410,16 @@ void main() {
     });
 
     test('errors on a link nested in a link', () {
-      const LinkNode tree = LinkNode(
-        'https://a.dev',
-        child: Box(
-          children: <UINode>[
-            LinkNode('https://b.dev', child: TextNode('inner')),
-          ],
-        ),
+      const Box tree = Box(
+        url: 'https://a.dev',
+        children: <UINode>[
+          Box(url: 'https://b.dev', children: <UINode>[TextNode('inner')]),
+        ],
       );
 
       final TreeIssue issue = validateTree(tree).single;
 
-      expect(issue.node, isA<LinkNode>());
+      expect(issue.node, isA<Box>());
       expect(issue.severity, TreeIssueSeverity.error);
       expect(issue.isError, isTrue);
       expect(issue.message, contains('nested'));
@@ -427,12 +428,71 @@ void main() {
     test('accepts links that are siblings', () {
       const Box tree = Box(
         children: <UINode>[
-          LinkNode('https://a.dev', child: TextNode('a')),
-          LinkNode('https://b.dev', child: TextNode('b')),
+          Box(url: 'https://a.dev', children: <UINode>[TextNode('a')]),
+          Box(url: 'https://b.dev', children: <UINode>[TextNode('b')]),
         ],
       );
 
       expect(validateTree(tree), isEmpty);
+    });
+
+    test('errors on a box that navigates inside another one', () {
+      const Box tree = Box(
+        url: '/rooms',
+        children: <UINode>[
+          Box(url: '/rooms/1', children: <UINode>[TextNode('One')]),
+        ],
+      );
+
+      final TreeIssue issue = validateTree(tree).single;
+
+      expect(issue.node, isA<Box>());
+      expect(issue.isError, isTrue);
+      expect(issue.message, contains('nested'));
+    });
+
+    test('errors on a control inside a box that navigates', () {
+      const Box tree = Box(
+        url: '/rooms',
+        children: <UINode>[
+          Box(onTap: _noop, children: <UINode>[TextNode('Remove')]),
+        ],
+      );
+
+      final TreeIssue issue = validateTree(tree).single;
+
+      expect(issue.isError, isTrue);
+      expect(issue.message, contains('interactive content'));
+    });
+
+    test('accepts a box that navigates around plain content', () {
+      const Box tree = Box(
+        url: '/rooms',
+        children: <UINode>[TextNode('Meeting room'), ImageNode('room.png')],
+      );
+
+      expect(validateTree(tree), isEmpty);
+    });
+
+    test('accepts a box that names the anchor it already is', () {
+      const Box tree = Box(
+        url: '/rooms',
+        semantics: BoxSemantics(element: BoxElement.a),
+      );
+
+      expect(validateTree(tree), isEmpty);
+    });
+
+    test('errors on a box that is an anchor and a landmark at once', () {
+      const Box tree = Box(
+        url: '/rooms',
+        semantics: BoxSemantics(element: BoxElement.article),
+      );
+
+      final TreeIssue issue = validateTree(tree).single;
+
+      expect(issue.isError, isTrue);
+      expect(issue.message, contains('article'));
     });
 
     test('warns about mainAlign on a box that scrolls', () {
@@ -693,9 +753,11 @@ void main() {
       const Box tree = Box(
         children: <UINode>[
           Box(children: <UINode>[PositionedNode(top: 0, child: TextNode('a'))]),
-          LinkNode(
-            'https://a.dev',
-            child: LinkNode('https://b.dev', child: TextNode('b')),
+          Box(
+            url: 'https://a.dev',
+            children: <UINode>[
+              Box(url: 'https://b.dev', children: <UINode>[TextNode('b')]),
+            ],
           ),
         ],
       );
@@ -859,6 +921,10 @@ void main() {
     });
   });
 }
+
+/// A press that does nothing: a control inside a link is the construct under test, and
+/// what it does is not.
+void _noop() {}
 
 /// An embed that carries nothing, which no renderer can draw.
 final class _EmptyEmbed extends EmbedNode {

@@ -197,12 +197,19 @@ final class MaterialInkWell
   /// [tapTargetHeight] is a target taller than [height], which the shape is centred
   /// in. A target needs a [height] to centre within, so it is ignored by a well that
   /// hugs its content.
+  ///
+  /// [url] makes the region a destination rather than a callback: the anchor is wherever
+  /// the press is, so the browser follows it with no runtime, a crawler reads it, and a
+  /// press still ripples. [shadows] and [textStyle] are what let one well be a whole
+  /// surface — a card — instead of a press inside somebody else's box.
   MaterialInkWell({
     super.key,
     required UINode child,
     TapCallback? onTap,
     LongPressCallback? onLongPress,
     HoverCallback? onHover,
+    String? url,
+    bool newTab = false,
     bool enabled = true,
     BoxSpacing? margin,
     BoxSpacing? padding,
@@ -212,6 +219,8 @@ final class MaterialInkWell
     double? borderRadius,
     BoxColor? fill,
     BoxBorder? border,
+    List<BoxShadow>? shadows,
+    BoxTextStyle? textStyle,
     double? tapTargetHeight,
     BoxColor ink = defaultInk,
     BoxSemantics? semantics,
@@ -234,6 +243,8 @@ final class MaterialInkWell
            onTap: onTap,
            onLongPress: onLongPress,
            onHover: onHover,
+           url: url,
+           newTab: newTab,
            enabled: enabled,
            margin: margin,
            padding: padding,
@@ -243,6 +254,8 @@ final class MaterialInkWell
            borderRadius: borderRadius,
            fill: fill,
            border: border,
+           shadows: shadows,
+           textStyle: textStyle,
            tapTargetHeight: tapTargetHeight,
            ink: ink,
            semantics: semantics,
@@ -299,6 +312,8 @@ UINode _inkWellView(
   required TapCallback? onTap,
   required LongPressCallback? onLongPress,
   required HoverCallback? onHover,
+  required String? url,
+  required bool newTab,
   required bool enabled,
   required BoxSpacing? margin,
   required BoxSpacing? padding,
@@ -308,6 +323,8 @@ UINode _inkWellView(
   required double? borderRadius,
   required BoxColor? fill,
   required BoxBorder? border,
+  required List<BoxShadow>? shadows,
+  required BoxTextStyle? textStyle,
   required double? tapTargetHeight,
   required BoxColor ink,
   required BoxSemantics? semantics,
@@ -318,7 +335,10 @@ UINode _inkWellView(
   required MainAlign? mainAlign,
   required CrossAlign? crossAlign,
 }) {
-  final bool pressable = enabled && (onTap != null || onLongPress != null);
+  // A destination is pressable with no callback: the press is what opens it, and a
+  // control that does not ripple when it navigates reads as a dead one.
+  final bool pressable =
+      enabled && (onTap != null || onLongPress != null || url != null);
 
   // The room a taller target keeps above and below the shape, on each side.
   final double slop = tapTargetHeight != null && height != null
@@ -397,6 +417,11 @@ UINode _inkWellView(
     onTapDown: interactive && pressable ? press : null,
     onLongPress: interactive ? onLongPress : null,
     onHover: interactive ? onHover : null,
+    // The anchor goes where the press is: on the shape when the shape is the region, and
+    // on the target around it when one was added, because an `<a>` inside an `<a>` is not
+    // a link at all.
+    url: interactive ? url : null,
+    newTab: interactive && newTab,
     enabled: enabled,
     margin: interactive ? margin : null,
     flex: interactive ? flex : null,
@@ -405,6 +430,8 @@ UINode _inkWellView(
     height: height,
     backgroundColor: fill,
     border: border,
+    shadows: shadows,
+    textStyle: textStyle,
     borderRadius: borderRadius,
     overflow: Overflow.hidden,
     mainAlign: mainAlign,
@@ -426,6 +453,8 @@ UINode _inkWellView(
     onTapDown: pressable ? press : null,
     onLongPress: onLongPress,
     onHover: onHover,
+    url: url,
+    newTab: newTab,
     enabled: enabled,
     margin: margin,
     width: width,

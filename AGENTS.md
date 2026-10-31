@@ -31,7 +31,7 @@ guide is [`README.md`](README.md).
 
 | Path | What it holds | Touch it when |
 | --- | --- | --- |
-| `packages/unibox_core/lib/src/nodes/` | `UINode` and the eleven nodes: `Box`, `TextNode`, `ImageNode`, `LinkNode`, `StackNode`, `PositionedNode`, `TextInputNode`, `StatefulNode`, `OverlayNode`, `GridNode`, `EmbedNode` | a node gains or loses a parameter |
+| `packages/unibox_core/lib/src/nodes/` | `UINode` and the ten nodes: `Box` (which is also the link, when it names a `url`), `TextNode`, `ImageNode`, `StackNode`, `PositionedNode`, `TextInputNode`, `StatefulNode`, `OverlayNode`, `GridNode`, `EmbedNode` | a node gains or loses a parameter |
 | `packages/unibox_core/lib/src/tokens/` | `BoxStyle`, `BoxTextStyle`, `BoxColor`, `BoxColors`, `BoxSpacing`, `BoxBorder`, `BoxBorderRadius`, `BoxShadow`, `BoxShape` (a path in a view box), `BoxTransform`, `BoxTransition`, `BoxSemantics` | a design token is added or its meaning changes |
 | `packages/unibox_core/lib/src/enums.dart` | layout, alignment, overflow and typography enums | a value both targets can express is missing |
 | `packages/unibox_core/lib/src/validation.dart` | `validateTree` and `TreeIssue` | a construct becomes impossible to render faithfully |
@@ -207,7 +207,7 @@ that lands on one target only fails the suites.
    class extending `UINode`, a doc comment on the class and on every member, and
    an export in `lib/unibox_core.dart`. Add the `Node` suffix only when the bare
    name collides with a Flutter or HTML name — `Text`, `Image`, `Stack`,
-   `Positioned` and `Link` do, `Box` does not. Both `test/naming_test.dart` files
+   `Positioned` do, `Box` does not. Both `test/naming_test.dart` files
    enforce the import half of that rule.
 2. `packages/unibox_core/lib/src/validation.dart` when the node only makes sense
    in one place (`PositionedNode` in a stack, an item in a list, an embed with

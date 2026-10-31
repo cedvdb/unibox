@@ -196,24 +196,22 @@ void main() {
     });
 
     test('links to the documentation in a new tab', () {
-      final LinkNode link = flatten(RecordingHost().card())
-          .whereType<LinkNode>()
-          .firstWhere((LinkNode node) => node.newTab);
+      final Box link = flatten(RecordingHost().card())
+          .whereType<Box>()
+          .firstWhere((Box box) => box.newTab);
 
       expect(link.url, 'https://unibox.dev');
-      expect(link.newTab, isTrue);
       expect(textsIn(link), <String>['Read the docs']);
     });
 
     test('offers a way back to the listings', () {
-      // A static page cannot dismiss a dialog with a tap, so the way out is a link
-      // to the document the dialog covers; the dismissal rides on the same link for
-      // a page that has the runtime.
-      final LinkNode close = flatten(RecordingHost().card())
-          .whereType<LinkNode>()
-          .firstWhere((LinkNode node) => !node.newTab);
+      // A static page cannot dismiss a dialog with a tap, so the way out is a destination
+      // at the document the dialog covers; the dismissal rides on the same press for a page
+      // that has the runtime.
+      final Box close = flatten(RecordingHost().card())
+          .whereType<Box>()
+          .firstWhere((Box box) => box.url == ExampleRoutes.listings);
 
-      expect(close.url, ExampleRoutes.listings);
       expect(textsIn(close), <String>['Close']);
       expect(close.onTap, isNotNull);
     });

@@ -23,8 +23,7 @@ export 'src/box.dart' show FlutterBox;
 export 'src/embed_node.dart' show FlutterWidgetEmbedBuilder, FlutterWidgetNode;
 export 'src/grid_node.dart' show FlutterGrid;
 export 'src/image_node.dart' show FlutterImage;
-export 'src/link_node.dart'
-    show FlutterLinkOpener, FlutterLink, FlutterLinkScope;
+export 'src/link_scope.dart' show FlutterLinkOpener, FlutterLinkScope;
 export 'src/overlay_node.dart' show FlutterOverlay;
 export 'src/page_press.dart' show pressesFromPage;
 export 'src/page_scroll.dart' show scrollOffsetsFromPage;

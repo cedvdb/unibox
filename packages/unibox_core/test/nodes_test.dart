@@ -143,30 +143,6 @@ void main() {
     });
   });
 
-  group('LinkNode', () {
-    test('exposes its single child', () {
-      const node = LinkNode('https://unibox.dev', child: TextNode('Unibox'));
-
-      expect(node.url, 'https://unibox.dev');
-      expect(node.newTab, isFalse);
-      expect(node.onTap, isNull);
-      expect(node.children, hasLength(1));
-      expect((node.children.single as TextNode).text, 'Unibox');
-    });
-
-    test('supports opening in a new tab and tap handlers', () {
-      final node = LinkNode(
-        'https://unibox.dev',
-        newTab: true,
-        onTap: () {},
-        child: const TextNode('Unibox'),
-      );
-
-      expect(node.newTab, isTrue);
-      expect(node.onTap, isNotNull);
-    });
-  });
-
   group('StackNode', () {
     test('layers its children in paint order', () {
       const stack = StackNode(
@@ -305,24 +281,19 @@ void main() {
         const Box(),
         const TextNode('text'),
         const ImageNode('image.png'),
-        const LinkNode('https://unibox.dev', child: TextNode('link')),
         const StackNode(),
         const PositionedNode(child: TextNode('positioned')),
         const TextInputNode(),
       ];
 
-      expect(nodes, hasLength(7));
-      expect(nodes.map((node) => node.runtimeType).toSet(), hasLength(7));
+      expect(nodes, hasLength(6));
+      expect(nodes.map((node) => node.runtimeType).toSet(), hasLength(6));
     });
 
     test('is unkeyed by default', () {
       expect(const Box().key, isNull);
       expect(const TextNode('text').key, isNull);
       expect(const ImageNode('image.png').key, isNull);
-      expect(
-        const LinkNode('https://unibox.dev', child: TextNode('link')).key,
-        isNull,
-      );
       expect(const StackNode().key, isNull);
       expect(const PositionedNode(child: TextNode('x')).key, isNull);
       expect(const TextInputNode().key, isNull);
@@ -333,7 +304,6 @@ void main() {
         Box(key: 'box'),
         TextNode('text', key: 'text'),
         ImageNode('image.png', key: 'image'),
-        LinkNode('https://unibox.dev', child: TextNode('link'), key: 'link'),
         StackNode(key: 'stack'),
         PositionedNode(child: TextNode('x'), key: 'positioned'),
         TextInputNode(key: 'input'),
@@ -343,7 +313,6 @@ void main() {
         'box',
         'text',
         'image',
-        'link',
         'stack',
         'positioned',
         'input',
@@ -359,9 +328,6 @@ void main() {
     test('parents expose their child nodes', () {
       const child = TextNode('child');
 
-      expect(const LinkNode('https://unibox.dev', child: child).children, [
-        child,
-      ]);
       expect(const PositionedNode(child: child).children, [child]);
       expect(const Box(children: [child]).children, [child]);
       expect(const StackNode(children: [child]).children, [child]);

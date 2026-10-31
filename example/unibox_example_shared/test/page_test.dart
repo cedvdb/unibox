@@ -4,29 +4,26 @@ import 'package:unibox_example_shared/unibox_example_shared.dart';
 
 import 'support/tree.dart';
 
-/// The control the bar offers for [label]: the link of a destination, or the button
-/// that opens the form.
+/// The control the bar offers for [label]: the destination, or the button that opens the
+/// form.
 ///
-/// A destination is a `LinkNode` around a label, because its `href` is what a reader
-/// without a client runtime follows; the sign-up form is a `Box` with the button role,
-/// because an account is an action and not a place to go.
-UINode navControl(UINode page, String label) => flatten(page).firstWhere(
-  (UINode node) =>
-      (node is LinkNode && textsIn(node).contains(label)) ||
-      (node is Box && node.onTap != null && textsIn(node).contains(label)),
-);
+/// Both are boxes, and the difference is the token: a destination has a `url`, which a
+/// reader without a client runtime follows, and the sign-up form has only an `onTap`,
+/// because an account is an action and not a place to go. The page behind the bar carries
+/// the same words in headings, so only a box that acts can be the match.
+Box navControl(UINode page, String label) => flatten(page)
+    .whereType<Box>()
+    .firstWhere(
+      (Box box) =>
+          (box.url != null || box.onTap != null) &&
+          textsIn(box).contains(label),
+    );
 
 /// The box the bar draws its label for [label] in, which is what a reader sees.
 ///
-/// It is found by its role — a link for a destination, a button for the form — because
-/// the page behind the bar carries the same word in a heading.
-Box navLabelBox(UINode page, String label) =>
-    flatten(page).whereType<Box>().firstWhere(
-      (Box box) =>
-          (box.semantics?.role == BoxRole.link ||
-              box.semantics?.role == BoxRole.button) &&
-          textsIn(box).contains(label),
-    );
+/// It is the control: the destination is the box itself, so the label has no role and no
+/// tab stop of its own.
+Box navLabelBox(UINode page, String label) => navControl(page, label);
 
 void main() {
   group('ExamplePage', () {
@@ -66,20 +63,19 @@ void main() {
 
     test('offers a swatch per seed, as a link to this page with that seed', () {
       final Box page = RecordingHost().frame();
-      final List<LinkNode> swatches = flatten(page)
-          .whereType<LinkNode>()
-          .where((LinkNode link) => link.url.startsWith('?seed='))
+      final List<Box> swatches = flatten(page)
+          .whereType<Box>()
+          .where((Box box) => box.url?.startsWith('?seed=') ?? false)
           .toList();
 
       expect(swatches, hasLength(ExampleSeed.values.length));
-      expect(swatches.map((LinkNode link) => link.url), <String>[
+      expect(swatches.map((Box box) => box.url), <String>[
         for (final ExampleSeed seed in ExampleSeed.values) '?seed=${seed.name}',
       ]);
       // Each swatch is painted with the accent its seed grows and says which one it
       // is, because a circle of colour has no text to read.
-      for (final LinkNode link in swatches) {
-        final Box swatch = link.child as Box;
-        final ExampleSeed seed = ExampleSeed.values[swatches.indexOf(link)];
+      for (final Box swatch in swatches) {
+        final ExampleSeed seed = ExampleSeed.values[swatches.indexOf(swatch)];
 
         expect(swatch.backgroundColor, seed.accent);
         expect(swatch.semantics?.label, contains(seed.label));
@@ -89,9 +85,9 @@ void main() {
     test('rings the seed the page is drawn with', () {
       final Box page = RecordingHost().frame(seed: ExampleSeed.rose);
       final Map<String, double?> widths = <String, double?>{
-        for (final LinkNode link in flatten(page).whereType<LinkNode>())
-          if (link.url.startsWith('?seed='))
-            link.url: (link.child as Box).border?.width,
+        for (final Box box in flatten(page).whereType<Box>())
+          if (box.url?.startsWith('?seed=') ?? false)
+            box.url!: box.border?.width,
       };
 
       expect(widths['?seed=rose'], 2);
@@ -101,23 +97,20 @@ void main() {
     test('offers a link per destination and a button for the form', () {
       final Box page = RecordingHost().frame();
 
-      // A destination is a document, so it is a link; an account is an action, so it
+      // A destination is a document, so it carries a `url`; an account is an action, so it
       // is a button beside the navigation.
-      expect(navControl(page, 'Apartments'), isA<LinkNode>());
-      expect(navControl(page, 'Sign up'), isA<Box>());
-      expect(
-        (navControl(page, 'Sign up') as Box).semantics?.role,
-        BoxRole.button,
-      );
+      expect(navControl(page, 'Apartments').url, isNotNull);
+      expect(navControl(page, 'Sign up').url, isNull);
+      expect(navControl(page, 'Sign up').semantics?.role, BoxRole.button);
     });
 
     test('reports the destination an item asks for', () {
       final RecordingHost host = RecordingHost();
       final Box page = host.frame();
 
-      final LinkNode destination = navControl(page, 'Apartments') as LinkNode;
+      final Box destination = navControl(page, 'Apartments');
       destination.onTap!();
-      (navControl(page, 'Sign up') as Box).onTap!();
+      navControl(page, 'Sign up').onTap!();
 
       expect(host.navigations, <ExamplePage>[
         ExamplePage.apartments,
@@ -141,11 +134,12 @@ void main() {
     });
 
     test('keeps the page that is open reachable from the keyboard', () {
-      // A destination is a link, which is what puts it in the tab order: without a
-      // role a box is a plain container.
+      // A destination is in the tab order because a `<a href>` is, so the item needs no
+      // role to get there — and it names none, because the tag is the role.
       final Box item = navLabelBox(RecordingHost().frame(), 'Apartments');
 
-      expect(item.semantics?.role, BoxRole.link);
+      expect(item.url, isNotNull);
+      expect(item.semantics?.role, BoxRole.none);
       expect(item.isFocusable, isTrue);
       expect(item.stateStyle(BoxState.hover), isNotNull);
     });

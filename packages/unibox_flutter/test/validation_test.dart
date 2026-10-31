@@ -17,13 +17,14 @@ void main() {
     });
 
     testWidgets('throws for a link nested in a link', (tester) async {
-      final core.LinkNode node = core.LinkNode(
-        'https://a.dev',
-        child: const core.Box(
-          children: <core.UINode>[
-            core.LinkNode('https://b.dev', child: core.TextNode('inner')),
-          ],
-        ),
+      const core.Box node = core.Box(
+        url: 'https://a.dev',
+        children: <core.UINode>[
+          core.Box(
+            url: 'https://b.dev',
+            children: <core.UINode>[core.TextNode('inner')],
+          ),
+        ],
       );
 
       expect(() => renderFlutter(node), throwsStateError);

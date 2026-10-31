@@ -305,4 +305,186 @@ void shapedTests() {
       expect(clip.attributes['id'], startsWith('unibox-shape-'));
     });
   });
+  group('a box that navigates', () {
+    // One look, written twice: the anchor's rule is the plain one plus the two
+    // declarations that cancel what a browser paints on every link.
+    const core.Box plain = core.Box(
+      padding: core.BoxSpacing.all(12),
+      children: <core.UINode>[core.TextNode('Meeting room')],
+    );
+    const core.Box anchor = core.Box(
+      url: '/?category=meetingRoom',
+      padding: core.BoxSpacing.all(12),
+      children: <core.UINode>[core.TextNode('Meeting room')],
+    );
+
+    ElementPlan planOf(core.UINode node) => planNode(node, Stylesheet());
+
+    /// The plan of [node] in a sheet a test can read the rules of.
+    ElementPlan planNodeWith(core.UINode node, Stylesheet sheet) =>
+        planNode(node, sheet);
+
+    /// The one rule [className] declares.
+    String ruleOf(Stylesheet sheet, String className) => sheet
+        .rulesSince((classes: 0, states: 0))
+        .firstWhere((String rule) => rule.startsWith('.$className{'));
+
+    test('is the anchor element, with the look and the children it had', () {
+      final Stylesheet sheet = Stylesheet();
+      final ElementPlan notLinked = planNodeWith(plain, sheet);
+      final ElementPlan linked = planNodeWith(anchor, sheet);
+
+      expect(linked.tag, 'a');
+      expect(linked.attributes['href'], '/?category=meetingRoom');
+      expect(linked.children, hasLength(1));
+      // The class is a hash of the declarations, and the anchor declares two more, so the
+      // two looks cannot share a rule — a box that navigated would wear the browser's paint.
+      expect(linked.className, isNot(notLinked.className));
+      expect(ruleOf(sheet, linked.className!), contains('display:flex'));
+      expect(ruleOf(sheet, linked.className!), contains('padding:12px'));
+      expect(
+        ruleOf(sheet, linked.className!),
+        contains('text-decoration:none'),
+      );
+      expect(ruleOf(sheet, linked.className!), contains('color:inherit'));
+      expect(
+        ruleOf(sheet, notLinked.className!),
+        isNot(contains('text-decoration')),
+      );
+    });
+
+    test('shares one rule between two anchors that look alike', () {
+      final Stylesheet sheet = Stylesheet();
+      final ElementPlan first = planNodeWith(anchor, sheet);
+      final ElementPlan second = planNodeWith(anchor, sheet);
+
+      expect(second.className, first.className);
+      // One rule for the look, however many anchors wear it: the text inside them has a
+      // class of its own, which is not what this counts.
+      expect(
+        sheet
+            .rulesSince((classes: 0, states: 0))
+            .where((String rule) => rule.startsWith('.unibox-box-')),
+        hasLength(1),
+      );
+    });
+
+    test('opens in a new tab when it says so', () {
+      final ElementPlan plan = planOf(
+        const core.Box(url: '/rooms', newTab: true),
+      );
+
+      expect(plan.attributes['target'], '_blank');
+      expect(plan.attributes['rel'], 'noopener noreferrer');
+    });
+
+    test('opens in the same tab by default', () {
+      final ElementPlan plan = planNode(
+        const core.Box(url: '/rooms'),
+        Stylesheet(),
+      );
+
+      expect(plan.attributes, isNot(contains('target')));
+      expect(plan.attributes, isNot(contains('rel')));
+    });
+
+    test('announces a link, not the button a component asked for', () {
+      // The tag is the role: a role attribute on an `<a href>` would overrule the link,
+      // and a `tabindex` would restate a tab stop the element already has.
+      final ElementPlan plan = planOf(
+        const core.Box(
+          url: '/rooms',
+          semantics: core.BoxSemantics(
+            role: core.BoxRole.button,
+            label: 'Meeting room',
+            pressed: true,
+          ),
+        ),
+      );
+
+      expect(plan.attributes, isNot(contains('role')));
+      expect(plan.attributes, isNot(contains('tabindex')));
+      // The name and the current item survive: a destination can say both.
+      expect(plan.attributes['aria-label'], 'Meeting room');
+    });
+
+    test('says which page it is with aria-current', () {
+      final ElementPlan plan = planOf(
+        const core.Box(
+          url: '/rooms',
+          semantics: core.BoxSemantics(current: core.BoxCurrent.page),
+        ),
+      );
+
+      expect(plan.attributes['aria-current'], 'page');
+    });
+
+    test('names no destination when it is disabled', () {
+      // A disabled control drops what it does and keeps what it looks like, and a browser
+      // that followed the href anyway would do what Flutter refuses to do.
+      final ElementPlan plan = planOf(
+        const core.Box(
+          url: '/rooms',
+          enabled: false,
+          semantics: core.BoxSemantics(label: 'Rooms'),
+        ),
+      );
+
+      expect(plan.tag, 'a');
+      expect(plan.attributes, isNot(contains('href')));
+      expect(plan.attributes['aria-disabled'], 'true');
+    });
+
+    test('is the anchor the box states as well as the one a url makes', () {
+      // `<a>` is an element, not an attribute: a box that says it is one is written as one
+      // whether or not it names a destination.
+      final ElementPlan stated = planNode(
+        const core.Box(
+          url: '/rooms',
+          semantics: core.BoxSemantics(element: core.BoxElement.a),
+        ),
+        Stylesheet(),
+      );
+      final ElementPlan placeholder = planNode(
+        const core.Box(
+          semantics: core.BoxSemantics(element: core.BoxElement.a),
+        ),
+        Stylesheet(),
+      );
+
+      expect(stated.tag, 'a');
+      expect(stated.attributes['href'], '/rooms');
+      // A placeholder names no destination, so nothing navigates and nothing is a tab stop.
+      expect(placeholder.tag, 'a');
+      expect(placeholder.attributes, isNot(contains('href')));
+      expect(placeholder.attributes, isNot(contains('tabindex')));
+    });
+
+    test('needs no role beside an anchor, because the tag is the role', () {
+      final ElementPlan plan = planNode(
+        const core.Box(
+          url: '/rooms',
+          semantics: core.BoxSemantics(
+            element: core.BoxElement.a,
+            role: core.BoxRole.link,
+          ),
+        ),
+        Stylesheet(),
+      );
+
+      expect(plan.attributes, isNot(contains('role')));
+    });
+
+    test('takes the pointer even with nothing inside it', () {
+      // A painted leaf takes no pointer; an anchor is never a decoration, so an empty one
+      // is still the thing a reader presses.
+      final Stylesheet sheet = Stylesheet();
+      final ElementPlan plan = planNodeWith(
+        const core.Box(url: '/rooms', width: 40, height: 40),
+        sheet,
+      );
+
+      expect(ruleOf(sheet, plan.className!), contains('pointer-events:auto'));
+    });
+  });
 }

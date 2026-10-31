@@ -32,7 +32,11 @@ List<void Function()> bindNode(core.UINode node, web.Element element) {
       }
 
       if (box.onTap case final core.TapCallback onTap) {
-        on('click', (web.Event event) => onTap());
+        if (box.isAnchor) {
+          _bindLinkClick(on, onTap: onTap, newTab: box.newTab);
+        } else {
+          on('click', (web.Event event) => onTap());
+        }
       }
 
       if (box.onTapDown case final core.TapDownCallback onTapDown) {
@@ -47,7 +51,10 @@ List<void Function()> bindNode(core.UINode node, web.Element element) {
         });
       }
 
-      if (box.isInteractive && box.onTap != null) {
+      // A link activates with `Enter` on its own and the browser turns that into a click,
+      // which the listener above answers, so binding the key as well would press twice. A
+      // `Space` on a link does nothing anywhere, and nothing here is where it belongs.
+      if (box.isInteractive && box.onTap != null && !box.isAnchor) {
         _bindActivationKey(on, box.onTap!);
       }
 
@@ -79,27 +86,6 @@ List<void Function()> bindNode(core.UINode node, web.Element element) {
       // The barrier, not the layer: a press inside the dialog is the dialog's, and a press on the
       // shade behind it is the reader asking to be let out.
       on('click', (web.Event event) => overlay.onDismiss!());
-
-    case final core.LinkNode link when link.onTap != null:
-      // The link is a real `href`, so a page without a runtime still follows it. With one, the
-      // press is the tree's and the browser does not load the document as well.
-      on('click', (web.Event event) {
-        final web.MouseEvent mouse = event as web.MouseEvent;
-
-        // A modifier, a middle click and a new tab stay the browser's: a reader asking for
-        // another window is not asking this page to handle the press.
-        if (mouse.metaKey ||
-            mouse.ctrlKey ||
-            mouse.shiftKey ||
-            mouse.altKey ||
-            mouse.button != 0 ||
-            link.newTab) {
-          return;
-        }
-
-        event.preventDefault();
-        link.onTap!();
-      });
 
     case final core.TextInputNode field:
       if (field.onChanged case final core.TextChangedCallback onChanged) {
@@ -134,6 +120,35 @@ List<void Function()> bindNode(core.UINode node, web.Element element) {
   }
 
   return undo;
+}
+
+/// A press on a real link, which the browser keeps unless the tree answers it.
+///
+/// The element is a real `href`, so a page without a runtime still follows it. With one,
+/// the press is the tree's and the browser does not load the document as well — except
+/// when the reader asked for something else: a modifier, a middle click and a new tab are
+/// the browser's, and a page that swallowed them would take away the whole of what a link
+/// is for.
+void _bindLinkClick(
+  void Function(String type, void Function(web.Event event) handler) on, {
+  required core.TapCallback onTap,
+  required bool newTab,
+}) {
+  on('click', (web.Event event) {
+    final web.MouseEvent mouse = event as web.MouseEvent;
+
+    if (mouse.metaKey ||
+        mouse.ctrlKey ||
+        mouse.shiftKey ||
+        mouse.altKey ||
+        mouse.button != 0 ||
+        newTab) {
+      return;
+    }
+
+    event.preventDefault();
+    onTap();
+  });
 }
 
 /// Activates a box from the keyboard, the way Flutter does it.

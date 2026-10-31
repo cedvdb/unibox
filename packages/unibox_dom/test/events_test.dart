@@ -122,89 +122,116 @@ void main() {
     });
   });
 
-  group('a link with a handler', () {
-    test('cancels a plain click and answers it', () {
-      bool followed = false;
-      final DomView view = DomView.mount(
-        core.LinkNode(
-          '/listings',
-          onTap: () => followed = true,
-          child: const core.TextNode('Listings'),
-        ),
-        host(),
-      );
-      final web.Element link = view.element.tagName.toLowerCase() == 'a'
-          ? view.element
-          : view.element.querySelector('a')!;
+  group('a box that navigates', () {
+    test(
+      'cancels a plain click and answers it, so the page does not load twice',
+      () {
+        int pressed = 0;
+        final DomView view = DomView.mount(
+          core.Box(
+            url: '/?category=meetingRoom',
+            onTap: () => pressed++,
+            children: <core.UINode>[const core.TextNode('Meeting room')],
+          ),
+          host(),
+        );
 
-      final web.Event plain = web.MouseEvent(
-        'click',
-        web.MouseEventInit(bubbles: true, cancelable: true),
-      );
-      link.dispatchEvent(plain);
+        // The element the box became, not the one inside it: the anchor is the box.
+        expect(view.element.tagName.toLowerCase(), 'a');
 
-      expect(followed, isTrue);
-      expect(plain.defaultPrevented, isTrue);
+        final web.Event plain = web.MouseEvent(
+          'click',
+          web.MouseEventInit(bubbles: true, cancelable: true),
+        );
+        view.element.dispatchEvent(plain);
 
-      view.dispose();
-    });
+        expect(pressed, 1);
+        expect(plain.defaultPrevented, isTrue);
+
+        view.dispose();
+      },
+    );
 
     test('leaves a modified click and a new tab to the browser', () {
-      // A reader asking for another window is not asking this page to handle the press, and a link
-      // that opened a tab would be broken by cancelling it.
-      int followed = 0;
+      int pressed = 0;
       final DomView view = DomView.mount(
         core.Box(
           children: <core.UINode>[
-            core.LinkNode(
-              '/a',
+            core.Box(
               key: 'modified',
-              onTap: () => followed++,
-              child: const core.TextNode('A'),
+              url: '/a',
+              onTap: () => pressed++,
+              children: <core.UINode>[const core.TextNode('A')],
             ),
-            core.LinkNode(
-              '/b',
+            core.Box(
               key: 'newtab',
+              url: '/b',
               newTab: true,
-              onTap: () => followed++,
-              child: const core.TextNode('B'),
+              onTap: () => pressed++,
+              children: <core.UINode>[const core.TextNode('B')],
             ),
           ],
         ),
         host(),
       );
 
-      web.Element linkFor(String key) =>
+      web.Element anchorFor(String key) =>
           view.element.querySelector('[data-unibox-key="$key"]')!;
 
       final web.Event meta = web.MouseEvent(
         'click',
         web.MouseEventInit(bubbles: true, cancelable: true, metaKey: true),
       );
-      linkFor('modified').dispatchEvent(meta);
+      anchorFor('modified').dispatchEvent(meta);
 
       expect(meta.defaultPrevented, isFalse);
       expect(
-        followed,
+        pressed,
         0,
-        reason: 'a meta-click opens a tab and stays the browser’s',
+        reason: 'a meta-click opens a tab and stays the browser\u2019s',
       );
 
       final web.Event tabbed = web.MouseEvent(
         'click',
         web.MouseEventInit(bubbles: true, cancelable: true),
       );
-      linkFor('newtab').dispatchEvent(tabbed);
+      anchorFor('newtab').dispatchEvent(tabbed);
 
       expect(tabbed.defaultPrevented, isFalse);
       expect(
-        followed,
+        pressed,
         0,
         reason: 'a link that opens a tab cannot also be cancelled',
       );
 
       view.dispose();
     });
+
+    test(
+      'answers no press it has no handler for, so the browser follows it',
+      () {
+        // A destination with no callback is the browser’s: the listener must not swallow the
+        // click it cannot answer, or the link would be dead on the one target that has one.
+        final DomView view = DomView.mount(
+          core.Box(
+            url: '/?category=meetingRoom',
+            children: <core.UINode>[const core.TextNode('Meeting room')],
+          ),
+          host(),
+        );
+
+        final web.Event plain = web.MouseEvent(
+          'click',
+          web.MouseEventInit(bubbles: true, cancelable: true),
+        );
+        view.element.dispatchEvent(plain);
+
+        expect(plain.defaultPrevented, isFalse);
+        expect(view.element.getAttribute('href'), '/?category=meetingRoom');
+
+        view.dispose();
+      },
+    );
   });
 }
 

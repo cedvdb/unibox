@@ -81,6 +81,8 @@ class Box extends UINode {
     this.stateStyles,
     this.enabled = true,
     this.semantics,
+    this.url,
+    this.newTab = false,
     this.onTap,
     this.onTapDown,
     this.onLongPress,
@@ -367,6 +369,31 @@ class Box extends UINode {
   /// interaction: a box without a role stays out of the tab order.
   final BoxSemantics? semantics;
 
+  // Navigation.
+
+  /// The destination of this box, when the box is a link rather than a container.
+  ///
+  /// A url makes the box itself an anchor: the web renders the element as `<a href>`, with
+  /// the box's own look, its children and its states unchanged, so the control a crawler
+  /// reads is the control a reader presses — no runtime needed, and the url can be copied,
+  /// bookmarked or opened in a new tab. The Flutter renderer keeps the box's gesture and its
+  /// pressed state and opens the url through the host's link scope, which is why this is a
+  /// token on the control and not a wrapper around it: ink, focus and press belong to the box.
+  ///
+  /// Use it on a control that is a destination — a button, a card, a segment — and on a
+  /// leaf as well: a picture or a line of text is the same token on a box that holds only
+  /// that leaf, which is one element and one rule rather than a wrapper around one.
+  ///
+  /// A disabled box writes no `href`: the element still says what it is, and a reader is
+  /// told it is disabled, but nothing navigates and no tab stop is added.
+  final String? url;
+
+  /// Whether [url] opens in a new tab, on the web.
+  ///
+  /// Flutter has no tab, so the Flutter renderer ignores it: following a url is the host's
+  /// decision there, and the host decides it once, in the link scope.
+  final bool newTab;
+
   // Actions.
 
   /// Called when the box is tapped.
@@ -497,8 +524,19 @@ class Box extends UINode {
   /// Whether this box defines a distinct hovered appearance.
   bool get hasHoverStyle => stateStyle(BoxState.hover) != null;
 
+  /// Whether this box is an anchor: it names a destination.
+  ///
+  /// A fact about the node, not about its state: a disabled anchor keeps the element it
+  /// is and loses the `href`, the way a disabled control keeps its look and drops its
+  /// callbacks.
+  bool get isAnchor => url != null;
+
   /// Whether the box can be reached with the keyboard.
-  bool get isFocusable => semantics?.isFocusable ?? false;
+  ///
+  /// An anchor is focusable without asking, because it is one on the web: a `<a href>` is
+  /// in the tab order, and a target that is in the tab order in a browser and out of it in
+  /// Flutter is the drift `BoxSemantics.isFocusable` exists to prevent.
+  bool get isFocusable => isAnchor || (semantics?.isFocusable ?? false);
 
   /// Whether this box has an interaction handler it can run.
   ///

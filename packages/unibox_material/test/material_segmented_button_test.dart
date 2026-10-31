@@ -317,8 +317,7 @@ List<UINode> _nodesOf(UINode root) => <UINode>[
     Box(:final List<UINode> children) ||
     GridNode(:final List<UINode> children) ||
     StackNode(:final List<UINode> children) => children.expand(_nodesOf),
-    PositionedNode(:final UINode child) ||
-    LinkNode(:final UINode child) => _nodesOf(child),
+    PositionedNode(:final UINode child) => _nodesOf(child),
     _ => const <UINode>[],
   },
 ];

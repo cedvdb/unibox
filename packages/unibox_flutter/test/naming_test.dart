@@ -39,7 +39,6 @@ void main() {
       FlutterGrid,
       pathOf,
       FlutterImage,
-      FlutterLink,
       FlutterLinkScope,
       FlutterOverlay,
       FlutterStack,
@@ -54,7 +53,7 @@ void main() {
       noBuilder,
     ];
 
-    expect(exported, hasLength(17));
+    expect(exported, hasLength(16));
     expect(widget, isNotNull);
     expect(renderFlutter, isNotNull);
   });
