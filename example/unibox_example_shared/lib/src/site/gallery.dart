@@ -104,11 +104,10 @@ UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
           'Scaffold',
           _screens(palette),
           note:
-              'A screen: `MaterialScaffold` draws a page with a band above it and a body that '
-              'fills the rest. The bar states a container and the page a surface, so the band '
-              'reads as one. Scroll either body: the first bar stays, and the second states the '
-              'height a store hands it — and a document runs no store, so this page shows the '
-              'frame that screen opens in.',
+              'A screen: `MaterialScaffold` draws a page under a band and a body that fills the '
+              'rest — the bar states a container and the page a surface, so the band reads as '
+              'one. Scroll either body: the first bar stays, and the second is drawn again at the '
+              'height a store hands it, which a document never runs.',
         ),
         _section(
           palette,
@@ -116,8 +115,8 @@ UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
           _appBars(palette),
           note:
               'The band a page opens with, and the one a list scrolls under: '
-              '`MaterialAppBar` states the height its slot keeps and the surface its list '
-              'shares, and the `pin` it is given is what makes it stay.',
+              '`MaterialAppBar` states the height its slot keeps, the container it paints, and '
+              'the `pin` that makes it stay.',
         ),
         _section(
           palette,
