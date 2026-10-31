@@ -1,6 +1,7 @@
 import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_material/unibox_material.dart';
 
+import '../icons.dart';
 import '../seed_picker.dart';
 import '../theme.dart';
 
@@ -117,8 +118,15 @@ UINode _header(MaterialPalette palette, ExampleSeed seed) {
               children: <UINode>[
                 // The source is the one thing a reader of this page may want next: the
                 // example is already a call to action in the hero, and the two frames
-                // that show it are one scroll away.
-                _siteLink('GitHub', repositoryUrl, palette, newTab: true),
+                // that show it are one scroll away. The mark leads the word, because a
+                // reader looking for the source finds the picture before the label.
+                _siteLink(
+                  'GitHub',
+                  repositoryUrl,
+                  palette,
+                  newTab: true,
+                  icon: glyphGitHub(palette.onSurfaceVariant),
+                ),
               ],
             ),
           ],
@@ -133,12 +141,23 @@ UINode _header(MaterialPalette palette, ExampleSeed seed) {
 ///
 /// The look and the destination are one node, so the tint covers exactly the region a press
 /// can land in — a link wrapped around a box would tint a box the anchor does not cover.
+///
+/// [icon] is a picture leading the label, and the label is still the name: the two are one
+/// row inside the anchor, so the whole of it is the target and the whole of it tints.
 UINode _siteLink(
   String label,
   String url,
   MaterialPalette palette, {
   bool newTab = false,
+  UINode? icon,
 }) {
+  final UINode text = TextNode(
+    label,
+    style: MaterialTypography.labelLarge.copyWith(
+      color: palette.onSurfaceVariant,
+    ),
+  );
+
   return LinkNode(
     url,
     newTab: newTab,
@@ -147,12 +166,15 @@ UINode _siteLink(
     transition: MaterialInkWell.defaultTransition,
     hoverStyle: BoxStyle(backgroundColor: palette.surfaceContainer),
     children: <UINode>[
-      TextNode(
-        label,
-        style: MaterialTypography.labelLarge.copyWith(
-          color: palette.onSurfaceVariant,
+      if (icon == null)
+        text
+      else
+        Box(
+          direction: Axis.horizontal,
+          crossAlign: CrossAlign.center,
+          gap: 8,
+          children: <UINode>[icon, text],
         ),
-      ),
     ],
   );
 }
