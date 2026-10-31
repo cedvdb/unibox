@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- A `url` on a box whose element is not an anchor writes no `href` and no `tabindex`. The
+  pair is reported by `validateTree`, but the render a release build makes of a reported
+  tree has to be harmless: it was a `<nav href="/rooms" tabindex="0">`, an anchor
+  nothing followed in markup a keyboard could reach.
+
 - `LinkNode` is no longer planned: the anchor is the box that names a `url`, so there is one
   plan for a link and no wrapper node to keep in step. `supportedNodes` names what is left.
 
