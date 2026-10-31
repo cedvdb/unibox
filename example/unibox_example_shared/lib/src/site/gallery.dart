@@ -102,7 +102,7 @@ UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
         _section(
           palette,
           'Scaffold',
-          _screen(palette),
+          _screens(palette),
           note:
               'A screen: `MaterialScaffold` puts an app bar above a body that fills what is '
               'left, on one surface — so the bar needs no pin, and the filter bar inside the '
@@ -116,25 +116,6 @@ UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
               'The band a page opens with, and the one a list scrolls under: '
               '`MaterialAppBar` states the height its slot keeps and the surface its list '
               'shares, and the `pin` it is given is what makes it stay.',
-        ),
-        _section(
-          palette,
-          'Pinned bands',
-          _pinnedBands(palette),
-          note:
-              'A band that stays at the edge of the box that scrolls it, and keeps its slot '
-              'in the flow while it does: `pin: BoxPin.start` comes to rest at the top, '
-              '`BoxPin.end` at the bottom, and `pinOffset` stops it under the bar above it. '
-              'Scroll each panel.',
-        ),
-        _section(
-          palette,
-          'Folds',
-          _folds(palette),
-          note:
-              'The look a band takes as it leaves the box that scrolls it: `fold` eases the '
-              'paint, `over` is how much of its own exit it takes, and nothing is laid out '
-              'again while it runs. Scroll each panel.',
         ),
         _section(
           palette,
@@ -818,54 +799,162 @@ UINode _pager(MaterialPalette palette) {
   );
 }
 
-/// A screen rather than a specimen: an app bar that stays, and a body that scrolls under it.
+/// Two screens, one per thing a top app bar can do: stay where it is, or give its height back.
 ///
-/// This is the composition a page starts from, and the one place the catalogue shows what the two
-/// bars are for. The app bar is the scaffold's and never moves, so it needs no `pin`; the filter
-/// bar inside the body pins at the body's own top edge — already under the app bar — which is why
-/// a screen built this way needs no `pinOffset` either.
-UINode _screen(MaterialPalette palette) {
+/// Both are `MaterialScaffold`s, because a scaffold is what a screen is: the frame, the surface a
+/// pull reveals, and a body whose scroll a bar can be wired to.
+UINode _screens(MaterialPalette palette) {
+  return GridNode(
+    minItemWidth: 320,
+    maxColumns: 2,
+    gap: 24,
+    children: <UINode>[
+      _specimen(
+        palette,
+        'An app bar that stays',
+        _phone(
+          palette,
+          MaterialScaffold(
+            body: Box(
+              height: double.infinity,
+              overflow: Overflow.scroll,
+              children: <UINode>[
+                // The screen's bar is the first child of the body, so it is the box that pins:
+                // it comes to rest at the top of the scroll and the list runs under it.
+                MaterialAppBar(
+                  title: const TextNode('Apartments'),
+                  trailing: const TextNode('24'),
+                  pin: BoxPin.start,
+                ),
+                for (final (String name, String price) in _flats)
+                  _flatTile(name, price),
+              ],
+            ),
+          ),
+        ),
+      ),
+      _specimen(
+        palette,
+        'An app bar that gives its height back',
+        _phone(palette, CollapsingAppBarDemo()),
+      ),
+    ],
+  );
+}
+
+/// The phone-shaped surface a screen is drawn on.
+///
+/// A scaffold fills the surface it is drawn on, so a catalogue needs one with a size: a 320 by 460
+/// panel, rounded and clipped, is the smallest thing that reads as a screen.
+UINode _phone(MaterialPalette palette, UINode screen) {
   return Box(
-    // A phone-shaped surface, so a screen that fills its parent has one to fill.
     width: 320,
     height: 460,
     borderRadius: 20,
     border: BoxBorder(color: palette.outlineVariant),
+    // The scaffold's corners are the frame's, so the frame clips it.
     overflow: Overflow.hidden,
-    children: <UINode>[
-      MaterialScaffold(
-        appBar: MaterialAppBar(
+    children: <UINode>[screen],
+  );
+}
+
+/// A screen whose app bar collapses as it scrolls, the way a pinned sliver app bar does.
+///
+/// It is the model's answer to a *layout* that moves: the scroll is reported by `onScroll`, a store
+/// keeps how far it has gone, and the view is drawn again with a bar whose height is the next
+/// number. Nothing eases a layout here — the height is a value a rebuild states, not a tween — and
+/// that is why this is a node with a store rather than a token.
+final class CollapsingAppBarDemo
+    extends StatefulNode<CollapsingAppBarState, CollapsingAppBarStore> {
+  /// Creates the demo at the top of its list.
+  CollapsingAppBarDemo()
+    : super(create: CollapsingAppBarStore.new, view: _collapsingScreen);
+
+  /// The height a top app bar opens at, in logical pixels.
+  static const double expanded = MaterialLargeAppBar.largeHeight;
+
+  /// The height it comes to rest at: a small app bar's.
+  static const double collapsed = MaterialAppBar.topHeight;
+}
+
+/// How far the reader has scrolled, as the share of the way the bar has collapsed.
+final class CollapsingAppBarState {
+  /// Creates the state at [progress], from `0` to `1`.
+  const CollapsingAppBarState({this.progress = 0});
+
+  /// The share of the collapse that has happened, from `0` to `1`.
+  final double progress;
+
+  @override
+  bool operator ==(Object other) =>
+      other is CollapsingAppBarState && other.progress == progress;
+
+  @override
+  int get hashCode => progress.hashCode;
+
+  @override
+  String toString() => 'CollapsingAppBarState(progress: $progress)';
+}
+
+/// The store of [CollapsingAppBarDemo]: the scroll offset, as a collapse.
+final class CollapsingAppBarStore extends StateStore<CollapsingAppBarState> {
+  /// Creates the store at the top of the list.
+  CollapsingAppBarStore() : super(const CollapsingAppBarState());
+
+  /// The pixels the bar takes to give its height back.
+  static const double range =
+      CollapsingAppBarDemo.expanded - CollapsingAppBarDemo.collapsed;
+
+  /// Follows the reader: the offset becomes the share of the collapse it has reached.
+  ///
+  /// Rounded to a hundredth, so a bar that is redrawn on every published value is redrawn for a
+  /// change a reader can see rather than for every sub-pixel of a fling.
+  void scrolledTo(double offset) {
+    final double progress = (offset / range).clamp(0.0, 1.0);
+
+    state = CollapsingAppBarState(progress: (progress * 100).round() / 100);
+  }
+}
+
+/// The screen: a bar whose height and title follow the collapse, and the list under it.
+UINode _collapsingScreen(
+  CollapsingAppBarState state,
+  CollapsingAppBarStore store,
+) {
+  final double t = state.progress;
+
+  return MaterialScaffold(
+    body: Box(
+      height: double.infinity,
+      overflow: Overflow.scroll,
+      onScroll: store.scrolledTo,
+      children: <UINode>[
+        MaterialLargeAppBar(
           title: const TextNode('Apartments'),
-          trailing: const TextNode('24'),
+          // The two numbers a pinned sliver app bar states: how tall it opens, and how small it
+          // comes to rest. Everything between them is the store's.
+          height:
+              CollapsingAppBarDemo.collapsed +
+              (CollapsingAppBarDemo.expanded - CollapsingAppBarDemo.collapsed) *
+                  (1 - t),
+          padding: BoxSpacing.all(16 - 4 * t),
+          pin: BoxPin.start,
+          titleStyle: MaterialTypography.headlineMedium.merge(
+            BoxTextStyle(fontSize: 28 - 6 * t),
+          ),
         ),
-        // The body fills the room the bar leaves and scrolls its own content; it states no
-        // surface, so the scaffold's shows under it and a pull reveals that same colour.
-        body: Box(
-          height: double.infinity,
-          overflow: Overflow.scroll,
-          children: <UINode>[
-            MaterialAppBar(
-              title: const TextNode('Two rooms'),
-              trailing: const TextNode('3'),
-              pin: BoxPin.start,
-              color: const BoxColor.role(
-                MaterialColorRole.surfaceContainerHigh,
-              ),
-            ),
-            for (final (String name, String price) in _flats)
-              _flatTile(name, price),
-          ],
-        ),
-      ),
-    ],
+        for (final (String name, String price) in _flats)
+          _flatTile(name, price),
+      ],
+    ),
   );
 }
 
 /// The two app bars as components: the small one, one with a glyph before its title, and the
 /// large one a page opens with.
 ///
-/// The panels that follow show them in motion — pinned, and folded — but a component is also
-/// worth a specimen of its own, the way every other component in this catalogue has one.
+/// The screens above show them in motion — pinned, and giving their height back — but a component
+/// is also worth a specimen of its own, the way every other component here has one.
 UINode _appBars(MaterialPalette palette) {
   const BoxColor onPlain = BoxColor.role(MaterialColorRole.onSurfaceVariant);
 
@@ -923,170 +1012,6 @@ UINode _framed(MaterialPalette palette, UINode bar) {
   );
 }
 
-/// Three bands that stay, one per edge and inset: a toolbar that comes to rest under a hero,
-/// a second bar that stops under the first, and an action bar at the end.
-///
-/// Every band is a [MaterialAppBar] — a component, not a `Box` written out — so the specimens
-/// show what a page built from this library looks like rather than what the tokens look like.
-UINode _pinnedBands(MaterialPalette palette) {
-  return GridNode(
-    minItemWidth: 280,
-    maxColumns: 3,
-    gap: 24,
-    children: <UINode>[
-      _specimen(
-        palette,
-        'A toolbar at the start, under a hero',
-        _viewport(
-          palette,
-          background: MaterialAppBar.surface,
-          children: <UINode>[
-            MaterialLargeAppBar(
-              title: const TextNode('Six flats, one tree'),
-              height: 136,
-            ),
-            MaterialAppBar(
-              title: const TextNode('Results'),
-              trailing: const TextNode('6 of 24'),
-              pin: BoxPin.start,
-            ),
-            for (final (String name, String price) in _flats)
-              _flatTile(name, price),
-          ],
-        ),
-      ),
-      _specimen(
-        palette,
-        'Two bars, the second under the first',
-        _viewport(
-          palette,
-          background: MaterialAppBar.surface,
-          children: <UINode>[
-            MaterialAppBar(
-              title: const TextNode('Filters'),
-              trailing: const TextNode('3'),
-              pin: BoxPin.start,
-              color: const BoxColor.role(
-                MaterialColorRole.surfaceContainerHigh,
-              ),
-            ),
-            // The inset is the height of the bar above it: `pinOffset` is the same number,
-            // written twice because the two bars are siblings.
-            MaterialAppBar(
-              title: const TextNode('Two rooms'),
-              pin: BoxPin.start,
-              pinOffset: MaterialAppBar.topHeight,
-            ),
-            for (final (String name, String price) in _flats.take(6))
-              _flatTile(name, price),
-          ],
-        ),
-      ),
-      _specimen(
-        palette,
-        'A bar at the end, whatever the list is doing',
-        _viewport(
-          palette,
-          background: MaterialAppBar.surface,
-          children: <UINode>[
-            for (final (String name, String price) in _flats)
-              _flatTile(name, price),
-            MaterialAppBar(
-              title: const TextNode('Continue'),
-              trailing: const TextNode('5 of 6 picked'),
-              pin: BoxPin.end,
-            ),
-          ],
-        ),
-      ),
-    ],
-  );
-}
-
-/// Three folds: one band over the whole of its exit, the same band over the first part of it,
-/// and a card that gives up its elevation as well as its tint.
-///
-/// A fold is only legible if there is somewhere for it to run, so every panel holds more than
-/// it shows: the band above has its whole exit to travel through before the list runs out.
-UINode _folds(MaterialPalette palette) {
-  // One look, so the two ranges are seen against each other rather than guessed at.
-  const BoxFold whole = BoxFold(
-    to: BoxStyle(opacity: 0.1, transform: BoxTransform(scale: 0.62)),
-    curve: BoxCurve.easeOut,
-  );
-  const BoxFold early = BoxFold(
-    to: BoxStyle(opacity: 0.1, transform: BoxTransform(scale: 0.62)),
-    curve: BoxCurve.easeOut,
-    // Arrived once two fifths of the band has left, and then still.
-    over: 0.4,
-  );
-
-  return GridNode(
-    minItemWidth: 280,
-    maxColumns: 3,
-    gap: 24,
-    children: <UINode>[
-      _specimen(
-        palette,
-        'Fades and shrinks over its whole exit',
-        _viewport(
-          palette,
-          background: MaterialLargeAppBar.surface,
-          children: <UINode>[
-            MaterialLargeAppBar(
-              title: const TextNode('Six flats, one tree'),
-              fold: whole,
-            ),
-            for (final (String name, String price) in _flats)
-              _flatTile(name, price),
-          ],
-        ),
-      ),
-      _specimen(
-        palette,
-        'The same fold, over two fifths of the exit',
-        _viewport(
-          palette,
-          background: MaterialLargeAppBar.surface,
-          children: <UINode>[
-            MaterialLargeAppBar(
-              title: const TextNode('Six flats, one tree'),
-              fold: early,
-            ),
-            for (final (String name, String price) in _flats)
-              _flatTile(name, price),
-          ],
-        ),
-      ),
-      _specimen(
-        palette,
-        'A tinted bar that loses its tint',
-        _viewport(
-          palette,
-          background: MaterialLargeAppBar.surface,
-          children: <UINode>[
-            MaterialAppBar(
-              title: const TextNode('Two rooms by the park'),
-              trailing: const TextNode('€1 460'),
-              color: const BoxColor.role(MaterialColorRole.primaryContainer),
-              // The bar arrives as the plain one it becomes: a colour and no layout, so the
-              // rows under it never move while it does.
-              fold: const BoxFold(
-                to: BoxStyle(
-                  backgroundColor: BoxColor.role(MaterialColorRole.surface),
-                ),
-                curve: BoxCurve.easeInOut,
-              ),
-            ),
-            for (final (String name, String price) in _flats)
-              _flatTile(name, price),
-          ],
-        ),
-      ),
-    ],
-  );
-}
-
 /// A specimen and the line under it, which is what the block is showing.
 UINode _specimen(MaterialPalette palette, String caption, UINode child) {
   return Box(
@@ -1101,27 +1026,6 @@ UINode _specimen(MaterialPalette palette, String caption, UINode child) {
       ),
       child,
     ],
-  );
-}
-
-/// The viewport a specimen is seen through: a Material panel that scrolls its own content.
-///
-/// [background] is the colour a pull past either end reveals, because a scrolling box shows its
-/// own surface there — the bar's colour for a panel with a bar at its edge, so the pull reads as
-/// that bar gaining room rather than as a gap in the list.
-UINode _viewport(
-  MaterialPalette palette, {
-  required List<UINode> children,
-  BoxColor? background,
-  double height = 200,
-}) {
-  return Box(
-    width: double.infinity,
-    height: height,
-    overflow: Overflow.scroll,
-    borderRadius: 12,
-    backgroundColor: background ?? palette.surface,
-    children: children,
   );
 }
 

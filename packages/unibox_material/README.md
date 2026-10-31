@@ -325,6 +325,13 @@ and a pull past either end opens a gap of that same colour rather than a strip o
 body that painted its own surface would reveal that instead, which is why this one is left
 out.
 
+**A body that reports its scroll is a bar that can follow it.** The body states `onScroll`, a
+store keeps the offset, and the view is drawn again with a bar whose height is the next number:
+`height:` on a band is what a rebuild states, so a top app bar that gives its height back as a
+reader scrolls is a `StatefulNode` over a body that reports, not a token. `pin: BoxPin.start`
+on the same band keeps what is left of it at the top once it has collapsed — a pinned
+`SliverAppBar`, in the terms this package has.
+
 **The body fills, or it does not.** `height: double.infinity` is the rest of the screen — the
 form a scrolling body takes — and a body that states nothing takes its own height, which is
 what a screen that fits wants. The scaffold does not size it for the caller: a flex child
@@ -364,7 +371,7 @@ Box(
 | height | `topHeight` — 64 | `largeHeight` — 152 |
 | surface | `surface` — `surfaceContainer`, which the list states too | `surface` — the same role |
 | type | the title in `titleLarge` on `onSurface` | the title in `headlineMedium`, on the floor of the band |
-| the band's edge | `pinned` by stating `pin: BoxPin.start`, with `pinOffset` for a second bar | it *folds* instead: `fold:` is a look, and the height it states is the room the flow keeps |
+| the band's edge | `pinned` by stating `pin: BoxPin.start`, with `pinOffset` for a second bar | `pinned` the same way — the height a store drives stays at the top — or `fold:`, a look for a band that leaves |
 
 **A bar is pinned by stating the edge**, because that is the token: `pin: BoxPin.start`
 comes to rest at the top of the box that scrolls it, `BoxPin.end` at the bottom, and
@@ -382,8 +389,10 @@ kept as a default.
 content scrolls, which is a *layout* change: the band's height and the room it takes both
 move, and nothing here eases a layout — a frame of an eased layout is a picture the two
 engines cannot be held to. A fold paints the band out instead: it fades and shrinks about its
-centre while the flow keeps its height. A tree that wants the space back states a state and
-swaps the band for a small one, which is a rebuild and not a fold.
+centre while the flow keeps its height. A tree that wants the space back states a state: the
+body reports its scroll, a store turns the offset into a share, and the view is drawn again with
+a shorter band and a smaller title — `pin: BoxPin.start` keeps the sliver of it at the top. That
+is a rebuild and not a fold, and it is how the catalogue's second screen collapses.
 
 ## The card
 

@@ -35,8 +35,8 @@
   and one that also asks for a `flex` share are reported by `validateTree` and drawn in the
   flow. So is a pin at the top of a tree with no scrolling box above it: the web pins it to the
   document, while the surface an application is drawn on does not scroll.
-- The catalogue on the site shows a sticky band: a hero, a toolbar that stays and a list that
-  runs under it, in one scrolling box.
+- The catalogue on the site shows a sticky band: a screen whose app bar is the first child of the
+  body that scrolls, so it comes to rest at the top and the list runs under it.
 
 - A box that states `capturesPointer: false` is wrapped in an `IgnorePointer`, so a press, a
   hover and the cursor pass through it to the control underneath — the same statement the web

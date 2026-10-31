@@ -30,7 +30,10 @@
 - `MaterialLargeAppBar` is the band with air above its headline: 152 pixels, the title in
   `headlineMedium` on the floor of it, the same surface as the small bar, and a `fold:` — the
   look it takes as it leaves the box that scrolls it. Material's own collapse is a layout
-  change and no renderer here eases one, so what folds is the paint.
+  change and no renderer here eases one, so what folds is the paint. It takes `pin:` and
+  `pinOffset:` as the small bar does, which is what a band whose height a store drives needs to
+  stay at the top once it has collapsed: the site's second screen is a pinned sliver app bar
+  built from those two and a body that reports its scroll.
 - `MaterialCard` takes `fold:`, for a card that is the band a page opens with.
 
 - **A button's 64 by 40 minimum is the press's, not the pill's.** `MaterialInkWell` takes

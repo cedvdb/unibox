@@ -107,6 +107,25 @@ void main() {
       expect(band.fold!.looks, contains(BoxProperty.opacity));
     });
 
+    test('pins, so a band whose height a store drives can stay at the top', () {
+      final MaterialLargeAppBar band = MaterialLargeAppBar(
+        title: const TextNode('Apartments'),
+        pin: BoxPin.start,
+      );
+
+      // A collapse is a height a rebuild states, so the band that collapses is the band that has
+      // to be able to pin: without the edge it would scroll away as it shrank.
+      expect(band.pin, BoxPin.start);
+      expect(
+        MaterialLargeAppBar(
+          title: const TextNode('Apartments'),
+          pin: BoxPin.start,
+          pinOffset: 8,
+        ).pinOffset,
+        8,
+      );
+    });
+
     test('shares the surface of the small bar, so the pair are one colour', () {
       expect(MaterialLargeAppBar.surface, MaterialAppBar.surface);
     });

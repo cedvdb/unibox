@@ -22,6 +22,12 @@ import 'material_typography.dart';
 /// padding, and the same surface the small bar and the list share — plus the [fold] it takes for
 /// the journey out of view.
 ///
+/// **It pins, and it states its height, because a bar that shrinks is a bar whose height is
+/// rebuilt.** `pin: BoxPin.start` keeps it at the top of the box that scrolls it once it has left —
+/// a pinned `SliverAppBar`'s behaviour — and the height is a number the caller states, so a band
+/// whose height follows a store is rebuilt with the new number rather than eased into it. That is
+/// the one way a *layout* collapse is expressed here: a state and a rebuild, not a fold.
+///
 /// **The fold is paint, and Material's own collapse is not.** Material shrinks a large app bar
 /// into a small one as the content scrolls, which is a *layout* change: the band's height and the
 /// room it takes both move, and no renderer here eases a layout — a frame of an eased layout is a
@@ -44,6 +50,8 @@ final class MaterialLargeAppBar extends Box {
     required UINode title,
     UINode? trailing,
     BoxFold? fold,
+    BoxPin? pin,
+    double? pinOffset,
     BoxColor color = surface,
     BoxTextStyle titleStyle = MaterialTypography.headlineMedium,
     double height = largeHeight,
@@ -57,6 +65,8 @@ final class MaterialLargeAppBar extends Box {
       box: Box(
         width: double.infinity,
         height: height,
+        pin: pin,
+        pinOffset: pinOffset,
         padding: padding,
         margin: margin,
         backgroundColor: color,
@@ -87,6 +97,8 @@ final class MaterialLargeAppBar extends Box {
     : super(
         width: box.width,
         height: box.height,
+        pin: box.pin,
+        pinOffset: box.pinOffset,
         padding: box.padding,
         margin: box.margin,
         backgroundColor: box.backgroundColor,

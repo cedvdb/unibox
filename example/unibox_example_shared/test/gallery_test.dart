@@ -35,10 +35,10 @@ void main() {
           .where((Box box) => box.overflow == Overflow.scroll)
           .toList();
 
-      // Two rows of chips that overflow, two pagers, the screen's body, three pinned panels
-      // and three folding ones. A pager scrolls for a different reason — it settles on a child
-      // — so it is counted here and told apart below.
-      expect(scrollers, hasLength(11));
+      // Two rows of chips that overflow, two pagers, and the scrolling body of each of the two
+      // screens. A pager scrolls for a different reason — it settles on a child — so it is
+      // counted here and told apart below.
+      expect(scrollers, hasLength(6));
       expect(_textsIn(scrollers.first), contains('Two rooms'));
       expect(_textsIn(scrollers[1]), contains('Garden'));
 
@@ -62,61 +62,44 @@ void main() {
           .whereType<Box>()
           .toList();
 
-      // Every band in the catalogue is the component that draws one — a pinned bar, the bar a
-      // fold leaves behind, the ones the static specimens show — so nothing here teaches a
-      // reader to write the same thing out of a `Box`.
+      // Every band in the catalogue is the component that draws one — the two screens' bars and
+      // the ones the static specimens show — so nothing here teaches a reader to write the same
+      // thing out of a `Box`.
       for (final Box band in nodes.where((Box box) => box.pin != null)) {
-        expect(band, isA<MaterialAppBar>());
-      }
-      for (final Box band in nodes.where((Box box) => box.fold != null)) {
         expect(band, anyOf(isA<MaterialAppBar>(), isA<MaterialLargeAppBar>()));
       }
 
-      // And the bars have a specimen of their own, not only a part in the panels.
+      // And the bars have specimens of their own, not only a part in a screen.
       expect(
-        nodes.where(
-          (Box box) =>
-              box is MaterialAppBar && box.pin == null && box.fold == null,
-        ),
-        hasLength(3),
-      );
-      // Two large ones: the specimen, and the band the first pinned panel opens with.
-      expect(
-        nodes.where(
-          (Box box) =>
-              box is MaterialLargeAppBar && box.fold == null && box.pin == null,
-        ),
+        nodes.where((Box box) => box is MaterialAppBar && box.pin == null),
         hasLength(2),
+      );
+      expect(
+        nodes.where((Box box) => box is MaterialLargeAppBar && box.pin == null),
+        hasLength(1),
       );
     });
 
-    test('shows a band at each edge, and one that stops under another', () {
+    test('pins the app bar of the screen that says it stays', () {
       final List<UINode> nodes = _nodesOf(buildMaterialSection());
       final List<Box> pinned = nodes
           .whereType<Box>()
           .where((Box box) => box.pin != null)
           .toList();
 
-      // Five bands: the toolbar under the hero, the pair that sits one under the other, the
-      // action bar at the end, and the one inside the scaffold's body.
-      expect(pinned, hasLength(5));
-      expect(pinned.where((Box box) => box.pin == BoxPin.start), hasLength(4));
-      expect(pinned.where((Box box) => box.pin == BoxPin.end), hasLength(1));
-      expect(
-        pinned.where((Box box) => (box.pinOffset ?? 0) == 0),
-        hasLength(4),
-        reason:
-            'the toolbar, the filters and the action bar keep none of the edge',
-      );
-      expect(
-        pinned.where((Box box) => (box.pinOffset ?? 0) > 0),
-        hasLength(1),
-        reason: 'one band stops under the band above it',
-      );
-
+      // Two: one per screen. Both come to rest at the top, which is what a top app bar does — the
+      // other edges a band can hold are in the README and the renderer suites, not in a screen.
+      expect(pinned, hasLength(2));
       for (final Box band in pinned) {
-        // The contract a band keeps: a stated height for its slot, a surface of its own,
-        // and a parent that scrolls it.
+        expect(band.pin, BoxPin.start);
+        expect(
+          band.pinOffset,
+          isNull,
+          reason: 'a top app bar has nothing above it to stop under',
+        );
+
+        // The contract a band keeps: a stated height for its slot, a surface of its own, and a
+        // parent that scrolls it and is given the rest of the screen to fill.
         expect(band.height, isNotNull);
         expect(band.height!.isFinite, isTrue);
         expect(band.backgroundColor, isNotNull);
@@ -126,49 +109,61 @@ void main() {
         );
 
         expect(viewport.overflow, Overflow.scroll);
-        expect(viewport.height, isNotNull);
-      }
-    });
-
-    test('uses a different paint and a different range for each fold', () {
-      final List<Box> folded = _nodesOf(buildMaterialSection())
-          .whereType<Box>()
-          .where((Box box) => box.fold != null)
-          .toList();
-
-      expect(folded, hasLength(3));
-
-      // Two bands fade and shrink over different shares of the same exit, so the range is
-      // what a reader compares…
-      final List<Box> fading = folded
-          .where((Box box) => box.fold!.looks.contains(BoxProperty.transform))
-          .toList();
-
-      expect(fading, hasLength(2));
-      expect(fading.map((Box box) => box.fold!.over).toSet(), <double>{
-        1,
-        0.4,
-      }, reason: 'one fold runs the whole exit, the other finishes early');
-      for (final Box box in fading) {
-        expect(box.fold!.looks, contains(BoxProperty.opacity));
+        expect(viewport.height, double.infinity);
       }
 
-      // …and the third moves a colour and nothing else, which is a paint neither of the others
-      // touches: a tinted bar that arrives as the plain one.
-      final Box tinted = folded.singleWhere(
-        (Box box) =>
-            !box.fold!.looks.contains(BoxProperty.opacity) &&
-            box.fold!.looks.contains(BoxProperty.backgroundColor),
+      // The band whose height follows the scroll is the large one, and it can only follow it
+      // because the body it is in reports where it has got to.
+      final Box shrinking = pinned.singleWhere(
+        (Box box) => box is MaterialLargeAppBar,
+      );
+      final Box body = nodes.whereType<Box>().singleWhere(
+        (Box box) => box.children.contains(shrinking),
       );
 
-      expect(tinted.fold!.to.backgroundColor, isNotNull);
-      expect(tinted.backgroundColor, isNotNull);
-
-      // A fold is for the box that leaves, so no band that stays carries one.
-      for (final Box box in folded) {
-        expect(box.pin, isNull);
-      }
+      expect(body.onScroll, isNotNull);
     });
+
+    test(
+      'gives the app bar its height back a hundredth of a scroll at a time',
+      () {
+        // The screen opens with the bar at its full height, and the store turns any offset past the
+        // range into the collapsed one — a layout change a rebuild states, which is the only way a
+        // height moves here.
+        final List<MaterialLargeAppBar> bars = _nodesOf(buildMaterialSection())
+            .whereType<MaterialLargeAppBar>()
+            .where((MaterialLargeAppBar bar) => bar.pin != null)
+            .toList();
+
+        expect(bars, hasLength(1));
+        expect(bars.single.height, MaterialLargeAppBar.largeHeight);
+        expect(bars.single.pin, BoxPin.start);
+
+        final CollapsingAppBarStore store = CollapsingAppBarStore();
+
+        expect(store.state.progress, 0);
+        store.scrolledTo(-40);
+        expect(
+          store.state.progress,
+          0,
+          reason: 'a pull past the top collapses nothing',
+        );
+        store.scrolledTo(CollapsingAppBarStore.range / 2);
+        expect(store.state.progress, 0.5);
+        store.scrolledTo(CollapsingAppBarStore.range * 3);
+        expect(
+          store.state.progress,
+          1,
+          reason: 'past the range the bar is as small as it goes',
+        );
+
+        // A hundredth is the resolution, so a fling does not redraw the screen for every pixel it
+        // passes: the store publishes a state a reader could see, not a state a device produced.
+        store.scrolledTo(0);
+        store.scrolledTo(CollapsingAppBarStore.range / 3);
+        expect(store.state.progress, 0.33);
+      },
+    );
 
     test(
       'draws the chosen segment with Material’s check, in place of its icon',

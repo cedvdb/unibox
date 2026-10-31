@@ -282,8 +282,6 @@ void main() {
         'Pages',
         'Scaffold',
         'App bars',
-        'Pinned bands',
-        'Folds',
         'Dialog',
         'Type scale',
         'Colour roles',
