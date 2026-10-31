@@ -1,6 +1,8 @@
 import 'package:test/test.dart';
 import 'package:unibox_core/unibox_core.dart';
 
+void _noop() {}
+
 void main() {
   group('TextNode', () {
     test('stores its text and typography tokens', () {
@@ -158,6 +160,31 @@ void main() {
       expect(link.newTab, isFalse);
       expect(link.computedStyle.padding, const BoxSpacing.all(12));
       expect((link.children.single as TextNode).text, 'Unibox');
+    });
+
+    test('is a box in every respect but the destination', () {
+      final Box box = Box(
+        key: 'one',
+        children: const <UINode>[TextNode('One')],
+        padding: const BoxSpacing.all(8),
+        backgroundColor: BoxColors.blue,
+        semantics: const BoxSemantics(role: BoxRole.button, label: 'One'),
+        onTap: _noop,
+      );
+      final LinkNode link = LinkNode.of(box, '/rooms', newTab: true);
+
+      expect(link.url, '/rooms');
+      expect(link.newTab, isTrue);
+      expect(link.key, 'one');
+      expect(link.children, box.children);
+      expect(link.semantics, box.semantics);
+      expect(link.onTap, same(box.onTap));
+      expect(link.enabled, box.enabled);
+      // The look survives whole, because it travels as one bag: a token `Box` gains cannot be
+      // forgotten by this conversion. The flat accessors of the copy answer null, which is
+      // what a bag states and what every renderer reads instead.
+      expect(link.computedStyle, box.computedStyle);
+      expect(link.padding, isNull);
     });
 
     test('is reachable with a keyboard because an anchor is', () {

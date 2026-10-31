@@ -445,7 +445,9 @@ UINode _inkWellView(
       children: <UINode>[if (layered) tints else stack],
     );
 
-    return interactive ? _linked(box, url, newTab: newTab) : box;
+    final String? href = interactive ? url : null;
+
+    return href == null ? box : LinkNode.of(box, href, newTab: newTab);
   }
 
   if (slop == 0) {
@@ -453,68 +455,26 @@ UINode _inkWellView(
     return shape(interactive: true);
   }
 
-  return _linked(
-    Box(
-      onTap: onTap,
-      onTapDown: pressable ? press : null,
-      onLongPress: onLongPress,
-      onHover: onHover,
-      enabled: enabled,
-      margin: margin,
-      width: width,
-      height: tapTargetHeight,
-      flex: flex,
-      // The shape is painted in the middle of the target, so the room a finger gets is
-      // the same above and below the pill it aims at.
-      mainAlign: MainAlign.center,
-      crossAlign: CrossAlign.center,
-      semantics: resolvedSemantics,
-      children: <UINode>[shape(interactive: false)],
-    ),
-    url,
-    newTab: newTab,
+  final Box target = Box(
+    onTap: onTap,
+    onTapDown: pressable ? press : null,
+    onLongPress: onLongPress,
+    onHover: onHover,
+    enabled: enabled,
+    margin: margin,
+    width: width,
+    height: tapTargetHeight,
+    flex: flex,
+    // The shape is painted in the middle of the target, so the room a finger gets is
+    // the same above and below the pill it aims at.
+    mainAlign: MainAlign.center,
+    crossAlign: CrossAlign.center,
+    semantics: resolvedSemantics,
+    children: <UINode>[shape(interactive: false)],
   );
-}
+  final String? href = url;
 
-/// [box] as the link [url] names, or [box] itself when the well names no destination.
-///
-/// The well builds its region once and only its *type* changes, because a link is a box: no
-/// wrapper, no second layout, and the press stays on the node that paints. The fields copied
-/// here are the ones a well states — a token it grows has to be added, and the suite holds a
-/// linked well and a callback well to the same declarations, so a forgotten one is a
-/// difference a test sees rather than a component that paints two ways.
-UINode _linked(Box box, String? url, {required bool newTab}) {
-  if (url == null) {
-    return box;
-  }
-
-  return LinkNode(
-    url,
-    newTab: newTab,
-    key: box.key,
-    onTap: box.onTap,
-    onTapDown: box.onTapDown,
-    onLongPress: box.onLongPress,
-    onHover: box.onHover,
-    enabled: box.enabled,
-    margin: box.margin,
-    flex: box.flex,
-    semantics: box.semantics,
-    width: box.width,
-    height: box.height,
-    backgroundColor: box.backgroundColor,
-    border: box.border,
-    shadows: box.shadows,
-    textStyle: box.textStyle,
-    borderRadius: box.borderRadius,
-    overflow: box.overflow,
-    mainAlign: box.mainAlign,
-    crossAlign: box.crossAlign,
-    transition: box.transition,
-    hoverStyle: box.hoverStyle,
-    stateStyles: box.stateStyles,
-    children: box.children,
-  );
+  return href == null ? target : LinkNode.of(target, href, newTab: newTab);
 }
 
 /// [position] moved into the shape, which a taller target centres in itself.

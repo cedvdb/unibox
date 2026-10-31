@@ -403,7 +403,9 @@ void main() {
       expect((shape as LinkNode).url, '/sign-in');
       // The tints are a box inside the anchor, not a second one.
       expect(tints, isNot(isA<LinkNode>()));
-      expect(shape.backgroundColor, isNotNull);
+      // The fill survived the conversion, read the way a renderer reads it: a link built from
+      // a box states the look as one bag, so the flat accessors of the copy answer null.
+      expect(shape.computedStyle.backgroundColor, isNotNull);
     });
 
     test(

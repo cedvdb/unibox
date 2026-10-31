@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- `LinkNode.of(box, url)` is a box as a link: the same children, the same behaviour and the
+  same look, with a destination added. The look travels as one `BoxStyle`
+  (`Box.computedStyle`), so a token `Box` gains can never be forgotten by it — what a reader
+  keeps in step are the facets that are not style, and the copy says so. Its flat accessors
+  answer `null`, because the copy states its look as a bag; a renderer reads `computedStyle`
+  and sees no difference.
+
 - **Breaking: `LinkNode` is a `Box` that names a destination.** A link was a wrapper around a
   child, and a wrapper states no layout: the control inside one kept the `flex` share, the
   height and the padding the anchor should have had, and in Flutter a press inside it was a

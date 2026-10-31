@@ -178,6 +178,11 @@ LinkNode(
 | `url` and `stateStyles` | the tints of a press, unchanged: the anchor is the box, so its states are its own |
 | `element: BoxElement.a` with no url | HTML's placeholder anchor: a browser paints it as text, nothing follows it and nothing can tab to it |
 
+A box a component has already built becomes a link with `LinkNode.of(box, url)`: the same
+children, behaviour and look, with a destination. The look travels as one `BoxStyle`, so a
+token `Box` gains cannot be lost by it, and the copy's flat accessors answer `null` — read
+`computedStyle`, which is what a renderer reads.
+
 A link that says it is an `article` *and* names a destination is reported, because one tag is
 written and the anchor is the one that navigates: put the landmark around the link.
 

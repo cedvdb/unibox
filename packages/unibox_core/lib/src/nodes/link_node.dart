@@ -1,3 +1,4 @@
+import '../tokens/box_style.dart';
 import 'box.dart';
 
 /// A [Box] that names a destination: a link.
@@ -73,6 +74,36 @@ final class LinkNode extends Box {
     super.onHover,
     super.onScroll,
   });
+
+  /// A link to [url] that is [box] in every other respect.
+  ///
+  /// A box and a link differ by a destination, so this copies what a box *is*: its children,
+  /// its behaviour and its resolved look. The look travels as one [BoxStyle]
+  /// ([Box.computedStyle]), which is why a token `Box` gains never has to be added here — it
+  /// is already in the bag. The facets that are not style are the ones a reader keeps in
+  /// step: the children, `enabled`, `semantics`, the two state bags and the callbacks.
+  ///
+  /// The copy therefore states its look as a bag, and its flat accessors — `padding`,
+  /// `backgroundColor` and the rest — answer `null`. Nothing renders differently, because a
+  /// renderer reads `computedStyle`; a caller inspecting the result should read it there too.
+  factory LinkNode.of(Box box, String url, {bool newTab = false}) {
+    return LinkNode(
+      url,
+      newTab: newTab,
+      key: box.key,
+      children: box.children,
+      styles: <BoxStyle>[box.computedStyle],
+      hoverStyle: box.hoverStyle,
+      stateStyles: box.stateStyles,
+      enabled: box.enabled,
+      semantics: box.semantics,
+      onTap: box.onTap,
+      onTapDown: box.onTapDown,
+      onLongPress: box.onLongPress,
+      onHover: box.onHover,
+      onScroll: box.onScroll,
+    );
+  }
 
   /// The destination.
   final String url;

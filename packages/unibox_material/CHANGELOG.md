@@ -26,7 +26,8 @@
 - `MaterialInkWell` takes `url` (and `newTab`): the well becomes a `LinkNode` — a box that names
   a destination — and the anchor goes wherever the press goes: the shape in the plain case, the outer box when the
   well paints a surface, and the target when `tapTargetHeight` adds one. A url makes the well
-  pressable with no callback, so it still ripples on tap-down.
+  pressable with no callback, so it still ripples on tap-down. The region is built once and
+  becomes a link with `LinkNode.of`, so the package keeps no copy of a box's fields.
 
 - `MaterialInkWell` takes `shadows` and `textStyle`, so one well can be a whole surface: an
   interactive card is one element instead of a card around a well, with no ring of padding a
