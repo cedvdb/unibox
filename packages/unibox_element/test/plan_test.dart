@@ -463,6 +463,51 @@ void shapedTests() {
       expect(plan.attributes['aria-current'], 'page');
     });
 
+    test('says whether a toggle button is pressed, on and off', () {
+      // A toggle states its state either way: `false` is how a reader hears "not
+      // pressed", and a control that said nothing when it was off would be announced as
+      // an ordinary button, which is the bug this pins.
+      final ElementPlan on = planOf(
+        const core.Box(
+          semantics: core.BoxSemantics(
+            role: core.BoxRole.button,
+            pressed: true,
+          ),
+        ),
+      );
+      final ElementPlan off = planOf(
+        const core.Box(
+          semantics: core.BoxSemantics(
+            role: core.BoxRole.button,
+            pressed: false,
+          ),
+        ),
+      );
+
+      expect(on.attributes['aria-pressed'], 'true');
+      expect(off.attributes['aria-pressed'], 'false');
+    });
+
+    test('states no pressed link, because a destination says where it is', () {
+      // A pressed state belongs to a button; a link that named one would be a link wearing
+      // a control's state, so it says `aria-current` and nothing about a press.
+      final ElementPlan link = planOf(
+        const core.LinkNode(
+          '/rooms',
+          semantics: core.BoxSemantics(
+            role: core.BoxRole.button,
+            pressed: true,
+          ),
+        ),
+      );
+      final ElementPlan unset = planOf(
+        const core.Box(semantics: core.BoxSemantics(role: core.BoxRole.button)),
+      );
+
+      expect(link.attributes, isNot(contains('aria-pressed')));
+      expect(unset.attributes, isNot(contains('aria-pressed')));
+    });
+
     test('names no destination when it is disabled', () {
       // A disabled control drops what it does and keeps what it looks like, and a browser
       // that followed the href anyway would do what Flutter refuses to do.

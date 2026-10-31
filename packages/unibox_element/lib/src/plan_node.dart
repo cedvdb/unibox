@@ -269,12 +269,12 @@ final class _StateStyles {
 /// `role="navigation"` next to it, and `role="link"` on a `<div>` is the only way to say
 /// what that div means.
 ///
-/// A box that navigates is an `<a href>`, which is the whole of what a link is: a role would
-/// overrule the tag, a `tabindex` would restate a tab stop it already has, and
-/// `aria-checked` and `aria-selected` are states ARIA allows on a control and not on a
-/// link. What a destination can say about itself is `aria-current`, which is kept. A
-/// component that used to announce "button" now announces "link" without passing anything
-/// different, which is the point: the tag decides, not the caller.
+/// A box that navigates is an `<a href>`, which is the whole of what a link is: a role
+/// would overrule the tag, a `tabindex` would restate a tab stop it already has, and
+/// `aria-checked`, `aria-selected` and `aria-pressed` are states a control wears and a
+/// link does not. What a destination can say about itself is `aria-current`, which is
+/// kept. A component that used to announce "button" now announces "link" without passing
+/// anything different, which is the point: the tag decides, not the caller.
 ///
 /// The tag is read from the node rather than passed in, because it *is* the node's: a flag
 /// a caller can forget is a flag that makes a link announce itself as a button.
@@ -322,6 +322,16 @@ Map<String, String> boxAttributes(core.Box box) {
 
   if (!anchor && selected != null) {
     attributes['aria-selected'] = '$selected';
+  }
+
+  // A toggle button states its state either way: `false` is how a reader hears "not
+  // pressed", and a control that said nothing when it was off would be announced as a
+  // plain button. A destination never says it — `aria-current` is what a link states about
+  // itself — so this is drawn on the same line as `aria-checked` and `aria-selected`.
+  final bool? pressed = semantics?.pressed;
+
+  if (!anchor && pressed != null) {
+    attributes['aria-pressed'] = '$pressed';
   }
 
   // A hidden box keeps its look and leaves the accessibility tree, and it is never

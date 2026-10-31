@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- `boxAttributes` writes `aria-pressed` for `BoxSemantics.pressed`, so a toggle button states
+  whether it is on: a chip and a segment were written as an ordinary button with no state, and
+  the fill and the check were the only things saying which choice was on. Both `true` and
+  `false` are written, because a toggle always states its state, and a link still writes none —
+  a destination says `aria-current`, never a press.
+
 - A scrolling box writes one rule for its children — `flex-shrink: 0`, from `scrollRules` — so a
   browser does not shrink them into the box and leave it with nothing to scroll. A pager's child
   rule keeps only `scroll-snap-align`, because the shrink belongs to every box that scrolls.

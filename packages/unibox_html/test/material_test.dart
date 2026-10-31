@@ -260,6 +260,64 @@ void main() {
       expect(html, isNot(contains('href="/?period=week"')));
       expect(html, contains('aria-current="page"'));
       expect(html, isNot(contains('tabindex')));
+      // A pressed state belongs to a button, and every segment here is a link.
+      expect(html, isNot(contains('aria-pressed')));
+    });
+  });
+
+  group('a segmented button of choices', () {
+    String renderChoices() => toHtml(
+      MaterialSegmentedButton(
+        selected: 1,
+        onSelect: (int index) {},
+        width: 300,
+        segments: const <MaterialSegment>[
+          MaterialSegment(label: core.TextNode('Day')),
+          MaterialSegment(label: core.TextNode('Week')),
+          MaterialSegment(label: core.TextNode('Month')),
+        ],
+      ),
+      theme: MaterialPalette.light.theme,
+    );
+
+    test('says which choice is pressed, and says which ones are not', () {
+      // The bug this pins: a selecting segment announced "button" and no state, so the
+      // fill and the check were the only things saying which choice was on. A toggle
+      // button states its state either way, so the two that are off say so too.
+      final String html = renderChoices();
+
+      expect(html, contains('aria-pressed="true"'));
+      expect(RegExp('aria-pressed="false"').allMatches(html).length, 2);
+    });
+  });
+
+  group('a filter chip in a document', () {
+    String renderChip({bool selected = false, String? url}) => toHtml(
+      MaterialChip(
+        label: const core.TextNode('Studio'),
+        selected: selected,
+        onTap: url == null ? () {} : null,
+        url: url,
+      ),
+      theme: MaterialPalette.light.theme,
+    );
+
+    test('says whether it is chosen with aria-pressed', () {
+      expect(renderChip(selected: true), contains('aria-pressed="true"'));
+      // A chip that is not chosen is a toggle that is off, not a chip with no state.
+      expect(renderChip(), contains('aria-pressed="false"'));
+    });
+
+    test('states no press when it is a destination', () {
+      // A selected destination chip is the page the reader is on: `aria-current`, never
+      // `aria-pressed`, for the reason the segment above says none.
+      final String html = renderChip(
+        selected: true,
+        url: '/spots?filter=studio',
+      );
+
+      expect(html, contains('aria-current="page"'));
+      expect(html, isNot(contains('aria-pressed')));
     });
   });
 
