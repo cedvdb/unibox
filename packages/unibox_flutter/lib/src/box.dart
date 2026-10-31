@@ -351,7 +351,7 @@ class FlutterBoxState extends State<FlutterBox> {
   /// corner radius and shadow. Layout never animates, matching the CSS side.
   Widget _decorated(BoxDecoration decoration, _Timing? timing, Widget child) {
     if (timing == null) {
-      return DecoratedBox(decoration: decoration, child: child);
+      return _painted(decoration, child);
     }
 
     return TweenAnimationBuilder<Decoration>(
@@ -362,8 +362,31 @@ class FlutterBoxState extends State<FlutterBox> {
       duration: timing.duration,
       curve: timing.curve,
       builder: (BuildContext context, Decoration value, Widget? inner) =>
-          DecoratedBox(decoration: value, child: inner),
+          _painted(value, inner),
       child: child,
+    );
+  }
+
+  /// Paints [decoration]: its shadows the way CSS draws them, then its fill, its border and
+  /// its children over them.
+  ///
+  /// The two are separate only when there are shadows to place, because `DecoratedBox` paints
+  /// a shadow *through* a box that has no fill — see [_OuterShadowPainter] — and the split
+  /// costs a `CustomPaint` that a box without shadows does not pay for.
+  Widget _painted(Decoration decoration, Widget? child) {
+    if (decoration is! BoxDecoration ||
+        (decoration.boxShadow?.isEmpty ?? true)) {
+      return DecoratedBox(decoration: decoration, child: child);
+    }
+
+    return CustomPaint(
+      painter: _OuterShadowPainter(decoration),
+      child: DecoratedBox(
+        // The shadows are the painter's, so the box paints only what is left: the same
+        // decoration, one list shorter.
+        decoration: decoration.copyWith(boxShadow: const <BoxShadow>[]),
+        child: child,
+      ),
     );
   }
 
@@ -1339,6 +1362,85 @@ class FlutterBoxState extends State<FlutterBox> {
       _pressed = pressed;
     });
   }
+}
+
+/// Paints a box's shadows the way CSS paints them: outside the border box, never through it.
+///
+/// An outer `box-shadow` is drawn *as if the border box were opaque* and clipped to the
+/// outside of it, which is why a hairline — `BoxShadow(offsetY: 1, blurRadius: 0)` on a row
+/// that has no fill of its own — is one pixel on the web. `DecoratedBox` paints the shadow
+/// as a second shape behind the box instead, so a box with no background showed the whole
+/// rectangle in the shadow's colour: the tab bar of the catalogue came out as a filled band
+/// the height of its own tabs.
+///
+/// The clip is the complement of the box's outline: one path with two subpaths and the
+/// even-odd rule is everything the shadow may reach.
+final class _OuterShadowPainter extends CustomPainter {
+  const _OuterShadowPainter(this.decoration);
+
+  /// The decoration whose `boxShadow` is painted.
+  final BoxDecoration decoration;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final List<BoxShadow> shadows = decoration.boxShadow ?? const <BoxShadow>[];
+    final Rect rect = Offset.zero & size;
+    final RRect box = _outline(decoration, rect);
+    Rect bounds = rect;
+
+    for (final BoxShadow shadow in shadows) {
+      bounds = bounds.expandToInclude(
+        box
+            .inflate(shadow.spreadRadius)
+            .shift(shadow.offset)
+            .outerRect
+            // A blurred shadow reaches past the shape it was cast from, and a layer that
+            // clipped it would cut the soft edge off.
+            .inflate(shadow.blurRadius * 2),
+      );
+    }
+
+    canvas
+      ..save()
+      ..clipPath(
+        Path()
+          ..fillType = PathFillType.evenOdd
+          ..addRect(bounds)
+          ..addRRect(box),
+      );
+
+    for (final BoxShadow shadow in shadows) {
+      canvas.drawRRect(
+        box.inflate(shadow.spreadRadius).shift(shadow.offset),
+        shadow.toPaint(),
+      );
+    }
+
+    canvas.restore();
+  }
+
+  /// The outline [decoration] paints inside [rect].
+  ///
+  /// The renderer builds a `BoxDecoration` with a plain `BorderRadius`, so resolving the
+  /// geometry needs no writing direction.
+  RRect _outline(BoxDecoration decoration, Rect rect) {
+    if (decoration.shape == BoxShape.circle) {
+      return RRect.fromRectAndRadius(
+        rect,
+        Radius.circular(rect.shortestSide / 2),
+      );
+    }
+
+    final BorderRadiusGeometry? radius = decoration.borderRadius;
+
+    return radius == null
+        ? RRect.fromRectAndRadius(rect, Radius.zero)
+        : radius.resolve(TextDirection.ltr).toRRect(rect);
+  }
+
+  @override
+  bool shouldRepaint(_OuterShadowPainter oldDelegate) =>
+      oldDelegate.decoration != decoration;
 }
 
 /// Interpolates a [core.BoxTransform] part by part.

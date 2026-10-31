@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- A shadow is painted the way CSS paints one: outside the border box, never through it. A box
+  with no fill was handing its shadows to a `DecoratedBox`, which paints them as a second shape
+  *behind* the box, so a hairline — `BoxShadow(offsetY: 1, blurRadius: 0)` on a row that paints
+  no background — filled the whole rectangle: the catalogue's tab bar came out as a solid band
+  the height of its tabs. The shadows are now painted by a painter that clips them to the
+  complement of the box's outline.
+
 - A box that fills only up to a measure is no longer an `Expanded` in the row that holds it.
   `width: double.infinity` with a `maxWidth` is CSS's `min(100%, max-width)`, which the
   container's alignment then places; claiming the whole line left that alignment nothing to

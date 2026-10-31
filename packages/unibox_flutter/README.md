@@ -42,7 +42,8 @@ with their target.
 | `width`, `height`                   | `SizedBox`                                          |
 | `aspectRatio`                       | `AspectRatio`, inside the sizes so it divides one of them |
 | `minWidth`, `maxWidth`, ...         | `ConstrainedBox`                                    |
-| `backgroundColor`, `borderRadius`, `border`, `shadows` | `DecoratedBox` with a `BoxDecoration`, one entry of its `boxShadow` per shadow |
+| `backgroundColor`, `borderRadius`, `border` | `DecoratedBox` with a `BoxDecoration` |
+| `shadows`                           | a `CustomPaint` behind the box, painting each entry of the decoration's `boxShadow` clipped to the outside of the box — which is what CSS does, so a hairline is one pixel and a box with no fill does not paint its own rectangle |
 | `overflow: Overflow.hidden`         | `ClipRect`, inside the decoration so the shadow survives |
 | `PositionedNode.alignment`          | `Positioned.fill` around an `Align`, with a directional alignment so a start or an end follows the writing direction |
 | `shape`                            | `CustomPaint` with a `Path`: the fill, then the border as a stroke along it |

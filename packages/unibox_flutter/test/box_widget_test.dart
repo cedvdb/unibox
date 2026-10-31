@@ -322,7 +322,10 @@ void main() {
       expect(decorationOf(tester), isNull);
     });
 
-    testWidgets('paints background, border, radius and shadow', (tester) async {
+    testWidgets('paints background, border and radius', (tester) async {
+      // The shadow this box also states is painted by the CSS-accurate painter beside the
+      // fill, and `box_shadow_test.dart` reads the pixels: a decoration carrying a shadow
+      // would be painted through a box that has no fill of its own.
       await pumpNode(
         tester,
         const core.Box(
@@ -342,9 +345,6 @@ void main() {
       expect(decoration.borderRadius, BorderRadius.circular(12));
       expect(border.top.width, 2);
       expect(border.top.color, const Color(0xFF000000));
-      expect(decoration.boxShadow, hasLength(1));
-      expect(decoration.boxShadow!.single.blurRadius, 4);
-      expect(decoration.boxShadow!.single.offset, const Offset(0, 2));
     });
 
     testWidgets('skips invisible borders', (tester) async {
