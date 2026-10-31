@@ -14,10 +14,52 @@ command line tool, and, for a host whose backend is not Dart, compiled to JavaSc
 | Question | Answer |
 | --- | --- |
 | a tree as a fragment | `toHtml(tree)`, or `tree.toHtml()`, with the one `<style>` element in front of it |
-| a tree as a page | `toDocument(title: …, lang: …)` — the fragment, a `<head>` and the stylesheet |
-| a page in one language of several | `toDocument(lang: …, alternates: …)` — the language it is written in, and the `hreflang` links that pair it with its translations |
+| a tree as a page | `toDocument(head: DocumentHead(title: …), lang: …)` — the fragment, a `<head>` and the stylesheet |
+| a page in one language of several | `toDocument(lang: …, head: DocumentHead(alternates: …))` — the language it is written in, and the `hreflang` links that pair it with its translations |
 | a page an application takes over | `toDocument(takeover: Takeover(boot: …))` — the bundle prefetched, the recorders, the boot on a signal |
 | what a document is | a snapshot of a state: initial state, overlays open, no listeners |
+
+## The head
+
+A tree describes a region of a page, so the page's own title, address and translations belong
+to the host. They arrive as one value, `DocumentHead`, beside the tree:
+
+```dart
+final String page = toDocument(
+  tree,
+  lang: 'de',
+  head: const DocumentHead(
+    title: 'Wohnungen in Amsterdam',
+    description: 'Einundvierzig Wohnungen zur Miete.',
+    image: 'https://example.com/cards/amsterdam.jpg',
+    canonical: 'https://example.com/de/apartments/',
+  ),
+);
+```
+
+| The head carries | Written as | For |
+| --- | --- | --- |
+| `title` | `<title>`, then `og:title` | the result a reader clicks and the tab they see |
+| `description` | `<meta name="description">`, then `og:description` | the sentence a result shows under the title |
+| `image` | `og:image` | the picture a link preview is drawn around |
+| `canonical` | `<link rel="canonical">` | the one address of two that serve the same page |
+| `alternates` | `<link rel="alternate" hreflang>` | the same page in its other languages |
+| `meta` | `<meta name="…" content="…">` | a tag this package does not know |
+| `prefetch` | `<link rel="prefetch" as="script">` | a bundle the page is likely to ask for |
+| `raw` | verbatim | markup this package does not describe |
+
+`DocumentHead.raw([…])` is the shorthand for a host that only has the last one to say.
+
+Everything but `raw` is escaped, and every url goes through `safeUrl`, so a title or a canonical
+address that came from data cannot end the element it is written into. `raw` is the door for the
+`@font-face` rules of the font a host ships, a dark-mode block and structured data: it is written
+verbatim, which is why it is the host's own text and never a string assembled from what a reader
+supplied.
+
+`lang` is not part of the value, because it is an attribute of the root element rather than a head
+element. The renderer owns the order — the metadata and the prefetches before the stylesheet, the
+stylesheet before `raw` — so a fetch starts with the document, a host rule of equal specificity
+can restate what the page starts with, and a font face still arrives before the text that uses it.
 
 ## Escaping, which is the whole security surface
 
@@ -48,22 +90,24 @@ UINode buildListingsPage(SiteCopy copy, SiteRoutes routes) => …;
 
 final String page = toDocument(
   buildListingsPage(SiteCopy.de, SiteRoutes.de),
-  title: SiteCopy.de.title,
   lang: 'de',
-  canonical: 'https://example.com/de/apartments/',
-  alternates: <String, String>{
-    'de': 'https://example.com/de/apartments/',
-    'en': 'https://example.com/apartments/',
-    'x-default': 'https://example.com/apartments/',
-  },
+  head: DocumentHead(
+    title: SiteCopy.de.title,
+    canonical: 'https://example.com/de/apartments/',
+    alternates: <String, String>{
+      'de': 'https://example.com/de/apartments/',
+      'en': 'https://example.com/apartments/',
+      'x-default': 'https://example.com/apartments/',
+    },
+  ),
 );
 ```
 
 | The document states | With |
 | --- | --- |
 | the language it is written in | `lang:` — one document per language, not one page that swaps its text |
-| the other languages of the same page | `alternates:` — the `hreflang` links, the whole set on every page of it |
-| the address of this page | `canonical:` — per language, or two translations compete as one |
+| the other languages of the same page | `head.alternates` — the `hreflang` links, the whole set on every page of it |
+| the address of this page | `head.canonical` — per language, or two translations compete as one |
 | the language a reader gets | the address (`/de/…`): a crawler sends no `Accept-Language` and keeps no cookie |
 | a language switch | a `LinkNode` to the other address, which is followable and crawlable like any other link |
 
@@ -126,7 +170,7 @@ pays for nothing:
 ```dart
 final String page = toDocument(
   ListingsPage(listings),
-  title: 'Apartments',
+  head: const DocumentHead(title: 'Apartments'),
   takeover: const Takeover(boot: '../../flutter/app.js'),
 );
 ```

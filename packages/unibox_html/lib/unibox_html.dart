@@ -8,7 +8,10 @@
 /// import 'package:unibox_html/unibox_html.dart';
 ///
 /// final String page = ListingsPage(listings).toHtml();
-/// final String document = toDocument(ListingsPage(listings), title: 'Apartments');
+/// final String document = toDocument(
+///   ListingsPage(listings),
+///   head: const DocumentHead(title: 'Apartments'),
+/// );
 /// ```
 ///
 /// It is pure Dart with no dependencies, so a document can be rendered in a server, in a
@@ -30,6 +33,7 @@ export 'src/client/scroll.dart' show scrollScript;
 export 'src/client/press.dart'
     show pressKeyAttribute, pressRecordLimit, pressScript;
 export 'src/document.dart';
+export 'src/document_head.dart';
 export 'src/embed_node.dart';
 export 'src/escape.dart';
 export 'src/render.dart';

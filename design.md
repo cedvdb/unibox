@@ -83,7 +83,7 @@ All nodes extend `abstract class UINode`.
 - `TextInputNode` renders managed `TextField`.
 
 ### The web (`unibox_html`)
-- Provide `toHtml(UINode)` for a fragment and `toDocument(UINode, title: …)` for a page.
+- Provide `toHtml(UINode)` for a fragment and `toDocument(UINode, head: …)` for a page.
 - `Box` renders a `<div>` with `box-sizing: border-box`.
 - Map layout to CSS flexbox (`display: flex`, `gap`, etc.); a box without a
   direction is a flex column.
@@ -386,6 +386,12 @@ never inherited (CSS does not inherit them either).
   page, a card inside a page or a section of a Flutter screen. What the tree does
   contribute is structural markup — real text, `<img alt>`, `<a href>` and the
   `role` attributes of `BoxSemantics` — so a crawler reads it without JavaScript.
+  They do not vanish: `toDocument` takes them as one `DocumentHead` value beside
+  the tree, because a page's metadata has to agree with itself — a canonical
+  address under the language the page is written in — and seven arguments of one
+  call are seven chances to disagree. A value the host builds and hands to a
+  renderer is not a token on a node: a card lifted into a page, and the page it
+  was lifted into, have no title between them to fight over.
 - A grid is the model's second layout engine, and the last one. `GridNode` is
   admitted because its answer is one arithmetic rule — a column count and a cell
   width from a single minimum — that both targets can apply and a test can read
@@ -900,11 +906,11 @@ What that buys, stated as the invariants the feature has to keep:
   palette picker uses to be a page a crawler can reach. A state in a store is the honest
   answer for a language change inside an application; a link is the honest answer for a
   page that has to be found.
-- One document per locale, and each one states its own three facts: `lang` for the
-  language it is written in, `canonical` for its own address, and `alternates` for the
-  whole set, itself included. `hreflang` is the only thing that tells a search engine three
-  pages of translated text are one page in three languages rather than three pages
-  competing for one query.
+- One document per locale, and each one states its own set: `lang` for the language it is
+  written in, and a `DocumentHead` whose `canonical` is its own address and whose
+  `alternates` are the whole set, itself included. `hreflang` is the only thing that tells a
+  search engine three pages of translated text are one page in three languages rather than
+  three pages competing for one query.
 - Beyond one page, `.arb` and `intl` belong to the application. `intl` is a pure Dart
   package, so the no-dependency rule — which binds `unibox_core` — leaves a consumer free
   to use it; plurals, number and date formats and collation are exactly the things a
@@ -912,8 +918,8 @@ What that buys, stated as the invariants the feature has to keep:
   targets. The model's share of localisation is what a translated page still has to say
   correctly: real strings, `alt` text, `BoxSemantics.label`, and headings at the level the
   page's structure asks for.
-- What the model deliberately does not grow: a `locale` on a node (a language is a document
-  fact, §5.6, and a node is a region of a document), a mutable current locale (one build
-  step writes every language in one process, so a global would make output depend on write
-  order), and a key catalogue in core (a key map gives up the compiler's help and would be
-  the first dependency the model cannot have).
+- What the model deliberately does not grow: a `locale` on a node (a language is a property of
+  the document, §5.6, and a node is a region of a document), a mutable current locale (one
+  build step writes every language in one process, so a global would make output depend on
+  write order), and a key catalogue in core (a key map gives up the compiler's help and would
+  be the first dependency the model cannot have).

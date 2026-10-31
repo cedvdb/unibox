@@ -15,7 +15,6 @@ import 'client/boot.dart';
 /// ```dart
 /// final String page = toDocument(
 ///   ListingsPage(listings),
-///   title: 'Apartments',
 ///   takeover: const Takeover(boot: '../../flutter/app.js'),
 /// );
 /// ```

@@ -29,17 +29,19 @@ String buildSiteDocument({
 }) {
   return toDocument(
     sitePageTree(seed: seed),
-    title: 'Unibox — SEO-friendly Flutter Web without duplicating your UI',
-    description:
-        'Flutter SEO without a second UI: build the interface once in Dart, serve it '
-        'as real HTML and CSS to a search engine, and draw it as Flutter widgets in '
-        'the app.',
-    meta: <String, String>{'unibox-build': ?build, 'unibox-page': 'site'},
+    head: DocumentHead(
+      title: 'Unibox — SEO-friendly Flutter Web without duplicating your UI',
+      description:
+          'Flutter SEO without a second UI: build the interface once in Dart, serve it '
+          'as real HTML and CSS to a search engine, and draw it as Flutter widgets in '
+          'the app.',
+      meta: <String, String>{'unibox-build': ?build, 'unibox-page': 'site'},
+      raw: <String>[
+        fontPreloadLinks(''),
+        '<style>${fontFaceCss('')}$siteCss</style>',
+      ],
+    ),
     theme: siteThemeFor(seed),
-    head: <String>[
-      fontPreloadLinks(''),
-      '<style>${fontFaceCss('')}$siteCss</style>',
-    ],
     // A site a crawler reads is a document: the recorders are what a reader who interacts
     // with the catalogue leaves behind, and nothing here starts an application.
     scripts: <DocumentScript>[

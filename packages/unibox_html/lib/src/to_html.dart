@@ -9,9 +9,10 @@ import 'render.dart' as render;
 /// `toWidget()` is an extension on a node, so a reader who has written
 /// `runApp(page.toWidget())` looks for `page.toHtml()` next and not for a function that takes
 /// the page as its first argument. A fragment is the whole of what a tree becomes on this
-/// target, which is why it is the call that has a shorthand; a document needs the facts of a
+/// target, which is why it is the call that has a shorthand; a document needs the details of a
 /// page — its title, its canonical url, the languages it is translated into — that no tree
-/// carries, so `toDocument(node, …)` stays a function with the tree as an argument.
+/// carries, and they arrive as a `DocumentHead`, so `toDocument(node, …)` stays a function with
+/// the tree as an argument.
 extension UINodeHtmlRenderer on core.UINode {
   /// Renders this node as an HTML fragment, with one `<style>` element in front of it.
   ///

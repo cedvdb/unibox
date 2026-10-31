@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- `DocumentHead`: the page's own metadata as one value, so `toDocument` takes `head:` where it
+  took seven arguments that had to agree with each other — `title`, `description`, `canonical`,
+  `alternates`, `meta`, `prefetch` and the list of raw markup. `DocumentHead.raw([…])` is a head
+  that is only markup, which is the old list in its new spelling. Two things are new with it:
+  `image` writes `og:image`, so the tag a link preview is drawn around is no longer hand-written
+  markup, and the image url goes through `safeUrl` like the canonical and the alternates do.
+  `lang` stays beside the value, because a language is an attribute of the root element and not a
+  head element — which is what makes the name truthful. The order is still the renderer's, and
+  two of its positions are now pinned: a prefetch is written before the stylesheet, so the fetch
+  starts with the document, and the host's own markup after it, so a host rule of equal
+  specificity can restate a colour role.
+
 - A page carries the `@keyframes` a folded box runs, in the same `<style>` element as the rest, so
   a document that no script touches folds as the reader scrolls it.
 

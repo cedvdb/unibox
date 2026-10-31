@@ -73,7 +73,11 @@ final page = Box(
 );
 
 runApp(MaterialApp(home: page.toWidget(theme: MaterialPalette.lightTheme)));
-final html = toDocument(page, title: 'Apartments', theme: MaterialPalette.lightTheme);
+final html = toDocument(
+  page,
+  head: const DocumentHead(title: 'Apartments'),
+  theme: MaterialPalette.lightTheme,
+);
 ```
 
 `toWidget(theme: …)` builds the widgets; `toDocument()` writes the page and its head. Which one
@@ -111,8 +115,10 @@ final UINode page = Box(
 
 final String document = toDocument(
   page,
-  title: 'Apartments in Amsterdam',
-  description: 'Forty-one flats to rent in Amsterdam.',
+  head: const DocumentHead(
+    title: 'Apartments in Amsterdam',
+    description: 'Forty-one flats to rent in Amsterdam.',
+  ),
   takeover: const Takeover(boot: 'app.js'),
 );
 ```
@@ -180,7 +186,7 @@ today.
 ```dart
 final String page = toDocument(
   ListingsPage(listings),
-  title: 'Apartments in Amsterdam',
+  head: const DocumentHead(title: 'Apartments in Amsterdam'),
   takeover: const Takeover(boot: '../../flutter/app.js'),
 );
 ```
@@ -223,17 +229,21 @@ address, each document naming the whole set:
 for (final SiteEdition edition in SiteEdition.all) {
   final String page = toDocument(
     buildListingsPage(edition.copy),
-    title: edition.copy.title,
     lang: edition.tag,
-    canonical: edition.url('apartments'),
-    alternates: SiteEdition.alternates('apartments'),
+    head: DocumentHead(
+      title: edition.copy.title,
+      canonical: edition.url('apartments'),
+      alternates: SiteEdition.alternates('apartments'),
+    ),
   );
   File('site/${edition.tag}/apartments/index.html').writeAsStringSync(page);
 }
 ```
 
-`lang` says which language the page is written in; `alternates` says which other addresses carry the
-same page, so a search engine pairs the translations instead of keeping one and hiding the rest. The
+`lang` says which language the page is written in — an attribute of the root element, not a
+head element, which is why it sits beside the head rather than in it. The head's `alternates`
+says which other addresses carry the same page, so a search engine pairs the translations
+instead of keeping one and hiding the rest. The
 locale comes from the address rather than a cookie or `Accept-Language`, because a crawler sends
 neither, and a language switch is a [link](#links) to the other address — followable by a reader
 and by a crawler. Copy stays a value passed into the tree (`SiteCopy.de`), so a string a language is
@@ -264,7 +274,7 @@ runApp(MaterialApp(home: tree.toWidget(theme: MaterialPalette.lightTheme)));
 // the web: a page a crawler reads, and a reader acts on
 final String page = toDocument(
   tree,
-  title: 'My page',
+  head: const DocumentHead(title: 'My page'),
   theme: MaterialPalette.lightTheme,
 );
 ```

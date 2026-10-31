@@ -23,7 +23,10 @@ void main() {
 
     test('carries the title a result links and a tab shows', () {
       expect(
-        toDocument(const core.TextNode('Hi'), title: 'Apartments'),
+        toDocument(
+          const core.TextNode('Hi'),
+          head: const DocumentHead(title: 'Apartments'),
+        ),
         contains('<title>Apartments</title>'),
       );
     });
@@ -32,8 +35,10 @@ void main() {
       // A title comes from data as often as from code.
       final String html = toDocument(
         const core.TextNode('Hi'),
-        title: '</title><script>alert(1)</script>',
-        description: '" onload="alert(1)',
+        head: const DocumentHead(
+          title: '</title><script>alert(1)</script>',
+          description: '" onload="alert(1)',
+        ),
       );
 
       expect(html, isNot(contains('<script>alert(1)</script>')));
@@ -44,9 +49,11 @@ void main() {
       expect(
         toDocument(
           const core.TextNode('Hi'),
-          alternates: <String, String>{
-            '" onload="alert(1)': 'https://example.com/',
-          },
+          head: const DocumentHead(
+            alternates: <String, String>{
+              '" onload="alert(1)': 'https://example.com/',
+            },
+          ),
         ),
         contains('hreflang="&quot; onload=&quot;alert(1)"'),
       );
@@ -56,7 +63,9 @@ void main() {
       expect(
         toDocument(
           const core.TextNode('Hi'),
-          canonical: 'https://example.com/apartments/',
+          head: const DocumentHead(
+            canonical: 'https://example.com/apartments/',
+          ),
         ),
         contains(
           '<link rel="canonical" href="https://example.com/apartments/">',
@@ -72,12 +81,14 @@ void main() {
         final String html = toDocument(
           const core.TextNode('Wohnungen'),
           lang: 'de',
-          canonical: 'https://example.com/de/apartments/',
-          alternates: <String, String>{
-            'de': 'https://example.com/de/apartments/',
-            'en': 'https://example.com/apartments/',
-            'x-default': 'https://example.com/apartments/',
-          },
+          head: const DocumentHead(
+            canonical: 'https://example.com/de/apartments/',
+            alternates: <String, String>{
+              'de': 'https://example.com/de/apartments/',
+              'en': 'https://example.com/apartments/',
+              'x-default': 'https://example.com/apartments/',
+            },
+          ),
         );
 
         expect(html, contains('<html lang="de">'));
@@ -110,8 +121,10 @@ void main() {
       // The other half of being found: a preview with no description shows a url.
       final String html = toDocument(
         const core.TextNode('Hi'),
-        title: 'Apartments',
-        description: 'Six flats.',
+        head: const DocumentHead(
+          title: 'Apartments',
+          description: 'Six flats.',
+        ),
       );
 
       expect(html, contains('<meta property="og:title" content="Apartments">'));
@@ -121,11 +134,26 @@ void main() {
       );
     });
 
+    test('shows an image in a link preview', () {
+      // A preview with no image is a line of text in a feed. It is a field rather than raw
+      // markup because the tag a preview always wants should not be the one a host has to
+      // hand-write.
+      expect(
+        toDocument(
+          const core.TextNode('Hi'),
+          head: const DocumentHead(image: 'https://example.com/card.jpg'),
+        ),
+        contains(
+          '<meta property="og:image" content="https://example.com/card.jpg">',
+        ),
+      );
+    });
+
     test('takes metadata a host needs and the model does not know', () {
       expect(
         toDocument(
           const core.TextNode('Hi'),
-          meta: <String, String>{'robots': 'noindex'},
+          head: const DocumentHead(meta: <String, String>{'robots': 'noindex'}),
         ),
         contains('<meta name="robots" content="noindex">'),
       );
@@ -147,9 +175,9 @@ void main() {
       // written verbatim, which is why a host passes text and never reader data.
       final String html = toDocument(
         const core.TextNode('Hi'),
-        head: <String>[
+        head: DocumentHead.raw(<String>[
           '<style>@font-face{font-family:UniboxText;src:url(a.ttf)}</style>',
-        ],
+        ]),
       );
 
       expect(html, contains('@font-face{'));
@@ -157,6 +185,39 @@ void main() {
         html.indexOf('@font-face'),
         lessThan(html.indexOf('<body>')),
         reason: 'a font face has to arrive before the text that uses it',
+      );
+    });
+
+    test(
+      'writes that markup after the stylesheet, so a host can restate it',
+      () {
+        // An equally specific rule later in the head wins, which is how a host restates a
+        // colour role for one page — or a dark-mode block — without the renderer knowing.
+        final String html = toDocument(
+          const core.Box(),
+          head: DocumentHead.raw(<String>[
+            '<style>:root{--unibox-color-canvas:#fff}</style>',
+          ]),
+        );
+
+        expect(
+          html.indexOf('--unibox-color-canvas:#fff'),
+          greaterThan(html.indexOf('<style data-unibox-css>')),
+        );
+      },
+    );
+
+    test('starts a prefetch with the document, before the stylesheet', () {
+      // The download is not what a reader pays for; the execution is. Naming it before the
+      // sheet starts the fetch with the page instead of after it.
+      final String html = toDocument(
+        const core.Box(),
+        head: const DocumentHead(prefetch: <String>['app.js']),
+      );
+
+      expect(
+        html.indexOf('<link rel="prefetch" href="app.js" as="script">'),
+        allOf(isNot(-1), lessThan(html.indexOf('<style data-unibox-css>'))),
       );
     });
 
@@ -184,11 +245,15 @@ void main() {
       // A translation set is assembled from locales, and a locale can come from an address.
       final String html = toDocument(
         const core.TextNode('Hi'),
-        canonical: 'javascript:alert(1)',
-        alternates: <String, String>{'en': 'javascript:alert(1)'},
+        head: const DocumentHead(
+          canonical: 'javascript:alert(1)',
+          alternates: <String, String>{'en': 'javascript:alert(1)'},
+          image: 'javascript:alert(1)',
+        ),
       );
 
       expect(html, contains('href="#"'));
+      expect(html, contains('<meta property="og:image" content="#">'));
       expect(html, isNot(contains('javascript:')));
     });
 

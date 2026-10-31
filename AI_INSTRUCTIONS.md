@@ -253,7 +253,7 @@ host that renders it.
 | `:hover`, `:focus-visible`, `:active` | `stateStyles` / `hoverStyle` with a `BoxState` key |
 | `@media (min-width: 900px)` | host work: Flutter measures, the web host uses CSS |
 | `<input>`, `<textarea>` | `TextInputNode`, `TextInputNode(multiline: true)` |
-| `<html lang="de">`, `<link rel="alternate" hreflang="en">`, a `/de/…` prefix | `toDocument(lang: 'de', alternates: {'de': …, 'en': …})` — one document per language, the locale taken from the address |
+| `<html lang="de">`, `<link rel="alternate" hreflang="en">`, a `/de/…` prefix | `toDocument(lang: 'de', head: DocumentHead(alternates: {'de': …, 'en': …}))` — one document per language, the locale taken from the address |
 
 ## A component, end to end
 
@@ -430,9 +430,9 @@ MaterialApp(
 );
 ```
 
-The web host is smaller still: `toDocument(tree, title: …)` writes the page, and the host
-only states the document's own facts — the title, the head, the font it ships. Both hosts of
-the example are one small file each, and
+The web host is smaller still: `toDocument(tree, head: DocumentHead(title: …))` writes the page,
+and the host only states the document's own metadata — the title, the head, the font it ships.
+Both hosts of the example are one small file each, and
 [`example/unibox_example_shared/lib/src/page_node.dart`](example/unibox_example_shared/lib/src/page_node.dart)
 is the long form of the node above.
 
@@ -450,7 +450,7 @@ reader did before it existed.
 // the server, or a build step
 final String page = toDocument(
   ListingsPage(listings),
-  title: 'Apartments',
+  head: const DocumentHead(title: 'Apartments'),
   takeover: const Takeover(boot: '../../flutter/app.js'),
 );
 ```
@@ -590,20 +590,23 @@ UINode buildListingsPage(SiteCopy copy) => … TextNode(copy.title) …
   sends neither. A language switch is a `LinkNode` to the other address — followable and
   crawlable like any other link — and a language change inside the app is a
   `Store` publish.
-- **One document per language, each naming the whole set.** `lang` is what it is written in,
-  `canonical` is its own address, and `alternates` are the others:
+- **One document per language, each naming the whole set.** `lang` is what it is written in —
+  an attribute of the root element rather than a head element — and the head carries
+  `canonical`, its own address, and `alternates`, the others:
 
   ```dart
   final String page = toDocument(
     buildListingsPage(SiteCopy.de),
-    title: SiteCopy.de.title,
     lang: 'de',
-    canonical: 'https://example.com/de/apartments/',
-    alternates: <String, String>{
-      'de': 'https://example.com/de/apartments/',
-      'en': 'https://example.com/apartments/',
-      'x-default': 'https://example.com/apartments/',
-    },
+    head: DocumentHead(
+      title: SiteCopy.de.title,
+      canonical: 'https://example.com/de/apartments/',
+      alternates: <String, String>{
+        'de': 'https://example.com/de/apartments/',
+        'en': 'https://example.com/apartments/',
+        'x-default': 'https://example.com/apartments/',
+      },
+    ),
   );
   ```
 

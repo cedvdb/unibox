@@ -1,5 +1,6 @@
 import 'package:unibox_core/unibox_core.dart' as core;
 
+import 'document_head.dart';
 import 'escape.dart';
 
 import 'package:unibox_element/unibox_element.dart';
@@ -65,45 +66,45 @@ final class DocumentScript {
 /// The tree as a page: the head a crawler reads, then the tree in the body.
 ///
 /// A document is what a search engine, a link preview and a reader without JavaScript
-/// see, and every element of it is stated: `title`, `lang`, a description, a canonical
-/// url, the other languages the page is available in, the Open Graph pair a preview uses,
-/// and the scripts the host needs.
+/// see. [head] states everything a host can say about it — a title, a description, the image
+/// a preview shows, its address, the languages it is translated into, and the markup the page
+/// needs — and the tree goes into the body exactly as `toHtml` renders it.
 ///
 /// ```dart
 /// final String page = toDocument(
 ///   ListingsPage(listings),
-///   title: 'Apartments in Amsterdam',
-///   description: 'Six flats, from the same tree Flutter draws.',
-///   canonical: 'https://example.com/apartments/',
+///   head: const DocumentHead(
+///     title: 'Apartments in Amsterdam',
+///     description: 'Six flats, from the same tree Flutter draws.',
+///     canonical: 'https://example.com/apartments/',
+///   ),
 /// );
 /// ```
+///
+/// The order is the renderer's rather than the host's, because two of the positions matter and
+/// neither is visible in a value: the stylesheet is written after the metadata and the
+/// prefetches, so those fetches start with the document, and before the head's own markup, so
+/// a host rule of equal specificity can outrank the `:root` block. The encoding is first of
+/// all, because a browser that has to guess it may reparse the document.
 ///
 /// The stylesheet goes into the head rather than in front of the tree: a page whose look
 /// arrives with the first paint does not flash an unstyled version of itself, and the LCP
 /// candidate is painted once.
 ///
 /// [scripts] are for the host's own: Flutter's bootstrap, the scroll recorder, an
-/// analytics file. Each is deferred by default, so nothing blocks the first paint.
+/// analytics file. Each is deferred by default, so nothing blocks the first paint, and a
+/// [takeover] adds its own before they run.
 ///
-/// [lang] is the language the page is written in, and [alternates] is the same page in
-/// the others, keyed by the `hreflang` value a search engine matches on — `'de'`,
-/// `'de-AT'`, and `'x-default'` for the address that answers a language the site does not
-/// have. Every page of a translation set names the whole set, itself included: a crawler
-/// told nothing sees three pages of translated text and treats two of them as duplicates
-/// of the third. Which language a reader is given is the host's decision, and the address
-/// is the only place a crawler can read it from — so `/de/apartments/` is the German page,
-/// and a header or a cookie would be a page no crawler ever sees.
+/// [lang] is the language the page is written in — an attribute of the root element rather
+/// than a head element, which is why it sits beside [head] and not in it. Which language a
+/// reader is given is the host's decision, and the address is the only place a crawler can
+/// read it from — so `/de/apartments/` is the German page, and a header or a cookie would be a
+/// page no crawler ever sees.
 String toDocument(
   core.UINode node, {
-  String? title,
   String lang = 'en',
-  String? description,
-  String? canonical,
-  Map<String, String> alternates = const <String, String>{},
-  Map<String, String> meta = const <String, String>{},
-  List<String> head = const <String>[],
+  DocumentHead head = const DocumentHead(),
   List<DocumentScript> scripts = const <DocumentScript>[],
-  List<String> prefetch = const <String>[],
   core.UniboxTheme? theme,
   bool showOverlays = false,
   Takeover? takeover,
@@ -121,15 +122,21 @@ String toDocument(
     '<meta name="viewport" content="width=device-width, initial-scale=1">',
   );
 
+  final String? title = head.title;
+
   if (title != null) {
     buffer.write('<title>${escapeText(title)}</title>');
   }
+
+  final String? description = head.description;
 
   if (description != null) {
     buffer.write(
       '<meta name="description" content="${escapeAttribute(description)}">',
     );
   }
+
+  final String? canonical = head.canonical;
 
   if (canonical != null) {
     buffer.write('<link rel="canonical" href="${safeUrl(canonical)}">');
@@ -139,14 +146,15 @@ String toDocument(
   // copies of one page and keeps one of them, so the translations compete as duplicates of
   // each other. A locale arrives from an address a reader typed, so the url goes through the
   // same gate the canonical does and the tag is escaped like any other string.
-  for (final MapEntry<String, String> entry in alternates.entries) {
+  for (final MapEntry<String, String> entry in head.alternates.entries) {
     buffer.write(
       '<link rel="alternate" hreflang="${escapeAttribute(entry.key)}" '
       'href="${safeUrl(entry.value)}">',
     );
   }
 
-  // What a link preview shows, which is the other half of being found.
+  // What a link preview shows, which is the other half of being found: the title and the
+  // sentence of the card, then the image it is drawn around.
   if (title != null) {
     buffer.write(
       '<meta property="og:title" content="${escapeAttribute(title)}">',
@@ -160,7 +168,13 @@ String toDocument(
     );
   }
 
-  for (final MapEntry<String, String> entry in meta.entries) {
+  final String? image = head.image;
+
+  if (image != null) {
+    buffer.write('<meta property="og:image" content="${safeUrl(image)}">');
+  }
+
+  for (final MapEntry<String, String> entry in head.meta.entries) {
     buffer.write(
       '<meta name="${escapeAttribute(entry.key)}" '
       'content="${escapeAttribute(entry.value)}">',
@@ -169,8 +183,8 @@ String toDocument(
 
   // Fetched at a low priority while the reader reads, so a boot that waits for intent is
   // never a boot on a cold cache. The download is not what the reader pays for; the
-  // execution is.
-  for (final String url in prefetch) {
+  // execution is. Written before the stylesheet, so the fetch starts with the document.
+  for (final String url in head.prefetch) {
     buffer.write('<link rel="prefetch" href="${safeUrl(url)}" as="script">');
   }
 
@@ -178,8 +192,10 @@ String toDocument(
 
   // Markup the host owns and the model does not describe: the `@font-face` rules of the
   // asset it ships, a dark-mode block, a structured-data script. Written verbatim, so it is
-  // the host's own text and never assembled from data a reader supplied.
-  for (final String markup in head) {
+  // the host's own text and never assembled from data a reader supplied — and written after
+  // the stylesheet, so a host rule of equal specificity can restate what the page starts
+  // with.
+  for (final String markup in head.raw) {
     buffer.write(markup);
   }
 
