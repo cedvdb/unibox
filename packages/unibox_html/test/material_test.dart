@@ -349,6 +349,34 @@ void main() {
       expect(ruleOf(sheet, press), contains('width:220px'));
     });
 
+    test('puts the same floor on the layer the tint is painted on', () {
+      // A well that paints a surface of its own is layered: the outer box is the surface
+      // and the clip, and the tints are one box inside it. A floor is a constraint on a
+      // box's own size, so a floor stated on the shape alone left the layer a hover paints
+      // as small as the label — 74 by 20 inside a 76 by 32 pill, six pixels of each end
+      // never tinted, and a lozenge drawn inside a lozenge.
+      final Stylesheet sheet = Stylesheet();
+      final ElementPlan shape = planNode(
+        MaterialInkWell(
+          onTap: () {},
+          minWidth: 64,
+          minHeight: 32,
+          borderRadius: 16,
+          border: const core.BoxBorder(color: core.BoxColor(0xFF79747E)),
+          padding: const core.BoxSpacing.symmetric(horizontal: 6),
+          child: const core.TextNode('Sign in'),
+        ),
+        sheet,
+      );
+      final ElementPlan tint = shape.children.single;
+
+      expect(ruleOf(sheet, shape), contains('min-height:32px'));
+      expect(ruleOf(sheet, tint), contains('min-width:64px'));
+      expect(ruleOf(sheet, tint), contains('min-height:32px'));
+      // The tint still keeps the radius and the clip of the shape it covers.
+      expect(ruleOf(sheet, tint), contains('border-radius:16px'));
+    });
+
     test('keeps the pointer off the count and on the control', () {
       // The badge is a picture: `pointer-events: none` hands the corner it covers back to the
       // control, so the hover, the hand and the press there are the control's.

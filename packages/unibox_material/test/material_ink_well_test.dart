@@ -23,6 +23,19 @@ List<PositionedNode> _ink(Box well) =>
 /// The box that carries the label, which is what sizes the well.
 Box _content(Box well) => _stack(well).children.last as Box;
 
+/// The box a layered well paints its tints on, which sits inside the shape.
+Box _tints(Box shape) => shape.children.single as Box;
+
+/// The tokens that decide how big a box is, so two boxes can be compared as boxes.
+({double? width, double? height, double? minWidth, double? minHeight}) _sizeOf(
+  Box box,
+) => (
+  width: box.width,
+  height: box.height,
+  minWidth: box.minWidth,
+  minHeight: box.minHeight,
+);
+
 void main() {
   group('MaterialInkStore', () {
     test('starts a drop where the press landed', () {
@@ -357,6 +370,98 @@ void main() {
       expect(validateTree(_view(well, store), theme: _theme), isEmpty);
 
       store.dispose();
+    });
+  });
+
+  group('a layered well', () {
+    /// The box the well draws, with no drop in flight.
+    Box view(MaterialInkWell well) {
+      final MaterialInkStore store = MaterialInkStore();
+      final Box box = _view(well, store);
+      store.dispose();
+
+      return box;
+    }
+
+    test('takes the shape\'s floor, so a floored pill tints all of itself', () {
+      // The consumer's sign-in pill, measured in a browser at 1440: 76 by 32 of pill and
+      // 74 by 20 of tint. Nothing in the call states a width or a height — a 64 by 32 floor
+      // and one line of label do — and a floor stated on the shape alone never reached the
+      // layer that paints the tint, so six pixels at each end of the pill were a look no
+      // state could light, drawn as a lozenge inside a lozenge.
+      final Box shape = view(
+        MaterialInkWell(
+          onTap: _tap,
+          minWidth: 64,
+          minHeight: 32,
+          borderRadius: 16,
+          border: const BoxBorder(color: BoxColor(0xFF79747E)),
+          padding: const BoxSpacing.symmetric(horizontal: 6),
+          child: const TextNode('Sign in'),
+        ),
+      );
+
+      expect(
+        _sizeOf(_tints(shape)),
+        _sizeOf(shape),
+        reason: 'the tint is the pill, not the label inside it',
+      );
+    });
+
+    test('takes the floor under a target taller than the shape', () {
+      // The target is the finger's and the pill is the paint's: the tint is the pill, so it
+      // does not grow into the room that paints nothing.
+      final Box target = view(
+        MaterialInkWell(
+          onTap: _tap,
+          height: 32,
+          tapTargetHeight: 48,
+          minWidth: 64,
+          borderRadius: 16,
+          child: const TextNode('Save'),
+        ),
+      );
+      final Box shape = target.children.single as Box;
+
+      expect(target.height, 48);
+      expect(
+        _sizeOf(_tints(shape)),
+        _sizeOf(shape),
+        reason: 'a taller target adds room around the shape, not to it',
+      );
+    });
+
+    test('leaves the size to a label taller than the floor', () {
+      // A floor is a floor: neither layer states a height, so both grow with the label
+      // rather than stopping at the floor.
+      final Box shape = view(
+        MaterialInkWell(
+          onTap: _tap,
+          minWidth: 64,
+          minHeight: 24,
+          fill: const BoxColor(0xFF00FF00),
+          child: const TextNode('Two\nlines'),
+        ),
+      );
+
+      expect(_tints(shape).height, isNull);
+      expect(_sizeOf(_tints(shape)), _sizeOf(shape));
+    });
+
+    test('takes an exact size, as it already did', () {
+      final Box shape = view(
+        MaterialInkWell(
+          onTap: _tap,
+          width: 96,
+          height: 40,
+          border: const BoxBorder(color: BoxColor(0xFF79747E)),
+          child: const TextNode('Sign in'),
+        ),
+      );
+
+      expect(_tints(shape).width, 96);
+      expect(_tints(shape).height, 40);
+      expect(_sizeOf(_tints(shape)), _sizeOf(shape));
     });
   });
 

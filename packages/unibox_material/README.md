@@ -654,7 +654,13 @@ Box(
 **A floor belongs to the shape.** `minWidth` and `minHeight` are the smallest the region
 paints, and they are stated on the box that takes the press rather than on a fill around
 it: a pill bigger than its control has ends that look pressable and are not. The floor is
-never a clamp — a label taller than it grows the region.
+never a clamp — a label taller than it grows the region. The tints are a box of their own
+inside the shape, so they take the same floor and the same size: a `Sign in` pill held up
+by a 32 pixel floor tints all 32 of its pixels rather than the 20 of its label, and one a
+64 pixel floor widens tints across its whole width rather than the middle of it. A page
+spends a border inside the floor's box, so a bordered pill that a floor holds up paints a
+frame bigger there than it does in the app, where the border goes over the box's edge —
+the difference a border already has between the two hosts.
 
 The ripple is **state, not a renderer feature**. A press adds a drop to a
 `MaterialInkStore`, a timer advances it every frame, and the view draws one box per

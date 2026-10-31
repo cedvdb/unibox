@@ -165,7 +165,9 @@ final class MaterialInkStore extends StateStore<MaterialInkState> {
 /// [fill] — and [border] with it — and the well paints that surface itself, under the
 /// tints: a box has one background, so the two are composited into the one colour it
 /// can paint, which is the same arithmetic a host does when it paints a hover into a
-/// button's fill. The well clips its own content to [borderRadius], which is how a drop
+/// button's fill. The tints are a box of their own and take the shape's size and its
+/// floors, so the two cover the same rectangle: a tint is the shape, never a smaller one
+/// drawn inside it. The well clips its own content to [borderRadius], which is how a drop
 /// stays inside a rounded button.
 ///
 /// **A target can be taller than the shape.** A chip paints 32 pixels and a finger
@@ -201,7 +203,9 @@ final class MaterialInkWell
   /// [minWidth] and [minHeight] are floors on the shape — the box that takes the press —
   /// rather than on a fill around it: a control smaller than the pill it paints has ends
   /// that look pressable and are not, which is what Material's own minimum size prevents.
-  /// A floor never clamps: a label taller than it grows the shape.
+  /// A floor never clamps: a label taller than it grows the shape. The tints are a box of
+  /// their own and take the same floor and the same size, so a floor can never leave a
+  /// tint behind: the pill of a `minHeight` is tinted, not only the line of its label.
   ///
   /// [url] makes the region a destination rather than a callback: the anchor is wherever
   /// the press is, so the browser follows it with no runtime, a crawler reads it, and a
@@ -391,9 +395,20 @@ UINode _inkWellView(
 
   // The three state layers, over whatever surface is under them.
   final Box tints = Box(
-    // The shape's own size, so the tints cover it and not only the content inside it.
+    // The shape's own size, so the tints cover it and not only the content inside it: a
+    // tint is a box of its own, and a box takes its size from its own tokens. Stated once
+    // on the shape alone, a `width` or a `height` never reached this layer, and the tints
+    // hugged the label — 44 by 24 inside a 64 by 32 pill, a lozenge drawn in a lozenge.
     width: width,
     height: height,
+    // The floor is the shape's too, for the same reason: a pill held up by `minHeight`
+    // and a tint that only knows the label are two different boxes, so the layer the
+    // pointer lights stopped short of the pill it belongs to. Where the shape's size comes
+    // from outside the tree — a parent that stretches it, a `flex` share — the tint hugs
+    // the content the shape hugs, which is why a well that must fill a stretched parent
+    // still wants `width: double.infinity` or a `crossAlign` of its own.
+    minWidth: minWidth,
+    minHeight: minHeight,
     borderRadius: borderRadius,
     mainAlign: mainAlign,
     crossAlign: resolvedCross,

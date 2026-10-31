@@ -84,4 +84,59 @@ void main() {
 
     view.dispose();
   });
+
+  test('tints the whole pill, whatever gave it its size', () {
+    // The consumer's sign-in pill, measured in a browser at 1440: 76 by 32 of pill with 74 by
+    // 20 of tint inside it — the label's line, one pixel in from the outline — so six pixels
+    // at each end never tinted and the shared radius drew a lozenge inside a lozenge, which
+    // read as a second, smaller button appearing under the pointer. A floor is a constraint on
+    // a box's own size, and the layer the tints are painted on is a box of its own.
+    final MaterialInkWell well = MaterialInkWell(
+      onTap: () {},
+      minWidth: 64,
+      minHeight: 32,
+      borderRadius: 16,
+      border: const core.BoxBorder(color: core.BoxColor(0xFF79747E)),
+      padding: const core.BoxSpacing.symmetric(horizontal: 6),
+      child: const core.TextNode('Sign in'),
+    );
+
+    final DomView view = DomView.mount(
+      // A row, so the pill hugs its label: a flex container in a block context is as wide
+      // as the page, which is not the arrangement the report measured.
+      core.Box(direction: core.Axis.horizontal, children: <core.UINode>[well]),
+      host(),
+      theme: MaterialPalette.lightTheme,
+    );
+
+    final web.Element pill = child(view.element);
+    final web.Element tint = child(pill);
+    final web.DOMRect pillBox = pill.getBoundingClientRect();
+    final web.DOMRect tintBox = tint.getBoundingClientRect();
+    final ({double width, double height}) room = roomInside(pill);
+    final double frame = length(
+      web.window.getComputedStyle(pill).getPropertyValue('border-left-width'),
+    );
+
+    // A child covers the room inside its parent's frame and not the frame itself, which is
+    // where the border is painted: the tint is the shape, and the shape is this pill.
+    expect(
+      tintBox.width,
+      greaterThanOrEqualTo(room.width - 0.01),
+      reason: 'the tint is the pill, not the label inside it',
+    );
+    expect(tintBox.height, greaterThanOrEqualTo(room.height - 0.01));
+    expect(tintBox.left, closeTo(pillBox.left + frame, 0.01));
+    expect(tintBox.top, closeTo(pillBox.top + frame, 0.01));
+    // The pill is the floor and the frame the page spends inside it: the content is the
+    // floor, so the border sits outside that. The app paints the same 32 with the border
+    // over the box's edge, which is the one difference a border has between the hosts.
+    expect(
+      pillBox.height,
+      32 + 2 * frame,
+      reason: 'the floor, and the frame a page spends inside it',
+    );
+
+    view.dispose();
+  });
 }
