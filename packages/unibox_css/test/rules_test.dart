@@ -80,6 +80,47 @@ void main() {
     });
   });
 
+  group('a box that scrolls', () {
+    test('keeps its children at the size the tree states', () {
+      // A flex item shrinks to fit by default, which is the opposite of what a viewport means:
+      // a hero, a bar and five rows inside a short box were squashed to fit it, so the box had
+      // nothing to scroll and a pinned band never moved. Flutter lays the children out at their
+      // stated heights, so this declaration is what makes the two agree.
+      final List<CssRule> rules = scrollRules(
+        'unibox-box-1f3c9a7b',
+        const core.BoxStyle(overflow: core.Overflow.scroll),
+      );
+
+      expect(rules, hasLength(1));
+      expect(rules.single.selector, '.unibox-box-1f3c9a7b > *');
+      expect(rules.single.declarations.text, 'flex-shrink:0');
+    });
+
+    test('says nothing for a box that does not scroll', () {
+      expect(scrollRules('x', const core.BoxStyle()), isEmpty);
+      expect(
+        scrollRules('x', const core.BoxStyle(overflow: core.Overflow.hidden)),
+        isEmpty,
+      );
+    });
+
+    test(
+      'states the shrink once for a pager, on the box and not on the stops',
+      () {
+        const style = core.BoxStyle(
+          overflow: core.Overflow.scroll,
+          snap: core.ScrollSnap.page,
+        );
+
+        expect(
+          snapRules('unibox-box-1f3c9a7b', style).single.declarations.text,
+          'scroll-snap-align:start',
+        );
+        expect(scrollRules('unibox-box-1f3c9a7b', style), hasLength(1));
+      },
+    );
+  });
+
   group('a theme', () {
     test('is written as custom properties a host can outrank', () {
       const core.UniboxTheme theme = core.UniboxTheme(

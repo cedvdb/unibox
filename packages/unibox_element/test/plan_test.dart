@@ -87,13 +87,12 @@ void main() {
       );
       expect(
         sheet.css,
-        // A page keeps the size the tree gives it: a flex item shrinks to fit by default, and three
-        // pages that shrink into the width of one leave the box nothing to scroll — a pager with one
-        // page.
-        contains(
-          '.${plan.className} > *{flex-shrink:0;scroll-snap-align:start}',
-        ),
+        contains('.${plan.className} > *{scroll-snap-align:start}'),
       );
+      // A page keeps the size the tree gives it, and that half belongs to every box that scrolls:
+      // a flex item shrinks to fit by default, and three pages that shrink into the width of one
+      // leave the box nothing to scroll — a pager with one page.
+      expect(sheet.css, contains('.${plan.className} > *{flex-shrink:0}'));
     });
 
     test('a box that does not snap writes nothing about snapping', () {
@@ -355,6 +354,24 @@ void shapedTests() {
     String ruleOf(Stylesheet sheet, String className) => sheet
         .rulesSince((classes: 0, states: 0, frames: 0))
         .firstWhere((String rule) => rule.startsWith('.$className{'));
+
+    test(
+      'keeps the children of a scrolling box at the size the tree states',
+      () {
+        // The rule belongs to the box that scrolls, so it is written against its class and reaches
+        // every child: without it a browser shrinks them to fit and the box has nothing to scroll.
+        final Stylesheet sheet = Stylesheet();
+        final ElementPlan plan = planNode(
+          const core.Box(height: 200, overflow: core.Overflow.scroll),
+          sheet,
+        );
+
+        expect(
+          sheet.rulesSince((classes: 0, states: 0, frames: 0)),
+          contains('.${plan.className} > *{flex-shrink:0}'),
+        );
+      },
+    );
 
     test('is the anchor element, with the look and the children it had', () {
       final Stylesheet sheet = Stylesheet();

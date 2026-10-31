@@ -136,16 +136,36 @@ List<CssRule> stateRules(core.Box box, String className) {
 ///
 /// `from` is the width the box starts being drawn at, `until` the width it stops at: the two
 /// together are a band, and either alone is a floor or a ceiling.
+/// The rule that keeps the children of a box that scrolls at the size the tree states.
+///
+/// A flex item shrinks to fit by default, which is the opposite of what a viewport means: three
+/// bands of 120 pixels inside a box of 120 shrank to a third each and the box had nothing to
+/// scroll. Flutter lays the children out at their stated heights and scrolls, so without this
+/// declaration the same tree scrolls in the app and is squashed on the page — which is how a
+/// sticky band came out as a bar that never moved.
+///
+/// `> *` is the parent's class because the rule belongs to the box that scrolls, not to a child
+/// that knows nothing about it.
+List<CssRule> scrollRules(String className, core.BoxStyle style) {
+  if (style.overflow != core.Overflow.scroll) {
+    return const <CssRule>[];
+  }
+
+  return <CssRule>[
+    CssRule(
+      selector: '.$className > *',
+      declarations: CssDeclarations()..add('flex-shrink', '0'),
+    ),
+  ];
+}
+
 /// The rules that make a pager's children the stops it settles on.
 ///
 /// `scroll-snap-align` belongs to the child, and the parent's class is the only thing this
-/// renderer can select it by: the children of a pager are the tree's own children, in the
-/// order the box lays them out, so `> *` names exactly the pages.
-///
-/// `flex-shrink: 0` is the other half, and it is what makes a page a page: a flex item shrinks to
-/// fit by default, so three pages of 120 pixels inside a box of 120 shrank to a third each and the
-/// box had nothing to scroll — a pager with three pages and one page of width. A child of a pager
-/// is the size the tree says it is.
+/// renderer can select it by: the children of a pager are the tree's own children, in the order
+/// the box lays them out, so `> *` names exactly the pages. The other half — that a page is the
+/// size the tree states rather than a share of the box — is [scrollRules], because a pager
+/// scrolls.
 List<CssRule> snapRules(String className, core.BoxStyle style) {
   if (style.snap != core.ScrollSnap.page) {
     return const <CssRule>[];
@@ -154,9 +174,7 @@ List<CssRule> snapRules(String className, core.BoxStyle style) {
   return <CssRule>[
     CssRule(
       selector: '.$className > *',
-      declarations: CssDeclarations()
-        ..add('scroll-snap-align', 'start')
-        ..add('flex-shrink', '0'),
+      declarations: CssDeclarations()..add('scroll-snap-align', 'start'),
     ),
   ];
 }

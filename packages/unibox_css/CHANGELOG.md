@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- A box that scrolls keeps its children at the size the tree states: `scrollRules` writes
+  `flex-shrink: 0` for the children of any `overflow: auto` box, not only for a pager's pages.
+  A flex item shrinks to fit by default, so a hero, a bar and five rows inside a box shorter than
+  all three were squashed until the box had nothing to scroll — Flutter scrolls them, and the page
+  did not, which is how a sticky band came out as a bar that never moved. A row of chips that
+  overflows now scrolls instead of narrowing its chips for the same reason.
+
 - A box that states `fold` is written as an animation the reader drives: `animation-timeline:
   view()` so the subject is the box's own exit from whatever scrolls it, `animation-range: exit`
   (or `exit 0% exit <over>%` when the fold finishes early), and `animation-duration: auto`, which

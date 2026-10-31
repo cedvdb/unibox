@@ -182,6 +182,7 @@ ElementPlan _planBox(core.Box box, Stylesheet sheet, PlanOptions options) {
     },
     states: (String name) => <CssRule>[
       ...stateRules(box, name),
+      ...scrollRules(name, style),
       ...snapRules(name, style),
       ...thresholdRules(
         name,

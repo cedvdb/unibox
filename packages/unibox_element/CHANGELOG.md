@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- A scrolling box writes one rule for its children — `flex-shrink: 0`, from `scrollRules` — so a
+  browser does not shrink them into the box and leave it with nothing to scroll. A pager's child
+  rule keeps only `scroll-snap-align`, because the shrink belongs to every box that scrolls.
+
 - A box that states `fold` puts its `@keyframes` block into the sheet once, named by a hash of its
   frames, so two boxes folding the same way cost one block. `Stylesheet.keyframes` registers it,
   `mark` and `rulesSince` carry it so a renderer that writes its rules in pieces still writes the
