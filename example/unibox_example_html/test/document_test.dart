@@ -126,4 +126,23 @@ void main() {
       );
     });
   });
+
+  group('the takeover document', () {
+    test('paints the document first and the application on a signal', () {
+      // The right-hand frame of the comparison is shown rather than arrived at, so its boot waits
+      // for a reader to move, scroll, touch or type anywhere on the page that holds it — and it
+      // never starts merely because the browser went idle. That idle boot cost a phone 1.9
+      // seconds of blocking for a frame it may never have scrolled to.
+      final String html = buildTakeoverDocument().write();
+
+      expect(
+        html,
+        contains('Rue de Turenne 12'),
+        reason: 'the markup is the first paint',
+      );
+      expect(html, contains('unibox.boot'));
+      expect(html, contains('window.top'));
+      expect(html, isNot(contains('requestIdleCallback')));
+    });
+  });
 }

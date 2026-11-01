@@ -61,10 +61,17 @@ Document buildExampleDocument({String? build}) {
 /// The same tree, as a document an application takes over.
 ///
 /// This is the other way to make a page interactive, and the one the comparison's right frame shows:
-/// the document paints first — a crawler reads it, and so does a reader — and Flutter starts on the
-/// first sign of a reader, or when the browser is idle. Nobody has to touch the frame to see the
-/// application, and what that costs the host page is what a takeover costs: the frame arrives as
-/// markup and becomes an engine, which is the trade the whole library is about.
+/// the document paints first — a crawler reads it, and so does a reader — and the application starts
+/// on the reader's first sign of life on the page that holds it, which is what the description above
+/// has always promised.
+///
+/// The policy is `onIntent` rather than `onPointer` for one reason: this document is *shown*. The
+/// right-hand frame is a window in a page the reader came for, and an idle boot would spend an
+/// engine — two megabytes of canvas, compiled and started, 1.9 seconds of blocking on a phone —
+/// on behalf of a reader who may never look at it. A frame that waits costs its own document until
+/// the reader moves, scrolls, touches or types anywhere on the page around it, and then it takes
+/// over exactly as before. Opened on its own, the page still waits for the same signal, which is
+/// what its own title now says.
 Document buildTakeoverDocument({String? build}) {
   return Document(
     node: ExamplePageNode(photoPrefix: '../../'),
@@ -78,7 +85,7 @@ Document buildTakeoverDocument({String? build}) {
       raw: <String>['<style>${fontFaceCss('../../')}$pageCss</style>'],
     ),
     theme: ExamplePalette.themeFor(ExampleSeed.defaultSeed),
-    takeover: const Takeover(boot: boot),
+    takeover: const Takeover(boot: boot, policy: BootPolicy.onIntent),
   );
 }
 

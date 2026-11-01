@@ -75,9 +75,14 @@ void main() {
       // `immediately` for a screen nobody arrives at by accident, `onPointer` for everything else:
       // a pointer moving is the earliest honest sign of a reader, and the idle fallback catches the
       // one who only reads — which is what a page that shows an application has to answer to.
+      // `immediately` for a screen nobody arrives at by accident, `onPointer` for a front door,
+      // `onIntent` for a page that is shown beside something else: two policies is one short of
+      // what a host has to say, and a frame that boots when the browser is idle is a frame that
+      // spends an engine on a reader who never looked at it.
       expect(BootPolicy.values, <BootPolicy>[
         BootPolicy.immediately,
         BootPolicy.onPointer,
+        BootPolicy.onIntent,
       ]);
     });
 
@@ -99,6 +104,22 @@ void main() {
 
       expect(script, contains('requestIdleCallback'));
       expect(script, contains('pointerdown'));
+    });
+
+    test('waits for a signal from the page that holds a shown frame', () {
+      // A comparison frame is shown, not arrived at: the reader came for the page around it, and
+      // an idle boot would spend an engine on someone who never looked. So no idle, and the
+      // signals are read from the top document — a pointer in the middle of the host page never
+      // reaches the frame's own window.
+      final String script = bootScript('a.js', policy: BootPolicy.onIntent);
+
+      expect(script, isNot(contains('requestIdleCallback')));
+      expect(script, contains('window.top'));
+      expect(script, contains('target.addEventListener'));
+      expect(script, contains('wheel'));
+      // A cross-origin frame may not read its host, and a boot that threw would never happen.
+      expect(script, contains('catch (error)'));
+      expect(script, contains('return window;'));
     });
 
     test('cannot be broken out of by the url it is given', () {

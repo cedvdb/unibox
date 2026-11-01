@@ -190,6 +190,14 @@ The two branches are windows, not handles: each frame is an `<iframe>` filling t
 tree drew for it, 540 pixels tall, so the two renderings are of one size. Narrow the *window* and both answer the same breakpoint. A grip on one frame
 would make the two incomparable, which is why neither has one.
 
+The right-hand frame is a document first and an application second, and the moment between the two
+is the reader's: `web/takeover/` ships `BootPolicy.onIntent`, so it paints the same listings as
+HTML — crawler-readable, and identical to the frame beside it — and boots Flutter on the first
+pointer move, scroll, touch, key or focus anywhere on the page that holds it, never on the browser's
+idle. An idle boot spent two megabytes of canvas and 1.9 seconds of blocking on a phone for a frame
+a reader might never have scrolled to; a reader who does reach it, or who touches anything at all,
+gets the takeover exactly as before.
+
 ## Keeping the two renderings alike
 
 Both apps render the same page, so they have to *show* the same page. That is

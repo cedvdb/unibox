@@ -234,7 +234,13 @@ has to boot.
 
 `BootPolicy` is the one choice left, and it is a choice about the page rather than about an event:
 `immediately` for a screen nobody arrives at by accident, `onPointer` (the default) for an
-application's front door. Neither boots before the first paint.
+application's front door, and `onIntent` for a page that is *shown* rather than arrived at — the
+right-hand half of a comparison, a preview inside someone else's page. `onPointer`'s idle boot is
+what a front door wants and the wrong thing for a frame: the frame is a window in a page the reader
+came for, and the engine it starts competes with that page's own reading. `onIntent` never boots
+unbidden, and it reads its signals from the top document when that is the same origin — a pointer
+in the middle of the host page never reaches a frame's own window. None of the three boots before
+the first paint.
 
 ## A shaped box
 

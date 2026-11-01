@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- `BootPolicy.onIntent` is the policy for a page that is *shown* rather than arrived at: a
+  comparison's frame, a preview inside someone else's page. It waits for the same signals as
+  `onPointer` — a pointer, a touch, a key, a wheel or a focus — and never boots on the browser's
+  idle, and it reads them from the top document when that is the same origin, because a pointer in
+  the middle of the host page never reaches a frame's own window. A framed takeover that booted on
+  idle spent two megabytes of engine and 1.9 seconds of blocking on a phone, on behalf of a reader
+  who may never have scrolled to it.
+
 - `toDocument(writingDirection: …)` and `Document(writingDirection: …)` write `dir` on the root
   element, beside `lang` and never derived from it: everything on the page that states no
   direction inherits it, and a page that states none writes no attribute at all.

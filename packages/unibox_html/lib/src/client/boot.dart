@@ -15,14 +15,15 @@ library;
 
 /// When a page boots the application that takes it over.
 ///
-/// There are two, and each names a kind of page rather than an event:
+/// There are three, and each names a kind of page rather than an event:
 ///
 /// | Policy | The page | What a reader pays |
 /// | --- | --- | --- |
 /// | [immediately] | the page *is* the application — a dashboard, a tool behind a login | the engine, from the first moment |
 /// | [onPointer] | an application's front door — the document is a nicer first frame | the engine, as soon as they move |
+/// | [onIntent] | a page that is *shown* beside something else — a comparison, a preview | the engine, once they touch the page that holds it |
 ///
-/// Neither boots before the load: an engine parsing two megabytes competes with the largest
+/// None of them boots before the load: an engine parsing two megabytes competes with the largest
 /// paint, and no reader has ever wanted a slower first frame.
 ///
 /// **There is deliberately no "only on a press" policy.** A document that must never boot
@@ -47,6 +48,22 @@ enum BootPolicy {
   /// to read, and it arrives long before the press it leads to — so the engine is already
   /// starting while they move towards the control.
   onPointer,
+
+  /// On the same signals as [onPointer], read from the page that *holds* this one — and never
+  /// unbidden.
+  ///
+  /// For a page that is shown rather than arrived at: the right-hand half of a comparison, a
+  /// preview inside someone else's page. [onPointer]'s idle boot is what a front door wants —
+  /// a reader who landed here to do something gets the application whether or not they move —
+  /// and it is exactly wrong for a frame, because the frame is a window in a page the reader
+  /// came for, and the engine it starts competes with that page's own reading. A frame that
+  /// waits costs its own document and nothing else until the reader signals interest.
+  ///
+  /// The signals come from the top document when it is the same origin, because a pointer in
+  /// the middle of the page holding a frame never reaches the frame's window — and a reader who
+  /// scrolls a page has signalled as much as one who moved a mouse across it. A cross-origin
+  /// frame cannot read its host, so it falls back to its own window.
+  onIntent,
 }
 
 /// The script that loads [src] and boots the application.
@@ -72,12 +89,14 @@ String _startOf(BootPolicy policy) =>
 String _intentOf(BootPolicy policy) => switch (policy) {
   BootPolicy.immediately => _noIntent,
   BootPolicy.onPointer => _pointerIntent,
+  BootPolicy.onIntent => _hostIntent,
 };
 
 /// What happens once the document has loaded.
 String _idleOf(BootPolicy policy) => switch (policy) {
   BootPolicy.immediately => _nothingMore,
   BootPolicy.onPointer => _bootWhenIdle,
+  BootPolicy.onIntent => _nothingMore,
 };
 
 /// The template, with the parts a host chooses as placeholders.
@@ -152,6 +171,44 @@ const String _pointerIntent = '''
 
 /// A page that boots at once needs no signal: it has already started.
 const String _noIntent = '';
+
+/// Intent, read from the page that holds this one.
+///
+/// A frame's own window sees the pointer only while it is over the frame. A reader who moves
+/// across the page around it — or scrolls, or types — has signalled as much, so the listeners go
+/// on the top window when it is the same origin, and on this one when it is not: a cross-origin
+/// frame is not allowed to read its host, and a boot that threw instead would never happen.
+const String _hostIntent = '''
+
+  function holder() {
+    try {
+      if (window.top && window.top !== window && window.top.document) {
+        return window.top;
+      }
+    } catch (error) {}
+
+    return window;
+  }
+
+  // Captured, so a signal is caught wherever it lands and whatever added it.
+  var intent = [
+    'pointermove',
+    'pointerover',
+    'pointerdown',
+    'touchstart',
+    'keydown',
+    'wheel',
+    'focusin'
+  ];
+  var target = holder();
+
+  for (var i = 0; i < intent.length; i++) {
+    target.addEventListener(intent[i], want, {
+      capture: true,
+      once: true,
+      passive: true
+    });
+  }''';
 
 /// A reader who never touches the page still gets the application, after the load.
 const String _bootWhenIdle = '''
