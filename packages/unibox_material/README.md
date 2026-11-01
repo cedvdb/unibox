@@ -830,6 +830,14 @@ The rule between two segments is drawn inside the segment it opens rather than b
 two: a share is the whole of its width, so a box laid out between two shares would take
 room neither can divide, and would push the label off the centre of its own share.
 
+**A component's internals are the component's.** The `GridNode` above is the segmented
+button's layout and not a grid the page drew, so a test that walks a tree should reach it
+through the component — the component's own children, or the component itself — rather than
+by node type: `nodesOfType<GridNode>(page).first` finds whichever grid comes first, and a
+page with cards on it has grids of its own. There is deliberately no flag on the node for
+this: a token nothing paints is a token the appearance tables cannot hold, and a walker that
+asks the component is asking the question it means.
+
 **An icon sits at the start of its segment.** The label fills the room beside it
 and is centred there, rather than the pair being centred as a group — the
 control's own choice, and one the tree has to state: a row is as wide as its

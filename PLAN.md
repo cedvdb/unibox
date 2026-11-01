@@ -6,6 +6,12 @@ map panel, a footer — the scroll belongs to the host, never to the tree). It l
 tasks in the order they land, what the model gains, and what each target does for it.
 Tasks that are deliberately not done are listed with the reason.
 
+The four that landed, each as one commit: `feat(core): let a size be a share of the
+viewport`, `feat(flutter): pin a band whose height is its own`,
+`fix(flutter): stretch a line that has no end to its tallest child`, and
+`feat(material): let a card, a bar and a row of choices pin`. The three that did not are
+§5 to §7, with the reason each one is a decision rather than an omission.
+
 The rule for every task is the repository's own: the model states it, both renderers
 draw it, `unibox_testing` holds them to the same answer, and the docs move in the
 same commit.
@@ -33,22 +39,22 @@ changes shape.
 
 **Tasks.**
 
-- [ ] `packages/unibox_core/lib/src/tokens/box_fraction.dart`: the value type, its
+- [x] `packages/unibox_core/lib/src/tokens/box_fraction.dart`: the value type, its
       constructors, `==`, `hashCode`, `toString`, and the resolution both renderers read.
-- [ ] `box_style.dart`: the two fields change type, plus `merge`, `copyWith`, `==`,
+- [x] `box_style.dart`: the two fields change type, plus `merge`, `copyWith`, `==`,
       `hashCode` and `toString`.
-- [ ] `box.dart`: the flat parameters and `_flatStyle`, and the doc comments that say
+- [x] `box.dart`: the flat parameters and `_flatStyle`, and the doc comments that say
       "a share of the parent".
-- [ ] `validation.dart`: a share of zero or less, and a negative inset, are reported; a
+- [x] `validation.dart`: a share of zero or less, and a negative inset, are reported; a
       parent share with an inset is not, because both targets can honour it.
-- [ ] Flutter: `values.dart` and `box.dart` — `FractionallySizedBox` for a parent share,
+- [x] Flutter: `values.dart` and `box.dart` — `FractionallySizedBox` for a parent share,
       a `MediaQuery`-resolved `SizedBox` for a viewport share, and a `LayoutBuilder` only
       when a parent share carries an inset.
-- [ ] Web: `values.dart` (`cssFractionOf`), `box.dart` (one declaration per axis).
-- [ ] Tests: a core test for the merge and the resolution, a Flutter widget test that a
+- [x] Web: `values.dart` (`cssFractionOf`), `box.dart` (one declaration per axis).
+- [x] Tests: a core test for the merge and the resolution, a Flutter widget test that a
       viewport height follows the window, a CSS test for the declaration, and the
       contract note that the appearance table reads a parent share only.
-- [ ] Docs: `docs/nodes/box.md`, `packages/unibox_core/README.md`, `design.md` §5.2,
+- [x] Docs: `docs/nodes/box.md`, `packages/unibox_core/README.md`, `design.md` §5.2,
       `AI_INSTRUCTIONS.md`, the changelogs.
 
 ## 2. A pinned band whose height is its own
@@ -65,17 +71,17 @@ at least what it says, and grows when its content wraps.
 
 **Tasks.**
 
-- [ ] `validation.dart`: drop the "pinned band without a finite height" error; keep the
+- [x] `validation.dart`: drop the "pinned band without a finite height" error; keep the
       error for a band that states `height: double.infinity` (a band fills nothing) and
       the ones for a share, a negative inset and the wrong viewport.
-- [ ] Flutter `box.dart`: `_RenderPinnedBand` lays the band out at the viewport's width
+- [x] Flutter `box.dart`: `_RenderPinnedBand` lays the band out at the viewport's width
       and *measures* it instead of tightening it to a stated height; the flow's slot reads
       that height; the layer lays its children out in reverse and paints them in order, so
       the slot can read the band it follows and the band still paints over the content
       that scrolls under it.
-- [ ] Tests: Flutter — a band that wraps pins with no stated height, and the results below
+- [x] Tests: Flutter — a band that wraps pins with no stated height, and the results below
       it keep their place; core — the validation cases that change.
-- [ ] Docs: `docs/nodes/box.md`, the pin section of the core README, `design.md` §5.5,
+- [x] Docs: `docs/nodes/box.md`, the pin section of the core README, `design.md` §5.5,
       `AI_INSTRUCTIONS.md`, the changelogs.
 
 
@@ -92,14 +98,14 @@ that states its own height keeps it, which is what `align-items: stretch` means.
 
 **Tasks.**
 
-- [ ] Flutter `box.dart`: `_StretchedLine`, which lays a line out twice when its cross
+- [x] Flutter `box.dart`: `_StretchedLine`, which lays a line out twice when its cross
       axis is unbounded — once to find the tallest child, once tight to that extent — and
       `_FillCross`, which fills the room it is offered instead of asking for infinity (so
       the line can be laid out a second time without an infinite constraint).
-- [ ] Tests: Flutter — a row of stretch children in a scrolling column is as tall as its
+- [x] Tests: Flutter — a row of stretch children in a scrolling column is as tall as its
       tallest child, and one that states a height keeps it; web — the same tree measures
       as the tallest child (`align-items: stretch` is already declared).
-- [ ] Docs: the stretch paragraph of the core README and of both renderer READMEs.
+- [x] Docs: the stretch paragraph of the core README and of both renderer READMEs.
 
 ## 4. The components forward the pin
 
@@ -108,15 +114,15 @@ a bare wrapper and the height stated twice.
 
 **Tasks.**
 
-- [ ] `material_card.dart`: `pin` and `pinOffset` in the constructor and in every variant.
-- [ ] Walk the other box-wrapping components (`MaterialListTile`, `MaterialButton`,
+- [x] `material_card.dart`: `pin` and `pinOffset` in the constructor and in every variant.
+- [x] Walk the other box-wrapping components (`MaterialListTile`, `MaterialButton`,
       `MaterialIconButton`, `MaterialChip`, `MaterialTabBar`, `MaterialSegmentedButton`,
       `MaterialNavigationBar`, `MaterialScaffold`, the app bars, `MaterialDialog`,
       `MaterialBottomSheet`, `MaterialInkWell`, `MaterialTextField`) and forward the
       tokens a caller would reach for on a box — the pin, and the size tokens the surface
       wrappers were dropping.
-- [ ] Tests: a test per component that pins, asserting the token reaches the box.
-- [ ] Docs: the Material table entry for the card, and the changelog.
+- [x] Tests: a test per component that pins, asserting the token reaches the box.
+- [x] Docs: the Material table entry for the card, and the changelog.
 
 ## 5. Not doing: an offset that names its neighbour
 

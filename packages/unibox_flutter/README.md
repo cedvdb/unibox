@@ -113,11 +113,15 @@ repaint and not a rebuild, and a field inside the bar keeps its state while it i
 around. The slot is the height the bar laid itself out at, read back in the same layout
 pass: a `_PinnedLayer` lays the bars out before the flow that keeps their room, so a bar
 whose labels wrap pins with no stated height, which is what `position: sticky` means in a
-browser. A pin that has no scrolling box above it in the tree is the one place the two
-renderings part: a browser pins it to the document, which scrolls a page even though the
-tree holds no viewport, while Flutter draws it where the flow put it, because the surface
-an application is drawn on does not scroll. Put the scroll in the tree — a box with
-`overflow: Overflow.scroll` — and the two agree, which is what the example does.
+browser. A pin that has no scrolling box above it *in the tree* is the one place the two
+renderings part: a browser pins it to the document, or to whichever ancestor scrolls the
+element — a `CustomScrollView` around the tree is a case the web honours and this target
+does not, because the band would have to follow a `Scrollable` the tree does not own and be
+clamped to a containing block it cannot see. So the surface an application is drawn on does
+not scroll, and Flutter draws such a band where the flow put it. Put the scroll in the tree
+— a box with `overflow: Overflow.scroll` — and the two agree, which is what the example
+does. `validateTree` reports the one depth the model can see: a pin whose parent is not the
+box that scrolls it, which a browser would pin inside that parent instead.
 
 A **fold** is drawn the same way: a `_RenderFoldedBox` reads how far the box has left its
 viewport when it paints and interpolates the decoration, the opacity and the transform
