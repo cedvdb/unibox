@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+- **A takeover has three states instead of one, and it does not show a half-drawn page.** The boot
+  writes `data-unibox-state` on the document element — `document`, `booting`, `ready`, `app`,
+  `failed` — keeps the engine's host invisible and unreachable while it loads, and swaps the two
+  views at a reveal instead of at the moment the script is appended. The engine's element is found
+  by what appeared in the body, not by a name that moves with a Flutter version.
+- **The reveal is an accessibility event.** Focus moves into the application, a `role="status"`
+  sentence (`Takeover.readyLabel`) is announced in the page's language, and only then does the
+  document become `inert` and leave the page — never while a reader is focused on it, on any
+  policy. The way-in control stays put while the engine loads, `aria-disabled` rather than
+  `disabled`, so a reader who pressed it keeps their focus.
+- **`RevealPolicy` decides when the application is worth showing.** `onFrame` (the default) shows
+  the engine's first frame; `onReady` waits for the application to say it has drawn the state it
+  was given — `unibox_flutter` says so without being asked — and `readyTimeout` bounds either
+  answer, so a page with no frame goes back to being a document rather than staying blank.
+- **The address may narrow, and a debug build may inspect.** `?unibox=document` keeps the page a
+  document and needs no build flag, because it can only remove an application. `?unibox=debug`,
+  `?unibox=profile` and `?unibox=compare` need `Takeover(debug: true)`: a visitor can never turn on
+  a report, a timeline or an overlay the host did not publish. `compare` keeps the document and
+  draws the application at 50% over it, which is the cheapest way to see whether the two
+  renderings agree.
+- **The recorders stop when the application owns the page**, so a press or a scroll after the
+  reveal is not replayed to it as intent the reader never had.
+
 - **Breaking: a rendering takes a scope, not a theme.** `toHtml`, `renderFragment`, `toDocument`,
   `Document` and `documentCss` take `scope:`, and `Document`'s own `lang`, `writingDirection` and
   `theme` fields are the scope's: one value says how the page is drawn, written and read, and

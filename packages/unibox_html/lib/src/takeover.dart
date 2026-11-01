@@ -29,8 +29,14 @@ final class Takeover {
   const Takeover({
     required this.boot,
     this.policy = BootPolicy.onPointer,
+    this.reveal = RevealPolicy.onFrame,
+    this.readyTimeout = const Duration(seconds: 8),
+    this.loadingLabel = 'Opening the application…',
+    this.readyLabel = 'The application is ready',
     this.openLabel = 'Open the application',
     this.record = true,
+    this.debug = false,
+    this.query = true,
     this.nonce,
   });
 
@@ -39,6 +45,27 @@ final class Takeover {
 
   /// When the boot starts.
   final BootPolicy policy;
+
+  /// When the application is worth showing — see `RevealPolicy`.
+  ///
+  /// `onFrame` shows the engine's first frame; `onReady` waits for the application to say it has
+  /// drawn the state it was given, which is the right answer for a page whose scroll offset and
+  /// press are being replayed. A takeover drawn by `unibox_flutter` needs no code of its own for
+  /// either: the renderer answers both.
+  final RevealPolicy reveal;
+
+  /// How long `RevealPolicy.onReady` waits before revealing anyway, and how long a page waits for
+  /// a frame at all before going back to being a document.
+  final Duration readyTimeout;
+
+  /// The name of the control while the application loads, for the reader who pressed it.
+  final String loadingLabel;
+
+  /// What the document announces when the application has taken the page.
+  ///
+  /// The reveal swaps what a screen reader can read — a document for a canvas — so it says so
+  /// once, in a `role="status"` region, in the language of the document element.
+  final String readyLabel;
 
   /// The name of the control that opens the application, for a reader the pointer signals never
   /// reach — a keyboard reader, or one whose assistive technology drives the focus.
@@ -57,13 +84,37 @@ final class Takeover {
   /// to, and what was pressed before the application existed.
   final bool record;
 
+  /// Whether the address may ask for a debug report, a profile or a comparison.
+  ///
+  /// It is a build decision on purpose: `?unibox=debug`, `?unibox=profile` and `?unibox=compare`
+  /// all *show* something the host did not publish, so a visitor can only reach one where the
+  /// build already allowed it. `?unibox=document` needs no flag — it can only take an application
+  /// away.
+  final bool debug;
+
+  /// Whether the boot reads the address at all.
+  ///
+  /// False for a page whose query string is data rather than a choice, and for a host whose
+  /// content-security policy refuses nothing but its own parameters.
+  final bool query;
+
   /// The `nonce` a content security policy expects, if it has one.
   final String? nonce;
 
   /// The scripts this takeover carries, in the order a page should run them.
   List<String> get scripts => <String>[
     if (record) uniboxClientScript,
-    bootScript(boot, policy: policy, openLabel: openLabel),
+    bootScript(
+      boot,
+      policy: policy,
+      openLabel: openLabel,
+      reveal: reveal,
+      readyTimeout: readyTimeout,
+      loadingLabel: loadingLabel,
+      readyLabel: readyLabel,
+      debug: debug,
+      query: query,
+    ),
   ];
 
   /// The link that fetches the loader while the reader reads, so a boot that waits for a

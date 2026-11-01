@@ -1,16 +1,27 @@
-/// The script that boots the application, and when it does.
+/// The script that boots the application, when it does, and how the page is handed over.
 ///
-/// A page can be two things in a row: a document a crawler reads, and the application that
-/// takes it over. This is the handover, and the rule it follows is short: **the application
-/// starts as early as it can, and never earlier than the first paint.**
+/// A page can be two things in a row: a document a crawler reads, and the application that takes
+/// it over. This library is that handover, and it has three moments rather than one:
 ///
-/// **The download starts at once.** The document prefetches the bundle (`prefetch` on
-/// `toDocument`), so its bytes arrive while the reader reads. Deferring the download as well
-/// is how a page gets a good score and a two-second dead click.
+/// ```text
+/// document ──(a signal)──▶ booting ──(the application is ready)──▶ app
+///     │                        │
+///     └── the reader reads ────┴──(an error, or never ready)──▶ failed
+/// ```
 ///
-/// **When the boot starts is a property of the page**, and there are three honest answers —
-/// see [BootPolicy]. They are one choice rather than three switches because they exclude each
-/// other: a page that boots at once does not also wait for a pointer.
+/// **Starting is not the same as showing.** [BootPolicy] decides when the engine starts, and
+/// [RevealPolicy] decides when its pixels replace the document's. Until then the document is
+/// still the page: readable, pressable, scrollable, and recording what the reader did so that the
+/// application can replay it.
+///
+/// **The state is on the document element**, as `data-unibox-state`, so a host can style the
+/// transition and a test can assert it: `document`, `booting`, `ready`, `app`, `failed`.
+///
+/// **The reveal is an accessibility event.** The document is the readable rendering and the
+/// application is a canvas — Flutter ships its semantics tree off on the web — so the handover
+/// moves focus into the application, announces the change, and only then takes the document out
+/// of the page. It never happens under a reader: a reveal that would take away the element they
+/// are on waits for them to leave it.
 library;
 
 /// When a page boots the application that takes it over.
@@ -75,24 +86,75 @@ enum BootPolicy {
   onIntent,
 }
 
+/// When the application is worth showing.
+///
+/// Two answers, because from inside the document only two events are observable — and what
+/// *ready* means is the application's business, which is what `unibox.ready()` is for.
+enum RevealPolicy {
+  /// At the engine's first frame: the canvas has painted, and it is shown.
+  ///
+  /// The default, because a host that has not taught its application to say when it is ready
+  /// must not wait for a call that never comes. It can show a first frame that is still a page
+  /// with holes in it.
+  onFrame,
+
+  /// When the application says it is ready — and, if it never does, after `readyTimeout`.
+  ///
+  /// The right answer for a takeover, where the application has a scroll offset and a press to
+  /// replay: a first frame drawn before that replay is a page that jumps under the reader. An
+  /// application drawn by `unibox_flutter` says it is ready at its first draw without being
+  /// asked; one that waits for data calls `uniboxReady()` when the data is in.
+  onReady,
+}
+
 /// The script that loads [src] and boots the application.
 ///
 /// [src] is a url relative to the document, and it is escaped both as a JavaScript string and
 /// for a raw text element: a value containing `</script>` closes the element otherwise, which
 /// is how a parameter becomes an injection.
 ///
-/// [policy] decides when the boot happens — see [BootPolicy]. It is the one thing a host knows
+/// [policy] decides when the boot starts — see [BootPolicy]. It is the one thing a host knows
 /// and a document cannot: which of the three kinds of page it published.
+///
+/// [reveal] decides when the application is shown — see [RevealPolicy]. [readyTimeout] bounds
+/// the wait for [RevealPolicy.onReady]: a frame that is available is revealed when it expires, and
+/// a page with no frame at all goes back to being a document rather than staying blank.
+///
+/// The three labels are the sentences the handover says to a reader, and they are the host's
+/// because a library cannot write in a language it was not told about: [openLabel] names the
+/// control that starts the application, [loadingLabel] replaces it while the engine loads, and
+/// [readyLabel] is announced when the application has taken the page.
+///
+/// [debug] allows `?unibox=debug`, `?unibox=profile` and `?unibox=compare` — the three address
+/// values that make a page *show* something the host did not publish. It is a build decision: a
+/// visitor can never turn one on that the build did not allow. [query] turns off reading the
+/// address at all, including `?unibox=document`, which is the one value that needs no flag
+/// because it can only remove an application.
 String bootScript(
   String src, {
   BootPolicy policy = BootPolicy.onPointer,
   String openLabel = 'Open the application',
+  RevealPolicy reveal = RevealPolicy.onFrame,
+  Duration readyTimeout = const Duration(seconds: 8),
+  String loadingLabel = 'Opening the application…',
+  String readyLabel = 'The application is ready',
+  bool debug = false,
+  bool query = true,
 }) => _bootTemplate
     .replaceAll('%START%', _startOf(policy))
     .replaceAll('%INTENT%', _intentOf(policy))
     .replaceAll('%GUARD%', _guardOf(policy))
     .replaceAll('%IDLE%', _idleOf(policy))
     .replaceAll('%OPEN%', _openOf(policy, openLabel))
+    .replaceAll('%LABEL%', _jsString(openLabel))
+    .replaceAll('%INSPECT%', debug ? _inspect : '')
+    .replaceAll('%ADDRESS%', query ? _address : '')
+    .replaceAll('%REVEAL%', reveal == RevealPolicy.onReady ? 'ready' : 'frame')
+    .replaceAll('%TIMEOUT%', '${readyTimeout.inMilliseconds}')
+    .replaceAll('%LOADING%', _jsString(loadingLabel))
+    .replaceAll('%READY%', _jsString(readyLabel))
+    .replaceAll('%DEBUG%', debug ? 'true' : 'false')
+    .replaceAll('%QUERY%', query ? 'true' : 'false')
     .replaceAll('%SRC%', _jsString(src));
 
 /// What the script does as soon as it runs.
@@ -113,6 +175,9 @@ String _intentOf(BootPolicy policy) => switch (policy) {
 /// away and empty a field they had typed into. A front door is the other way round — the document
 /// is a first frame and the application is the page — so [BootPolicy.onPointer] boots regardless,
 /// and an application that arrives a frame later than a Tab is the smaller surprise there.
+///
+/// The *reveal* is guarded on every policy, and separately: it is the moment the page changes
+/// hands, so it is the one that must not happen under a reader wherever the page is.
 String _guardOf(BootPolicy policy) => switch (policy) {
   BootPolicy.immediately || BootPolicy.onPointer => '',
   BootPolicy.onIntent => _focusGuard,
@@ -142,7 +207,8 @@ String _openOf(BootPolicy policy, String label) => switch (policy) {
 /// A real `<button>`, first in the body, so Tab meets it before anything else and a screen reader
 /// announces it — and moved out of the page until it takes the focus, which is the skip control
 /// every reader already knows. It says what it does rather than what it changes, and it is gone
-/// once the application is there.
+/// once the application is there: the boot marks it busy instead of taking it away, because
+/// removing the element a reader just pressed would drop their focus.
 const String _openControl = '''
 
   function offer() {
@@ -175,10 +241,7 @@ const String _openControl = '''
       ask.style.top = '-100px';
     });
 
-    // `boot` removes it; taking it away here as well keeps a press that lands twice from asking
-    // twice.
     ask.addEventListener('click', function () {
-      ask.remove();
       boot();
     });
 
@@ -199,43 +262,447 @@ const String _bootTemplate = '''
 (function () {
   'use strict';
   var source = '%SRC%';
+  var wants = '%REVEAL%';
+  var debug = %DEBUG%;
+  var asks = '%QUERY%' === 'true';
+  var root = document.documentElement;
+  var unibox = window.unibox = window.unibox || {};
   var booted = false;
   var wanted = false;
   var loaded = document.readyState === 'complete';
-  var unibox = window.unibox = window.unibox || {};
+  var state = 'document';
+  var before = null;
+  var host = null;
+  var observer = null;
+  var framed = false;
+  var framedAt = 0;
+  var held = 0;
+  var timer = 0;
+  var locked = null;
+  var scrolled = false;
+  var marks = [];
+  var chosen = asks ? readAddress() : '';
+  var profile = false;
+  var compare = false;
+  var inspecting = false;
 
-  // One boot however often it is asked for: a press during the download and the load event
-  // that follows it must not start two applications.
+  root.setAttribute('data-unibox-state', 'document');
+  mark('navigation');
+
+  // The address, and the one rule that keeps it safe: a value may only narrow what the build
+  // allowed. Removing an application is always safe, so `document` needs no flag; the numbers,
+  // and one rendering drawn over the other, are things the host agreed to at build time.
+  if (chosen === 'document') {
+    unibox.mode = 'document';
+    return;
+  }
+
+  if (chosen !== 'debug' && chosen !== 'profile' && chosen !== 'compare') {
+    chosen = '';
+  }
+
+  if (chosen !== '' && !debug) {
+    chosen = '';
+  }
+
+  inspecting = chosen !== '';
+  profile = chosen === 'profile';
+  compare = chosen === 'compare';
+
+  if (inspecting) {
+    unibox.mode = chosen;
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { mark('document'); }, { once: true });
+  } else {
+    mark('document');
+  }
+
+  if (inspecting) {
+    %INSPECT%
+  }
+
+  %ADDRESS%
+
+  // The record of what happened: the marks a profile reads, and the sentence a host reads.
+  function mark(name) {
+    marks.push([name, Math.round(performance.now())]);
+
+    if (!profile) {
+      return;
+    }
+
+    try {
+      performance.mark('unibox:' + name);
+
+      if (marks.length > 1) {
+        performance.measure(
+          'unibox:' + marks[marks.length - 2][0],
+          'unibox:' + marks[marks.length - 2][0],
+          'unibox:' + name
+        );
+      }
+    } catch (error) {}
+  }
+
+  function publish() {
+    if (!inspecting) {
+      return;
+    }
+
+    try {
+      unibox.marks = marks;
+      root.setAttribute('data-unibox-boot', JSON.stringify(marks));
+    } catch (error) {}
+
+    if (profile) {
+      unibox.profile = marks;
+    }
+  }
+
+  function report(sentence) {
+    publish();
+
+    if (window.console && console.warn) {
+      console.warn('[unibox] ' + sentence);
+    }
+  }
+
+  function to(next) {
+    state = next;
+    root.setAttribute('data-unibox-state', next);
+    publish();
+  }
+
+  // What the page arrived with. Everything in `body` afterwards is the engine's, whatever this
+  // Flutter version calls it — a name is a version dependency, a snapshot is not.
+  function snapshot() {
+    if (before !== null || !document.body) {
+      return;
+    }
+
+    before = [].slice.call(document.body.children);
+  }
+
+  function inside(node) {
+    if (before === null || !node) {
+      return false;
+    }
+
+    for (var i = 0; i < before.length; i++) {
+      if (before[i] === node || before[i].contains(node)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  function adopt() {
+    snapshot();
+
+    if (before === null) {
+      return;
+    }
+
+    var body = document.body;
+
+    for (var i = 0; i < body.children.length; i++) {
+      var child = body.children[i];
+
+      if (before.indexOf(child) !== -1) {
+        continue;
+      }
+
+      child.setAttribute('data-unibox-app', 'true');
+
+      if (!child.hasAttribute('tabindex')) {
+        child.setAttribute('tabindex', '-1');
+      }
+
+      if (host === null) {
+        host = child;
+      }
+    }
+  }
+
+  function watch() {
+    if (!document.body) {
+      document.addEventListener('DOMContentLoaded', watch, { once: true });
+      return;
+    }
+
+    snapshot();
+    observer = new MutationObserver(adopt);
+    observer.observe(document.body, { childList: true });
+    adopt();
+  }
+
+  // The isolation, as one rule keyed on the state rather than as inline styles: the engine's host
+  // is invisible and unreachable while it loads, and the document is the page. A host can animate
+  // the change from its own stylesheet because nothing here wins by being inline.
+  function style() {
+    var sheet = document.createElement('style');
+    sheet.setAttribute('data-unibox-handover', 'true');
+    sheet.textContent = [
+      '[data-unibox-compare] [data-unibox-app]{opacity:.5}',
+      '[data-unibox-state="booting"] [data-unibox-app]{opacity:0;visibility:hidden;pointer-events:none}',
+      '[data-unibox-app]:focus{outline:none}',
+      '[data-unibox-status]{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}'
+    ].join('');
+
+    (document.head || root).appendChild(sheet);
+  }
+
+  function lock() {
+    if (locked !== null) {
+      return;
+    }
+
+    locked = root.style.overflow;
+    root.style.overflow = 'hidden';
+
+    if (document.body) {
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function unlock() {
+    if (locked === null) {
+      return;
+    }
+
+    root.style.overflow = locked;
+    locked = null;
+
+    if (document.body) {
+      document.body.style.overflow = '';
+    }
+  }
+
+  // One boot however often it is asked for: a press during the download and the load event that
+  // follows it must not start two applications.
   function boot() {
     if (booted) { return; }
+
     booted = true;
 
-    // The way in has done its job, and an application that is here is not one to be offered.
-    var offered = document.querySelector('[data-unibox-open]');
+    // The way in has been accepted, and it says so. The control stays where it is — taking focus
+    // from the reader who pressed it is the one thing worse than waiting — and it goes with the
+    // document at the reveal.
+    var ask = document.querySelector('[data-unibox-open]');
 
-    if (offered) { offered.remove(); }
+    if (ask) {
+      ask.setAttribute('aria-disabled', 'true');
+      ask.textContent = '%LOADING%';
+    }
+
+    style();
+    snapshot();
+    mark('boot-start');
+    to('booting');
+
+    if (compare) {
+      root.setAttribute('data-unibox-compare', '0.5');
+    }
+
+    unibox.booted = true;
+    unibox.takeover = true;
+
+    window.addEventListener('flutter-first-frame', onFrame, { once: true });
 
     var element = document.createElement('script');
     element.src = source;
-    unibox.booted = true;
+    element.onerror = function () {
+      fail('the bundle did not load: ' + source);
+    };
 
-    // `body` does not exist yet when the script ran from the head.
     (document.body || document.documentElement).appendChild(element);
+    mark('script-load');
+
+    watch();
+    timer = setTimeout(timeUp, %TIMEOUT%);
   }
 
-  // The boot replaces every element in this document, so it must not happen under a reader who
-  // is on one: the element they were on would go, and a field would lose what was typed into it.
+  function onFrame() {
+    framed = true;
+    framedAt = Math.round(performance.now());
+    mark('first-frame');
+
+    if (wants === 'frame') {
+      reveal();
+    }
+  }
+
+  // What an application says when it is worth showing. A frame still has to arrive: a canvas that
+  // has not painted is a blank page with extra steps.
+  unibox.ready = function () {
+    mark('ready');
+
+    if (framed) {
+      reveal();
+    } else {
+      wants = 'frame';
+    }
+  };
+
+  // Never under a reader, then focus, then announce, then take the document out of the page — in
+  // that order, because `inert` blurs whatever is inside it.
+  function reveal() {
+    if (state === 'app' || state === 'failed') {
+      return;
+    }
+
+    if (document.activeElement !== document.body && inside(document.activeElement)) {
+      document.addEventListener('focusout', function () {
+        setTimeout(reveal, 0);
+      }, { once: true });
+
+      return;
+    }
+
+    if (!framed) {
+      return;
+    }
+
+    clearTimeout(timer);
+    timer = 0;
+    held = framedAt === 0 ? 0 : Math.round(performance.now()) - framedAt;
+    root.setAttribute('data-unibox-held', String(held));
+    mark('reveal');
+    to('ready');
+
+    if (host && host.focus) {
+      try {
+        host.focus({ preventScroll: true });
+      } catch (error) {
+        host.focus();
+      }
+    }
+
+    announce();
+    lock();
+    retire();
+    to('app');
+    check();
+  }
+
+  function announce() {
+    var status = document.createElement('p');
+    status.setAttribute('role', 'status');
+    status.setAttribute('data-unibox-status', 'true');
+
+    var lang = root.getAttribute('lang');
+
+    if (lang) {
+      status.setAttribute('lang', lang);
+    }
+
+    status.textContent = '%READY%';
+    (document.body || root).appendChild(status);
+  }
+
+  function retire() {
+    var ask = document.querySelector('[data-unibox-open]');
+
+    if (ask && ask.parentNode) {
+      ask.parentNode.removeChild(ask);
+    }
+
+    if (before === null) {
+      return;
+    }
+
+    for (var i = 0; i < before.length; i++) {
+      var child = before[i];
+      child.setAttribute('aria-hidden', 'true');
+      child.setAttribute('inert', '');
+
+      // A comparison keeps the document — two renderings of one tree, one over the other, is the
+      // cheapest way to see whether they agree — but it is out of the accessibility tree either
+      // way, so a reader is never given both pages.
+      if (!compare && child.parentNode) {
+        child.parentNode.removeChild(child);
+      }
+    }
+  }
+
+  function check() {
+    if (!inspecting || !host) {
+      return;
+    }
+
+    var box = host.getBoundingClientRect();
+
+    if (box.width < window.innerWidth - 1 || box.height < window.innerHeight - 1) {
+      report('the engine host does not cover the viewport');
+    }
+  }
+
+  function timeUp() {
+    timer = 0;
+
+    if (!framed) {
+      fail('no frame after %TIMEOUT%ms');
+      return;
+    }
+
+    if (state !== 'app' && state !== 'failed') {
+      report('the application never said ready; revealed after %TIMEOUT%ms');
+      reveal();
+    }
+  }
+
+  // A page that cannot become an application is still a page: everything is undone, and the
+  // reader keeps what they were reading.
+  function fail(reason) {
+    clearTimeout(timer);
+    timer = 0;
+
+    if (observer) {
+      observer.disconnect();
+      observer = null;
+    }
+
+    if (host && host.parentNode) {
+      host.parentNode.removeChild(host);
+    }
+
+    var ask = document.querySelector('[data-unibox-open]');
+
+    if (ask) {
+      ask.removeAttribute('aria-disabled');
+      ask.textContent = '%LABEL%';
+    }
+
+    if (before !== null) {
+      for (var i = 0; i < before.length; i++) {
+        before[i].removeAttribute('aria-hidden');
+        before[i].removeAttribute('inert');
+      }
+    }
+
+    unlock();
+    mark('failed');
+    to('failed');
+    report(reason);
+  }
+
   function ready() {
     if (booted) { return; }
 %GUARD%
     boot();
   }
 
-  // Intent before the load is remembered, not acted on: an engine that starts while the
-  // document is still arriving competes with the largest paint.
+  // Intent before the load is remembered, not acted on: an engine that starts while the document
+  // is still arriving competes with the largest paint.
   function want() {
     wanted = true;
-    if (loaded) { ready(); }
+
+    if (loaded) {
+      ready();
+    }
   }
 
   unibox.boot = boot;%INTENT%
@@ -243,6 +710,7 @@ const String _bootTemplate = '''
   window.addEventListener('load', function () {
     loaded = true;
     unibox.loaded = true;
+
     if (wanted) { ready(); }
   });
 %IDLE%
@@ -361,6 +829,42 @@ const String _bootWhenIdle = '''
 
 /// A page that waits to be asked does nothing more at the load.
 const String _nothingMore = '';
+
+/// The address reader, spliced in only when [bootScript]'s `query` is on.
+///
+/// A page whose query string is data rather than a choice carries none of this: no parameter
+/// name, no parser, no way to switch an application off by editing a url.
+const String _address = '''
+  function readAddress() {
+    try {
+      return new URLSearchParams(window.location.search).get('unibox') || '';
+    } catch (error) {
+      return '';
+    }
+  }''';
+
+/// The two checks a host cannot make for itself, and cannot see the result of.
+///
+/// They are spliced in only when [bootScript]'s `debug` is on, so a production page carries none
+/// of this: a boot that promises to isolate two views and does not is invisible to everyone
+/// except the reader it happens to, and this is the only place it can be said out loud.
+const String _inspect = '''
+    // A press that lands on the pre-boot document after the reveal means the isolation failed.
+    document.addEventListener('pointerdown', function (event) {
+      if (state === 'app' && inside(event.target)) {
+        report('a press landed on the pre-boot document after the application was up');
+      }
+    }, { capture: true, passive: true });
+
+    // The document scrolls under a canvas when the scroll lock did not take.
+    document.addEventListener('scroll', function () {
+      if (state !== 'app' || scrolled) {
+        return;
+      }
+
+      scrolled = true;
+      report('the document still scrolled after the application was up');
+    }, { capture: true, passive: true });''';
 
 /// [value] as a JavaScript string literal inside a raw text element.
 ///

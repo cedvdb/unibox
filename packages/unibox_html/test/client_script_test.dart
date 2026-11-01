@@ -53,6 +53,19 @@ void main() {
       expect(pressScript, contains('pressed = [];'));
     });
 
+    test('stops recording once the application owns the page', () {
+      // A press or a scroll recorded after the reveal would be replayed as intent the reader never
+      // had — on a document they can no longer see.
+      for (final String script in <String>[pressScript, scrollScript]) {
+        expect(
+          script,
+          contains(
+            "document.documentElement.getAttribute('data-unibox-state') === 'app'",
+          ),
+        );
+      }
+    });
+
     test('is what a host gets when it asks for the page behaviour', () {
       // Both blocks, so one file covers a page that records presses and scroll offsets.
       expect(uniboxClientScript, contains(pressScript));

@@ -158,9 +158,13 @@ void main() {
       expect(script, contains('active !== document.body'));
       expect(script, contains("addEventListener('focusout'"));
 
-      // A front door is the other way round — the document is a first frame — so its boot is not
-      // held back by a focus a reader put there while the application arrives.
-      expect(bootScript('a.js'), isNot(contains('document.activeElement')));
+      // A front door's *boot* is not held back by a focus a reader put there while the application
+      // arrives — but its *reveal* is, on every policy, because the reveal is the moment the page
+      // changes hands.
+      final String front = bootScript('a.js');
+
+      expect(front, isNot(contains('setTimeout(ready, 0)')));
+      expect(front, contains('setTimeout(reveal, 0)'));
     });
 
     test('offers the application to a reader the pointer never reaches', () {
@@ -209,7 +213,7 @@ void main() {
       expect(script, contains(r"a\'"));
     });
 
-    test('is valid JavaScript, with and without the idle boot', () {
+    test('is valid JavaScript, in every shape a host can ask for', () {
       final String? node = _nodePath();
 
       if (node == null) {
@@ -218,20 +222,104 @@ void main() {
         return;
       }
 
-      for (final BootPolicy policy in BootPolicy.values) {
+      // Every policy, both reveal answers, and the inspected variants: a template with a stub in
+      // the wrong place is a syntax error on a reader's page and nowhere else.
+      final Map<String, String> scripts = <String, String>{
+        for (final BootPolicy policy in BootPolicy.values)
+          'policy $policy': bootScript('main.dart.js', policy: policy),
+        for (final RevealPolicy reveal in RevealPolicy.values)
+          'reveal $reveal': bootScript('main.dart.js', reveal: reveal),
+        'inspecting': bootScript('main.dart.js', debug: true),
+        'no address': bootScript('main.dart.js', query: false),
+      };
+
+      for (final MapEntry<String, String> entry in scripts.entries) {
         final Directory directory = Directory.systemTemp.createTempSync(
           'unibox',
         );
         addTearDown(() => directory.deleteSync(recursive: true));
         final File file = File('${directory.path}/boot.js')
-          ..writeAsStringSync(bootScript('main.dart.js', policy: policy));
+          ..writeAsStringSync(entry.value);
         final ProcessResult result = Process.runSync(node, <String>[
           '--check',
           file.path,
         ]);
 
-        expect(result.exitCode, 0, reason: '$policy: ${result.stderr}');
+        expect(result.exitCode, 0, reason: '${entry.key}: ${result.stderr}');
       }
+    });
+  });
+
+  group('the handover', () {
+    test('names its moments on the document element', () {
+      // A host can style the swap and a test can assert it, without either of them reading the
+      // boot's source — which is the only way the reveal is verifiable at all.
+      final String script = bootScript('a.js');
+
+      expect(
+        script,
+        contains("root.setAttribute('data-unibox-state', 'document')"),
+      );
+
+      for (final String state in <String>[
+        'booting',
+        'ready',
+        'app',
+        'failed',
+      ]) {
+        expect(script, contains("to('$state')"));
+      }
+    });
+
+    test('finds the engine by what appeared, not by what it is called', () {
+      // `flt-glass-pane` and `flutter-view` are this Flutter version's names — a grep for them is
+      // a version dependency. What the page arrived with is not.
+      final String script = bootScript('a.js');
+
+      expect(script, contains('MutationObserver'));
+      expect(script, contains("child.setAttribute('data-unibox-app', 'true')"));
+      expect(script, isNot(contains('flutter-view')));
+      expect(script, isNot(contains('flt-glass-pane')));
+    });
+
+    test('keeps the loading application invisible and unreachable', () {
+      // Invisible, or a reader watches the page assemble itself; unreachable, or every press goes
+      // into an application nobody can see.
+      final String script = bootScript('a.js');
+
+      expect(
+        script,
+        contains('opacity:0;visibility:hidden;pointer-events:none'),
+      );
+      // A rule keyed on the state rather than an inline style, so a host can animate the change
+      // from its own stylesheet.
+      expect(script, contains('data-unibox-handover'));
+      expect(script, isNot(contains('style.opacity')));
+    });
+
+    test(
+      'shows the first frame, or waits for the application to say it is ready',
+      () {
+        expect(bootScript('a.js'), contains("wants === 'frame'"));
+        expect(bootScript('a.js'), contains('flutter-first-frame'));
+        expect(
+          bootScript('a.js', reveal: RevealPolicy.onReady),
+          contains('unibox.ready'),
+        );
+        // The timeout bounds either answer: a page that waits forever is a page that hangs.
+        expect(bootScript('a.js'), contains('setTimeout(timeUp'));
+      },
+    );
+
+    test('goes back to being a document when the engine never draws', () {
+      // A page that cannot become an application is still a page: the host element is removed, the
+      // document comes out of hiding, and the scroll is released.
+      final String script = bootScript('a.js');
+
+      expect(script, contains('no frame after'));
+      expect(script, contains("removeAttribute('inert')"));
+      expect(script, contains("removeAttribute('aria-hidden')"));
+      expect(script, contains('element.onerror'));
     });
   });
 

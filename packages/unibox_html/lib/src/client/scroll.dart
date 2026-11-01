@@ -42,7 +42,13 @@ const String scrollScript =
     recorded = found;
   }
 
-  document.addEventListener('scroll', snapshot, { capture: true, passive: true });
+  document.addEventListener('scroll', function () {
+    // The document is not the page any more: what a canvas scrolls is the application's, and the
+    // offsets of a page nobody can see are not something to replay.
+    if (document.documentElement.getAttribute('data-unibox-state') === 'app') { return; }
+
+    snapshot();
+  }, { capture: true, passive: true });
   document.addEventListener('visibilitychange', snapshot);
   window.addEventListener('pointerdown', snapshot, { passive: true });
   window.addEventListener('pagehide', snapshot);

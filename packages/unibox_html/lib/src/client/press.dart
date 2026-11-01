@@ -45,6 +45,10 @@ const String pressScript =
   }
 
   document.addEventListener('pointerdown', function (event) {
+    // Once the application owns the page there is nothing left to replay: a press recorded now
+    // would be handed to it as intent it never had.
+    if (document.documentElement.getAttribute('data-unibox-state') === 'app') { return; }
+
     var named = nearest(event.target);
 
     if (!named) { return; }
