@@ -477,6 +477,37 @@ CssDeclarations rootDeclarations() =>
 String cssCorners(core.BoxBorderRadius corners) =>
     corners.radii.map(cssPixels).join(' ');
 
+/// A model [core.BoxFraction] as CSS writes it.
+///
+/// A share of the parent is a percentage (`50%`) and stays one when it takes nothing off,
+/// because that is the pair a browser and a `FractionallySizedBox` resolve identically. A
+/// share of the viewport is `100dvh` — the *dynamic* viewport height, the one that follows a
+/// phone's browser chrome instead of leaving the page under it — and the inset is taken off
+/// in the same `calc`, floored with `max` so a window shorter than the inset states a length
+/// of nothing rather than a negative one, which CSS would drop and Flutter would clamp.
+///
+/// The axis decides the unit: `heightFraction` is `dvh` and `widthFraction` is `dvw`.
+String? cssFractionOf(core.BoxFraction? fraction, core.Axis axis) {
+  if (fraction == null) {
+    return null;
+  }
+
+  final String share = '${cssNumber(fraction.value * 100)}%';
+
+  if (fraction.isOfParent) {
+    return fraction.minus == 0
+        ? share
+        : 'max(0px, calc($share - ${cssPixels(fraction.minus)}))';
+  }
+
+  final String viewport = axis == core.Axis.vertical ? 'dvh' : 'dvw';
+  final String length = '${cssNumber(fraction.value * 100)}$viewport';
+
+  return fraction.minus == 0
+      ? length
+      : 'max(0px, calc($length - ${cssPixels(fraction.minus)}))';
+}
+
 /// A model [core.BoxTransform] as CSS writes a `transform`, or `null` when it
 /// changes nothing.
 ///
@@ -484,10 +515,6 @@ String cssCorners(core.BoxBorderRadius corners) =>
 /// scale — because CSS only interpolates two transforms function by function when the
 /// lists match. `transform-origin` is not written: CSS centres a transform by default
 /// and the Flutter renderer turns and scales about the middle of the box too.
-/// A fraction of the parent, as CSS writes it: `0.5` becomes `50%`.
-String? cssFraction(double? fraction) =>
-    fraction == null ? null : '${cssNumber(fraction * 100)}%';
-
 String? cssTransform(core.BoxTransform? transform) {
   if (transform == null || transform.isIdentity) {
     return null;

@@ -79,7 +79,30 @@ What is left to the host, because only the host can answer it: the font family (
 font file is an asset), the colour of a placeholder, a caret or a selection, the
 look of a scrollbar, and the rendering of the glyphs themselves.
 
-## Roles and the theme
+## Sizes
+
+A box can state its size three ways, and each answers a different question:
+
+```dart
+Box(width: 320)                                     // 320 logical pixels
+Box(widthFraction: const BoxFraction.parent(0.5))    // half of the box it is in
+Box(heightFraction: const BoxFraction.viewport(1, minus: 216))  // the screen, less a header
+```
+
+- A **number** is a length, and `double.infinity` is "as much as I am given" — which
+  the parent has to have an end to give, and which `validateTree` reports when it does
+  not.
+- A **share of the parent** is what a percentage means in CSS and a
+  `FractionallySizedBox` means in Flutter: half a row, one tab of a bar.
+- A **share of the viewport** is the one size a box knows without being handed a bounded
+  box, which is why it exists: the parent of anything on a scrolling page has no height to
+  share, so "as tall as the screen, less the header and the toolbar" had no spelling. It is
+  `max(0px, calc(100dvh - 216px))` on the web and the window's height less the inset in
+  Flutter, and it is floored at zero on both — a share that takes off more than it has is a
+  length of nothing, not a negative one.
+
+A share wins over a stated size, the way a percentage does in CSS.
+
 
 A colour can name a **role** instead of carrying channels, and the application says
 what the role is worth:

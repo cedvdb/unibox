@@ -13,6 +13,9 @@
   a keystroke would take the page from a keyboard reader mid-read. It also waits while the frame
   holds the focus, because the boot replaces every element in the document and would take away the
   element a reader is on.
+- A share of the viewport reaches the page as `max(0px, calc(100dvh - 216px))` in the box's
+  class rule, so a panel that fills what the window leaves after a header needs no host CSS
+  and no statement of the header's height in a media query.
 
 - `toDocument(writingDirection: …)` and `Document(writingDirection: …)` write `dir` on the root
   element, beside `lang` and never derived from it: everything on the page that states no

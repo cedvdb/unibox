@@ -14,6 +14,7 @@ import 'nodes/ui_node.dart';
 import 'tokens/box_border.dart';
 import 'tokens/box_color.dart';
 import 'tokens/box_fold.dart';
+import 'tokens/box_fraction.dart';
 import 'tokens/box_semantics.dart';
 import 'tokens/box_shadow.dart';
 import 'tokens/box_shape.dart';
@@ -90,6 +91,8 @@ class TreeIssue {
 ///   and a negative inset — plus an inset with no pin to hold it,
 /// * an aspect ratio that cannot divide anything — a ratio next to a width and a
 ///   height, or one that is not positive,
+/// * a share of the parent or of the viewport that is a factor of zero or less, or
+///   one that states a negative inset,
 /// * a list item whose parent is not a list, and a caption whose parent is not a
 ///   figure, both of which are invalid HTML and name nothing where they stand,
 /// * a grid of stated columns whose template is not one factor per child, and a column
@@ -325,6 +328,51 @@ void _validateFilledAxis({
           'infinity out, or bound the parent.',
     ),
   );
+}
+
+/// Reports a share that cannot be a size: a factor of nothing, or an inset that adds.
+///
+/// A share is a length, so the two ways of stating one that no layout can draw are a
+/// factor of zero or less — a box that is not there — and a negative inset, which is room
+/// *added* to the share rather than taken off it. Both are reported here rather than being
+/// clamped in a renderer, because the two targets clamp in their own way: `max(0px, …)` in
+/// CSS drops a size a Flutter `SizedBox` would still be asked to honour.
+void _validateShare({
+  required Box node,
+  required String name,
+  required BoxFraction? fraction,
+  required List<TreeIssue> issues,
+}) {
+  if (fraction == null) {
+    return;
+  }
+
+  if (!(fraction.value > 0)) {
+    issues.add(
+      TreeIssue(
+        node: node,
+        severity: TreeIssueSeverity.error,
+        message:
+            'A box states $name: $fraction, and a share of ${fraction.value} is a '
+            '${name.startsWith('width') ? 'width' : 'height'} of nothing. Use a '
+            'positive factor — `1` is the whole of what the share is of — or state a '
+            'size in pixels.',
+      ),
+    );
+  }
+
+  if (fraction.minus < 0) {
+    issues.add(
+      TreeIssue(
+        node: node,
+        severity: TreeIssueSeverity.error,
+        message:
+            'A box states $name: $fraction, and an inset of ${fraction.minus} would be '
+            'room added to the share rather than taken off it. State the room the '
+            'share loses as a positive number of logical pixels.',
+      ),
+    );
+  }
 }
 
 /// Walks [node] and records every issue of the subtree into [issues].
@@ -831,6 +879,19 @@ void _validate(
       axis: Axis.vertical,
       size: style.height,
       unbounded: unboundedHeight,
+      issues: issues,
+    );
+
+    _validateShare(
+      node: node,
+      name: 'widthFraction',
+      fraction: style.widthFraction,
+      issues: issues,
+    );
+    _validateShare(
+      node: node,
+      name: 'heightFraction',
+      fraction: style.heightFraction,
       issues: issues,
     );
 

@@ -83,7 +83,7 @@ void main() {
       // multiple of *its own* width, which is a whole tab per step and needs nobody to measure one.
       final Box indicator = _indicatorOf(tabs).child as Box;
 
-      expect(indicator.widthFraction, closeTo(1 / 3, 1e-9));
+      expect(indicator.widthFraction?.value, closeTo(1 / 3, 1e-9));
       expect(indicator.transform?.fractionX, 1);
       expect(indicator.height, MaterialTabBar.indicatorHeight);
       expect(indicator.backgroundColor, isNotNull);

@@ -313,6 +313,46 @@ void main() {
       expect(const BoxStyle(pin: BoxPin.end).resolvedPinOffset, 0);
     });
 
+    test('carries a share and names what it is a share of', () {
+      const style = BoxStyle(
+        widthFraction: BoxFraction.parent(0.5),
+        heightFraction: BoxFraction.viewport(1, minus: 216),
+      );
+
+      // A share resolves against the extent it named: half of what the parent offers, or
+      // the screen less the room the header and the toolbar take.
+      expect(style.widthFraction?.resolve(400), 200);
+      expect(style.heightFraction?.resolve(900), 684);
+      expect(style.widthFraction?.isOfParent, isTrue);
+      expect(style.heightFraction?.isOfViewport, isTrue);
+
+      // The inset is part of the value, so two shares of the screen are the same token
+      // only when they lose the same room.
+      expect(
+        style.heightFraction,
+        isNot(const BoxFraction.viewport(1)),
+        reason: 'the 216 pixels it loses are what makes it the height the panel wants',
+      );
+      expect(style.copyWith().heightFraction, style.heightFraction);
+      expect(
+        style.toString(),
+        contains('heightFraction: BoxFraction.viewport(1'),
+      );
+      expect(
+        const BoxStyle()
+            .merge(const BoxStyle(heightFraction: BoxFraction.viewport(0.5)))
+            .heightFraction,
+        const BoxFraction.viewport(0.5),
+        reason: 'an overlay wins, like every other token',
+      );
+    });
+
+    test('floors a share at nothing rather than stating a negative length', () {
+      // A window shorter than the inset is a length of nothing: CSS writes
+      // `max(0px, …)` for it and Flutter clamps, and the model is where the two agree.
+      expect(const BoxFraction.viewport(1, minus: 900).resolve(600), 0);
+    });
+
     test(
       'carries the look a box folds into, and how much of the exit it takes',
       () {
@@ -1106,8 +1146,8 @@ void main() {
         width: 10,
         height: 11,
         aspectRatio: 1.5,
-        widthFraction: 0.5,
-        heightFraction: 0.25,
+        widthFraction: BoxFraction.parent(0.5),
+        heightFraction: BoxFraction.parent(0.25),
         minWidth: 1,
         maxWidth: 100,
         minHeight: 2,

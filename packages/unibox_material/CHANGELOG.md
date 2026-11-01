@@ -13,6 +13,8 @@
   `height: double.infinity` beside two bars is resolved by a browser against the whole column and
   shrinks all three — a 64-pixel app bar came out at 50 — while Flutter kept the bars and gave the
   body the rest.
+- `MaterialTabBar`'s indicator states its share as
+  `BoxFraction.parent(1 / tabs.length)`, because a fraction now names what it is a share of.
 
 - The tabs' own documentation points at `PagerNode` for the pager rather than at a token: the
   component still swaps its page on a press, and the example's tabs demo composes a

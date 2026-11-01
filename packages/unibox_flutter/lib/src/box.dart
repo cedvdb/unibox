@@ -1047,6 +1047,66 @@ class FlutterBoxState extends State<FlutterBox> {
         : SizedBox(height: double.infinity, child: child);
   }
 
+  /// [child] sized the way the shares the box states ask for.
+  ///
+  /// A share of the parent with nothing taken off it is a `FractionallySizedBox`: it is the
+  /// one shape whose constraint is the same on both targets, because a percentage is. The
+  /// other three cases each need a number that build time may not have — a share of the
+  /// viewport is resolved from the window, which is known while the box is built, and a
+  /// share of the parent that loses an inset needs the room the parent offers, which only a
+  /// layout pass knows, so it is measured with a `LayoutBuilder`. A box that states neither
+  /// pays for neither.
+  Widget _fractioned(
+    Widget child,
+    core.BoxFraction? width,
+    core.BoxFraction? height,
+  ) {
+    final bool plain =
+        (width?.isPlainParentShare ?? true) &&
+        (height?.isPlainParentShare ?? true);
+
+    if (plain) {
+      return FractionallySizedBox(
+        widthFactor: width?.value,
+        heightFactor: height?.value,
+        child: child,
+      );
+    }
+
+    final Size window = MediaQuery.sizeOf(context);
+    Widget result = child;
+
+    final double? across = width != null && width.isOfViewport
+        ? width.resolve(window.width)
+        : null;
+    final double? along = height != null && height.isOfViewport
+        ? height.resolve(window.height)
+        : null;
+
+    if (across != null || along != null) {
+      result = SizedBox(width: across, height: along, child: result);
+    }
+
+    final core.BoxFraction? parentAcross = width != null && width.isOfParent
+        ? width
+        : null;
+    final core.BoxFraction? parentAlong = height != null && height.isOfParent
+        ? height
+        : null;
+
+    if (parentAcross == null && parentAlong == null) {
+      return result;
+    }
+
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) => SizedBox(
+        width: parentAcross?.resolve(constraints.maxWidth),
+        height: parentAlong?.resolve(constraints.maxHeight),
+        child: result,
+      ),
+    );
+  }
+
   /// Applies the fixed sizes, the aspect ratio and the min/max constraints of [style].
   ///
   /// [stretchedAcross] is the direction of a parent flex that stretches this box, when
@@ -1091,13 +1151,11 @@ class FlutterBoxState extends State<FlutterBox> {
     }
 
     // A fraction of the space offered, which is the one size a box can state without knowing
-    // one: a share of a row, one tab of a bar. It wins over a stated size, as CSS does.
+    // one: a share of a row, one tab of a bar. It wins over a stated size, as CSS does, and it
+    // names what it is a share of: the box around it, or the viewport — the extent that is
+    // known without a bounded parent to hand over.
     if (style.widthFraction != null || style.heightFraction != null) {
-      result = FractionallySizedBox(
-        widthFactor: style.widthFraction,
-        heightFactor: style.heightFraction,
-        child: result,
-      );
+      result = _fractioned(result, style.widthFraction, style.heightFraction);
     }
 
     final BoxConstraints? constraints = toConstraints(style);

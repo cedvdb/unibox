@@ -2,6 +2,7 @@ import '../enums.dart';
 import 'box_border.dart';
 import 'box_color.dart';
 import 'box_border_radius.dart';
+import 'box_fraction.dart';
 import 'box_shadow.dart';
 import 'box_shape.dart';
 import 'box_spacing.dart';
@@ -203,19 +204,32 @@ final class BoxStyle {
   /// `validateTree` reports the two.
   final double? aspectRatio;
 
-  /// The width as a fraction of the parent's, or `null` for a stated width.
+  /// The width as a share of the parent's, or `null` for a stated width.
   ///
   /// `1` is the whole of it, `0.5` half. This is the size a box can state without knowing a
   /// number: a share of a row, a column of a grid of shares. Material's tab indicator is one
   /// share of the bar, which is a fraction rather than a pixel count because the bar's width is
   /// the layout's business.
   ///
+  /// A share names what it is a share of — the parent, the way a percentage does, or the
+  /// viewport, which is the one extent a box knows without being handed one:
+  ///
+  /// ```dart
+  /// Box(widthFraction: const BoxFraction.parent(0.5))   // half of the row
+  /// Box(heightFraction: const BoxFraction.viewport(1, minus: 216))  // the screen, less a header
+  /// ```
+  ///
   /// It wins over [width], and `validateTree` reports the two together, because a box that is
   /// told both has been told two things.
-  final double? widthFraction;
+  final BoxFraction? widthFraction;
 
-  /// The height as a fraction of the parent's, or `null` for a stated height.
-  final double? heightFraction;
+  /// The height as a share of the parent's or of the viewport, or `null` for a stated height.
+  ///
+  /// The viewport share is the answer to a panel that has to fill what the window leaves
+  /// after the header and the toolbar above it: `BoxFraction.viewport(1, minus: 216)` is
+  /// `max(0px, calc(100dvh - 216px))`, and it resolves on both targets without the host
+  /// handing the box a bounded height.
+  final BoxFraction? heightFraction;
 
   /// The minimum width in logical pixels.
   final double? minWidth;
@@ -426,8 +440,8 @@ final class BoxStyle {
     double? width,
     double? height,
     double? aspectRatio,
-    double? widthFraction,
-    double? heightFraction,
+    BoxFraction? widthFraction,
+    BoxFraction? heightFraction,
     double? minWidth,
     double? maxWidth,
     double? minHeight,
@@ -633,6 +647,7 @@ final class BoxStyle {
       if (height != null) 'height: $height',
       if (aspectRatio != null) 'aspectRatio: $aspectRatio',
       if (widthFraction != null) 'widthFraction: $widthFraction',
+      if (heightFraction != null) 'heightFraction: $heightFraction',
       if (minWidth != null) 'minWidth: $minWidth',
       if (maxWidth != null) 'maxWidth: $maxWidth',
       if (minHeight != null) 'minHeight: $minHeight',

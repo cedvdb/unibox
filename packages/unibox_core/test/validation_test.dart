@@ -1097,6 +1097,41 @@ void main() {
       expect(issue.message, contains('aspectRatio: 0'));
     });
 
+    test('accepts a share of the parent and a share of the viewport', () {
+      // Both are lengths a box can be given without a number: half of what the parent
+      // offers, and what the screen leaves after the header above it.
+      const Box tree = Box(
+        width: 320,
+        height: 200,
+        children: <UINode>[
+          Box(widthFraction: BoxFraction.parent(0.5)),
+          Box(heightFraction: BoxFraction.viewport(1, minus: 216)),
+        ],
+      );
+
+      expect(validateTree(tree), isEmpty);
+    });
+
+    test('reports a share of nothing', () {
+      // A factor of zero is a box that is not there, which no renderer can draw as the
+      // size the tree asked for.
+      const Box tree = Box(heightFraction: BoxFraction.viewport(0));
+
+      final TreeIssue issue = validateTree(tree).single;
+
+      expect(issue.isError, isTrue);
+      expect(issue.message, contains('heightFraction: BoxFraction.viewport(0'));
+    });
+
+    test('reports an inset that adds room instead of taking it', () {
+      const Box tree = Box(heightFraction: BoxFraction.viewport(1, minus: -24));
+
+      final TreeIssue issue = validateTree(tree).single;
+
+      expect(issue.isError, isTrue);
+      expect(issue.message, contains('room added to the share'));
+    });
+
     test('reads the tokens resolved from the style', () {
       const Box tree = Box(
         styles: <BoxStyle>[

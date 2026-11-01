@@ -126,6 +126,46 @@ void main() {
       expect(cssPinEdge(core.BoxPin.end), 'bottom');
     });
 
+    test('is a percentage when it is a share of the parent', () {
+      // The one pair a browser and a `FractionallySizedBox` resolve identically.
+      expect(
+        cssFractionOf(const core.BoxFraction.parent(0.5), core.Axis.horizontal),
+        '50%',
+      );
+      expect(
+        cssFractionOf(const core.BoxFraction.parent(1), core.Axis.vertical),
+        '100%',
+      );
+    });
+
+    test('is the viewport when it is a share of the screen', () {
+      // `dvh` rather than `vh`: the dynamic viewport follows a phone's browser chrome
+      // instead of leaving the page under it, which is the height the reader sees.
+      expect(
+        cssFractionOf(const core.BoxFraction.viewport(1), core.Axis.vertical),
+        '100dvh',
+      );
+      expect(
+        cssFractionOf(
+          const core.BoxFraction.viewport(0.5),
+          core.Axis.horizontal,
+        ),
+        '50dvw',
+      );
+    });
+
+    test('loses the room it is told to, and is floored at nothing', () {
+      // `max(0px, …)` because a negative length is not a size: CSS would drop the whole
+      // declaration and Flutter would clamp it, which is the drift this spelling prevents.
+      expect(
+        cssFractionOf(
+          const core.BoxFraction.viewport(1, minus: 216),
+          core.Axis.vertical,
+        ),
+        'max(0px, calc(100dvh - 216px))',
+      );
+    });
+
     test('aligns text as CSS does', () {
       expect(cssTextAlign(core.TextAlign.left), 'left');
       expect(cssTextAlign(core.TextAlign.center), 'center');

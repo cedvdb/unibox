@@ -164,14 +164,23 @@ never inherited (CSS does not inherit them either).
   built — the box, and the parent that offered it no end — rather than leaving
   a page that looks fine to throw during layout on one target and resolve to
   something else on the other.
-- There are three kinds of size, and they are three tokens because they answer
-  three different questions: a number of pixels (`width`), a share of the parent
-  (`widthFraction`), and a shape (`aspectRatio`). The third is the one a tree could
-  not state at all — a thumbnail that keeps its corners square at any width is not a
-  width and not a share — and it divides whatever side the layout settles, which is
-  what `AspectRatio` and `aspect-ratio` both do. A ratio beside a stated width *and*
-  height states nothing: both targets keep the two sizes, so `validateTree` reports
-  the box that says all three.
+- There are four kinds of size, and they are four tokens because they answer
+  four different questions: a number of pixels (`width`), a share of the parent
+  (`widthFraction`), a shape (`aspectRatio`), and — the newest — a share of a
+  *place* rather than of a parent (`BoxFraction.viewport`). The third is the one a
+  tree could not state at all — a thumbnail that keeps its corners square at any
+  width is not a width and not a share — and it divides whatever side the layout
+  settles, which is what `AspectRatio` and `aspect-ratio` both do. A ratio beside a
+  stated width *and* height states nothing: both targets keep the two sizes, so
+  `validateTree` reports the box that says all three.
+- A share names what it is a share of, because "a fraction" alone was the wrong
+  question: the parent is the extent a box *may* be given, and the viewport is the
+  one extent it knows without being given one. A panel on a page that scrolls has no
+  parent height to share, which is why `heightFraction: BoxFraction.viewport(1,
+  minus: 216)` exists — the screen, less the header and the bar above it — and why it
+  is the same statement in both targets: `max(0px, calc(100dvh - 216px))` on the web,
+  the window's height less the inset in Flutter. A share of the parent stays a
+  percentage, so a tree that already states one draws exactly as it did.
 
 ### 5.4 Parity
 - One tree, one shape: a node has to produce the same layout on both targets, so

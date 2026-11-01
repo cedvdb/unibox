@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- A share of the viewport is written as a `dvh`/`dvw` length with its inset taken off in a
+  `calc`, floored with `max(0px, …)`: `BoxFraction.viewport(1, minus: 216)` is
+  `max(0px, calc(100dvh - 216px))`. A share of the parent is still a percentage, so a tree that
+  already states one draws as it did. `cssFraction` is now `cssFractionOf(fraction, axis)`.
+
 - A pager is written from the node rather than from a token: `boxDeclarations(style, pager: true)`
   emits `scroll-snap-type` for the box's own axis, and `pagerRules(className, pager: true)` makes
   its children the stops. `cssScrollSnap` is now `cssScrollSnapType(axis)` and `snapRules` is

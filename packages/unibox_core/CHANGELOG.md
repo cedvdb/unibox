@@ -6,6 +6,12 @@
   bar, a measured circle. It is structural like `heading` — no press, no tab stop — and both
   targets have a name for it, which is why it is the role a label is allowed on. A labelled box
   with no role wrote `aria-label` on a `div`, which a browser reports as a prohibited attribute.
+- `BoxFraction` is a share that names what it is a share of: `BoxFraction.parent(0.5)` is half
+  the box around it, and `BoxFraction.viewport(1, minus: 216)` is the screen less 216 logical
+  pixels, floored at zero. `widthFraction` and `heightFraction` take one instead of a bare
+  `double`, so a box can fill what a window leaves without the host handing it a bounded box.
+  `validateTree` reports a share of zero or less and an inset that adds room.
+
 - `PagerNode` is the pager: a `Box` that settles on one child at a time, so a `Box` no longer
   knows what a page is. It carries the index (`index`), the page the pager came to rest on
   (`onPageChanged`), and the invariant that every child is the size of the box — which is what

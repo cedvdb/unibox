@@ -156,7 +156,7 @@ final class MaterialTabBar extends Box {
                  PositionedNode(
                    alignment: BoxAlignment.bottomStart,
                    child: Box(
-                     widthFraction: 1 / tabs.length,
+                     widthFraction: BoxFraction.parent(1 / tabs.length),
                      height: indicatorHeight,
                      backgroundColor: _tint(palette, indicator),
                      transform: BoxTransform(fractionX: selected.toDouble()),

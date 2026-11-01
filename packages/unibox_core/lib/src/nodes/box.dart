@@ -3,6 +3,7 @@ import '../enums.dart';
 import '../tokens/box_border.dart';
 import '../tokens/box_color.dart';
 import '../tokens/box_fold.dart';
+import '../tokens/box_fraction.dart';
 import '../tokens/box_border_radius.dart';
 import '../tokens/box_semantics.dart';
 import '../tokens/box_shadow.dart';
@@ -213,14 +214,27 @@ class Box extends UINode {
   /// that cannot change anything there.
   final double? aspectRatio;
 
-  /// The width as a fraction of the parent's, or `null` for a stated one.
+  /// The width as a share of the parent's, or `null` for a stated one.
   ///
   /// This is the size that can be stated without knowing a number: a share of a row, one tab of
   /// a bar. It wins over [width], and `validateTree` reports the two together.
-  final double? widthFraction;
+  ///
+  /// ```dart
+  /// Box(widthFraction: const BoxFraction.parent(0.5))  // half of the row it is in
+  /// ```
+  final BoxFraction? widthFraction;
 
-  /// The height as a fraction of the parent's, or `null` for a stated one.
-  final double? heightFraction;
+  /// The height as a share of the parent's or of the viewport, or `null` for a stated one.
+  ///
+  /// A share of the parent needs a parent with an extent to share, which anything on a
+  /// scrolling page is missing; a share of the *viewport* is the one height a box can state
+  /// without being handed a bounded box, and it is how a panel fills what the window leaves
+  /// after the header and the toolbar above it:
+  ///
+  /// ```dart
+  /// Box(heightFraction: const BoxFraction.viewport(1, minus: 216))
+  /// ```
+  final BoxFraction? heightFraction;
 
   /// The minimum width in logical pixels.
   final double? minWidth;

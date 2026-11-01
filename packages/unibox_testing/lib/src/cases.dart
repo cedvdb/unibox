@@ -223,7 +223,10 @@ const List<BoxCase> boxCases = <BoxCase>[
   ),
   BoxCase(
     description: 'takes a share of the width it is given',
-    box: core.Box(widthFraction: 0.5, children: _children),
+    box: core.Box(
+      widthFraction: core.BoxFraction.parent(0.5),
+      children: _children,
+    ),
     // A share rather than a length: `width: 50%` is the statement a box makes when the number is
     // the layout's business, and it wins over a stated width.
     expected: BoxAppearance(widthFraction: 0.5),
@@ -275,7 +278,7 @@ const List<BoxCase> boxCases = <BoxCase>[
       width: 320,
       height: 96,
       aspectRatio: 2,
-      widthFraction: 0.75,
+      widthFraction: core.BoxFraction.parent(0.75),
       backgroundColor: core.BoxColor.white,
       borderRadius: 10,
       border: core.BoxBorder(color: _line),

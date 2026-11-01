@@ -4,6 +4,11 @@
 
 - `BoxRole.progressBar` announces `SemanticsRole.progressBar`, with the box's label as its name,
   so a screen reader hears "42% complete, progress bar" rather than a bare name on a container.
+- A share of the viewport is measured against the window: `BoxFraction.viewport(1, minus: 216)`
+  is `MediaQuery.sizeOf(context).height - 216`, clamped at zero, and it follows the window when
+  the window changes. A share of the parent stays a `FractionallySizedBox`, and a share of the
+  parent that loses an inset is measured with a `LayoutBuilder`.
+
 - `PagerNode` is drawn by `FlutterBox`, with page physics for the settle, a jump to `index` after
   the frame that laid the pager out, and `onPageChanged` read back from the viewport when a
   scroll ends. The move is no longer animated: a browser's programmatic scroll takes no duration

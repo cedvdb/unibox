@@ -118,8 +118,8 @@ CssDeclarations boxDeclarations(
   declarations
     // A fraction wins over a stated size: the two say the same thing, and `validateTree` reports
     // the box that says both.
-    ..addIf('width', cssFraction(style.widthFraction))
-    ..addIf('height', cssFraction(style.heightFraction))
+    ..addIf('width', cssFractionOf(style.widthFraction, core.Axis.horizontal))
+    ..addIf('height', cssFractionOf(style.heightFraction, core.Axis.vertical))
     ..addIf(
       'width',
       style.widthFraction == null ? cssLength(style.width) : null,
