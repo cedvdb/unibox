@@ -206,6 +206,68 @@ void main() {
       expect(_topOf(tester, 'footer'), 340);
     });
 
+    testWidgets('pins a bar that states no height, as tall as its content', (
+      tester,
+    ) async {
+      // A filter row that may take a second line: it cannot state what it does not know, and
+      // CSS's `position: sticky` needs nothing stated. The slot it keeps in the flow is the
+      // height it laid itself out at, so the results below it sit where the bar actually ends.
+      await pumpNode(
+        tester,
+        _viewport(<core.UINode>[
+          _bar('hero', height: 100),
+          core.Box(
+            key: 'toolbar',
+            pin: core.BoxPin.start,
+            gap: 4,
+            children: const <core.UINode>[
+              core.Box(width: 200, height: 24),
+              core.Box(width: 200, height: 40),
+            ],
+          ),
+          _bar('results', height: 600),
+        ]),
+      );
+
+      // 24 + 4 + 40, measured rather than stated.
+      expect(_topOf(tester, 'results'), 168);
+
+      await _scroll(tester, 200);
+
+      expect(_topOf(tester, 'toolbar'), 0);
+      expect(
+        _topOf(tester, 'results'),
+        -32,
+        reason:
+            'the flow kept the room the bar takes, so the list did not jump',
+      );
+
+      await _scroll(tester, -200);
+
+      expect(_topOf(tester, 'toolbar'), 100);
+    });
+
+    testWidgets('holds a bar at the floor its minHeight states', (
+      tester,
+    ) async {
+      // A bar of variable content that still keeps a target of its own: 40 of content in a box
+      // that says 96 is 96 tall, and the slot follows the box rather than the content.
+      await pumpNode(
+        tester,
+        _viewport(<core.UINode>[
+          core.Box(
+            key: 'toolbar',
+            pin: core.BoxPin.start,
+            minHeight: 96,
+            children: const <core.UINode>[core.Box(width: 200, height: 40)],
+          ),
+          _bar('results', height: 600),
+        ]),
+      );
+
+      expect(_topOf(tester, 'results'), 96);
+    });
+
     testWidgets('draws a bar in the flow when no box in the tree scrolls', (
       tester,
     ) async {

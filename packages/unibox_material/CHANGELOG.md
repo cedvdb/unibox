@@ -13,6 +13,9 @@
   `height: double.infinity` beside two bars is resolved by a browser against the whole column and
   shrinks all three — a 64-pixel app bar came out at 50 — while Flutter kept the bars and gave the
   body the rest.
+- A bar built from a `Material` component pins without a stated height: the room the flow
+  keeps for it is the height the bar measures.
+
 - `MaterialTabBar`'s indicator states its share as
   `BoxFraction.parent(1 / tabs.length)`, because a fraction now names what it is a share of.
 

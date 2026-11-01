@@ -4,6 +4,15 @@
 
 - `BoxRole.progressBar` announces `SemanticsRole.progressBar`, with the box's label as its name,
   so a screen reader hears "42% complete, progress bar" rather than a bare name on a container.
+- A pinned bar no longer has to state its height. The room the flow keeps for it is the
+  height the bar lays itself out at — its content, the height it states, or the floor of its
+  `minHeight` — so a filter bar whose labels wrap pins with nothing stated, which is what
+  `position: sticky` has always meant. `validateTree` reports only the one height that cannot
+  hold a slot open: `height: double.infinity`.
+- `_PinnedLayer` replaced the `Stack` the bars were drawn in: it lays its children out in
+  reverse and paints them in order, so the slot the flow holds open reads the height the bar
+  measured this frame while the bar still paints over the content that scrolls under it.
+
 - A share of the viewport is measured against the window: `BoxFraction.viewport(1, minus: 216)`
   is `MediaQuery.sizeOf(context).height - 216`, clamped at zero, and it follows the window when
   the window changes. A share of the parent stays a `FractionallySizedBox`, and a share of the

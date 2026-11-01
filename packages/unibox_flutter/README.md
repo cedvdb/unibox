@@ -52,6 +52,7 @@ with their target.
 | `overflow: Overflow.scroll`         | `SingleChildScrollView`                             |
 | `PagerNode`                         | the same scroll view with `PageScrollPhysics`, so a drag settles on a child rather than between two; `index` is applied after the frame that laid it out, and `onPageChanged` is read from the viewport at the end of a scroll. It is a `Box`, so it is drawn by `FlutterBox` and needs no widget of its own |
 | `pin` / `pinOffset`                 | the flow unchanged, with the bar drawn over the viewport at the edge it names: a `_RenderPinnedBar` repaints it into place on every scroll, so nothing rebuilds and the bar keeps its slot |
+| `pin` / `pinOffset`                 | the flow unchanged, with the bar drawn over the viewport at the edge it names: a `_RenderPinnedBar` repaints it into place on every scroll, so nothing rebuilds and the bar keeps its slot — which is the height the bar measured for itself, so no height has to be stated |
 | `fold`                              | a `_RenderFoldedBox` layer that interpolates the decoration, the opacity and the transform as it paints, from the box's own exit out of the viewport; nothing is rebuilt and nothing is laid out again |
 | `onTap` / `onLongPress`             | `GestureDetector`                                   |
 | `capturesPointer: false`            | `IgnorePointer`, so the hover, the cursor and the press reach the control under the box; `true` makes a leaf a `Listener` with an opaque hit test |
@@ -106,6 +107,13 @@ A **pin** is drawn by the box that scrolls: the bar comes out of the flow, its s
 in it, and a `_RenderPinnedBar` repaints it at the edge it named — so a scroll costs a
 repaint and not a rebuild, and a field inside the bar keeps its state while it is carried
 around. A pin that has no scrolling box above it in the tree is the one place the two
+A **pin** is drawn by the box that scrolls: the bar comes out of the flow, its slot stays
+in it, and a `_RenderPinnedBar` repaints it at the edge it named — so a scroll costs a
+repaint and not a rebuild, and a field inside the bar keeps its state while it is carried
+around. The slot is the height the bar laid itself out at, read back in the same layout
+pass: a `_PinnedLayer` lays the bars out before the flow that keeps their room, so a bar
+whose labels wrap pins with no stated height, which is what `position: sticky` means in a
+browser. A pin that has no scrolling box above it in the tree is the one place the two
 renderings part: a browser pins it to the document, which scrolls a page even though the
 tree holds no viewport, while Flutter draws it where the flow put it, because the surface
 an application is drawn on does not scroll. Put the scroll in the tree — a box with

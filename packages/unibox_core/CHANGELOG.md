@@ -6,6 +6,12 @@
   bar, a measured circle. It is structural like `heading` — no press, no tab stop — and both
   targets have a name for it, which is why it is the role a label is allowed on. A labelled box
   with no role wrote `aria-label` on a `div`, which a browser reports as a prohibited attribute.
+- A pinned bar no longer has to state its height. The room the flow keeps for it is the
+  height the bar lays itself out at — its content, the height it states, or the floor of its
+  `minHeight` — so a filter bar whose labels wrap pins with nothing stated, which is what
+  `position: sticky` has always meant. `validateTree` reports only the one height that cannot
+  hold a slot open: `height: double.infinity`.
+
 - `BoxFraction` is a share that names what it is a share of: `BoxFraction.parent(0.5)` is half
   the box around it, and `BoxFraction.viewport(1, minus: 216)` is the screen less 216 logical
   pixels, floored at zero. `widthFraction` and `heightFraction` take one instead of a bare

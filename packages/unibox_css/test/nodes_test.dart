@@ -162,6 +162,22 @@ void main() {
       expect(declarations.text, isNot(contains('sticky')));
       expect(declarations.text, isNot(contains('z-index')));
     });
+
+    test('needs no height, because a sticky box keeps its own room', () {
+      // The parity claim the model now makes: the height a pinned band keeps in the flow is
+      // the height it lays itself out at, so a bar whose labels wrap pins with nothing stated.
+      // A browser gets that from `position: sticky`; Flutter measures the band it draws.
+      final CssDeclarations declarations = boxDeclarations(
+        const core.BoxStyle(pin: core.BoxPin.start),
+      );
+
+      expect(declarations['height'], isNull);
+      expect(
+        declarations.text,
+        contains('position:sticky'),
+        reason: 'the room is kept by the flow and not by a stated length',
+      );
+    });
   });
 
   group('a box that scrolls', () {

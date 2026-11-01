@@ -248,20 +248,45 @@ void main() {
       expect(issues.single.isError, isTrue);
     });
 
-    test('reports a pinned box with no height to keep its slot', () {
-      // The bar is drawn over its viewport and the flow keeps its room, so the height is
-      // what holds the children below it still.
+    test('accepts a pinned bar that states no height', () {
+      // The slot the flow keeps is the height the bar lays itself out at, so a bar whose
+      // content may wrap — a filter row, a row of chips — needs nothing stated. That is what
+      // CSS's `position: sticky` does too.
       final List<TreeIssue> issues = validateTree(
         const Box(
           height: 400,
           overflow: Overflow.scroll,
-          children: <UINode>[Box(pin: BoxPin.end)],
+          children: <UINode>[
+            Box(
+              pin: BoxPin.start,
+              children: <UINode>[Box(width: 120, height: 40)],
+            ),
+          ],
         ),
       );
 
-      expect(issues, hasLength(1));
-      expect(issues.single.message, contains('without a finite height'));
-      expect(issues.single.isError, isTrue);
+      expect(issues, isEmpty);
+    });
+
+    test('reports a pinned bar that states an infinite height', () {
+      // A bar keeps a slot the size of its own height, and an infinity is not a height to
+      // hold open: neither target can measure one.
+      final List<TreeIssue> issues = validateTree(
+        const Box(
+          height: 400,
+          overflow: Overflow.scroll,
+          children: <UINode>[Box(pin: BoxPin.end, height: double.infinity)],
+        ),
+      );
+
+      expect(
+        issues.where((TreeIssue issue) => issue.isError),
+        hasLength(2),
+        reason:
+            'the bar has no height to keep open, and a filled axis inside a '
+            'viewport that scrolls it is refused as well',
+      );
+      expect(issues.first.message, contains('height: double.infinity'));
     });
 
     test('reports a pin that is not a child of the box that scrolls it', () {

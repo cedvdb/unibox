@@ -63,10 +63,17 @@ class FlutterBoxState extends State<FlutterBox> {
   /// The slot each pinned bar keeps in the flow, by the index of its child.
   ///
   /// A bar is drawn over the viewport rather than in the flow, and the flow holds its
-  /// room open with a box of the height the tree states for it. Where that slot is — which
-  /// is where the bar settles back to — is a fact only its own layout knows, and the bar
-  /// reads it from this key.
+  /// room open with a slot that reads the bar's own measured height. Where that slot is —
+  /// which is where the bar settles back to — is a fact only its own layout knows, and the
+  /// bar reads it from this key.
   final Map<int, GlobalKey> _slots = <int, GlobalKey>{};
+
+  /// The layer each pinned bar is drawn on, by the index of its child.
+  ///
+  /// The slot in the flow holds the room for the bar it stands for, so it needs a way to
+  /// reach it: the key is the bar's, and the layer lays the bars out before the flow that
+  /// reads them.
+  final Map<int, GlobalKey> _bars = <int, GlobalKey>{};
 
   /// How this box opens its destination, or `null` when it has none and no scope above it.
   ///
@@ -641,9 +648,10 @@ class FlutterBoxState extends State<FlutterBox> {
   /// apply to every box instead of only to the ones that spelled the direction
   /// out.
   ///
-  /// [slots] names the children that are drawn over the viewport instead of in the flow,
-  /// with the height each keeps: the flow keeps their room, so nothing below them moves
-  /// while they are pinned.
+  /// [bars] names the children that are drawn over the viewport instead of in the flow, by the
+  /// index of the child: the flow keeps their room, so nothing below them moves while they are
+  /// pinned. The room is the bar's own measured height, which the bar states, or its content
+  /// decides, or its `minHeight` floors.
   ///
   /// A box without children still renders its flex container. It lays out
   /// nothing either way, but the web renderer marks every box as a flex
@@ -653,7 +661,7 @@ class FlutterBoxState extends State<FlutterBox> {
     core.Box box,
     core.BoxStyle style, {
     required double? availableWidth,
-    Map<int, double>? slots,
+    Map<int, GlobalKey>? bars,
   }) {
     final core.Axis direction = style.resolvedDirection;
     final double? gap = style.gap;
@@ -675,10 +683,10 @@ class FlutterBoxState extends State<FlutterBox> {
         );
       }
 
-      final double? slot = slots?[index];
+      final GlobalKey? bar = bars?[index];
 
       children.add(
-        slot == null
+        bar == null
             ? _buildChild(
                 box.children[index],
                 direction,
@@ -686,9 +694,9 @@ class FlutterBoxState extends State<FlutterBox> {
                 flexible: !wrap,
                 stretch: stretch,
               )
-            : SizedBox(
+            : _PinnedSlot(
                 key: _slots.putIfAbsent(index, GlobalKey.new),
-                height: slot,
+                bar: bar,
               ),
       );
     }
@@ -750,7 +758,7 @@ class FlutterBoxState extends State<FlutterBox> {
     }
 
     if (direction == core.Axis.horizontal) {
-      return Row(
+      final Widget row = Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: mainAxisAlignment,
         crossAxisAlignment: crossAxisAlignment,
@@ -759,15 +767,21 @@ class FlutterBoxState extends State<FlutterBox> {
         textBaseline: uniboxTextBaseline,
         children: children,
       );
+
+      return stretch ? _StretchedLine(across: Axis.vertical, child: row) : row;
     }
 
-    return Column(
+    final Widget column = Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: mainAxisAlignment,
       crossAxisAlignment: crossAxisAlignment,
       textBaseline: uniboxTextBaseline,
       children: children,
     );
+
+    return stretch
+        ? _StretchedLine(across: Axis.horizontal, child: column)
+        : column;
   }
 
   /// The content of the box inside its viewport.
@@ -833,16 +847,17 @@ class FlutterBoxState extends State<FlutterBox> {
   /// under it, and a browser only escapes that with the `z-index` it writes beside the
   /// position.
   ///
-  /// The slot keeps the room the bar takes — the height the tree states for it — so the
-  /// children below it never move, which is the promise a pin makes. Laying the flow out
-  /// exactly as before is the other half of it: `gap`, `crossAlign` and `mainAlign` stay a
-  /// flex container's, so the trees that already exist are drawn as they were.
+  /// The slot keeps the room the bar takes, which is the height the bar laid itself out at —
+  /// a number it does not have to state, because a bar whose content wraps has no height to
+  /// state. Laying the flow out exactly as before is the other half of it: `gap`, `crossAlign`
+  /// and `mainAlign` stay a flex container's, so the trees that already exist are drawn as
+  /// they were.
   Widget _buildPinnedContent(
     core.Box box,
     core.BoxStyle style, {
     required double? availableWidth,
   }) {
-    final Map<int, double> slots = <int, double>{};
+    final Map<int, GlobalKey> slots = <int, GlobalKey>{};
     final List<Widget> bars = <Widget>[];
 
     for (var index = 0; index < box.children.length; index++) {
@@ -850,45 +865,45 @@ class FlutterBoxState extends State<FlutterBox> {
       final core.Box? bar = child is core.Box ? child : null;
       final core.BoxStyle? barStyle = bar?.computedStyle;
       final core.BoxPin? pin = barStyle?.pin;
-      final double? height = barStyle?.height;
 
-      // A bar with no height of its own has no slot to hold open, so it stays in the
-      // flow: `validateTree` reports it, and drawing it as an ordinary child is the one
-      // answer both targets give for a pin they cannot honour.
-      if (bar == null || pin == null || height == null || !height.isFinite) {
+      // A bar has to be a length: `validateTree` reports one that states an infinity, since
+      // nothing can hold a slot of no size open, and drawing it in the flow is the one answer
+      // both targets give for a pin they cannot honour.
+      if (bar == null ||
+          pin == null ||
+          (barStyle!.height?.isInfinite ?? false)) {
         continue;
       }
 
-      slots[index] = height;
+      final GlobalKey barKey = _bars.putIfAbsent(index, GlobalKey.new);
+
+      slots[index] = barKey;
       bars.add(
         _pinnedChild(
           _buildChild(bar, core.Axis.vertical, availableWidth: availableWidth),
           scroll: _scroll,
           pin: pin,
           slot: _slots.putIfAbsent(index, GlobalKey.new),
-          height: height,
-          inset: barStyle!.resolvedPinOffset,
+          inset: barStyle.resolvedPinOffset,
           crossAlign: style.crossAlign ?? core.CrossAlign.start,
+          key: barKey,
         ),
       );
     }
 
-    return Stack(
-      clipBehavior: Clip.none,
+    return _PinnedLayer(
       children: <Widget>[
-        // Filled rather than sized by its content: a stack hands a child loose
-        // constraints, and a scroll view handed a loose height is as tall as the content
-        // it was given, which is a viewport with nothing to scroll.
-        Positioned.fill(
-          child: SingleChildScrollView(
-            scrollDirection: toAxis(style.resolvedDirection),
-            controller: _scroll,
-            child: _buildContent(
-              box,
-              style,
-              availableWidth: availableWidth,
-              slots: slots,
-            ),
+        // A scroll view handed a loose height is as tall as the content it was given, which is
+        // a viewport with nothing to scroll; the layer hands every child the room the box was
+        // given instead.
+        SingleChildScrollView(
+          scrollDirection: toAxis(style.resolvedDirection),
+          controller: _scroll,
+          child: _buildContent(
+            box,
+            style,
+            availableWidth: availableWidth,
+            bars: slots,
           ),
         ),
         ...bars,
@@ -927,23 +942,21 @@ class FlutterBoxState extends State<FlutterBox> {
     required ScrollController? scroll,
     required core.BoxPin pin,
     required GlobalKey slot,
-    required double height,
     required double inset,
     required core.CrossAlign crossAlign,
+    required GlobalKey key,
   }) {
     if (scroll == null) {
-      return const SizedBox.shrink();
+      return SizedBox.shrink(key: key);
     }
 
-    return Positioned.fill(
-      child: _PinnedBar(
-        scroll: scroll,
-        pin: pin,
-        slot: slot,
-        height: height,
-        inset: inset,
-        child: _aligned(bar, crossAlign),
-      ),
+    return _PinnedBar(
+      key: key,
+      scroll: scroll,
+      pin: pin,
+      slot: slot,
+      inset: inset,
+      child: _aligned(bar, crossAlign),
     );
   }
 
@@ -1042,20 +1055,21 @@ class FlutterBoxState extends State<FlutterBox> {
       return child;
     }
 
-    return direction == core.Axis.vertical
-        ? SizedBox(width: double.infinity, child: child)
-        : SizedBox(height: double.infinity, child: child);
+    return _FillCross(
+      across: direction == core.Axis.vertical ? Axis.horizontal : Axis.vertical,
+      child: child,
+    );
   }
 
   /// [child] sized the way the shares the box states ask for.
   ///
   /// A share of the parent with nothing taken off it is a `FractionallySizedBox`: it is the
   /// one shape whose constraint is the same on both targets, because a percentage is. The
-  /// other three cases each need a number that build time may not have — a share of the
-  /// viewport is resolved from the window, which is known while the box is built, and a
-  /// share of the parent that loses an inset needs the room the parent offers, which only a
-  /// layout pass knows, so it is measured with a `LayoutBuilder`. A box that states neither
-  /// pays for neither.
+  /// other cases each need a number that build time may not have — a share of the viewport is
+  /// resolved from the window, which is known while the box is built, and a share of the
+  /// parent that loses an inset needs the room the parent offers, which only a layout pass
+  /// knows, so it is measured with a `LayoutBuilder`. A box that states neither pays for
+  /// neither.
   Widget _fractioned(
     Widget child,
     core.BoxFraction? width,
@@ -1127,9 +1141,10 @@ class FlutterBoxState extends State<FlutterBox> {
           : style.height != null || style.heightFraction != null;
 
       if (!statesSize) {
-        result = acrossWidth
-            ? SizedBox(width: double.infinity, child: result)
-            : SizedBox(height: double.infinity, child: result);
+        result = _FillCross(
+          across: acrossWidth ? Axis.horizontal : Axis.vertical,
+          child: result,
+        );
       }
     }
 
@@ -1639,21 +1654,24 @@ typedef _Timing = ({Duration duration, Curve curve});
 
 /// A bar drawn over its viewport at the edge it pins to.
 ///
-/// It lays out like any child of the drawing stack it sits in — the whole width of the
-/// viewport, the height the tree states for it — and paints at the place the scroll offset
-/// puts it. Painting rather than rebuilding is what makes the pin cheap: a scroll asks the
-/// layer to repaint, the bar's own subtree is built once, and a field or a menu inside it
-/// keeps its state while it is being carried around.
+/// It takes the whole width of the viewport and the height its own content asks for, and
+/// paints at the place the scroll offset puts it. Painting rather than rebuilding is what
+/// makes the pin cheap: a scroll asks the layer to repaint, the bar's own subtree is built
+/// once, and a field or a menu inside it keeps its state while it is being carried around.
+///
+/// The height is measured rather than stated, which is what lets a bar whose content wraps
+/// pin: the slot it keeps in the flow reads [height] back, so a filter row that takes a
+/// second line on a narrow window is as tall as the label it could not fit.
 ///
 /// The slot the bar keeps in the flow is a [RenderObject] of its own, and the bar reads
 /// its position from it in [RenderBox.performLayout] — after the flow has been laid out and
 /// before anything is painted, so the first frame is drawn where the bar belongs.
 class _PinnedBar extends SingleChildRenderObjectWidget {
   const _PinnedBar({
+    super.key,
     required this.scroll,
     required this.pin,
     required this.slot,
-    required this.height,
     required this.inset,
     required super.child,
   });
@@ -1670,15 +1688,12 @@ class _PinnedBar extends SingleChildRenderObjectWidget {
   /// The slot it keeps in the flow, whose position is where it settles back to.
   final GlobalKey slot;
 
-  /// The height it keeps, in logical pixels, which is also the slot's.
-  final double height;
-
   /// The room it keeps from the edge while it is pinned.
   final double inset;
 
   @override
   _RenderPinnedBar createRenderObject(BuildContext context) =>
-      _RenderPinnedBar(scroll, pin, slot, height, inset);
+      _RenderPinnedBar(scroll, pin, slot, inset);
 
   @override
   void updateRenderObject(BuildContext context, _RenderPinnedBar renderObject) {
@@ -1686,26 +1701,22 @@ class _PinnedBar extends SingleChildRenderObjectWidget {
       ..scroll = scroll
       ..pin = pin
       ..slot = slot
-      ..height = height
       ..inset = inset;
   }
 }
 
 /// Where a [_PinnedBar] paints: the layout of a box, the geometry of a sticky one.
 class _RenderPinnedBar extends RenderProxyBox {
-  _RenderPinnedBar(
-    this._scroll,
-    this._pin,
-    this._slot,
-    this._height,
-    this._inset,
-  );
+  _RenderPinnedBar(this._scroll, this._pin, this._slot, this._inset);
 
   ScrollController _scroll;
   core.BoxPin _pin;
   GlobalKey _slot;
-  double _height;
   double _inset;
+
+  /// The height the bar measured for itself in the last layout, which is the room its slot
+  /// keeps in the flow.
+  double _height = 0;
 
   set scroll(ScrollController value) {
     if (identical(value, _scroll)) {
@@ -1739,14 +1750,11 @@ class _RenderPinnedBar extends RenderProxyBox {
     markNeedsLayout();
   }
 
-  set height(double value) {
-    if (value == _height) {
-      return;
-    }
-
-    _height = value;
-    markNeedsLayout();
-  }
+  /// The height the bar laid itself out at, which is the room it keeps in the flow.
+  ///
+  /// Read by the slot the flow holds open for it, in the same layout pass and after this
+  /// bar: the layer lays its children out in reverse for exactly this reason.
+  double get height => _height;
 
   set inset(double value) {
     if (value == _inset) {
@@ -1785,16 +1793,21 @@ class _RenderPinnedBar extends RenderProxyBox {
     final BoxConstraints constraints = this.constraints;
 
     if (child != null) {
-      // The bar keeps the width the viewport hands it and the height it states, which is
-      // the room its slot holds in the flow; a viewport that is itself unconstrained across
-      // leaves the bar its own width rather than an infinity no box can be laid out in.
+      // The bar keeps the width the viewport hands it — a viewport that is itself unconstrained
+      // across leaves the bar its own width rather than an infinity no box can be laid out in —
+      // and it is as tall as its own content asks. Measuring it is what the slot in the flow
+      // reads, so a bar that wraps needs no stated height and no second build to learn one.
       child.layout(
-        BoxConstraints.tightFor(
-          width: constraints.hasBoundedWidth ? constraints.maxWidth : null,
-          height: _height,
+        BoxConstraints(
+          minWidth: constraints.hasBoundedWidth ? constraints.maxWidth : 0,
+          maxWidth: constraints.hasBoundedWidth
+              ? constraints.maxWidth
+              : double.infinity,
         ),
         parentUsesSize: true,
       );
+
+      _height = child.size.height;
     }
 
     // The layer fills the viewport, and takes the bar's own height where the viewport was
@@ -1900,12 +1913,311 @@ class _RenderPinnedBar extends RenderProxyBox {
   }
 }
 
+/// The content of a box that holds pinned bars: the flow, with the bars layered over it.
+///
+/// A `Stack` would almost do, and does not, for one reason: a stack lays its children out in
+/// the order it paints them, and this layer needs the reverse. The slot a bar keeps in the
+/// flow is the height the bar laid itself out at, so the bars have to be laid out *before*
+/// the flow that reads them — and painted *after* it, because a bar covers the content that
+/// scrolls under it.
+class _PinnedLayer extends MultiChildRenderObjectWidget {
+  const _PinnedLayer({required super.children});
+
+  @override
+  _RenderPinnedLayer createRenderObject(BuildContext context) =>
+      _RenderPinnedLayer();
+}
+
+/// Where a child of a [_PinnedLayer] sits, which is nowhere: every child fills the layer.
+final class _PinnedLayerData extends ContainerBoxParentData<RenderBox> {}
+
+class _RenderPinnedLayer extends RenderBox
+    with
+        ContainerRenderObjectMixin<RenderBox, _PinnedLayerData>,
+        RenderBoxContainerDefaultsMixin<RenderBox, _PinnedLayerData> {
+  @override
+  void setupParentData(RenderBox child) {
+    if (child.parentData is! _PinnedLayerData) {
+      child.parentData = _PinnedLayerData();
+    }
+  }
+
+  @override
+  double computeMinIntrinsicWidth(double height) => 0;
+
+  @override
+  double computeMaxIntrinsicWidth(double height) => 0;
+
+  @override
+  double computeMinIntrinsicHeight(double width) => 0;
+
+  @override
+  double computeMaxIntrinsicHeight(double width) => 0;
+
+  @override
+  Size computeDryLayout(covariant BoxConstraints constraints) =>
+      constraints.biggest;
+
+  @override
+  void performLayout() {
+    final Size extent = constraints.biggest;
+    final BoxConstraints tight = BoxConstraints.tight(extent);
+
+    // The flow is the first child and the bars follow it, which is the order they are painted
+    // in; the order they are laid out in is the reverse, so the slot a bar leaves in the flow
+    // is filled with a height this pass measured rather than the one the pass before it did.
+    final List<RenderBox> ordered = <RenderBox>[];
+    RenderBox? child = firstChild;
+
+    while (child != null) {
+      ordered.add(child);
+      child = childAfter(child);
+    }
+
+    for (final RenderBox each in ordered.reversed) {
+      // `parentUsesSize` on every one of them: a bar that grows its content has to relayout
+      // the flow that keeps its room, and a slot is read from a bar, not owned by it.
+      each.layout(tight, parentUsesSize: true);
+    }
+
+    size = extent;
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) =>
+      defaultPaint(context, offset);
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) =>
+      defaultHitTestChildren(result, position: position);
+}
+
 /// A box painted under the look a fold has reached, in the viewport that scrolls it.
 ///
 /// The layer paints; it does not rebuild. The decoration, the opacity and the transform are
 /// interpolated when the box is painted, from how far it has travelled out of its viewport, so
 /// a scroll costs a repaint of one layer and the box's children are built once. That is the
 /// whole reason a fold may not move a layout: a frame of it is a look, and a look is a paint.
+
+/// The room a pinned bar keeps in the flow, read from the bar's own layout.
+///
+/// A bar with no stated height is as tall as its content, which nobody knows until it has
+/// been laid out: this is the widget that turns that measurement into the space the flow
+/// holds open, so nothing below the bar moves when it is away at the edge. The number is read
+/// from the bar's render object rather than passed through a callback, because a callback
+/// would mean a rebuild and a frame drawn at the height of the frame before.
+class _PinnedSlot extends LeafRenderObjectWidget {
+  const _PinnedSlot({required this.bar, super.key});
+
+  /// The key of the bar this slot keeps the room for.
+  final GlobalKey bar;
+
+  @override
+  _RenderPinnedSlot createRenderObject(BuildContext context) =>
+      _RenderPinnedSlot(bar);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderPinnedSlot renderObject,
+  ) {
+    renderObject.bar = bar;
+  }
+}
+
+class _RenderPinnedSlot extends RenderBox {
+  _RenderPinnedSlot(this._bar);
+
+  GlobalKey _bar;
+
+  set bar(GlobalKey value) {
+    if (identical(value, _bar)) {
+      return;
+    }
+
+    _bar = value;
+    markNeedsLayout();
+  }
+
+  @override
+  void performLayout() {
+    final RenderObject? found = _bar.currentContext?.findRenderObject();
+    final double height = found is _RenderPinnedBar ? found.height : 0;
+
+    // A slot keeps the room and no width: it sits in a column, where the cross axis is the
+    // box's own business.
+    size = constraints.constrain(Size(0, height));
+  }
+
+  @override
+  Size computeDryLayout(covariant BoxConstraints constraints) => Size.zero;
+
+  // The slot draws nothing — the bar it stands for is painted by the layer — so it takes no
+  // press either: a press where the bar came from belongs to the content underneath it.
+  @override
+  bool hitTest(BoxHitTestResult result, {required Offset position}) => false;
+}
+
+/// A line that is as tall — or as wide — as its tallest item when nothing gave it an end.
+///
+/// A stretch is CSS's `align-items: stretch`, and the half of it that Flutter's own
+/// `CrossAxisAlignment.stretch` cannot express is where the line's extent comes from: a
+/// browser makes the line as tall as its tallest item and fills the rest to it, so a row
+/// inside a column that scrolls has a height although nothing above it stated one. A flex
+/// handed an endless cross axis refuses instead — "BoxConstraints forces an infinite height"
+/// — because it is asked to fill an extent that does not exist yet.
+///
+/// So the line is laid out twice when it has no end: once as it is, to find the tallest item,
+/// and once tight to that extent, which is the extent the items then fill. A line that *was*
+/// given an end — a row in a box that states its height, a `flex` child of a column — is laid
+/// out once and costs nothing, which is every stretch that already worked.
+class _StretchedLine extends SingleChildRenderObjectWidget {
+  const _StretchedLine({required this.across, required super.child});
+
+  /// The axis the items fill: the cross axis of the line, which is the axis of the extent
+  /// that has to be measured.
+  final Axis across;
+
+  @override
+  _RenderStretchedLine createRenderObject(BuildContext context) =>
+      _RenderStretchedLine(across);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderStretchedLine renderObject,
+  ) {
+    renderObject.across = across;
+  }
+}
+
+class _RenderStretchedLine extends RenderProxyBox {
+  _RenderStretchedLine(this._across);
+
+  Axis _across;
+
+  set across(Axis value) {
+    if (value == _across) {
+      return;
+    }
+
+    _across = value;
+    markNeedsLayout();
+  }
+
+  bool _hasEnd(BoxConstraints constraints) => _across == Axis.vertical
+      ? constraints.hasBoundedHeight
+      : constraints.hasBoundedWidth;
+
+  @override
+  void performLayout() {
+    final RenderBox? child = this.child;
+
+    if (child == null) {
+      size = constraints.smallest;
+
+      return;
+    }
+
+    if (_hasEnd(constraints)) {
+      child.layout(constraints, parentUsesSize: true);
+      size = constraints.constrain(child.size);
+
+      return;
+    }
+
+    // No end to fill: the line is as tall as the tallest item, which is what a browser
+    // resolves `align-items: stretch` against. Measured on a first pass and filled on a
+    // second, so the items are handed a number rather than an infinity.
+    final BoxConstraints unbounded = _across == Axis.vertical
+        ? constraints.copyWith(maxHeight: double.infinity)
+        : constraints.copyWith(maxWidth: double.infinity);
+
+    child.layout(unbounded, parentUsesSize: true);
+
+    final double extent = _across == Axis.vertical
+        ? child.size.height
+        : child.size.width;
+    final BoxConstraints tight = _across == Axis.vertical
+        ? constraints.copyWith(minHeight: extent, maxHeight: extent)
+        : constraints.copyWith(minWidth: extent, maxWidth: extent);
+
+    child.layout(tight, parentUsesSize: true);
+    size = constraints.constrain(child.size);
+  }
+}
+
+/// Fills the room it is offered on one axis, and asks for nothing when there is none.
+///
+/// This is the other half of a stretch: an item whose cross size is `auto` fills the line,
+/// and the line is as tall as its tallest item. `SizedBox(height: double.infinity)` was the
+/// earlier spelling and could not express the second half — an infinity inside a line that
+/// has no end is the constraint Flutter refuses, and it is also a number an intrinsic pass
+/// cannot measure, so the line could not be measured before it was filled.
+///
+/// The fill is only ever as big as the room offered: a line measured at 300 fills 300, and a
+/// line with no end at all leaves the child at its own size, which is what makes the two-pass
+/// layout of [_StretchedLine] possible.
+class _FillCross extends SingleChildRenderObjectWidget {
+  const _FillCross({required this.across, required super.child});
+
+  /// The axis to fill.
+  final Axis across;
+
+  @override
+  _RenderFillCross createRenderObject(BuildContext context) =>
+      _RenderFillCross(across);
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderFillCross renderObject) {
+    renderObject.across = across;
+  }
+}
+
+class _RenderFillCross extends RenderProxyBox {
+  _RenderFillCross(this._across);
+
+  Axis _across;
+
+  set across(Axis value) {
+    if (value == _across) {
+      return;
+    }
+
+    _across = value;
+    markNeedsLayout();
+  }
+
+  /// The constraints that fill [available] on this axis, or `null` when there is nothing to
+  /// fill because the axis has no end.
+  BoxConstraints? _fill(BoxConstraints available) {
+    if (_across == Axis.vertical) {
+      return available.hasBoundedHeight
+          ? BoxConstraints.tightFor(height: available.maxHeight)
+                .enforce(available)
+          : null;
+    }
+
+    return available.hasBoundedWidth
+        ? BoxConstraints.tightFor(width: available.maxWidth).enforce(available)
+        : null;
+  }
+
+  @override
+  void performLayout() {
+    final RenderBox? child = this.child;
+
+    if (child == null) {
+      size = constraints.smallest;
+
+      return;
+    }
+
+    child.layout(_fill(constraints) ?? constraints, parentUsesSize: true);
+    size = constraints.constrain(child.size);
+  }
+}
+
 class _FoldedBox extends SingleChildRenderObjectWidget {
   const _FoldedBox({
     required this.position,

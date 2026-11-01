@@ -201,18 +201,21 @@ never inherited (CSS does not inherit them either).
 - A token whose effect only exists while the content moves is still a parity claim.
   `pin` says where a bar comes to rest in the viewport that scrolls it, which no static
   appearance can show: the bar looks the same pinned or not. So the token is held to the
-  facts that *are* checkable — the slot in the flow, the paint order, the height the tree
-  states for it — and each renderer's suite scrolls it rather than the appearance table.
-  The height is part of the API for that reason: Flutter draws the bar over the viewport
-  and the flow keeps its room from the number the tree states. So is the bar's parent: a
-  bar is drawn by the box that scrolls it, and a browser would pin one nested a level
-  down inside *that* box instead, so `validateTree` reports a pin that is not a child of
-  its viewport rather than letting the two targets come to rest in different places. The
-  share a `flex` asks for is reported for the same reason: a bar keeps its stated height,
-  and a browser would grow it with the free space it has. A pin with no scrolling box
-  above it is the one documented asymmetry: a browser pins it to the document, which
-  scrolls a page, and Flutter has no viewport to pin it to, which the Flutter README
-  records beside `srcSet`.
+  facts that *are* checkable — the slot in the flow, the paint order, the height the bar
+  measures for itself — and each renderer's suite scrolls it rather than the appearance
+  table. That height is measured rather than stated, on both targets and for the same
+  reason: `position: sticky` needs no height because the element keeps its own room in the
+  flow, and Flutter now does the same — the bar is laid out once, at the viewport's width
+  and its own height, and the slot the flow holds open reads that number back. A bar whose
+  labels wrap is therefore a bar with no stated height, which is what the model wanted and
+  what the two engines disagreed about. So is the bar's parent: a bar is drawn by the box
+  that scrolls it, and a browser would pin one nested a level down inside *that* box
+  instead, so `validateTree` reports a pin that is not a child of its viewport rather than
+  letting the two targets come to rest in different places. The share a `flex` asks for is
+  reported for the same reason: a bar measures its own height, and a browser would grow it
+  with the free space it has. A pin with no scrolling box above it is the one documented
+  asymmetry: a browser pins it to the document, which scrolls a page, and Flutter has no
+  viewport to pin it to, which the Flutter README records beside `srcSet`.
 - A fold is the third kind of motion, and the first that is a *position* rather than a
   state or a clock. A state changes and a transition hides the swap; a fold does not
   change anything — it paints another look the further the box has travelled out of its

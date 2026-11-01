@@ -87,7 +87,7 @@ class TreeIssue {
 ///   targets lay the children out differently,
 /// * a pin the nearest viewport cannot honour — one inside a box that scrolls
 ///   sideways, one inside a box that only clips, one that is not a child of the box
-///   that scrolls it, an end pin with no height to keep its slot, a share of the box,
+///   that scrolls it, a bar that states an infinite height, a share of the box,
 ///   and a negative inset — plus an inset with no pin to hold it,
 /// * an aspect ratio that cannot divide anything — a ratio next to a width and a
 ///   height, or one that is not positive,
@@ -627,10 +627,10 @@ void _validate(
         );
       }
 
-      // The slot a pinned bar keeps in the flow is the height the tree states, which is what
-      // keeps the children below it still. A share of the box would grow the bar in a
-      // browser's flex layout and change nothing in Flutter, which draws the bar from the
-      // height it was given.
+      // The slot a pinned bar keeps in the flow is the height it lays itself out at, which is
+      // what keeps the children below it still. A share of the box would grow the bar in a
+      // browser's flex layout while Flutter measures the bar itself, so the two would disagree
+      // about the room it takes as well as about where it settles.
       if ((style.flex ?? 0) > 0) {
         issues.add(
           TreeIssue(
@@ -645,19 +645,19 @@ void _validate(
         );
       }
 
-      // Flutter draws a pinned bar over its viewport while its slot stays in the flow, and
-      // the slot is the size the tree states. Without one there is nothing to hold open, and
-      // the content below would move when the bar came out of it.
-      if (style.height == null || !style.height!.isFinite) {
+      // A bar's slot in the flow is the height it lays itself out at: its content, or the height
+      // it states, or the floor its `minHeight` states. What a slot cannot be is an infinity —
+      // a bar that fills has no length to hold open, and neither target can measure one.
+      if (style.height?.isInfinite ?? false) {
         issues.add(
           TreeIssue(
             node: node,
             severity: TreeIssueSeverity.error,
             message:
-                'A box pins (pin: BoxPin.${pin.name}) without a finite height. A pinned '
-                'bar is drawn over its viewport and keeps its slot in the flow, and that '
-                'slot is the height the box states. State a height, so nothing below the '
-                'bar moves while it is away at the edge.',
+                'A box pins (pin: BoxPin.${pin.name}) with height: double.infinity, and a '
+                'pinned bar keeps a slot in the flow the size of its own height: an '
+                'infinity is not a height to hold open. Leave the height unset so the bar '
+                'is as tall as its content, or state one.',
           ),
         );
       }
