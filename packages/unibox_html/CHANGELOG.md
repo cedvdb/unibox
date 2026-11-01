@@ -10,9 +10,11 @@
   on idle spent two megabytes of engine and 1.9 seconds of blocking on a phone, on behalf of a
   reader who may never have scrolled to it. A key, a focus move and a press are deliberately not
   signals: the document is the accessible rendering and the application is a canvas, so booting on
-  a keystroke would take the page from a keyboard reader mid-read. It also waits while the frame
-  holds the focus, because the boot replaces every element in the document and would take away the
-  element a reader is on.
+  a keystroke would take the page from a keyboard reader mid-read. Those readers are not left
+  without the application either: a frame with this policy carries a real `<button>` first in its
+  body — `Takeover.openLabel` names it — that boots the application when they choose it. It also
+  waits while the frame holds the focus, because the boot replaces every element in the document
+  and would take away the element a reader is on.
 - A share of the viewport reaches the page as `max(0px, calc(100dvh - 216px))` in the box's
   class rule, so a panel that fills what the window leaves after a header needs no host CSS
   and no statement of the header's height in a media query.

@@ -85,13 +85,17 @@ enum BootPolicy {
 ///
 /// [policy] decides when the boot happens — see [BootPolicy]. It is the one thing a host knows
 /// and a document cannot: which of the three kinds of page it published.
-String bootScript(String src, {BootPolicy policy = BootPolicy.onPointer}) =>
-    _bootTemplate
-        .replaceAll('%START%', _startOf(policy))
-        .replaceAll('%INTENT%', _intentOf(policy))
-        .replaceAll('%GUARD%', _guardOf(policy))
-        .replaceAll('%IDLE%', _idleOf(policy))
-        .replaceAll('%SRC%', _jsString(src));
+String bootScript(
+  String src, {
+  BootPolicy policy = BootPolicy.onPointer,
+  String openLabel = 'Open the application',
+}) => _bootTemplate
+    .replaceAll('%START%', _startOf(policy))
+    .replaceAll('%INTENT%', _intentOf(policy))
+    .replaceAll('%GUARD%', _guardOf(policy))
+    .replaceAll('%IDLE%', _idleOf(policy))
+    .replaceAll('%OPEN%', _openOf(policy, openLabel))
+    .replaceAll('%SRC%', _jsString(src));
 
 /// What the script does as soon as it runs.
 String _startOf(BootPolicy policy) =>
@@ -123,6 +127,73 @@ String _idleOf(BootPolicy policy) => switch (policy) {
   BootPolicy.onIntent => _nothingMore,
 };
 
+/// Whether the page carries the control that opens the application.
+///
+/// It does for [BootPolicy.onIntent], and only there: it is the one policy whose signals a
+/// keyboard and a screen reader never produce, so without a control the application would be
+/// something those readers could not reach at all — which is not a trade a policy may make on an
+/// application's behalf. A front door needs none: a key boots it, and so does the browser going
+/// idle.
+String _openOf(BootPolicy policy, String label) => switch (policy) {
+  BootPolicy.immediately || BootPolicy.onPointer => '',
+  BootPolicy.onIntent => _openControl.replaceAll('%LABEL%', _jsString(label)),
+};
+
+/// The control that opens the application, for a reader who never moves a pointer.
+///
+/// A real `<button>`, first in the body, so Tab meets it before anything else and a screen reader
+/// announces it — and moved out of the page until it takes the focus, which is the skip control
+/// every reader already knows. It says what it does rather than what it changes, and it is gone
+/// once the application is there.
+const String _openControl = '''
+
+  function offer() {
+    var ask = document.createElement('button');
+    ask.type = 'button';
+    ask.className = 'unibox-open';
+    ask.textContent = '%LABEL%';
+    ask.setAttribute('data-unibox-open', 'true');
+    ask.style.cssText = [
+      'position:absolute',
+      'top:-100px',
+      'left:8px',
+      'z-index:2147483647',
+      'padding:8px 12px',
+      'font:inherit',
+      'color:#000',
+      'background:#fff',
+      'border:2px solid #000',
+      'border-radius:6px',
+      'cursor:pointer'
+    ].join(';');
+
+    // Out of the way until it is asked for: a reader who does not need it never sees it, and one
+    // who tabs into this document meets it first.
+    ask.addEventListener('focus', function () {
+      ask.style.top = '8px';
+    });
+
+    ask.addEventListener('blur', function () {
+      ask.style.top = '-100px';
+    });
+
+    // `boot` removes it; taking it away here as well keeps a press that lands twice from asking
+    // twice.
+    ask.addEventListener('click', function () {
+      ask.remove();
+      boot();
+    });
+
+    var body = document.body || document.documentElement;
+    body.insertBefore(ask, body.firstChild);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', offer);
+  } else {
+    offer();
+  }''';
+
 /// The template, with the parts a host chooses as placeholders.
 ///
 /// Substituted rather than interpolated, so no JavaScript in it can be read as Dart.
@@ -140,6 +211,11 @@ const String _bootTemplate = '''
   function boot() {
     if (booted) { return; }
     booted = true;
+
+    // The way in has done its job, and an application that is here is not one to be offered.
+    var offered = document.querySelector('[data-unibox-open]');
+
+    if (offered) { offered.remove(); }
 
     var element = document.createElement('script');
     element.src = source;
@@ -172,6 +248,7 @@ const String _bootTemplate = '''
     if (wanted) { ready(); }
   });
 %IDLE%
+%OPEN%
 
 %START%
 })();

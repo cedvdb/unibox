@@ -29,6 +29,7 @@ final class Takeover {
   const Takeover({
     required this.boot,
     this.policy = BootPolicy.onPointer,
+    this.openLabel = 'Open the application',
     this.record = true,
     this.nonce,
   });
@@ -38,6 +39,17 @@ final class Takeover {
 
   /// When the boot starts.
   final BootPolicy policy;
+
+  /// The name of the control that opens the application, for a reader the pointer signals never
+  /// reach — a keyboard reader, or one whose assistive technology drives the focus.
+  ///
+  /// Only [BootPolicy.onIntent] writes it, because it is the one policy that has no way in
+  /// otherwise: a press, a key and a focus move are not signals *by design* (see the policy), so
+  /// the document carries a control that says what it does instead. Name it after the application
+  /// rather than the technology — `'Open the map'`, not `'Switch to Flutter'` — because that is
+  /// what a reader is choosing, and it is written into the content of the page rather than into an
+  /// attribute, so it belongs to the document's language.
+  final String openLabel;
 
   /// Whether the recorders travel with the boot.
   ///
@@ -51,7 +63,7 @@ final class Takeover {
   /// The scripts this takeover carries, in the order a page should run them.
   List<String> get scripts => <String>[
     if (record) uniboxClientScript,
-    bootScript(boot, policy: policy),
+    bootScript(boot, policy: policy, openLabel: openLabel),
   ];
 
   /// The link that fetches the loader while the reader reads, so a boot that waits for a

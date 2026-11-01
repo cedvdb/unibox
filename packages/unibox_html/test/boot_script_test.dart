@@ -163,6 +163,42 @@ void main() {
       expect(bootScript('a.js'), isNot(contains('document.activeElement')));
     });
 
+    test('offers the application to a reader the pointer never reaches', () {
+      // A policy that only a pointer satisfies would deny the application to a keyboard reader,
+      // which is not a trade a policy may make on an application's behalf. So the document carries
+      // a real control, first in the body, named by its host.
+      final String script = bootScript(
+        'a.js',
+        policy: BootPolicy.onIntent,
+        openLabel: 'Open the map',
+      );
+
+      expect(script, contains("document.createElement('button')"));
+      expect(script, contains('Open the map'));
+      expect(script, contains('insertBefore(ask, body.firstChild)'));
+      // Out of the page until it takes the focus: the skip control, not a decoration.
+      expect(script, contains("ask.addEventListener('focus'"));
+      expect(script, contains("ask.style.top = '8px'"));
+      // And gone once the application is there, however it arrived.
+      expect(script, contains("document.querySelector('[data-unibox-open]')"));
+
+      // A front door needs none of it: a key boots it, and so does the browser going idle.
+      expect(bootScript('a.js'), isNot(contains("createElement('button')")));
+    });
+
+    test('keeps a label that would end the element it is written into', () {
+      // The name is content rather than markup, and it came from a host — which is the same gate
+      // the loader's url goes through.
+      final String script = bootScript(
+        'a.js',
+        policy: BootPolicy.onIntent,
+        openLabel: "a'</script><script>alert(1)//",
+      );
+
+      expect(script, isNot(contains('</script><script>')));
+      expect(script, contains(r'<\/script>'));
+    });
+
     test('cannot be broken out of by the url it is given', () {
       // A parameter that becomes markup is an injection, and this one sits in a raw text
       // element where nothing is escaped for us.

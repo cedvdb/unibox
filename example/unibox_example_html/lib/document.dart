@@ -70,9 +70,11 @@ Document buildExampleDocument({String? build}) {
 /// engine — two megabytes of canvas, compiled and started, 1.9 seconds of blocking on a phone —
 /// on behalf of a reader who may never look at it. A frame that waits costs its own document until
 /// the reader looks at it: a pointer that moves over the page or over the frame, a scroll, a touch.
-/// A keystroke is not on that list, because the document is what a keyboard reader's screen reader
-/// can read and the application is a canvas — and the boot also waits while a reader's focus is
-/// inside the frame, so a field being typed into is never swapped out from under them.
+/// A keystroke is not on that list, because the boot replaces everything the document holds and a
+/// keyboard reader's Tab must not take the page out from under them — so the frame carries its own
+/// way in instead: a real control, first in the body, that opens the application when they choose
+/// it. The boot also waits while a reader's focus is inside the frame, so a field being typed into
+/// is never swapped out from under them.
 Document buildTakeoverDocument({String? build}) {
   return Document(
     node: ExamplePageNode(photoPrefix: '../../'),
@@ -86,7 +88,13 @@ Document buildTakeoverDocument({String? build}) {
       raw: <String>['<style>${fontFaceCss('../../')}$pageCss</style>'],
     ),
     theme: ExamplePalette.themeFor(ExampleSeed.defaultSeed),
-    takeover: const Takeover(boot: boot, policy: BootPolicy.onIntent),
+    takeover: const Takeover(
+      boot: boot,
+      policy: BootPolicy.onIntent,
+      // What a reader who never moves a pointer is offered: the application, by name, as a real
+      // control they can Tab to. The name says what they get, not what it is made of.
+      openLabel: 'Open the apartments in Flutter',
+    ),
   );
 }
 

@@ -243,16 +243,19 @@ in the middle of the host page never reaches a frame's own window — and from t
 window, so moving over the frame itself answers too.
 
 Its signals are the ones that mean *looking*: `pointermove`, `pointerover`, `touchstart` and
-`wheel`. A key, a focus move and a press are deliberately **not** signals, and the asymmetry is
-the accessibility one: the document is the rendering a reader can actually use — real headings,
-links and fields, interactive through the client renderer — while the application is a canvas
-whose semantics a screen reader has to ask for. Booting on a keystroke would take the page from
-a keyboard reader, mid-read, and hand them something harder to read: so their Tab and their
-assistive technology's focus moves leave the document alone, and the document is what they get.
-For the same reason the boot waits while the frame holds the focus — it replaces every element in
-the document, so it would take away the element a reader is on and empty a field they had typed
-into — and it is `onIntent` alone that waits, because a front door's document is a first frame
-rather than the page. None of the three policies boots before the first paint.
+`wheel`. A key, a focus move and a press are deliberately **not** signals, because the boot
+replaces every element in the document: booting on a keystroke would take the page from a keyboard
+reader mid-read, and a press is answered by the document, which is the accessible rendering. That
+is only half a policy — a reader who never moves a pointer would be left with a document and no
+application — so the frame carries **a way in**: a real `<button>`, first in its body, named by
+`Takeover.openLabel` (`'Open the apartments in Flutter'`), Tab-reachable before anything else and
+moved out of the page until it takes the focus, which is the skip control every reader already
+knows. Pressing it boots the application and removes the control. So the application is never
+unreachable, and it is never something that happens *to* a reader of the document.
+
+The boot also waits while the frame holds the focus, and that waits for `onIntent` alone: a front
+door's document is a first frame rather than the page, so its boot is not held back by a focus
+someone put there while the application arrives. None of the policies boots before the first paint.
 
 ## A shaped box
 
