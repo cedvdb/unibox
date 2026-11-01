@@ -247,7 +247,7 @@ pays for nothing:
 | --- | --- |
 | `scrollScript` | records where each keyed region is scrolled to, and answers `window.unibox.takeScroll()` |
 | `pressScript` | records the key and the position of a press, and answers `window.unibox.takePressed()` |
-| `bootScript(url, policy:)` | loads the application on a signal, never before the first paint |
+| `bootScript(url, policy:)` | loads the application on a signal, never before the first paint, and hands the page over |
 | `uniboxClientScript` | both recorders, for a host that wants one file |
 
 `Takeover` is how a page asks for all of it at once:
@@ -256,7 +256,10 @@ pays for nothing:
 final String page = toDocument(
   ListingsPage(listings),
   head: const DocumentHead(title: 'Apartments'),
-  takeover: const Takeover(boot: '../../flutter/flutter_bootstrap.js'),
+  takeover: const Takeover(
+    boot: '/flutter/flutter_bootstrap.js',
+    reveal: RevealPolicy.onReady,
+  ),
 );
 ```
 
@@ -264,6 +267,56 @@ It prefetches the loader at a low priority — deferring the download as well as
 how a page gets a good score and a two-second dead click — and places the recorders before the
 boot, because the application asks what the reader did. `record: false` is for a page that only
 has to boot.
+
+### The handover has three states, and it says so
+
+Starting the engine and showing it are two different moments, and the second is the one a reader
+feels. The boot writes `data-unibox-state` on the document element — `document`, `booting`,
+`ready`, `app`, `failed` — and a host can style any of them:
+
+| State | The document | The application |
+| --- | --- | --- |
+| `document` | the page | not started |
+| `booting` | still the page: readable, pressable, scrollable, recording | loading, `opacity: 0`, unreachable by pointer or Tab |
+| `ready` | about to go | announced, fading in if the host's CSS says so |
+| `app` | `inert`, out of the tree a reader sees, then removed | the page |
+| `failed` | the page, unharmed | gone |
+
+Three things follow from it, and none of them is the host's to remember:
+
+- **The engine is found, not named.** Everything that appears in the body after the boot is the
+  application's, whatever this Flutter version calls it — `flutter-view` today, `flt-glass-pane`
+  before it. It is marked `data-unibox-app` and given `tabindex="-1"`, which is what a host's CSS
+  styles and what the reveal focuses.
+- **The reveal is an accessibility event.** Focus moves into the application, one `role="status"`
+  sentence (`Takeover.readyLabel`) is announced in the document's language, and only then does the
+  document become `inert` and leave the page. It never happens while a reader is focused inside
+  the document — on any policy, because the reveal is what takes the element away, not the boot.
+- **Nothing moves for a reader who asked for less motion.** The library writes the state and a
+  small rule; a host that wants a crossfade writes the transition in its own stylesheet, inside
+  `@media (prefers-reduced-motion: no-preference)`.
+
+`RevealPolicy` decides when the application is worth showing. `onFrame` (the default) shows the
+engine's first frame; `onReady` waits for the application to say it has drawn the state it was
+given — which `unibox_flutter` says without being asked, and which is the right answer for a page
+whose scroll offset and press are being replayed. `readyTimeout` bounds either: a frame that is
+available is revealed when it expires, and a page with no frame at all goes back to being a
+document rather than staying blank.
+
+### The address may narrow, and a debug build may inspect
+
+| Parameter | Effect | Needs `Takeover(debug: true)` |
+| --- | --- | --- |
+| `?unibox=document` | never boot; the page stays the document | no — it can only take an application away |
+| `?unibox=debug` | the marks and the two checks a host cannot see for itself | yes |
+| `?unibox=profile` | the same marks as `unibox:*` performance measures and as `window.unibox.profile` | yes |
+| `?unibox=compare` | keeps the document and draws the application at 50% over it | yes |
+
+`?unibox=document` is the escape hatch an accessibility story needs: a reader who wants the text
+can say so in a url they can bookmark, share or paste into a ticket, and it survives a reload.
+`?unibox=compare` is the cheapest way to see whether the two renderings of one tree agree — the
+takeover already *is* two renderings, so the comparison is free. `Takeover(query: false)` turns
+the whole table off, including the escape hatch.
 
 `BootPolicy` is the one choice left, and it is a choice about the page rather than about an event:
 `immediately` for a screen nobody arrives at by accident, `onPointer` (the default) for an

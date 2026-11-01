@@ -1,7 +1,7 @@
 # The takeover: a bootstrap we own, and a handover that waits
 
-**Status: proposed.** Nothing in this document has landed. It is the design for one
-change, split into parts that can each be reviewed and reverted on their own.
+**Status: landed.** The design below is what shipped, in the order §10 gives; what the
+implementation changed about it is recorded in §11. Nothing here is a proposal any more.
 
 A page can be two things in a row: a document a crawler reads, and the application that
 takes it over. The first half of that sentence is finished — `unibox_html` writes a document
@@ -621,19 +621,23 @@ also has a place where it can be tested honestly for the first time:
    the recorded opacity.
 4. `packages/unibox_html/test/takeover_test.dart` — the document carries the reveal
    configuration, still prefetches the loader, and still places the recorders before the boot.
-5. `tool/boot_check.sh` — the assertion this repository has never had: after booting, the DOM
-   carries `data-unibox-state="app"`, the pre-boot content is gone (a marked element in the
-   probe is no longer in the dump), `data-unibox-app` marks one element, and
-   `flutter-view`/`flt-glass-pane` is still there. The existing grep becomes one of four
-   conditions instead of the only one.
-6. `packages/unibox_flutter/test/stateful_node_test.dart` — a draw signals once; a second
-   publish does not signal again; a disposed store stops signalling; and a takeover boot (the
-   flag set, no host code) enables the semantics tree and holds the handle, while an application
-   opened at its own address enables nothing.
-7. `example/unibox_example_html/test/document_test.dart` — the takeover document names
+5. `packages/unibox_dom/test/handover_test.dart` — **the assertion this repository has never
+   had**, in a real browser and a real DOM: the boot hands the page over at the first frame
+   (`data-unibox-state="app"`, the engine marked `data-unibox-app`, the document *removed*), the
+   `role="status"` sentence is written in the page's language, a page whose engine never draws
+   goes back to being a document with its content intact, and an `onReady` page reveals when the
+   timeout expires. The engine is a data-url script that appears in the body and dispatches
+   `flutter-first-frame`, so the test needs neither a Flutter build nor a network.
+6. `tool/boot_check.sh` — unchanged in what it asks: the real engine, through the real loader,
+   paints into a real page. It is the half the browser suite cannot cover (a Flutter build) and
+   the browser suite is the half it cannot (the handover).
+7. `packages/unibox_flutter/test/stateful_node_test.dart` — an application opened at its own
+   address was handed nothing: `wasTakenOver` is false and `uniboxReady()` is a no-op. The web
+   path itself needs a browser and a Flutter build, and is covered by 5's fake engine.
+8. `example/unibox_example_html/test/document_test.dart` — the takeover document names
    `flutter_bootstrap.js`, and `app.js` appears nowhere in the site's documents or scripts.
-8. The gate: `tool/verify.sh --docs`, because a public API and several READMEs change, plus
-   `python3 tool/check_docs.py` because this file is added to the index.
+9. The gate: `tool/verify.sh --docs`, because a public API and several READMEs change, plus
+   `python3 tool/check_docs.py` because this file is in the index.
 
 An appearance case is deliberately **not** added. If this change needed one, it would mean the
 handover had started deciding what a node looks like.
@@ -687,25 +691,31 @@ feat(html): report a handover an integrator can read
 Each carries its README section and its `## Unreleased` bullet, as the repository requires.
 This file is updated in the last commit to say what landed and what was dropped.
 
-## 11. Open questions
+## 11. What the implementation settled
 
-Two are settled and recorded where they were decided: **the library owns the reveal's
-accessibility work** (D8 — *plug and play*: a host that wired up `Takeover` has done enough), and
-**the fade is the host's** (D2). What is left:
+The four questions this document carried are answered, and the answers are in the code:
 
-1. **The default `reveal`.** `onFrame` now and `onReady` later, or `onReady` from the start
-   with the automatic signal shipped in the same change? The first is safe and leaves the wrong
-   behaviour in the default; the second is right and asks every existing app to have the
-   signal.
-2. **Where the automatic ready signal lives.** In `FlutterStateful`, where every stateful page
-   pays for it; or in an opt-in wrapper, where only a takeover pays. The first makes `onReady`
-   work with no host code, which is the whole point of recommending it; the second keeps a
-   page that is not a takeover from doing one extra post-frame call. The semantics flag (D8)
-   argues for `FlutterStateful`: it has to be there anyway, because that is where the first
-   draw happens.
-3. **Is the state contract public?** `data-unibox-state` is useful enough to document and test,
-   which makes it a promise. The alternative — an internal attribute with no guarantee — costs
-   nothing today and everything the first time somebody's CSS depends on it.
+1. **The default `reveal` is `onFrame`.** A host's application is not expected to have been
+   changed for a page to keep working, so the default is the answer that needs nothing from it;
+   `RevealPolicy.onReady` is documented as the better setting for a takeover and is what the
+   example uses.
+2. **The ready signal lives in `FlutterStateful`.** The semantics flag settled it: the widget has
+   to be there anyway, because the first draw is what both answers are about. One post-frame
+   callback, no host code.
+3. **The state contract is public.** `data-unibox-state` is in this document, in the
+   `unibox_html` README's table, and asserted by `packages/unibox_dom/test/handover_test.dart` —
+   so it is a promise on purpose rather than by drift.
+4. **The address is implemented in two tiers**, as D9 describes, with `Takeover(query: false)`
+   turning it off entirely.
+
+Two things about the implementation are worth recording because they differ from the sketch:
+
+- The browser test arrived as `packages/unibox_dom/test/handover_test.dart` rather than as an
+  extension of `tool/boot_check.sh`. A shell check that greps a `--dump-dom` cannot drive a boot
+  that waits for a signal, and a fake engine in a real DOM tests the state machine properly —
+  while `boot_check.sh` keeps the one thing only it can do, a real Flutter build.
+- `packages/unibox_flutter` reads `window.unibox` through `dart:js_interop` alone, so the
+  takeover costs no new dependency.
 
 ## 12. Not doing
 

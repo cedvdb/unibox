@@ -95,6 +95,10 @@ Document buildTakeoverDocument({String? build}) {
     takeover: const Takeover(
       boot: boot,
       policy: BootPolicy.onIntent,
+      // The best answer for a takeover: the page replays the reader's scroll and press, so the
+      // reveal waits until the application has drawn that state rather than at its first frame.
+      // `unibox_flutter` answers without the example writing anything.
+      reveal: RevealPolicy.onReady,
       // What a reader who never moves a pointer is offered: the application, by name, as a real
       // control they can Tab to. The name says what they get, not what it is made of.
       openLabel: 'Open the apartments in Flutter',

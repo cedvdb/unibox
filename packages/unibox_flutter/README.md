@@ -574,7 +574,16 @@ written once for every node an application defines:
 - the view's tree is rendered in place, so it inherits the typography and the
   layout of the boxes around it;
 - the view returns one tree; a dialog is an `OverlayNode` in it, presented through
-  the root overlay, so nothing in this layer is modal.
+  the root overlay, so nothing in this layer is modal;
+- **when a document handed this application the page**, the widget keeps an
+  accessibility tree for the life of the state and, after its first frame, answers
+  `window.unibox.ready()` — which is what a takeover reveals on. Flutter ships
+  semantics off on the web, so without the tree a canvas that arrives this way has
+  one focusable thing in it until somebody finds Flutter's own placeholder. An
+  application opened at its own address was handed nothing and enables nothing, so
+  none of this costs a page that is not a takeover. An application that waits for
+  data of its own calls `uniboxReady()` when the data is in, and the page reveals
+  then instead of at the first frame.
 
 ## Overlays
 
