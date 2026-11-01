@@ -197,6 +197,14 @@ void main() {
       expect(screens.first.children, hasLength(3));
       expect(screens.first.children.last, isA<NavigationDemo>());
 
+      // And the bar of that screen draws no hairline: a line separates a bar from the content
+      // scrolling under it, and nothing scrolls under a bar that is outside the scroll.
+      expect(
+        (screens.first.children.first as MaterialAppBar).border,
+        isNull,
+        reason: 'the container is what separates a bar a scaffold holds',
+      );
+
       // Nothing in the catalogue pins: a pin is a bar that is content, and the screens are
       // furniture. The pinned bar is documented in `docs/nodes/box.md` and pinned by the renderer
       // suites, which scroll it.

@@ -100,9 +100,9 @@ UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
           note:
               'A screen: `MaterialScaffold` holds a bar, a body and a bottom bar, and only the body '
               'scrolls — the bars state a container and the page a surface, so a pull past the '
-              'list opens inside the body and never at a bar’s edge. The second screen pins its bar '
-              'instead and draws it again at the height a store hands it, which a document never '
-              'runs.',
+              'list opens inside the body and never at a bar’s edge. The second screen’s bar gives '
+              'its height back instead: the collapse is a number a store hands the rebuild, which '
+              'a document never runs.',
         ),
         _section(
           palette,
@@ -793,10 +793,13 @@ UINode _screens(MaterialPalette palette) {
           palette,
           MaterialScaffold(
             color: _pageColor,
-            // Both bars are outside the scroll, so neither moves and neither needs a `pin`.
+            // Both bars are outside the scroll, so neither moves and neither needs a `pin`. For the
+            // same reason the app bar draws no hairline: that line separates a bar from the
+            // content scrolling under it, and nothing scrolls under a bar in a scaffold.
             appBar: MaterialAppBar(
               title: const TextNode('Apartments'),
               trailing: const TextNode('24'),
+              border: null,
             ),
             body: Box(
               // The body takes the room the two bars leave, and it is the only thing that
