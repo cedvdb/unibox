@@ -1066,6 +1066,9 @@ segmented button keeps one line.
 **A stretched column needs a height to stretch to.** `align-items: stretch` makes every
 column as tall as the tallest one and needs nothing else; a flex can only stretch a child
 to a height it already has, and a box above a row hands it none — a column lays its
-children out with an endless main axis. So the Flutter renderer measures the row once more
-(`IntrinsicHeight`) when the node asks for `stretch`, and the two targets agree: every
-column the tallest one's height, whatever the box above says.
+children out with an endless main axis, and Flutter refuses to fill one. So the Flutter
+renderer lays a stretching line out twice when it has no end: once to find its tallest
+child, once tight to that extent, which is the extent the children then fill. A line that
+was given an end — a row in a box that states its height — is laid out once, so the trees
+that already worked pay nothing; and the two targets agree: every column the tallest one's
+height, whatever the box above says.

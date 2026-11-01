@@ -6,6 +6,14 @@
   so a screen reader hears "42% complete, progress bar" rather than a bare name on a container.
 - A pinned bar no longer has to state its height. The room the flow keeps for it is the
   height the bar lays itself out at — its content, the height it states, or the floor of its
+- `CrossAlign.stretch` resolves inside a line that has no end, which is the shape every row
+  on a scrolling page has: the line is laid out twice when nothing gave it a height — once to
+  find its tallest item, once tight to that extent — so it is as tall as that item and the rest
+  fill it, instead of throwing "BoxConstraints forces an infinite height". A line that was
+  given an end is laid out once, as before.
+
+- A pinned band no longer has to state its height. The room the flow keeps for it is the
+  height the band lays itself out at — its content, the height it states, or the floor of its
   `minHeight` — so a filter bar whose labels wrap pins with nothing stated, which is what
   `position: sticky` has always meant. `validateTree` reports only the one height that cannot
   hold a slot open: `height: double.infinity`.

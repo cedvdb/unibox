@@ -37,7 +37,7 @@ with their target.
 | `gap`                               | `SizedBox` separators between children              |
 | `mainAlign` / `crossAlign`          | `mainAxisAlignment` / `crossAxisAlignment`, with `textBaseline` stated |
 | `crossAlign: CrossAlign.baseline`   | `CrossAxisAlignment.baseline` with `TextBaseline.alphabetic` |
-| `crossAlign: CrossAlign.stretch`    | children placed at the cross start, and each one filled across the line when it states no size there |
+| `crossAlign: CrossAlign.stretch`    | children placed at the cross start, and each one filled across the line when it states no size there; a line with no end on its cross axis is laid out twice, so it is as tall as its tallest child — which is what `align-items: stretch` means, and what a row inside a scrolling column needs |
 | `padding` / `margin`                | inner / outer `Padding`                             |
 | `width`, `height`                   | `SizedBox`                                          |
 | `aspectRatio`                       | `AspectRatio`, inside the sizes so it divides one of them |
@@ -145,6 +145,14 @@ reaches fills the line when it states no size there, and clears the flag for wha
 it holds. That is why a stateful node's view is stretched like the element it is,
 and why a specimen that states 280 stays 280 instead of becoming as wide as the
 bar.
+
+The **line** is where the extent comes from, and it is the half of the stretch that
+Flutter cannot state: a browser makes the line as tall as its tallest item, and a flex
+handed an endless cross axis refuses to fill what it was not given. So a stretching line
+that has no end — a row inside a column that scrolls, which is every such row on a page —
+is laid out twice: once as it is, to find the tallest item, and once tight to that
+extent, which the items then fill. `_StretchedLine` skips the first pass when the line was
+given an end, so a row in a box that states its height is laid out once, as before.
 
 ## Semantics
 
