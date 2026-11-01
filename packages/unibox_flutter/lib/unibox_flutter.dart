@@ -32,6 +32,7 @@ export 'src/scroll_scope.dart' show UniboxScrollScope;
 export 'src/shape.dart' show pathOf, toStrokeCap;
 export 'src/stack_node.dart' show FlutterStack;
 export 'src/stateful_node.dart' show FlutterStateful;
+export 'src/unibox_ready.dart' show uniboxReady, wasTakenOver;
 export 'src/text_input_node.dart' show FlutterTextInput;
 export 'src/text_node.dart' show FlutterText;
 export 'src/text_style_scope.dart' show FlutterTextStyleScope;

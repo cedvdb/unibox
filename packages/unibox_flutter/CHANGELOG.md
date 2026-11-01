@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- **An application that was handed a page reads itself out, and says when it has drawn it.** When a
+  document booted the bundle as a takeover, `FlutterStateful` keeps an accessibility tree for the
+  life of the state — Flutter ships semantics off on the web, so a canvas that arrives this way has
+  one focusable thing in it until something asks for a tree — and, after its first frame, calls
+  `uniboxReady()`, which is what a page waiting on `RevealPolicy.onReady` reveals on. A host writes
+  nothing. An application opened at its own address was handed nothing, so it enables nothing:
+  `wasTakenOver` is false there and both calls are free.
+- `uniboxReady()` is public for one case only: an application that waits for data of its own calls
+  it when the data is in, and the page reveals then instead of at the first frame.
+
 - **Breaking: a rendering takes a scope, not a theme.** `renderFlutter`, `node.toWidget` and
   `FlutterStateful` take `scope: UniboxScope(theme: …)` where they took `theme:`, and the widget
   that carries it down is `UniboxScopeWidget` where it was `UniboxThemeScope`. The scope also

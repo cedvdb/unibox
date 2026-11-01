@@ -1,8 +1,10 @@
+import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
 
 import 'render.dart';
 import 'scope.dart';
+import 'unibox_ready.dart';
 
 /// Renders a [core.StatefulNode]: one store and the tree of its state.
 ///
@@ -54,11 +56,29 @@ class FlutterStatefulState extends State<FlutterStateful> {
   /// Whether the recorded presses have been answered, which happens once per mounting.
   bool _replayed = false;
 
+  /// An accessibility tree, when a document handed this application the page.
+  ///
+  /// Flutter ships semantics off on the web, so a canvas that arrives by takeover has exactly one
+  /// focusable thing in it until something asks for a tree. The handle is kept for the life of
+  /// this state because letting it go turns the tree off again.
+  SemanticsHandle? _semantics;
+
   @override
   void initState() {
     super.initState();
     _store = widget.node.createStore()..addListener(_changed);
     _store.onMount();
+
+    // A page that was handed over is read with a screen reader and watched by a document waiting
+    // to be sure the application has drawn: both are answered here, so a host writes nothing.
+    if (wasTakenOver) {
+      _semantics = SemanticsBinding.instance.ensureSemantics();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          uniboxReady();
+        }
+      });
+    }
   }
 
   @override
@@ -75,6 +95,7 @@ class FlutterStatefulState extends State<FlutterStateful> {
 
   @override
   void dispose() {
+    _semantics?.dispose();
     _store.onUnmount();
     _store.removeListener(_changed);
     _store.dispose();

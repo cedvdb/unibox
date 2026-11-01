@@ -279,6 +279,16 @@ void pressReplayTests() {
 
     expect(pressed, 1);
   });
+
+  test('an application opened at its own address was not handed a page', () {
+    // The mirror of the web path: nothing booted this application from a document, so nothing
+    // waits to hear that it has drawn, and no tree is kept on its behalf. The renderer asks
+    // `wasTakenOver` in `initState`, so on every target but a takeover the answer is no and the
+    // two calls cost nothing.
+    expect(wasTakenOver, isFalse);
+    expect(uniboxReady, returnsNormally);
+    uniboxReady();
+  });
 }
 
 /// A page whose view is one readable control.
