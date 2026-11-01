@@ -60,9 +60,20 @@ enum BootPolicy {
   /// waits costs its own document and nothing else until the reader signals interest.
   ///
   /// The signals come from the top document when it is the same origin, because a pointer in
-  /// the middle of the page holding a frame never reaches the frame's window — and a reader who
-  /// scrolls a page has signalled as much as one who moved a mouse across it. A cross-origin
-  /// frame cannot read its host, so it falls back to its own window.
+  /// the middle of the page holding a frame never reaches the frame's window — and from the
+  /// frame's own window as well, so a reader who moves over the frame itself is answered. A
+  /// cross-origin frame cannot read its host, so it falls back to its own window.
+  ///
+  /// **Looking, not using.** A pointer that moves, a scroll and a touch are a reader looking at
+  /// the page; a key, a focus move and a press are a reader *using* it, and those are
+  /// deliberately not signals. The document is the accessible rendering — real headings, real
+  /// links, real fields, and interactive through the client renderer — while the application is
+  /// a canvas whose semantics a screen reader has to ask for. So a keyboard reader, and a reader
+  /// whose assistive technology moves the focus around, keeps the document; booting on their
+  /// keystrokes would replace the page they are reading with something it takes them more work
+  /// to read. For the same reason the boot waits while the frame holds the focus: it replaces
+  /// every element in the document, so it would take away the element a reader is on — and a
+  /// field would lose what was typed into it.
   onIntent,
 }
 
@@ -78,6 +89,7 @@ String bootScript(String src, {BootPolicy policy = BootPolicy.onPointer}) =>
     _bootTemplate
         .replaceAll('%START%', _startOf(policy))
         .replaceAll('%INTENT%', _intentOf(policy))
+        .replaceAll('%GUARD%', _guardOf(policy))
         .replaceAll('%IDLE%', _idleOf(policy))
         .replaceAll('%SRC%', _jsString(src));
 
@@ -90,6 +102,18 @@ String _intentOf(BootPolicy policy) => switch (policy) {
   BootPolicy.immediately => _noIntent,
   BootPolicy.onPointer => _pointerIntent,
   BootPolicy.onIntent => _hostIntent,
+};
+
+/// Whether the boot waits for the focus to leave the document.
+///
+/// It does for [BootPolicy.onIntent], where the document is the accessible rendering a reader is
+/// meant to be able to use: replacing it under the element they are on would take that element
+/// away and empty a field they had typed into. A front door is the other way round — the document
+/// is a first frame and the application is the page — so [BootPolicy.onPointer] boots regardless,
+/// and an application that arrives a frame later than a Tab is the smaller surprise there.
+String _guardOf(BootPolicy policy) => switch (policy) {
+  BootPolicy.immediately || BootPolicy.onPointer => '',
+  BootPolicy.onIntent => _focusGuard,
 };
 
 /// What happens once the document has loaded.
@@ -125,11 +149,19 @@ const String _bootTemplate = '''
     (document.body || document.documentElement).appendChild(element);
   }
 
+  // The boot replaces every element in this document, so it must not happen under a reader who
+  // is on one: the element they were on would go, and a field would lose what was typed into it.
+  function ready() {
+    if (booted) { return; }
+%GUARD%
+    boot();
+  }
+
   // Intent before the load is remembered, not acted on: an engine that starts while the
   // document is still arriving competes with the largest paint.
   function want() {
     wanted = true;
-    if (loaded) { boot(); }
+    if (loaded) { ready(); }
   }
 
   unibox.boot = boot;%INTENT%
@@ -137,7 +169,7 @@ const String _bootTemplate = '''
   window.addEventListener('load', function () {
     loaded = true;
     unibox.loaded = true;
-    if (wanted) { boot(); }
+    if (wanted) { ready(); }
   });
 %IDLE%
 
@@ -172,12 +204,38 @@ const String _pointerIntent = '''
 /// A page that boots at once needs no signal: it has already started.
 const String _noIntent = '';
 
+/// The boot waits while the reader's focus is inside this document.
+///
+/// The application replaces every element a page holds, so a boot that lands while a reader is on
+/// one takes it away: they are left on the body with no announcement, and a field they had typed
+/// into is empty. Nothing is focused before anybody touches the page, which is why a reader who has
+/// not interacted at all boots at once — and `focusout` is what carries the boot to the moment they
+/// leave, whether they tab away or the focus leaves the frame.
+const String _focusGuard = '''
+    var active = document.activeElement;
+
+    if (active && active !== document.body) {
+      document.addEventListener('focusout', function () {
+        setTimeout(ready, 0);
+      }, { once: true });
+
+      return;
+    }
+''';
+
 /// Intent, read from the page that holds this one.
 ///
 /// A frame's own window sees the pointer only while it is over the frame. A reader who moves
-/// across the page around it — or scrolls, or types — has signalled as much, so the listeners go
-/// on the top window when it is the same origin, and on this one when it is not: a cross-origin
-/// frame is not allowed to read its host, and a boot that threw instead would never happen.
+/// across the page around it has signalled as much, so the listeners go on the top window when it
+/// is the same origin, and on this one when it is not: a cross-origin frame is not allowed to read
+/// its host, and a boot that threw instead would never happen. They go on this window either way,
+/// so a reader who moves over the frame itself is answered too.
+///
+/// The events are the ones that mean *looking*: a pointer that moves, a scroll, and the touch that
+/// begins a scroll on a phone. A press, a key and a focus move are a reader *using* the document,
+/// and the document is the accessible rendering — see the `onIntent` doc comment for why that
+/// matters, and note what the list costs: a phone with a screen reader on does not deliver its
+/// gestures to the page, so the frame stays the document there, which is the outcome we want.
 const String _hostIntent = '''
 
   function holder() {
@@ -194,20 +252,25 @@ const String _hostIntent = '''
   var intent = [
     'pointermove',
     'pointerover',
-    'pointerdown',
     'touchstart',
-    'keydown',
-    'wheel',
-    'focusin'
+    'wheel'
   ];
   var target = holder();
 
-  for (var i = 0; i < intent.length; i++) {
-    target.addEventListener(intent[i], want, {
-      capture: true,
-      once: true,
-      passive: true
-    });
+  function listen(where) {
+    for (var i = 0; i < intent.length; i++) {
+      where.addEventListener(intent[i], want, {
+        capture: true,
+        once: true,
+        passive: true
+      });
+    }
+  }
+
+  listen(window);
+
+  if (target !== window) {
+    listen(target);
   }''';
 
 /// A reader who never touches the page still gets the application, after the load.

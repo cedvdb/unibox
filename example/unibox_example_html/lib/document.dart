@@ -69,9 +69,10 @@ Document buildExampleDocument({String? build}) {
 /// right-hand frame is a window in a page the reader came for, and an idle boot would spend an
 /// engine — two megabytes of canvas, compiled and started, 1.9 seconds of blocking on a phone —
 /// on behalf of a reader who may never look at it. A frame that waits costs its own document until
-/// the reader moves, scrolls, touches or types anywhere on the page around it, and then it takes
-/// over exactly as before. Opened on its own, the page still waits for the same signal, which is
-/// what its own title now says.
+/// the reader looks at it: a pointer that moves over the page or over the frame, a scroll, a touch.
+/// A keystroke is not on that list, because the document is what a keyboard reader's screen reader
+/// can read and the application is a canvas — and the boot also waits while a reader's focus is
+/// inside the frame, so a field being typed into is never swapped out from under them.
 Document buildTakeoverDocument({String? build}) {
   return Document(
     node: ExamplePageNode(photoPrefix: '../../'),

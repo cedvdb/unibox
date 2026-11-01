@@ -239,8 +239,20 @@ right-hand half of a comparison, a preview inside someone else's page. `onPointe
 what a front door wants and the wrong thing for a frame: the frame is a window in a page the reader
 came for, and the engine it starts competes with that page's own reading. `onIntent` never boots
 unbidden, and it reads its signals from the top document when that is the same origin — a pointer
-in the middle of the host page never reaches a frame's own window. None of the three boots before
-the first paint.
+in the middle of the host page never reaches a frame's own window — and from the frame's own
+window, so moving over the frame itself answers too.
+
+Its signals are the ones that mean *looking*: `pointermove`, `pointerover`, `touchstart` and
+`wheel`. A key, a focus move and a press are deliberately **not** signals, and the asymmetry is
+the accessibility one: the document is the rendering a reader can actually use — real headings,
+links and fields, interactive through the client renderer — while the application is a canvas
+whose semantics a screen reader has to ask for. Booting on a keystroke would take the page from
+a keyboard reader, mid-read, and hand them something harder to read: so their Tab and their
+assistive technology's focus moves leave the document alone, and the document is what they get.
+For the same reason the boot waits while the frame holds the focus — it replaces every element in
+the document, so it would take away the element a reader is on and empty a field they had typed
+into — and it is `onIntent` alone that waits, because a front door's document is a first frame
+rather than the page. None of the three policies boots before the first paint.
 
 ## A shaped box
 

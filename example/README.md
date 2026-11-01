@@ -192,11 +192,14 @@ would make the two incomparable, which is why neither has one.
 
 The right-hand frame is a document first and an application second, and the moment between the two
 is the reader's: `web/takeover/` ships `BootPolicy.onIntent`, so it paints the same listings as
-HTML — crawler-readable, and identical to the frame beside it — and boots Flutter on the first
-pointer move, scroll, touch, key or focus anywhere on the page that holds it, never on the browser's
-idle. An idle boot spent two megabytes of canvas and 1.9 seconds of blocking on a phone for a frame
-a reader might never have scrolled to; a reader who does reach it, or who touches anything at all,
-gets the takeover exactly as before.
+HTML — crawler-readable, and identical to the frame beside it — and boots Flutter when the reader
+*looks*: a pointer that moves over the page or the frame, a scroll, a touch. Never on the browser's
+idle, and never on a keystroke or a focus move. An idle boot spent two megabytes of canvas and 1.9
+seconds of blocking on a phone for a frame a reader might never have scrolled to; a keystroke boot
+would take the page from a keyboard reader and hand them a canvas, when the document is the
+rendering their screen reader can actually use. A reader who moves or scrolls gets the takeover
+exactly as before, and one who is inside the frame's own form keeps the document until they leave
+it.
 
 ## Keeping the two renderings alike
 

@@ -49,7 +49,7 @@ void main() {
 
       expect(script, contains("document.readyState === 'complete'"));
       expect(script, contains('wanted = true;'));
-      expect(script, contains('if (wanted) { boot(); }'));
+      expect(script, contains('if (wanted) { ready(); }'));
     });
 
     test('boots at once when the page is the application', () {
@@ -110,16 +110,57 @@ void main() {
       // A comparison frame is shown, not arrived at: the reader came for the page around it, and
       // an idle boot would spend an engine on someone who never looked. So no idle, and the
       // signals are read from the top document — a pointer in the middle of the host page never
-      // reaches the frame's own window.
+      // reaches the frame's own window — and from the frame's own, for a reader who moves over
+      // the frame itself.
       final String script = bootScript('a.js', policy: BootPolicy.onIntent);
 
       expect(script, isNot(contains('requestIdleCallback')));
       expect(script, contains('window.top'));
-      expect(script, contains('target.addEventListener'));
+      expect(script, contains('listen(window);'));
+      expect(script, contains('if (target !== window)'));
       expect(script, contains('wheel'));
       // A cross-origin frame may not read its host, and a boot that threw would never happen.
       expect(script, contains('catch (error)'));
       expect(script, contains('return window;'));
+    });
+
+    test('is told to look by a reader, not to act for one', () {
+      // The document is the accessible rendering: real headings, links and fields, interactive
+      // through the client renderer. The application is a canvas whose semantics a screen reader
+      // has to ask for, so a key, a focus move or a press must not hand it the page — a keyboard
+      // reader tabbing through the document would lose the element they were on.
+      final String script = bootScript('a.js', policy: BootPolicy.onIntent);
+
+      for (final String gesture in <String>[
+        'pointermove',
+        'pointerover',
+        'touchstart',
+        'wheel',
+      ]) {
+        expect(script, contains("'$gesture'"));
+      }
+
+      for (final String using in <String>[
+        "'keydown'",
+        "'focusin'",
+        "'pointerdown'",
+      ]) {
+        expect(script, isNot(contains(using)));
+      }
+    });
+
+    test('keeps a reader who is on a control inside the frame waiting', () {
+      // The boot replaces every element in the document: under a reader who is on one, it would
+      // take that element away and empty the field they had typed into.
+      final String script = bootScript('a.js', policy: BootPolicy.onIntent);
+
+      expect(script, contains('document.activeElement'));
+      expect(script, contains('active !== document.body'));
+      expect(script, contains("addEventListener('focusout'"));
+
+      // A front door is the other way round — the document is a first frame — so its boot is not
+      // held back by a focus a reader put there while the application arrives.
+      expect(bootScript('a.js'), isNot(contains('document.activeElement')));
     });
 
     test('cannot be broken out of by the url it is given', () {
