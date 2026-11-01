@@ -79,7 +79,11 @@ Document buildExampleDocument({String? build}) {
 /// way in instead: a real control, first in the body, that opens the application when they choose
 /// it. The boot also waits while a reader's focus is inside the frame, so a field being typed into
 /// is never swapped out from under them.
-Document buildTakeoverDocument({String? build}) {
+///
+/// [debug] allows the three address values that make this page *show* something a published site
+/// would not — a report, a profile, and the application drawn at 50% over its own document. It is
+/// a build decision: `tool/site.sh --dev` passes it, and the published site does not.
+Document buildTakeoverDocument({String? build, bool debug = false}) {
   return Document(
     node: ExamplePageNode(photoPrefix: '../../'),
     head: DocumentHead(
@@ -92,7 +96,7 @@ Document buildTakeoverDocument({String? build}) {
       raw: <String>['<style>${fontFaceCss('../../')}$pageCss</style>'],
     ),
     scope: UniboxScope(theme: ExamplePalette.themeFor(ExampleSeed.defaultSeed)),
-    takeover: const Takeover(
+    takeover: Takeover(
       boot: boot,
       policy: BootPolicy.onIntent,
       // The best answer for a takeover: the page replays the reader's scroll and press, so the
@@ -102,6 +106,10 @@ Document buildTakeoverDocument({String? build}) {
       // What a reader who never moves a pointer is offered: the application, by name, as a real
       // control they can Tab to. The name says what they get, not what it is made of.
       openLabel: 'Open the apartments in Flutter',
+      // A `--dev` build may be inspected from the address: `?unibox=debug`, `?unibox=profile`
+      // and `?unibox=compare`. The published site does not, because a visitor can edit a url and
+      // a page drawn at 50% over its own document is not a page to publish.
+      debug: debug,
     ),
   );
 }

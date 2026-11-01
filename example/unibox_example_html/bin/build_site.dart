@@ -11,6 +11,10 @@ import 'package:unibox_html/unibox_html.dart';
 ///   --url=https://example.com/unibox/
 /// ```
 ///
+/// `--dev` writes the same site with the takeover page inspectable from the address — see
+/// `buildTakeoverDocument`. It is `tool/site.sh --dev` from the repository root, and never what a
+/// deployment passes.
+///
 /// Three documents, one per address. `index.html` is the **site** — one page of four bars: the
 /// claim with the comparison inside it, the markup a search engine is served, the vocabulary
 /// that names the nodes the claim never drew, and the Material catalogue the page is drawn with,
@@ -37,6 +41,10 @@ void main(List<String> arguments) {
   final List<({String path, Document document})> pages = sitePages(
     build: build,
     url: url,
+    // `--dev` writes a site a developer may inspect from the address: `?unibox=debug`,
+    // `?unibox=profile` and `?unibox=compare` on the takeover page. A published build does not,
+    // because a url is something a visitor can edit.
+    debug: arguments.contains('--dev'),
   );
 
   for (final ({String path, Document document}) page in pages) {

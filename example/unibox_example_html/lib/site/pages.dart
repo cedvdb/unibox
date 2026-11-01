@@ -15,6 +15,7 @@ import 'site_document.dart';
 List<({String path, Document document})> sitePages({
   String? build,
   String? url,
+  bool debug = false,
 }) {
   final String? root = url == null ? null : (url.endsWith('/') ? url : '$url/');
 
@@ -26,7 +27,10 @@ List<({String path, Document document})> sitePages({
   return <({String path, Document document})>[
     page('index.html', buildSiteDocument(build: build)),
     page('web/listings/index.html', buildExampleDocument(build: build)),
-    page('web/takeover/index.html', buildTakeoverDocument(build: build)),
+    page(
+      'web/takeover/index.html',
+      buildTakeoverDocument(build: build, debug: debug),
+    ),
   ];
 }
 

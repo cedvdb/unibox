@@ -311,6 +311,27 @@ instant and is not always the one it looks like — one publication here shipped
 previous build while its script was current — so `curl …/unibox/version.txt` answers
 "am I looking at a stale page?" without reading CSS class hashes.
 
+### Inspect the handover
+
+The takeover page is one document that becomes an application, so it is the page with something
+to look at. `tool/site.sh --dev` builds the site with that page inspectable from its address; a
+published build does not, because a url is something a visitor can edit.
+
+```shell
+tool/site.sh --dev --serve
+# then, on http://localhost:8000/web/takeover/
+```
+
+| Address | What it does |
+| --- | --- |
+| `?unibox=document` | never boots: the page stays the document, which is also the way back for a reader who wants the text |
+| `?unibox=debug` | the marks and the two checks a host cannot see for itself, on the console and on `window.unibox.marks` |
+| `?unibox=profile` | the same marks as `unibox:*` performance measures, drawn on the Performance panel's own timeline |
+| `?unibox=compare` | keeps the document and draws the application at 50% over it — the cheapest way to see whether the two renderings of one tree agree |
+
+`?seed=<name>` works everywhere, on both renderings: it is the example's palette, and it travels
+as an address because the picker is a row of links.
+
 Every document carries the same fact as `<meta name="unibox-build" content="…">`,
 because `version.txt` answers for the site while a tab answers for one document: a
 page opened before a deploy keeps drawing the markup it arrived with, which is

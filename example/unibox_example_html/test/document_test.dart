@@ -145,6 +145,17 @@ void main() {
       expect(html, isNot(contains('requestIdleCallback')));
     });
 
+    test('may be inspected only in a build that says so', () {
+      // `?unibox=debug`, `?unibox=profile` and `?unibox=compare` all *show* something the host did
+      // not publish, so the address can only reach them where the build allowed it. `--dev` is
+      // that build; a deployment is not.
+      expect(
+        buildTakeoverDocument(debug: true).write(),
+        contains('var debug = true;'),
+      );
+      expect(buildTakeoverDocument().write(), contains('var debug = false;'));
+    });
+
     test('boots through the loader this project owns, not a patched copy', () {
       // One artefact at any depth: the loader reads its base from its own url, so the takeover
       // document asks for `../../flutter/flutter_bootstrap.js` and the bootstrap answers with an

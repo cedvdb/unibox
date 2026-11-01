@@ -9,6 +9,7 @@
 #   tool/site.sh --base=/unibox/          # the path GitHub Pages serves from
 #   tool/site.sh --url=https://…/unibox/  # canonical addresses, and a sitemap
 #   tool/site.sh --serve                  # builds, then serves build/site
+#   tool/site.sh --dev                    # a site you may inspect from the address (?unibox=…)
 #
 # Everything lands in build/site, which is the directory a static host publishes.
 set -euo pipefail
@@ -18,12 +19,14 @@ cd "$(dirname "$0")/.."
 base='/'
 url=''
 serve=0
+dev=''
 
 for argument in "$@"; do
   case "$argument" in
     --base=*) base="${argument#--base=}" ;;
     --url=*) url="${argument#--url=}" ;;
     --serve) serve=1 ;;
+    --dev) dev=1 ;;
     -h | --help)
       sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'
       exit 0
@@ -66,7 +69,8 @@ step 'Rendering the pages'
 build="$(git -C "$root" rev-parse HEAD 2>/dev/null || true)"
 rm -rf "$site"
 (cd example/unibox_example_html &&
-  dart run bin/build_site.dart --out="$site" ${build:+--build="$build"} ${url:+--url="$url"}) \
+  dart run bin/build_site.dart --out="$site" ${build:+--build="$build"} \
+    ${url:+--url="$url"} ${dev:+--dev}) \
   || fail 'the site render'
 
 step 'Building the Flutter web app'
