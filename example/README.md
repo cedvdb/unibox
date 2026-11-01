@@ -290,7 +290,7 @@ tool/site.sh --base=/unibox/ --url=https://cedvdb.github.io/unibox/
 | `/flutter/` | The same site page, drawn by Flutter — the two renderings of one tree, one address apart, which is what makes them comparable |
 | `/web/listings/` | The example as a document that runs itself — the left frame, real HTML a reader can inspect and act on |
 | `/flutter/listings/` | The same example, built by Flutter — the right frame |
-| `/flutter/app.js` | The loader a document boots the application through, with the base path `flutter_bootstrap.js` cannot know |
+| `/flutter/flutter_bootstrap.js` | The loader a document boots the application through: the project's own `web/flutter_bootstrap.js` with Flutter's tokens substituted, reading its base from its own url so it works at any depth |
 
 ### See the handover
 

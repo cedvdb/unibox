@@ -8,11 +8,13 @@ import 'package:unibox_core/unibox_core.dart';
 
 /// The loader the page boots the application through.
 ///
-/// The documents sit two directories below the site root, which is where `tool/site.sh` puts
-/// the output of `flutter build web`. It is not Flutter's own `flutter_bootstrap.js`: that one
-/// resolves its entrypoint against the document, which is the wrong directory from here, so the
-/// site writes a loader that states where the application is instead.
-const String boot = '../../flutter/app.js';
+/// The documents sit two directories below the site root, which is where `tool/site.sh` puts the
+/// output of `flutter build web`. It is the project's own bootstrap — checked in at
+/// `example/unibox_example_flutter/web/flutter_bootstrap.js`, substituted into by
+/// `flutter build web` — because that file reads its base from its own url: one artefact, any
+/// depth. Flutter's generated one would resolve the entrypoint against *this* document and ask
+/// for `web/takeover/main.dart.js`.
+const String boot = '../../flutter/flutter_bootstrap.js';
 
 /// The example as a document, rendered from the same tree the app draws.
 ///

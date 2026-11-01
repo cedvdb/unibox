@@ -86,7 +86,7 @@ cat >"$probe" <<'PROBE'
       });
 
       var element = document.createElement('script');
-      element.src = '../../flutter/app.js';
+      element.src = '../../flutter/flutter_bootstrap.js';
       document.head.appendChild(element);
     })();
   </script>
@@ -140,7 +140,7 @@ if ! grep -q 'flt-glass-pane\|flutter-view' "$work/dom.html"; then
   # The two things that go wrong first, named before the DOM: where the page was served from, and
   # whether the bundle it asks for answers there at all.
   printf 'Served at %s (base %s).\n' "$url" "$base" >&2
-  for file in "flutter/app.js" "flutter/main.dart.js"; do
+  for file in "flutter/flutter_bootstrap.js" "flutter/main.dart.js"; do
     if [ -f "$site/$file" ]; then
       code="$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$port${base}$file" || true)"
       printf '  %s%s -> %s\n' "$base" "$file" "${code:-no answer}" >&2

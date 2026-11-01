@@ -191,7 +191,7 @@ today.
 final String page = toDocument(
   ListingsPage(listings),
   head: const DocumentHead(title: 'Apartments in Amsterdam'),
-  takeover: const Takeover(boot: '../../flutter/app.js'),
+  takeover: const Takeover(boot: '../../flutter/flutter_bootstrap.js'),
 );
 ```
 

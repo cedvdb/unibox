@@ -16,7 +16,7 @@ import 'document_head.dart';
 /// ```dart
 /// final String page = toDocument(
 ///   ListingsPage(listings),
-///   takeover: const Takeover(boot: '../../flutter/app.js'),
+///   takeover: const Takeover(boot: '../../flutter/flutter_bootstrap.js'),
 /// );
 /// ```
 ///

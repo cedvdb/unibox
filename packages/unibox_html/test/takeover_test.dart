@@ -7,7 +7,7 @@ void main() {
   group('a takeover', () {
     final String html = toDocument(
       const core.Box(key: 'page'),
-      takeover: const Takeover(boot: '../../flutter/app.js'),
+      takeover: const Takeover(boot: '../../flutter/flutter_bootstrap.js'),
     );
 
     test('prefetches the bundle while the reader reads', () {
@@ -15,7 +15,7 @@ void main() {
       expect(
         html,
         contains(
-          '<link rel="prefetch" href="../../flutter/app.js" as="script">',
+          '<link rel="prefetch" href="../../flutter/flutter_bootstrap.js" as="script">',
         ),
       );
     });

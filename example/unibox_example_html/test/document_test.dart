@@ -116,7 +116,7 @@ void main() {
 
       expect(html, contains('src="../main.client.js"'));
       expect(html, isNot(contains('unibox.boot')));
-      expect(html, isNot(contains('flutter/app.js')));
+      expect(html, isNot(contains('flutter_bootstrap.js')));
     });
 
     test('says which tree it draws, so one bundle serves both pages', () {
@@ -143,6 +143,16 @@ void main() {
       expect(html, contains('unibox.boot'));
       expect(html, contains('window.top'));
       expect(html, isNot(contains('requestIdleCallback')));
+    });
+
+    test('boots through the loader this project owns, not a patched copy', () {
+      // One artefact at any depth: the loader reads its base from its own url, so the takeover
+      // document asks for `../../flutter/flutter_bootstrap.js` and the bootstrap answers with an
+      // absolute path. `app.js` — a rewritten copy of Flutter's loader — is gone with the reason.
+      expect(
+        buildTakeoverDocument().write(),
+        contains('"../../flutter/flutter_bootstrap.js"'),
+      );
     });
   });
 }

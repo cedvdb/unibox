@@ -465,7 +465,7 @@ reader did before it existed.
 final String page = toDocument(
   ListingsPage(listings),
   head: const DocumentHead(title: 'Apartments'),
-  takeover: const Takeover(boot: '../../flutter/app.js'),
+  takeover: const Takeover(boot: '../../flutter/flutter_bootstrap.js'),
 );
 ```
 
