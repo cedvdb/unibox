@@ -95,7 +95,7 @@ void main() {
       );
     });
 
-    test('pins like any other box, so a bar can be a band', () {
+    test('pins like any other box, so a bar can be a bar', () {
       final MaterialTabBar bar = MaterialTabBar(
         tabs: const <MaterialTab>[MaterialTab(label: TextNode('Overview'))],
         selected: 0,

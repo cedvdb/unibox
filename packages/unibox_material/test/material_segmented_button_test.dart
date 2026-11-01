@@ -49,7 +49,7 @@ void main() {
       expect(grid.children, everyElement(isA<Box>()));
     });
 
-    test('pins like any other box, so a row of choices can be a band', () {
+    test('pins like any other box, so a row of choices can be a bar', () {
       final MaterialSegmentedButton control = MaterialSegmentedButton(
         segments: const <MaterialSegment>[
           MaterialSegment(label: TextNode('Any')),

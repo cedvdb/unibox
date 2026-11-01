@@ -73,11 +73,11 @@ void main() {
     );
   });
 
-  group('a pinned band', () {
+  group('a pinned bar', () {
     test('keeps its own room in the flow with no stated height', () {
-      // `position: sticky` needs no height, because the band keeps its own room in the flow:
-      // the results below it start where its content ends, and the band holds the edge as the
-      // content scrolls under it. Flutter measures the band it draws for exactly this number.
+      // `position: sticky` needs no height, because the bar keeps its own room in the flow:
+      // the results below it start where its content ends, and the bar holds the edge as the
+      // content scrolls under it. Flutter measures the bar it draws for exactly this number.
       final web.HTMLDivElement place = host();
 
       DomView.mount(
@@ -120,7 +120,7 @@ void main() {
       expect(
         rectOf(place, 'results').top,
         -32,
-        reason: 'the content scrolled; the band did not',
+        reason: 'the content scrolled; the bar did not',
       );
     });
   });

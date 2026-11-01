@@ -2,8 +2,8 @@
 
 ## Unreleased
 
-- A pinned band keeps no stated height on the web either: it is `position: sticky` in the flow,
-  so its room is its own. The suites now pin a band that states none.
+- A pinned bar keeps no stated height on the web either: it is `position: sticky` in the flow,
+  so its room is its own. The suites now pin a bar that states none.
 
 - A share of the viewport is written as a `dvh`/`dvw` length with its inset taken off in a
   `calc`, floored with `max(0px, …)`: `BoxFraction.viewport(1, minus: 216)` is

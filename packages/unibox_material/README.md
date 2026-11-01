@@ -435,7 +435,7 @@ the conformance table already pins — the class is a combination, not a new tok
 | shadows | `MaterialCard.elevatedShadows` — `MaterialElevation.level1` | elevation level one: the design file's ladder, one shade cast at 34% black |
 | typography | `MaterialTypography.bodyMedium` | inherited by the texts inside |
 | layout | a column (`Box`'s default), with `crossAlign: stretch` | a card stacks its content and stretches it to the card, so a row of it spans the width |
-| `pin`, `pinOffset` | none | the card is a box, so it can be a band: `pin: BoxPin.start` holds it at the top of the box that scrolls it, and it needs no height — the room the flow keeps is the height it measures |
+| `pin`, `pinOffset` | none | the card is a box, so it can be a bar: `pin: BoxPin.start` holds it at the top of the box that scrolls it, and it needs no height — the room the flow keeps is the height it measures |
 
 Every one is a parameter, so an application themes a card instead of forking it:
 
@@ -755,7 +755,7 @@ three-tab bar: the width of a tab is the bar's, and the bar's is the parent's. G
 narrower parent to make the tabs tighter, which is also the only lever — the bar states
 `width: double.infinity` and takes no width of its own.
 
-A bar is a box, so it can be a band: `pin: BoxPin.start` holds it at the top of the box that
+A bar is a box, so it can be a bar: `pin: BoxPin.start` holds it at the top of the box that
 scrolls the page under it, and `pinOffset` puts a second bar under the first. It needs no
 height to do it — the room the flow keeps is the height the bar measures.
 

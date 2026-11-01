@@ -164,9 +164,9 @@ void main() {
     });
 
     test('needs no height, because a sticky box keeps its own room', () {
-      // The parity claim the model now makes: the height a pinned band keeps in the flow is
+      // The parity claim the model now makes: the height a pinned bar keeps in the flow is
       // the height it lays itself out at, so a bar whose labels wrap pins with nothing stated.
-      // A browser gets that from `position: sticky`; Flutter measures the band it draws.
+      // A browser gets that from `position: sticky`; Flutter measures the bar it draws.
       final CssDeclarations declarations = boxDeclarations(
         const core.BoxStyle(pin: core.BoxPin.start),
       );

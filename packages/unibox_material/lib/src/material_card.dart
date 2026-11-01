@@ -83,7 +83,7 @@ final class MaterialCard extends Box {
   /// one that can work: a well paints its tints and its ink *under* its child, so a well
   /// around the card would paint them behind an opaque surface.
   ///
-  /// **A card can be a band.** `pin` and `pinOffset` are the card's as much as any other
+  /// **A card can be pinned.** `pin` and `pinOffset` are the card's as much as any other
   /// box's: a card pinned to the start of the box that scrolls it stays there while the
   /// results pass under it, and it needs no height — the room it keeps in the flow is the
   /// height it lays itself out at.

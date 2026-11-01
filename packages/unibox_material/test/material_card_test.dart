@@ -83,7 +83,7 @@ void main() {
       expect(card.isFocusable, isFalse);
     });
 
-    test('is a band when it is told to pin, like any other box', () {
+    test('is a bar when it is told to pin, like any other box', () {
       // The tokens are the card's own rather than a wrapper's: the card *is* the box, so
       // pinning one is one node and no height stated twice.
       const MaterialCard card = MaterialCard(pin: BoxPin.start, pinOffset: 48);
@@ -93,8 +93,7 @@ void main() {
       expect(
         MaterialCard.outlined(pin: BoxPin.end).pin,
         BoxPin.end,
-        reason:
-            'a variant takes the whole parameter list, band tokens included',
+        reason: 'a variant takes the whole parameter list, bar tokens included',
       );
       expect(MaterialCard.filled(pinOffset: 12).pinOffset, 12);
     });

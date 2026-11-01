@@ -12,8 +12,8 @@
   fill it, instead of throwing "BoxConstraints forces an infinite height". A line that was
   given an end is laid out once, as before.
 
-- A pinned band no longer has to state its height. The room the flow keeps for it is the
-  height the band lays itself out at — its content, the height it states, or the floor of its
+- A pinned bar no longer has to state its height. The room the flow keeps for it is the
+  height the bar lays itself out at — its content, the height it states, or the floor of its
   `minHeight` — so a filter bar whose labels wrap pins with nothing stated, which is what
   `position: sticky` has always meant. `validateTree` reports only the one height that cannot
   hold a slot open: `height: double.infinity`.
