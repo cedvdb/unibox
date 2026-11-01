@@ -198,6 +198,12 @@ final String page = toDocument(
 The visitor does not start again in the swap. The page records where they scrolled and what they
 pressed; the app opens at that scroll and replays the press.
 
+What happens between those two sentences is the part a reader feels: the document stays the page
+while the engine loads, the application is shown only when it is worth showing, and focus, an
+announcement and the way back are the library's rather than yours. It has three states, an address
+you can narrow and a debug build you can inspect — [`docs/takeover.md`](docs/takeover.md) is the
+whole of it.
+
 ```dart
 void main() => runApp(
   ExampleApp(
@@ -896,6 +902,10 @@ Where to read more:
   reads files rather than links.
 - [design.md](design.md) — why the model looks like this: the rules behind the
   defaults, the naming, the non-goals, and what was deliberately left out.
+- [docs/takeover.md](docs/takeover.md) — the handover in full: the three states and the
+  attribute a host can style, when the application is revealed, what a reader is told, the
+  address values that narrow or inspect, and why the Flutter build's bootstrap is a file
+  this project owns.
 - [PERFORMANCE.md](PERFORMANCE.md) — what a page with thousands of nodes costs, the three
   shapes `tool/scale.sh` measures, and the baseline CI holds them to.
 - [RELEASE.md](RELEASE.md) — the checklist for cutting a release, including the one
