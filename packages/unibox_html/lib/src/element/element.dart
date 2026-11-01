@@ -4,15 +4,15 @@
 /// class it wears, the text inside it, and the elements inside that — plus the planning that
 /// turns a tree into one, and the stylesheet that gives every look its class.
 ///
-/// It holds no markup. A string renderer writes a plan to HTML; a DOM renderer builds nodes from
-/// the same plan. That is what makes one element plan instead of two: a second web renderer
-/// reads this package rather than deciding again what a `Box` looks like.
+/// It holds no markup. `unibox_html` writes a plan to HTML; `unibox_dom` builds nodes from the
+/// same plan, which is what makes one element plan instead of two — a third web renderer would
+/// read this layer rather than decide again what a `Box` looks like.
 ///
 /// Pure Dart. The only thing it knows about the web is what CSS calls things, which it takes
-/// from `unibox_css`.
+/// from the layer beside it, `unibox_html`'s `css/`.
 library;
 
-export 'src/plan.dart';
-export 'src/plan_node.dart';
-export 'src/stylesheet.dart';
-export 'src/url.dart';
+export 'plan.dart';
+export 'plan_node.dart';
+export 'stylesheet.dart';
+export 'url.dart';

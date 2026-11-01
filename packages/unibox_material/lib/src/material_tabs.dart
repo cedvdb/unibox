@@ -46,6 +46,23 @@ final class MaterialTabsStore extends StateStore<MaterialTabsState> {
 
     state = MaterialTabsState(selected: index, count: state.count);
   }
+
+  /// Takes the tabs of the node drawn now, and moves the choice into them.
+  ///
+  /// A set of tabs can change under a store that was created for another one, and the node
+  /// is the only thing that knows: the store was handed a count when it was made, and a
+  /// count is not a fact about a tree that has been replaced. A choice past the last tab
+  /// would draw a page that is no longer there, and a tab the component gained would refuse
+  /// a press, so the state is brought back into the set before the view is built.
+  ///
+  /// Equal state publishes nothing, which is what makes it safe to call on every drawing of
+  /// the component rather than only on a change.
+  void reconcile({required int count}) {
+    final int last = count > 0 ? count - 1 : 0;
+    final int selected = state.selected > last ? last : state.selected;
+
+    state = MaterialTabsState(selected: selected, count: count);
+  }
 }
 
 /// Material 3 tabs, as a node: a [MaterialTabBar] and the page of the chosen tab.
@@ -65,6 +82,12 @@ final class MaterialTabsStore extends StateStore<MaterialTabsState> {
 /// starts on the tab the tree starts with. What the component adds is the pairing — a bar
 /// that reports a press and exactly one page drawn under it — because in the model those are
 /// two nodes and nothing but a store can join them.
+///
+/// **A set of tabs the component is redrawn with is the set it draws.** A store is created
+/// once per place in the tree, so it outlives the node that made it: a component drawn over
+/// one tab after two moves its choice into the tabs that are there, and a component drawn
+/// over three lets the third be chosen. Both are facts about the node, which is why the
+/// component is a `StatefulNode` with an `update` rather than a store that guesses.
 ///
 /// **What it is not.** It does not page: a swipe between tabs needs a pager, and this component
 /// draws one page at a time with no `PagerNode` under it. A tab press therefore swaps the page
@@ -98,6 +121,10 @@ final class MaterialTabs
       key: key,
       create: () =>
           MaterialTabsStore(selected: initialIndex, count: tabs.length),
+      // A tab that is added or taken away is a fact about the node, and the store cannot see
+      // one: the count it was made with is the only thing it knows, so it is told here.
+      update: (MaterialTabsState state, MaterialTabsStore store) =>
+          store.reconcile(count: tabs.length),
       view: (MaterialTabsState state, MaterialTabsStore store) => Box(
         direction: Axis.vertical,
         width: double.infinity,
@@ -115,5 +142,10 @@ final class MaterialTabs
     );
   }
 
-  MaterialTabs._({required super.create, required super.view, super.key});
+  MaterialTabs._({
+    required super.create,
+    required super.view,
+    super.update,
+    super.key,
+  });
 }

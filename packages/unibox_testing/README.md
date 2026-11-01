@@ -33,6 +33,14 @@ output *does* with the same node. This package writes that down once:
   one for the precedence of a `BoxTextStyle` and its flat overrides, and one with
   every token at once. It also holds `defaultTextAppearance`, the typography of a
   text node that declares nothing, which both renderers have to produce.
+- [`BehaviourCase`](lib/src/behaviour.dart) is the other half of the contract: a
+  component, the steps a reader takes against it — a press on a node by key, or the
+  component drawn again with other parameters — and the text the page has to show at
+  each key afterwards. Appearance describes one drawing; a state is what only a store
+  can change, and it is the half a component is most likely to get wrong.
+- [`behaviourCases`](lib/src/behaviour_cases.dart) is that table: a press that
+  publishes and redraws the page, and a store reconciled with the node drawn in its
+  place after its parameter changed.
 
 The package holds the contract, not the tests. A renderer suite renders each
 case, reads the appearance back from its own output and compares it with the
@@ -55,6 +63,44 @@ for (final TextCase textCase in textCases) {
 renderer that drops a token fails its own suite instead of drifting away from
 the other one — and because both are checked against the same entry, the answer
 cannot be relaxed for one target without failing the other.
+
+## Behaviour
+
+A tree that only ever shows the state it started with is half a component, and the
+other half is not a presentation: no token says which tab a press chooses, or that a
+store reconciled itself with the node drawn over it. So a [`BehaviourCase`](lib/src/behaviour.dart)
+writes that down too, in the same table-over-outputs shape:
+
+```dart
+BehaviourCase(
+  description: 'draws the tree of the state a press published',
+  tree: _Counter(),
+  steps: <BehaviourStep>[
+    BehaviourStep.press('raise', <Object, String>{'count': '1'}),
+    BehaviourStep.press('raise', <Object, String>{'count': '2'}),
+  ],
+)
+```
+
+A step is an intent and the text it has to produce, by key: `press` a node the tree
+draws, or `redraw` the component with a node whose parameters changed. A suite plays
+the table with its own three moves — `draw` a tree, `press` a key, read `textAt` a
+key — and `behaviourDifferences` returns every disagreement rather than failing, so
+the suite owns the assertion. `unibox_flutter` pumps and taps a widget tree,
+`unibox_dom` mounts and clicks a page.
+
+Behaviour cases are not per token, so they do not belong beside the appearance tables
+one to one: a case is worth writing when a component's *state* is what a renderer
+could get wrong, and the two cases here are the two rules every renderer owes —
+a publish redraws the page, and a store drawn again is reconciled with the node that
+drew it. A component with a table of its own, in `unibox_material`, is still tested
+against its own store in a plain `dart test`: `BehaviourRun` mounts it headlessly with
+no renderer at all, which is also the cheapest way to check an application's page
+logic.
+
+```dart
+expect(await playBehaviour(behaviourCase), isEmpty);
+```
 
 ## How close is close
 

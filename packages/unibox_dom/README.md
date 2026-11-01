@@ -27,9 +27,9 @@ there:
 | `DomView.adopt(tree, root)` | the elements the server wrote are **kept**, compared with the plan and patched where they differ, so a reader who has scrolled, focused a field or selected text keeps all three |
 
 `adopt` is the one a takeover and a standalone page both use, and it works because the two
-renderers share their two decisions: the **element plan** (`unibox_element`) says which
+renderers share their two decisions: the **element plan** (`unibox_html`'s element layer) says which
 element a node becomes and in which order its attributes are written, and the **stylesheet**
-(`unibox_css`) gives every look one class name derived from its declarations. Same tree,
+(`unibox_html`'s CSS layer) gives every look one class name derived from its declarations. Same tree,
 same tags, same classes — so there is nothing to reconcile.
 
 `render(tree)` swaps the tree of a view that is already drawing, which is what a palette
@@ -61,6 +61,13 @@ A publish from a `StatefulNode`'s store re-plans **that node's subtree** and pat
 place: a child that is still there is patched where it stands rather than replaced, so a
 field keeps its focus and a list keeps its elements when it reorders. `dispose()` unsubscribes
 every store and removes the listeners, which is what a view that is going away does.
+
+A store is kept at a **slot** — the node's key, else its place — so a node drawn again where
+another one was keeps the store, and the view that is built is the new node's. What the store
+copied from the node that created it is then the one fact the page cannot see, so the same
+pass hands it to `StatefulNode.update` before the view is planned: a component whose state
+holds a number the tree states — how many tabs it can select — is repaired there, and a
+publish from that reconciliation is drawn by the pass itself rather than as a second repaint.
 
 The stylesheet moves the same way: it is written once and **appended to** after that. A publish
 that brings a look the page does not have inserts its rule — one rule parsed, rather than every
@@ -98,5 +105,5 @@ off the element for the length of the press, which is what `test/events_test.dar
 
 ## Depends on
 
-`unibox_core`, `unibox_css`, `unibox_element` and `package:web`. It is compiled by the host
+`unibox_core`, `unibox_html` and `package:web`. It is compiled by the host
 (`dart compile js`) and never imported by a server.

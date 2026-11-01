@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- `BehaviourCase` and `behaviourCases`: the half of the contract the appearance tables cannot
+  describe, because a step changes the tree. A case names a component, the presses a reader makes
+  — or the node drawn over it with other parameters — and the text each one has to produce, by
+  key. Both renderer suites play the same table with their own three moves (`draw`, `press`,
+  `textAt`), and `behaviourDifferences` returns the disagreements rather than failing, so a state
+  that reaches a widget tree and not a page fails a suite instead of a site.
+- `BehaviourRun` mounts a case headlessly — `createStore`, `updateFor`, the view — so a component
+  or a page's state logic is checkable in a plain `dart test`, with no renderer at all.
+
 - `OverlayAppearance.scrolls` says that the layer bounds its content and scrolls what does not
   fit — the fact that keeps the two renderings of a long dialog the same height. It is read
   from `overflow: auto` on the layer on the web and from the scroll view between the layer and

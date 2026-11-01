@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- `StatefulNode.update` is the hook a component needs when its store copies a parameter. A store
+  is created once per place in the tree and cannot see a node, so a number it read at creation —
+  how many tabs it can select, which value it was seeded with — stayed what it was however many
+  times the component was drawn again; the view, built from the node drawn now, saw the new
+  parameter, and the two halves disagreed without an error. A renderer now hands the store to
+  `update` when a node of the same type and key is drawn in its place, before the view is built.
+  It is optional, `updateFor` is the erased spelling a renderer uses, and a state equal to the
+  current one still publishes nothing, so calling it for a node whose parameters did not change
+  is safe.
+
 - `BoxRole.progressBar` is the role for a value a reader is told rather than offered: a ring, a
   bar, a measured circle. It is structural like `heading` — no press, no tab stop — and both
   targets have a name for it, which is why it is the role a label is allowed on. A labelled box

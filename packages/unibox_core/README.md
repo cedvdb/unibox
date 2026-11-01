@@ -3,7 +3,7 @@
 Platform agnostic Unibox AST, style tokens and layout types.
 
 This package has zero external dependencies: it never imports `dart:ui`,
-Flutter or the web renderer. Renderers live in `unibox_flutter`, `unibox_css` and `unibox_html`.
+Flutter or the web renderer. Renderers live in `unibox_flutter` and `unibox_html`.
 
 ## Nodes and tokens
 
@@ -316,6 +316,16 @@ value, a listener list that belongs to this package, and a guarded setter, so a
 store runs in Flutter, on a server and in a browser without a dependency.
 `onMount` is where an initial request starts, which is why a server render can
 draw the first state without starting one.
+
+A store is created once and lives as long as the place in the tree that made it, so
+anything it copied from the node that created it outlives that node — while the view
+is always built from the node drawn *now*. `update` is the third function a node can
+carry, and the one that closes that gap: a renderer calls it when a node of the same
+type and key is drawn where the last one was, before the view, and a component
+brings its state back in line with the parameters that changed. It is optional
+because most components keep no such copy; the ones that do — a tab set whose count
+it can select, a field seeded with a value — are exactly the ones that would
+otherwise drift.
 
 ## Overlays
 

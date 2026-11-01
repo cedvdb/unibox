@@ -458,7 +458,7 @@ int _spanOf(
 /// margins the content is placed by, so neither is read from the node. A margin rather than
 /// an alignment keyword, because a layer that bounds its content scrolls, and a scrollport
 /// loses the start edge of an item that a keyword centres — see `overlayContentDeclarations`
-/// in `unibox_css`.
+/// in `unibox_html`'s CSS layer.
 OverlayAppearance overlayAppearanceIn(String html) {
   final Map<String, Map<String, String>> rules = rulesOf(html);
   final List<String> classes = RegExp(r'class="([^"]+)"')

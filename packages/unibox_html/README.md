@@ -6,8 +6,16 @@ A Flutter screen is a canvas, which a crawler, a link preview and a reader witho
 JavaScript all see as nothing. This package renders the same tree as a document — real
 text, real headings, real links, one stylesheet — with no framework and no runtime.
 
-Pure Dart, no dependencies. A document can be rendered in a server, in a build step, in a
-command line tool, and, for a host whose backend is not Dart, compiled to JavaScript.
+It holds the whole web target in one package, in the three layers a node passes through on
+its way to a browser: the **CSS** a design token becomes (`lib/src/css/`), the **element
+plan** a node becomes (`lib/src/element/`), and the document those are written into.
+`unibox_dom` builds the same plan in a page, which is why the two web renderings cannot
+drift. They are directories rather than packages because a package boundary is a version to
+keep in step, and the third renderer they were split for was deleted.
+
+Pure Dart, with the model as its only dependency. A document can be rendered in a server, in
+a build step, in a command line tool, and, for a host whose backend is not Dart, compiled to
+JavaScript.
 
 ## What it answers
 
@@ -170,13 +178,38 @@ code block or a price that reads left to right, and Azerbaijani, Kurdish and Pun
 both scripts. A page that states no direction writes none, and the browser's own answer — left to
 right — is what it reads in; nothing is inferred on the page's behalf.
 
+## The CSS a token becomes
+
+A token is a Dart value in `unibox_core`; CSS is text. `lib/src/css/` is the single place
+where one becomes the other, so this renderer and `unibox_dom` produce the same declarations
+for the same tree.
+
+That is not tidiness. A class name is a hash of its declarations, which is what makes six
+listings with one look cost one rule. Two mappings that disagreed would give one look two
+class names, and a host stylesheet or a dark-mode block written against one page would stop
+applying to the other — the drift this repository exists to prevent.
+
+| Question | Answer |
+| --- | --- |
+| a dimension, a spacing | `cssLength(width)`, `cssSpacing(...)` — `8px`, `100%` for `double.infinity`, `8px 12px 16px 4px` in CSS's order |
+| a colour, or a colour that names a role | `cssColor(...)`, `cssRoleReference(...)` → `#112233`, `rgba(17, 34, 51, 0.502)`, `var(--unibox-color-primary)` |
+| a shadow | `cssBoxShadow(...)`, `cssBoxShadows(...)`, with the blur written in the unit a browser reads |
+| a box, a text, an image, a grid | `boxDeclarations`, `textDeclarations`, `imageDeclarations`, `gridDeclarations` |
+| the typography of a box, or the model's | `typographyDeclarations(style)`, `defaultTypographyDeclarations()` |
+| a state, a theme | `stateRules(box, className)`, `themeDeclarations(theme)` — a rule is a value, `CssRule` |
+| the class a look wears | `fnv1a` hashes its declarations into eight characters, so a look costs one rule wherever it is drawn |
+
+`CssDeclarations` is a list and not a map because CSS allows a property to be written twice
+— a fallback — and because its `text` is the text a class name is hashed from, which has to
+be the same however the renderer built it.
+
 ## The element plan
 
 `ElementPlan` is the whole decision of what a tree becomes, as a value: a tag, its
 attributes in a fixed order, the class it wears, and the elements inside it. It carries no
-markup, so `toHtml()` writes it to a string and a DOM renderer could build nodes from the
-same value — which is what would let a client renderer adopt a server's page instead of
-repainting it. It is decided here, once, before a second renderer exists to disagree.
+markup, which is why `toHtml()` writes it to a string and `unibox_dom` builds nodes from the
+same value instead of deciding again what a `Box` looks like — that is what lets a client
+adopt a server's page rather than repaint it.
 
 A node this renderer cannot draw throws rather than being skipped: a tree built for
 another target fails loudly instead of shipping a page with a piece missing.

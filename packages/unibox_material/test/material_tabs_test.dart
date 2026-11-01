@@ -85,5 +85,55 @@ void main() {
         throwsArgumentError,
       );
     });
+
+    test('moves the choice into the tabs it is redrawn with', () {
+      // A store created over two tabs, and a node that draws one. The choice is past the last
+      // tab, which is a page the tree no longer holds: left alone it indexed nothing.
+      final MaterialTabsStore store = tabs(initialIndex: 1).create();
+      final MaterialTabs single = MaterialTabs(
+        tabs: const <MaterialTab>[MaterialTab(label: TextNode('Overview'))],
+        pages: const <UINode>[TextNode('The overview')],
+      );
+
+      single.updateFor(store.state, store);
+
+      expect(store.state.selected, 0);
+      expect(store.state.count, 1);
+      expect(
+        _texts(single.viewFor(store.state, store)),
+        contains('The overview'),
+      );
+
+      store.dispose();
+    });
+
+    test('lets a tab the component gained be chosen', () {
+      // The other half: a bar that draws three tabs whose store believes there are two
+      // refuses the press on the third, which reads as a control that does nothing.
+      final MaterialTabsStore store = tabs().create();
+      final MaterialTabs three = MaterialTabs(
+        tabs: const <MaterialTab>[
+          MaterialTab(label: TextNode('Overview')),
+          MaterialTab(label: TextNode('Listings')),
+          MaterialTab(label: TextNode('Details')),
+        ],
+        pages: const <UINode>[
+          TextNode('The overview'),
+          TextNode('The listings'),
+          TextNode('The details'),
+        ],
+      );
+
+      three.updateFor(store.state, store);
+      store.select(2);
+
+      expect(store.state.selected, 2);
+      expect(
+        _texts(three.viewFor(store.state, store)),
+        contains('The details'),
+      );
+
+      store.dispose();
+    });
   });
 }

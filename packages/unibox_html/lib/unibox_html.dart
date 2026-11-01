@@ -14,16 +14,19 @@
 /// );
 /// ```
 ///
-/// It is pure Dart with no dependencies, so a document can be rendered in a server, in a
-/// build step, in a command line tool, and — for a host whose backend is not Dart —
-/// compiled to JavaScript.
+/// It is the whole web target in one package, in three layers that only the web knows about:
+/// what a token becomes as CSS (`src/css/`), what a node becomes as an element (`src/element/`)
+/// and the document those are written into. Splitting them into packages bought nothing —
+/// the third renderer they were split for was deleted — while every split is a version to keep
+/// in step. `unibox_dom` builds the same plan in a page, which is what keeps the two web
+/// renderings one design.
 ///
 /// ## What a document is
 ///
 /// A snapshot of a state, not a running application. A `StatefulNode` draws the state its
 /// store starts in, an `OverlayNode` draws its overlay open, and no callback becomes a
 /// listener: there is nothing in the output that needs a runtime. Interactivity is the
-/// application's, once it takes the page over.
+/// application's, once it takes the page over — or `unibox_dom`'s, which keeps the stores.
 library;
 
 export 'src/client/all.dart' show uniboxClientScript;
@@ -32,8 +35,10 @@ export 'src/client/keys.dart' show nodeKeyAttribute;
 export 'src/client/scroll.dart' show scrollScript;
 export 'src/client/press.dart'
     show pressKeyAttribute, pressRecordLimit, pressScript;
+export 'src/css/css.dart';
 export 'src/document.dart';
 export 'src/document_head.dart';
+export 'src/element/element.dart';
 export 'src/embed_node.dart';
 export 'src/escape.dart';
 export 'src/render.dart';

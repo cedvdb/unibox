@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- A `StatefulNode` drawn again in the same place is reconciled before its view is built:
+  `FlutterStateful.didUpdateWidget` hands the store to `StatefulNode.update`, so a component
+  whose state holds a parameter the tree states — `MaterialTabs`'s count, a field's seed — stops
+  drawing a control that offers something its store refuses. Until now the store kept what it
+  read when it was created and only the view saw the new parameter.
+
 - `BoxRole.progressBar` announces `SemanticsRole.progressBar`, with the box's label as its name,
   so a screen reader hears "42% complete, progress bar" rather than a bare name on a container.
 - A pinned bar no longer has to state its height. The room the flow keeps for it is the

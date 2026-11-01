@@ -1,6 +1,6 @@
 import 'dart:js_interop';
 
-import 'package:unibox_element/unibox_element.dart';
+import 'package:unibox_html/unibox_html.dart';
 import 'package:web/web.dart' as web;
 
 /// Builds the element [plan] describes.

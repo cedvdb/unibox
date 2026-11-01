@@ -2,12 +2,11 @@
 
 > One immutable Dart description of a screen, drawn by Flutter and rendered as HTML a crawler can read.
 
-Unibox is a Dart 3.13 workspace of eight packages, in one direction only: the model,
+Unibox is a Dart 3.13 workspace of six packages, in one direction only: the model,
 then the web, then the widgets. `packages/unibox_core` holds the node tree and the design
-tokens and has no dependencies at all. The web renderer is two packages, so that a second
-web renderer stays possible: `packages/unibox_css` turns a token into declarations and
-`packages/unibox_element` turns a node into an element plan, before anyone writes it.
-`packages/unibox_html` writes that plan as a document, and `packages/unibox_dom` adopts
+tokens and has no dependencies at all. The web is one package with two layers a node
+becomes in a browser: `packages/unibox_html` turns a token into CSS declarations and a node
+into an element plan, and writes that plan as a document. `packages/unibox_dom` adopts
 that document in a browser and keeps it in step with the stores the tree created.
 `packages/unibox_flutter` draws the same tree as widgets. `packages/unibox_testing` holds
 the tables of expected presentation that the renderer suites are checked against, so the
@@ -73,23 +72,19 @@ coding agent needs are in [AGENTS.md](AGENTS.md), and a human contributing needs
 
 - [unibox_core](packages/unibox_core/README.md): the model — nodes, tokens,
   defaults, validation. Pure Dart; never imports `dart:ui`, Flutter or a web framework.
-- [unibox_css](packages/unibox_css/README.md): the CSS the web renders from, a token as a
-  declaration, the four state rules, the `:root` theme, and the canonical text a class
-  name is hashed from. Pure Dart, no dependencies.
-- [unibox_element](packages/unibox_element/README.md): the element plan — what each node
-  becomes, before anyone writes it — and the stylesheet that gives every look its class.
-  Shared by every web renderer. Pure Dart.
-- [unibox_html](packages/unibox_html/README.md): the web renderer — a tree as a
-  document a search engine can read, with no framework and no runtime. Pure Dart, no
-  dependencies.
+- [unibox_html](packages/unibox_html/README.md): the web — the CSS a token becomes, the
+  element plan a node becomes, and the document those are written into, which a search
+  engine can read with no framework and no runtime. Pure Dart, no dependencies; both web
+  renderings are built from it.
 - [unibox_dom](packages/unibox_dom/README.md): the client renderer — adopts the markup the
   server wrote and patches it as the stores publish, so a page is interactive without
   Flutter.
 - [unibox_flutter](packages/unibox_flutter/README.md): the Flutter renderer
   (`renderFlutter`, `node.toWidget()`), node by node, with what differs from the web.
-- [unibox_testing](packages/unibox_testing/README.md): the presentation contract —
-  `BoxAppearance` + `boxCases`, `TextAppearance` + `textCases`, `OverlayAppearance`
-  + `overlayCases` — and the line between "the same" and "close enough". Test only.
+- [unibox_testing](packages/unibox_testing/README.md): the contract — the presentation
+  (`BoxAppearance` + `boxCases`, `TextAppearance` + `textCases`, `OverlayAppearance` +
+  `overlayCases`) and the behaviour (`BehaviourCase` + `behaviourCases`, played by both
+  renderer suites) — and the line between "the same" and "close enough". Test only.
 - [unibox_material](packages/unibox_material/README.md): the Material 3 type roles
   as `BoxTextStyle` values (`MaterialTypography`, `MaterialTypeRole`), the colour
   roles as `MaterialPalette` (`light`/`dark`, or grown from one seed colour with

@@ -22,9 +22,9 @@ Answer **these six questions, and only these**. For each one, say `ok`, `not ok`
 give the evidence — a file and a line, or the absence you looked for. Then stop.
 
 1. **Both targets.** A presentational change lands on the Flutter renderer *and* the web renderer:
-   the widget in `packages/unibox_flutter/lib/src/` and the mapping in `packages/unibox_css/lib/src/`
-   or `packages/unibox_element/lib/src/`. Name the file on each side. If only one side moved, say
-   so and say which one is missing.
+   the widget in `packages/unibox_flutter/lib/src/` and the mapping in
+   `packages/unibox_html/lib/src/css/` or `packages/unibox_html/lib/src/element/`. Name the file
+   on each side. If only one side moved, say so and say which one is missing.
 
 2. **The table.** If a token was added or changed: is there a case in
    `packages/unibox_testing/lib/src/` that isolates it, and a place for it in the "every token at

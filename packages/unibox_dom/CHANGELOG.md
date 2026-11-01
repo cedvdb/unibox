@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- The client depends on `unibox_html` instead of on `unibox_css` and `unibox_element`, which are
+  layers of that package now — the element plan it builds and the CSS it wears. Nothing it draws
+  changed: the same plan, the same classes.
+
+- A store is reconciled with the node drawn in its place. A page keeps a store at a slot, so a
+  component drawn again there kept everything the store had copied from the node that was there
+  before — the count `MaterialTabs` can select, a field's seed — while the view it drew was the
+  new node's. `_Mount.applyNode` hands the store to `StatefulNode.update` before the view is
+  planned, and the publish that reconciliation makes is drawn by the pass itself rather than as
+  a second repaint of the same boundary.
+
 - `PagerNode` is moved and reported from the node: `index` is applied with a `scrollTo` that does
   not ease — a browser's smooth scroll takes no duration and no curve, so the move is a jump on
   both targets — and `onPageChanged` reports the page the pager came to rest on, from the

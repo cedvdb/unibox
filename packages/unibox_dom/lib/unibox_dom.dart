@@ -7,10 +7,10 @@
 /// JavaScript.
 ///
 /// It shares two things with the string renderer, and they are what make a handover possible: the
-/// **element plan** (`unibox_element`) decides which element a node becomes and in what order its
-/// attributes are written, and the **stylesheet** gives every look one class name derived from its
-/// declarations. Same tree, same tags, same classes — so a client can adopt a page a server wrote
-/// instead of painting over it.
+/// **element plan** (`unibox_html`'s element layer) decides which element a node becomes and in
+/// what order its attributes are written, and the **stylesheet** gives every look one class name
+/// derived from its declarations. Same tree, same tags, same classes — so a client can adopt a
+/// page a server wrote instead of painting over it.
 ///
 /// Client only. It depends on `package:web` and `dart:js_interop`, so it is compiled by the host
 /// (`dart compile js`) and never imported by a server.

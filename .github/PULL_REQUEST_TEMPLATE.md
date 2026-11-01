@@ -11,9 +11,9 @@ say what you did on the other side. -->
 - [ ] `packages/unibox_core` — a node, a token, a default or a validation rule
 - [ ] `packages/unibox_testing` — the case that pins the appearance (a token without one
       is a token nobody checks)
-- [ ] `packages/unibox_css` / `packages/unibox_element` — the web's mapping
+- [ ] `packages/unibox_html` — the web: a token's CSS, a node's element, or the document
 - [ ] `packages/unibox_flutter` — the widgets
-- [ ] `packages/unibox_html` / `packages/unibox_dom` — the document and the runtime
+- [ ] `packages/unibox_dom` — the client that keeps a page live
 - [ ] `packages/unibox_material` — a role, a scale value or a component
 - [ ] docs: `README.md`, the package README, `AGENTS.md`, `design.md`
 - [ ] `CHANGELOG.md` under `## Unreleased` in every package touched

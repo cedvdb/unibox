@@ -113,6 +113,50 @@ final class _RequestNode extends core.StatefulNode<String, _RequestStore> {
   _RequestNode() : super(create: _createdRequest, view: _requestView);
 }
 
+/// A store that copied a parameter, which is what `update` exists to repair.
+final class _CeilingStore extends core.StateStore<int> {
+  _CeilingStore() : super(0) {
+    last = this;
+  }
+
+  /// The store this component created, so a test can see that a rebuild kept it.
+  static _CeilingStore? last;
+
+  /// The number this store counts to.
+  int ceiling = 3;
+
+  /// Raises the count, up to the ceiling the store believes in.
+  void raise() {
+    if (state < ceiling) {
+      state = state + 1;
+    }
+  }
+
+  /// Takes the ceiling of the node drawn now, and lowers a count above it.
+  void setCeiling(int next) {
+    ceiling = next;
+
+    if (state > ceiling) {
+      state = ceiling;
+    }
+  }
+}
+
+core.UINode _ceilingView(int state, _CeilingStore store) => core.Box(
+  key: 'raise',
+  onTap: store.raise,
+  children: <core.UINode>[core.TextNode('$state of ${store.ceiling}')],
+);
+
+final class _CeilingNode extends core.StatefulNode<int, _CeilingStore> {
+  _CeilingNode(int ceiling)
+    : super(
+        create: _CeilingStore.new,
+        view: _ceilingView,
+        update: (int state, _CeilingStore store) => store.setCeiling(ceiling),
+      );
+}
+
 void main() {
   pressReplayTests();
 
@@ -162,6 +206,27 @@ void main() {
 
       expect(find.text('Count: 1'), findsOneWidget);
       expect(_lastStore!.mounts, 1);
+    });
+
+    testWidgets('reconciles the store when the same place draws another node', (
+      tester,
+    ) async {
+      // One component in one place, drawn twice with a different parameter. The store
+      // survives the second drawing — that is the whole point — so the ceiling it copied
+      // is the only thing that can be repaired, and `update` is what repairs it.
+      await pumpNode(tester, _CeilingNode(3));
+      await tester.tap(find.text('0 of 3'));
+      await tester.pump();
+      await tester.tap(find.text('1 of 3'));
+      await tester.pump();
+
+      expect(find.text('2 of 3'), findsOneWidget);
+
+      final _CeilingStore store = _CeilingStore.last!;
+      await pumpNode(tester, _CeilingNode(1));
+
+      expect(identical(_CeilingStore.last, store), isTrue);
+      expect(find.text('1 of 1'), findsOneWidget);
     });
 
     testWidgets('replaces the pending tree when the request answers', (

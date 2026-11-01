@@ -10,13 +10,12 @@
 //     (cd packages/unibox_html && dart run tool/bench.dart --json)
 //
 // It lives in this package rather than in `tool/` because a script outside a package
-// cannot import one: `unibox_html` already depends on `unibox_core`, `unibox_css` and
-// `unibox_element`, which is the whole of the pipeline being timed.
+// cannot import one: `unibox_html` is the whole of the pipeline being timed — the CSS a token
+// becomes, the element plan a node becomes, and the writer.
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:unibox_core/unibox_core.dart' as core;
-import 'package:unibox_element/unibox_element.dart';
 import 'package:unibox_html/unibox_html.dart';
 
 /// How many passes a stage is timed over, whose median is reported.

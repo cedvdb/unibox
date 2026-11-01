@@ -7,7 +7,7 @@
 /// rather than illustrative.
 library;
 
-import 'package:unibox_element/unibox_element.dart';
+import 'element/element.dart';
 
 /// [value] escaped for HTML content between two tags.
 ///

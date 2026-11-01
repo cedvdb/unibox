@@ -14,7 +14,7 @@ import 'package:unibox_core/unibox_core.dart';
 /// level five it reads `65, 60, 54, 49, 44, 40, 36, 32` and still fades at ten. Each level
 /// here is the gaussian that paints those rows, within three parts of 255 of them, and both
 /// renderers are held to that one shape: the model states a blur radius in Flutter's unit,
-/// and `unibox_css` writes the CSS radius that paints the same deviation. A level therefore
+/// and `unibox_html`'s CSS layer writes the radius that paints the same deviation. A level therefore
 /// looks the same in a browser as in a Flutter application, which is the one thing a design
 /// system's elevations have to do.
 ///

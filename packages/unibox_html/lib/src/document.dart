@@ -1,10 +1,11 @@
 import 'package:unibox_core/unibox_core.dart' as core;
-import 'package:unibox_css/unibox_css.dart';
+
+import 'css/css.dart';
 
 import 'document_head.dart';
 import 'escape.dart';
 
-import 'package:unibox_element/unibox_element.dart';
+import 'element/element.dart';
 
 import 'render.dart';
 import 'takeover.dart';

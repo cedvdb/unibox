@@ -1,6 +1,7 @@
 import 'package:unibox_core/unibox_core.dart' as core;
-import 'package:unibox_css/unibox_css.dart';
-import 'package:unibox_element/unibox_element.dart';
+
+import 'css/css.dart';
+import 'element/element.dart';
 
 import 'embed_node.dart';
 import 'write.dart';

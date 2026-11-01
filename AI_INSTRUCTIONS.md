@@ -128,7 +128,10 @@ host that renders it.
    `StatefulNode`: it creates a `Store` (`StateStore` is the ready-made one), the
    store holds one immutable state value and publishes when it is replaced, and the
    view is a function of state that returns one tree. No `setState`, controller or
-   stream inside the tree, and no field on the node.
+   stream inside the tree, and no field on the node. A component that keeps a
+   *parameter* in its store — a count it can select, a value it was seeded with — has to
+   state `update` too: the store outlives the node that made it, so a node drawn again
+   with another parameter reconciles it there, before the view is built.
 10. **Give an interactive box semantics.** A box with `onTap` and no `semantics` is
     not announced as a button and is not keyboard reachable. Add
     `semantics: BoxSemantics(role: BoxRole.button, label: '…')`.

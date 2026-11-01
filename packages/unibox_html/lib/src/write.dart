@@ -1,4 +1,4 @@
-import 'package:unibox_element/unibox_element.dart';
+import 'element/element.dart';
 
 import 'escape.dart';
 

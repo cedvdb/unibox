@@ -32,6 +32,13 @@ import 'ui_node.dart';
 /// own: a dialog is an [OverlayNode] in the tree the view returns, so the state
 /// decides whether it is there and the node decides how it is presented.
 ///
+/// **A parameter the store copied is reconciled by [update].** The view is built
+/// from the node drawn *now*, so a parameter it reads is always current; a parameter
+/// the store copied when it was created is not, and a store cannot look at a node.
+/// [updateFor] is where a component brings the two back together, and a renderer
+/// calls it when a node of the same type and key is drawn where this one was. A
+/// component that keeps every parameter out of its store needs no hook at all.
+///
 /// A renderer reaches any stateful node through [StatefulNode]<[Object],
 /// [Store]<[Object]>, because generics are covariant and every instantiation is
 /// a subtype of that one. `children` is empty: the children belong to the view
@@ -41,7 +48,12 @@ class StatefulNode<S extends Object, C extends Store<S>> extends UINode {
   ///
   /// Neither function runs at construction time: [create] runs when a renderer
   /// mounts the node, [view] on every render of the state it was given.
-  StatefulNode({required this.create, required this.view, super.key});
+  StatefulNode({
+    required this.create,
+    required this.view,
+    this.update,
+    super.key,
+  });
 
   /// The factory of the store this node draws.
   ///
@@ -55,6 +67,25 @@ class StatefulNode<S extends Object, C extends Store<S>> extends UINode {
   /// function with its own types, shared by every node that draws it.
   final UINode Function(S state, C store) view;
 
+  /// Reconciles [Store] with the parameters of the node that replaced this one.
+  ///
+  /// A renderer calls it when an instance of the same type and key is drawn where
+  /// this node was — the same place in the tree, and therefore the same store — and
+  /// builds the view from the state it leaves behind. `null` is a component that
+  /// keeps nothing a parameter could make stale, which is most of them.
+  ///
+  /// The closure is the *new* node's, so it reads the parameters that changed;
+  /// `state` is what the store held before, and publishing through the store is how
+  /// a reconciliation takes effect. Assigning a state equal to the current one
+  /// publishes nothing, so it is safe to call for a node whose parameters did not
+  /// change — a fact a renderer cannot know, because the node only describes them.
+  ///
+  /// A view always sees the current parameters, because it is built from the node
+  /// drawn now. This hook exists for the other half: what a store copied when it was
+  /// created — the number of tabs it can select, the value it was seeded with — and
+  /// which only the component knows how to repair.
+  final void Function(S state, C store)? update;
+
   /// Creates the store for one mounting of this node.
   ///
   /// The spelling a renderer uses: it only knows the erased form of this node,
@@ -67,6 +98,14 @@ class StatefulNode<S extends Object, C extends Store<S>> extends UINode {
   /// form of this node; the node casts them back to [S] and [C], so a view is
   /// written with its own types.
   UINode viewFor(Object state, Object store) => view(state as S, store as C);
+
+  /// Brings [Store] up to date with this node, for the erased types a renderer holds.
+  ///
+  /// A node with no [update] does nothing, which is what makes the hook optional; a
+  /// renderer therefore calls it for every node it draws where it drew another one of
+  /// the same type and key, rather than asking whether there is anything to do.
+  void updateFor(Object state, Object store) =>
+      update?.call(state as S, store as C);
 
   @override
   List<UINode> get children => const <UINode>[];

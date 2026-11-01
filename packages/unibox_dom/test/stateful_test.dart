@@ -52,6 +52,46 @@ final class Counter extends core.StatefulNode<int, CounterStore> {
       );
 }
 
+/// A store that copied its ceiling from the node that created it, and the component that
+/// reconciles it — the shape `MaterialTabs` has, reduced to one number.
+final class CeilingStore extends core.StateStore<int> {
+  CeilingStore() : super(0);
+
+  /// The number this store counts to.
+  int ceiling = 3;
+
+  /// Raises the count, up to the ceiling the store believes in.
+  void raise() {
+    if (state < ceiling) {
+      state = state + 1;
+    }
+  }
+
+  /// Takes the ceiling of the node drawn now, and lowers a count above it.
+  void setCeiling(int next) {
+    ceiling = next;
+
+    if (state > ceiling) {
+      state = ceiling;
+    }
+  }
+}
+
+final class Ceiling extends core.StatefulNode<int, CeilingStore> {
+  Ceiling(int ceiling)
+    : super(
+        create: CeilingStore.new,
+        view: (int state, CeilingStore store) => core.Box(
+          key: 'raise',
+          onTap: store.raise,
+          children: <core.UINode>[
+            core.TextNode('$state of ${store.ceiling}', key: 'label'),
+          ],
+        ),
+        update: (int state, CeilingStore store) => store.setCeiling(ceiling),
+      );
+}
+
 web.HTMLDivElement host() {
   final web.HTMLDivElement element =
       web.document.createElement('div') as web.HTMLDivElement;
@@ -110,6 +150,25 @@ void main() {
 
       expect(identical(at(element, 'field'), field), isTrue);
       expect(web.document.activeElement, field);
+
+      view.dispose();
+    });
+
+    test('reconciles the store with the node drawn in its place', () {
+      final web.HTMLDivElement element = host();
+      final DomView view = DomView.mount(Ceiling(3), element);
+
+      press(at(element, 'raise'));
+      press(at(element, 'raise'));
+
+      expect(textAt(element, 'label'), '2 of 3');
+
+      // The same slot drew a component whose parameter changed. The store is kept — that is what
+      // a slot is for — so the ceiling it copied is what has to be repaired, and a count of one
+      // rather than nought is what says both happened.
+      view.render(Ceiling(1));
+
+      expect(textAt(element, 'label'), '1 of 1');
 
       view.dispose();
     });

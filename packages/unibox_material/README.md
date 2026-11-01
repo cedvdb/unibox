@@ -750,6 +750,13 @@ application wants when the page is its own node — above a pager, above a page 
 beside a preview. A *primary* bar distributes its tabs across the width and a *secondary*
 one packs them to the start at their own width.
 
+A set of tabs is a parameter with a sting: the store is created once per place in the tree
+and holds the count it was made with, so a component drawn over a different set has to be
+told. `MaterialTabs` reconciles there — a choice past the last tab moves to the last one a
+page exists for, and a tab the tree gained can be chosen — so a list whose tabs follow its
+data cannot draw a page that is not there, and a bar cannot offer a destination that does
+nothing.
+
 A bar is as wide as its parent and hands that width down, so a primary tab is a third of a
 three-tab bar: the width of a tab is the bar's, and the bar's is the parent's. Give it a
 narrower parent to make the tabs tighter, which is also the only lever — the bar states

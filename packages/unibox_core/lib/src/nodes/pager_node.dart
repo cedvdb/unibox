@@ -44,7 +44,7 @@ import 'box.dart';
 /// **Why it is a node and not a token.** A box knows its children, its axis, its size and its
 /// paint; it does not know what a page is. The three things this node adds — the index, the
 /// report, and the invariant that a page is the size of the pager — have no home on a box, and
-/// the renderers have to be able to name them: `unibox_flutter` and `unibox_element` may not
+/// the renderers have to be able to name them: `unibox_flutter` and `unibox_html` may not
 /// import a design system, so a pager that lived in one could not be drawn at all.
 final class PagerNode extends Box {
   /// Creates a pager over [children].

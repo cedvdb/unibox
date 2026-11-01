@@ -1,6 +1,5 @@
 import 'package:unibox_core/unibox_core.dart' as core;
-import 'package:unibox_css/unibox_css.dart';
-import 'package:unibox_element/unibox_element.dart';
+import 'package:unibox_html/unibox_html.dart';
 import 'package:web/web.dart' as web;
 
 import 'events.dart';
@@ -390,6 +389,13 @@ final class DomView {
       return;
     }
 
+    if (mount._reconciling) {
+      // A reconciliation published: the pass that is planning this node draws the state it
+      // leaves behind, so a repaint here would be the same work done twice against an element
+      // the pass is about to patch.
+      return;
+    }
+
     final web.Element? element = mount.element;
 
     if (element == null) {
@@ -644,7 +650,7 @@ final class _Pass {
         stateful,
         _view,
       );
-      mount.node = stateful;
+      mount.applyNode(stateful);
       // Where this boundary starts in the node list, so an adoption can pair it with the element the
       // page already has: the first element of the view it draws.
       mount.at = into.length;
@@ -681,7 +687,7 @@ final class _Pass {
     visited.add(slot);
 
     final _Mount mount = _view._mounts[slot] ??= _Mount(slot, node, _view);
-    mount.node = node;
+    mount.applyNode(node);
 
     _path.add(slot);
     _counts.add(0);
@@ -729,6 +735,33 @@ final class _Mount {
   core.StatefulNode<Object, core.Store<Object>> node;
   final core.Store<Object> store;
   late final void Function() _changed;
+
+  /// Whether this mount is reconciling its store, which is the one publish that must not repaint.
+  bool _reconciling = false;
+
+  /// Draws [next] here, reconciling the store it keeps with the parameters of the new node.
+  ///
+  /// The store is created once per slot, so a node that is drawn again in the same place keeps
+  /// it — and everything the store copied from the node that created it is then a fact about a
+  /// tree that is no longer on the page. `StatefulNode.update` is where a component repairs that,
+  /// and the pass that is planning this node builds its view from the state it leaves behind.
+  void applyNode(core.StatefulNode<Object, core.Store<Object>> next) {
+    if (identical(node, next)) {
+      return;
+    }
+
+    node = next;
+
+    // The view this pass plans next is the reconciled one, so a publish from here is not a
+    // repaint: patching the element now would fight the pass that is about to patch it.
+    _reconciling = true;
+
+    try {
+      next.updateFor(store.state, store);
+    } finally {
+      _reconciling = false;
+    }
+  }
 
   /// The plan of the view this node drew, and the element it became: the boundary a publish
   /// re-renders. A ripple publishes sixty times a second, and a page re-planned on each of those

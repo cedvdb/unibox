@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import 'package:unibox_css/unibox_css.dart';
+import 'package:unibox_html/unibox_html.dart';
 
 void main() {
   group('a list of declarations', () {

@@ -776,9 +776,7 @@ a custom property. Nothing in a tree is written inline.
 | --- | --- |
 | `packages/unibox_core` | The nodes, the style values and the validation. No dependencies outside the Dart SDK. |
 | `packages/unibox_flutter` | The Flutter renderer: `renderFlutter(node)` and `node.toWidget()`. |
-| `packages/unibox_css` | The token-to-CSS mapping and the class hash the web renders from. |
-| `packages/unibox_element` | The element plan: what each node becomes. |
-| `packages/unibox_html` | The web renderer: `toHtml(node)` (or `node.toHtml()`) and `toDocument(node)`. |
+| `packages/unibox_html` | The web: `toHtml(node)` (or `node.toHtml()`) and `toDocument(node)`, over the two layers a node becomes in a browser — its element plan and the CSS it wears — which `unibox_dom` builds from too. |
 | `packages/unibox_dom` | The client renderer: `DomView.adopt(tree, root)` keeps the markup a server wrote and patches it as the stores publish. |
 | `packages/unibox_testing` | The tables both renderers are tested against. Development only, not published. |
 | `packages/unibox_material` | The Material 3 type scale, the colour roles as a theme — the baseline scheme written down, or a palette grown from one seed colour — and the components built from them, from a scaffold and an app bar to a card, a list tile, a button, a dialog and a sheet. Optional: no renderer depends on it, and [the Material section](#material) has one line for each component. |
@@ -832,8 +830,6 @@ dart analyze                                     # static analysis everywhere
 (cd packages/unibox_core && dart test)
 (cd packages/unibox_testing && dart test)
 (cd packages/unibox_material && dart test)
-(cd packages/unibox_css && dart test)
-(cd packages/unibox_element && dart test)
 (cd packages/unibox_html && dart test)
 (cd packages/unibox_dom && dart test -p chrome)
 (cd packages/unibox_flutter && flutter test)
@@ -895,8 +891,8 @@ Where to read more:
   [core](packages/unibox_core/README.md),
   [material](packages/unibox_material/README.md),
   [flutter](packages/unibox_flutter/README.md),
-  [css](packages/unibox_css/README.md), [element](packages/unibox_element/README.md),
   [html](packages/unibox_html/README.md),
+  [dom](packages/unibox_dom/README.md),
   [conformance](packages/unibox_testing/README.md).
 
 ## License

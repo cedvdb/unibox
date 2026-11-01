@@ -1,5 +1,6 @@
 import 'package:unibox_core/unibox_core.dart' as core;
-import 'package:unibox_css/unibox_css.dart';
+
+import '../css/css.dart';
 
 /// The rules one rendering needs, each one once.
 ///

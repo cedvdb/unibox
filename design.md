@@ -5,9 +5,8 @@ Unibox provides pure Dart layout primitives that draw natively as Flutter widget
 
 - **Workspace:** Dart 3.13+ workspace in `packages/`:
   - `packages/unibox_core`: Pure Dart AST & tokens. Zero dependencies (no Flutter, no web framework, no `dart:ui`).
-  - `packages/unibox_css`: Depends on `unibox_core` only. The token-to-CSS mapping and the class hash the web renders from.
-  - `packages/unibox_element`: Depends on `unibox_core` + `unibox_css`. The element plan: what each node becomes.
-  - `packages/unibox_html`: Depends on `unibox_core` + `unibox_css` + `unibox_element`. Writes a fragment or a document.
+  - `packages/unibox_html`: Depends on `unibox_core` only. The web, in the two layers a node becomes there — its element plan and the CSS it wears — and the fragment or document they are written into.
+  - `packages/unibox_dom`: Depends on `unibox_core` + `unibox_html`. Builds the same plan in a browser and keeps it in step with the stores.
   - `packages/unibox_flutter`: Depends on `unibox_core` + Flutter SDK.
   - `packages/unibox_material`: Optional design-system tokens and one component (the Material 3 type scale and `MaterialCard`). Depends on `unibox_core` only; no renderer depends on it.
 - **Engineering Agency:** You have permission to diverge, adjust signatures, or simplify types where it makes sense, as long as the packages remain decoupled and work seamlessly across both platforms.
@@ -570,10 +569,22 @@ never inherited (CSS does not inherit them either).
 
 ### 5.10 A subtree that owns its state
 - `StatefulNode` is the one node with a lifecycle. It carries `create` — a factory,
-  never an instance — and `view`, a function of the state. A renderer calls
-  `createStore`, subscribes, calls `onMount`, rebuilds on a notification, and calls
+  never an instance — `view`, a function of the state, and optionally `update`. A renderer
+  calls `createStore`, subscribes, calls `onMount`, rebuilds on a notification, and calls
   `onUnmount` and `dispose` on unmount. The tree itself stays immutable, so it can
   still be built, compared and rendered twice.
+- A store outlives the node that created it: it is kept at a place in the tree, so a node
+  drawn there again keeps the state — and with the state, whatever the store copied from
+  the node that was there before. The view is the other way round: it is built from the
+  node drawn *now*, so a parameter it reads is always current. `update` is the seam
+  between the two. A renderer calls it when a node of the same type and key replaces
+  another, before the view is built, and a component brings its state back in line with
+  the parameters that changed — a tab set whose count it can select, a field whose value it
+  was seeded with. It is optional, because a component whose state copies nothing needs no
+  seam, and it may publish, because a state equal to the current one publishes nothing.
+  Without it the two halves drift with no error: the page draws a control offering a
+  destination that a store believes does not exist, which is what happened to
+  `MaterialTabs` before the hook existed.
 - The state is a value. A `Store` publishes an immutable state and notifies a
   listener; `StateStore` drops a published value equal to the current one, so a
   rebuild follows a change of the description rather than a call.
@@ -594,12 +605,13 @@ never inherited (CSS does not inherit them either).
   with one difference: its children come from a view the renderer builds at render
   time, so `validateTree` sees an empty child list and a renderer validates each
   view in debug builds.
-- The web renderer draws the state the store starts with: it creates the store, reads its
+- The string renderer draws the state the store starts with: it creates the store, reads its
   state, renders the tree and never calls `onMount`. A document has no runtime, so a press
-  cannot change it — that is the application's job once it takes the page over, and the node
-  is constructed there because its behaviour is Dart closures, which no markup can carry. A
-  first state of "loading" therefore renders a page that loads, and a store that
-  starts with the server's data renders the page as it should look.
+  cannot change it. A page that reacts is one of two things: an application that takes the
+  document over, or the client renderer (§5, `unibox_dom`), which adopts the same markup and
+  keeps the same stores — a node is constructed there because its behaviour is Dart closures,
+  which no markup can carry. A first state of "loading" therefore renders a page that loads, and
+  a store that starts with the server's data renders the page as it should look.
 - The vocabulary is the model's: a node, a store, a state and a view. There are no
   events, no cubits and no blocs — those are one naming of a pattern this model
   describes in its own words, and borrowing them would promise an API the library

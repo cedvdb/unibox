@@ -36,9 +36,8 @@ guide is [`README.md`](README.md).
 | `packages/unibox_core/lib/src/enums.dart` | layout, alignment, overflow and typography enums | a value both targets can express is missing |
 | `packages/unibox_core/lib/src/validation.dart` | `validateTree` and `TreeIssue` | a construct becomes impossible to render faithfully |
 | `packages/unibox_flutter/lib/src/` | one file per node (`FlutterBox`, `FlutterText`, ...), `values.dart` (token → Flutter), `render.dart` (dispatch and the validation assert) | the Flutter target has to change |
-| `packages/unibox_css/lib/src/` | the token-to-CSS mapping, the class hash and the state rules the web renders from | a token's CSS changes |
-| `packages/unibox_element/lib/src/` | `ElementPlan`, `planNode` and `Stylesheet` — what a node becomes, shared by every web renderer | a node's element or its class changes |
-| `packages/unibox_html/lib/src/` | the string renderer: `plan.dart` (the element plan), `render.dart`, `document.dart`, `client/` | the web target has to change |
+| `packages/unibox_html/lib/src/` | the web: `css/` (the token-to-CSS mapping, the class hash and the state rules), `element/` (`ElementPlan`, `planNode` and `Stylesheet` — what a node becomes), and the writer (`render.dart`, `document.dart`, `client/`) | a token's CSS, a node's element or the document changes |
+| `packages/unibox_dom/lib/src/` | the client renderer: `mount.dart` (`DomView`), `patch.dart` (plan → element), `events.dart` (a callback → a listener) | the page has to react |
 | `packages/unibox_testing/lib/src/` | `BoxAppearance` + `boxCases`, `TextAppearance` + `textCases`, `OverlayAppearance` + `overlayCases` | a presentational token is added or changed |
 | `packages/unibox_material/lib/src/` | the Material 3 type scale: `MaterialTypography` (the fifteen roles as `const BoxTextStyle` values), `MaterialTypeRole`, the colour roles as `MaterialPalette` (`light`/`dark`, or grown from one seed by `fromSeed`, with `MaterialSchemeVariant` naming how the seed is spent), `MaterialElevation` (the six heights as `BoxShadow` lists), and the components built on the drawn nodes, one line each in `README.md#material` — `MaterialScaffold`, `MaterialAppBar`, `MaterialLargeAppBar`, `MaterialCard`, `MaterialListTile`, `MaterialButton`, `MaterialIconButton` (a glyph in a square, with a count over its corner), `MaterialChip`, `MaterialTabBar`, `MaterialSegmentedButton`, `MaterialNavigationBar`, `MaterialIcon` and `MaterialProgressRing` (a value, as a ring of a shape), all `Box`es; `MaterialInkWell` (its tints and the ink a press spreads), `MaterialTabs`, `MaterialTextField` (the text, the focus and whether it has been touched, which is what lets it show its own error) and `MaterialSpinner` (the step that ring turns), all `StatefulNode`s; `MaterialCheckMark` (a `StackNode`: Material's tick, drawn); `MaterialDialog` and `MaterialBottomSheet`, both `OverlayNode`s | a design-system role is added, a scale or a palette changes, or a component is added |
 | `packages/unibox_core/lib/src/state/` | `Store` and `StateStore`: the state a `StatefulNode` draws and the lifecycle a renderer calls | a store member, the publish rule or a lifecycle rule changes |
@@ -78,8 +77,6 @@ Every suite, exactly as CI runs them — one command per directory, in dependenc
 (cd packages/unibox_core && dart test)
 (cd packages/unibox_testing && dart test)
 (cd packages/unibox_material && dart test)
-(cd packages/unibox_css && dart test)
-(cd packages/unibox_element && dart test)
 (cd packages/unibox_html && dart test)
 (cd packages/unibox_dom && dart test -p chrome)
 (cd packages/unibox_flutter && flutter test)
@@ -163,10 +160,10 @@ that lands on one target only fails the suites.
    token is a new value type), `lib/src/box.dart` (where the decoration, the
    transform or the sizing is built) and `test/support/appearance.dart` (how the
    appearance is read back for the contract).
-5. The web target: `packages/unibox_css/lib/src/` (the declarations, the four state rules
+5. The web target: `packages/unibox_html/lib/src/css/` (the declarations, the four state rules
    `:hover`, `:focus-visible`, `:active`, `[aria-disabled="true"]`, and the class hash) and
-   `packages/unibox_html/lib/src/` (the element plan, the emitter, the document) — plus
-   `test/support/appearance.dart`.
+   `packages/unibox_html/lib/src/element/` and the writer beside it (the element plan, the
+   emitter, the document) — plus `test/support/appearance.dart`.
 6. The contract: `packages/unibox_testing/lib/src/appearance.dart` (the field
    in `BoxAppearance` and in `differencesFrom`) and `lib/src/cases.dart` (one case
    that isolates the token, plus the token in the "every token at once" case).
@@ -192,10 +189,9 @@ that lands on one target only fails the suites.
    section of `packages/unibox_core/README.md` move together.
 4. Flutter: `lib/src/values.dart` (`toTextStyle`) and the widget that consumes it
    (`text_node.dart`, plus `text_input_node.dart` when a field adopts it).
-5. The web: `packages/unibox_css/lib/src/values.dart` (`typographyDeclarations`,
-   `defaultTypographyDeclarations`) and the emitter in
-   `packages/unibox_html/lib/src/` (`textDeclarations`, and the `:root` block
-   `sheetWithRoot` writes).
+5. The web: `packages/unibox_html/lib/src/css/values.dart` (`typographyDeclarations`,
+   `defaultTypographyDeclarations`) and the emitter beside it (`textDeclarations`, and the
+   `:root` block `sheetWithRoot` writes).
 6. The contract: `packages/unibox_testing/lib/src/text_appearance.dart` and
    `lib/src/text_cases.dart`, including `defaultTextAppearance` when the default
    is what changed. `textAppearanceOf` in both `test/support/appearance.dart`
@@ -220,7 +216,7 @@ that lands on one target only fails the suites.
 4. The web: a `_plan<Name>` in `packages/unibox_html/lib/src/render.dart`, the case in
    its `planNode` switch — whose `_ =>` fallback throws `UnsupportedError`, so a
    forgotten case is a runtime failure rather than a compile error — and a test in
-   `packages/unibox_html/test/`. Its declarations go in `packages/unibox_css/lib/src/`.
+   `packages/unibox_html/test/`. Its declarations go in `packages/unibox_html/lib/src/css/`.
 5. The contract, only when the node carries presentational tokens the tables cover
    (boxes and texts). A node with no token — a link, an embed — is pinned by the
    renderer suites instead, which is honest: there is no appearance to compare.
@@ -262,15 +258,26 @@ cannot catch.
    never changes it.
 2. The store implements `Store<S>`, or extends `StateStore` from `unibox_core`;
    its publish rule is tested in `packages/unibox_core/test/state_store_test.dart`.
-3. Flutter: `lib/src/stateful_node.dart` renders it once for every node; the suite
-   needs a test in `test/stateful_node_test.dart` (a publish, a dispose) rather
-   than a renderer per component.
-4. The web: `_planStateful` in `packages/unibox_html/lib/src/render.dart` creates the
+3. **A parameter the store copied is reconciled in `update`.** A store is created once
+   per place in the tree and cannot see a node, so anything it read at creation — a count,
+   a seed value — is stale the moment the same place draws a node with another parameter.
+   A component like that states `update: (state, store) => store.reconcile(…)` and tests it
+   in its own suite, with no renderer: `createStore()` then `updateFor(state, store)` is the
+   whole contract (`packages/unibox_material/test/material_tabs_test.dart`).
+4. Flutter: `lib/src/stateful_node.dart` renders it once for every node, and hands the store
+   to `updateFor` from `didUpdateWidget`; the suite needs a test in `test/stateful_node_test.dart`
+   (a publish, a dispose, a node drawn again over it) rather than a renderer per component.
+5. The web: `_planStateful` in `packages/unibox_html/lib/src/render.dart` creates the
    store, draws the state it starts with and never calls `onMount` — a document is a
-   snapshot — and `test/render_test.dart` pins it. A page that reacts needs the
-   application to take it over, or `unibox_dom` when it exists.
-5. Docs: the `StatefulNode` page in `docs/nodes/stateful.md` and the core README, plus
-   the changelogs.
+   snapshot — and `test/render_test.dart` pins it. A page that reacts ships
+   `packages/unibox_dom`, where `_Mount.applyNode` reconciles the store of a slot that is
+   drawn again, and `test/stateful_test.dart` pins both halves.
+6. The contract: a case in `packages/unibox_testing/lib/src/behaviour_cases.dart` when the
+   rule is one every renderer owes — a publish redraws the page, a store drawn again is
+   reconciled. Both suites play the one table (`test/behaviour_test.dart` on each side), so
+   the answer is written once and cannot be relaxed for one target.
+7. Docs: the `StatefulNode` page in `docs/nodes/stateful.md` and the core README, the
+   `## Behaviour` section of the testing README, and the changelogs.
 
 ### H. A callback on a node
 

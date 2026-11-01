@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- `MaterialTabs` follows the tabs it is drawn with. The store was created with the number of tabs
+  the component had when it mounted and kept it, so a parent that drew the component again over a
+  different set left the two halves disagreeing: a choice past the last tab drew a page the tree no
+  longer held — a `RangeError` — and a tab the tree gained refused every press. The component now
+  reconciles its state with the node drawn over it (`StatefulNode.update`), moving a lost choice to
+  the last tab a page exists for and letting a new tab be chosen.
+
 - `MaterialProgressRing` and `MaterialSpinner` announce a labelled ring as a progress bar:
   `role="progressbar"` on the web and `SemanticsRole.progressBar` in Flutter, with the label as
   the name. A name on a plain container is a prohibited attribute on the web, so a labelled ring

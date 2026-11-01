@@ -10,8 +10,6 @@ workspace:
   - packages/unibox_testing
   - packages/unibox_core
   - packages/unibox_flutter
-  - packages/unibox_css
-  - packages/unibox_element
   - packages/unibox_dom
   - packages/unibox_html
   - packages/unibox_material

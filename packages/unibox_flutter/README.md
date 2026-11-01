@@ -564,6 +564,10 @@ written once for every node an application defines:
 - the store is created when the widget mounts, subscribed to, and `onMount` is
   called; a rebuild with a node of the same type and key keeps the state, and a
   different key starts again;
+- a rebuild with a node of the same type and key draws the *new* node's view, so a
+  parameter the view reads is always current — and `didUpdateWidget` hands the store
+  to `StatefulNode.update` first, so a parameter the store copied is repaired before
+  the view that reads it is built;
 - every notification rebuilds the view, and unmounting calls `onUnmount` and then
   `dispose` on the store;
 - the view's tree is rendered in place, so it inherits the typography and the

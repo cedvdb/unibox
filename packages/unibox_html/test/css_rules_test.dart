@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
-import 'package:unibox_css/unibox_css.dart';
+import 'package:unibox_html/unibox_html.dart';
 
 void main() {
   group('a text input', () {

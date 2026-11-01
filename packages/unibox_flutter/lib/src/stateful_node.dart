@@ -9,7 +9,9 @@ import 'theme_scope.dart';
 /// The widget creates the store once, when it is mounted, subscribes to it,
 /// calls [core.Store.onMount] and disposes it on unmount — so a rebuild with a
 /// node of the same type and key keeps the state, and a different key starts
-/// again.
+/// again. The node drawn again is the parameter the store cannot see: it hands the
+/// store to [core.StatefulNode.update] before building, which is how a component
+/// whose state copied a parameter stays right.
 ///
 /// The view is rendered in place, so it inherits the typography and the layout
 /// of the boxes around it. A view draws one tree, and an overlay it returns is
@@ -57,6 +59,18 @@ class FlutterStatefulState extends State<FlutterStateful> {
     super.initState();
     _store = widget.node.createStore()..addListener(_changed);
     _store.onMount();
+  }
+
+  @override
+  void didUpdateWidget(FlutterStateful oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // The same place in the tree drew this component again, so this is the store it
+    // keeps — and the node is where the parameters that changed are. A publish from the
+    // reconciliation reaches `setState` like any other, before the build that follows.
+    if (!identical(oldWidget.node, widget.node)) {
+      widget.node.updateFor(_store.state, _store);
+    }
   }
 
   @override

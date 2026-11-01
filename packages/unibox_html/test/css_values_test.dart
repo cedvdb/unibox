@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
-import 'package:unibox_css/unibox_css.dart';
+import 'package:unibox_html/unibox_html.dart';
 
 /// A role of a design system, which names the custom property a colour is written
 /// as. Any enum does: the model does not own the vocabulary of an application.
