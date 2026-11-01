@@ -2,6 +2,7 @@ import 'package:unibox_example_shared/unibox_example_shared.dart';
 import 'package:unibox_html/unibox_html.dart';
 
 import 'fonts.dart';
+import 'site/favicon.dart';
 
 /// The loader the page boots the application through.
 ///
@@ -37,7 +38,10 @@ Document buildExampleDocument({String? build}) {
           'Six apartments with a map beside the listings on a wide screen and the '
           'listings alone on a narrow one, from the same node tree.',
       meta: <String, String>{'unibox-build': ?build, 'unibox-page': 'example'},
-      links: fontPreloadLinks('../../'),
+      links: <DocumentLink>[
+        faviconLink('../../'),
+        ...fontPreloadLinks('../../'),
+      ],
       raw: <String>['<style>${fontFaceCss('../../')}$pageCss</style>'],
     ),
     theme: ExamplePalette.themeFor(ExampleSeed.defaultSeed),
@@ -70,6 +74,7 @@ Document buildTakeoverDocument({String? build}) {
           'The same node tree as the document beside it, first as HTML and then, when a '
           'reader touches it, as the Flutter application.',
       meta: <String, String>{'unibox-build': ?build, 'unibox-page': 'none'},
+      links: <DocumentLink>[faviconLink('../../')],
       raw: <String>['<style>${fontFaceCss('../../')}$pageCss</style>'],
     ),
     theme: ExamplePalette.themeFor(ExampleSeed.defaultSeed),

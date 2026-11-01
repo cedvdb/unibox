@@ -19,6 +19,16 @@ void main() {
       expect(html, contains('<meta property="og:title"'));
     });
 
+    test('names the mark a tab shows', () {
+      // A document that names no icon leaves the browser asking the origin for
+      // `/favicon.ico`, which a project site answers with a 404. This page sits two directories
+      // down, so it is the same mark by a different path.
+      expect(
+        buildExampleDocument().write(),
+        contains('<link rel="icon" href="../../favicon.svg" '),
+      );
+    });
+
     test('writes the palette into the root, as custom properties', () {
       final String html = buildExampleDocument().write();
 

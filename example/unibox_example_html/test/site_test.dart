@@ -129,6 +129,15 @@ void main() {
       },
     );
 
+    test('names the mark a tab shows, so a tab asks for no missing icon', () {
+      // Without one, a browser asks the origin for `/favicon.ico` — a 404 on every page of the
+      // site, and one a reader sees in their console.
+      expect(
+        buildSiteDocument().write(),
+        contains('<link rel="icon" href="favicon.svg" type="image/svg+xml">'),
+      );
+    });
+
     test('installs the palette its roles are named from', () {
       expect(buildSiteDocument().write(), contains('--unibox-color-accent:'));
     });

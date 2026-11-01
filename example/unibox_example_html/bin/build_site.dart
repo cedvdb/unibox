@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:unibox_example_html/site/favicon.dart';
 import 'package:unibox_example_html/site/pages.dart';
 import 'package:unibox_html/unibox_html.dart';
 
@@ -47,6 +48,11 @@ void main(List<String> arguments) {
   if (url != null) {
     _write(out, 'sitemap.xml', sitemapOf(pages));
   }
+
+  // The mark every document names, written by the build so that a page can never point at an
+  // icon this build did not write — and so that a tab asks for it instead of for the origin's
+  // `/favicon.ico`, which a project site answers with a 404.
+  _write(out, faviconPath, faviconSvg);
 }
 
 /// Writes [document] to [path] below [out].

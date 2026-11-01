@@ -3,6 +3,7 @@ import 'package:unibox_example_shared/unibox_example_shared.dart';
 import 'package:unibox_html/unibox_html.dart';
 
 import '../fonts.dart';
+import 'favicon.dart';
 import 'iframe_node.dart';
 
 /// The document the site is served as.
@@ -36,7 +37,7 @@ Document buildSiteDocument({
           'as real HTML and CSS to a search engine, and draw it as Flutter widgets in '
           'the app.',
       meta: <String, String>{'unibox-build': ?build, 'unibox-page': 'site'},
-      links: fontPreloadLinks(''),
+      links: <DocumentLink>[faviconLink(''), ...fontPreloadLinks('')],
       raw: <String>['<style>${fontFaceCss('')}$siteCss</style>'],
     ),
     theme: siteThemeFor(seed),
