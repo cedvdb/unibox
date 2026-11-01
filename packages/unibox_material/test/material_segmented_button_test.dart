@@ -49,6 +49,21 @@ void main() {
       expect(grid.children, everyElement(isA<Box>()));
     });
 
+    test('pins like any other box, so a row of choices can be a band', () {
+      final MaterialSegmentedButton control = MaterialSegmentedButton(
+        segments: const <MaterialSegment>[
+          MaterialSegment(label: TextNode('Any')),
+        ],
+        selected: 0,
+        onSelect: (int index) {},
+        pin: BoxPin.start,
+        pinOffset: 8,
+      );
+
+      expect(control.pin, BoxPin.start);
+      expect(control.pinOffset, 8);
+    });
+
     test('states no width on a segment, whatever the labels say', () {
       MaterialSegmentedButton button({double? width}) =>
           MaterialSegmentedButton(

@@ -129,6 +129,8 @@ final class MaterialNavigationBar extends Box {
     double labelGap = _labelGap,
     BoxSemantics? semantics,
     super.margin,
+    super.pin,
+    super.pinOffset,
     BoxTransition? transition,
     super.key,
   }) : super(

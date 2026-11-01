@@ -82,6 +82,11 @@ final class MaterialCard extends Box {
   /// That is Flutter's own composition, `Card(child: InkWell(...))`, and it is the only
   /// one that can work: a well paints its tints and its ink *under* its child, so a well
   /// around the card would paint them behind an opaque surface.
+  ///
+  /// **A card can be a band.** `pin` and `pinOffset` are the card's as much as any other
+  /// box's: a card pinned to the start of the box that scrolls it stays there while the
+  /// results pass under it, and it needs no height — the room it keeps in the flow is the
+  /// height it lays itself out at.
   const MaterialCard({
     super.key,
     super.children,
@@ -91,6 +96,8 @@ final class MaterialCard extends Box {
     super.gap,
     super.flex,
     super.overflow,
+    super.pin,
+    super.pinOffset,
     super.width,
     super.height,
     super.margin,
@@ -127,6 +134,8 @@ final class MaterialCard extends Box {
     double? gap,
     int? flex,
     Overflow? overflow,
+    BoxPin? pin,
+    double? pinOffset,
     double? width,
     double? height,
     BoxSpacing? margin,
@@ -150,6 +159,8 @@ final class MaterialCard extends Box {
          gap: gap,
          flex: flex,
          overflow: overflow,
+         pin: pin,
+         pinOffset: pinOffset,
          width: width,
          height: height,
          margin: margin,
@@ -185,6 +196,8 @@ final class MaterialCard extends Box {
     double? gap,
     int? flex,
     Overflow? overflow,
+    BoxPin? pin,
+    double? pinOffset,
     double? width,
     double? height,
     BoxSpacing? margin,
@@ -208,6 +221,8 @@ final class MaterialCard extends Box {
          gap: gap,
          flex: flex,
          overflow: overflow,
+         pin: pin,
+         pinOffset: pinOffset,
          width: width,
          height: height,
          margin: margin,
@@ -244,6 +259,8 @@ final class MaterialCard extends Box {
     double? gap,
     int? flex,
     Overflow? overflow,
+    BoxPin? pin,
+    double? pinOffset,
     double? width,
     double? height,
     BoxSpacing? margin,
@@ -267,6 +284,8 @@ final class MaterialCard extends Box {
          gap: gap,
          flex: flex,
          overflow: overflow,
+         pin: pin,
+         pinOffset: pinOffset,
          width: width,
          height: height,
          margin: margin,

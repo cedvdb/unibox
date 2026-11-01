@@ -83,6 +83,22 @@ void main() {
       expect(card.isFocusable, isFalse);
     });
 
+    test('is a band when it is told to pin, like any other box', () {
+      // The tokens are the card's own rather than a wrapper's: the card *is* the box, so
+      // pinning one is one node and no height stated twice.
+      const MaterialCard card = MaterialCard(pin: BoxPin.start, pinOffset: 48);
+
+      expect(card.pin, BoxPin.start);
+      expect(card.pinOffset, 48);
+      expect(
+        MaterialCard.outlined(pin: BoxPin.end).pin,
+        BoxPin.end,
+        reason:
+            'a variant takes the whole parameter list, band tokens included',
+      );
+      expect(MaterialCard.filled(pinOffset: 12).pinOffset, 12);
+    });
+
     test('typesets the texts inside it without a style of their own', () {
       const card = MaterialCard(children: <UINode>[TextNode('Two nights')]);
       final UINode text = card.children.single;

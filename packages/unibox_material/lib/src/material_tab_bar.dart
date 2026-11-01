@@ -102,6 +102,8 @@ final class MaterialTabBar extends Box {
     double labelGap = _labelGap,
     BoxTextStyle labelStyle = MaterialTypography.titleSmall,
     super.margin,
+    super.pin,
+    super.pinOffset,
   }) : super(
          height: height,
          width: double.infinity,

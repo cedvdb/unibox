@@ -144,6 +144,21 @@ void main() {
       }
     });
 
+    test('pins like any other box, so a bar can hold the end edge', () {
+      final MaterialNavigationBar bar = MaterialNavigationBar(
+        destinations: const <MaterialNavigationDestination>[
+          MaterialNavigationDestination(label: TextNode('Explore')),
+        ],
+        selected: 0,
+        onSelect: (int index) {},
+        pin: BoxPin.end,
+        pinOffset: 16,
+      );
+
+      expect(bar.pin, BoxPin.end);
+      expect(bar.pinOffset, 16);
+    });
+
     test('asks for the destination a press landed on', () {
       final MaterialNavigationBar bar = _bar();
 

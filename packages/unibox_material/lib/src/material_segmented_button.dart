@@ -131,6 +131,8 @@ final class MaterialSegmentedButton extends Box {
     // Both are one rule, the `GridNode` below, so the width states no size of its own.
     super.width,
     super.margin,
+    super.pin,
+    super.pinOffset,
     BoxTransition? transition,
     super.key,
   }) : assert(

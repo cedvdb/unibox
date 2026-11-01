@@ -95,6 +95,18 @@ void main() {
       );
     });
 
+    test('pins like any other box, so a bar can be a band', () {
+      final MaterialTabBar bar = MaterialTabBar(
+        tabs: const <MaterialTab>[MaterialTab(label: TextNode('Overview'))],
+        selected: 0,
+        pin: BoxPin.start,
+        pinOffset: 48,
+      );
+
+      expect(bar.pin, BoxPin.start);
+      expect(bar.pinOffset, 48);
+    });
+
     test('lets a caller set the tab, its room, its type and the indicator', () {
       final MaterialTabBar tabs = MaterialTabBar(
         tabs: const <MaterialTab>[

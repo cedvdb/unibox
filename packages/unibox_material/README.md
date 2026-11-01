@@ -435,6 +435,7 @@ the conformance table already pins — the class is a combination, not a new tok
 | shadows | `MaterialCard.elevatedShadows` — `MaterialElevation.level1` | elevation level one: the design file's ladder, one shade cast at 34% black |
 | typography | `MaterialTypography.bodyMedium` | inherited by the texts inside |
 | layout | a column (`Box`'s default), with `crossAlign: stretch` | a card stacks its content and stretches it to the card, so a row of it spans the width |
+| `pin`, `pinOffset` | none | the card is a box, so it can be a band: `pin: BoxPin.start` holds it at the top of the box that scrolls it, and it needs no height — the room the flow keeps is the height it measures |
 
 Every one is a parameter, so an application themes a card instead of forking it:
 
@@ -754,6 +755,10 @@ three-tab bar: the width of a tab is the bar's, and the bar's is the parent's. G
 narrower parent to make the tabs tighter, which is also the only lever — the bar states
 `width: double.infinity` and takes no width of its own.
 
+A bar is a box, so it can be a band: `pin: BoxPin.start` holds it at the top of the box that
+scrolls the page under it, and `pinOffset` puts a second bar under the first. It needs no
+height to do it — the room the flow keeps is the height the bar measures.
+
 The bar's measurements are parameters, and only one of them differs between the variants:
 a tab is 48 tall with 8 across inside, 4 between an icon and its label, 3 pixels of
 indicator. `height`, `tabPadding`, `labelGap`, `indicatorHeight` and `labelStyle` replace
@@ -778,7 +783,9 @@ It does not page between tabs: a swipe needs a pager under the bar, and a tab pr
 page rather than moving one. `PagerNode` is the pager — it pages by drag and reports the page it
 settled on — and the example's tabs demo composes it with a `MaterialTabBar` over one store.
 
-`MaterialSegmentedButton` is two to five choices in one divided pill.
+`MaterialSegmentedButton` is two to five choices in one divided pill. It takes `pin` and
+`pinOffset` like any box, which is what a filter row that stays at the top of a scrolling
+list of results needs.
 
 ```dart
 MaterialSegmentedButton(
@@ -980,7 +987,8 @@ with no idea which one is about to go.
 ## The navigation bar
 
 `MaterialNavigationBar` is three to five destinations along the bottom edge of a
-screen, one of them the page it is on.
+screen, one of them the page it is on. `pin: BoxPin.end` is what holds it at that edge when
+the page it sits in scrolls.
 
 ```dart
 MaterialNavigationBar(

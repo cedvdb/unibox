@@ -15,6 +15,10 @@
   body the rest.
 - A bar built from a `Material` component pins without a stated height: the room the flow
   keeps for it is the height the bar measures.
+- `MaterialCard`, `MaterialTabBar`, `MaterialSegmentedButton` and `MaterialNavigationBar`
+  forward `pin` and `pinOffset`, so a card, a tab bar, a row of choices or a bottom bar is a
+  bar in one node rather than a wrapper around a component. They need no stated height: the
+  room the flow keeps is the height the box measures.
 
 - `MaterialTabBar`'s indicator states its share as
   `BoxFraction.parent(1 / tabs.length)`, because a fraction now names what it is a share of.
