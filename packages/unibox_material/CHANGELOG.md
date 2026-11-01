@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `MaterialProgressRing` and `MaterialSpinner` announce a labelled ring as a progress bar:
+  `role="progressbar"` on the web and `SemanticsRole.progressBar` in Flutter, with the label as
+  the name. A name on a plain container is a prohibited attribute on the web, so a labelled ring
+  announced nothing at all and every audit of a page that drew one listed it. A ring with no label
+  still says nothing, because an unnamed bar is worse than an unannounced picture.
 - `MaterialScaffold` takes a `bottomBar`, so a navigation bar or an action bar is furniture outside
   the scroll rather than the last child of the body. Both bars now keep the height they state, and
   the body is what grows: `flex: 1` is the spelling the component documents, because a body of

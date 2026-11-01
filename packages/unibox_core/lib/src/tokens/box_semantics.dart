@@ -38,7 +38,20 @@ enum BoxRole {
   /// The set a group of [tab] boxes belongs to.
   ///
   /// Structural: a container, so it is not focusable and takes no press.
-  tablist;
+  tablist,
+
+  /// A control that reports how far a task has got: a ring, a bar, a measured circle.
+  ///
+  /// Structural like [heading], because a reader is told a value rather than offered one — so it
+  /// takes no press and never joins the tab order. Flutter names it `SemanticsRole.progressBar` and
+  /// the web `role="progressbar"`, and both announce [BoxSemantics.label] as the name: a ring that
+  /// is 42% of the way round says `'42% complete'`, and one whose value is unknown says
+  /// `'Loading'`, which is the indeterminate form both read as a bar with no figure.
+  ///
+  /// It exists because a label with no role is a name with nothing to name: `aria-label` is
+  /// prohibited on an element that is not allowed one, so a labelled ring used to be a warning in
+  /// every audit of a page that drew one.
+  progressBar;
 
   /// Whether the role is something the user can act on.
   ///
@@ -178,6 +191,7 @@ final class BoxSemantics {
     this.hidden = false,
     this.liveRegion = false,
     this.current,
+    this.progress,
   });
 
   /// What the box means to assistive technologies.
@@ -239,6 +253,14 @@ final class BoxSemantics {
   /// on: `aria-current` on the web, the selected state of a set in Flutter.
   final BoxCurrent? current;
 
+  /// How far the task has got, for a box with [BoxRole.progressBar].
+  ///
+  /// `null` is a bar with no figure — a spinner — which both targets have a name for: the web
+  /// states `role="progressbar"` with no `aria-valuenow`, which is the indeterminate form, and
+  /// Flutter names it `SemanticsRole.loadingSpinner`. A bar with a value states it, and a reader
+  /// hears the figure as well as the role.
+  final BoxProgress? progress;
+
   /// Whether a box with this description takes keyboard focus.
   ///
   /// A hidden box never does: a control that a screen reader cannot see must not
@@ -259,6 +281,7 @@ final class BoxSemantics {
     bool? hidden,
     bool? liveRegion,
     BoxCurrent? current,
+    BoxProgress? progress,
   }) {
     return BoxSemantics(
       role: role ?? this.role,
@@ -271,6 +294,7 @@ final class BoxSemantics {
       hidden: hidden ?? this.hidden,
       liveRegion: liveRegion ?? this.liveRegion,
       current: current ?? this.current,
+      progress: progress ?? this.progress,
     );
   }
 
@@ -286,7 +310,8 @@ final class BoxSemantics {
       other.pressed == pressed &&
       other.hidden == hidden &&
       other.liveRegion == liveRegion &&
-      other.current == current;
+      other.current == current &&
+      other.progress == progress;
 
   @override
   int get hashCode => Object.hash(
@@ -300,6 +325,7 @@ final class BoxSemantics {
     hidden,
     liveRegion,
     current,
+    progress,
   );
 
   @override
@@ -315,7 +341,62 @@ final class BoxSemantics {
       if (hidden) 'hidden: $hidden',
       if (liveRegion) 'liveRegion: $liveRegion',
       if (current != null) 'current: $current',
+      if (progress != null) 'progress: $progress',
     ];
     return 'BoxSemantics(${fields.join(', ')})';
   }
+}
+
+/// How far a task has got, in a range.
+///
+/// ```dart
+/// const Uploading = Box(
+///   semantics: BoxSemantics(
+///     role: BoxRole.progressBar,
+///     label: 'Uploading',
+///     progress: BoxProgress(value: 6, max: 10),
+///   ),
+/// );
+/// ```
+///
+/// The three numbers are the ones ARIA states — `aria-valuenow`, `aria-valuemin` and
+/// `aria-valuemax` — and the ones a Flutter `Semantics` node carries, so a bar is one value on
+/// both targets. The range defaults to a fraction, `0` to `1`, because that is the unit a shape
+/// drawn as a fraction of a turn already has; a bar that counts something states its own.
+final class BoxProgress {
+  /// Creates a value of [value] inside [min] and [max].
+  const BoxProgress({required this.value, this.min = 0, this.max = 1});
+
+  /// Where the task has got to, in [min]..[max].
+  ///
+  /// It is not clamped: a value outside the range is data an application computed, and a
+  /// renderer that quietly moved it would be telling a reader something the tree did not.
+  final double value;
+
+  /// The bottom of the range: a task that has not started.
+  final double min;
+
+  /// The top of the range: a task that is done.
+  final double max;
+
+  /// Creates a copy of this value with the given fields replaced.
+  BoxProgress copyWith({double? value, double? min, double? max}) =>
+      BoxProgress(
+        value: value ?? this.value,
+        min: min ?? this.min,
+        max: max ?? this.max,
+      );
+
+  @override
+  bool operator ==(Object other) =>
+      other is BoxProgress &&
+      other.value == value &&
+      other.min == min &&
+      other.max == max;
+
+  @override
+  int get hashCode => Object.hash(value, min, max);
+
+  @override
+  String toString() => 'BoxProgress(value: $value, min: $min, max: $max)';
 }

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `BoxRole.progressBar` is planned as `role="progressbar"`, which is the role a name is allowed
+  on: a labelled ring used to write `aria-label` on a `div`, and every audit of a page that drew
+  one reported the attribute as prohibited. It states no tab stop, so a bar stays out of the tab
+  order.
 - `PagerNode` is planned as its own thing: the element carries `scroll-snap-type` and its
   children carry `scroll-snap-align`, and the class a pager wears is kept apart from the class of
   an ordinary scroller, because the child rule is part of what the class stands for.

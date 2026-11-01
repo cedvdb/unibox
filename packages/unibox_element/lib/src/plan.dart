@@ -66,6 +66,7 @@ String? htmlRoleOf(core.BoxRole role) => switch (role) {
   core.BoxRole.heading => 'heading',
   core.BoxRole.tab => 'tab',
   core.BoxRole.tablist => 'tablist',
+  core.BoxRole.progressBar => 'progressbar',
 };
 
 /// The role [element] already announces, which a `role` attribute would only repeat.

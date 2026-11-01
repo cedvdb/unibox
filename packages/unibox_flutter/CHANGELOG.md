@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `BoxRole.progressBar` announces `SemanticsRole.progressBar`, with the box's label as its name,
+  so a screen reader hears "42% complete, progress bar" rather than a bare name on a container.
 - `PagerNode` is drawn by `FlutterBox`, with page physics for the settle, a jump to `index` after
   the frame that laid the pager out, and `onPageChanged` read back from the viewport when a
   scroll ends. The move is no longer animated: a browser's programmatic scroll takes no duration

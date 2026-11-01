@@ -271,6 +271,9 @@ takes its `BoxState.disabled` style, reports itself as disabled through
 | `BoxRole.heading`                       | `Semantics(header: true)`                              |
 | `BoxRole.checkbox` + `checked`           | `Semantics(checked: …)`                                |
 | `BoxRole.switch_` + `checked`            | `Semantics(toggled: …)`                                |
+| `BoxRole.tab` / `BoxRole.tablist`        | `Semantics(role: SemanticsRole.tab / tabBar)`           |
+| `BoxRole.progressBar` + `progress`    | `Semantics(role: SemanticsRole.progressBar, value: …, minValue: …, maxValue: …)` |
+| `BoxRole.progressBar` without it      | `Semantics(role: SemanticsRole.loadingSpinner)`: ARIA has one `progressbar` for both |
 | `semantics.label`                        | `Semantics(label: …)`, replacing the contents           |
 | `enabled`                                | `Semantics(enabled: …)`                                |
 | a focusable role                         | `Semantics(focusable: true, focused: …)`                |

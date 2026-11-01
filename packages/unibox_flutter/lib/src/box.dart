@@ -1259,14 +1259,25 @@ class FlutterBoxState extends State<FlutterBox> {
     return KeyEventResult.handled;
   }
 
-  /// The Flutter role of a box's [role], or `null` when Flutter names it as a flag instead.
+  /// The Flutter role of a box's [semantics], or `null` when Flutter names it as a flag instead.
   ///
-  /// Only two are named: a tab and the set it belongs to. The rest are announced by the flags below
-  /// — `button`, `link`, `header`, `checked`, `toggled` — which is what a screen reader listens for.
-  SemanticsRole? _roleOf(core.BoxRole role) {
-    return switch (role) {
+  /// Only four are named: a tab, the set it belongs to, and the two kinds of bar — Flutter has a
+  /// name for a bar with a figure (`progressBar`) and for one without (`loadingSpinner`), while
+  /// ARIA has the single `progressbar` and states the figure only when there is one. The rest are
+  /// announced by the flags below — `button`, `link`, `header`, `checked`, `toggled` — which is
+  /// what a screen reader listens for.
+  SemanticsRole? _roleOf(core.BoxSemantics? semantics) {
+    if (semantics == null) {
+      return null;
+    }
+
+    return switch (semantics.role) {
       core.BoxRole.tab => SemanticsRole.tab,
       core.BoxRole.tablist => SemanticsRole.tabBar,
+      core.BoxRole.progressBar =>
+        semantics.progress == null
+            ? SemanticsRole.loadingSpinner
+            : SemanticsRole.progressBar,
       _ => null,
     };
   }
@@ -1312,6 +1323,11 @@ class FlutterBoxState extends State<FlutterBox> {
     final core.BoxRole role = semantics?.role ?? core.BoxRole.none;
     final bool? checked = semantics?.checked;
     final String? label = semantics?.label;
+    // A figure, and the range it sits in. Flutter reads the three as text, and its own check in
+    // debug refuses a bar that states the role without them.
+    final core.BoxProgress? progress = role == core.BoxRole.progressBar
+        ? semantics?.progress
+        : null;
 
     return Semantics(
       container: semantics != null || longPress != null || link,
@@ -1332,6 +1348,11 @@ class FlutterBoxState extends State<FlutterBox> {
           ? null
           : (role == core.BoxRole.switch_ ? checked : semantics?.pressed),
       label: label,
+      // The figure a bar has reached, and the ends of its range. A reader hears "42% complete,
+      // progress bar" — the name, then the value, then the role.
+      value: progress == null ? null : '${progress.value}',
+      minValue: progress == null ? null : '${progress.min}',
+      maxValue: progress == null ? null : '${progress.max}',
       enabled: box.enabled,
       focusable: focusable,
       focused: focusable ? _focused : null,
@@ -1341,7 +1362,7 @@ class FlutterBoxState extends State<FlutterBox> {
       // A tab and its set are roles Flutter has its own names for, and it checks that a tab lives in
       // a tab bar: taking the element's role first would have hidden that from it.
       role:
-          _roleOf(role) ??
+          _roleOf(semantics) ??
           _semanticsRole(semantics?.element ?? core.BoxElement.div),
       expanded: semantics?.expanded,
       // `aria-current` has no Flutter counterpart; the closest thing a phone

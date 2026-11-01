@@ -1271,6 +1271,7 @@ MaterialProgressRing(value: 0.42, size: 48, thickness: 4, label: '42% complete')
 | size, thickness | 48 and 4, Material's touch target and its stroke |
 | caps | `round`, which is what makes the ends of an arc read as Material's |
 | value | a fraction of a turn, clamped: `-0.2` draws no value, `1.4` draws a closed ring |
+| role / value | `BoxRole.progressBar`, with the ring's own `value` as the `BoxProgress` it states |
 
 Nothing about it is a renderer feature. The outline is `BoxShape.arc` — a circle's
 centreline, inset by half the stroke so the stroke meets the box's edge — and the paint
@@ -1294,6 +1295,13 @@ way Material's does: the model has no keyframe timeline, so the clock is a store
 rotation is a number it publishes. Sixty steps of six degrees repeat after one turn, so
 on the web the sheet stops growing after the first revolution. A renderer that cannot
 react never calls `onMount`, so a server export shows a still ring.
+
+A labelled ring is a **progress bar**, and the ring's own value is what it reports:
+`role="progressbar"` with `aria-valuenow`, `aria-valuemin` and `aria-valuemax` on the web,
+`SemanticsRole.progressBar` with the same three in Flutter. A name on a plain container is a
+prohibited attribute in a browser, so before the role existed a labelled ring announced nothing.
+The spinner is the bar with no figure — the indeterminate form — and passes
+`determinate: false`, because its sweep is what is drawn and never how far anything has got.
 
 ## Fidelity
 
@@ -1366,7 +1374,6 @@ it, and it is all platform behaviour rather than a value the model could carry:
 | `ColorScheme` and CSS custom properties | the two wirings an application owns. A palette *is* generated here (`MaterialPalette.fromSeed`), and installing it on the host stays the application's job |
 | the icon font and its subset | a host asset: declared in `fonts:` or with an `@font-face`, and subset by the Flutter build |
 | Material's breathing spinner | a rotating arc of a fixed sweep: a sweep that grows and shrinks needs a keyframe timeline |
-| a `progressbar` role with its bounds | `BoxSemantics` has no progress role yet, so a ring announces its label as text |
 | menus | not built: a menu is a component, not a decision, and where it opens is the pointer's business |
 
 ## License

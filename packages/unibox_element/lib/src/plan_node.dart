@@ -303,6 +303,16 @@ Map<String, String> boxAttributes(core.Box box) {
     attributes['aria-label'] = label;
   }
 
+  // A bar states where it has got to. A bar with no figure is the indeterminate one, which is how
+  // a spinner is announced: the role alone, and no `aria-valuenow` to read.
+  final core.BoxProgress? progress = semantics?.progress;
+
+  if (role == core.BoxRole.progressBar && progress != null) {
+    attributes['aria-valuenow'] = '${progress.value}';
+    attributes['aria-valuemin'] = '${progress.min}';
+    attributes['aria-valuemax'] = '${progress.max}';
+  }
+
   if (!anchor && isCheckable && checked != null) {
     attributes['aria-checked'] = '$checked';
   }

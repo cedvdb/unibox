@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `BoxRole.progressBar` is the role for a value a reader is told rather than offered: a ring, a
+  bar, a measured circle. It is structural like `heading` — no press, no tab stop — and both
+  targets have a name for it, which is why it is the role a label is allowed on. A labelled box
+  with no role wrote `aria-label` on a `div`, which a browser reports as a prohibited attribute.
 - `PagerNode` is the pager: a `Box` that settles on one child at a time, so a `Box` no longer
   knows what a page is. It carries the index (`index`), the page the pager came to rest on
   (`onPageChanged`), and the invariant that every child is the size of the box — which is what

@@ -88,7 +88,25 @@ void main() {
       expect(ring.width, 64);
       expect(ring.height, 64);
       expect(ring.semantics?.label, '42% complete');
+      // The role is what the name is allowed on. A label with no role is `aria-label` on a bare
+      // `div`, which a browser reports as prohibited — so a labelled ring announced nothing and
+      // every audit of a page that drew one listed it. The figure is the ring's own value.
+      expect(ring.semantics?.role, BoxRole.progressBar);
+      expect(ring.semantics?.progress, const BoxProgress(value: 0.42));
       expect(MaterialProgressRing(value: 0.42).semantics, isNull);
+    });
+
+    test('draws the ring a spinner turns without quoting its sweep', () {
+      // A spinner's sweep is what is drawn, not how far anything has got: a reader told "75%"
+      // would be told a figure the application never had.
+      final MaterialProgressRing ring = MaterialProgressRing(
+        value: 0.75,
+        determinate: false,
+        label: 'Loading',
+      );
+
+      expect(ring.semantics?.progress, isNull);
+      expect(ring.semantics?.role, BoxRole.progressBar);
     });
 
     test('draws a tree the model can validate', () {

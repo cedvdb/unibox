@@ -168,6 +168,68 @@ void main() {
     });
   });
 
+  group('a progress bar', () {
+    testWidgets('is the role, and the figure is what it has reached', (
+      tester,
+    ) async {
+      final SemanticsHandle handle = tester.ensureSemantics();
+
+      await pumpNode(
+        tester,
+        const core.Box(
+          semantics: core.BoxSemantics(
+            role: core.BoxRole.progressBar,
+            label: '42% complete',
+            progress: core.BoxProgress(value: 0.42),
+          ),
+        ),
+      );
+
+      final SemanticsData data = dataOf(tester, find.byKey(nodeKey));
+
+      // The role is what a label is allowed on, on both targets: without it the web writes
+      // `aria-label` on a `div`, which a browser reports as a prohibited attribute — a warning
+      // in every audit of a page that drew a labelled ring.
+      expect(data.role, SemanticsRole.progressBar);
+      expect(data.label, '42% complete');
+      // Flutter reads the figure and its range as text, and checks a bar states all three.
+      expect(data.value, '0.42');
+      expect(data.minValue, '0.0');
+      expect(data.maxValue, '1.0');
+      // A reader is told a value rather than offered one, so a bar is no button and takes no press.
+      expect(data.flagsCollection.isButton, isFalse);
+      expect(data.hasAction(SemanticsAction.tap), isFalse);
+
+      handle.dispose();
+    });
+
+    testWidgets('announces a bar with no figure as the spinner it is', (
+      tester,
+    ) async {
+      final SemanticsHandle handle = tester.ensureSemantics();
+
+      await pumpNode(
+        tester,
+        const core.Box(
+          semantics: core.BoxSemantics(
+            role: core.BoxRole.progressBar,
+            label: 'Loading',
+          ),
+        ),
+      );
+
+      final SemanticsData data = dataOf(tester, find.byKey(nodeKey));
+
+      // Flutter names the two kinds of bar; ARIA has one name for both, so this is the only place
+      // the tree's `null` progress shows up in a name.
+      expect(data.role, SemanticsRole.loadingSpinner);
+      expect(data.label, 'Loading');
+      expect(data.value, isEmpty);
+
+      handle.dispose();
+    });
+  });
+
   group('a button', () {
     testWidgets('is one node: its role, its name and its action', (
       tester,

@@ -29,9 +29,18 @@ import 'material_palette.dart';
 ///
 /// **What it is not.** It does not animate: a bar that moves is a value a store
 /// publishes or a timeline the model runs, and this class draws whatever fraction it is
-/// given. An unknown value is [MaterialSpinner]. And the model has no progress role, so
-/// a screen reader hears [label] as text — a `role="progressbar"` with its bounds is a
-/// gap in `BoxSemantics`, not something this class can fix.
+/// given. An unknown value is [MaterialSpinner].
+///
+/// **A labelled ring is a progress bar.** With a [label] the box takes
+/// `BoxSemantics(role: BoxRole.progressBar)`, so a screen reader hears "42% complete,
+/// progress bar" — the role a browser and Flutter both have for it — rather than a name on a
+/// container that is not allowed one. A ring with no label says nothing, because there is nothing
+/// to name: a bare bar reads as an unnamed control, which is worse than a picture nobody
+/// announces.
+///
+/// [determinate] is the one distinction the two targets do not share a name for: a ring whose
+/// [value] is a figure states it, and a ring whose sweep is only what is drawn — the one a
+/// spinner turns — announces a bar with no figure.
 final class MaterialProgressRing extends Box {
   /// Creates a ring that is [value] of the way round, over its track.
   MaterialProgressRing({
@@ -40,13 +49,22 @@ final class MaterialProgressRing extends Box {
     double thickness = 4,
     BoxColor indicator = defaultIndicator,
     BoxColor track = defaultTrack,
+    bool determinate = true,
     super.transform,
     String? label,
     super.key,
   }) : super(
          width: size,
          height: size,
-         semantics: label == null ? null : BoxSemantics(label: label),
+         semantics: label == null
+             ? null
+             : BoxSemantics(
+                 role: BoxRole.progressBar,
+                 label: label,
+                 progress: determinate
+                     ? BoxProgress(value: value.clamp(0, 1).toDouble())
+                     : null,
+               ),
          children: <UINode>[
            StackNode(
              children: <UINode>[
@@ -178,6 +196,9 @@ final class MaterialSpinner extends StatefulNode<int, MaterialSpinStore> {
            thickness: thickness,
            indicator: indicator,
            track: track,
+           // The sweep is what is drawn, not how far anything has got: a spinner announced as
+           // "75%" would be a figure the application never had.
+           determinate: false,
            label: label,
            transform: BoxTransform(rotation: store.degrees),
          ),

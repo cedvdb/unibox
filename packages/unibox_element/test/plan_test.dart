@@ -45,6 +45,49 @@ void main() {
       expect(link.attributes['role'], 'link');
     });
 
+    test('names a progress bar, which is what a label may sit on', () {
+      // A label on an element that is not allowed one is a name with nothing to name: a browser
+      // reports `aria-label` on a bare `div` as prohibited, which is exactly what a labelled
+      // progress ring used to be. The role is what makes the name legal, and what a reader hears.
+      final ElementPlan plan = planOf(
+        const core.Box(
+          semantics: core.BoxSemantics(
+            role: core.BoxRole.progressBar,
+            label: '42% complete',
+            progress: core.BoxProgress(value: 0.42),
+          ),
+        ),
+      );
+
+      expect(plan.tag, 'div');
+      expect(plan.attributes['role'], 'progressbar');
+      expect(plan.attributes['aria-label'], '42% complete');
+      // The figure, and the range it sits in: a fraction of a turn unless the tree states more.
+      expect(plan.attributes['aria-valuenow'], '0.42');
+      expect(plan.attributes['aria-valuemin'], '0.0');
+      expect(plan.attributes['aria-valuemax'], '1.0');
+      // Structural: a reader is told a value rather than offered one, so it takes no tab stop.
+      expect(plan.attributes, isNot(contains('tabindex')));
+    });
+
+    test('leaves the figure out of a bar that has none', () {
+      // An indeterminate bar: the role, and no value to read. That is how a spinner is announced,
+      // and it is the same element a determinate one is.
+      final ElementPlan plan = planOf(
+        const core.Box(
+          semantics: core.BoxSemantics(
+            role: core.BoxRole.progressBar,
+            label: 'Loading',
+          ),
+        ),
+      );
+
+      expect(plan.attributes['role'], 'progressbar');
+      expect(plan.attributes, isNot(contains('aria-valuenow')));
+      expect(plan.attributes, isNot(contains('aria-valuemin')));
+      expect(plan.attributes, isNot(contains('aria-valuemax')));
+    });
+
     test('a keyed node carries its key, and an unkeyed one does not', () {
       expect(
         planOf(const core.Box(key: 'page')).attributes['data-unibox-key'],
