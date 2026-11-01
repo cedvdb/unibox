@@ -85,6 +85,23 @@ box the pull that says "this is the end". What that pull reveals is the box's ow
 `backgroundColor` — so a panel that states the surface of the bar at its edge shows that surface
 and never the page through a gap, on either target.
 
+That leaves one asymmetry a host has to decide, because dropping the decoration removes the only
+sign a clamping platform had: a pull is a bounce on iOS and macOS, nothing at all on Android, and
+nothing for a wheel or a trackpad anywhere — while a browser rubber-bands wherever it runs. A host
+that wants the elastic pull on both targets states it once, around the tree:
+
+```dart
+ScrollConfiguration(
+  behavior: const MaterialScrollBehavior().copyWith(
+    physics: const BouncingScrollPhysics(),
+  ),
+  child: renderFlutter(page),
+)
+```
+
+The example's own surface does exactly that, so the two frames of its comparison are the same page
+in the same state (see `example/unibox_example_flutter/lib/surface.dart`).
+
 A **pin** is drawn by the box that scrolls: the bar comes out of the flow, its slot stays
 in it, and a `_RenderPinnedBar` repaints it at the edge it named — so a scroll costs a
 repaint and not a rebuild, and a field inside the bar keeps its state while it is carried

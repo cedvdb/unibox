@@ -26,6 +26,26 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
+    testWidgets('bounces a pull past the end, the way a browser does', (
+      WidgetTester tester,
+    ) async {
+      await pumpApp(tester);
+
+      // The physics is the host's — a renderer drops the overscroll *decoration* and nothing else
+      // — so a platform that clamps would show no pull at all. The browser rubber-bands wherever
+      // it runs, so this host states the same physics for every scroller in the tree and the two
+      // renderings of the page agree about what a pull looks like.
+      final ScrollableState scrollable = tester.state<ScrollableState>(
+        find.byType(Scrollable).first,
+      );
+
+      expect(
+        scrollable.position.physics,
+        isA<BouncingScrollPhysics>(),
+        reason: 'a pull past the end is a pull on both targets',
+      );
+    });
+
     testWidgets('draws the page in the palette the picker chooses', (
       tester,
     ) async {
