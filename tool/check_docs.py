@@ -50,6 +50,7 @@ DOCUMENTS = [
     'docs/nodes/pager.md',
     'docs/nodes/overlay.md',
     'docs/nodes/embed.md',
+    'docs/takeover.md',
     'RELEASE.md',
     INDEX,
 ]

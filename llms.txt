@@ -55,6 +55,9 @@ coding agent needs are in [AGENTS.md](AGENTS.md), and a human contributing needs
   policy behind it.
 - [docs/nodes/embed.md](docs/nodes/embed.md): one implementation per renderer, for what the
   model cannot describe.
+- [docs/takeover.md](docs/takeover.md): the design for the handover — a takeover with three
+  states instead of one, a reveal that waits until the application is the same page, the debug
+  mode an integrator reads, and why the Flutter build's bootstrap is a file the project owns.
 - [README.md#material](README.md#material): every Material component in one line, with a
   link to the section that documents it.
 
