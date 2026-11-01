@@ -16,14 +16,16 @@ import 'render.dart' as render;
 extension UINodeHtmlRenderer on core.UINode {
   /// Renders this node as an HTML fragment, with one `<style>` element in front of it.
   ///
-  /// Shorthand for `toHtml(this, theme: theme, showOverlays: showOverlays)`, and it takes
+  /// Shorthand for `toHtml(this, scope: scope, showOverlays: showOverlays)`, and it takes
   /// the same two arguments for the same reasons: a tree built from colour roles names them
   /// and is reported without a theme, and an overlay is in the tree whether or not a
   /// document was asked to show it open.
   ///
   /// ```dart
-  /// final String fragment = card.toHtml(theme: palette);
+  /// final String fragment = card.toHtml(scope: UniboxScope(theme: palette));
   /// ```
-  String toHtml({core.UniboxTheme? theme, bool showOverlays = false}) =>
-      render.toHtml(this, theme: theme, showOverlays: showOverlays);
+  String toHtml({
+    core.UniboxScope scope = core.UniboxScope.none,
+    bool showOverlays = false,
+  }) => render.toHtml(this, scope: scope, showOverlays: showOverlays);
 }

@@ -24,7 +24,7 @@ void main() {
       overflow: core.Overflow.scroll,
       children: <core.UINode>[node],
     ),
-    theme: MaterialPalette.lightTheme,
+    scope: core.UniboxScope(theme: MaterialPalette.lightTheme),
   );
 
   MaterialSegmentedButton button({double? width}) => MaterialSegmentedButton(

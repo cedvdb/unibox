@@ -160,7 +160,10 @@ void main() {
       expect(pill.margin, const BoxSpacing.only(bottom: 24));
       expect(pill.shadows, MaterialElevation.level3);
       expect(
-        validateTree(page, theme: ExamplePalette.themeFor(ExampleSeed.blue)),
+        validateTree(
+          page,
+          scope: UniboxScope(theme: ExamplePalette.themeFor(ExampleSeed.blue)),
+        ),
         isEmpty,
       );
     });

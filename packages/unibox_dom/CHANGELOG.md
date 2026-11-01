@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **Breaking: `DomView.mount` and `DomView.adopt` take a scope**, the same value `toDocument`
+  took: the theme the roles resolve against, and the language and direction of the page the client
+  is repainting.
+
 - The client depends on `unibox_html` instead of on `unibox_css` and `unibox_element`, which are
   layers of that package now — the element plan it builds and the CSS it wears. Nothing it draws
   changed: the same plan, the same classes.

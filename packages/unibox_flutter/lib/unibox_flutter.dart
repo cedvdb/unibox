@@ -35,4 +35,4 @@ export 'src/stateful_node.dart' show FlutterStateful;
 export 'src/text_input_node.dart' show FlutterTextInput;
 export 'src/text_node.dart' show FlutterText;
 export 'src/text_style_scope.dart' show FlutterTextStyleScope;
-export 'src/theme_scope.dart' show UniboxThemeScope;
+export 'src/scope.dart' show UniboxScopeWidget;

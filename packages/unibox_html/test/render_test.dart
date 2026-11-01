@@ -671,11 +671,15 @@ void main() {
       expect(box.toHtml(showOverlays: true), toHtml(box, showOverlays: true));
       expect(
         box.toHtml(
-          theme: const core.UniboxTheme(colors: <Enum, core.BoxColor>{}),
+          scope: core.UniboxScope(
+            theme: const core.UniboxTheme(colors: <Enum, core.BoxColor>{}),
+          ),
         ),
         toHtml(
           box,
-          theme: const core.UniboxTheme(colors: <Enum, core.BoxColor>{}),
+          scope: core.UniboxScope(
+            theme: const core.UniboxTheme(colors: <Enum, core.BoxColor>{}),
+          ),
         ),
       );
     });
@@ -691,10 +695,16 @@ void main() {
         backgroundColor: core.BoxColor.role(_Role.ink),
       );
 
-      expect(box.toHtml(theme: theme), toHtml(box, theme: theme));
-      expect(box.toHtml(theme: theme), contains('--unibox-color-ink:#000000'));
       expect(
-        box.toHtml(theme: theme),
+        box.toHtml(scope: core.UniboxScope(theme: theme)),
+        toHtml(box, scope: core.UniboxScope(theme: theme)),
+      );
+      expect(
+        box.toHtml(scope: core.UniboxScope(theme: theme)),
+        contains('--unibox-color-ink:#000000'),
+      );
+      expect(
+        box.toHtml(scope: core.UniboxScope(theme: theme)),
         contains('background-color:var(--unibox-color-ink)'),
       );
     });
@@ -725,11 +735,11 @@ void main() {
       );
 
       expect(
-        toHtml(const core.Box(), theme: light),
+        toHtml(const core.Box(), scope: core.UniboxScope(theme: light)),
         contains('color-scheme:light'),
       );
       expect(
-        toHtml(const core.Box(), theme: dark),
+        toHtml(const core.Box(), scope: core.UniboxScope(theme: dark)),
         contains('color-scheme:dark'),
       );
       // A tree with no theme makes no claim about a scheme either.

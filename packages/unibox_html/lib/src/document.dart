@@ -86,11 +86,9 @@ final class Document {
   /// Creates a page.
   const Document({
     required this.node,
-    this.lang = 'en',
-    this.writingDirection,
+    this.scope = core.UniboxScope.none,
     this.head = const DocumentHead(),
     this.scripts = const <DocumentScript>[],
-    this.theme,
     this.showOverlays = false,
     this.takeover,
   });
@@ -98,19 +96,16 @@ final class Document {
   /// The tree, drawn into the body.
   final core.UINode node;
 
-  /// The language the page is written in: an attribute of the root element rather than a head
-  /// element, which is why it sits beside [head] and not in it.
-  final String lang;
-
-  /// The direction the page is written in, or `null` to write no `dir` at all.
+  /// What the page is drawn against: its theme, the language it is written in, and its direction.
   ///
-  /// It is the `dir` attribute of the same root element as [lang], and the two are
-  /// deliberately separate: a language is not a direction. Azerbaijani, Kurdish and
-  /// Punjabi are written in both scripts, and a page in Arabic can hold a region — a
-  /// quotation, a code block, a price — that reads left to right. Everything inside
-  /// inherits this, so a page written right to left states it once here and a box only
-  /// states its own where a region differs.
-  final core.WritingDirection? writingDirection;
+  /// The language is an attribute of the root element rather than a head element, which is why it
+  /// sits here and not in [head]; the direction is the `dir` of that same element, and the two are
+  /// deliberately separate fields of the scope: a language is not a direction. Azerbaijani, Kurdish
+  /// and Punjabi are written in both scripts, and a page in Arabic can hold a region — a quotation,
+  /// a code block, a price — that reads left to right. Everything inside inherits the direction, so
+  /// a page written right to left states it once here and a box only states its own where a region
+  /// differs.
+  final core.UniboxScope scope;
 
   /// What the page says about itself: a title, an address, its translations, the resources it
   /// needs in the head.
@@ -118,9 +113,6 @@ final class Document {
 
   /// The scripts the host needs, deferred, in the order they should run.
   final List<DocumentScript> scripts;
-
-  /// The values a tree that names colour roles is drawn with.
-  final core.UniboxTheme? theme;
 
   /// Whether an overlay is written open, for a page whose published state *is* a dialog.
   final bool showOverlays;
@@ -131,11 +123,9 @@ final class Document {
   /// This page as HTML: [toDocument] with every field of this value.
   String write() => toDocument(
     node,
-    lang: lang,
-    writingDirection: writingDirection,
+    scope: scope,
     head: head,
     scripts: scripts,
-    theme: theme,
     showOverlays: showOverlays,
     takeover: takeover,
   );
@@ -149,8 +139,7 @@ final class Document {
   /// it was handed and give each one its address without knowing how it was built.
   Document at(String address) => Document(
     node: node,
-    lang: lang,
-    writingDirection: writingDirection,
+    scope: scope,
     head: DocumentHead(
       title: head.title,
       description: head.description,
@@ -162,7 +151,6 @@ final class Document {
       raw: head.raw,
     ),
     scripts: scripts,
-    theme: theme,
     showOverlays: showOverlays,
     takeover: takeover,
   );
@@ -200,8 +188,8 @@ final class Document {
 /// analytics file. Each is deferred by default, so nothing blocks the first paint, and a
 /// [takeover] adds its own before they run.
 ///
-/// [lang] is the language the page is written in — an attribute of the root element rather
-/// than a head element, which is why it sits beside [head] and not in it. Which language a
+/// [scope] carries the language the page is written in — an attribute of the root element
+/// rather than a head element, which is why it sits beside [head] and not in it. Which language a
 /// reader is given is the host's decision, and the address is the only place a crawler can
 /// read it from — so `/de/apartments/` is the German page, and a header or a cookie would be a
 /// page no crawler ever sees.
@@ -209,29 +197,29 @@ final class Document {
 /// A host that writes several pages holds them as [Document] values instead, one per address,
 /// and writes each with the same call.
 ///
-/// [writingDirection] is the `dir` attribute of the same root element as [lang], and it is
-/// what everything on the page that states no direction of its own inherits. Unset writes
-/// no attribute at all, so the page reads in the browser's direction and nothing is
-/// claimed on its behalf; a page translated into Arabic states [core.WritingDirection.rtl]
-/// once here, and a region inside it that is not in Arabic states its own on the box.
-/// Language and direction are two attributes and not one because a language is not a
-/// direction: a page can be Dutch and hold an Arabic quotation, and a language can be
-/// written in either script.
+/// [scope] carries what the page is drawn against: its theme, the language it is written in, and
+/// its direction. The direction is the `dir` attribute of the root element and it is what
+/// everything on the page that states no direction of its own inherits. Unset, it writes no
+/// attribute at all, so the page reads in the browser's direction and nothing is claimed on its
+/// behalf; a page translated into Arabic states [core.WritingDirection.rtl] once, and a region
+/// inside it that is not in Arabic states its own on the box. Language and direction are two
+/// fields and not one because a language is not a direction: a page can be Dutch and hold an
+/// Arabic quotation, and a language can be written in either script.
 String toDocument(
   core.UINode node, {
-  String lang = 'en',
-  core.WritingDirection? writingDirection,
+  core.UniboxScope scope = core.UniboxScope.none,
   DocumentHead head = const DocumentHead(),
   List<DocumentScript> scripts = const <DocumentScript>[],
-  core.UniboxTheme? theme,
   bool showOverlays = false,
   Takeover? takeover,
 }) {
   final ({ElementPlan plan, String css}) rendered = renderFragment(
     node,
-    theme: theme,
+    scope: scope,
     showOverlays: showOverlays,
   );
+  final String lang = scope.lang;
+  final core.WritingDirection? writingDirection = scope.writingDirection;
   final StringBuffer buffer = StringBuffer();
 
   // First, always: a browser that has to guess the encoding may reparse the document.

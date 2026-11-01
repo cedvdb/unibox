@@ -22,9 +22,9 @@ JavaScript.
 | Question | Answer |
 | --- | --- |
 | a tree as a fragment | `toHtml(tree)`, or `tree.toHtml()`, with the one `<style>` element in front of it |
-| a tree as a page | `toDocument(head: DocumentHead(title: …), lang: …)` — the fragment, a `<head>` and the stylesheet |
+| a tree as a page | `toDocument(head: DocumentHead(title: …), scope: UniboxScope(lang: …))` — the fragment, a `<head>` and the stylesheet |
 | a page as a value | `Document(node: …, head: …).write()` — the page, its language and its head, for a build that writes several |
-| a page in one language of several | `toDocument(lang: …, head: DocumentHead(alternates: …))` — the language it is written in, and the `hreflang` links that pair it with its translations |
+| a page in one language of several | `toDocument(scope: UniboxScope(lang: …), head: DocumentHead(alternates: …))` — the language it is written in, and the `hreflang` links that pair it with its translations |
 | a page an application takes over | `toDocument(takeover: Takeover(boot: …))` — the bundle prefetched, the recorders, the boot on a signal |
 | what a document is | a snapshot of a state: initial state, overlays open, no listeners |
 
@@ -36,7 +36,7 @@ to the host. They arrive as one value, `DocumentHead`, beside the tree:
 ```dart
 final String page = toDocument(
   tree,
-  lang: 'de',
+  scope: const UniboxScope(lang: 'de'),
   head: DocumentHead(
     title: 'Wohnungen in Amsterdam',
     description: 'Einundvierzig Wohnungen zur Miete.',
@@ -143,7 +143,7 @@ UINode buildListingsPage(SiteCopy copy, SiteRoutes routes) => …;
 
 final String page = toDocument(
   buildListingsPage(SiteCopy.de, SiteRoutes.de),
-  lang: 'de',
+  scope: const UniboxScope(lang: 'de'),
   head: DocumentHead(
     title: SiteCopy.de.title,
     canonical: 'https://example.com/de/apartments/',
@@ -158,8 +158,8 @@ final String page = toDocument(
 
 | The document states | With |
 | --- | --- |
-| the language it is written in | `lang:` — one document per language, not one page that swaps its text |
-| the direction it is written in | `writingDirection:` — the `dir` of the root element, which every box that states none inherits, so a region in another script states its own on the box |
+| the language it is written in | `scope.lang` — one document per language, not one page that swaps its text |
+| the direction it is written in | `scope.writingDirection` — the `dir` of the root element, which every box that states none inherits, so a region in another script states its own on the box |
 | the other languages of the same page | `head.alternates` — the `hreflang` links, the whole set on every page of it |
 | the address of this page | `head.canonical` — per language, or two translations compete as one |
 | the language a reader gets | the address (`/de/…`): a crawler sends no `Accept-Language` and keeps no cookie |

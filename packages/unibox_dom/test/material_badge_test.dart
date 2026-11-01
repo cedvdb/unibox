@@ -8,6 +8,8 @@ import 'package:web/web.dart' as web;
 
 import 'support/document.dart';
 
+import 'package:unibox_core/unibox_core.dart';
+
 /// What a pointer aimed at a count finds, measured where the count is drawn.
 ///
 /// It is a question only a browser answers: the badge is decoration, and the corner it covers
@@ -29,7 +31,7 @@ void main() {
         onTap: () => pressed++,
       ),
       host(),
-      theme: MaterialPalette.lightTheme,
+      scope: UniboxScope(theme: MaterialPalette.lightTheme),
     );
 
     final web.Element stack = child(view.element);

@@ -364,10 +364,16 @@ void main() {
         child: const TextNode('Ada'),
       );
 
-      expect(validateTree(_view(well, store), theme: _theme), isEmpty);
+      expect(
+        validateTree(_view(well, store), scope: UniboxScope(theme: _theme)),
+        isEmpty,
+      );
 
       store.press(const BoxPoint(4, 4));
-      expect(validateTree(_view(well, store), theme: _theme), isEmpty);
+      expect(
+        validateTree(_view(well, store), scope: UniboxScope(theme: _theme)),
+        isEmpty,
+      );
 
       store.dispose();
     });

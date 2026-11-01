@@ -14,7 +14,7 @@ import 'package:web/web.dart' as web;
 
 void main() {
   // The markup the server wrote, adopted and then kept live.
-  DomView.adopt(siteTree(), web.document.body!.firstElementChild!, theme: theme);
+  DomView.adopt(siteTree(), web.document.body!.firstElementChild!);
 }
 ```
 
@@ -31,6 +31,12 @@ renderers share their two decisions: the **element plan** (`unibox_html`'s eleme
 element a node becomes and in which order its attributes are written, and the **stylesheet**
 (`unibox_html`'s CSS layer) gives every look one class name derived from its declarations. Same tree,
 same tags, same classes — so there is nothing to reconcile.
+
+A page that names a colour role passes the scope its document was written with —
+`DomView.adopt(tree, root, scope: UniboxScope(theme: palette))` — and the same value
+`toDocument` took is what the client paints from. The scope carries the language and the
+direction of the page beside the theme, because a client that repaints a page must not
+change how it reads.
 
 `render(tree)` swaps the tree of a view that is already drawing, which is what a palette
 change is: the plan differs only in the custom properties the roles resolve to.

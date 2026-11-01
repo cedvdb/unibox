@@ -17,7 +17,7 @@ import 'write.dart';
 /// snapshot of a state, and the application is what makes it move.
 String toHtml(
   core.UINode node, {
-  core.UniboxTheme? theme,
+  core.UniboxScope scope = core.UniboxScope.none,
   bool showOverlays = false,
 }) {
   final Stylesheet sheet = Stylesheet();
@@ -27,7 +27,7 @@ String toHtml(
     options: _options(showOverlays, sheet),
   );
 
-  return '<style>${documentCss(sheet, theme: theme)}</style>'
+  return '<style>${documentCss(sheet, scope: scope)}</style>'
       '${writeElement(plan)}';
 }
 
@@ -35,7 +35,7 @@ String toHtml(
 /// puts the stylesheet in the head and the tree in the body.
 ({ElementPlan plan, String css}) renderFragment(
   core.UINode node, {
-  core.UniboxTheme? theme,
+  core.UniboxScope scope = core.UniboxScope.none,
   bool showOverlays = false,
 }) {
   final Stylesheet sheet = Stylesheet();
@@ -45,7 +45,7 @@ String toHtml(
     options: _options(showOverlays, sheet),
   );
 
-  return (plan: plan, css: documentCss(sheet, theme: theme));
+  return (plan: plan, css: documentCss(sheet, scope: scope));
 }
 
 /// The options of a rendering, with this target's way of drawing an embed.

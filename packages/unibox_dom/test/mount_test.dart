@@ -54,7 +54,7 @@ void main() {
       final DomView view = DomView.mount(
         const core.Box(children: <core.UINode>[core.TextNode('Hi')]),
         host(),
-        theme: MaterialPalette.light.theme,
+        scope: core.UniboxScope(theme: MaterialPalette.light.theme),
       );
 
       expect(web.document.head!.children.length, before + 1);

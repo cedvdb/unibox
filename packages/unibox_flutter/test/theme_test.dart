@@ -45,7 +45,10 @@ void main() {
       await tester.pumpWidget(
         Directionality(
           textDirection: TextDirection.ltr,
-          child: FlutterStateful(node: _RolePage(), theme: theme),
+          child: FlutterStateful(
+            node: _RolePage(),
+            scope: core.UniboxScope(theme: theme),
+          ),
         ),
       );
 
@@ -179,7 +182,7 @@ void main() {
                 backgroundColor: core.BoxColor.role(AppColor.primary),
                 width: 40,
                 height: 40,
-              ).toWidget(theme: theme),
+              ).toWidget(scope: core.UniboxScope(theme: theme)),
             ),
           ),
         ),
@@ -216,8 +219,8 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: UniboxThemeScope(
-            theme: theme,
+          body: UniboxScopeWidget(
+            scope: core.UniboxScope(theme: theme),
             child: renderFlutter(
               const core.TextInputNode(
                 placeholder: 'Email',

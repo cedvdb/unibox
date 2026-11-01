@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:unibox_core/unibox_core.dart' show BoxColorScheme, UniboxTheme;
+import 'package:unibox_core/unibox_core.dart'
+    show BoxColorScheme, UniboxScope, UniboxTheme;
 
 /// The family both hosts ship: `assets/fonts` in this app, the same files in
 /// `assets/fonts` of the site.
@@ -22,9 +23,11 @@ const String fontFamily = 'UniboxText';
 /// being asked to judge.
 Widget surface({
   required String title,
-  required UniboxTheme theme,
+  required UniboxScope scope,
   required Widget child,
 }) {
+  final UniboxTheme? theme = scope.theme;
+
   return MaterialApp(
     title: title,
     // The scheme is not guessed from the phone: the theme the tree is drawn with has already
@@ -33,7 +36,7 @@ Widget surface({
     // follow the system while the page around them stayed light.
     theme: ThemeData(
       fontFamily: fontFamily,
-      brightness: theme.colorScheme == BoxColorScheme.dark
+      brightness: theme?.colorScheme == BoxColorScheme.dark
           ? Brightness.dark
           : Brightness.light,
     ),

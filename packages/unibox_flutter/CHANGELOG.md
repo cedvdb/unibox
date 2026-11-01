@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **Breaking: a rendering takes a scope, not a theme.** `renderFlutter`, `node.toWidget` and
+  `FlutterStateful` take `scope: UniboxScope(theme: …)` where they took `theme:`, and the widget
+  that carries it down is `UniboxScopeWidget` where it was `UniboxThemeScope`. The scope also
+  holds the language and the direction of the page, so an overlay — which is presented outside the
+  tree it was declared in — now hands all three to its content rather than the theme alone.
+
 - A `StatefulNode` drawn again in the same place is reconciled before its view is built:
   `FlutterStateful.didUpdateWidget` hands the store to `StatefulNode.update`, so a component
   whose state holds a parameter the tree states — `MaterialTabs`'s count, a field's seed — stops

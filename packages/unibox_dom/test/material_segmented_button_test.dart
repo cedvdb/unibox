@@ -61,7 +61,7 @@ void main() {
     final DomView view = DomView.mount(
       core.Box(width: 100, children: <core.UINode>[pill()]),
       host(),
-      theme: MaterialPalette.lightTheme,
+      scope: core.UniboxScope(theme: MaterialPalette.lightTheme),
     );
     final List<double> shares = sharesOf(view);
     final web.DOMRect control = controlOf(view).getBoundingClientRect();
@@ -89,7 +89,7 @@ void main() {
         children: <core.UINode>[pill()],
       ),
       host(),
-      theme: MaterialPalette.lightTheme,
+      scope: core.UniboxScope(theme: MaterialPalette.lightTheme),
     );
     final List<double> shares = sharesOf(view);
     final web.DOMRect control = controlOf(view).getBoundingClientRect();
@@ -112,7 +112,7 @@ void main() {
         children: <core.UINode>[pill(width: 216)],
       ),
       host(),
-      theme: MaterialPalette.lightTheme,
+      scope: core.UniboxScope(theme: MaterialPalette.lightTheme),
     );
     final List<double> shares = sharesOf(view);
 

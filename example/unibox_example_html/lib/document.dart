@@ -4,6 +4,8 @@ import 'package:unibox_html/unibox_html.dart';
 import 'fonts.dart';
 import 'site/favicon.dart';
 
+import 'package:unibox_core/unibox_core.dart';
+
 /// The loader the page boots the application through.
 ///
 /// The documents sit two directories below the site root, which is where `tool/site.sh` puts
@@ -44,7 +46,7 @@ Document buildExampleDocument({String? build}) {
       ],
       raw: <String>['<style>${fontFaceCss('../../')}$pageCss</style>'],
     ),
-    theme: ExamplePalette.themeFor(ExampleSeed.defaultSeed),
+    scope: UniboxScope(theme: ExamplePalette.themeFor(ExampleSeed.defaultSeed)),
     // A document that runs itself rather than one that becomes an application. The client renderer
     // adopts this markup and keeps it: a reader acts on real elements — the same ones a crawler
     // read — and Flutter is nowhere on the page. That is the difference worth showing, and it is
@@ -87,7 +89,7 @@ Document buildTakeoverDocument({String? build}) {
       links: <DocumentLink>[faviconLink('../../')],
       raw: <String>['<style>${fontFaceCss('../../')}$pageCss</style>'],
     ),
-    theme: ExamplePalette.themeFor(ExampleSeed.defaultSeed),
+    scope: UniboxScope(theme: ExamplePalette.themeFor(ExampleSeed.defaultSeed)),
     takeover: const Takeover(
       boot: boot,
       policy: BootPolicy.onIntent,

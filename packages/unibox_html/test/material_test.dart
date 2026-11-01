@@ -16,7 +16,7 @@ void main() {
         borderRadius: 12,
         child: const core.TextNode('Ada Lovelace'),
       ),
-      theme: MaterialPalette.light.theme,
+      scope: core.UniboxScope(theme: MaterialPalette.light.theme),
     );
 
     test('draws its resting well, with the content in it', () {
@@ -112,8 +112,10 @@ void main() {
     /// How many anchors [html] holds: a control is one destination, never two.
     int anchorsIn(String html) => RegExp('<a ').allMatches(html).length;
 
-    String render(core.UINode node) =>
-        toHtml(node, theme: MaterialPalette.light.theme);
+    String render(core.UINode node) => toHtml(
+      node,
+      scope: core.UniboxScope(theme: MaterialPalette.light.theme),
+    );
 
     test('is one anchor, with the look of the well and no role', () {
       final String html = render(
@@ -241,7 +243,7 @@ void main() {
           MaterialSegment(label: core.TextNode('Month'), url: '/?period=month'),
         ],
       ),
-      theme: MaterialPalette.light.theme,
+      scope: core.UniboxScope(theme: MaterialPalette.light.theme),
     );
 
     test('draws every unselected choice as one anchor', () {
@@ -276,7 +278,7 @@ void main() {
           MaterialSegment(label: core.TextNode('Month')),
         ],
       ),
-      theme: MaterialPalette.light.theme,
+      scope: core.UniboxScope(theme: MaterialPalette.light.theme),
     );
 
     test('says which choice is pressed, and says which ones are not', () {
@@ -298,7 +300,7 @@ void main() {
         onTap: url == null ? () {} : null,
         url: url,
       ),
-      theme: MaterialPalette.light.theme,
+      scope: core.UniboxScope(theme: MaterialPalette.light.theme),
     );
 
     test('says whether it is chosen with aria-pressed', () {
@@ -353,7 +355,7 @@ void main() {
             ),
           ],
         ),
-        theme: MaterialPalette.light.theme,
+        scope: core.UniboxScope(theme: MaterialPalette.light.theme),
       );
 
       expect(RegExp('<a ').allMatches(html).length, 1);

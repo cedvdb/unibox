@@ -16,7 +16,10 @@ void main() {
 
     test('states the language a reader and a crawler need', () {
       expect(
-        toDocument(const core.TextNode('Hi'), lang: 'nl'),
+        toDocument(
+          const core.TextNode('Hi'),
+          scope: core.UniboxScope(lang: 'nl'),
+        ),
         contains('<html lang="nl">'),
       );
     });
@@ -27,8 +30,10 @@ void main() {
       expect(
         toDocument(
           const core.TextNode('مرحبا'),
-          lang: 'ar',
-          writingDirection: core.WritingDirection.rtl,
+          scope: core.UniboxScope(
+            lang: 'ar',
+            writingDirection: core.WritingDirection.rtl,
+          ),
         ),
         contains('<html lang="ar" dir="rtl">'),
       );
@@ -46,8 +51,10 @@ void main() {
       // the direction is forwarded like the language it sits beside.
       const Document page = Document(
         node: core.TextNode('مرحبا'),
-        lang: 'ar',
-        writingDirection: core.WritingDirection.rtl,
+        scope: core.UniboxScope(
+          lang: 'ar',
+          writingDirection: core.WritingDirection.rtl,
+        ),
       );
 
       expect(page.at('https://example.com/ar/').write(), contains('dir="rtl"'));
@@ -112,7 +119,7 @@ void main() {
         // a crawler told nothing compares translated text and keeps one of the three.
         final String html = toDocument(
           const core.TextNode('Wohnungen'),
-          lang: 'de',
+          scope: core.UniboxScope(lang: 'de'),
           head: const DocumentHead(
             canonical: 'https://example.com/de/apartments/',
             alternates: <String, String>{
@@ -339,7 +346,7 @@ void main() {
       // dropped one would write a page that is not the one the host described.
       const Document page = Document(
         node: core.TextNode('Wohnungen'),
-        lang: 'de',
+        scope: core.UniboxScope(lang: 'de'),
         head: DocumentHead(
           title: 'Wohnungen',
           canonical: 'https://example.com/de/apartments/',
@@ -351,7 +358,7 @@ void main() {
         page.write(),
         toDocument(
           const core.TextNode('Wohnungen'),
-          lang: 'de',
+          scope: core.UniboxScope(lang: 'de'),
           head: const DocumentHead(
             title: 'Wohnungen',
             canonical: 'https://example.com/de/apartments/',
@@ -366,7 +373,7 @@ void main() {
       // survives, so a build can hand a page an address after it was written.
       const Document page = Document(
         node: core.TextNode('Wohnungen'),
-        lang: 'de',
+        scope: core.UniboxScope(lang: 'de'),
         head: DocumentHead(
           title: 'Wohnungen',
           description: 'Einundvierzig Wohnungen.',

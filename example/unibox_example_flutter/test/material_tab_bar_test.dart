@@ -51,7 +51,10 @@ void main() {
             alignment: Alignment.topLeft,
             child: SizedBox(
               width: width,
-              child: renderFlutter(node, theme: MaterialPalette.lightTheme),
+              child: renderFlutter(
+                node,
+                scope: UniboxScope(theme: MaterialPalette.lightTheme),
+              ),
             ),
           ),
         ),

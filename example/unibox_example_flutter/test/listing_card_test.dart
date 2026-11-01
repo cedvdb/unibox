@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:unibox_example_shared/unibox_example_shared.dart';
 import 'package:unibox_flutter/unibox_flutter.dart';
 import 'package:unibox_material/unibox_material.dart';
+import 'package:unibox_core/unibox_core.dart';
 
 /// A card's rows reach its edges.
 ///
@@ -30,7 +31,7 @@ void main() {
           buildApartmentsPage(),
           // The page's own palette: it names the example's roles, and the Material
           // ones its components name are lent by the same theme.
-          theme: ExamplePalette.themeFor(ExampleSeed.blue),
+          scope: UniboxScope(theme: ExamplePalette.themeFor(ExampleSeed.blue)),
         ),
       ),
     );

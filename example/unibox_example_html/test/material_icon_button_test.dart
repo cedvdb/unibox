@@ -13,8 +13,10 @@ void main() {
   // picture of the control's name rather than a second name.
   final core.UINode glyph = MaterialIcon.codePoint(0xe9b2);
 
-  String render(MaterialIconButton button) =>
-      toHtml(button, theme: MaterialPalette.lightTheme);
+  String render(MaterialIconButton button) => toHtml(
+    button,
+    scope: core.UniboxScope(theme: MaterialPalette.lightTheme),
+  );
 
   MaterialIconButton button({
     MaterialIconButtonVariant variant = MaterialIconButtonVariant.standard,

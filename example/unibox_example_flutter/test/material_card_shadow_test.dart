@@ -71,7 +71,7 @@ void main() {
         textDirection: TextDirection.ltr,
         child: renderFlutter(
           MaterialCard.outlined(),
-          theme: MaterialPalette.lightTheme,
+          scope: core.UniboxScope(theme: MaterialPalette.lightTheme),
         ),
       ),
     );
@@ -103,7 +103,7 @@ Future<List<int>> _rowsBelow(
           child: Center(
             child: renderFlutter(
               MaterialCard(width: 120, height: 120, shadows: shadows.cast()),
-              theme: MaterialPalette.lightTheme,
+              scope: core.UniboxScope(theme: MaterialPalette.lightTheme),
             ),
           ),
         ),

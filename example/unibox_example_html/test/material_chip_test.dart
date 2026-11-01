@@ -11,7 +11,7 @@ import 'package:unibox_material/unibox_material.dart';
 /// written into the element is a name a screen reader never hears.
 void main() {
   String render(MaterialChip chip) =>
-      toHtml(chip, theme: MaterialPalette.lightTheme);
+      toHtml(chip, scope: core.UniboxScope(theme: MaterialPalette.lightTheme));
 
   MaterialChip chip({String? removeSemanticsLabel}) => MaterialChip(
     label: const core.TextNode('Garden'),

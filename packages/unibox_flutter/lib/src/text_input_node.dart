@@ -3,7 +3,7 @@ import 'package:flutter/semantics.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
 
 import 'text_style_scope.dart';
-import 'theme_scope.dart';
+import 'scope.dart';
 import 'values.dart';
 
 /// Renders a [core.TextInputNode] as a Material [TextField].
@@ -70,7 +70,7 @@ class FlutterTextInputState extends State<FlutterTextInput> {
   /// colour of any other text.
   TextStyle? _hintStyle(BuildContext context) {
     final core.BoxTextStyle? style = widget.node.placeholderStyle?.resolve(
-      UniboxThemeScope.of(context) ?? core.UniboxTheme.none,
+      UniboxScopeWidget.of(context).theme ?? core.UniboxTheme.none,
     );
     return style == null ? null : toTextStyle(style);
   }

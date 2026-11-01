@@ -16,7 +16,7 @@ const card = Box(
 
 Widget widget = renderFlutter(card);
 // or, equivalently — and the theme the roles of the tree need travels with it:
-Widget widget = card.toWidget(theme: myTheme);
+Widget widget = card.toWidget(scope: UniboxScope(theme: myTheme));
 ```
 
 Every node type also exports the widget it renders to — `FlutterBox`,
@@ -387,9 +387,9 @@ that holds the trees.
 
 ## Colour roles
 
-`renderFlutter(node, theme: myTheme)` resolves every role a tree names while the
+`renderFlutter(node, scope: UniboxScope(theme: myTheme))` resolves every role a tree names while the
 widget tree is built, so everything below reads a concrete colour and nothing looks
-anything up at paint time. `node.toWidget(theme: myTheme)` is the same call through the
+anything up at paint time. `node.toWidget(scope: UniboxScope(theme: myTheme))` is the same call through the
 extension on `UINode`, and it takes the theme for that reason: the shorthand must be able
 to draw the themed trees it is advertised for.
 
@@ -399,10 +399,11 @@ to draw the themed trees it is advertised for.
 | a literal `BoxColor` | itself, theme or no theme |
 | a role and no theme | the tree is rejected by validation, naming the role |
 
-The theme travels down in `UniboxThemeScope`. A host that roots its application in a
-`FlutterStateful` passes it to that component (`FlutterStateful(node: …, theme: …)`)
+The scope travels down in `UniboxScopeWidget`, which carries the theme the roles resolve against
+and the language and direction of the page beside it. A host that roots its application in a
+`FlutterStateful` passes it to that component (`FlutterStateful(node: …, scope: …)`)
 instead of wrapping a scope itself; a host that renders part of a tree with another
-theme still wraps `UniboxThemeScope` around it. An overlay is the one
+theme still wraps `UniboxScopeWidget` around it. An overlay is the one
 place it has to be handed over by hand: its content lives on the root overlay, which
 is outside the tree the page was rendered in, so `FlutterOverlay` reads the scope and
 passes it on.

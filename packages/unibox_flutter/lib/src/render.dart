@@ -9,7 +9,7 @@ import 'keys.dart';
 import 'overlay_node.dart';
 import 'stack_node.dart';
 import 'stateful_node.dart';
-import 'theme_scope.dart';
+import 'scope.dart';
 import 'text_input_node.dart';
 import 'text_node.dart';
 import 'text_style_scope.dart';
@@ -40,16 +40,21 @@ import 'values.dart';
 /// Every widget is created with the key of its node, so reordering a list of
 /// nodes preserves the state of each child instead of moving it to the node
 /// that took over the position.
-/// [theme] answers the colour roles the tree names. A tree that uses none renders
-/// without one; a tree that names one and is given none fails with the role in the
-/// message instead of painting nothing.
-Widget renderFlutter(core.UINode node, {core.UniboxTheme? theme}) {
-  _reportTreeIssues(node, theme);
+/// [scope] answers the colour roles the tree names, and carries the language and the direction of
+/// the page. A tree that uses no role renders without a theme; a tree that names one and is given
+/// none fails with the role in the message instead of painting nothing.
+Widget renderFlutter(
+  core.UINode node, {
+  core.UniboxScope scope = core.UniboxScope.none,
+}) {
+  _reportTreeIssues(node, scope);
 
   final Widget tree = renderNode(node);
 
   return _withDefaultTypography(
-    theme == null ? tree : UniboxThemeScope(theme: theme, child: tree),
+    scope == core.UniboxScope.none
+        ? tree
+        : UniboxScopeWidget(scope: scope, child: tree),
   );
 }
 
@@ -183,9 +188,9 @@ Widget _renderEmbed(core.EmbedNode embed) {
 ///
 /// Warnings are printed, errors throw: a tree that no target can render has to
 /// fail loudly while it is being built, not silently in production.
-void _reportTreeIssues(core.UINode node, core.UniboxTheme? theme) {
+void _reportTreeIssues(core.UINode node, core.UniboxScope scope) {
   assert(() {
-    final List<core.TreeIssue> issues = core.validateTree(node, theme: theme);
+    final List<core.TreeIssue> issues = core.validateTree(node, scope: scope);
     final List<core.TreeIssue> errors = issues
         .where((core.TreeIssue issue) => issue.isError)
         .toList(growable: false);
@@ -208,15 +213,15 @@ void _reportTreeIssues(core.UINode node, core.UniboxTheme? theme) {
 extension UINodeFlutterRenderer on core.UINode {
   /// Renders this node as a Flutter [Widget].
   ///
-  /// Shorthand for `renderFlutter(this, theme: theme)`, and it takes the theme
+  /// Shorthand for `renderFlutter(this, scope: scope)`, and it takes the scope
   /// for the same reason `renderFlutter` does: a tree built from colour roles
   /// names them, and validation rejects a role no theme answers before a widget
   /// is built. Without the argument the shorthand could not draw a themed tree
   /// at all — which is most of them.
   ///
   /// ```dart
-  /// runApp(MaterialApp(home: page.toWidget(theme: palette)));
+  /// runApp(MaterialApp(home: page.toWidget(scope: UniboxScope(theme: palette))));
   /// ```
-  Widget toWidget({core.UniboxTheme? theme}) =>
-      renderFlutter(this, theme: theme);
+  Widget toWidget({core.UniboxScope scope = core.UniboxScope.none}) =>
+      renderFlutter(this, scope: scope);
 }

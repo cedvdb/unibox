@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:unibox_core/unibox_core.dart'
-    show BoxPress, BoxScrollOffset, UniboxTheme;
+    show BoxPress, BoxScrollOffset, UniboxScope, UniboxTheme;
 import 'package:unibox_example_shared/unibox_example_shared.dart';
 import 'package:unibox_flutter/unibox_flutter.dart';
 
@@ -91,7 +91,7 @@ class _ExampleAppState extends State<ExampleApp> {
     // drawn on, so the two renderings of the page cannot disagree about it.
     return surface(
       title: 'Unibox example',
-      theme: uniboxTheme,
+      scope: UniboxScope(theme: uniboxTheme),
       // Read once, as the controller's initial position, so a region is where the
       // reader left it at the first layout rather than after a correction.
       child: UniboxScrollScope(
@@ -104,7 +104,7 @@ class _ExampleAppState extends State<ExampleApp> {
           // force — and two places saying it is the only way the mark can lie.
           child: FlutterStateful(
             node: ExamplePageNode(seed: _seed),
-            theme: uniboxTheme,
+            scope: UniboxScope(theme: uniboxTheme),
             // The presses are answered by the node that owns the callbacks, once.
             presses: widget.presses,
           ),

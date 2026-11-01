@@ -31,7 +31,7 @@ void main() {
           body: const Box(flex: 1, overflow: Overflow.scroll),
         ),
         host(),
-        theme: MaterialPalette.lightTheme,
+        scope: UniboxScope(theme: MaterialPalette.lightTheme),
       );
 
       final web.Element screen = view.element;

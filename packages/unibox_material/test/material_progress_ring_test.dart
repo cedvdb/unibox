@@ -112,7 +112,7 @@ void main() {
     test('draws a tree the model can validate', () {
       final MaterialProgressRing ring = MaterialProgressRing(value: 0.42);
 
-      expect(validateTree(ring, theme: _theme), isEmpty);
+      expect(validateTree(ring, scope: UniboxScope(theme: _theme)), isEmpty);
     });
   });
 
@@ -174,7 +174,10 @@ void main() {
       final MaterialSpinStore store = spinner.create();
 
       expect(
-        validateTree(spinner.viewFor(store.state, store), theme: _theme),
+        validateTree(
+          spinner.viewFor(store.state, store),
+          scope: UniboxScope(theme: _theme),
+        ),
         isEmpty,
       );
 

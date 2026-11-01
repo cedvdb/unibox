@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:unibox_example_shared/unibox_example_shared.dart';
 import 'package:unibox_flutter/unibox_flutter.dart';
 import 'package:unibox_material/unibox_material.dart';
+import 'package:unibox_core/unibox_core.dart';
 
 /// The catalogue is a tree, so it draws on both targets: the site is the one a reader sees, and
 /// Flutter is the one an application gets. Nothing in the site's own tests makes the second true,
@@ -36,7 +37,9 @@ void main() {
           body: SingleChildScrollView(
             child: renderFlutter(
               buildMaterialSection(),
-              theme: ExamplePalette.themeFor(ExampleSeed.defaultSeed),
+              scope: UniboxScope(
+                theme: ExamplePalette.themeFor(ExampleSeed.defaultSeed),
+              ),
             ),
           ),
         ),

@@ -660,15 +660,23 @@ colour can name a **role** — an `enum` member — and the application supplies
 The role is typed rather than a string because a string is a name the compiler
 cannot check and a reader cannot rename; the theme is keyed by the same enum value,
 so "the colour this role is worth" is a map lookup on an identity, and
-`validateTree(root, theme: theme)` reports a role the theme does not define.
+`validateTree(root, scope: scope)` reports a role the theme does not define.
 
 The theme is an **argument**, not a scope a node looks up: `renderFlutter(node,
-theme:)` resolves each role while it builds the widget tree, `toDocument(node,
-theme:)` writes the theme once in `:root` and points the rules at
+scope: …)` resolves each role while it builds the widget tree, `toDocument(node,
+scope: …)` writes the theme once in `:root` and points the rules at
 `var(--unibox-color-…)`. Two pages rendered in one process can carry different
-themes, a tree stays `const`, and the whole palette is emitted on the web whether or
+scopes, a tree stays `const`, and the whole palette is emitted on the web whether or
 not a node uses each role — a host stylesheet has to be able to read one the tree
 leaves alone.
+
+The argument is one value and not one per fact: `UniboxScope` carries the theme, the
+language the page is written in and the direction its rows run, so a host that adds a
+second ambience adds a field there rather than a parameter to every rendering call. It is
+**environment, not domain** — what the page is *about* is a parameter of the component that
+shows it, because a node that read one could not be rendered twice. And there is no scope
+a node looks up from inside the tree: a lookup would be a second source of truth, and the
+targets would answer it differently (§5.10).
 
 What follows honestly: a role is a runtime failure if no theme is given (it is
 reported, and the renderers refuse the tree rather than paint nothing), the

@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
 
 import 'render.dart';
-import 'theme_scope.dart';
+import 'scope.dart';
 
 /// Renders a [core.StatefulNode]: one store and the tree of its state.
 ///
@@ -19,13 +19,13 @@ import 'theme_scope.dart';
 class FlutterStateful extends StatefulWidget {
   /// Creates a renderer for [node].
   ///
-  /// [theme] answers the colour roles the tree names, the way it does for
+  /// [scope] answers the colour roles the tree names, the way it does for
   /// `renderFlutter`: a host that roots its application in a stateful node writes it
   /// once here instead of remembering a scope around it — which is also the scope an
   /// overlay reads when it hands the theme on.
   const FlutterStateful({
     required this.node,
-    this.theme,
+    this.scope = core.UniboxScope.none,
     this.presses = const <core.BoxPress>[],
     super.key,
   });
@@ -33,8 +33,8 @@ class FlutterStateful extends StatefulWidget {
   /// The node being rendered.
   final core.StatefulNode<Object, core.Store<Object>> node;
 
-  /// The values the roles of the tree stand for, or `null` when the tree names none.
-  final core.UniboxTheme? theme;
+  /// What the rendering is drawn against, and what the roles of the tree stand for.
+  final core.UniboxScope scope;
 
   /// The presses a page recorded before this node existed.
   ///
@@ -100,8 +100,10 @@ class FlutterStatefulState extends State<FlutterStateful> {
     }
 
     final Widget tree = renderNode(view);
-    final core.UniboxTheme? theme = widget.theme;
+    final core.UniboxScope scope = widget.scope;
 
-    return theme == null ? tree : UniboxThemeScope(theme: theme, child: tree);
+    return scope == core.UniboxScope.none
+        ? tree
+        : UniboxScopeWidget(scope: scope, child: tree);
   }
 }

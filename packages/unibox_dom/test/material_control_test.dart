@@ -62,7 +62,7 @@ void main() {
         children: <core.UINode>[roomy, pinned],
       ),
       host(),
-      theme: MaterialPalette.lightTheme,
+      scope: core.UniboxScope(theme: MaterialPalette.lightTheme),
     );
 
     for (int index = 0; index < 2; index++) {
@@ -106,7 +106,7 @@ void main() {
       // as the page, which is not the arrangement the report measured.
       core.Box(direction: core.Axis.horizontal, children: <core.UINode>[well]),
       host(),
-      theme: MaterialPalette.lightTheme,
+      scope: core.UniboxScope(theme: MaterialPalette.lightTheme),
     );
 
     final web.Element pill = child(view.element);

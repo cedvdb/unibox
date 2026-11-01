@@ -29,7 +29,7 @@ void main() {
                 enabled: enabled,
                 onTap: onTap,
               ),
-              theme: MaterialPalette.lightTheme,
+              scope: core.UniboxScope(theme: MaterialPalette.lightTheme),
             ),
           ),
         ),

@@ -161,7 +161,7 @@ abstract final class ExamplePalette {
   ///
   /// The example's own roles are answered here, and the palette Material grew is
   /// merged in behind them, so the components of `unibox_material` resolve their
-  /// `MaterialColorRole`s in the same theme: two vocabularies, one theme, and the
+  /// `MaterialColorRole`s in the same scope: UniboxScope(theme: two vocabularies), one theme, and the
   /// roles the example defines still win.
   static UniboxTheme themeFor(ExampleSeed seed) => _themes[seed]!;
 

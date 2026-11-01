@@ -11,6 +11,9 @@ const Key nodeKey = ValueKey<String>('unibox-node');
 /// The [Center] hands loose constraints to the node, which mirrors how a node
 /// is usually embedded and keeps fixed sizes measurable. [wrap] injects
 /// inherited configuration, such as a [FlutterLinkScope], around the node.
+///
+/// [theme] is the scope the suite usually needs — a theme and nothing else: it is wrapped into an
+/// `UniboxScope` here, so a test never spells the same three fields out.
 Future<void> pumpNode(
   WidgetTester tester,
   core.UINode node, {
@@ -19,7 +22,7 @@ Future<void> pumpNode(
 }) async {
   final Widget rendered = KeyedSubtree(
     key: nodeKey,
-    child: renderFlutter(node, theme: theme),
+    child: renderFlutter(node, scope: core.UniboxScope(theme: theme)),
   );
 
   await tester.pumpWidget(

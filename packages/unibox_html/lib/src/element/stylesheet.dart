@@ -272,8 +272,12 @@ final class Stylesheet {
 /// name is a hash of the declarations behind it, so a renderer that assembled its CSS differently
 /// would write different class names for the same tree, and a client could no longer adopt a page a
 /// server wrote.
-String documentCss(Stylesheet sheet, {core.UniboxTheme? theme}) {
+String documentCss(
+  Stylesheet sheet, {
+  core.UniboxScope scope = core.UniboxScope.none,
+}) {
   final CssDeclarations root = rootDeclarations();
+  final core.UniboxTheme? theme = scope.theme;
 
   if (theme != null) {
     root

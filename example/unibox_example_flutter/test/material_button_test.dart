@@ -15,7 +15,10 @@ void main() {
     home: Scaffold(
       body: Align(
         alignment: Alignment.topLeft,
-        child: renderFlutter(button, theme: MaterialPalette.lightTheme),
+        child: renderFlutter(
+          button,
+          scope: core.UniboxScope(theme: MaterialPalette.lightTheme),
+        ),
       ),
     ),
   );

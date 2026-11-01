@@ -45,8 +45,10 @@ void main() {
   DomView.adopt(
     tree,
     root,
-    theme: _pageName() == 'example'
-        ? ExamplePalette.themeFor(seed)
-        : siteThemeFor(seed),
+    scope: core.UniboxScope(
+      theme: _pageName() == 'example'
+          ? ExamplePalette.themeFor(seed)
+          : siteThemeFor(seed),
+    ),
   );
 }

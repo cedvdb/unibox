@@ -68,7 +68,10 @@ void main() {
       // The catalogue carries the palette picker, so the page names the example's
       // roles as well as Material's: one theme, both vocabularies.
       expect(
-        validateTree(page, theme: ExamplePalette.themeFor(ExampleSeed.blue)),
+        validateTree(
+          page,
+          scope: UniboxScope(theme: ExamplePalette.themeFor(ExampleSeed.blue)),
+        ),
         isEmpty,
       );
     });

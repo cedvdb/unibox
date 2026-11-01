@@ -200,7 +200,7 @@ void main() {
     );
 
     test('accepts roles the theme defines', () {
-      expect(validateTree(box, theme: theme), isEmpty);
+      expect(validateTree(box, scope: UniboxScope(theme: theme)), isEmpty);
     });
 
     test('reports a role with no theme at all', () {
@@ -214,7 +214,7 @@ void main() {
     test('reports a role the theme does not define', () {
       final List<TreeIssue> issues = validateTree(
         const Box(backgroundColor: BoxColor.role(BrandColor.accent)),
-        theme: theme,
+        scope: UniboxScope(theme: theme),
       );
 
       expect(issues.single.isError, isTrue);
@@ -230,7 +230,7 @@ void main() {
             ),
           },
         ),
-        theme: theme,
+        scope: UniboxScope(theme: theme),
       );
 
       expect(issues.single.message, contains('BrandColor.primary'));

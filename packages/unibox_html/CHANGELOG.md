@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **Breaking: a rendering takes a scope, not a theme.** `toHtml`, `renderFragment`, `toDocument`,
+  `Document` and `documentCss` take `scope:`, and `Document`'s own `lang`, `writingDirection` and
+  `theme` fields are the scope's: one value says how the page is drawn, written and read, and
+  `toDocument(scope: UniboxScope(lang: 'de'))` is the spelling a build writes per language.
+
 - The package holds the whole web target: the element plan and the CSS a token becomes are
   `lib/src/element/` and `lib/src/css/` here, rather than the `unibox_element` and `unibox_css`
   packages. Nothing was withdrawn — `ElementPlan`, `planNode`, `Stylesheet`, `CssDeclarations`,

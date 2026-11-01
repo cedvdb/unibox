@@ -73,18 +73,20 @@ final page = Box(
   ],
 );
 
-runApp(MaterialApp(home: page.toWidget(theme: MaterialPalette.lightTheme)));
+final scope = UniboxScope(theme: MaterialPalette.lightTheme);
+
+runApp(MaterialApp(home: page.toWidget(scope: scope)));
 final html = toDocument(
   page,
   head: const DocumentHead(title: 'Apartments'),
-  theme: MaterialPalette.lightTheme,
+  scope: scope,
 );
 ```
 
-`toWidget(theme: …)` builds the widgets; `toDocument()` writes the page and its head. Which one
-you call is the only decision, and both take the same `UniboxTheme`: a tree that names colour roles
-has no colours without it (see [roles and theming](#roles-and-theming)), and a tree of literal
-colours ignores it.
+`toWidget(scope: …)` builds the widgets; `toDocument()` writes the page and its head. Which one
+you call is the only decision, and both take the same `UniboxScope` — the theme it carries answers
+every colour role, so a tree that names one has no colours without it (see
+[roles and theming](#roles-and-theming)), and a tree of literal colours ignores it.
 
 The two stay equal because the model states every default — an unset direction is a column, an
 unset text size is 16 — so neither target answers with its own, and because a test compares what
@@ -231,7 +233,7 @@ address, each document naming the whole set:
 for (final SiteEdition edition in SiteEdition.all) {
   final String page = toDocument(
     buildListingsPage(edition.copy),
-    lang: edition.tag,
+    scope: UniboxScope(lang: edition.tag),
     head: DocumentHead(
       title: edition.copy.title,
       canonical: edition.url('apartments'),
@@ -271,13 +273,19 @@ dependencies:
 
 ```dart
 // Flutter
-runApp(MaterialApp(home: tree.toWidget(theme: MaterialPalette.lightTheme)));
+runApp(
+  MaterialApp(
+    home: tree.toWidget(
+      scope: UniboxScope(theme: MaterialPalette.lightTheme),
+    ),
+  ),
+);
 
 // the web: a page a crawler reads, and a reader acts on
 final String page = toDocument(
   tree,
   head: const DocumentHead(title: 'My page'),
-  theme: MaterialPalette.lightTheme,
+  scope: UniboxScope(theme: MaterialPalette.lightTheme),
 );
 ```
 
@@ -409,19 +417,21 @@ A colour can name a role the application owns instead of a value baked into the 
 ```dart
 enum AppColor { primary, surface }
 
-const theme = UniboxTheme(
-  colors: <AppColor, BoxColor>{
-    AppColor.primary: BoxColor(0xFF2D6CF3),
-    AppColor.surface: BoxColor.white,
-  },
+const scope = UniboxScope(
+  theme: UniboxTheme(
+    colors: <AppColor, BoxColor>{
+      AppColor.primary: BoxColor(0xFF2D6CF3),
+      AppColor.surface: BoxColor.white,
+    },
+  ),
 );
 
 const Box(backgroundColor: BoxColor.role(AppColor.primary));
 
-renderFlutter(page, theme: theme);   // resolves each role while building
-page.toWidget(theme: theme);         // the same call, as the extension
-toDocument(page, theme: theme);      // writes :root and points the rules at it
-page.toHtml(theme: theme);           // the fragment, as the extension
+renderFlutter(page, scope: scope);   // resolves each role while building
+page.toWidget(scope: scope);         // the same call, as the extension
+toDocument(page, scope: scope);      // writes :root and points the rules at it
+page.toHtml(scope: scope);           // the fragment, as the extension
 ```
 
 | | What it buys |
@@ -432,7 +442,7 @@ page.toHtml(theme: theme);           // the fragment, as the extension
 | literals still work | a page that needs no theme never needs one, and a role with no theme is reported by name |
 | `colorScheme` | the theme says whether it is a light or a dark one, and a document states it as `color-scheme` — so the browser paints its scrollbars and its caret to match the page rather than the reader's system |
 
-`validateTree(root, theme: theme)` reports a role the theme does not define, so a
+`validateTree(root, scope: scope)` reports a role the scope's theme does not define, so a
 missing colour is a message with a name in it rather than a blank box.
 
 **Light unless stated.** `UniboxTheme.colorScheme` defaults to `light`, and
@@ -452,7 +462,12 @@ and in Flutter, two lines where the theme is installed:
 
 ```dart
 final bool dark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
-renderFlutter(page, theme: dark ? MaterialPalette.darkTheme : MaterialPalette.lightTheme);
+renderFlutter(
+  page,
+  scope: UniboxScope(
+    theme: dark ? MaterialPalette.darkTheme : MaterialPalette.lightTheme,
+  ),
+);
 ```
 
 ## Typography

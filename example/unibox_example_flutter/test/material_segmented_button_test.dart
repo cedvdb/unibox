@@ -17,7 +17,10 @@ void main() {
         home: Scaffold(
           body: Align(
             alignment: Alignment.topLeft,
-            child: renderFlutter(node, theme: MaterialPalette.lightTheme),
+            child: renderFlutter(
+              node,
+              scope: core.UniboxScope(theme: MaterialPalette.lightTheme),
+            ),
           ),
         ),
       ),
@@ -254,7 +257,7 @@ void main() {
                     selected: 1,
                     onSelect: (int index) {},
                   ),
-                  theme: MaterialPalette.lightTheme,
+                  scope: core.UniboxScope(theme: MaterialPalette.lightTheme),
                 ),
               ),
             ),
@@ -309,7 +312,7 @@ void main() {
                 selected: 0,
                 onSelect: (int index) {},
               ),
-              theme: MaterialPalette.lightTheme,
+              scope: core.UniboxScope(theme: MaterialPalette.lightTheme),
             ),
           ),
         ),
@@ -362,7 +365,7 @@ void main() {
                 selected: 1,
                 onSelect: (int index) {},
               ),
-              theme: MaterialPalette.lightTheme,
+              scope: core.UniboxScope(theme: MaterialPalette.lightTheme),
             ),
           ),
         ),

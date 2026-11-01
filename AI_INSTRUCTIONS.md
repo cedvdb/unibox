@@ -31,10 +31,10 @@ host that renders it.
 - A screen is an immutable Dart tree of nodes: `Box`, `TextNode`, `ImageNode`, `LinkNode`
   (a `Box` that names a destination), `StackNode` + `PositionedNode`, `TextInputNode`,
   `StatefulNode`, `OverlayNode`, `GridNode`, `EmbedNode`.
-- One tree, two renderings: `renderFlutter(tree, theme: …)` or `tree.toWidget(theme: …)`
-  in a Flutter app, and `toDocument(tree, theme: …)` or `tree.toHtml(theme: …)` in
-  `unibox_html` for a page a crawler reads. A tree that names colour roles needs the
-  theme on both targets — leaving it out is a validation error naming the role, not a
+- One tree, two renderings: `renderFlutter(tree, scope: …)` or `tree.toWidget(scope: …)`
+  in a Flutter app, and `toDocument(tree, scope: …)` or `tree.toHtml(scope: …)` in
+  `unibox_html` for a page a crawler reads. The scope carries the theme, the language and
+  the direction of the page, and a tree that names colour roles needs the theme on both targets — leaving it out is a validation error naming the role, not a
   fallback to a host colour.
 - A node describes *what* is on screen, never which framework draws it. There is no
   `Text`, `Row`, `Column`, `Container`, `Colors`, `EdgeInsets`, `TextStyle` or
@@ -631,8 +631,8 @@ UINode buildListingsPage(SiteCopy copy) => … TextNode(copy.title) …
 - The file that holds the tree imports `package:unibox_core/unibox_core.dart` — and
   `package:unibox_material/unibox_material.dart` when it uses the Material roles or
   components — and nothing else. No Flutter, no web framework, no `dart:ui`.
-- The theme travels with the call that draws the tree: `toWidget(theme: …)`,
-  `renderFlutter(…, theme: …)`, `toDocument(…, theme: …)`. A tree that names
+- The scope travels with the call that draws the tree: `toWidget(scope: …)`,
+  `renderFlutter(…, scope: …)`, `toDocument(…, scope: …)`. A tree that names
   `BoxColor.role(...)` and is drawn without one fails validation by naming the role,
   so this is the first thing an error about a colour means.
 - `dart analyze` is clean, and `core.validateTree(tree)` reports no errors. It

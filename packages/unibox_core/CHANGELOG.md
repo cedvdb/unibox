@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- `UniboxScope` is what a rendering is drawn against, in one value: the theme the colour roles
+  resolve against, the language the page is written in and the direction its rows run. It answers
+  the question the renderers used to answer with a `theme:` argument and the document used to
+  answer with `lang:` and `writingDirection:` beside it, so a host that adds a second ambience adds
+  a field rather than a parameter to every call. `validateTree` takes one (`validateTree(tree,
+  scope:)`), which is also the first time the language and the direction reach the check that
+  resolves roles. It carries environment, not domain: what a page is *about* stays a parameter of
+  the component that shows it.
+
 - `StatefulNode.update` is the hook a component needs when its store copies a parameter. A store
   is created once per place in the tree and cannot see a node, so a number it read at creation —
   how many tabs it can select, which value it was seeded with — stayed what it was however many

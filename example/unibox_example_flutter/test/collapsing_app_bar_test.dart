@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:unibox_example_shared/unibox_example_shared.dart';
 import 'package:unibox_flutter/unibox_flutter.dart';
 import 'package:unibox_material/unibox_material.dart';
+import 'package:unibox_core/unibox_core.dart';
 
 /// A screen whose app bar collapses is a store over a body that reports its scroll, so the check
 /// belongs on a real widget: the model can say the height is a number, and only a scroll can say
@@ -15,8 +16,10 @@ void main() {
     // theme that answers for them.
     await tester.pumpWidget(
       MaterialApp(
-        home: UniboxThemeScope(
-          theme: ExamplePalette.themeFor(ExampleSeed.defaultSeed),
+        home: UniboxScopeWidget(
+          scope: UniboxScope(
+            theme: ExamplePalette.themeFor(ExampleSeed.defaultSeed),
+          ),
           child: Scaffold(
             body: Center(
               child: SizedBox(

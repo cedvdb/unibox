@@ -332,10 +332,19 @@ void main() {
         onTap: _tap,
       );
       expect(
-        validateTree(_box(chip), theme: MaterialPalette.lightTheme),
+        validateTree(
+          _box(chip),
+          scope: UniboxScope(theme: MaterialPalette.lightTheme),
+        ),
         isEmpty,
       );
-      expect(validateTree(chip, theme: MaterialPalette.lightTheme), isEmpty);
+      expect(
+        validateTree(
+          chip,
+          scope: UniboxScope(theme: MaterialPalette.lightTheme),
+        ),
+        isEmpty,
+      );
     });
   });
 }

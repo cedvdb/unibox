@@ -103,7 +103,13 @@ void main() {
       final UINode text = card.children.single;
 
       expect((text as TextNode).computedStyle, const BoxTextStyle());
-      expect(validateTree(card, theme: MaterialPalette.lightTheme), isEmpty);
+      expect(
+        validateTree(
+          card,
+          scope: UniboxScope(theme: MaterialPalette.lightTheme),
+        ),
+        isEmpty,
+      );
     });
 
     test('is validated like any other box', () {
@@ -111,7 +117,10 @@ void main() {
         children: <UINode>[PositionedNode(child: TextNode('Outside a stack'))],
       );
 
-      final issues = validateTree(card, theme: MaterialPalette.lightTheme);
+      final issues = validateTree(
+        card,
+        scope: UniboxScope(theme: MaterialPalette.lightTheme),
+      );
 
       expect(issues, hasLength(1));
       expect(issues.single.node, isA<PositionedNode>());

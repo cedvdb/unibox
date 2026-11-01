@@ -239,7 +239,10 @@ void main() {
         );
 
         expect(
-          validateTree(button, theme: MaterialPalette.lightTheme),
+          validateTree(
+            button,
+            scope: UniboxScope(theme: MaterialPalette.lightTheme),
+          ),
           isEmpty,
           reason: 'the ${variant.name} shape',
         );

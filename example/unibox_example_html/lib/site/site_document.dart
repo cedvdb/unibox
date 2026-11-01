@@ -40,7 +40,7 @@ Document buildSiteDocument({
       links: <DocumentLink>[faviconLink(''), ...fontPreloadLinks('')],
       raw: <String>['<style>${fontFaceCss('')}$siteCss</style>'],
     ),
-    theme: siteThemeFor(seed),
+    scope: core.UniboxScope(theme: siteThemeFor(seed)),
     // A site a crawler reads is a document: the recorders are what a reader who interacts
     // with the catalogue leaves behind, and nothing here starts an application.
     scripts: <DocumentScript>[

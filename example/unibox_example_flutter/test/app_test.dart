@@ -51,10 +51,14 @@ void main() {
     ) async {
       await pumpApp(tester);
 
-      core.UniboxTheme installed() =>
-          tester.widget<UniboxThemeScope>(find.byType(UniboxThemeScope)).theme;
+      core.UniboxScope installed() => tester
+          .widget<UniboxScopeWidget>(find.byType(UniboxScopeWidget))
+          .scope;
 
-      expect(installed(), ExamplePalette.themeFor(ExampleSeed.defaultSeed));
+      expect(
+        installed().theme,
+        ExamplePalette.themeFor(ExampleSeed.defaultSeed),
+      );
 
       // The swatch is a link to this page with `?seed=<name>`: the host answers the
       // address with another theme instead of loading anything, so the page keeps
@@ -62,9 +66,11 @@ void main() {
       await tester.tap(find.bySemanticsLabel('Blue palette'));
       await tester.pump();
 
-      expect(installed(), ExamplePalette.themeFor(ExampleSeed.blue));
+      expect(installed().theme, ExamplePalette.themeFor(ExampleSeed.blue));
       expect(
-        installed().resolve(const core.BoxColor.role(ExampleColor.accent)),
+        installed().theme!.resolve(
+          const core.BoxColor.role(ExampleColor.accent),
+        ),
         ExamplePalette.materialFor(ExampleSeed.blue).primary,
       );
       // Nothing navigated: the page is still the one the reader was on.

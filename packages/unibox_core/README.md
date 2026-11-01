@@ -19,6 +19,7 @@ Flutter or the web renderer. Renderers live in `unibox_flutter` and `unibox_html
 | `StatefulNode`    | a subtree that owns a `Store` and draws the tree of its state |
 | `GridNode`        | equal columns whose count follows the width, or stated ones   |
 | `OverlayNode`     | content drawn above the page, with a barrier and a dismissal |
+| `UniboxScope`     | what a rendering is drawn against: the theme, the language and the direction |
 | `Store`           | the state contract a `StatefulNode` draws                     |
 | `StateStore`      | the ready made `Store`: one state value and its listeners     |
 | `BoxColor`, `BoxColors`, `BoxSpacing`, `BoxBorder`, `BoxShadow` | visual tokens            |
@@ -126,7 +127,7 @@ theme's map is keyed by the same value: no string is typed anywhere.
 - The tree stays `const` and still says what it means — "this is the primary
   surface" — instead of repeating a hex value per element.
 - `BoxColor.role(...)` has no channels until a theme answers it. Reading `value`
-  before that throws, and `validateTree(root, theme: theme)` reports the role by
+  before that throws, and `validateTree(root, scope: scope)` reports the role by
   name instead of letting a box paint nothing.
 - A literal colour keeps working, so a tree can mix roles and values, and a small
   page that wants no theme never needs one.

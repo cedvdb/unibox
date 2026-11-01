@@ -388,7 +388,13 @@ void main() {
         onSelect: _select,
       );
 
-      expect(validateTree(button, theme: MaterialPalette.lightTheme), isEmpty);
+      expect(
+        validateTree(
+          button,
+          scope: UniboxScope(theme: MaterialPalette.lightTheme),
+        ),
+        isEmpty,
+      );
     });
   });
 }

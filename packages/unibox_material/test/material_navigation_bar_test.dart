@@ -399,7 +399,13 @@ void main() {
     );
 
     test('draws a tree the model can validate', () {
-      expect(validateTree(_bar(), theme: MaterialPalette.lightTheme), isEmpty);
+      expect(
+        validateTree(
+          _bar(),
+          scope: UniboxScope(theme: MaterialPalette.lightTheme),
+        ),
+        isEmpty,
+      );
     });
   });
 }

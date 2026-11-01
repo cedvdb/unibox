@@ -18,6 +18,7 @@ import 'tokens/box_fraction.dart';
 import 'tokens/box_semantics.dart';
 import 'tokens/box_shadow.dart';
 import 'tokens/box_shape.dart';
+import 'tokens/unibox_scope.dart';
 import 'tokens/box_style.dart';
 import 'tokens/box_text_style.dart';
 import 'tokens/box_transition.dart';
@@ -104,19 +105,22 @@ class TreeIssue {
 ///   renderer applies,
 /// * a transition with a duration that changes nothing,
 /// * an opacity outside the `0` to `1` that both targets accept,
-/// * a colour role no theme can answer, when a theme is passed to the check,
+/// * a colour role no theme can answer, when a scope is passed to the check,
 /// * a decoration colour or thickness on a style that draws no decoration, and a
 ///   thickness no line can be drawn with,
 /// * a visibility range that is empty or negative, which no width can show,
 /// * an image candidate whose width is not positive, which no browser can pick,
 /// * an image that gives `sizes` without a `srcSet`, which a browser never reads.
-List<TreeIssue> validateTree(UINode root, {UniboxTheme? theme}) {
+List<TreeIssue> validateTree(
+  UINode root, {
+  UniboxScope scope = UniboxScope.none,
+}) {
   final List<TreeIssue> issues = <TreeIssue>[];
   _validate(
     root,
     parent: null,
     inAnchor: false,
-    theme: theme,
+    scope: scope,
     inGrid: false,
     definiteHeight: null,
     decoratedAbove: false,
@@ -385,7 +389,7 @@ void _validate(
   UINode node, {
   required UINode? parent,
   required bool inAnchor,
-  required UniboxTheme? theme,
+  required UniboxScope scope,
   required bool inGrid,
   required double? definiteHeight,
   required bool decoratedAbove,
@@ -394,7 +398,7 @@ void _validate(
   required Box? scrollingAncestor,
   required List<TreeIssue> issues,
 }) {
-  _validateRoles(node, theme, issues);
+  _validateRoles(node, scope.theme, issues);
 
   if (node is PositionedNode &&
       node.alignment != null &&
@@ -1558,7 +1562,7 @@ void _validate(
       child,
       parent: node,
       inAnchor: nestedInAnchor,
-      theme: theme,
+      scope: scope,
       inGrid: inGrid || node is GridNode,
       definiteHeight: node is GridNode ? null : childDefiniteHeight,
       decoratedAbove: decoratedAbove || _drawsDecoration(node),

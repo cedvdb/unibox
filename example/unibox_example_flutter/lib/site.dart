@@ -75,7 +75,7 @@ class _SiteAppState extends State<SiteApp> {
 
     return surface(
       title: 'Unibox — the site, drawn by Flutter',
-      theme: theme,
+      scope: UniboxScope(theme: theme),
       child: FlutterLinkScope(
         open: _open,
         // A document scrolls; a column of sections taller than the window needs one scroll view
@@ -83,7 +83,7 @@ class _SiteAppState extends State<SiteApp> {
         child: SingleChildScrollView(
           child: renderFlutter(
             buildSitePage(frame: showcaseFrame, seed: _seed),
-            theme: theme,
+            scope: UniboxScope(theme: theme),
           ),
         ),
       ),

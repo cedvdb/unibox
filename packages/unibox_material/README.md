@@ -196,8 +196,8 @@ the vocabulary the components name, and a palette turns it into a theme:
 Box(backgroundColor: const BoxColor.role(MaterialColorRole.surfaceContainerLow))
 
 // what the application says, once, when it renders
-toDocument(page, theme: MaterialPalette.lightTheme);
-renderFlutter(page, theme: MaterialPalette.lightTheme);
+toDocument(page, scope: UniboxScope(theme: MaterialPalette.lightTheme));
+renderFlutter(page, scope: UniboxScope(theme: MaterialPalette.lightTheme));
 ```
 
 A palette of your own is grown from a single colour — [A palette from one
@@ -243,7 +243,7 @@ const brand = BoxColor.rgb(0x2D, 0x6C, 0xF3);
 final light = MaterialPalette.fromSeed(brand);
 final dark = MaterialPalette.fromSeed(brand, isDark: true);
 
-toDocument(page, theme: light.theme);
+toDocument(page, scope: UniboxScope(theme: light.theme));
 ```
 
 | Parameter | Default | What it decides |
@@ -945,7 +945,7 @@ the lines it sits between, so the field names the two top corners through
 
 The caret, the selection, the IME and autofill are the platform's, because the input
 node delegates them — so a dark app renders the same field with
-`theme: MaterialPalette.darkTheme` *and* a matching `ColorScheme` to `MaterialApp`.
+`UniboxScope(theme: MaterialPalette.darkTheme)` *and* a matching `ColorScheme` to `MaterialApp`.
 
 ## The chip
 

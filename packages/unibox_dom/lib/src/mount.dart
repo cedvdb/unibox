@@ -31,19 +31,19 @@ const String _clientSheet = 'client';
 /// `Box(onTap: store.retry)` runs because the callback is a closure in the same program as the
 /// store, so a request started in `onMount` is the same `Future` it would be in Flutter.
 final class DomView {
-  DomView._(this._host, this._tree, this._theme);
+  DomView._(this._host, this._tree, this._scope);
 
   /// Draws [tree] into [host], and returns the view that owns what it added.
   ///
-  /// [host] is emptied: a view draws a whole tree, not a patch of one. [theme] answers the colour
+  /// [host] is emptied: a view draws a whole tree, not a patch of one. [scope] answers the colour
   /// roles the tree names, exactly as in the string renderer — the same value produces the same
   /// `:root` block, so a class name and a custom property agree across the two renderings.
   static DomView mount(
     core.UINode tree,
     web.Element host, {
-    core.UniboxTheme? theme,
+    core.UniboxScope scope = core.UniboxScope.none,
   }) {
-    final DomView view = DomView._(host, tree, theme).._paint();
+    final DomView view = DomView._(host, tree, scope).._paint();
 
     return view;
   }
@@ -57,9 +57,9 @@ final class DomView {
   static DomView adopt(
     core.UINode tree,
     web.Element root, {
-    core.UniboxTheme? theme,
+    core.UniboxScope scope = core.UniboxScope.none,
   }) {
-    final DomView view = DomView._(root.parentElement ?? root, tree, theme)
+    final DomView view = DomView._(root.parentElement ?? root, tree, scope)
       .._element = root;
 
     // The page and this bundle are from two builds of one tree. When they are from the *same* build
@@ -77,7 +77,7 @@ final class DomView {
   }
 
   final web.Element _host;
-  final core.UniboxTheme? _theme;
+  final core.UniboxScope _scope;
   final Stylesheet _sheet = Stylesheet();
   final Map<String, _Mount> _mounts = <String, _Mount>{};
   final Map<web.Element, List<void Function()>> _listeners =
@@ -237,7 +237,7 @@ final class DomView {
     final web.CSSStyleSheet? rules = style.sheet;
 
     if (mark == null || rules == null || rules.cssRules.length != _cssRules) {
-      style.textContent = documentCss(_sheet, theme: _theme);
+      style.textContent = documentCss(_sheet, scope: _scope);
     } else {
       for (final String rule in _sheet.rulesSince(mark)) {
         rules.insertRule(rule, rules.cssRules.length);

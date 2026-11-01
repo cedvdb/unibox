@@ -14,7 +14,7 @@ import 'shape.dart';
 import 'stack_node.dart';
 import 'text_style_scope.dart';
 import 'scroll_scope.dart';
-import 'theme_scope.dart';
+import 'scope.dart';
 import 'values.dart';
 
 /// Renders a [core.Box] as a Flutter widget tree.
@@ -181,7 +181,7 @@ class FlutterBoxState extends State<FlutterBox> {
   Widget build(BuildContext context) {
     final core.Box box = widget.box;
     final core.BoxStyle style = _resolvedStyle(box)
-        .resolve(UniboxThemeScope.of(context) ?? core.UniboxTheme.none);
+        .resolve(UniboxScopeWidget.of(context).theme ?? core.UniboxTheme.none);
 
     // A stretching parent says so here instead of handing a tight width: a box that states
     // a size of its own keeps it, which is what `align-items: stretch` does to a flex item
