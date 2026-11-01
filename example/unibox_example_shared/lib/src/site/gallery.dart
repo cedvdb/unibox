@@ -940,6 +940,11 @@ final class CollapsingAppBarStore extends StateStore<CollapsingAppBarState> {
 /// The height is stated, not shared: a `StatefulNode` carries no style, so the renderer has nothing
 /// to turn into a flexible child — the view states the room the panel gives it instead of asking
 /// for `double.infinity`, which is a number in an unbounded column.
+///
+/// **The bar is the scaffold's, so the list never scrolls under it.** Both bars of both screens are
+/// furniture: the body is the one thing that moves, so a pull past the list opens inside the body
+/// and no bar is ever carried away from an edge. What collapses is the *number* the store hands the
+/// rebuild — a layout change, which is the only way a height moves here.
 UINode _collapsingScreen(
   CollapsingAppBarState state,
   CollapsingAppBarStore store,
@@ -949,25 +954,24 @@ UINode _collapsingScreen(
   return MaterialScaffold(
     color: _pageColor,
     height: _screenHeight,
+    appBar: MaterialLargeAppBar(
+      title: const TextNode('Saved'),
+      // The two numbers a collapsing app bar states: how tall it opens, and how small it comes to
+      // rest. Everything between them is the store's.
+      height:
+          CollapsingAppBarDemo.collapsed +
+          (CollapsingAppBarDemo.expanded - CollapsingAppBarDemo.collapsed) *
+              (1 - t),
+      padding: BoxSpacing.all(16 - 4 * t),
+      titleStyle: MaterialTypography.headlineMedium.merge(
+        BoxTextStyle(fontSize: 28 - 6 * t),
+      ),
+    ),
     body: Box(
-      height: double.infinity,
+      flex: 1,
       overflow: Overflow.scroll,
       onScroll: store.scrolledTo,
       children: <UINode>[
-        MaterialLargeAppBar(
-          title: const TextNode('Saved'),
-          // The two numbers a pinned sliver app bar states: how tall it opens, and how small it
-          // comes to rest. Everything between them is the store's.
-          height:
-              CollapsingAppBarDemo.collapsed +
-              (CollapsingAppBarDemo.expanded - CollapsingAppBarDemo.collapsed) *
-                  (1 - t),
-          padding: BoxSpacing.all(16 - 4 * t),
-          pin: BoxPin.start,
-          titleStyle: MaterialTypography.headlineMedium.merge(
-            BoxTextStyle(fontSize: 28 - 6 * t),
-          ),
-        ),
         for (final (String name, String price) in _flats)
           _flatTile(name, price),
       ],

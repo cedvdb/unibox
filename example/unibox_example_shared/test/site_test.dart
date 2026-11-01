@@ -332,10 +332,10 @@ void main() {
       expect(picture.alt, isNotEmpty);
     });
 
-    test('wraps every bar in a section, and the catalogue blocks too', () {
+    test('wraps every section of the page in a `section`, and the catalogue blocks too', () {
       // The page is a document, not a stack of layers: the content of `main` is four
       // sections, and each block of the catalogue is a section of its own because each
-      // one has an `h3`. A bar inside the header or the footer adds none, because the
+      // one has an `h3`. A section inside the header or the footer adds none, because the
       // landmark is already there.
       final List<UINode> page = _flatten(buildSitePage(frame: _frame)).toList();
       final Box main = page.whereType<Box>().firstWhere(
@@ -343,7 +343,9 @@ void main() {
       );
 
       expect(
-        main.children.whereType<Box>().map((Box bar) => bar.semantics?.element),
+        main.children.whereType<Box>().map(
+          (Box section) => section.semantics?.element,
+        ),
         <BoxElement>[
           BoxElement.section,
           BoxElement.section,

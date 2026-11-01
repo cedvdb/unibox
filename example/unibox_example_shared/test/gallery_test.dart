@@ -101,20 +101,22 @@ void main() {
 
       // Every bar in the catalogue is the component that draws one — the two screens' bars and
       // the ones the static specimens show — so nothing here teaches a reader to write the same
-      // thing out of a `Box`.
-      for (final Box bar in nodes.where((Box box) => box.pin != null)) {
+      // thing out of a `Box`. What makes a bar a bar here is the landmark it states.
+      for (final Box bar in nodes.where(
+        (Box box) => box.semantics?.element == BoxElement.header,
+      )) {
         expect(bar, anyOf(isA<MaterialAppBar>(), isA<MaterialLargeAppBar>()));
       }
 
-      // And the bars have specimens of their own, not only a part in a screen: two small bars and
-      // the screen whose bar is the scaffold's.
+      // And the bars have specimens of their own, not only a part in a screen: two small bars, the
+      // small one a screen holds, and two large ones — a specimen and the bar that collapses.
       expect(
         nodes.where((Box box) => box is MaterialAppBar && box.pin == null),
         hasLength(3),
       );
       expect(
         nodes.where((Box box) => box is MaterialLargeAppBar && box.pin == null),
-        hasLength(1),
+        hasLength(2),
       );
     });
 
@@ -162,72 +164,47 @@ void main() {
       }
     });
 
-    test(
-      'keeps one screen’s bars outside the scroll, and pins the other’s bar',
-      () {
-        final List<UINode> nodes = _nodesOf(buildMaterialSection());
-        final List<MaterialScaffold> screens = nodes
-            .whereType<MaterialScaffold>()
-            .toList();
+    test('keeps both screens’ bars outside the scroll', () {
+      final List<UINode> nodes = _nodesOf(buildMaterialSection());
+      final List<MaterialScaffold> screens = nodes
+          .whereType<MaterialScaffold>()
+          .toList();
 
-        expect(screens, hasLength(2));
+      expect(screens, hasLength(2));
 
-        // The first screen is the arrangement a Material app has: a bar, a body and a bottom bar,
-        // with both bars outside the scroll. A pull past the list then opens *inside* the body, so
-        // the page shows there and no bar comes away from an edge.
-        final MaterialScaffold staying = screens.first;
-        final Box body = staying.children[1] as Box;
+      // Both screens are the arrangement a Material app has: the bars are the scaffold's, and the
+      // body is the only thing that scrolls. A pull past the list therefore opens *inside* the
+      // body, where the page shows — never at an edge a bar has come away from.
+      for (final MaterialScaffold screen in screens) {
+        final Box body = screen.children[1] as Box;
 
-        expect(staying.children.first, isA<MaterialAppBar>());
-        expect(staying.children.last, isA<NavigationDemo>());
-        expect(body.overflow, Overflow.scroll);
+        expect(screen.children.first, isA<Box>());
         expect(
-          body.flex,
-          1,
-          reason: 'the body takes the room the two bars leave',
+          screen.children.first,
+          anyOf(isA<MaterialAppBar>(), isA<MaterialLargeAppBar>()),
         );
+        expect(body.overflow, Overflow.scroll);
+        expect(body.flex, 1, reason: 'the body takes the room the bars leave');
         expect(
-          staying.children.whereType<Box>().where((Box box) => box.pin != null),
+          screen.children.whereType<Box>().where((Box box) => box.pin != null),
           isEmpty,
           reason: 'a bar outside the scroll has no edge to come to rest at',
         );
+      }
 
-        // The other screen pins its bar instead: it is content, so it comes to rest at the top of
-        // the scroll and the list runs under it.
-        final List<Box> pinned = nodes
-            .whereType<Box>()
-            .where((Box box) => box.pin != null)
-            .toList();
+      // The first screen has the bottom bar too, which is the second slot and the reason a footer
+      // is furniture rather than the last child of a list.
+      expect(screens.first.children, hasLength(3));
+      expect(screens.first.children.last, isA<NavigationDemo>());
 
-        expect(pinned, hasLength(1));
-
-        final Box bar = pinned.single;
-        expect(bar.pin, BoxPin.start);
-        expect(
-          bar.pinOffset,
-          isNull,
-          reason: 'a top app bar has nothing above it to stop under',
-        );
-
-        // The contract a pinned bar keeps: a stated height for its slot, a surface of its own, and
-        // a parent that scrolls it and is given the rest of the screen to fill.
-        expect(bar.height, isNotNull);
-        expect(bar.height!.isFinite, isTrue);
-        expect(bar.backgroundColor, isNotNull);
-
-        final Box viewport = nodes.whereType<Box>().singleWhere(
-          (Box box) => box.children.contains(bar),
-        );
-
-        expect(viewport.overflow, Overflow.scroll);
-        expect(viewport.height, double.infinity);
-
-        // The bar whose height follows the scroll is the large one, and it can only follow it
-        // because the body it is in reports where it has got to.
-        expect(bar, isA<MaterialLargeAppBar>());
-        expect(viewport.onScroll, isNotNull);
-      },
-    );
+      // Nothing in the catalogue pins: a pin is a bar that is content, and the screens are
+      // furniture. The pinned bar is documented in `docs/nodes/box.md` and pinned by the renderer
+      // suites, which scroll it.
+      expect(
+        nodes.whereType<Box>().where((Box box) => box.pin != null),
+        isEmpty,
+      );
+    });
 
     test(
       'gives the app bar its height back a hundredth of a scroll at a time',
@@ -235,14 +212,22 @@ void main() {
         // The screen opens with the bar at its full height, and the store turns any offset past the
         // range into the collapsed one — a layout change a rebuild states, which is the only way a
         // height moves here.
-        final List<MaterialLargeAppBar> bars = _nodesOf(buildMaterialSection())
-            .whereType<MaterialLargeAppBar>()
-            .where((MaterialLargeAppBar bar) => bar.pin != null)
-            .toList();
+        final MaterialScaffold screen = _nodesOf(buildMaterialSection())
+            .whereType<MaterialScaffold>()
+            .singleWhere(
+              (MaterialScaffold screen) =>
+                  screen.children.first is MaterialLargeAppBar,
+            );
+        final MaterialLargeAppBar bar =
+            screen.children.first as MaterialLargeAppBar;
+        final Box body = screen.children[1] as Box;
 
-        expect(bars, hasLength(1));
-        expect(bars.single.height, MaterialLargeAppBar.largeHeight);
-        expect(bars.single.pin, BoxPin.start);
+        expect(bar.height, MaterialLargeAppBar.largeHeight);
+        expect(
+          body.onScroll,
+          isNotNull,
+          reason: 'the bar can only follow a scroll the body reports',
+        );
 
         final CollapsingAppBarStore store = CollapsingAppBarStore();
 

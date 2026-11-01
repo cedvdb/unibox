@@ -32,11 +32,12 @@ void main() {
       ),
     );
 
-    /// The bar is the pinned box the title is drawn in: the bar, not the box padding it.
+    /// The bar: the large app bar the title is drawn in, which the scaffold holds.
     Finder bar() => find.ancestor(
       of: find.text('Saved'),
       matching: find.byWidgetPredicate(
-        (Widget widget) => widget is FlutterBox && widget.box.pin != null,
+        (Widget widget) =>
+            widget is FlutterBox && widget.box is MaterialLargeAppBar,
       ),
     );
     Size barSize() => tester.getSize(bar());
@@ -58,7 +59,8 @@ void main() {
     expect(
       barTop(),
       top,
-      reason: 'a bar that pins stays at the top of the box that scrolls it',
+      reason:
+          'a bar outside the scroll does not move: the body is what scrolls',
     );
     // And it is still there to press: what is left of the bar keeps the surface it had.
     expect(find.text('Saved'), findsOneWidget);
