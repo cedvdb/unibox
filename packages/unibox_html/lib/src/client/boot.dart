@@ -66,14 +66,12 @@ enum BootPolicy {
   ///
   /// **Looking, not using.** A pointer that moves, a scroll and a touch are a reader looking at
   /// the page; a key, a focus move and a press are a reader *using* it, and those are
-  /// deliberately not signals. The document is the accessible rendering — real headings, real
-  /// links, real fields, and interactive through the client renderer — while the application is
-  /// a canvas whose semantics a screen reader has to ask for. So a keyboard reader, and a reader
-  /// whose assistive technology moves the focus around, keeps the document; booting on their
-  /// keystrokes would replace the page they are reading with something it takes them more work
-  /// to read. For the same reason the boot waits while the frame holds the focus: it replaces
-  /// every element in the document, so it would take away the element a reader is on — and a
-  /// field would lose what was typed into it.
+  /// deliberately not signals. The document is the page as text — real headings, real links, real
+  /// fields, whatever the host wrote — while the application is a canvas whose semantics a screen
+  /// reader has to ask for. So booting on a keystroke would replace what a reader is reading with
+  /// something it takes them more work to read, and would do it under the element their focus is
+  /// on. A reader who never moves a pointer is not stranded either: the page carries a control that
+  /// opens the application when they choose it — see [bootScript]'s `openLabel`.
   onIntent,
 }
 

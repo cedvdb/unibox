@@ -125,10 +125,10 @@ void main() {
     });
 
     test('is told to look by a reader, not to act for one', () {
-      // The document is the accessible rendering: real headings, links and fields, interactive
-      // through the client renderer. The application is a canvas whose semantics a screen reader
-      // has to ask for, so a key, a focus move or a press must not hand it the page — a keyboard
-      // reader tabbing through the document would lose the element they were on.
+      // The document is the page as text — real headings, links and fields, whatever the host
+      // wrote. The application is a canvas whose semantics a screen reader has to ask for, so a
+      // key, a focus move or a press must not hand it the page: a keyboard reader tabbing through
+      // the document would lose the element they were on, mid-read.
       final String script = bootScript('a.js', policy: BootPolicy.onIntent);
 
       for (final String gesture in <String>[
