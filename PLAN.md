@@ -7,14 +7,13 @@ tasks in the order they land, what the model gains, and what each target does fo
 Tasks that are deliberately not done are listed with the reason.
 
 The four that landed, each as one commit: `feat(core): let a size be a share of the
-viewport`, `feat(flutter): pin a band whose height is its own`,
+viewport`, `feat(flutter): pin a bar whose height is its own`,
 `fix(flutter): stretch a line that has no end to its tallest child`, and
 `feat(material): let a card, a bar and a row of choices pin`. The three that did not are
 §5 to §7, with the reason each one is a decision rather than an omission.
 
 A note on words: this plan calls a pinned box a *band*, which is what the model said when the
 report came in; the repository calls it a *bar*, and the code, the tests and the READMEs say bar.
-
 
 The rule for every task is the repository's own: the model states it, both renderers
 draw it, `unibox_testing` holds them to the same answer, and the docs move in the
