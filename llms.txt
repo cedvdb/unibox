@@ -126,6 +126,10 @@ coding agent needs are in [AGENTS.md](AGENTS.md), and a human contributing needs
   form that makes an issue `agent-ready` — the recipe, the package, the line that has to pass.
   [MAINTENANCE.md](MAINTENANCE.md#the-queue) says what the labels mean.
 - [RELEASE.md](RELEASE.md): the human release checklist. CI never publishes.
+- [docs/fold-layout-decision.md](docs/fold-layout-decision.md): why a fold may not move a
+  layout, and why it stays that way — what the rule buys, what a scroll-driven size is measured
+  to cost on both targets, why a size that follows the scroll is a store rather than a fold, and
+  the two CSS defects that have to be fixed for the resting page to be right.
 - [example/README.md](example/README.md): the example's trees, the two hosts, and how a
   document and a Flutter app are built from them.
 
