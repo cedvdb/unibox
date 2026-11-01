@@ -98,10 +98,11 @@ UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
           'Scaffold',
           _screens(palette),
           note:
-              'A screen: `MaterialScaffold` draws a page under a bar and a body that fills the '
-              'rest — the bar states a container and the page a surface, so the bar reads as '
-              'one. Scroll either body: the first bar stays, and the second is drawn again at the '
-              'height a store hands it, which a document never runs.',
+              'A screen: `MaterialScaffold` holds a bar, a body and a bottom bar, and only the body '
+              'scrolls — the bars state a container and the page a surface, so a pull past the '
+              'list opens inside the body and never at a bar’s edge. The second screen pins its bar '
+              'instead and draws it again at the height a store hands it, which a document never '
+              'runs.',
         ),
         _section(
           palette,
@@ -771,7 +772,14 @@ UINode _pager(MaterialPalette palette) {
 /// Two screens, one per thing a top app bar can do: stay where it is, or give its height back.
 ///
 /// Both are `MaterialScaffold`s, because a scaffold is what a screen is: the page it is drawn on,
-/// the bar above it in a container of its own, and a body whose scroll a bar can be wired to.
+/// the bars in a container of their own, and a body whose scroll a bar can be wired to.
+///
+/// **The first screen's bar is the scaffold's, so nothing in it scrolls but the list.** That is
+/// the arrangement a Material app has, and it is also what keeps a pull honest: the strip a reader
+/// pulls open at either end of the body opens *inside* the body, so the page shows there and never
+/// the edge of a bar that ended a moment ago. The second screen is the other arrangement — a bar
+/// *inside* the scroll that pins and gives its height back — which is a bar that is content, and
+/// whose pull therefore reveals the page above it.
 UINode _screens(MaterialPalette palette) {
   return GridNode(
     minItemWidth: 360,
@@ -785,21 +793,22 @@ UINode _screens(MaterialPalette palette) {
           palette,
           MaterialScaffold(
             color: _pageColor,
+            // Both bars are outside the scroll, so neither moves and neither needs a `pin`.
+            appBar: MaterialAppBar(
+              title: const TextNode('Apartments'),
+              trailing: const TextNode('24'),
+            ),
             body: Box(
-              height: double.infinity,
+              // The body takes the room the two bars leave, and it is the only thing that
+              // scrolls: `flex: 1` is the one spelling both targets read as "the rest".
+              flex: 1,
               overflow: Overflow.scroll,
               children: <UINode>[
-                // The screen's bar is the first child of the body, so it is the box that pins:
-                // it comes to rest at the top of the scroll and the list runs under it.
-                MaterialAppBar(
-                  title: const TextNode('Apartments'),
-                  trailing: const TextNode('24'),
-                  pin: BoxPin.start,
-                ),
                 for (final (String name, String price) in _flats)
                   _flatTile(name, price),
               ],
             ),
+            bottomBar: NavigationDemo(),
           ),
         ),
       ),

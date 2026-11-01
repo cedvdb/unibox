@@ -106,10 +106,11 @@ void main() {
         expect(bar, anyOf(isA<MaterialAppBar>(), isA<MaterialLargeAppBar>()));
       }
 
-      // And the bars have specimens of their own, not only a part in a screen.
+      // And the bars have specimens of their own, not only a part in a screen: two small bars and
+      // the screen whose bar is the scaffold's.
       expect(
         nodes.where((Box box) => box is MaterialAppBar && box.pin == null),
-        hasLength(2),
+        hasLength(3),
       );
       expect(
         nodes.where((Box box) => box is MaterialLargeAppBar && box.pin == null),
@@ -161,17 +162,46 @@ void main() {
       }
     });
 
-    test('pins the app bar of the screen that says it stays', () {
-      final List<UINode> nodes = _nodesOf(buildMaterialSection());
-      final List<Box> pinned = nodes
-          .whereType<Box>()
-          .where((Box box) => box.pin != null)
-          .toList();
+    test(
+      'keeps one screen’s bars outside the scroll, and pins the other’s bar',
+      () {
+        final List<UINode> nodes = _nodesOf(buildMaterialSection());
+        final List<MaterialScaffold> screens = nodes
+            .whereType<MaterialScaffold>()
+            .toList();
 
-      // Two: one per screen. Both come to rest at the top, which is what a top app bar does — the
-      // other edges a bar can hold are in the README and the renderer suites, not in a screen.
-      expect(pinned, hasLength(2));
-      for (final Box bar in pinned) {
+        expect(screens, hasLength(2));
+
+        // The first screen is the arrangement a Material app has: a bar, a body and a bottom bar,
+        // with both bars outside the scroll. A pull past the list then opens *inside* the body, so
+        // the page shows there and no bar comes away from an edge.
+        final MaterialScaffold staying = screens.first;
+        final Box body = staying.children[1] as Box;
+
+        expect(staying.children.first, isA<MaterialAppBar>());
+        expect(staying.children.last, isA<NavigationDemo>());
+        expect(body.overflow, Overflow.scroll);
+        expect(
+          body.flex,
+          1,
+          reason: 'the body takes the room the two bars leave',
+        );
+        expect(
+          staying.children.whereType<Box>().where((Box box) => box.pin != null),
+          isEmpty,
+          reason: 'a bar outside the scroll has no edge to come to rest at',
+        );
+
+        // The other screen pins its bar instead: it is content, so it comes to rest at the top of
+        // the scroll and the list runs under it.
+        final List<Box> pinned = nodes
+            .whereType<Box>()
+            .where((Box box) => box.pin != null)
+            .toList();
+
+        expect(pinned, hasLength(1));
+
+        final Box bar = pinned.single;
         expect(bar.pin, BoxPin.start);
         expect(
           bar.pinOffset,
@@ -179,8 +209,8 @@ void main() {
           reason: 'a top app bar has nothing above it to stop under',
         );
 
-        // The contract a bar keeps: a stated height for its slot, a surface of its own, and a
-        // parent that scrolls it and is given the rest of the screen to fill.
+        // The contract a pinned bar keeps: a stated height for its slot, a surface of its own, and
+        // a parent that scrolls it and is given the rest of the screen to fill.
         expect(bar.height, isNotNull);
         expect(bar.height!.isFinite, isTrue);
         expect(bar.backgroundColor, isNotNull);
@@ -191,19 +221,13 @@ void main() {
 
         expect(viewport.overflow, Overflow.scroll);
         expect(viewport.height, double.infinity);
-      }
 
-      // The bar whose height follows the scroll is the large one, and it can only follow it
-      // because the body it is in reports where it has got to.
-      final Box shrinking = pinned.singleWhere(
-        (Box box) => box is MaterialLargeAppBar,
-      );
-      final Box body = nodes.whereType<Box>().singleWhere(
-        (Box box) => box.children.contains(shrinking),
-      );
-
-      expect(body.onScroll, isNotNull);
-    });
+        // The bar whose height follows the scroll is the large one, and it can only follow it
+        // because the body it is in reports where it has got to.
+        expect(bar, isA<MaterialLargeAppBar>());
+        expect(viewport.onScroll, isNotNull);
+      },
+    );
 
     test(
       'gives the app bar its height back a hundredth of a scroll at a time',
