@@ -11,6 +11,20 @@ import 'render.dart';
 import 'takeover.dart';
 import 'write.dart';
 
+/// The frame a document owns, stated before anything the tree declares.
+///
+/// A user agent insets a `<body>` by eight pixels, and the model has no such idea: a
+/// `BoxFraction.viewport` is the window, edge to edge, which is what the Flutter renderer
+/// draws. Left in place the margin makes a box asking for the viewport sixteen pixels wider
+/// than it — a horizontal scrollbar under a page that never meant to scroll sideways — and a
+/// page-tall box sixteen pixels too tall, so it scrolls by an amount nothing asked for.
+///
+/// Here rather than in `documentCss` because that text is also a fragment's, and a fragment
+/// mounts into a frame its host owns: zeroing someone else's `body` is not the fragment's to
+/// do. A host that wants the margin back restates it in `head.raw`, which is written after
+/// this stylesheet.
+const String _frameCss = 'body{margin:0}';
+
 /// A script a page carries, in the head, in the order it is listed.
 ///
 /// Written as a value rather than as a string of markup so the page cannot be assembled
@@ -294,7 +308,8 @@ String toDocument(
     buffer.write(link.write());
   }
 
-  buffer.write('<style data-unibox-css>${rendered.css}</style>');
+  // The frame first: it is what every length below is measured against.
+  buffer.write('<style data-unibox-css>$_frameCss${rendered.css}</style>');
 
   // Markup the host owns and the model does not describe: the `@font-face` rules of the
   // asset it ships, a dark-mode block, a structured-data script. Written verbatim, so it is

@@ -198,6 +198,23 @@ void main() {
       );
     });
 
+    test('zeroes the body margin, so a share of the viewport is the window', () {
+      // A user agent insets a body by 8px. A box that asks for the viewport would then be
+      // drawn 16px wider than the window — a horizontal scrollbar nothing asked for — while
+      // the Flutter renderer, which has no such inset, draws it edge to edge.
+      expect(
+        toDocument(
+          const core.Box(widthFraction: core.BoxFraction.viewport(1)),
+        ),
+        contains('<style data-unibox-css>body{margin:0}'),
+      );
+    });
+
+    test('leaves the frame to the host when it writes a fragment', () {
+      // A fragment mounts into someone else's page, and that page's margin is not ours.
+      expect(toHtml(const core.Box()), isNot(contains('body{margin:0}')));
+    });
+
     test('puts the stylesheet in the head, so nothing flashes unstyled', () {
       final String html = toDocument(const core.Box());
       final int style = html.indexOf('<style data-unibox-css>');
