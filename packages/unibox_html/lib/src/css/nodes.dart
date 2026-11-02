@@ -161,8 +161,19 @@ CssDeclarations stackDeclarations(core.StackNode node) {
 ///
 /// It takes no pointer of its own: what the cell holds takes the press, and a cell that
 /// holds nothing painted lets it through to the cell underneath.
+///
+/// The cell is positioned and takes no stacking level, so that the cells are painted in the
+/// order the tree lists them. A child a `PositionedNode` places — or one an alignment places —
+/// is `position: absolute`, and a browser paints positioned boxes after the in-flow ones
+/// whatever order they were written in: a cell left static would be covered by a positioned
+/// sibling written *above* it. Flutter never moves a child forward like that — a `Stack` paints
+/// its children in order, positioned or not — so the two renderings disagreed about which of
+/// two overlapping layers a reader sees. `relative` with no offsets is the whole of the fix,
+/// and it is deliberately not a stacking level: `z-index` is left at `auto` on every cell, so
+/// all of them enter one painting step and the order of the tree is what decides.
 CssDeclarations stackCellDeclarations() {
   return CssDeclarations()
+    ..add('position', 'relative')
     ..add('display', 'flex')
     ..add('align-items', 'start')
     ..add('justify-content', 'start')

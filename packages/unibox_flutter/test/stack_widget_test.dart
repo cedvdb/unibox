@@ -214,6 +214,48 @@ void main() {
       expect(find.text('Overlay'), findsOneWidget);
     });
 
+    testWidgets('gives a press to the layer the tree lists last', (
+      tester,
+    ) async {
+      // The other half of the rule the web renderer had to be fixed for: a positioned child
+      // does not come forward, so the sibling written after it is what a thumb meets. Both
+      // targets answer with the same layer, which is why the ordering is a property of the
+      // tree rather than of either renderer.
+      var positioned = 0;
+      var plain = 0;
+
+      await pumpNode(
+        tester,
+        core.StackNode(
+          width: 100,
+          height: 100,
+          children: <core.UINode>[
+            core.PositionedNode(
+              top: 0,
+              left: 0,
+              child: core.Box(
+                width: 100,
+                height: 100,
+                backgroundColor: core.BoxColor.black,
+                onTap: () => positioned++,
+              ),
+            ),
+            core.Box(
+              width: 100,
+              height: 100,
+              backgroundColor: core.BoxColor.white,
+              onTap: () => plain++,
+            ),
+          ],
+        ),
+      );
+
+      await tester.tapAt(tester.getCenter(inNode(find.byType(Stack))));
+
+      expect(plain, 1);
+      expect(positioned, 0);
+    });
+
     testWidgets('nests inside a box next to other children', (tester) async {
       await pumpNode(
         tester,

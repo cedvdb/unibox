@@ -438,8 +438,24 @@ void main() {
       expect(
         stackCellDeclarations().text,
         'align-items:start;display:flex;grid-area:1 / 1;justify-content:start;'
-        'pointer-events:none',
+        'pointer-events:none;position:relative',
       );
+    });
+
+    test('keeps the cells in the painting step the tree orders', () {
+      // A positioned child would otherwise be painted above every cell written after it,
+      // because a browser paints positioned boxes after the in-flow ones — while a Flutter
+      // stack never moves a child forward. Both cells are positioned, and neither takes a
+      // stacking level: one step, and the tree decides.
+      expect(stackCellDeclarations()['position'], 'relative');
+      expect(stackCellDeclarations()['z-index'], isNull);
+      expect(
+        positionedDeclarations(
+          const core.PositionedNode(top: 0, child: core.TextNode('Over')),
+        )['z-index'],
+        isNull,
+      );
+      expect(alignedDeclarations(core.BoxAlignment.center)['z-index'], isNull);
     });
   });
 

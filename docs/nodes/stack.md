@@ -26,7 +26,12 @@ StackNode(
 | `PositionedNode.top`, `right`, `bottom`, `left` | `double?` | auto | Distances from the edges of the stack. At least one is needed to place it. |
 | `PositionedNode.alignment` | `BoxAlignment?` | none | Where in the stack the child sits, instead of at offsets: the child fills the stack and the alignment places it. This is how a control floats at the bottom centre of a surface at any window size. The names are reading ones — `topStart` is the corner the words begin at — so a page written right to left mirrors without a second tree. |
 
-**Worth knowing.** A stack does not clip: a child that sticks out is still drawn,
+**Worth knowing.** The list is the whole of the z-order: a `PositionedNode` moves a
+child and never lifts it, so a layer written after a positioned one is drawn over it,
+on both targets. There is no `z-index` in the model and no parameter for one — a
+layer that has to be on top is written last.
+
+A stack does not clip: a child that sticks out is still drawn,
 which is what CSS does by default and what `Stack` does with `Clip.none`. A child
 that is not positioned keeps its own size in the top start corner instead of
 stretching to fill the stack, and a `PositionedNode` with no offset is drawn like a

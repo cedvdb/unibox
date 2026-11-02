@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- A stack paints its layers in the order the tree lists them, which on the web it did not always
+  do. A child a `PositionedNode` places is absolutely positioned, and a browser paints those after
+  the boxes that sit in the flow, so a positioned child covered the plain siblings written *after*
+  it — the reverse of what Flutter's `Stack` draws. Every cell of a stack is now positioned and
+  takes no stacking level of its own, so one list decides the paint order on both targets.
+
 - **A takeover has three states instead of one, and it does not show a half-drawn page.** The boot
   writes `data-unibox-state` on the document element — `document`, `booting`, `ready`, `app`,
   `failed` — keeps the engine's host invisible and unreachable while it loads, and swaps the two
