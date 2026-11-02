@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **A pin may sit at any depth below the box that scrolls it.** `validateTree` refused a pinned box
+  whose parent was not the scroll container, because a browser bounds a sticky element by its own
+  containing block while Flutter drew every bar at the edge of the viewport — so the two came to
+  rest in different places, and the model reported the tree instead of describing it. Both targets
+  now draw the rule a browser already implements: the box comes to rest at the edge it names and
+  leaves with the bottom of the box it is in, which is what a panel beside a column of cards needs
+  — it stops when the cards end rather than with the page. The check that remains is a pin inside a
+  pager, at any depth, because a pager shows one page at a time.
+
 - `UniboxScope` is what a rendering is drawn against, in one value: the theme the colour roles
   resolve against, the language the page is written in and the direction its rows run. It answers
   the question the renderers used to answer with a `theme:` argument and the document used to

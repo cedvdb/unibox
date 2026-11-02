@@ -207,6 +207,17 @@ class FlutterBoxState extends State<FlutterBox> {
         : Scrollable.maybeOf(context)?.position;
     final core.BoxFold? fold = foldedAt == null ? null : style.fold;
 
+    // A pin is the same relation to the same scroll, and what it does with it depends on where
+    // it sits. The box that scrolls draws the bars it holds itself, in a layer over its own
+    // viewport, so those carry a flag — a bar drawn by that layer must not also move itself. A
+    // pin deeper in the tree is laid out in its parent's flow and painted where the scroll puts
+    // it, inside that parent: the containing block a browser bounds a sticky element to. An
+    // ancestor `Scrollable` the tree does not own is read the way a fold reads it.
+    final core.BoxPin? pin = style.pin;
+    final ScrollPosition? pinnedAt = pin == null || _DrawnByViewport.of(context)
+        ? null
+        : Scrollable.maybeOf(context)?.position;
+
     Widget content = _holdsThreshold
         ? LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) =>
@@ -373,7 +384,18 @@ class FlutterBoxState extends State<FlutterBox> {
       content = Padding(padding: toEdgeInsets(margin), child: content);
     }
 
-    return _visibleEverywhere(content, style);
+    final Widget drawn = _visibleEverywhere(content, style);
+
+    // A pin comes back to its slot and leaves with the box it is in, so it is painted and never
+    // laid out again: the flow keeps the room it takes, and one translation moves it.
+    return pin == null || pinnedAt == null
+        ? drawn
+        : _NestedPin(
+            position: pinnedAt,
+            pin: pin,
+            inset: style.resolvedPinOffset,
+            child: drawn,
+          );
   }
 
   /// Paints [decoration] behind [child], interpolating when the box asks for it.
@@ -788,7 +810,9 @@ class FlutterBoxState extends State<FlutterBox> {
   ///
   /// A box that holds a pinned bar is laid out by [_buildPinnedContent]: a
   /// `SingleChildScrollView` lays its whole content out in one box, so a child of it has
-  /// nowhere to stay while the content moves past. Every other box is a flex container.
+  /// nowhere to stay while the content moves past. Every other box is a flex container, and a
+  /// pin deeper in the tree is not the layer's: it keeps its place in its parent's flow and is
+  /// painted by [_NestedPin], in the box it is in.
   Widget _buildFlow(
     core.Box box,
     core.BoxStyle style,
@@ -880,7 +904,15 @@ class FlutterBoxState extends State<FlutterBox> {
       slots[index] = barKey;
       bars.add(
         _pinnedChild(
-          _buildChild(bar, core.Axis.vertical, availableWidth: availableWidth),
+          // The bar is this layer's, not the flow's: the flag is what stops the box, once it
+          // is built, from pinning itself a second time against whatever scrolls the layer.
+          _DrawnByViewport(
+            child: _buildChild(
+              bar,
+              core.Axis.vertical,
+              availableWidth: availableWidth,
+            ),
+          ),
           scroll: _scroll,
           pin: pin,
           slot: _slots.putIfAbsent(index, GlobalKey.new),
@@ -1913,6 +1945,223 @@ class _RenderPinnedBar extends RenderProxyBox {
   }
 }
 
+/// A pin that the box it pins to does not hold: laid out in its parent's flow and painted
+/// where the scroll puts it, inside that parent.
+///
+/// A browser states this as `position: sticky` on an element that is not the scroll
+/// container's child, and resolves two rectangles — the scrollport the edge is measured
+/// from, and the containing block the box may not leave. A viewport's own layer draws the
+/// bars it holds; this is the other shape: a panel beside a column of cards, which comes to
+/// rest under the header while the cards scroll and leaves with the column's bottom edge
+/// rather than with the page's.
+///
+/// The layout is the flow's, so the slot keeps the room the panel takes and nothing below it
+/// moves. Only the paint moves, which is why a field inside the panel keeps its state while
+/// it is carried around: a scroll costs a repaint and never a rebuild.
+class _NestedPin extends SingleChildRenderObjectWidget {
+  const _NestedPin({
+    required this.position,
+    required this.pin,
+    required this.inset,
+    required super.child,
+  });
+
+  /// The scroll the pin follows, which is the nearest one above the box.
+  final ScrollPosition position;
+
+  /// The edge it comes to rest at.
+  final core.BoxPin pin;
+
+  /// The room it keeps from that edge.
+  final double inset;
+
+  @override
+  _RenderNestedPin createRenderObject(BuildContext context) =>
+      _RenderNestedPin(position, pin, inset);
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderNestedPin renderObject) {
+    renderObject
+      ..position = position
+      ..pin = pin
+      ..inset = inset;
+  }
+}
+
+/// Where a [_NestedPin] paints: the layout of a box, the geometry of a sticky one.
+class _RenderNestedPin extends RenderProxyBox {
+  _RenderNestedPin(this._position, this._pin, this._inset);
+
+  ScrollPosition _position;
+  core.BoxPin _pin;
+  double _inset;
+
+  set position(ScrollPosition value) {
+    if (identical(value, _position)) {
+      return;
+    }
+
+    if (attached) {
+      _position.removeListener(_scrollChanged);
+      value.addListener(_scrollChanged);
+    }
+
+    _position = value;
+    markNeedsPaint();
+  }
+
+  set pin(core.BoxPin value) {
+    if (value == _pin) {
+      return;
+    }
+
+    _pin = value;
+    markNeedsPaint();
+  }
+
+  set inset(double value) {
+    if (value == _inset) {
+      return;
+    }
+
+    _inset = value;
+    markNeedsPaint();
+  }
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _position.addListener(_scrollChanged);
+  }
+
+  @override
+  void detach() {
+    _position.removeListener(_scrollChanged);
+    super.detach();
+  }
+
+  /// Redraws the pin where the offset now puts it.
+  ///
+  /// A box that moved is also a rectangle a screen reader has to be told about, and
+  /// marking both is what keeps the announced box where the painted one is. With no
+  /// semantics owner — the ordinary case — the second call is a flag check.
+  void _scrollChanged() {
+    markNeedsPaint();
+    markNeedsSemanticsUpdate();
+  }
+
+  /// The distance the box is painted from where the flow put it.
+  ///
+  /// Read when the box is painted rather than once per layout: a scroll repaints without
+  /// laying anything out, and where a pin belongs is a fact about the scroll offset. The two
+  /// rectangles are the ones a browser resolves the same way, read from the render tree
+  /// instead of counted — the scrollport the edge is measured from, and the box that bounds
+  /// the travel.
+  double get _dy {
+    final RenderObject? scrollport = RenderAbstractViewport.maybeOf(this);
+    final RenderBox? holder = _containingBlock(scrollport);
+    final ScrollPosition position = _position;
+
+    if (!attached ||
+        scrollport is! RenderBox ||
+        holder == null ||
+        !position.hasViewportDimension) {
+      return 0;
+    }
+
+    final double at = localToGlobal(Offset.zero, ancestor: scrollport).dy;
+    final double top = holder
+        .localToGlobal(Offset.zero, ancestor: scrollport)
+        .dy;
+    final double bottom = top + holder.size.height;
+
+    // The room the box it sits in leaves it. A browser bounds a sticky element by its
+    // containing block, so a parent shorter than the panel leaves it nowhere to travel, and
+    // the floor is the parent's own edge rather than a rectangle above it.
+    final double lowest = math.max(top, bottom - size.height);
+    final double edge = _pin == core.BoxPin.start
+        ? _inset
+        : position.viewportDimension - _inset - size.height;
+    final double want = _pin == core.BoxPin.start
+        // Never lifted above its slot, and never below the end of its parent.
+        ? math.min(math.max(at, edge), lowest)
+        // The mirror of it: never pushed below its slot, and never above the start of its
+        // parent.
+        : math.max(math.min(at, edge), top);
+
+    return want - at;
+  }
+
+  /// The box the pin may not leave: its nearest box ancestor, unless that is the scrollport.
+  ///
+  /// A bar drawn straight into a viewport has no containing block to be held inside, and a pin
+  /// that is a page of a pager sits in a sliver, where the nearest box above it is the viewport
+  /// itself. `validateTree` reports both trees, and neither is translated here.
+  RenderBox? _containingBlock(RenderObject? scrollport) {
+    RenderObject? above = parent;
+
+    while (above != null && above is! RenderBox) {
+      above = above.parent;
+    }
+
+    final RenderObject? box = above;
+
+    if (box is! RenderBox || identical(box, scrollport)) {
+      return null;
+    }
+
+    return box;
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    final RenderBox? child = this.child;
+
+    if (child != null) {
+      context.paintChild(child, offset + Offset(0, _dy));
+    }
+  }
+
+  @override
+  bool hitTest(BoxHitTestResult result, {required Offset position}) {
+    // A press arrives at the place the box was painted, and the rectangle
+    // `RenderBox.hitTest` measures it against is the one the flow laid out — so the point is
+    // read back into the layout before the box decides it is over it.
+    if (!size.contains(position - Offset(0, _dy)) ||
+        !hitTestChildren(result, position: position)) {
+      return false;
+    }
+
+    result.add(BoxHitTestEntry(this, position));
+
+    return true;
+  }
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
+    final RenderBox? child = this.child;
+
+    if (child == null) {
+      return false;
+    }
+
+    return result.addWithPaintOffset(
+      offset: Offset(0, _dy),
+      position: position,
+      hitTest: (BoxHitTestResult result, Offset transformed) =>
+          child.hitTest(result, position: transformed),
+    );
+  }
+
+  // The panel is laid out where the flow would have put it and painted elsewhere, so the offset
+  // it was painted at is the one everything else has to be told about: the position a test
+  // reads, the rectangle a screen reader announces, and the box a press lands in.
+  @override
+  void applyPaintTransform(RenderBox child, Matrix4 transform) {
+    transform.multiply(Matrix4.translationValues(0, _dy, 0));
+  }
+}
+
 /// The content of a box that holds pinned bars: the flow, with the bars layered over it.
 ///
 /// A `Stack` would almost do, and does not, for one reason: a stack lays its children out in
@@ -2542,6 +2791,24 @@ class _NoOverscrollGlow extends ScrollBehavior {
     Widget child,
     ScrollableDetails details,
   ) => child;
+}
+
+/// Says that the box below is drawn by the layer of the box that scrolls it.
+///
+/// A bar the viewport holds is lifted out of the flow and painted at the edge by that box's own
+/// layer, so it must not move itself as well — the same bar pinned twice would be carried by
+/// the scroll of the layer *and* by the scroll it names. The flag is set around every bar
+/// `_buildPinnedContent` builds, and a box that finds it keeps its resting place.
+class _DrawnByViewport extends InheritedWidget {
+  /// Marks [child] as drawn by a viewport's own layer.
+  const _DrawnByViewport({required super.child});
+
+  /// Whether the box being built is already drawn by the layer of the box that scrolls it.
+  static bool of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_DrawnByViewport>() != null;
+
+  @override
+  bool updateShouldNotify(_DrawnByViewport oldWidget) => false;
 }
 
 /// The padding box of a box that draws a line: the box's content, cut square or round.

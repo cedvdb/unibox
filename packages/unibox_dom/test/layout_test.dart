@@ -124,4 +124,77 @@ void main() {
       );
     });
   });
+
+  group('a pin deeper than the box that scrolls it', () {
+    // The page owns its scroll and the panel sits in the flow of a box below it — a results
+    // page with a map beside the cards. `position: sticky` resolves its edge against the
+    // scrollport and its travel against the containing block, so the panel rests at the top of
+    // the viewport while the cards scroll and leaves with the bottom of the box around it.
+    //
+    // The stated floors are the browser's own: a flex item shrinks to fit its container, so a
+    // column that has to overflow says how short each child may get.
+    core.Box page() => core.Box(
+      key: 'viewport',
+      width: 300,
+      height: 400,
+      overflow: core.Overflow.scroll,
+      children: <core.UINode>[
+        core.Box(key: 'hero', width: 300, height: 400, minHeight: 400),
+        core.Box(
+          key: 'row',
+          width: 300,
+          height: 600,
+          minHeight: 600,
+          children: <core.UINode>[
+            core.Box(
+              key: 'panel',
+              width: 100,
+              height: 100,
+              minHeight: 100,
+              pin: core.BoxPin.start,
+            ),
+            core.Box(key: 'list', width: 100, height: 500, minHeight: 500),
+          ],
+        ),
+        core.Box(key: 'footer', width: 300, height: 400, minHeight: 400),
+      ],
+    );
+
+    test('rests at the top of the box it is in and leaves with that box', () {
+      final web.HTMLDivElement place = host();
+
+      DomView.mount(page(), place);
+
+      expect(
+        rectOf(place, 'panel').top,
+        400,
+        reason: 'at rest the panel is where the flow put it',
+      );
+
+      final web.Element viewport = elementFor(place, 'viewport');
+
+      viewport.scrollTop = 500;
+
+      expect(rectOf(place, 'panel').top, 0);
+      expect(
+        rectOf(place, 'list').top,
+        0,
+        reason: 'the list moves with the scroll: the panel kept its slot',
+      );
+
+      viewport.scrollTop = 950;
+
+      // The row's bottom edge is 50 from the top of the viewport, so the panel stops there:
+      // a pin bounded by the viewport alone would still be at 0.
+      expect(rectOf(place, 'panel').top, -50);
+
+      viewport.scrollTop = 1000;
+
+      expect(
+        rectOf(place, 'panel').top,
+        -100,
+        reason: 'the box around it has left, so the panel left with it',
+      );
+    });
+  });
 }

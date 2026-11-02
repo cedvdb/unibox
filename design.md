@@ -207,14 +207,16 @@ never inherited (CSS does not inherit them either).
   flow, and Flutter now does the same — the bar is laid out once, at the viewport's width
   and its own height, and the slot the flow holds open reads that number back. A bar whose
   labels wrap is therefore a bar with no stated height, which is what the model wanted and
-  what the two engines disagreed about. So is the bar's parent: a bar is drawn by the box
-  that scrolls it, and a browser would pin one nested a level down inside *that* box
-  instead, so `validateTree` reports a pin that is not a child of its viewport rather than
-  letting the two targets come to rest in different places. The share a `flex` asks for is
-  reported for the same reason: a bar measures its own height, and a browser would grow it
-  with the free space it has. A pin with no scrolling box above it is the one documented
-  asymmetry: a browser pins it to the document, which scrolls a page, and Flutter has no
-  viewport to pin it to, which the Flutter README records beside `srcSet`.
+  what the two engines disagreed about. So is the bar's **containing block**: a browser
+  bounds a sticky element by the box it sits in, so a panel inside a row of cards comes to
+  rest at the edge it names and leaves with the row's bottom edge — and both targets now
+  draw exactly that, at any depth below the box that scrolls. It was a rule the model
+  enforced rather than a rule it described, and the enforcement was wrong: a target that
+  cannot express a browser's own answer is the target's problem. The share a `flex` asks for
+  is still reported, and for a different reason: a bar measures its own height, and a
+  browser would grow it with the free space it has. A pin with no scrolling box above it is
+  the one documented asymmetry: a browser pins it to the document, which scrolls a page, and
+  Flutter has no viewport to pin it to, which the Flutter README records beside `srcSet`.
 - A fold is the third kind of motion, and the first that is a *position* rather than a
   state or a clock. A state changes and a transition hides the swap; a fold does not
   change anything — it paints another look the further the box has travelled out of its

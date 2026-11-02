@@ -289,18 +289,40 @@ void main() {
       expect(issues.first.message, contains('height: double.infinity'));
     });
 
-    test('reports a pin that is not a child of the box that scrolls it', () {
-      // A bar is drawn by the box that scrolls it, over that box's own viewport: from one
-      // level down the flow already has a parent, and a browser would pin the bar inside
-      // that parent rather than to the edge of the viewport.
+    test('accepts a pin deeper than the box that scrolls it', () {
+      // A pin is bounded by the box it sits in, which is what a browser means by a sticky
+      // element's containing block: a panel beside a column of cards comes to rest under the
+      // header and leaves with the column's bottom edge rather than the page's. Both targets
+      // draw that, so it is a tree and not an issue.
+      expect(
+        validateTree(
+          const Box(
+            height: 400,
+            overflow: Overflow.scroll,
+            children: <UINode>[
+              Box(
+                padding: BoxSpacing.all(8),
+                children: <UINode>[Box(height: 60, pin: BoxPin.start)],
+              ),
+            ],
+          ),
+        ),
+        isEmpty,
+      );
+    });
+
+    test('reports a pin nested anywhere inside a pager', () {
+      // Depth does not help here: a pager's viewport holds one page at a time, so a bar below
+      // it would be painted over the page that replaced it.
       final List<TreeIssue> issues = validateTree(
-        const Box(
-          height: 400,
-          overflow: Overflow.scroll,
+        const PagerNode(
+          height: 96,
           children: <UINode>[
             Box(
-              padding: BoxSpacing.all(8),
-              children: <UINode>[Box(height: 60, pin: BoxPin.start)],
+              height: 96,
+              children: <UINode>[
+                Box(children: <UINode>[Box(height: 40, pin: BoxPin.start)]),
+              ],
             ),
           ],
         ),
@@ -308,10 +330,7 @@ void main() {
 
       expect(issues, hasLength(1));
       expect(issues.single.isError, isTrue);
-      expect(
-        issues.single.message,
-        contains('child of the box that scrolls it'),
-      );
+      expect(issues.single.message, contains('inside a pager'));
     });
 
     test('reports a pinned box that asks for a share of the box', () {

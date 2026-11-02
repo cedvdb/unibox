@@ -87,9 +87,9 @@ class TreeIssue {
 /// * a box that aligns on the baseline without a row to align, where the two
 ///   targets lay the children out differently,
 /// * a pin the nearest viewport cannot honour — one inside a box that scrolls
-///   sideways, one inside a box that only clips, one that is not a child of the box
-///   that scrolls it, a bar that states an infinite height, a share of the box,
-///   and a negative inset — plus an inset with no pin to hold it,
+///   sideways, one inside a box that only clips, one inside a pager, a bar that
+///   states an infinite height, a share of the box, and a negative inset — plus an
+///   inset with no pin to hold it,
 /// * an aspect ratio that cannot divide anything — a ratio next to a width and a
 ///   height, or one that is not positive,
 /// * a share of the parent or of the viewport that is a factor of zero or less, or
@@ -122,6 +122,7 @@ List<TreeIssue> validateTree(
     inAnchor: false,
     scope: scope,
     inGrid: false,
+    inPager: false,
     definiteHeight: null,
     decoratedAbove: false,
     // The root is drawn on a surface the host gives it, so both axes have an end to
@@ -391,6 +392,7 @@ void _validate(
   required bool inAnchor,
   required UniboxScope scope,
   required bool inGrid,
+  required bool inPager,
   required double? definiteHeight,
   required bool decoratedAbove,
   required bool unboundedWidth,
@@ -539,23 +541,6 @@ void _validate(
             ),
           );
         }
-
-        // A bar is drawn by the box that scrolls it, over that box's own viewport — and a
-        // pager's viewport holds one page at a time, so a pin inside one would be painted
-        // over content that has already moved on.
-        if (childStyle.pin != null) {
-          issues.add(
-            TreeIssue(
-              node: child,
-              severity: TreeIssueSeverity.error,
-              message:
-                  'A pinned box inside a pager has nothing to stay at: the pager shows '
-                  'one page at a time, so the bar would be drawn over the page that '
-                  'replaced it. Pin inside a box that scrolls and settles nowhere '
-                  'instead, or drop the pin.',
-            ),
-          );
-        }
       }
     }
 
@@ -595,22 +580,24 @@ void _validate(
         );
       }
 
-      // A bar is drawn by the box that scrolls it, over that box's own viewport: a pin
-      // nested inside another box takes its room in the flow of that box, and neither target
-      // could then paint it at the viewport's edge. A browser would pin it within the box it
-      // sits in — which is where it would stop, not where the scroll ends — so the two would
-      // also disagree about the point it settles.
-      if (scrollingAncestor != null && parent != scrollingAncestor) {
+      // A pin is bounded by the box it sits in, which is what a browser means by a sticky
+      // element's containing block: it comes to rest at the edge of the viewport that scrolls
+      // it and leaves with the bottom edge of the parent it is inside. Both targets draw that,
+      // so a pin one level down is a tree and not an issue — a panel beside a column of cards
+      // sticks until the column ends and then leaves with it.
+      //
+      // A pager is the exception, and at any depth: its viewport holds one page at a time, so a
+      // pin inside one would be painted over the page that replaced it.
+      if (inPager) {
         issues.add(
           TreeIssue(
             node: node,
             severity: TreeIssueSeverity.error,
             message:
-                'A pinned box has to be a child of the box that scrolls it, but its parent '
-                'is ${parent?.runtimeType ?? 'the root'}. A browser pins it inside its own '
-                'parent and Flutter draws it at the edge of the viewport, so the two come to '
-                'rest in different places. Make the bar a child of the box that states '
-                'overflow: Overflow.scroll, or drop the pin.',
+                'A pinned box inside a pager has nothing to stay at: the pager shows '
+                'one page at a time, so the bar would be drawn over the page that '
+                'replaced it. Pin inside a box that scrolls and settles nowhere '
+                'instead, or drop the pin.',
           ),
         );
       }
@@ -1572,6 +1559,7 @@ void _validate(
       inAnchor: nestedInAnchor,
       scope: scope,
       inGrid: inGrid || node is GridNode,
+      inPager: inPager || node is PagerNode,
       definiteHeight: node is GridNode ? null : childDefiniteHeight,
       decoratedAbove: decoratedAbove || _drawsDecoration(node),
       unboundedWidth: room.$1,

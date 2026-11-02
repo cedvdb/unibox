@@ -387,13 +387,10 @@ Box(
 
 **A bar is pinned by stating the edge**, because that is the token: `pin: BoxPin.start`
 comes to rest at the top of the box that scrolls it, `BoxPin.end` at the bottom, and
-`pinOffset: MaterialAppBar.topHeight` stops a second bar under the first. `validateTree`
-reports a pinned bar with no height, one that is not a child of the box that scrolls it,
-and one that also states a fold — a bar that stays never leaves, so it never folds.
 `pinOffset: MaterialAppBar.topHeight` stops a second bar under the first. A bar needs no
-stated height: the room the flow keeps for it is the height it lays itself out at. `validateTree`
-reports a bar that states `height: double.infinity`, one that is not a child of the box that
-scrolls it, and one that also states a fold — a bar that stays never leaves, so it never folds.
+stated height: the room the flow keeps for it is the height it lays itself out at.
+`validateTree` reports a bar that states `height: double.infinity`, one inside a pager, and
+one that also states a fold — a bar that stays never leaves, so it never folds.
 
 **The pair share one container, and the screen behind them is another.** Material draws every top
 app bar on `surfaceContainer`, so a large bar and the small one it becomes are the same colour; the

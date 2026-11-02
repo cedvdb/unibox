@@ -203,6 +203,16 @@ applying to the other — the drift this repository exists to prevent.
 — a fallback — and because its `text` is the text a class name is hashed from, which has to
 be the same however the renderer built it.
 
+**A pin is `position: sticky`, and a host has one thing to avoid.** The declaration is the
+whole of it — `sticky`, the edge, and a `z-index` so that content scrolling under the bar
+does not paint over it — and it behaves the same at any depth, because a browser measures
+the edge against the nearest scrollport and the travel against the element's own containing
+block. That second rectangle is the one to be careful with: an ancestor between the pin and
+the scrollport that creates a stacking context — `opacity` below 1, a `transform`, a
+`filter` — scopes the pin's `z-index` to itself, so a nested panel can lose to the page's
+own bars. Declare the stacking context deliberately, on the element that has to win, rather
+than inheriting one from a transition that happens to be running.
+
 ## The element plan
 
 `ElementPlan` is the whole decision of what a tree becomes, as a value: a tag, its

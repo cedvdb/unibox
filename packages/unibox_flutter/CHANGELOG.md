@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- **A pin the viewport does not hold is laid out in its parent and painted at the edge**, which is
+  what `position: sticky` does in a browser: a panel inside a row of cards comes to rest under the
+  header while the cards scroll, and leaves with the row's bottom edge rather than with the page's.
+  It is a translation read from the scroll offset and clamped to the parent's own box, so a scroll
+  repaints the panel and nothing is rebuilt. The edge and the bounding box are read from the render
+  tree rather than assumed from the node tree, so a pin also follows a `Scrollable` the tree does
+  not own — a host's own `ListView` around it — which it used to draw in the flow. A bar the
+  viewport holds is still drawn by the viewport's own layer, and a box drawn there is flagged so it
+  cannot be pinned twice. One difference remains and is recorded in the README: a nested pin paints
+  in the order its parent drew it, so a sibling written after it that overlaps it wins the pixels,
+  where the web lifts the pin with its `z-index`.
+
 - **An application that was handed a page reads itself out, and says when it has drawn it.** When a
   document booted the bundle as a takeover, `FlutterStateful` keeps an accessibility tree for the
   life of the state — Flutter ships semantics off on the web, so a canvas that arrives this way has

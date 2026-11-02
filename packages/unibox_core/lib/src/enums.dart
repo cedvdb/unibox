@@ -224,8 +224,11 @@ enum Overflow {
 ///
 /// The two edges are the vertical ones, in the direction a page scrolls, so only a box
 /// that scrolls vertically holds one: a pin inside a row that scrolls sideways would
-/// name an edge nothing moves along, and `validateTree` reports it. So does a pin that is
-/// not a child of the box that scrolls it, because a bar is drawn by that box.
+/// name an edge nothing moves along, and `validateTree` reports it. A pin may sit at any
+/// depth below the box that scrolls it, and it is then bounded by the box it is in — its
+/// travel ends at that box's bottom edge, which is what a browser means by a sticky
+/// element's containing block. Two places a pin cannot be are inside a box that only
+/// clips and inside a pager, both of which `validateTree` reports.
 enum BoxPin {
   /// The leading edge of the scrolling box: the top of a vertical viewport.
   start,

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- A pin may now sit at any depth below the box that scrolls it, and a document draws it with no
+  change: `position: sticky` already measures the edge against the nearest scrollport and bounds the
+  travel to the element's containing block. The README records the one thing a host must avoid — an
+  ancestor between the pin and the scrollport that creates a stacking context (`opacity` below 1, a
+  `transform`, a `filter`) scopes the pin's `z-index` to itself, so a nested panel can lose to the
+  page's own bars.
+
 - A stack paints its layers in the order the tree lists them, which on the web it did not always
   do. A child a `PositionedNode` places is absolutely positioned, and a browser paints those after
   the boxes that sit in the flow, so a positioned child covered the plain siblings written *after*

@@ -51,8 +51,7 @@ with their target.
 | `shape` + `overflow: Overflow.hidden` | `ClipPath` to the same path                       |
 | `overflow: Overflow.scroll`         | `SingleChildScrollView`                             |
 | `PagerNode`                         | the same scroll view with `PageScrollPhysics`, so a drag settles on a child rather than between two; `index` is applied after the frame that laid it out, and `onPageChanged` is read from the viewport at the end of a scroll. It is a `Box`, so it is drawn by `FlutterBox` and needs no widget of its own |
-| `pin` / `pinOffset`                 | the flow unchanged, with the bar drawn over the viewport at the edge it names: a `_RenderPinnedBar` repaints it into place on every scroll, so nothing rebuilds and the bar keeps its slot |
-| `pin` / `pinOffset`                 | the flow unchanged, with the bar drawn over the viewport at the edge it names: a `_RenderPinnedBar` repaints it into place on every scroll, so nothing rebuilds and the bar keeps its slot — which is the height the bar measured for itself, so no height has to be stated |
+| `pin` / `pinOffset`                 | the flow unchanged, with the bar drawn at the edge it names: a `_RenderPinnedBar` over the viewport's own layer for a bar the viewport holds, and a `_NestedPin` translation, clamped to the parent's box, for a pin deeper in the tree. Both repaint on every scroll, so nothing rebuilds, and the bar keeps its slot — which is the height it measured for itself, so no height has to be stated |
 | `fold`                              | a `_RenderFoldedBox` layer that interpolates the decoration, the opacity and the transform as it paints, from the box's own exit out of the viewport; nothing is rebuilt and nothing is laid out again |
 | `onTap` / `onLongPress`             | `GestureDetector`                                   |
 | `capturesPointer: false`            | `IgnorePointer`, so the hover, the cursor and the press reach the control under the box; `true` makes a leaf a `Listener` with an opaque hit test |
@@ -106,22 +105,31 @@ in the same state (see `example/unibox_example_flutter/lib/surface.dart`).
 A **pin** is drawn by the box that scrolls: the bar comes out of the flow, its slot stays
 in it, and a `_RenderPinnedBar` repaints it at the edge it named — so a scroll costs a
 repaint and not a rebuild, and a field inside the bar keeps its state while it is carried
-around. A pin that has no scrolling box above it in the tree is the one place the two
-A **pin** is drawn by the box that scrolls: the bar comes out of the flow, its slot stays
-in it, and a `_RenderPinnedBar` repaints it at the edge it named — so a scroll costs a
-repaint and not a rebuild, and a field inside the bar keeps its state while it is carried
 around. The slot is the height the bar laid itself out at, read back in the same layout
 pass: a `_PinnedLayer` lays the bars out before the flow that keeps their room, so a bar
 whose labels wrap pins with no stated height, which is what `position: sticky` means in a
-browser. A pin that has no scrolling box above it *in the tree* is the one place the two
-renderings part: a browser pins it to the document, or to whichever ancestor scrolls the
-element — a `CustomScrollView` around the tree is a case the web honours and this target
-does not, because the bar would have to follow a `Scrollable` the tree does not own and be
-clamped to a containing block it cannot see. So the surface an application is drawn on does
-not scroll, and Flutter draws such a bar where the flow put it. Put the scroll in the tree
-— a box with `overflow: Overflow.scroll` — and the two agree, which is what the example
-does. `validateTree` reports the one depth the model can see: a pin whose parent is not the
-box that scrolls it, which a browser would pin inside that parent instead.
+browser. A bar the viewport holds is drawn by that layer, and `_DrawnByViewport` is the flag
+that keeps such a bar from pinning itself a second time.
+
+A pin may sit at **any depth** below that box, and the panel beside a column of cards is the
+case that needs it: `_RenderNestedPin` lays the panel out in its parent's flow — so the slot
+stays and nothing below it moves — and paints it where the scroll puts it, bounded by the
+box it is in. It reads the two rectangles a browser resolves rather than counting them,
+from `RenderAbstractViewport` and from the nearest box above it: the scrollport the edge is
+measured from, and the containing block the travel may not leave. So the panel rests under
+the header while the cards scroll, and leaves with the row's bottom edge rather than with
+the page's.
+
+Two things stay approximate, and both are recorded here rather than fixed. A nested pin
+paints in the order its parent drew it, so a sibling written *after* it that overlaps it
+wins the pixels, where the web lifts the pin with the `z-index` it writes beside
+`position: sticky` — a panel whose siblings sit beside it, as a map does next to the cards,
+is unaffected. And a pin with no scrolling box above it *at all* is still the one place the
+two renderings part: a browser pins it to the document, which scrolls a page, and the surface
+an application is drawn on does not, so Flutter draws such a bar where the flow put it. Put
+the scroll in the tree — a box with `overflow: Overflow.scroll` — and the two agree, which is
+what the example does. A `Scrollable` the tree does not own is read the same way, since the
+geometry comes from the nearest viewport rather than from a box the tree knows about.
 
 A **fold** is drawn the same way: a `_RenderFoldedBox` reads how far the box has left its
 viewport when it paints and interpolates the decoration, the opacity and the transform

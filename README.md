@@ -623,6 +623,35 @@ waits at the bottom of a long form until the reader reaches the end of it. Both
 bars state a height — that number is the room the flow keeps for them — and both
 paint a background, because each is drawn over the content that passes beneath it.
 
+A bar is not the only thing that stays, and the token is the same one at any depth:
+a box in the flow of a box *below* the viewport comes to rest at the edge it names and
+leaves with the bottom of the box it is in. That is what a panel beside a column of cards
+needs — a map that stays while the results scroll and then goes when the results end,
+rather than hovering over the footer:
+
+```dart
+Box(
+  overflow: Overflow.scroll,
+  children: <UINode>[
+    Box(key: 'bar', height: 48, pin: BoxPin.start),
+    Box(
+      direction: Axis.horizontal,
+      children: <UINode>[
+        Box(key: 'cards', width: 720, children: cards),
+        Box(
+          key: 'map',
+          width: 400,
+          height: 684,
+          pin: BoxPin.start,
+          pinOffset: 192, // the room the two bars above it take
+        ),
+      ],
+    ),
+    footer,
+  ],
+)
+```
+
 The box states a surface too, and it is the surface a pull past either end reveals: a host
 lets a scroller be pulled, and the gap that opens is the box's own `backgroundColor`. State
 the bar's colour there and the pull reads as the bar gaining room; leave it out and the pull

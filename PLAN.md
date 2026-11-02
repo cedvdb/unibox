@@ -148,13 +148,13 @@ children) rather than by type, and the README now says so. A flag would also be 
 with no appearance on either target, which is the one thing `tool/surface_check.py` exists
 to refuse.
 
-## 7. Not doing: a pin under a sliver child
+## 7. Done: a pin under a sliver child
 
-A `CustomScrollView` → `SliverToBoxAdapter` → tree whose child pins is a case the Flutter
-renderer does not honour, and the model already reports the tree it cannot honour: a pin is
-a child of the box that scrolls it, and a host's scroll view is not part of the tree. Making
-it work means the band's layer follows a `Scrollable` the tree does not own, plus a second
-geometry (the layer's own offset inside somebody else's viewport) — a feature, not a fix,
-and one whose two targets would then disagree about the *containing block* a band is clamped
-to. It is recorded in the Flutter README's "what stays approximate" so nobody discovers it
-twice.
+A `CustomScrollView` → `SliverToBoxAdapter` → tree whose child pins used to be drawn in the
+flow, because the Flutter renderer assumed the box that scrolls was the box that held the
+bar. The geometry is read from the render tree now — the nearest viewport above the pin and
+the nearest box — so a pin follows a `Scrollable` the tree does not own, and is clamped to a
+containing block the tree does not own either, which is what a browser does with a sticky
+element. The `z-index` the web writes beside `position: sticky` is the one part with no
+Flutter counterpart: a pin paints in the order its parent drew it, which the Flutter README
+records as an approximation.

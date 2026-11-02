@@ -257,7 +257,7 @@ host that renders it.
 | `height: 100vh`, `height: calc(100dvh - 216px)` | `heightFraction: BoxFraction.viewport(1, minus: 216)` — a share of the *screen*, which needs no bounded parent; floored at zero on both targets |
 | `width: calc(50% - 24px)` | not expressible: a share of the parent takes no inset. State the parent's share, or use a viewport share |
 | `overflow: hidden` / `auto` | `overflow: Overflow.hidden` / `Overflow.scroll` |
-| `position: sticky; top: 0` | `pin: BoxPin.start`, on a child of the box that scrolls: it stays at the edge of that box and keeps its slot in the flow — the slot is the band's own measured height, so a bar that wraps needs no stated height. `bottom: 0` is `BoxPin.end`; the `<header>` above it is `pinOffset:` — the same number as the header's height |
+| `position: sticky; top: 0` | `pin: BoxPin.start`, on a box anywhere below the box that scrolls: it stays at the edge of that box, keeps its slot in the flow, and is bounded by the box it sits in — a panel beside a column of cards leaves with the column's bottom edge. The slot is the band's own measured height, so a bar that wraps needs no stated height. `bottom: 0` is `BoxPin.end`; the `<header>` above it is `pinOffset:` — the same number as the header's height |
 | an animation driven by the scroll (`animation-timeline: view()`, `@keyframes`) | `fold: BoxFold(to: BoxStyle(…))` on the box that leaves: paint tokens only, and `over:` for the share of its exit the fold takes |
 | `<a href>` | `LinkNode(url, …)`, which *is* the `<a href>` |
 | `<a>` with no `href` | `semantics: BoxSemantics(element: BoxElement.a)`: a placeholder that nothing follows |
