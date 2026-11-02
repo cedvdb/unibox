@@ -457,6 +457,14 @@ class Box extends UINode {
   /// It is how a screen reacts to the scroll itself — a header that folds as the list under it
   /// moves, a control that appears once a reader is part of the way down — which a tree could
   /// not do at all while the position lived only in the host.
+  ///
+  /// The consequence is structural, and it is the part worth stating out loud: a screen that
+  /// reacts to the scroll has to own the box that scrolls it. A tree that leaves the scrolling
+  /// to the window — a browser's viewport, or a scroll view the host wraps around the whole
+  /// page — has no node whose scrolling it hears, so the scroll region is a [Box] in the tree
+  /// and the offset therefore belongs to the tree; a `fold`, which is paint only, cannot stand
+  /// in for it. The same box is the region a document records and a booting application
+  /// replays, which is why it also states a [UINode.key].
   final ScrollCallback? onScroll;
 
   /// The flat parameters of this box as a style overlay.

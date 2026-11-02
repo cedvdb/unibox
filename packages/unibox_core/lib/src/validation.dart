@@ -681,6 +681,12 @@ void _validate(
     // looks a box paints. A layout token would move everything around the box on every frame,
     // which is the one thing a transition and a fold both refuse: two engines interpolating a
     // layout give two different pictures in between.
+    //
+    // The ban is on what a style may say, not on what a screen can do. A size that follows the
+    // scroll is the application's state, and the route is a `StatefulNode` whose view puts
+    // `Box.onScroll` on the box that scrolls and keeps the offset it is handed: one number the
+    // tree owns, which both targets then draw the same way, instead of a length two engines
+    // interpolate.
     final BoxFold? fold = style.fold;
 
     if (fold != null) {
@@ -724,7 +730,9 @@ void _validate(
                 'the border colour, the corner radius, the shadows, the opacity and the '
                 'transform. A layout that eased would move everything around the box on every '
                 'frame, and the two targets would draw a different picture in between. Ease '
-                'one of the paint tokens, or move the layout with a state instead.',
+                'one of the paint tokens, or move the layout with a state instead: a '
+                'StatefulNode whose view puts onScroll on the box that scrolls and keeps the '
+                'offset it is handed.',
           ),
         );
       }

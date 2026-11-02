@@ -203,7 +203,14 @@ enum Overflow {
   /// Content is clipped at the box bounds.
   hidden,
 
-  /// The box becomes scrollable along its main axis.
+  /// The box becomes scrollable along its main axis, and it is the region that scrolls.
+  ///
+  /// The second half is the whole architecture decision. That box is the region [Box.onScroll]
+  /// reports, and the region a document records — by [UINode.key] — and hands to the
+  /// application that takes the page over, so where a reader got to belongs to a node in the
+  /// tree rather than to a host: a view can react to it, and the other rendering can inherit
+  /// it. Which is also why a scrolling box states a key: one with none has nothing to be found
+  /// by, so it opens at the top.
   scroll,
 }
 
