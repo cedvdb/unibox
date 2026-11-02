@@ -1,8 +1,10 @@
 # Unibox
 
 **Flutter UI. Searchable HTML.** Unibox makes a Flutter Web page indexable without a second
-UI: build the screen once in Dart, draw it as Flutter widgets, and serve the same tree as
-real HTML and CSS — the page a search engine reads.
+UI: build the screen once in Dart, serve it as real HTML and CSS — the page a search engine
+reads and the page a visitor lands on — and let Flutter draw that same tree again once it is
+ready. The document arrives first, the application takes it over, and nobody watches a blank
+canvas in between.
 
 A search engine, a link preview and a reader whose JavaScript failed all see the same
 thing in a Flutter screen: nothing. Flutter draws into a canvas, so there is no text to
@@ -25,6 +27,14 @@ expected appearance holds both renderers to the same answer.
 It is live at **[cedvdb.github.io/unibox](https://cedvdb.github.io/unibox/)** — the site is
 built with the library it documents, so every section of it is a node tree, and the page you
 read is the demo.
+
+The takeover is live rather than described. **[web/takeover/](https://cedvdb.github.io/unibox/web/takeover/)**
+is that page as one document: it arrives as HTML, the bundle is prefetched while you read, and
+Flutter is revealed at your first sign of life — at the scroll you were at, with the presses you
+had already made. It is also the right-hand frame of the site's own hero, so the diagram there
+is not a picture of a handover: touch that frame and it does one. [docs/takeover.md](docs/takeover.md)
+is what happens at that moment; [Flutter hydrates it](#flutter-hydrates-it--the-least-to-change)
+is what a host writes to get it.
 
 ## Features
 
