@@ -247,17 +247,19 @@ argument needs. It is published at <https://cedvdb.github.io/unibox/>.
 
 The frames are the claim's evidence, so they sit in the section that makes it: a reader
 scrolls from the sentence to the two renderings it is about, and meets each rendering's
-name once, and each name sits over the rendering it belongs to. Each one is a `section`
-on the web, and so is every block of the catalogue under its `h3` — the page is a
-document, and the elements say where one part of it ends. The indexable section comes
-next, because the HTML branch is the reason most readers are there: it shows what a crawler
-is served and how little of the application has to change for it. The vocabulary follows,
-because a frame draws a whole tree and never the parts it is made of: the four nodes the
-page had not drawn are the four a reader would otherwise never see named, and the card
-beside the list is not a screenshot of one — it *is* the list. The section closes on what that
-list is for: `node.toWidget()` and `node.toHtml()`, the two calls the rest of the page is an
-example of. The catalogue closes the page, because the design system is how every section
-above it is drawn, not what it says.
+name once, and each name sits over the rendering it belongs to. The right-hand one is also
+the handover itself — a document that starts the application when a reader touches it — so
+the moment the tree changes hands happens on the page rather than in a recording of it.
+Each one is a `section` on the web, and so is every block of the catalogue under its `h3`
+— the page is a document, and the elements say where one part of it ends. The indexable
+section comes next, because the HTML branch is the reason most readers are there: it shows
+what a crawler is served and how little of the application has to change for it. The
+vocabulary follows, because a frame draws a whole tree and never the parts it is made of:
+the four nodes the page had not drawn are the four a reader would otherwise never see
+named, and the card beside the list is not a screenshot of one — it *is* the list. The
+section closes on what that list is for: `node.toWidget()` and `node.toHtml()`, the two
+calls the rest of the page is an example of. The catalogue closes the page, because the
+design system is how every section above it is drawn, not what it says.
 Each one is a node tree — the frames are the only thing the
 model cannot describe, and they arrive through `ShowcaseFrame`/`EmbedNode`.
 

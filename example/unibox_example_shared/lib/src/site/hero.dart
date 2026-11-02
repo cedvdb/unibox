@@ -84,10 +84,15 @@ UINode _claim(MaterialPalette palette) {
         style: MaterialTypography.displayLarge,
         headingLevel: 1,
       ),
+      // The experience first, the architecture second: a reader deciding whether to
+      // read on is asking what a visitor gets, not how the tree is rendered. Both
+      // claims are the model's — the document is what arrives, and the application is
+      // revealed over it rather than instead of it.
       TextNode(
-        'Build the interface once in Dart. Render it as Flutter widgets or as real '
-        'HTML and CSS — making your Flutter Web pages accessible to search engines '
-        'without maintaining a second UI.',
+        'Visitors get the page immediately — real text, real headings, real links, the '
+        'page a search engine indexes — and Flutter takes it over once it is ready, '
+        'without a blank screen. One tree in Dart, drawn twice: there is no second UI '
+        'to keep in step.',
         style: MaterialTypography.titleMedium.copyWith(
           color: palette.onSurfaceVariant,
         ),
@@ -107,6 +112,10 @@ UINode _claim(MaterialPalette palette) {
 /// The two branch names are the page's `h2`s, because they are what the page is about:
 /// a crawler that reads *HTML and CSS* and *Flutter* as two sections of one document has
 /// understood the library better than one that reads a slogan.
+///
+/// The right-hand frame is the claim a picture cannot make: it is a document that starts
+/// the application when a reader touches it, so the handover happens in the page, on the
+/// reader's own screen, rather than in a recording of one.
 UINode _diagram(
   MaterialPalette palette,
   ShowcaseFrame frame,
@@ -139,7 +148,13 @@ UINode _diagram(
           _branch(
             palette,
             label: 'Flutter',
-            note: 'the same tree as widgets, in the app',
+            // The note names the handover, because it is the one thing the frame
+            // cannot say about itself: a reader who sees a still page has no way to
+            // tell whether it is a document waiting to become an application or a
+            // screenshot of one. The frame is neither — it is the takeover, live.
+            note:
+                'the same tree as widgets — a document until you touch it, then the '
+                'application draws it. The handover is live in this frame',
             flowKey: 'hero-flow-flutter',
             src: 'web/takeover/?seed=${seed.name}',
             frame: frame,
