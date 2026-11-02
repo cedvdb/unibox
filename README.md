@@ -36,6 +36,16 @@ is not a picture of a handover: touch that frame and it does one. [docs/takeover
 is what happens at that moment; [Flutter hydrates it](#flutter-hydrates-it--the-least-to-change)
 is what a host writes to get it.
 
+## Project status
+
+**Experimental.** The model is settled — one tree, two renderings, one table of expected
+appearance holding them together — and the API around it is not. Every package stays
+`publish_to: none` until a release is cut on purpose ([RELEASE.md](RELEASE.md)), an addition is
+minor and a rename is made outright rather than kept as a deprecated spelling
+(`design.md` §5.7), because there is one consumer and it is this repository. Depend on a commit
+rather than a version, and read the `## Unreleased` section of a package's changelog before you
+move it forward.
+
 ## Features
 
 - 🔍 **Flutter SEO without a second UI** — a crawler, a link preview and a reader without JavaScript get the page itself: real text, headings, links, `alt`, landmarks and metadata, generated from the same Dart tree the app draws as widgets.
@@ -48,6 +58,7 @@ is what a host writes to get it.
 
 ## Contents
 
+- [Project status](#project-status)
 - [How it works](#how-it-works)
 - [Flutter SEO: make Flutter Web pages indexable](#flutter-seo-make-flutter-web-pages-indexable)
 - [Serving a tree](#serving-a-tree)
