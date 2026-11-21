@@ -214,4 +214,38 @@ void main() {
     expect(find.text('Overview'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  group('a substituted card', () {
+    testWidgets('wears the corner, the fill and the clip the tree states', (
+      WidgetTester tester,
+    ) async {
+      // A card is not `CardTheme`'s card: the node states a radius, a colour role and whether
+      // a press may paint past its edge. A ripple outside a rounded corner is one card drawn
+      // two ways, and a fill from the wrong palette is two designs.
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: renderFlutter(
+              material.MaterialCard(
+                color: const core.BoxColor(0xFF102030),
+                borderRadius: 12,
+                overflow: core.Overflow.hidden,
+                children: <core.UINode>[const core.TextNode('Order summary')],
+              ),
+              substitutions: materialComponents(),
+            ),
+          ),
+        ),
+      );
+
+      final Card card = tester.widget<Card>(find.byType(Card));
+
+      expect(card.color, const Color(0xFF102030));
+      expect(card.clipBehavior, Clip.antiAlias);
+      expect(
+        (card.shape! as RoundedRectangleBorder).borderRadius,
+        BorderRadius.circular(12),
+      );
+    });
+  });
 }

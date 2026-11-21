@@ -58,10 +58,25 @@ Widget _card(BuildContext context, core.UINode node, Widget? content) {
   // Structure, not paint — but the level *is* structure: a card at level 3 is not a card at
   // level 1. Material spends a level twice, as a shadow and as a tint of the surface, so the
   // widget is given the level and left to draw both its own way.
+  //
+  // The corner, the fill and the clip are the tree's, not `CardTheme`'s: the node states a
+  // radius and a colour role, and `overflow: hidden` on a card is a decision about what a
+  // press may paint over — a ripple that spills past a rounded corner is the same card drawn
+  // two ways. Without these three, a substituted card is Flutter's card, in Flutter's colour,
+  // with a square clip.
   return Card(
     // The margin the tree states is applied around this widget, by the renderer.
     margin: EdgeInsets.zero,
     elevation: _levelOf(style.shadows).toDouble(),
+    color: style.backgroundColor == null
+        ? null
+        : Color(style.backgroundColor!.value),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(style.borderRadius ?? 0),
+    ),
+    clipBehavior: style.overflow == core.Overflow.hidden
+        ? Clip.antiAlias
+        : Clip.none,
     child: content,
   );
 }
