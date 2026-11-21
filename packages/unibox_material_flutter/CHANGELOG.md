@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **`uniboxThemeOf(ColorScheme)`**, the inverse of `materialThemeData`: an application that already has a `ColorScheme` hands it a tree, and every role the model names is answered from it. Growing a palette from the same seed would be a second run of the colour algorithm, which agrees until a tone is overridden. A design system's own roles are passed with `also:`; the four state layers are the alpha they are painted with.
 - **A substituted card wears the tree's corner, fill and clip.** `MaterialCard` states a radius, a colour role and `overflow: hidden`, and the mapping drew `Card` with `CardTheme`'s square corners and the theme's colour, so a ripple ran past the edge and an application's palette stopped at the card. The widget now takes all three from the node.
 - **The map is the standard wiring of a Flutter host**, not an experiment: a document is served
   first and the application takes it over, so the app draws Material nodes with Flutter's own

@@ -14,5 +14,6 @@
 /// substitution should reach. See the package README.
 library;
 
+export 'src/theme_of_color_scheme.dart' show uniboxThemeOf;
 export 'src/material_components.dart'
     show materialComponents, materialThemeData;
