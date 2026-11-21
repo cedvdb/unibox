@@ -15,6 +15,13 @@ served one of two ways — the server renders it read-only and the Flutter app t
 page over, or the page is a document with no Flutter on it at all. Only the screens
 that have to be found need either; the rest of an application stays ordinary Flutter.
 
+The unit is therefore the **region, not the screen**: a band, a card, a footer, a list. A
+component in a tree is described once and drawn by each target's own implementation — Flutter's
+widget in the app, CSS in the document — and the two owe the same *information* and a
+close-enough appearance, never the same pixel (`design.md` §5.4). An interactive screen (a map, a
+live search, a sheet, a booking bar) stays ordinary Flutter around those bands; a tree that tries
+to describe one is over-specified for the document that has to serve it (§5.6).
+
 ## Read in this order
 
 1. This file.
@@ -40,6 +47,8 @@ guide is [`README.md`](README.md).
 | `packages/unibox_dom/lib/src/` | the client renderer: `mount.dart` (`DomView`), `patch.dart` (plan → element), `events.dart` (a callback → a listener) | the page has to react |
 | `packages/unibox_testing/lib/src/` | `BoxAppearance` + `boxCases`, `TextAppearance` + `textCases`, `OverlayAppearance` + `overlayCases` | a presentational token is added or changed |
 | `packages/unibox_material/lib/src/` | the Material 3 type scale: `MaterialTypography` (the fifteen roles as `const BoxTextStyle` values), `MaterialTypeRole`, the colour roles as `MaterialPalette` (`light`/`dark`, or grown from one seed by `fromSeed`, with `MaterialSchemeVariant` naming how the seed is spent), `MaterialElevation` (the six heights as `BoxShadow` lists), and the components built on the drawn nodes, one line each in `README.md#material` — `MaterialScaffold`, `MaterialAppBar`, `MaterialLargeAppBar`, `MaterialCard`, `MaterialListTile`, `MaterialButton`, `MaterialIconButton` (a glyph in a square, with a count over its corner), `MaterialChip`, `MaterialTabBar`, `MaterialSegmentedButton`, `MaterialNavigationBar`, `MaterialIcon` and `MaterialProgressRing` (a value, as a ring of a shape), all `Box`es; `MaterialInkWell` (its tints and the ink a press spreads), `MaterialTabs`, `MaterialTextField` (the text, the focus and whether it has been touched, which is what lets it show its own error) and `MaterialSpinner` (the step that ring turns), all `StatefulNode`s; `MaterialCheckMark` (a `StackNode`: Material's tick, drawn); `MaterialDialog` and `MaterialBottomSheet`, both `OverlayNode`s | a design-system role is added, a scale or a palette changes, or a component is added |
+| `packages/unibox_material_flutter/lib/src/` | `materialComponents()`: the substitution map that draws `MaterialCard` with `Card` and `MaterialNavigationBar` with `NavigationBar`, over the values `unibox_material` states | a component gains a widget, or an application asks for one more |
+
 | `packages/unibox_core/lib/src/state/` | `Store` and `StateStore`: the state a `StatefulNode` draws and the lifecycle a renderer calls | a store member, the publish rule or a lifecycle rule changes |
 | `packages/*/test/support/` | the harnesses (`pumpNode`, `inNode`, `stylesOf`, ...) and `appearance.dart`, which reads the presentation back out of the output | a test needs a new fact |
 ======
@@ -80,6 +89,7 @@ Every suite, exactly as CI runs them — one command per directory, in dependenc
 (cd packages/unibox_html && dart test)
 (cd packages/unibox_dom && dart test -p chrome)
 (cd packages/unibox_flutter && flutter test)
+(cd packages/unibox_material_flutter && flutter test)
 (cd example/unibox_example_shared && dart test)
 (cd example/unibox_example_html && dart test)
 (cd example/unibox_example_flutter && flutter test)
@@ -126,7 +136,9 @@ a lie.
    public member keeps a doc comment.
 7. **One direction of dependency.** Renderers depend on core; core never imports a
    renderer. A renderer knows nothing of the other renderer, and neither knows
-   `unibox_material`.
+   `unibox_material`. The one package that knows both a renderer and the design system is
+   `unibox_material_flutter`, and it is an application's: it depends on the two and nothing
+   depends on it, which is what keeps the map a choice rather than a layer.
 8. **A design system is a package of values, plus nodes built from nodes.**
    `unibox_material` holds the Material 3 type scale as `const` `BoxTextStyle`
    values and the components built from `Box` (`MaterialCard`,
@@ -307,6 +319,28 @@ renderer that bound nothing — so the control looked alive in Flutter and did n
    back from each renderer's output.
 5. Docs: the node's page in `docs/nodes/overlay.md`, the core and renderer READMEs, and
    the changelogs.
+
+### I. A component a host draws itself
+
+`renderFlutter(page, substitutions: …)` lets an application paint a component with the
+platform's own widget — a `Card` for a card, a `NavigationBar` for a bar. It is a door, not
+a second renderer, and the rule that keeps it one is in `design.md` §5.22.
+
+1. `unibox_flutter`: a builder takes the node and the inside the renderer built, so layout,
+   structure and content stay the model's and only the surface is the widget's. `content`
+   is `null` for a leaf, which is how an `ImageNode` reaches a cache the app already has.
+2. The map refuses the structural nodes by construction. Do not widen that set: a box or a
+   text that a widget replaced would end parity for every tree, not for one component.
+3. A component a substitution must be able to read keeps its parameters as fields — that is
+   why `MaterialNavigationBar` holds `destinations`, `selected` and `onSelect`. Without them
+   the builder receives the node and cannot rebuild the control.
+4. The test is the bargain, in the example that depends on both packages
+   (`test/material_widgets_test.dart`): the widget when the map is there, the values when it
+   is not, and the same words, order and chosen destination either way.
+5. Docs: the "Substitution" section of the Flutter README, the component's section in
+   `unibox_material`, `design.md` §5.22, and both changelogs. `unibox_testing` does not
+   change — a substitution is outside the appearance table by design, because the two
+   renderings are allowed to differ there and nowhere else.
 
 ## Definition of done
 

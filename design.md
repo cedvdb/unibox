@@ -1,7 +1,13 @@
 # Unibox Design Blueprint
 
 ## 1. Intent & Architecture
-Unibox provides pure Dart layout primitives that draw natively as Flutter widgets and render as HTML and CSS a crawler can read.
+Unibox describes **regions** of a page once, as pure Dart nodes, and renders them twice: as HTML
+and CSS for a crawler and a first paint, and in a Flutter application — where a component is
+drawn by the platform's own widget, not by a copy of it.
+
+The unit is the region, not the screen. A band that must be found (a hero, a card, a footer, a
+list) is a tree both targets draw; an interactive screen — a map, a search, a sheet, a booking
+bar — stays ordinary Flutter around those bands (§5.6).
 
 - **Workspace:** Dart 3.13+ workspace in `packages/`:
   - `packages/unibox_core`: Pure Dart AST & tokens. Zero dependencies (no Flutter, no web framework, no `dart:ui`).
@@ -9,6 +15,7 @@ Unibox provides pure Dart layout primitives that draw natively as Flutter widget
   - `packages/unibox_dom`: Depends on `unibox_core` + `unibox_html`. Builds the same plan in a browser and keeps it in step with the stores.
   - `packages/unibox_flutter`: Depends on `unibox_core` + Flutter SDK.
   - `packages/unibox_material`: Optional design-system tokens and one component (the Material 3 type scale and `MaterialCard`). Depends on `unibox_core` only; no renderer depends on it.
+  - `packages/unibox_material_flutter`: Optional, for an application that would rather keep its widgets: `materialComponents()`, the substitution map that draws two of `unibox_material`'s components with Flutter's own. Depends on the design system and on `unibox_flutter`; nothing depends on it.
 - **Engineering Agency:** You have permission to diverge, adjust signatures, or simplify types where it makes sense, as long as the packages remain decoupled and work seamlessly across both platforms.
 
 ---
@@ -182,6 +189,17 @@ never inherited (CSS does not inherit them either).
   percentage, so a tree that already states one draws exactly as it did.
 
 ### 5.4 Parity
+
+**What parity is owed, and to whom.** A tree says what a region *is* — its content, its order, its
+links, its semantics, its scale — and both renderers owe that exactly. Its *paint* is owed
+closely, not exactly: one side is a stylesheet, the other a framework, and asking them for the
+same pixel buys a re-implementation of the framework rather than a description of the page. So
+the contract has two tiers: **information identical** (children, order, words, destinations,
+roles, type scale, spacing scale) and **appearance close** (a component may be drawn by the
+target's own widget, and the two are allowed to differ by what the platform adds — a shadow, a
+state layer, a density step). None of this covers the primitives, where both targets have the
+same thing to say and the conformance table holds them to it.
+
 - One tree, one shape: a node has to produce the same layout on both targets, so
   a default that only one of them has is a bug. `direction` is the case that
   matters: an unset direction means `Axis.vertical` everywhere rather than the
@@ -400,30 +418,18 @@ never inherited (CSS does not inherit them either).
 - No breakpoint that changes *structure*: a width may dress a node differently
   (`visibleFrom` / `visibleUntil`, §5.15), never decide which children exist, and
   never be read from a viewport the other renderer cannot see.
-- No third-party component runtime as the implementation of a design system. A
-  Material view is a package of **values plus nodes** (`unibox_material`), drawn by
-  whatever renderer the host uses; it is not an `EmbedNode` pairing a Material web
-  component on one target with a Flutter widget on the other. That pairing is the
-  one thing conformance cannot check — it is two implementations of one design, and
-  the library's promise would be false exactly where most trees are built. The
-  embed door stays open for the components that are behaviour-heavy and
-  unportable (a date picker, a rich editor, a map), one at a time, documented as
-  outside the contract. Two further facts decide it in practice: `@material/web` is
-  in maintenance mode pending new maintainers by its own README, and either
-  library brings its own token layer (`--md-sys-*`, `--mdui-*`) that would become a
-  fourth source of truth next to the tree, the host theme and the CSS variables.
-- No SEO or document metadata: a title, a language, a description, a canonical
-  url and structured data describe a *document*, while a tree describes a region
-  of one. The host owns them, which is also what keeps the same tree usable as a
-  page, a card inside a page or a section of a Flutter screen. What the tree does
-  contribute is structural markup — real text, `<img alt>`, `<a href>` and the
-  `role` attributes of `BoxSemantics` — so a crawler reads it without JavaScript.
-  They do not vanish: `toDocument` takes them as one `DocumentHead` value beside
-  the tree, because a page's metadata has to agree with itself — a canonical
-  address under the language the page is written in — and seven arguments of one
-  call are seven chances to disagree. A value the host builds and hands to a
-  renderer is not a token on a node: a card lifted into a page, and the page it
-  was lifted into, have no title between them to fight over.
+- **A component is described once and drawn by the target's own implementation.** The node
+  says what the component *is*; Flutter draws it with its widget, the document with CSS. This
+  is not a second design: it is the same description, and what binds the two is the node's
+  information plus a set of values both sides share and test (`unibox_material_flutter`,
+  `materialThemeData`). Contrast a **third-party component runtime**, which is refused: a
+  library injected at run time that brings its own token layer (`--md-sys-*`, `--mdui-*`) next
+  to the tree, the host theme and the CSS, so the design has two owners and neither is the tree.
+  `@material/web` is also in maintenance mode pending new maintainers by its own README.
+- **The unit is the region.** A tree that describes an interactive *screen* is over-specified
+  for the document, which will not draw most of it: a map, a live search, a drag handle, a
+  route transition. Those stay the host's; the tree describes the bands around them, and an
+  `EmbedNode` is the door for the one or two that must sit inside a band.
 - A grid is the model's second layout engine, and the last one. `GridNode` is
   admitted because its answer is one arithmetic rule — a column count and a cell
   width from a single minimum — that both targets can apply and a test can read
@@ -433,6 +439,9 @@ never inherited (CSS does not inherit them either).
 - No widget/component wrapper API: renderers only translate nodes. `EmbedNode`
   is the single, explicit exception: host content enters the tree as an opaque
   payload that only its own renderer accepts, and any other renderer throws.
+  A **substitution** (§5.22) is a third shape and deliberately not a wrapper: the
+  renderer still builds the node, its layout and its inside, and the host only says
+  which widget paints the result.
 
 ### 5.7 Compatibility
 - Additions (new optional parameters, new nodes, new tokens) are minor.
@@ -1093,4 +1102,59 @@ renderer lays a stretching line out twice when it has no end: once to find its t
 child, once tight to that extent, which is the extent the children then fill. A line that
 was given an end — a row in a box that states its height — is laid out once, so the trees
 that already worked pay nothing; and the two targets agree: every column the tallest one's
+
+### 5.22 A host may draw a component with its own widget
+
+A design system in this repository is values plus nodes (§5.9), and both renderers draw those
+values, so a card is the same card on a page and in an application. That is the whole of the
+parity claim, and it is the right claim for the primitives: a box's fill, a line of type, a gap.
+
+A *component* is where the claim costs the application something a token cannot pay. `Card`,
+`NavigationBar`, `Chip` and `FilledButton` carry behaviour their look does not describe: the
+platform's ink, the click and the haptic on a press, the reader's text scale growing the control
+with it, `disableAnimations`, the tap-target minimum, a decade of accessibility work — and each
+of those arrives in a Flutter release the application already gets. A tree that re-derives the
+look keeps the page and forfeits the behaviour, forever, one fix at a time.
+
+So a rendering may be given a map of node type → builder — `renderFlutter(page,
+substitutions: …)` — and an application that already owns a component draws it. The rules are
+what keep it from becoming a second renderer:
+
+- **The renderer still builds the node.** The builder receives the node and its inside — the
+  children laid out with the direction, the gap, the alignment and the padding the tree asked
+  for — so layout, structure and content stay the model's. Only the surface is the widget's.
+- **Paint may change; information may not.** The same words, in the same order, with the same
+  links, semantics, roles and tap targets. A page and an application that disagree about content
+  were never the same screen, and a component is not allowed to make them.
+- **Keyed by the exact runtime type, and closed over the structural nodes.** `Box`, `TextNode`,
+  `StackNode`, `PositionedNode`, `GridNode`, `LinkNode`, `PagerNode`, `TextInputNode`,
+  `OverlayNode` and `EmbedNode` are refused by construction. Substituting one of those is not a
+  component preference; it is another renderer, and it would end §5.4 for every tree.
+- **Empty by default.** The document renderer has no substitutions and needs none, which is why
+  `unibox_testing` and the `:root` typography are unchanged by this door existing.
+
+**What it costs is the pixel, and the cost lands on the takeover.** `Card` spends elevation
+through `drawShadow`, whose ladder is not the one the design file measured (§5.9,
+`MaterialElevation`), and `NavigationBar` states its indicator's size internally. A substituted
+component therefore *may* lay out differently from the document that was on screen — which is
+the one thing `docs/takeover.md`'s reveal promises not to do. The rule that follows is per
+screen, and checkable: **a takeover screen may only use components whose two renderings agree.**
+A screen that does not is served as a document with no Flutter on it, or held to
+`?unibox=compare`. Component choice decides takeover viability; nothing about it is a host's
+private taste.
+
+The comparison with `EmbedNode` is worth naming, because both carry a platform value. An embed
+says *the model does not describe this*, so the tree is outside the contract and only one renderer
+can draw it. A substitution says *the model describes this and the application prefers its own
+painter*, so both renderers still have the node and the contract still applies — to the
+information, always, and to the paint wherever the two agree.
+
+**Status.** The rule is settled and the door is the standard wiring of a Flutter host: a document
+is served first, the application takes it over, and from then on a Material node is Flutter's own
+widget. `unibox_material_flutter` maps eight components; the structural ones (`MaterialScaffold`,
+`MaterialTabs`, `MaterialDialog`, `MaterialBottomSheet`) and the ink well stay out, because their
+slots, their policy or their role belong to the node rather than to the surface a widget replaces.
+What remains open is how far the list should grow, and the density of a document — CSS has no
+platform to read.
+
 height, whatever the box above says.

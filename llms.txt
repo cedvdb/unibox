@@ -2,7 +2,7 @@
 
 > One immutable Dart description of a screen, drawn by Flutter and rendered as HTML a crawler can read.
 
-Unibox is a Dart 3.13 workspace of six packages, in one direction only: the model,
+Unibox is a Dart 3.13 workspace of seven packages, in one direction only: the model,
 then the web, then the widgets. `packages/unibox_core` holds the node tree and the design
 tokens and has no dependencies at all. The web is one package with two layers a node
 becomes in a browser: `packages/unibox_html` turns a token into CSS declarations and a node
@@ -11,7 +11,9 @@ that document in a browser and keeps it in step with the stores the tree created
 `packages/unibox_flutter` draws the same tree as widgets. `packages/unibox_testing` holds
 the tables of expected presentation that the renderer suites are checked against, so the
 renderings cannot drift apart silently. `packages/unibox_material` turns the Material 3
-type scale and colour roles into the same tokens and builds its components on `Box`.
+type scale and colour roles into the same tokens and builds its components on `Box`;
+`packages/unibox_material_flutter` lets an application draw two of those components with
+Flutter's own widgets instead.
 
 Paths in this file are relative to the repository root. This is an index: the rules a
 coding agent needs are in [AGENTS.md](AGENTS.md), and a human contributing needs
@@ -97,6 +99,10 @@ coding agent needs are in [AGENTS.md](AGENTS.md), and a human contributing needs
   icon and a check mark, a navigation bar, a progress ring and a spinner, a dialog
   and a bottom sheet — optional and pure Dart, one line each in
   [README.md#material](README.md#material).
+- [unibox_material_flutter](packages/unibox_material_flutter/README.md): the door an
+  application uses to draw `unibox_material`'s card and navigation bar with Flutter's own
+  widgets (`materialComponents()`), what that may change (paint) and what it may not
+  (information), and the pixel it costs at a takeover.
 
 ## Working on the repository
 

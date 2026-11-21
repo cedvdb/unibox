@@ -1,40 +1,44 @@
 # Unibox
 
-**Flutter UI. Searchable HTML.** Unibox makes a Flutter Web page indexable without a second
-UI: build the screen once in Dart, serve it as real HTML and CSS — the page a search engine
-reads and the page a visitor lands on — and let Flutter draw that same tree again once it is
-ready. The document arrives first, the application takes it over, and nobody watches a blank
-canvas in between.
+**The shared part of a page: written once, served as HTML, drawn by Flutter.**
 
-A search engine, a link preview and a reader whose JavaScript failed all see the same
-thing in a Flutter screen: nothing. Flutter draws into a canvas, so there is no text to
-index and no link to follow. The usual fix is to write that page again in HTML, and then
-to keep two designs in step — which, a week later, they are not.
+A Flutter screen is a canvas. A search engine, a link preview and a reader whose JavaScript
+failed all see the same thing in it: nothing — no text to index, no link to follow. Unibox is
+how a Flutter application serves the parts of itself that have to be found: a band, a card, a
+footer, written once as an immutable Dart tree and rendered twice.
 
-Unibox removes the second design. A screen is one immutable Dart tree:
-[`unibox_flutter`](packages/unibox_flutter) draws it as widgets,
-[`unibox_html`](packages/unibox_html) renders it as a document a crawler reads, and one table of
-expected appearance holds both renderers to the same answer.
+- [`unibox_html`](packages/unibox_html) writes it as a document — real text, real links, real
+  headings, a stylesheet a crawler and a reader without JavaScript both get;
+- [`unibox_flutter`](packages/unibox_flutter) draws the same tree in the app, and a Material
+  component in it is drawn by **Flutter's own widget**, not by a copy of Material;
+- the document arrives first and the application takes it over, so nobody watches a blank
+  canvas in between ([docs/takeover.md](docs/takeover.md)).
 
 <p align="center">
-  <img src="docs/showcase.jpg" alt="The same apartment listings screen drawn twice, side by side: on the left the page built as HTML and CSS, on the right the same node tree built by Flutter. Both show the same search bar, the same filters, the same cards and the same prices." width="960">
+  <img src="docs/showcase.jpg" alt="Two columns of the same Material catalogue: on the left the design system's values as HTML and CSS, on the right the same nodes drawn with Flutter's own widgets." width="960">
 </p>
 
 <p align="center">
-  <sub>One tree, drawn twice: <code>/web/listings/</code> on the left, <code>/flutter/listings/</code> on the right.</sub>
+  <sub>The same tree, twice: the values as a document, and the same nodes drawn by Flutter at
+  <code>/flutter/components/</code>.</sub>
 </p>
 
 It is live at **[cedvdb.github.io/unibox](https://cedvdb.github.io/unibox/)** — the site is
 built with the library it documents, so every section of it is a node tree, and the page you
-read is the demo.
+read is the demo. **[web/takeover/](https://cedvdb.github.io/unibox/web/takeover/)** is that page
+as one document: it arrives as HTML, the bundle is prefetched while you read, and Flutter is
+revealed at your first sign of life — at the scroll you were at, with the presses you had
+already made.
 
-The takeover is live rather than described. **[web/takeover/](https://cedvdb.github.io/unibox/web/takeover/)**
-is that page as one document: it arrives as HTML, the bundle is prefetched while you read, and
-Flutter is revealed at your first sign of life — at the scroll you were at, with the presses you
-had already made. It is also the right-hand frame of the site's own hero, so the diagram there
-is not a picture of a handover: touch that frame and it does one. [docs/takeover.md](docs/takeover.md)
-is what happens at that moment; [Flutter hydrates it](#flutter-hydrates-it--the-least-to-change)
-is what a host writes to get it.
+## What it is, and what it is not
+
+**It is** a description of a *region* — a band, a card, a footer, a list — that must be identical
+in a document and in an app, held to the same information and a close-enough appearance.
+
+**It is not** a way to write a whole screen, a UI framework, or a second implementation of
+Material. An interactive screen — a map you pan, a search you type into, a sheet you drag — stays
+ordinary Flutter; the tree describes the bands around it. `design.md` §5.6 says why, and
+`example/README.md` shows the shape: bands shared, screens native.
 
 ## Project status
 
@@ -846,11 +850,12 @@ a custom property. Nothing in a tree is written inline.
 | Package | What it is |
 | --- | --- |
 | `packages/unibox_core` | The nodes, the style values and the validation. No dependencies outside the Dart SDK. |
-| `packages/unibox_flutter` | The Flutter renderer: `renderFlutter(node)` and `node.toWidget()`. |
+| `packages/unibox_flutter` | The Flutter renderer: `renderFlutter(node)` and `node.toWidget()`, and `substitutions` for a component an application would rather draw with Flutter's own widget. |
 | `packages/unibox_html` | The web: `toHtml(node)` (or `node.toHtml()`) and `toDocument(node)`, over the two layers a node becomes in a browser — its element plan and the CSS it wears — which `unibox_dom` builds from too. |
 | `packages/unibox_dom` | The client renderer: `DomView.adopt(tree, root)` keeps the markup a server wrote and patches it as the stores publish. |
 | `packages/unibox_testing` | The tables both renderers are tested against. Development only, not published. |
 | `packages/unibox_material` | The Material 3 type scale, the colour roles as a theme — the baseline scheme written down, or a palette grown from one seed colour — and the components built from them, from a scaffold and an app bar to a card, a list tile, a button, a dialog and a sheet. Optional: no renderer depends on it, and [the Material section](#material) has one line for each component. |
+| `packages/unibox_material_flutter` | Optional, for an application: `materialComponents()`, the map that draws `unibox_material`'s card and navigation bar with Flutter's own widgets. Depends on the design system and the renderer; nothing depends on it. Experimental, and the newest package here — [status](packages/unibox_material_flutter/README.md#project-status). |
 | `example/` | The example — a listings page and a sign-up dialog, one node tree — and the site: one page, the example drawn by both renderers beside the claim it makes. |
 
 Dependencies point one way: both renderers depend on `unibox_core`, never the other
