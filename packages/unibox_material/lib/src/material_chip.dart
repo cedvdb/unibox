@@ -1,5 +1,6 @@
 import 'package:unibox_core/unibox_core.dart';
 
+import 'material_density.dart';
 import 'material_ink_well.dart';
 import 'material_palette.dart';
 import 'material_typography.dart';
@@ -74,10 +75,17 @@ final class MaterialChip extends Box {
     double gap = _nodeGap,
     BoxSpacing? padding,
     BoxTextStyle? labelStyle,
+    MaterialDensity density = MaterialDensity.standard,
     super.margin,
     BoxTransition? transition,
     super.key,
-  }) : assert(
+  }) : label = label,
+       leading = leading,
+       trailing = trailing,
+       selected = selected,
+       onSelected = onTap,
+       onDeleted = onRemove,
+       assert(
          url == null || onRemove == null,
          'A chip with a url cannot also carry onRemove: the remove target is a '
          'control inside a link, which HTML forbids — and a press on it would both '
@@ -89,7 +97,8 @@ final class MaterialChip extends Box {
          // The shape is the well's now, because the target is taller than it: the chip
          // is as tall as the finger it is aimed at, and paints the 32 pixel pill in the
          // middle of that.
-         minHeight: tapTargetHeight,
+         // The target and the pill it holds, at the density this platform draws at.
+         minHeight: density.adjust(tapTargetHeight),
          mainAlign: MainAlign.center,
          // A disabled chip fades rather than changing role: Material draws the label at
          // 38% and the line at 12%, and one opacity is what this model can say without
@@ -157,6 +166,28 @@ final class MaterialChip extends Box {
          ],
        );
 
+  /// The label the chip draws.
+  final UINode label;
+
+  /// The node before the label, when the chip has one.
+  final UINode? leading;
+
+  /// The node after the label — the cross a chip carries, or anything else.
+  final UINode? trailing;
+
+  /// Whether the chip is one of the applied choices.
+  final bool selected;
+
+  /// What a press does, under the name a platform chip gives it.
+  ///
+  /// The callback is handed to the chip's ink well, which is the node that takes the press;
+  /// this is the same one kept on the chip, because a host drawing the platform's own chip
+  /// reads it as `onSelected` and cannot reach inside the well.
+  final TapCallback? onSelected;
+
+  /// What the cross does, under the name a platform chip gives it.
+  final TapCallback? onDeleted;
+
   /// The corner radius Material gives a chip.
   static const double radius = 8;
 
@@ -216,7 +247,7 @@ final class MaterialChip extends Box {
 
   /// The line around a chip that is not chosen.
   static const BoxBorder _outline = BoxBorder(
-    color: BoxColor.role(MaterialColorRole.outline),
+    color: BoxColor.role(MaterialColorRole.outlineVariant),
   );
 
   /// The label, with its leading node beside it when there is one.

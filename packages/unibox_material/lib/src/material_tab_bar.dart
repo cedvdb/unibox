@@ -104,7 +104,10 @@ final class MaterialTabBar extends Box {
     super.margin,
     super.pin,
     super.pinOffset,
-  }) : super(
+  }) : tabs = List<MaterialTab>.unmodifiable(tabs),
+       selected = selected,
+       onSelect = onSelect,
+       super(
          height: height,
          width: double.infinity,
          // The row fills the bar, and it only can if the bar hands its width down: a box
@@ -189,6 +192,15 @@ final class MaterialTabBar extends Box {
       indicator ?? palette?.primary ?? _baselinePrimary;
 
   /// The height of a tab without an icon: Material's own.
+  /// The tabs, in the order they are drawn.
+  final List<MaterialTab> tabs;
+
+  /// The index of the chosen tab.
+  final int selected;
+
+  /// What choosing a tab does.
+  final void Function(int index)? onSelect;
+
   static const double tabHeight = 48;
 
   /// How tall the indicator is, and therefore how much of the bottom of a tab it takes.

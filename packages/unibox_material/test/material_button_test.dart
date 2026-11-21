@@ -92,11 +92,11 @@ void main() {
 
       expect(
         _fill(button).backgroundColor,
-        const BoxColor.role(MaterialColorRole.primaryContainer),
+        const BoxColor.role(MaterialColorRole.secondaryContainer),
       );
       expect(
         _labelBox(button).textStyle?.color,
-        const BoxColor.role(MaterialColorRole.onPrimaryContainer),
+        const BoxColor.role(MaterialColorRole.onSecondaryContainer),
       );
     });
 

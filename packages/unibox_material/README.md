@@ -22,6 +22,36 @@ design systems: it has a default (16 pixels, 1.5 line height) but no opinion abo
 Roboto, `onSurface` or elevation. Material is one opinion, and it can be replaced
 without touching a single node.
 
+## What this package is for
+
+It is **the document's drawing of the material components the app draws with Flutter's own
+widgets**. A component is described once, here, as a node; `unibox_material_flutter` draws it
+with Flutter's widget in an application and `unibox_html` draws it as CSS in a document. The two
+are bound by the node's information and by values both sides share — not by a promise of the
+same pixel (`design.md` §5.4).
+
+A component earns its place only with **both halves**: a node here and a widget mapping there.
+This is the list, and anything outside it is a candidate for deletion rather than a gap to fill.
+
+| Component | Flutter draws it as |
+| --- | --- |
+| `MaterialCard` | `Card` |
+| `MaterialNavigationBar` | `NavigationBar` |
+| `MaterialButton` (four shapes) | `FilledButton`, `.tonal`, `OutlinedButton`, `TextButton` |
+| `MaterialChip` | `FilterChip`, `InputChip` |
+| `MaterialIconButton` | `IconButton` |
+| `MaterialListTile` | `ListTile` |
+| `MaterialTextField` | `TextField` |
+| `MaterialProgressRing`, `MaterialSpinner` | `CircularProgressIndicator` |
+| `MaterialTabBar` | `TabBar` |
+| `MaterialSegmentedButton` | `SegmentedButton` |
+
+**Document-only today, and therefore candidates for deletion:** `MaterialScaffold`,
+`MaterialAppBar`, `MaterialLargeAppBar`, `MaterialTabs`, `MaterialDialog`,
+`MaterialBottomSheet`, `MaterialIcon`, `MaterialCheckMark`, `MaterialInkWell`. Each is either a
+slots-and-policy component that a widget cannot replace surface-for-surface, or a drawing rather
+than a control. A band that needs one of them usually needs a `Box` and a link instead.
+
 ## Usage
 
 ```dart
@@ -1068,6 +1098,13 @@ readers have no counterpart for. A tab strip's arrow keys are deliberately not m
 that fills the width and states its height, and being at the bottom is a
 `PositionedNode` at the bottom of a `StackNode`, or the last row of a full height
 column.
+
+**What a host that draws its own bar reads.** A renderer substitution receives the node, not
+the children the constructor built, so `destinations`, `selected` and `onSelect` are kept as
+fields: a Flutter application can hand the same destinations to a `NavigationBar` and the same
+index to `selectedIndex`, and the words and the chosen page survive the swap. What does not
+survive it is the pixel — the indicator's 64 by 32 is the SDK's, not this class's — which is the
+trade `unibox_flutter`'s README records under "Substitution".
 
 **The pill arrives, the way Flutter draws it.** The chosen destination's indicator is
 stretched sideways out of its icon — `scaleX` from 40% to full, at its own height — over

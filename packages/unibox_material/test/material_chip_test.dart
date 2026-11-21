@@ -55,7 +55,7 @@ void main() {
       expect(_pill(chip).backgroundColor, isNull);
       expect(
         _pill(chip).border?.color,
-        const BoxColor.role(MaterialColorRole.outline),
+        const BoxColor.role(MaterialColorRole.outlineVariant),
       );
       expect(chip.borderRadius, MaterialChip.radius);
       expect(chip.borderRadius, 8);

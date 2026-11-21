@@ -1,5 +1,6 @@
 import 'package:unibox_core/unibox_core.dart';
 
+import 'material_density.dart';
 import 'material_ink_well.dart';
 import 'material_palette.dart';
 import 'material_typography.dart';
@@ -80,6 +81,7 @@ final class MaterialButton extends Box {
     BoxSpacing? padding,
     BoxTextStyle? labelStyle,
     double iconGap = _iconGap,
+    MaterialDensity density = MaterialDensity.standard,
     BoxBorder? border,
     BoxSemantics? semantics,
     double? width,
@@ -110,6 +112,7 @@ final class MaterialButton extends Box {
     minWidth: minWidth,
     margin: margin,
     transition: transition,
+    density: density,
   );
 
   /// A filled button, named for symmetry with the other three.
@@ -131,6 +134,7 @@ final class MaterialButton extends Box {
     BoxSpacing? padding,
     BoxTextStyle? labelStyle,
     double iconGap = _iconGap,
+    MaterialDensity density = MaterialDensity.standard,
     BoxBorder? border,
     BoxSemantics? semantics,
     double? width,
@@ -160,6 +164,7 @@ final class MaterialButton extends Box {
     minWidth: minWidth,
     margin: margin,
     transition: transition,
+    density: density,
   );
 
   /// A tonal button: the softer fill Material gives a secondary action.
@@ -178,6 +183,7 @@ final class MaterialButton extends Box {
     BoxSpacing? padding,
     BoxTextStyle? labelStyle,
     double iconGap = _iconGap,
+    MaterialDensity density = MaterialDensity.standard,
     BoxBorder? border,
     BoxSemantics? semantics,
     double? width,
@@ -208,6 +214,7 @@ final class MaterialButton extends Box {
     minWidth: minWidth,
     margin: margin,
     transition: transition,
+    density: density,
   );
 
   /// An outlined button: an action beside the filled ones, without weight.
@@ -226,6 +233,7 @@ final class MaterialButton extends Box {
     BoxSpacing? padding,
     BoxTextStyle? labelStyle,
     double iconGap = _iconGap,
+    MaterialDensity density = MaterialDensity.standard,
     BoxBorder? border,
     BoxSemantics? semantics,
     double? width,
@@ -256,6 +264,7 @@ final class MaterialButton extends Box {
     minWidth: minWidth,
     margin: margin,
     transition: transition,
+    density: density,
   );
 
   /// A text button: no fill and no line, the quietest action.
@@ -274,6 +283,7 @@ final class MaterialButton extends Box {
     BoxSpacing? padding,
     BoxTextStyle? labelStyle,
     double iconGap = _iconGap,
+    MaterialDensity density = MaterialDensity.standard,
     BoxBorder? border,
     BoxSemantics? semantics,
     double? width,
@@ -304,6 +314,7 @@ final class MaterialButton extends Box {
     minWidth: minWidth,
     margin: margin,
     transition: transition,
+    density: density,
   );
 
   /// Creates a button of [variant].
@@ -326,6 +337,7 @@ final class MaterialButton extends Box {
     BoxSpacing? padding,
     BoxTextStyle? labelStyle,
     double iconGap = _iconGap,
+    MaterialDensity density = MaterialDensity.standard,
     BoxBorder? border,
     BoxSemantics? semantics,
     double? width,
@@ -335,12 +347,20 @@ final class MaterialButton extends Box {
     BoxTransition? transition,
   }) {
     final BoxColor foreground = _foregroundOf(variant);
+    // The room inside the pill is Material's density too: compact takes four pixels off each
+    // side, which is what turns a 40 pixel button into a 32 one on a desk. A floor alone
+    // cannot do it — the padding and the label already add up to 40.
+    final BoxSpacing insets = _roomFor(padding ?? _paddingOf(variant), density);
     final BoxColor? fill = _fillOf(variant);
     final BoxColor inkColor = ink ?? foreground;
 
     return MaterialButton._(
       key: key,
       label: label,
+      variant: variant,
+      icon: icon,
+      enabled: enabled,
+      onPressed: onTap,
       fill: fill,
       // A line is what makes the outlined shape, and any shape may be given one.
       border:
@@ -349,6 +369,7 @@ final class MaterialButton extends Box {
       borderRadius: borderRadius,
       width: width,
       height: height,
+      density: density,
       margin: margin,
       inkWell: MaterialInkWell(
         onTap: onTap,
@@ -359,7 +380,7 @@ final class MaterialButton extends Box {
         enabled: enabled,
         borderRadius: borderRadius,
         ink: inkColor,
-        padding: padding ?? _paddingOf(variant),
+        padding: insets,
         transition: transition ?? MaterialInkWell.defaultTransition,
         semantics: semantics ?? _roleFor(onTap),
         // The press is the size of the pill: a pinned width and height are the well's,
@@ -367,7 +388,9 @@ final class MaterialButton extends Box {
         width: width,
         height: height,
         minWidth: minWidth,
-        minHeight: _height,
+        // The height Material paints, at the density this platform draws at — unless the
+        // caller stated one, which is the tree's answer and wins.
+        minHeight: height ?? density.adjust(_height),
         // A well that is wider or taller than its label centres it, exactly as the fill
         // used to: a 64 pixel pill centres a 46 pixel label.
         mainAlign: MainAlign.center,
@@ -393,6 +416,11 @@ final class MaterialButton extends Box {
     double? width,
     double? height,
     required this.label,
+    required this.variant,
+    required this.onPressed,
+    required this.density,
+    super.enabled,
+    this.icon,
     required UINode inkWell,
     BoxColor? fill,
     double borderRadius = _radius,
@@ -425,6 +453,23 @@ final class MaterialButton extends Box {
   /// The label the button draws.
   final UINode label;
 
+  /// The shape it was made in, which is what a host drawing the platform's own button reads
+  /// to pick one of four widgets.
+  final MaterialButtonVariant variant;
+
+  /// The glyph before the label, when the button has one.
+  final UINode? icon;
+
+  /// The density the pill is drawn at, which is what its height is computed from.
+  final MaterialDensity density;
+
+  /// What a press does, under the name a platform's button gives it.
+  ///
+  /// The callback is handed to the ink well, which is the node that takes the press — this is
+  /// the same one kept on the button, because a host drawing the platform's own button reads
+  /// it as `onPressed` and cannot reach inside the well.
+  final TapCallback? onPressed;
+
   /// The height every variant paints: `labelLarge`'s 20 pixel line with ten above
   /// and below, which is Material's own 40 and the reason a text button and a
   /// filled one line up in a row.
@@ -444,6 +489,23 @@ final class MaterialButton extends Box {
   static const BoxBorder _outline = BoxBorder(
     color: BoxColor.role(MaterialColorRole.outline),
   );
+
+  /// The room inside the pill at [density]: compact takes four pixels off above and below,
+  /// which is the half of Flutter's answer a minimum height cannot state.
+  static BoxSpacing _roomFor(BoxSpacing padding, MaterialDensity density) {
+    if (density == MaterialDensity.standard) {
+      return padding;
+    }
+
+    final double drop = -density.vertical * 2;
+
+    return BoxSpacing.only(
+      top: padding.top - drop,
+      bottom: padding.bottom - drop,
+      left: padding.left,
+      right: padding.right,
+    );
+  }
 
   /// The label of the button, with [icon] beside it when there is one.
   static UINode _labelOf({
@@ -472,8 +534,10 @@ final class MaterialButton extends Box {
     MaterialButtonVariant.filled => const BoxColor.role(
       MaterialColorRole.primary,
     ),
+    // Flutter's own tonal button is the secondary container: the softer fill beside a
+    // filled one, not the primary one at a lighter weight.
     MaterialButtonVariant.tonal => const BoxColor.role(
-      MaterialColorRole.primaryContainer,
+      MaterialColorRole.secondaryContainer,
     ),
     MaterialButtonVariant.outlined => null,
     MaterialButtonVariant.text => null,
@@ -486,7 +550,7 @@ final class MaterialButton extends Box {
           MaterialColorRole.onPrimary,
         ),
         MaterialButtonVariant.tonal => const BoxColor.role(
-          MaterialColorRole.onPrimaryContainer,
+          MaterialColorRole.onSecondaryContainer,
         ),
         MaterialButtonVariant.outlined => const BoxColor.role(
           MaterialColorRole.primary,

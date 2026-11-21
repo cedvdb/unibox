@@ -1,5 +1,6 @@
 import 'package:unibox_core/unibox_core.dart';
 
+import 'material_density.dart';
 import 'material_ink_well.dart';
 import 'material_palette.dart';
 import 'material_typography.dart';
@@ -94,9 +95,15 @@ final class MaterialIconButton extends Box {
     double borderRadius = radius,
     BoxColor? ink,
     BoxTransition? transition,
+    MaterialDensity density = MaterialDensity.standard,
     super.margin,
     super.key,
-  }) : super(
+  }) : icon = icon,
+       label = label,
+       onPressed = onTap,
+       badgeCount = badgeCount,
+       variant = variant,
+       super(
          // A row around the control, so a parent that stretches its children — a card's
          // column, a grid track — has something invisible to stretch without widening the
          // square itself.
@@ -110,13 +117,14 @@ final class MaterialIconButton extends Box {
            _control(
              icon: icon,
              label: label,
+             density: density,
              onTap: onTap,
              url: url,
              newTab: newTab,
              enabled: enabled,
              badgeCount: badgeCount,
              variant: variant,
-             height: height,
+             height: density.adjust(height),
              width: width ?? height,
              padding: padding,
              iconSize: iconSize,
@@ -128,6 +136,21 @@ final class MaterialIconButton extends Box {
        );
 
   /// The height Material gives an icon button: the smallest square a finger is aimed at.
+  /// The glyph the control draws.
+  final UINode icon;
+
+  /// What a reader calls the control, when the glyph is not a label.
+  final String? label;
+
+  /// What a press does, under the name a platform's control gives it.
+  final TapCallback? onPressed;
+
+  /// The count over the corner, when the control carries one.
+  final int? badgeCount;
+
+  /// The shape it was made in: bare, filled, tonal or outlined.
+  final MaterialIconButtonVariant variant;
+
   static const double controlHeight = 40;
 
   /// The size Material draws an icon at, and the square this control centres it in.
@@ -146,6 +169,7 @@ final class MaterialIconButton extends Box {
 
   /// The square, its ink, and the badge over its corner when there is a count.
   static UINode _control({
+    required MaterialDensity density,
     required UINode icon,
     required String? label,
     required TapCallback? onTap,
@@ -170,7 +194,7 @@ final class MaterialIconButton extends Box {
       newTab: newTab,
       enabled: enabled,
       width: width,
-      height: height,
+      height: density.adjust(height),
       borderRadius: borderRadius,
       // The surface is the well's, so the tints are layered *over* the fill rather than
       // under it, and the ink is clipped to the rounded square.
@@ -204,7 +228,7 @@ final class MaterialIconButton extends Box {
     // not make the control wider than the finger it was sized for.
     return StackNode(
       width: width,
-      height: height,
+      height: density.adjust(height),
       children: <UINode>[target, _badge(badgeCount)],
     );
   }

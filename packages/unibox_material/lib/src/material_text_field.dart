@@ -248,12 +248,44 @@ final class MaterialTextField
        );
 
   MaterialTextField._(_Field field, {super.key})
-    : super(
+    : value = field.value,
+      label = field.label,
+      placeholder = field.placeholder,
+      helper = field.helper,
+      error = field.error,
+      enabled = field.enabled,
+      obscureText = field.obscureText,
+      multiline = field.multiline,
+      super(
         create: () =>
             MaterialFieldStore(value: field.value ?? field.initialValue ?? ''),
         view: (MaterialFieldState state, MaterialFieldStore store) =>
             _fieldView(field, state, store),
       );
+
+  /// The value the field is given, when its owner drives it.
+  final String? value;
+
+  /// The label above the value.
+  final String? label;
+
+  /// The hint inside an empty field.
+  final String? placeholder;
+
+  /// The line under the field.
+  final String? helper;
+
+  /// The error the field states.
+  final String? error;
+
+  /// Whether the field answers at all.
+  final bool enabled;
+
+  /// Whether what is typed is hidden.
+  final bool obscureText;
+
+  /// Whether the field holds several lines.
+  final bool multiline;
 
   /// The room Material puts at the sides of a filled field's contents: the label, the
   /// value and the message all start and end here, so the three line up.

@@ -133,7 +133,13 @@ final class MaterialNavigationBar extends Box {
     super.pinOffset,
     BoxTransition? transition,
     super.key,
-  }) : super(
+  }) : destinations = List<MaterialNavigationDestination>.unmodifiable(
+         destinations,
+       ),
+       selected = selected,
+       onSelect = onSelect,
+       indicatorColor = indicatorColor,
+       super(
          width: double.infinity,
          height: height,
          direction: Axis.horizontal,
@@ -167,6 +173,28 @@ final class MaterialNavigationBar extends Box {
              ),
          ],
        );
+
+  /// The destinations, in the order they are drawn.
+  ///
+  /// It is kept because a host may draw the bar with its platform's own component, and a
+  /// substitution receives the node rather than the children it built: without the list and
+  /// [selected], a Flutter application could not hand the same destinations to a
+  /// `NavigationBar`. Nothing in the tree reads it — the children are built once, above.
+  final List<MaterialNavigationDestination> destinations;
+
+  /// The index of the destination that is the page being shown.
+  final int selected;
+
+  /// What choosing a destination does: it receives the index, as `onDestinationSelected`
+  /// does on the platform's own bar.
+  final void Function(int index) onSelect;
+
+  /// The colour of the pill behind the chosen destination's icon.
+  ///
+  /// Kept for the same reason as [destinations]: the platform's bar takes an
+  /// `indicatorColor` and would otherwise read one from the application's `ThemeData`, which
+  /// is a second source of truth beside the tree. A substitution passes this one instead.
+  final BoxColor indicatorColor;
 
   /// The height Material gives a navigation bar.
   static const double barHeight = 80;

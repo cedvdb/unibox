@@ -1,5 +1,7 @@
 import 'package:unibox_core/unibox_core.dart';
 
+import 'material_density.dart';
+
 import 'material_check_mark.dart';
 import 'material_ink_well.dart';
 import 'material_palette.dart';
@@ -118,7 +120,7 @@ final class MaterialSegmentedButton extends Box {
     required List<MaterialSegment> segments,
     required int selected,
     void Function(int index)? onSelect,
-    bool enabled = true,
+    super.enabled,
     bool showSelectedIcon = true,
     double height = controlHeight,
     double borderRadius = radius,
@@ -126,6 +128,7 @@ final class MaterialSegmentedButton extends Box {
     BoxSpacing padding = _segmentPadding,
     double iconGap = _iconGap,
     BoxTextStyle labelStyle = MaterialTypography.labelLarge,
+    this.density = MaterialDensity.standard,
     // A width is divided equally between the segments; without one the pill is as wide as
     // its columns and hugs them — a row that scrolls, or a control in the corner of a page.
     // Both are one rule, the `GridNode` below, so the width states no size of its own.
@@ -135,7 +138,11 @@ final class MaterialSegmentedButton extends Box {
     super.pinOffset,
     BoxTransition? transition,
     super.key,
-  }) : assert(
+  }) : segments = List<MaterialSegment>.unmodifiable(segments),
+       selected = selected,
+       onSelect = onSelect,
+       showSelectedIcon = showSelectedIcon,
+       assert(
          onSelect != null ||
              segments.every((MaterialSegment segment) => segment.url != null),
          'A segment that is not a destination needs an onSelect to answer its '
@@ -179,6 +186,21 @@ final class MaterialSegmentedButton extends Box {
            ),
          ],
        );
+
+  /// The segments, in the order they are drawn.
+  final List<MaterialSegment> segments;
+
+  /// The index of the chosen segment.
+  final int selected;
+
+  /// What choosing a segment does.
+  final void Function(int index)? onSelect;
+
+  /// The density the pill is measured at.
+  final MaterialDensity density;
+
+  /// Whether a chosen segment shows the check Material pairs with its label.
+  final bool showSelectedIcon;
 
   /// The height Material gives a segmented button.
   static const double controlHeight = 40;

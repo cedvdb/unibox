@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- Four components keep what a host needs to draw them with the platform's own widget, the way
+  `MaterialNavigationBar` already did: `MaterialButton` its `variant`, `icon` and `onPressed`,
+  `MaterialChip` its `label`, `selected`, `onSelected` and `onDeleted`, `MaterialIconButton` its
+  `icon`, `label`, `onPressed`, `badgeCount` and `variant`, and `MaterialProgressRing` its
+  `value`, `size`, `thickness`, `label` and `determinate`. A substitution receives the node and
+  not the children it built, so a parameter it cannot read is a component it cannot draw.
+
+- `MaterialNavigationBar` keeps its `destinations`, its `selected` index and its `onSelect`
+  callback as fields. A host that draws the bar with the platform's own `NavigationBar` — through
+  a renderer substitution — receives the node and not the children it built, so without them it
+  could not hand the same destinations to a widget. Nothing in the tree reads them: the children
+  are still built once, by the constructor.
+
 - `MaterialTabs` follows the tabs it is drawn with. The store was created with the number of tabs
   the component had when it mounted and kept it, so a parent that drew the component again over a
   different set left the two halves disagreeing: a choice past the last tab drew a page the tree no

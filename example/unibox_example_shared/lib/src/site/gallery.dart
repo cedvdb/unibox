@@ -17,7 +17,12 @@ import 'section.dart';
 /// `h1` and four `h2`s above it. Each block is a `section` on the web, so the document
 /// says where one demonstration ends — the block has a heading of its own, which is
 /// exactly what makes it one.
-UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
+UINode buildMaterialSection({
+  ExampleSeed seed = ExampleSeed.defaultSeed,
+  // The platform's density, which is the host's answer: a desk draws a tighter control than a
+  // phone, and the tree states which one it was built for.
+  MaterialDensity density = MaterialDensity.standard,
+}) {
   final MaterialPalette palette = ExamplePalette.materialFor(seed);
 
   return siteSection(
@@ -34,13 +39,13 @@ UINode buildMaterialSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
         _section(
           palette,
           'Buttons',
-          _buttons(),
+          _buttons(density),
           note: 'Four shapes around one ink well: press one.',
         ),
         _section(
           palette,
           'Chips',
-          _chips(),
+          _chips(density),
           note: 'A choice, and one with a cross.',
         ),
         _section(
@@ -389,26 +394,39 @@ String _hex(BoxColor color) {
 }
 
 /// The button shapes, each in a resting state a static page can show.
-UINode _buttons() {
+UINode _buttons(MaterialDensity density) {
   return GridNode(
     minItemWidth: 150,
     maxColumns: 4,
     gap: 16,
     children: <UINode>[
       _natural(
-        MaterialButton.filled(label: const TextNode('Filled'), onTap: () {}),
+        MaterialButton.filled(
+          density: density,
+          label: const TextNode('Filled'),
+          onTap: () {},
+        ),
       ),
       _natural(
-        MaterialButton.tonal(label: const TextNode('Tonal'), onTap: () {}),
+        MaterialButton.tonal(
+          density: density,
+          label: const TextNode('Tonal'),
+          onTap: () {},
+        ),
       ),
       _natural(
         MaterialButton.outlined(
+          density: density,
           label: const TextNode('Outlined'),
           onTap: () {},
         ),
       ),
       _natural(
-        MaterialButton.text(label: const TextNode('Text'), onTap: () {}),
+        MaterialButton.text(
+          density: density,
+          label: const TextNode('Text'),
+          onTap: () {},
+        ),
       ),
     ],
   );
@@ -436,7 +454,7 @@ UINode _natural(UINode child) => Box(
 /// Each group keeps its children at their natural size, so a chip never stretches
 /// into the space its grid track has, and each row scrolls rather than pushing the
 /// page sideways on a phone.
-UINode _chips() {
+UINode _chips(MaterialDensity density) {
   const BoxColor onSelected = BoxColor.role(
     MaterialColorRole.onSecondaryContainer,
   );
@@ -458,6 +476,7 @@ UINode _chips() {
         overflow: Overflow.scroll,
         children: <UINode>[
           MaterialChip(
+            density: density,
             label: const TextNode('Two rooms'),
             selected: true,
             onTap: () {},
@@ -467,11 +486,13 @@ UINode _chips() {
             ),
           ),
           MaterialChip(
+            density: density,
             label: const TextNode('Studio'),
             onTap: () {},
             leading: glyphGrid(onPlain, size: MaterialChip.iconSize),
           ),
           MaterialChip(
+            density: density,
             label: const TextNode('Map'),
             onTap: () {},
             leading: glyphList(onPlain, size: MaterialChip.iconSize),
@@ -479,6 +500,7 @@ UINode _chips() {
           // A chip that cannot be pressed fades rather than shouting: the last
           // state Material gives one.
           MaterialChip(
+            density: density,
             label: const TextNode('Sold'),
             enabled: false,
             leading: glyphList(onPlain, size: MaterialChip.iconSize),

@@ -1,5 +1,6 @@
 import 'package:unibox_core/unibox_core.dart';
 
+import 'material_density.dart';
 import 'material_ink_well.dart';
 import 'material_palette.dart';
 import 'material_typography.dart';
@@ -61,6 +62,7 @@ final class MaterialListTile extends Box {
     UINode? leading,
     UINode? trailing,
     bool dense = false,
+    MaterialDensity density = MaterialDensity.standard,
     TapCallback? onTap,
     String? url,
     bool newTab = false,
@@ -95,8 +97,10 @@ final class MaterialListTile extends Box {
       crossAlign: CrossAlign.center,
       gap: gap,
       padding: padding,
+      // The room Material gives a tile, at the density this platform draws at.
       minHeight:
-          minHeight ?? _minHeightFor(dense, hasSubtitle: subtitle != null),
+          minHeight ??
+          density.adjust(_minHeightFor(dense, hasSubtitle: subtitle != null)),
       textStyle: textStyle,
       children: <UINode>[
         ?leading,
@@ -126,6 +130,12 @@ final class MaterialListTile extends Box {
 
     return MaterialListTile._(
       key: key,
+      title: title,
+      subtitle: subtitle,
+      leading: leading,
+      trailing: trailing,
+      dense: dense,
+      onPressed: onTap,
       row: row,
       color: color,
       width: width,
@@ -153,6 +163,12 @@ final class MaterialListTile extends Box {
   MaterialListTile._({
     super.key,
     super.margin,
+    required this.title,
+    required this.subtitle,
+    required this.leading,
+    required this.trailing,
+    required this.dense,
+    required this.onPressed,
     required this.row,
     required UINode inkWell,
     BoxColor? color,
@@ -162,6 +178,24 @@ final class MaterialListTile extends Box {
          backgroundColor: color,
          children: <UINode>[inkWell],
        );
+
+  /// The tile's title.
+  final UINode title;
+
+  /// Its second line, when it has one.
+  final UINode? subtitle;
+
+  /// The node before the text column.
+  final UINode? leading;
+
+  /// The node after it.
+  final UINode? trailing;
+
+  /// Whether the tile is drawn at the dense height.
+  final bool dense;
+
+  /// What a press does, under the name a platform tile gives it.
+  final TapCallback? onPressed;
 
   /// The row of parts, before the ink wraps it: the leading node, the text and the
   /// trailing node, with the tile's padding, gap and minimum height.

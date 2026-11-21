@@ -53,7 +53,12 @@ final class MaterialProgressRing extends Box {
     super.transform,
     String? label,
     super.key,
-  }) : super(
+  }) : value = value,
+       size = size,
+       thickness = thickness,
+       label = label,
+       determinate = determinate,
+       super(
          width: size,
          height: size,
          semantics: label == null
@@ -101,6 +106,21 @@ final class MaterialProgressRing extends Box {
   );
 
   /// The colour of the part that is done.
+  /// How much of the ring is drawn, from `0` to `1`.
+  final double value;
+
+  /// The square the ring is drawn in.
+  final double size;
+
+  /// The width of the stroke the ring is drawn with.
+  final double thickness;
+
+  /// What a reader hears, when the ring is announced.
+  final String? label;
+
+  /// Whether the ring states a value or turns on its own.
+  final bool determinate;
+
   static const BoxColor defaultIndicator = BoxColor.role(
     MaterialColorRole.primary,
   );
@@ -128,7 +148,6 @@ final class MaterialSpinStore extends StateStore<int> {
   /// second and the ring never jumps further than the eye follows.
   final int steps;
 
-  /// How long one step lasts.
   static const Duration frame = Duration(milliseconds: 16);
 
   Timer? _ticker;
@@ -188,7 +207,10 @@ final class MaterialSpinner extends StatefulNode<int, MaterialSpinStore> {
     int steps = 60,
     String? label,
     super.key,
-  }) : super(
+  }) : size = size,
+       thickness = thickness,
+       label = label,
+       super(
          create: () => MaterialSpinStore(steps: steps),
          view: (int phase, MaterialSpinStore store) => MaterialProgressRing(
            value: sweep,
@@ -203,4 +225,13 @@ final class MaterialSpinner extends StatefulNode<int, MaterialSpinStore> {
            transform: BoxTransform(rotation: store.degrees),
          ),
        );
+
+  /// The square the spinner turns in.
+  final double size;
+
+  /// The width of the stroke it is drawn with.
+  final double thickness;
+
+  /// What a reader hears, when it is announced.
+  final String? label;
 }
