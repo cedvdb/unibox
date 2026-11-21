@@ -464,6 +464,20 @@ void main() {
       expect(node.child, child);
       expect(node.children, <UINode>[child]);
     });
+
+    test('carries a host’s payloads without a class of its own', () {
+      // The case this exists for: a host with a widget to hand to one renderer and
+      // nothing to say to the others should not have to name a node type for it.
+      const node = EmbedNode.value(
+        implementations: <Object>['widget'],
+        child: TextNode('Carousel'),
+      );
+
+      expect(node.implementations, <Object>['widget']);
+      expect(node.child, isA<TextNode>());
+      expect(node.debugLabel, 'embed');
+      expect(validateTree(node), isEmpty);
+    });
   });
 }
 

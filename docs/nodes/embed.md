@@ -24,6 +24,7 @@ final class InkRipple extends EmbedNode {
 | --- | --- | --- | --- |
 | `implementations` | `List<Object>` | required | The payloads, one per renderer. A renderer accepts a `Widget`/`Component`, or a builder of one that wraps the child. |
 | `child` | `UINode?` | none | The content the implementations wrap, for effects. |
+| `EmbedNode.value(implementations: …)` | constructor | — | The node for a host with payloads and no class to name them with: it carries the list as a field. |
 
 Two conveniences cover the single-implementation case: `FlutterWidgetNode(widget)`
 in `unibox_flutter` and `HtmlEmbed(markup)` in `unibox_html`.

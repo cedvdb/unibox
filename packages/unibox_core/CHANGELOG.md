@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **An embed can be a value instead of a class.** `EmbedNode` was abstract, so a host that had a widget for one renderer and nothing to say to the others had to declare a node type to carry it. `EmbedNode.value(implementations: …)` is that node, and a payload that needs a name of its own still subclasses — the class is unchanged either way.
 - **A pin may sit at any depth below the box that scrolls it.** `validateTree` refused a pinned box
   whose parent was not the scroll container, because a browser bounds a sticky element by its own
   containing block while Flutter drew every bar at the edge of the viewport — so the two came to

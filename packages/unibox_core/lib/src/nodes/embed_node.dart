@@ -40,6 +40,18 @@ abstract class EmbedNode extends UINode {
   /// Creates an embed that wraps [child], or a leaf embed when it is `null`.
   const EmbedNode({super.key, this.child});
 
+  /// An embed whose implementations are a value rather than a class.
+  ///
+  /// A host that has a widget to hand to one renderer and nothing to say to the others
+  /// should not have to declare a class for it: `EmbedNode(implementations: <Object>[…])`
+  /// is the whole node. A payload that needs its own name, its own parameters or a
+  /// `debugLabel` of its own still subclasses, as the example above does.
+  const factory EmbedNode.value({
+    required List<Object> implementations,
+    UINode? child,
+    Object? key,
+  }) = _ValueEmbed;
+
   /// The content the implementations wrap, or `null` for a leaf embed.
   final UINode? child;
 
@@ -58,4 +70,16 @@ abstract class EmbedNode extends UINode {
   /// A literal, not the type name: a compiled build mangles the latter.
   @override
   String? get debugLabel => 'embed';
+}
+
+/// The embed [EmbedNode.value] builds: the implementations are a field, not a class.
+///
+/// It is private because the node it makes is an [EmbedNode] and nothing else — naming
+/// the class would invite a caller to depend on it, which is exactly what a value does
+/// not need.
+final class _ValueEmbed extends EmbedNode {
+  const _ValueEmbed({required this.implementations, super.child, super.key});
+
+  @override
+  final List<Object> implementations;
 }
