@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:unibox_core/unibox_core.dart' show BoxColorScheme, UniboxScope;
 import 'package:unibox_material/unibox_material.dart'
     show MaterialDensity, MaterialPalette;

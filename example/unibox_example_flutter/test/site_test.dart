@@ -31,6 +31,10 @@ Future<void> loadFonts() async {
 /// what the host alone decides: which address draws which tree, and that the page the
 /// document renders is the page this build renders.
 void main() {
+  // Loaded once, before any tree exists: a font load notifies the binding, and a
+  // notification that arrives while a tree is mounted is a relayout scheduled against it.
+  setUpAll(loadFonts);
+
   group('hostedPageFor', () {
     test('draws the components page at its own route', () {
       // The one page whose subject is the difference a substitution makes; it carries the
@@ -94,7 +98,6 @@ void main() {
     testWidgets('draws the whole page, down to the catalogue it closes on', (
       tester,
     ) async {
-      await loadFonts();
       tester.view.physicalSize = const Size(1280, 900);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
@@ -110,8 +113,15 @@ void main() {
       expect(find.text('Material'), findsOneWidget);
       expect(tester.takeException(), isNull);
 
-      // The spinner in the catalogue owns a ticker, and leaving the page is what stops it.
+      // The spinner in the catalogue owns a ticker, and leaving the page is what stops it — and
+      // the fonts loaded at the top of the test schedule a relayout for the frame after they
+      // arrive, so the tree is pumped once more once it is gone rather than left with a callback
+      // pending against a disposed binding.
       await tester.pumpWidget(const SizedBox());
+      // The font notification arrives as a platform message, which lands after the frame the
+      // load scheduled: flush the queue, then give it the frame it asked for.
+      await tester.idle();
+      await tester.pump();
     });
   });
 }

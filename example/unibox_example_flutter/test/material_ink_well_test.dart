@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart' hide BoxBorder;
+import 'package:material_ui/material_ui.dart' hide BoxBorder;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_flutter/unibox_flutter.dart';

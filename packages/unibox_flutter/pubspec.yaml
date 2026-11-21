@@ -13,12 +13,15 @@ topics:
 resolution: workspace
 
 environment:
-  sdk: ^3.13.0
-  flutter: ">=3.35.0"
+  sdk: ^3.14.0
+  flutter: ">=3.50.0"
 
 dependencies:
   flutter:
     sdk: flutter
+  # The Material library Flutter 3.50 ships as a package: `package:flutter/material.dart`
+  # forwards to it and is deprecated, and the forwarder's types are not the package's.
+  material_ui: ^1.11.1
   unibox_core: ^0.1.0
 
 dev_dependencies:
