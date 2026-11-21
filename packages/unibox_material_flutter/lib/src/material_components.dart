@@ -40,6 +40,7 @@ UniboxSubstitutions materialComponents() =>
       material.MaterialSpinner: _spinner,
       material.MaterialIconButton: _iconButton,
       material.MaterialProgressRing: _progressRing,
+      material.MaterialIcon: _icon,
     });
 
 /// The tokens [node] resolves to under the theme in force.
@@ -50,6 +51,53 @@ UniboxSubstitutions materialComponents() =>
 core.BoxStyle _styleOf(BuildContext context, core.Box node) => node
     .computedStyle
     .resolve(UniboxScopeWidget.of(context).theme ?? core.UniboxTheme.none);
+
+Widget _icon(BuildContext context, core.UINode node, Widget? content) {
+  final material.MaterialIcon icon = node as material.MaterialIcon;
+  final core.BoxStyle style = _styleOf(context, icon);
+  final core.BoxTextStyle text = style.textStyle ?? const core.BoxTextStyle();
+  final core.BoxColor? ink = text.color;
+
+  // A platform icon, not a glyph of text: `Icon` states its own size, follows the ambient
+  // `IconTheme`, and is not scaled by the reader's text size — which is what an icon is in an
+  // app. It draws the node's codepoint and family, so the two renderings still say the same
+  // thing; only the *shape* of the mark is the platform's.
+  //
+  // The font still has to be in the binary: Flutter subsets an icon font to the glyphs a const
+  // `IconData` in the application names, and the codepoint here is a run-time value. That is the
+  // host's side of the bargain, and the reason an application reads its codepoints from
+  // `Icons.*` rather than writing literals.
+  return Icon(
+    // The framework asks for a *constant* `IconData` here, and says why: it is the constant the
+    // icon subsetter reads. A node carries its codepoint at run time, so the guard is silenced
+    // deliberately and the bargain is stated — the host must have named this glyph with a const
+    // `IconData` of its own (`Icons.sell.codePoint`), or the font will not contain it.
+    // ignore: non_const_argument_for_const_parameter
+    _glyphOf(icon),
+    size: text.fontSize,
+    color: ink == null ? null : Color(ink.value),
+  );
+}
+
+/// The `IconData` a node names.
+///
+/// `IconData`'s family has to be a compile-time constant, so the two fonts the model names are
+/// stated here; `MaterialIcons` is `IconData`'s own default and needs no argument. A host that
+/// ships a third icon font maps this node itself — which is the substitution the map is for.
+// ignore: non_const_argument_for_const_parameter
+IconData _materialIcons(int codePoint) => IconData(codePoint);
+
+IconData _symbols(int codePoint) =>
+    // ignore: non_const_argument_for_const_parameter
+    IconData(codePoint, fontFamily: 'Material Symbols Outlined');
+
+IconData _glyphOf(material.MaterialIcon icon) {
+  final int codePoint = icon.codePoint ?? 0;
+
+  return icon.fontFamily == material.MaterialIcon.defaultFontFamily
+      ? _symbols(codePoint)
+      : _materialIcons(codePoint);
+}
 
 Widget _card(BuildContext context, core.UINode node, Widget? content) {
   final material.MaterialCard card = node as material.MaterialCard;
