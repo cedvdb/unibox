@@ -248,4 +248,37 @@ void main() {
       );
     });
   });
+
+  testWidgets(
+    "draws an icon with a platform icon, at the node's size and colour",
+    (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: renderFlutter(
+              material.MaterialIcon.codePoint(
+                0xe570,
+                size: 18,
+                color: const core.BoxColor(0xFF102030),
+                fontFamily: 'MaterialIcons',
+              ),
+              scope: core.UniboxScope(
+                theme: material.MaterialPalette.lightTheme,
+              ),
+              substitutions: materialComponents(),
+            ),
+          ),
+        ),
+      );
+
+      final Icon icon = tester.widget<Icon>(find.byType(Icon));
+
+      expect(icon.icon?.codePoint, 0xe570);
+      // No family argument is `IconData`'s own default, which is MaterialIcons: only the
+      // Symbols family has to be named, and `IconData` will not take a run-time one.
+      expect(icon.icon?.fontFamily, isNull);
+      expect(icon.size, 18);
+      expect(icon.color, const Color(0xFF102030));
+    },
+  );
 }
