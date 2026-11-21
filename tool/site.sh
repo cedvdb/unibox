@@ -100,11 +100,12 @@ cp -R example/unibox_example_flutter/build/web/. "$site/flutter/"
 
 # A static host has no rewrite rule, so a Flutter route is a real file. The build's
 # absolute base href is what lets the copied document resolve its assets from a
-# deeper path. One route: the build's root draws the site page, and the entry below
-# it draws the example on its own — the page the HTML rendering frames, and the one
-# a reader opens to compare the two renderings. The example is one page, and the
-# sign-up form is a dialog over it rather than an address of its own.
-for route in listings; do
+# deeper path. The build's root draws the site page, and the entries below it draw the
+# example on its own — the page the HTML rendering frames, and the one a reader opens to
+# compare the two renderings — and the components page, which exists to be compared with the
+# document at `web/components/`. The example is one page, and the sign-up form is a dialog
+# over it rather than an address of its own.
+for route in listings components; do
   mkdir -p "$site/flutter/$route"
   cp "$site/flutter/index.html" "$site/flutter/$route/index.html"
 done

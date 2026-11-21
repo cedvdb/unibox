@@ -233,6 +233,32 @@ rasterised, placeholder and focus colours, and hit testing. A browser and Flutte
 never agree on those down to the pixel, and the goal is that the two renderings are
 recognisably the same page.
 
+### Seeing the components as Flutter widgets
+
+One page exists for this comparison alone: `/flutter/components/`, and the same catalogue as a
+document at `web/components/`. It is the section the site closes on — `buildMaterialSection` —
+so there is one description of it and no second one to keep in step.
+
+Elsewhere the app draws Material nodes with Flutter's own widgets — that is the standard
+wiring of a host, because a document is served first and the app takes it over. This page
+draws the catalogue **twice, side by side**: once from the design system's values, which is
+what the document is served, and once with the map, where a card is a `Card` and a bar a
+`NavigationBar`. The captions say which is which, and the
+sections line up across the fold — which is why the page asks for a desktop window: at 1920 each
+half gets the 960 a page needs, and at 1280 one of the demos overflows. No address parameter is needed, and the two pages that are held
+to each other — the listings and the site — carry no switch at all: a proof that can be asked to
+look different is not a proof.
+
+```text
+http://localhost:8000/flutter/components/     the values, then Flutter's own widgets
+http://localhost:8000/web/components/         the catalogue as a document a crawler reads
+```
+
+The two-up frame is the host's rather than the tree's, deliberately: a tree has no way to say
+*draw this subtree with the other painter*, because a substitution is what a host asks for. So
+the page is the catalogue and the frame is a comparison harness, like the site's `showcaseFrame`.
+`design.md` §5.22 is the rule, and the package README says which parts are still open questions.
+
 ## The site is one page
 
 `buildSitePage` is the whole site: a header, four sections and a footer, in the order the

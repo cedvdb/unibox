@@ -13,6 +13,10 @@ dependencies:
   unibox_core: ^0.1.0
   unibox_example_shared: ^0.1.0
   unibox_flutter: ^0.1.0
+  # The door an application uses to draw a component with Flutter's own widget. The host
+  # passes the map to `renderFlutter`; the tree is unchanged.
+  unibox_material: ^0.1.0
+  unibox_material_flutter: ^0.1.0
   # The browser's own objects: the document's address, which routing reads, and the
   # `iframe` a frame of the site's comparison is. Only the web build uses either.
   web: ^1.1.1
@@ -21,9 +25,11 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   lints: ^6.1.0
-  unibox_material: ^0.1.0
 
 flutter:
+  uses-material-design: true
+  # Flutter's own icons, bundled: a substituted widget draws its own marks — the check on a
+  # chosen segment, a field's clear button — and without the font they are empty boxes.
   # The listings' photos, bundled: the same six thumbnails the website serves, so an `ImageNode`
   # with a relative source finds its file in the app's asset bundle as it does under `assets/photos`
   # on the web.

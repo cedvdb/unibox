@@ -32,6 +32,23 @@ Future<void> loadFonts() async {
 /// document renders is the page this build renders.
 void main() {
   group('hostedPageFor', () {
+    test('draws the components page at its own route', () {
+      // The one page whose subject is the difference a substitution makes; it carries the
+      // widget switch, where the pages below it deliberately do not.
+      expect(
+        hostedPageFor(
+          Uri.parse(
+            'https://cedvdb.github.io/unibox/flutter/components/?components=flutter',
+          ),
+        ),
+        HostedPage.components,
+      );
+      expect(
+        hostedPageFor(Uri.parse('http://localhost:8000/flutter/components/')),
+        HostedPage.components,
+      );
+    });
+
     test('draws the site page at the root of the Flutter build', () {
       expect(
         hostedPageFor(Uri.parse('https://cedvdb.github.io/unibox/flutter/')),

@@ -27,6 +27,9 @@ List<({String path, Document document})> sitePages({
   return <({String path, Document document})>[
     page('index.html', buildSiteDocument(build: build)),
     page('web/listings/index.html', buildExampleDocument(build: build)),
+    // The components page: the one page whose subject is the difference a substitution makes,
+    // so it is published beside the listings rather than hidden behind an address parameter.
+    page('web/components/index.html', buildComponentsDocument(build: build)),
     page(
       'web/takeover/index.html',
       buildTakeoverDocument(build: build, debug: debug),

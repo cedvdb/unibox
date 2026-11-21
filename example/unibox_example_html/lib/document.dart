@@ -62,6 +62,39 @@ Document buildExampleDocument({String? build}) {
   );
 }
 
+/// The components page as a document: the catalogue the site closes on, drawn from the design
+/// system's values.
+///
+/// It is the page whose subject is the comparison. The app can draw the same tree with
+/// Flutter's own card and bar (`?components=flutter` on the Flutter build), so a reader can put
+/// the two side by side — and this document is what a crawler, a link preview and a reader
+/// without JavaScript get: the components as real elements, with their labels and their
+/// landmark, before any widget is asked for.
+Document buildComponentsDocument({String? build}) {
+  return Document(
+    node: buildMaterialSection(),
+    head: DocumentHead(
+      title: 'Components — Unibox',
+      description:
+          'The Material components this workspace draws, from one tree: a card, a '
+          'navigation bar, a button, a chip and a tab strip.',
+      meta: <String, String>{
+        'unibox-build': ?build,
+        'unibox-page': 'components',
+      },
+      links: <DocumentLink>[
+        faviconLink('../../'),
+        ...fontPreloadLinks('../../'),
+      ],
+      raw: <String>['<style>${fontFaceCss('../../')}$pageCss</style>'],
+    ),
+    scope: UniboxScope(theme: ExamplePalette.themeFor(ExampleSeed.defaultSeed)),
+    // The client renderer adopts this markup, so the bar and the tabs answer a press on the web
+    // the way they do in the app — without Flutter, on the elements a crawler read.
+    scripts: const <DocumentScript>[DocumentScript(src: '../main.client.js')],
+  );
+}
+
 /// The same tree, as a document an application takes over.
 ///
 /// This is the other way to make a page interactive, and the one the comparison's right frame shows:

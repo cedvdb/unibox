@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:unibox_core/unibox_core.dart'
-    show BoxColorScheme, UniboxScope, UniboxTheme;
+import 'package:unibox_core/unibox_core.dart' show BoxColorScheme, UniboxScope;
+import 'package:unibox_material/unibox_material.dart'
+    show MaterialDensity, MaterialPalette;
+import 'package:unibox_material_flutter/unibox_material_flutter.dart'
+    show materialThemeData;
 
 /// The family both hosts ship: `assets/fonts` in this app, the same files in
 /// `assets/fonts` of the site.
@@ -25,21 +28,33 @@ Widget surface({
   required String title,
   required UniboxScope scope,
   required Widget child,
+  MaterialPalette? palette,
+  MaterialDensity density = MaterialDensity.standard,
+  ThemeData? themeData,
 }) {
-  final UniboxTheme? theme = scope.theme;
-
   return MaterialApp(
     title: title,
     // The scheme is not guessed from the phone: the theme the tree is drawn with has already
     // said which one it is, and `ThemeData` is told the same fact. Without it the parts
     // Material still draws for us — the caret, the selection, a field's scrollbars — would
     // follow the system while the page around them stayed light.
-    theme: ThemeData(
-      fontFamily: fontFamily,
-      brightness: theme?.colorScheme == BoxColorScheme.dark
-          ? Brightness.dark
-          : Brightness.light,
-    ),
+    // The scheme comes from the palette the tree is drawn with, so a widget the app draws —
+    // a `Card`, a `FilledButton`, an ink ripple — paints the same design the page does.
+    // Without it Flutter falls back to its baseline purple, which is a second design.
+    theme:
+        themeData ??
+        (palette == null
+            ? ThemeData(
+                fontFamily: fontFamily,
+                brightness: scope.theme?.colorScheme == BoxColorScheme.dark
+                    ? Brightness.dark
+                    : Brightness.light,
+              )
+            : materialThemeData(
+                palette,
+                fontFamily: fontFamily,
+                density: density,
+              )),
     debugShowCheckedModeBanner: false,
     home: ScrollConfiguration(
       behavior: const MaterialScrollBehavior().copyWith(

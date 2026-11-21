@@ -34,6 +34,23 @@ void main() {
     (Widget widget) => widget is FlutterBox && widget.box.onTap != null,
   );
 
+  testWidgets('is eight pixels shorter at the compact density', (
+    WidgetTester tester,
+  ) async {
+    // The height Flutter draws a button at on a desk, stated by the model rather than left to
+    // the platform: `MaterialDensity.forPlatform(MaterialPlatform.macos)` is `compact`, two
+    // steps of four pixels, so the pill is 32.
+    final MaterialButton button = MaterialButton.filled(
+      label: const core.TextNode('Sign in'),
+      density: MaterialDensity.compact,
+      onTap: () {},
+    );
+
+    await tester.pumpWidget(page(button));
+
+    expect(tester.getRect(pillOf(button)).height, 32);
+  });
+
   testWidgets(
     'fills the pill with the press, whatever room the caller leaves',
     (WidgetTester tester) async {

@@ -1,9 +1,15 @@
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:unibox_core/unibox_core.dart'
     show BoxPress, BoxScrollOffset, UniboxScope, UniboxTheme;
 import 'package:unibox_example_shared/unibox_example_shared.dart';
 import 'package:unibox_flutter/unibox_flutter.dart';
+import 'package:unibox_material/unibox_material.dart'
+    show MaterialDensity, MaterialPlatform;
+import 'package:unibox_material_flutter/unibox_material_flutter.dart';
 
+import 'components_app.dart';
 import 'page_address.dart';
 import 'site.dart';
 import 'surface.dart';
@@ -12,6 +18,9 @@ void main() => runApp(switch (hostedPageFor(pageAddress)) {
   // The root of the Flutter build: the site page, drawn by the other renderer, so a reader
   // can compare the two renderings of one tree.
   HostedPage.site => SiteApp(seed: seedFromUrl()),
+  // The components page: one tree of Material components, and the address says which
+  // rendering draws it.
+  HostedPage.components => ComponentsApp(),
   // Everywhere else: the example. That is the route below the build's root, the takeover
   // document the HTML page frames, and every platform that was never served a document.
   HostedPage.example => ExampleApp(
@@ -86,12 +95,25 @@ class _ExampleAppState extends State<ExampleApp> {
   @override
   Widget build(BuildContext context) {
     final UniboxTheme uniboxTheme = ExamplePalette.themeFor(_seed);
+    // The platform this app is, so the components are built and drawn at its density.
+    final MaterialDensity density = MaterialDensity.forPlatform(
+      switch (defaultTargetPlatform) {
+        TargetPlatform.android => MaterialPlatform.android,
+        TargetPlatform.iOS => MaterialPlatform.ios,
+        TargetPlatform.fuchsia => MaterialPlatform.fuchsia,
+        TargetPlatform.macOS => MaterialPlatform.macos,
+        TargetPlatform.windows => MaterialPlatform.windows,
+        TargetPlatform.linux => MaterialPlatform.linux,
+      },
+    );
 
     // The surface — the family, the scheme, the scaffold — is the same one the site page is
     // drawn on, so the two renderings of the page cannot disagree about it.
     return surface(
       title: 'Unibox example',
       scope: UniboxScope(theme: uniboxTheme),
+      palette: ExamplePalette.materialFor(_seed),
+      density: density,
       // Read once, as the controller's initial position, so a region is where the
       // reader left it at the first layout rather than after a correction.
       child: UniboxScrollScope(
@@ -105,6 +127,10 @@ class _ExampleAppState extends State<ExampleApp> {
           child: FlutterStateful(
             node: ExamplePageNode(seed: _seed),
             scope: UniboxScope(theme: uniboxTheme),
+            // A Material node is drawn by Flutter's own widget, on every screen: a document
+            // is served first and this app takes over, so the widgets are the standard
+            // rendering and not a special case.
+            substitutions: materialComponents(),
             // The presses are answered by the node that owns the callbacks, once.
             presses: widget.presses,
           ),

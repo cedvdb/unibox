@@ -1,7 +1,12 @@
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform;
 import 'package:flutter/widgets.dart';
 import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_example_shared/unibox_example_shared.dart';
 import 'package:unibox_flutter/unibox_flutter.dart';
+import 'package:unibox_material/unibox_material.dart'
+    show MaterialDensity, MaterialPlatform;
+import 'package:unibox_material_flutter/unibox_material_flutter.dart';
 
 import 'showcase_frame.dart';
 import 'surface.dart';
@@ -14,6 +19,10 @@ enum HostedPage {
   /// The example, at every other address: the route below the build's root, a takeover
   /// document, a phone.
   example,
+
+  /// The components page, at `/flutter/components/`: one tree of Material components, drawn
+  /// from the values — and from Flutter's own widgets when the address asks for them.
+  components,
 }
 
 /// The page the application was loaded at, read from [address].
@@ -29,6 +38,10 @@ HostedPage hostedPageFor(Uri address) {
   final List<String> segments = address.pathSegments
       .where((String segment) => segment.isNotEmpty)
       .toList(growable: false);
+
+  if (segments.contains('components')) {
+    return HostedPage.components;
+  }
 
   return segments.isNotEmpty && segments.last == 'flutter'
       ? HostedPage.site
@@ -72,10 +85,23 @@ class _SiteAppState extends State<SiteApp> {
   @override
   Widget build(BuildContext context) {
     final UniboxTheme theme = ExamplePalette.themeFor(_seed);
+    // The platform this app is, so the components are built and drawn at its density.
+    final MaterialDensity density = MaterialDensity.forPlatform(
+      switch (defaultTargetPlatform) {
+        TargetPlatform.android => MaterialPlatform.android,
+        TargetPlatform.iOS => MaterialPlatform.ios,
+        TargetPlatform.fuchsia => MaterialPlatform.fuchsia,
+        TargetPlatform.macOS => MaterialPlatform.macos,
+        TargetPlatform.windows => MaterialPlatform.windows,
+        TargetPlatform.linux => MaterialPlatform.linux,
+      },
+    );
 
     return surface(
       title: 'Unibox — the site, drawn by Flutter',
       scope: UniboxScope(theme: theme),
+      palette: ExamplePalette.materialFor(_seed),
+      density: density,
       child: FlutterLinkScope(
         open: _open,
         // A document scrolls; a column of sections taller than the window needs one scroll view
@@ -84,6 +110,7 @@ class _SiteAppState extends State<SiteApp> {
           child: renderFlutter(
             buildSitePage(frame: showcaseFrame, seed: _seed),
             scope: UniboxScope(theme: theme),
+            substitutions: materialComponents(),
           ),
         ),
       ),
