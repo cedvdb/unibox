@@ -73,6 +73,16 @@ final class UniboxSubstitutions {
 
   const UniboxSubstitutions._(this._builders);
 
+  /// This map with [other]'s entries laid over it.
+  ///
+  /// A host composes what it draws with from the maps it was handed: a design system's components,
+  /// and the ones that are its own and belong to no package. Later wins, so an application can
+  /// correct an entry it disagrees with — and the union is checked by the same rule as a map built
+  /// by hand, so a structural node is refused wherever it arrives from.
+  UniboxSubstitutions and(UniboxSubstitutions other) => UniboxSubstitutions(
+    <Type, NodeSubstitution>{..._builders, ...other._builders},
+  );
+
   final Map<Type, NodeSubstitution> _builders;
 
   /// The nodes this map refuses, because they are the model rather than a component.
