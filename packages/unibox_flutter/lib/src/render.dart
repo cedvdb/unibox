@@ -10,6 +10,7 @@ import 'overlay_node.dart';
 import 'stack_node.dart';
 import 'stateful_node.dart';
 import 'scope.dart';
+import 'substitutions.dart';
 import 'text_input_node.dart';
 import 'text_node.dart';
 import 'text_style_scope.dart';
@@ -43,13 +44,21 @@ import 'values.dart';
 /// [scope] answers the colour roles the tree names, and carries the language and the direction of
 /// the page. A tree that uses no role renders without a theme; a tree that names one and is given
 /// none fails with the role in the message instead of painting nothing.
+/// [substitutions] answers the components an application would rather draw with the
+/// platform's own widget. It is empty by default, so every node is drawn from the model's
+/// values; a host that asks is trading the pixel the two renderings share for the behaviour
+/// the widget carries, and [UniboxSubstitutions] states what that is allowed to touch.
 Widget renderFlutter(
   core.UINode node, {
   core.UniboxScope scope = core.UniboxScope.none,
+  UniboxSubstitutions substitutions = const UniboxSubstitutions.none(),
 }) {
   _reportTreeIssues(node, scope);
 
-  final Widget tree = renderNode(node);
+  final Widget drawn = renderNode(node);
+  final Widget tree = substitutions.isEmpty
+      ? drawn
+      : UniboxSubstitutionsWidget(substitutions: substitutions, child: drawn);
 
   return _withDefaultTypography(
     scope == core.UniboxScope.none
@@ -222,6 +231,8 @@ extension UINodeFlutterRenderer on core.UINode {
   /// ```dart
   /// runApp(MaterialApp(home: page.toWidget(scope: UniboxScope(theme: palette))));
   /// ```
-  Widget toWidget({core.UniboxScope scope = core.UniboxScope.none}) =>
-      renderFlutter(this, scope: scope);
+  Widget toWidget({
+    core.UniboxScope scope = core.UniboxScope.none,
+    UniboxSubstitutions substitutions = const UniboxSubstitutions.none(),
+  }) => renderFlutter(this, scope: scope, substitutions: substitutions);
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
 
+import 'substitutions.dart';
 import 'values.dart';
 
 /// Renders a [core.ImageNode] as a Flutter [Image].
@@ -29,6 +30,20 @@ class FlutterImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // An image is the leaf an application most often owns: a cache, a placeholder of the
+    // same height, a blurhash. The node still says which picture, how big, how it is fitted
+    // and what a reader calls it, so a substitution changes how the bytes arrive and never
+    // what the page says.
+    final Widget? substituted = UniboxSubstitutionsWidget.substitute(
+      context,
+      node,
+      null,
+    );
+
+    if (substituted != null) {
+      return substituted;
+    }
+
     final double? borderRadius = node.borderRadius;
 
     final Widget image = Image(

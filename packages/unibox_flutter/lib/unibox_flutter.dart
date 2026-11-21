@@ -26,12 +26,15 @@ export 'src/image_node.dart' show FlutterImage;
 export 'src/link_scope.dart' show FlutterLinkOpener, FlutterLinkScope;
 export 'src/overlay_node.dart' show FlutterOverlay;
 export 'src/page_press.dart' show pressesFromPage;
+export 'src/press_replay.dart' show pressRecorded;
 export 'src/page_scroll.dart' show scrollOffsetsFromPage;
 export 'src/render.dart';
 export 'src/scroll_scope.dart' show UniboxScrollScope;
 export 'src/shape.dart' show pathOf, toStrokeCap;
 export 'src/stack_node.dart' show FlutterStack;
 export 'src/stateful_node.dart' show FlutterStateful;
+export 'src/substitutions.dart'
+    show NodeSubstitution, UniboxSubstitutions, UniboxSubstitutionsWidget;
 export 'src/unibox_ready.dart' show uniboxReady, wasTakenOver;
 export 'src/text_input_node.dart' show FlutterTextInput;
 export 'src/text_node.dart' show FlutterText;

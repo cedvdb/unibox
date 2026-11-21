@@ -14,15 +14,23 @@ const Key nodeKey = ValueKey<String>('unibox-node');
 ///
 /// [theme] is the scope the suite usually needs — a theme and nothing else: it is wrapped into an
 /// `UniboxScope` here, so a test never spells the same three fields out.
+///
+/// [substitutions] is what an application asks the renderer to draw with the platform's own
+/// widget; empty by default, which is the rendering every other case in this suite holds.
 Future<void> pumpNode(
   WidgetTester tester,
   core.UINode node, {
   Widget Function(Widget child)? wrap,
   core.UniboxTheme? theme,
+  UniboxSubstitutions substitutions = const UniboxSubstitutions.none(),
 }) async {
   final Widget rendered = KeyedSubtree(
     key: nodeKey,
-    child: renderFlutter(node, scope: core.UniboxScope(theme: theme)),
+    child: renderFlutter(
+      node,
+      scope: core.UniboxScope(theme: theme),
+      substitutions: substitutions,
+    ),
   );
 
   await tester.pumpWidget(

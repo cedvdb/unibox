@@ -33,6 +33,8 @@ void main() {
     // to be called.
     const FlutterLinkOpener? noHook = null;
     const FlutterWidgetEmbedBuilder? noBuilder = null;
+    const NodeSubstitution? noSubstitution = null;
+    const UniboxSubstitutions noSubstitutions = UniboxSubstitutions.none();
 
     final List<Object?> exported = <Object?>[
       FlutterBox,
@@ -51,9 +53,11 @@ void main() {
       widget,
       noHook,
       noBuilder,
+      noSubstitution,
+      noSubstitutions,
     ];
 
-    expect(exported, hasLength(16));
+    expect(exported, hasLength(18));
     expect(widget, isNotNull);
     expect(renderFlutter, isNotNull);
   });

@@ -2,6 +2,30 @@
 
 ## Unreleased
 
+- **A press a page recorded is replayed by pressing the widget that wears its key**, after the
+  first frame, through the same hit testing a finger goes through - instead of calling the
+  callback the node happened to carry. That is what makes a component answer: a button keeps
+  its handler on the ink well inside it, so the node wearing the key had none to fire and the
+  press was lost. `pressRecorded` is the whole of it; `FlutterStateful` calls it once.
+
+- **A press the tree answers plays the platform's own feedback** — a click on Android, a light
+  tap on iOS — so a control a box drew is no longer silent where the widget it replaced was
+  heard. The sound is behaviour and not paint: the web renderer has no counterpart, and a press
+  that only opens a link stays silent on both, because a browser plays nothing for an `<a>`
+  either.
+
+- **`renderFlutter`, `toWidget` and `FlutterStateful` take `substitutions`**, which lets an
+  application draw a component with the platform's own widget instead of the model's values: a card
+  is a `Card`, a bar is a `NavigationBar`. It is empty by default, so nothing changes unless a host
+  asks; it is keyed by the node's exact runtime type; it refuses the structural nodes, which carry
+  the layout and the text both renderings owe; and it paints the node the renderer already built,
+  so the same words, order, links, semantics and tap targets still come from one tree. What a
+  substitution gives up is the pixel the two renderings shared — a card's shadow, a bar's
+  indicator — which is why a screen whose reveal depends on that pixel is served as a document
+  rather than taken over. `FlutterStateful` takes it because it builds the view itself, so a host
+  that roots an application in a stateful node has nowhere else to say it. See
+  [the README](README.md#substitution).
+
 - **A pin the viewport does not hold is laid out in its parent and painted at the edge**, which is
   what `position: sticky` does in a browser: a panel inside a row of cards comes to rest under the
   header while the cards scroll, and leaves with the row's bottom edge rather than with the page's.

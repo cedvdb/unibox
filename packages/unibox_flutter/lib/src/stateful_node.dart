@@ -2,8 +2,10 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
 
+import 'press_replay.dart';
 import 'render.dart';
 import 'scope.dart';
+import 'substitutions.dart';
 import 'unibox_ready.dart';
 
 /// Renders a [core.StatefulNode]: one store and the tree of its state.
@@ -28,6 +30,7 @@ class FlutterStateful extends StatefulWidget {
   const FlutterStateful({
     required this.node,
     this.scope = core.UniboxScope.none,
+    this.substitutions = const UniboxSubstitutions.none(),
     this.presses = const <core.BoxPress>[],
     super.key,
   });
@@ -38,12 +41,20 @@ class FlutterStateful extends StatefulWidget {
   /// What the rendering is drawn against, and what the roles of the tree stand for.
   final core.UniboxScope scope;
 
+  /// The components the host would rather draw with the platform's own widget.
+  ///
+  /// It travels here for the reason [scope] does: the view is built inside this widget, so a
+  /// host that roots its application in a stateful node has nowhere else to say it. Empty by
+  /// default, which draws every node from the model's values.
+  final UniboxSubstitutions substitutions;
+
   /// The presses a page recorded before this node existed.
   ///
-  /// They are answered once, against the first view this node builds — which is the only place
-  /// their callbacks exist: the view is a function of the store, and the store is created when
-  /// this widget mounts. A press whose key matches no node, or two of them, is dropped rather
-  /// than guessed at; see `replayPresses`.
+  /// They are answered once, after the first frame, by *pressing* the widgets that wear their
+  /// keys: a recorded press is a pointer that went down somewhere, so the widget's own
+  /// recogniser answers it — a box, a platform `FilledButton`, anything an application wrote.
+  /// A key that matches no widget, matches two, or is not on screen is reported rather than
+  /// guessed at; see `pressRecorded`.
   final List<core.BoxPress> presses;
 
   @override
@@ -68,6 +79,20 @@ class FlutterStatefulState extends State<FlutterStateful> {
     super.initState();
     _store = widget.node.createStore()..addListener(_changed);
     _store.onMount();
+
+    // A press a page recorded before this application existed is answered once the first frame
+    // has laid the tree out, because a press is a pointer and needs a box to aim at: the widget
+    // that wears the key answers it, which is how a platform button answers at all.
+    if (widget.presses.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || _replayed) {
+          return;
+        }
+
+        _replayed = true;
+        pressRecorded(widget.presses, root: context);
+      });
+    }
 
     // A page that was handed over is read with a screen reader and watched by a document waiting
     // to be sure the application has drawn: both are answered here, so a host writes nothing.
@@ -111,16 +136,28 @@ class FlutterStatefulState extends State<FlutterStateful> {
 
   @override
   Widget build(BuildContext context) {
-    final core.UINode view = widget.node.viewFor(_store.state, _store);
+    // A component the host draws with its own widget takes the whole node, the way a box is
+    // taken: a field, a tab set and a spinner are stateful, and none of them is drawn from a
+    // surface the way a card is.
+    final Widget? substituted = UniboxSubstitutionsWidget.substitute(
+      context,
+      widget.node,
+      null,
+    );
 
-    // A press is answered where its callback is: the view just built, with the store it closed
-    // over. Once, so a rebuild does not press again.
-    if (!_replayed && widget.presses.isNotEmpty) {
-      _replayed = true;
-      core.replayPresses(view, widget.presses);
+    if (substituted != null) {
+      return substituted;
     }
 
-    final Widget tree = renderNode(view);
+    final core.UINode view = widget.node.viewFor(_store.state, _store);
+
+    final Widget drawn = renderNode(view);
+    final Widget tree = widget.substitutions.isEmpty
+        ? drawn
+        : UniboxSubstitutionsWidget(
+            substitutions: widget.substitutions,
+            child: drawn,
+          );
     final core.UniboxScope scope = widget.scope;
 
     return scope == core.UniboxScope.none

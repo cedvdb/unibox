@@ -570,6 +570,8 @@ draw, or two of them, is reported by `renderFlutter` instead of being skipped.
 A [`StatefulNode`](../unibox_core/README.md#state) is rendered by `FlutterStateful`,
 written once for every node an application defines:
 
+- a press a document recorded is replayed after the first frame by pressing the widget that
+  wears its key, so a platform button answers it as it answers a finger;
 - the store is created when the widget mounts, subscribed to, and `onMount` is
   called; a rebuild with a node of the same type and key keeps the state, and a
   different key starts again;
@@ -581,6 +583,9 @@ written once for every node an application defines:
   `dispose` on the store;
 - the view's tree is rendered in place, so it inherits the typography and the
   layout of the boxes around it;
+- `substitutions` travels with the node for the reason `scope` does: the view is built
+  inside this widget, so a host that roots its application in a stateful node says it here
+  and nowhere else;
 - the view returns one tree; a dialog is an `OverlayNode` in it, presented through
   the root overlay, so nothing in this layer is modal;
 - **when a document handed this application the page**, the widget keeps an
@@ -613,6 +618,53 @@ escapes the clipping and the scrolling of the boxes around it:
 
 A tree that contains an overlay needs an `Overlay` above it — every `MaterialApp`
 or `WidgetsApp` provides one.
+
+## Substitution
+
+An application may draw a component with the platform's own widget instead of the model's
+values. It is one value, built once and handed to the rendering:
+
+```dart
+renderFlutter(
+  page,
+  scope: UniboxScope(theme: palette),
+  substitutions: UniboxSubstitutions(<Type, NodeSubstitution>{
+    MaterialCard: (BuildContext context, UINode node, Widget? content) =>
+        Card(margin: EdgeInsets.zero, child: content),
+  }),
+);
+```
+
+`content` is the node's inside as this renderer laid it out — its children, with the direction,
+the gap, the alignment and the padding the node asked for — and `null` for a leaf, which is how
+an image is handed to the cache an application already has. The node is handed over too, so a
+builder that is a whole control (a `NavigationBar`, which lays its own destinations out) can read
+its parameters and ignore the inside.
+
+Four rules keep it from becoming a second renderer:
+
+- **Empty by default.** A rendering without substitutions draws every node from the values, which
+  is the rendering the document makes and the one `unibox_testing` holds both targets to.
+- **Keyed by the exact runtime type.** A substitution for a card draws cards; a subclass is its
+  own node and needs its own entry.
+- **The structural nodes are refused** — a box, a text, a stack, a grid, a link, a field. They
+  carry the layout and the text both renderings owe; substituting one is a second renderer, and
+  `UniboxSubstitutions` throws rather than let a tree quietly change shape.
+- **Paint only.** What may change is how a component looks and behaves; what may not is the
+  information — the same words, in the same order, with the same links, semantics and tap
+  targets.
+
+What a substitution costs is the pixel the two renderings shared: a `Card` spends its elevation
+through `drawShadow` rather than painting the design file's ladder, and a `NavigationBar` states
+its own indicator size. A screen whose takeover reveal depends on that pixel should be served as
+a document instead, or held to `?unibox=compare`. The example's
+`test/material_widgets_test.dart` pins the bargain: the widget when the map is there, the values
+when it is not, the same words either way; `unibox_material_flutter` is the map itself.
+
+**Experimental.** The door is new: one map, two components, no `compare` run behind the takeover
+rule yet, and open questions about how far a substitution should reach. `design.md` §5.22 states
+what it may and may not change — that part is settled — and
+[`unibox_material_flutter`](../unibox_material_flutter) is the first draft of a map that uses it.
 
 ## Testing
 

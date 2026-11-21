@@ -12,6 +12,8 @@ import 'link_scope.dart';
 import 'render.dart';
 import 'shape.dart';
 import 'stack_node.dart';
+import 'substitutions.dart';
+import 'tap_feedback.dart';
 import 'text_style_scope.dart';
 import 'scroll_scope.dart';
 import 'scope.dart';
@@ -326,48 +328,63 @@ class FlutterBoxState extends State<FlutterBox> {
       content = Padding(padding: toEdgeInsets(padding), child: content);
     }
 
-    final core.BoxShape? shape = style.shape;
+    // A component the application draws with the platform's own widget takes the node's
+    // surface — its clip, its fill, its border, its shadow, and the easing between two of
+    // them — and nothing else. What it wraps is the inside this renderer laid out, and the
+    // dimensions, the look, the interactions and the margin below stay the tree's, so a
+    // substituted control is sized, placed and made pressable exactly as the drawn one was.
+    final Widget? substituted = UniboxSubstitutionsWidget.substitute(
+      context,
+      box,
+      content,
+    );
 
-    // A scrolling box already clips its own viewport, but squarely: it needs an
-    // explicit clip only when the box is rounded, so that the content is cut to the
-    // radius the way CSS cuts it.
-    final double radius = style.borderRadius ?? 0;
-    final bool clipsContent =
-        style.overflow == core.Overflow.hidden ||
-        (style.overflow == core.Overflow.scroll &&
-            (radius > 0 || shape != null));
-
-    // The clip goes *inside* the decoration, not around it. CSS cuts a box's content
-    // to its radius and never its own `box-shadow`, which paints outside the border
-    // box; a ClipRRect around a DecoratedBox would swallow the shadow, and a card with
-    // `overflow: hidden` would be lifted on the web and flat in Flutter.
-    if (clipsContent) {
-      content = _clipTo(content, style);
-    }
-
-    // A shape replaces the rectangle the decoration would paint: the same box, drawn
-    // as its outline. It goes where the decoration goes — around the clipped content
-    // — so the fill is behind the children, the way CSS paints a background behind
-    // content, and the clip still cuts them to the same path.
-    if (shape != null) {
-      content = CustomPaint(
-        painter: UniboxShapePainter(
-          shape: shape,
-          fill: style.backgroundColor,
-          border: style.border,
-        ),
-        child: content,
-      );
-    } else if (fold != null) {
-      content = _folded(content, style, fold, foldedAt!);
+    if (substituted != null) {
+      content = substituted;
     } else {
-      final BoxDecoration? decoration = toDecoration(style);
-      if (decoration != null) {
-        content = _decorated(
-          decoration,
-          _paintTiming(style.transition),
-          content,
+      final core.BoxShape? shape = style.shape;
+
+      // A scrolling box already clips its own viewport, but squarely: it needs an
+      // explicit clip only when the box is rounded, so that the content is cut to the
+      // radius the way CSS cuts it.
+      final double radius = style.borderRadius ?? 0;
+      final bool clipsContent =
+          style.overflow == core.Overflow.hidden ||
+          (style.overflow == core.Overflow.scroll &&
+              (radius > 0 || shape != null));
+
+      // The clip goes *inside* the decoration, not around it. CSS cuts a box's content
+      // to its radius and never its own `box-shadow`, which paints outside the border
+      // box; a ClipRRect around a DecoratedBox would swallow the shadow, and a card with
+      // `overflow: hidden` would be lifted on the web and flat in Flutter.
+      if (clipsContent) {
+        content = _clipTo(content, style);
+      }
+
+      // A shape replaces the rectangle the decoration would paint: the same box, drawn
+      // as its outline. It goes where the decoration goes — around the clipped content
+      // — so the fill is behind the children, the way CSS paints a background behind
+      // content, and the clip still cuts them to the same path.
+      if (shape != null) {
+        content = CustomPaint(
+          painter: UniboxShapePainter(
+            shape: shape,
+            fill: style.backgroundColor,
+            border: style.border,
+          ),
+          child: content,
         );
+      } else if (fold != null) {
+        content = _folded(content, style, fold, foldedAt!);
+      } else {
+        final BoxDecoration? decoration = toDecoration(style);
+        if (decoration != null) {
+          content = _decorated(
+            decoration,
+            _paintTiming(style.transition),
+            content,
+          );
+        }
       }
     }
 
@@ -377,7 +394,10 @@ class FlutterBoxState extends State<FlutterBox> {
       stretchedAcross: stretchedAcross,
     );
     content = _applyLook(content, style, box, fold: fold);
-    content = _applyInteractions(content, box);
+    // A component the host draws with its own widget states its own semantics: a `TabBar`
+    // gives every tab the tab role, and a role laid over it is a second answer Flutter
+    // refuses.
+    content = _applyInteractions(content, box, semantics: substituted == null);
 
     final core.BoxSpacing? margin = style.margin;
     if (margin != null && !margin.isZero) {
@@ -1224,7 +1244,11 @@ class FlutterBoxState extends State<FlutterBox> {
   /// reader is told it is a link. The gesture stays the box's, which is what keeps the
   /// pressed state and the ink a well starts on tap-down working — wrapping the box in a
   /// wrapper would put a second gesture and a second semantics node around it.
-  Widget _applyInteractions(Widget content, core.Box box) {
+  Widget _applyInteractions(
+    Widget content,
+    core.Box box, {
+    bool semantics = true,
+  }) {
     final bool interactive = box.isInteractive;
     final core.LinkNode? destination = box is core.LinkNode ? box : null;
     final bool link = destination != null && box.enabled;
@@ -1260,7 +1284,10 @@ class FlutterBoxState extends State<FlutterBox> {
         box.onTapDown != null) {
       result = GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: interactive ? box.onTap : null,
+        // A press is handled the same way whether the box names a destination or its own
+        // callback: one function activates it, so the platform's feedback and the pressed
+        // state cannot reach one and miss the other.
+        onTap: interactive && box.onTap != null ? () => _activate(box) : null,
         onLongPress: interactive ? box.onLongPress : null,
         onTapDown: interactive ? _handleTapDown : null,
         onTapUp: interactive ? (TapUpDetails _) => _setPressed(false) : null,
@@ -1306,7 +1333,7 @@ class FlutterBoxState extends State<FlutterBox> {
       result = Listener(behavior: HitTestBehavior.opaque, child: result);
     }
 
-    return _describeToSemantics(result, box);
+    return semantics ? _describeToSemantics(result, box) : result;
   }
 
   /// Runs what a press of [box] does: its own handler, or its destination.
@@ -1318,6 +1345,10 @@ class FlutterBoxState extends State<FlutterBox> {
     final core.TapCallback? onTap = box.onTap;
 
     if (onTap != null) {
+      // A press the tree answers is a control, and a control in an application clicks. A
+      // link that only opens is the browser's gesture and stays silent: the web renderer
+      // has nothing to play for an `<a>` either.
+      playTapFeedback(context);
       onTap();
     } else if (box is core.LinkNode) {
       _open?.call(box.url);
