@@ -51,6 +51,7 @@ DOCUMENTS = [
     'docs/nodes/overlay.md',
     'docs/nodes/embed.md',
     'docs/takeover.md',
+    'packages/unibox_material_flutter/README.md',
     'RELEASE.md',
     INDEX,
 ]

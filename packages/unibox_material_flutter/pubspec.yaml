@@ -1,0 +1,28 @@
+name: unibox_material_flutter
+description: Draws unibox_material's components with Flutter's own widgets, for an application that asks for it.
+publish_to: none
+version: 0.1.0
+repository: https://github.com/cedvdb/unibox
+homepage: https://github.com/cedvdb/unibox
+issue_tracker: https://github.com/cedvdb/unibox/issues
+topics:
+  - material
+  - widgets
+  - design-system
+resolution: workspace
+
+environment:
+  sdk: ^3.13.0
+  flutter: ">=3.35.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  unibox_core: ^0.1.0
+  unibox_flutter: ^0.1.0
+  unibox_material: ^0.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  lints: ^6.1.0

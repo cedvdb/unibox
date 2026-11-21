@@ -13,6 +13,7 @@ workspace:
   - packages/unibox_dom
   - packages/unibox_html
   - packages/unibox_material
+  - packages/unibox_material_flutter
   - example/unibox_example_shared
   - example/unibox_example_flutter
   - example/unibox_example_html

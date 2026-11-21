@@ -78,6 +78,9 @@ jobs:
       - name: unibox_flutter
         working-directory: packages/unibox_flutter
         run: flutter test
+      - name: unibox_material_flutter
+        working-directory: packages/unibox_material_flutter
+        run: flutter test
       - name: example shared tree
         working-directory: example/unibox_example_shared
         run: dart test
@@ -144,6 +147,7 @@ jobs:
           unibox_core
           unibox_testing
           unibox_material
+          unibox_material_flutter
           unibox_html
           unibox_dom
           unibox_flutter
