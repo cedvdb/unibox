@@ -109,7 +109,7 @@ void main() {
           gap: 16,
           children: <core.UINode>[
             core.Box(key: 0, height: 40),
-            core.Box(key: 1, height: 40, gridSpan: 2),
+            core.Box(key: 1, height: 40, gridSpan: core.GridSpan.tracks(2)),
             core.Box(key: 2, height: 40),
           ],
         ),
@@ -134,7 +134,7 @@ void main() {
           gap: 16,
           children: <core.UINode>[
             core.Box(key: 0, height: 40),
-            core.Box(key: 1, height: 40, gridSpan: 2),
+            core.Box(key: 1, height: 40, gridSpan: core.GridSpan.tracks(2)),
             core.Box(key: 2, height: 40),
           ],
         ),

@@ -69,7 +69,7 @@ the box above it, so a tree written right to left states it once, at its root â€
 of `<html>`. Resolving a default here would either force left to right over a page that is
 correctly Arabic, or guess from a `lang` â€” and a language is not a direction, because
 Azerbaijani, Kurdish and Punjabi are written in both scripts.
-| `Box.gridSpan` | one track: a card covers one column, and only a grid child covers more |
+| `Box.gridSpan` | one track: a card covers one column, and only a grid child covers more; `GridSpan.row()` is the whole row at any width |
 | `Box.wrap` | off: a box is one line, and a child that does not fit runs past its edge until the box says otherwise |
 | `Box.pinOffset` | zero: a pinned bar keeps none of the edge it pins to (`BoxStyle.resolvedPinOffset`) |
 | a link's paint | the browser's blue and underline: cancelled on an anchor, so a link looks like the box that states it |

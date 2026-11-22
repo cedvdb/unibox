@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- A box that spans `GridSpan.row()` is drawn as `grid-column: 1 / -1` — the row's own edges — so
+  a banner stays the width of the grid when a narrow layout leaves it one column, where
+  `grid-column: span 3` would overflow it.
 - A pin may now sit at any depth below the box that scrolls it, and a document draws it with no
   change: `position: sticky` already measures the edge against the nearest scrollport and bounds the
   travel to the element's containing block. The README records the one thing a host must avoid — an

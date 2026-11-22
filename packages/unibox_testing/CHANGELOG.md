@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- The grid table holds `GridSpan.row()`: a banner is the whole row at every column count, and
+  the reader understands `grid-column: 1 / -1` as every column rather than as one.
 - `BehaviourCase` and `behaviourCases`: the half of the contract the appearance tables cannot
   describe, because a step changes the tree. A case names a component, the presses a reader makes
   — or the node drawn over it with other parameters — and the text each one has to produce, by

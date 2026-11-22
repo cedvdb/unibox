@@ -65,7 +65,10 @@ void main() {
         minItemWidth: 280,
         maxColumns: 3,
         gap: 16,
-        children: <UINode>[Box(height: 40), Box(height: 40, gridSpan: 2)],
+        children: <UINode>[
+          Box(height: 40),
+          Box(height: 40, gridSpan: GridSpan.tracks(2)),
+        ],
       );
 
       expect(grid.spanOf(0, 3), 1);
@@ -77,7 +80,10 @@ void main() {
       // the model answers the same way rather than laying a card out twice.
       const GridNode grid = GridNode(
         minItemWidth: 280,
-        children: <UINode>[Box(height: 40, gridSpan: 3), Box(height: 40)],
+        children: <UINode>[
+          Box(height: 40, gridSpan: GridSpan.tracks(3)),
+          Box(height: 40),
+        ],
       );
 
       expect(grid.columnsFor(375), 1);
@@ -149,7 +155,10 @@ void main() {
           const GridNode(
             minItemWidth: 280,
             maxColumns: 3,
-            children: <UINode>[Box(height: 40), Box(height: 40, gridSpan: 2)],
+            children: <UINode>[
+              Box(height: 40),
+              Box(height: 40, gridSpan: GridSpan.tracks(2)),
+            ],
           ),
         ),
         isEmpty,
@@ -158,7 +167,9 @@ void main() {
 
     test('reports a span on a box that is not a grid child', () {
       final List<TreeIssue> issues = issuesOf(
-        const Box(children: <UINode>[Box(height: 40, gridSpan: 2)]),
+        const Box(
+          children: <UINode>[Box(height: 40, gridSpan: GridSpan.tracks(2))],
+        ),
       );
 
       expect(issues.single.isError, isFalse);
@@ -169,7 +180,7 @@ void main() {
       final List<TreeIssue> issues = issuesOf(
         const GridNode(
           minItemWidth: 280,
-          children: <UINode>[Box(height: 40, gridSpan: 0)],
+          children: <UINode>[Box(height: 40, gridSpan: GridSpan.tracks(0))],
         ),
       );
 

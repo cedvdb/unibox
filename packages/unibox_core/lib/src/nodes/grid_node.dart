@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import '../enums.dart';
 import 'box.dart';
+import '../tokens/grid_span.dart';
 import 'ui_node.dart';
 
 /// A grid: one row of stated columns, or a matrix whose count follows the width.
@@ -170,7 +171,12 @@ final class GridNode extends UINode {
   /// what the width gives.
   int spanOf(int index, int columns) {
     final UINode child = children[index];
-    final int declared = child is Box ? child.computedStyle.gridSpan ?? 1 : 1;
+    final GridSpan? span = child is Box ? child.computedStyle.gridSpan : null;
+    final int declared = span == null
+        ? 1
+        : span.fillRow
+        ? math.max(columns, 1)
+        : span.tracks ?? 1;
 
     return math.min(math.max(declared, 1), math.max(columns, 1));
   }

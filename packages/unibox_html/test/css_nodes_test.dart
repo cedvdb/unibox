@@ -391,7 +391,7 @@ void main() {
       // takes two of whatever tracks the grid laid out, and a browser clamps it to
       // the count the width gives.
       final CssDeclarations declarations = boxDeclarations(
-        const core.BoxStyle(gridSpan: 2),
+        const core.BoxStyle(gridSpan: core.GridSpan.tracks(2)),
       );
 
       expect(declarations.text, contains('grid-column:span 2'));

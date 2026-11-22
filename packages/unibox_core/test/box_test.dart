@@ -130,7 +130,7 @@ void main() {
         gap: 4,
         wrap: true,
         flex: 2,
-        gridSpan: 2,
+        gridSpan: GridSpan.tracks(2),
         overflow: Overflow.hidden,
         width: double.infinity,
         height: 40,
@@ -154,7 +154,7 @@ void main() {
       expect(computed.gap, 4);
       expect(computed.wrap, isTrue);
       expect(computed.flex, 2);
-      expect(computed.gridSpan, 2);
+      expect(computed.gridSpan, const GridSpan.tracks(2));
       expect(computed.overflow, Overflow.hidden);
       expect(computed.width, double.infinity);
       expect(computed.height, 40);

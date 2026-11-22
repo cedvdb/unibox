@@ -447,7 +447,10 @@ int _spanOf(
     return 1;
   }
 
-  final int declared = int.tryParse(value.replaceFirst('span ', '')) ?? 1;
+  // `1 / -1` is the row's own edges — the whole of it, whatever the column count.
+  final int declared = value.contains('/')
+      ? columns
+      : int.tryParse(value.replaceFirst('span ', '')) ?? 1;
 
   return math.min(math.max(declared, 1), math.max(columns, 1));
 }
