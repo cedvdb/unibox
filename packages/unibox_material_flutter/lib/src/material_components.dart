@@ -27,21 +27,23 @@ import 'package:unibox_material/unibox_material.dart' as material;
 /// indicator size is the SDK's — and it will grow a component at a time, if it grows at all:
 /// every entry is a place the page and the application are allowed to differ. The signature may
 /// move while that question settles.
-UniboxSubstitutions materialComponents() =>
-    UniboxSubstitutions(<Type, NodeSubstitution>{
-      material.MaterialCard: _card,
-      material.MaterialNavigationBar: _navigationBar,
-      material.MaterialButton: _button,
-      material.MaterialChip: _chip,
-      material.MaterialListTile: _listTile,
-      material.MaterialSegmentedButton: _segmentedButton,
-      material.MaterialTabBar: _tabBar,
-      material.MaterialTextField: _textField,
-      material.MaterialSpinner: _spinner,
-      material.MaterialIconButton: _iconButton,
-      material.MaterialProgressRing: _progressRing,
-      material.MaterialIcon: _icon,
-    });
+UniboxSubstitutions materialComponents({
+  List<IconData> icons = const <IconData>[],
+}) => UniboxSubstitutions(<Type, NodeSubstitution>{
+  material.MaterialCard: _card,
+  material.MaterialNavigationBar: _navigationBar,
+  material.MaterialButton: _button,
+  material.MaterialChip: _chip,
+  material.MaterialListTile: _listTile,
+  material.MaterialSegmentedButton: _segmentedButton,
+  material.MaterialTabBar: _tabBar,
+  material.MaterialTextField: _textField,
+  material.MaterialSpinner: _spinner,
+  material.MaterialIconButton: _iconButton,
+  material.MaterialProgressRing: _progressRing,
+  material.MaterialIcon: (BuildContext c, core.UINode n, Widget? w) =>
+      _icon(c, n, w, icons),
+});
 
 /// The tokens [node] resolves to under the theme in force.
 ///
@@ -52,7 +54,22 @@ core.BoxStyle _styleOf(BuildContext context, core.Box node) => node
     .computedStyle
     .resolve(UniboxScopeWidget.of(context).theme ?? core.UniboxTheme.none);
 
-Widget _icon(BuildContext context, core.UINode node, Widget? content) {
+/// An icon, drawn with the platform's own widget.
+///
+/// [icons] is the host's own list of `IconData`, and it is the reason this parameter exists: the
+/// icon subsetter keeps a glyph only while an `IconData` naming it is part of the application's
+/// program, and a codepoint read out of one (`Icons.sell.codePoint`) is folded to an integer and
+/// dropped. Passing the values means the mapping *uses* them, so every glyph in the list ships —
+/// and the widget is handed a compile-time constant, which is what `IconData` asks for.
+///
+/// A glyph the list does not name is still drawn, from an `IconData` built at run time, with the
+/// caveat written where it belongs: the font may not contain it.
+Widget _icon(
+  BuildContext context,
+  core.UINode node,
+  Widget? content,
+  List<IconData> icons,
+) {
   final material.MaterialIcon icon = node as material.MaterialIcon;
   final core.BoxStyle style = _styleOf(context, icon);
   final core.BoxTextStyle text = style.textStyle ?? const core.BoxTextStyle();
@@ -67,13 +84,19 @@ Widget _icon(BuildContext context, core.UINode node, Widget? content) {
   // `IconData` in the application names, and the codepoint here is a run-time value. That is the
   // host's side of the bargain, and the reason an application reads its codepoints from
   // `Icons.*` rather than writing literals.
+  // The node's codepoint, as the host named it if it did. `IconData` requires a constant, so the
+  // list is the only way to hand `Icon` one it can keep — see the note on this function.
+  IconData? named;
+  for (final IconData known in icons) {
+    if (known.codePoint == icon.codePoint &&
+        known.fontFamily == icon.fontFamily) {
+      named = known;
+      break;
+    }
+  }
+
   return Icon(
-    // The framework asks for a *constant* `IconData` here, and says why: it is the constant the
-    // icon subsetter reads. A node carries its codepoint at run time, so the guard is silenced
-    // deliberately and the bargain is stated — the host must have named this glyph with a const
-    // `IconData` of its own (`Icons.sell.codePoint`), or the font will not contain it.
-    // ignore: non_const_argument_for_const_parameter
-    _glyphOf(icon),
+    named ?? _unnamed(icon),
     size: text.fontSize,
     color: ink == null ? null : Color(ink.value),
   );
@@ -91,7 +114,7 @@ IconData _symbols(int codePoint) =>
     // ignore: non_const_argument_for_const_parameter
     IconData(codePoint, fontFamily: 'Material Symbols Outlined');
 
-IconData _glyphOf(material.MaterialIcon icon) {
+IconData _unnamed(material.MaterialIcon icon) {
   final int codePoint = icon.codePoint ?? 0;
 
   return icon.fontFamily == material.MaterialIcon.defaultFontFamily

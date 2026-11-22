@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **`materialComponents(icons: …)`.** The icon mapping now takes the application's own `IconData` list and draws an icon with the constant it finds there. This is not decoration: Flutter's icon subsetter keeps a glyph only while an `IconData` naming it is part of the program, and a codepoint read out of one — `Icons.sell.codePoint` — is folded to an integer and dropped, so the glyph silently leaves the font. A glyph the list does not name is still drawn, from a `IconData` built at run time, with the caveat stated in the docs.
 - **`uniboxThemeOf(ColorScheme)`**, the inverse of `materialThemeData`: an application that already has a `ColorScheme` hands it a tree, and every role the model names is answered from it. Growing a palette from the same seed would be a second run of the colour algorithm, which agrees until a tone is overridden. A design system's own roles are passed with `also:`; the four state layers are the alpha they are painted with.
 - **A substituted card wears the tree's corner, fill and clip.** `MaterialCard` states a radius, a colour role and `overflow: hidden`, and the mapping drew `Card` with `CardTheme`'s square corners and the theme's colour, so a ripple ran past the edge and an application's palette stopped at the card. The widget now takes all three from the node.
 - **The map is the standard wiring of a Flutter host**, not an experiment: a document is served
