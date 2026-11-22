@@ -264,6 +264,9 @@ Widget _chip(BuildContext context, core.UINode node, Widget? content) {
       avatar: avatar,
       deleteIcon: cross,
       onDeleted: onDeleted,
+      // A chip whose whole pill drops the filter answers it too, as the node states it: the
+      // cross is the second way to the same end, not the only one.
+      onPressed: chip.onSelected,
     );
   }
 
@@ -461,31 +464,37 @@ Widget _segmentedButton(
   // `Align` first, so the widget is not stretched to the row's height: a tight height makes
   // `SizedBox` meaningless, and a `SegmentedButton` in a taller box paints its selection at the
   // top of it. Loose constraints, then the control's own height.
-  return Align(
-    alignment: Alignment.centerLeft,
-    child: SizedBox(
-      height: pill.density.adjust(
-        material.MaterialSegmentedButton.controlHeight,
-      ),
-      child: SegmentedButton<int>(
-        segments: <ButtonSegment<int>>[
-          for (int i = 0; i < pill.segments.length; i++)
-            ButtonSegment<int>(
-              value: i,
-              label: renderNode(pill.segments[i].label),
-              icon: pill.segments[i].icon == null
-                  ? null
-                  : renderNode(pill.segments[i].icon!),
-            ),
-        ],
-        selected: <int>{pill.selected},
-        onSelectionChanged: pill.onSelect == null
-            ? null
-            : (Set<int> chosen) => pill.onSelect!(chosen.first),
-        showSelectedIcon: pill.showSelectedIcon,
-        // The node divides the width it is given evenly; a `SegmentedButton` hugs its labels unless
-        // it is told to expand, and a pill that hugs inside a half-width column overflows and is cut.
-        expandedInsets: EdgeInsets.zero,
+  //
+  // The width is the document's rule, read off the constraints a scroll gives it: a grid with
+  // `width: 100%` fills a parent that bounds it and falls back to its own columns in one that
+  // sizes to content. So the pill expands where it is bounded — a half-width column it would
+  // otherwise overflow and be cut in — and hugs where it is not. A `SegmentedButton` told to
+  // expand inside a scrolling row lays out at an infinite width and throws.
+  return LayoutBuilder(
+    builder: (BuildContext context, BoxConstraints constraints) => Align(
+      alignment: Alignment.centerLeft,
+      child: SizedBox(
+        height: pill.density.adjust(
+          material.MaterialSegmentedButton.controlHeight,
+        ),
+        child: SegmentedButton<int>(
+          segments: <ButtonSegment<int>>[
+            for (int i = 0; i < pill.segments.length; i++)
+              ButtonSegment<int>(
+                value: i,
+                label: renderNode(pill.segments[i].label),
+                icon: pill.segments[i].icon == null
+                    ? null
+                    : renderNode(pill.segments[i].icon!),
+              ),
+          ],
+          selected: <int>{pill.selected},
+          onSelectionChanged: pill.onSelect == null
+              ? null
+              : (Set<int> chosen) => pill.onSelect!(chosen.first),
+          showSelectedIcon: pill.showSelectedIcon,
+          expandedInsets: constraints.hasBoundedWidth ? EdgeInsets.zero : null,
+        ),
       ),
     ),
   );

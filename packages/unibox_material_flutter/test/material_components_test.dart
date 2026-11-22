@@ -340,4 +340,95 @@ void main() {
 
     expect(tester.widget<Icon>(find.byType(Icon)).icon?.codePoint, 0xe570);
   });
+
+  material.MaterialSegmentedButton twoChoices({VoidCallback? onRemove}) =>
+      material.MaterialSegmentedButton(
+        segments: <material.MaterialSegment>[
+          const material.MaterialSegment(label: core.TextNode('Rooms')),
+          const material.MaterialSegment(label: core.TextNode('Desks')),
+        ],
+        selected: 0,
+        onSelect: (int index) {},
+      );
+
+  testWidgets(
+    'a pill in a scrolling row hugs its columns, and still expands in a '
+    'column that bounds it',
+    (WidgetTester tester) async {
+      // A row that scrolls gives its children no width at all. A `SegmentedButton` told to expand
+      // into that lays out at an infinite width and throws, so the pill hugs instead — which is
+      // what the document does with a grid whose parent sizes to content.
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: renderFlutter(
+              core.Box(
+                direction: core.Axis.horizontal,
+                overflow: core.Overflow.scroll,
+                children: <core.UINode>[twoChoices()],
+              ),
+              scope: core.UniboxScope(
+                theme: material.MaterialPalette.lightTheme,
+              ),
+              substitutions: materialComponents(),
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      final Size hugged = tester.getSize(find.byType(SegmentedButton<int>));
+      expect(hugged.width, lessThan(360));
+
+      // The same pill in a column of the page fills the width it is given.
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 360,
+              child: renderFlutter(
+                twoChoices(),
+                scope: core.UniboxScope(
+                  theme: material.MaterialPalette.lightTheme,
+                ),
+                substitutions: materialComponents(),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.getSize(find.byType(SegmentedButton<int>)).width, 360);
+    },
+  );
+
+  testWidgets('a removable chip answers its own pill as well as its cross', (
+    WidgetTester tester,
+  ) async {
+    int presses = 0;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: renderFlutter(
+            material.MaterialChip(
+              label: const core.TextNode('Terrace'),
+              selected: true,
+              onTap: () => presses++,
+              onRemove: () => presses += 10,
+              trailing: const core.TextNode('x'),
+            ),
+            scope: core.UniboxScope(theme: material.MaterialPalette.lightTheme),
+            substitutions: materialComponents(),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Terrace'));
+    expect(presses, 1, reason: 'the whole pill drops the filter');
+
+    await tester.tap(find.text('x'));
+    expect(presses, 11, reason: 'so does the cross beside it');
+  });
 }
