@@ -56,6 +56,30 @@ void main() {
     });
   });
 
+  group('a box on a flex line', () {
+    test('states the share it takes', () {
+      final CssDeclarations declarations = boxDeclarations(
+        const core.BoxStyle(flex: 2),
+      );
+
+      expect(declarations['flex-grow'], '2');
+      expect(declarations['flex-shrink'], '1');
+      expect(declarations['flex-basis'], '0');
+    });
+
+    test('keeps its content as the basis when it shares none of the line', () {
+      // `flex: 0` is `flex: 0 1 auto`: on the line to shrink, never to grow — a row of chips
+      // that hugs its last one and scrolls past it. A zero basis would start it at nothing.
+      final CssDeclarations declarations = boxDeclarations(
+        const core.BoxStyle(flex: 0),
+      );
+
+      expect(declarations['flex-grow'], '0');
+      expect(declarations['flex-shrink'], '1');
+      expect(declarations['flex-basis'], 'auto');
+    });
+  });
+
   group('a grid that states its columns', () {
     test('is one explicit track per column, as 1fr 2fr 1fr states them', () {
       final CssDeclarations declarations = gridDeclarations(

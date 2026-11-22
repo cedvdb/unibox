@@ -428,6 +428,45 @@ void main() {
     },
   );
 
+  testWidgets('outlines a segmented pill with the hairline the tree names', (
+    WidgetTester tester,
+  ) async {
+    // `SegmentedButton` outlines itself with `ColorScheme.outline` unless it is told otherwise,
+    // which is a step darker than the `outlineVariant` a tree states — so the app drew a
+    // different pill than the page for the same node.
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: renderFlutter(
+            material.MaterialSegmentedButton(
+              segments: <material.MaterialSegment>[
+                const material.MaterialSegment(label: core.TextNode('Rooms')),
+                const material.MaterialSegment(label: core.TextNode('Desks')),
+              ],
+              selected: 0,
+              onSelect: (int index) {},
+              border: const core.BoxBorder(
+                color: core.BoxColor(0xFF112233),
+                width: 2,
+              ),
+            ),
+            scope: core.UniboxScope(theme: material.MaterialPalette.lightTheme),
+            substitutions: materialComponents(),
+          ),
+        ),
+      ),
+    );
+
+    final SegmentedButton<int> pill = tester.widget<SegmentedButton<int>>(
+      find.byType(SegmentedButton<int>),
+    );
+
+    expect(
+      pill.style?.side?.resolve(<WidgetState>{}),
+      const BorderSide(color: Color(0xFF112233), width: 2),
+    );
+  });
+
   testWidgets('a removable chip answers its own pill as well as its cross', (
     WidgetTester tester,
   ) async {

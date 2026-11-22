@@ -463,6 +463,8 @@ Widget _segmentedButton(
 ) {
   final material.MaterialSegmentedButton pill =
       node as material.MaterialSegmentedButton;
+  final core.BoxStyle style = _styleOf(context, pill);
+  final core.BoxBorder? border = style.border;
 
   // A row that stretches its children hands this a taller box than the control's own height,
   // and `SegmentedButton` then paints its segments at the top of it — leaving the selection
@@ -500,6 +502,17 @@ Widget _segmentedButton(
               : (Set<int> chosen) => pill.onSelect!(chosen.first),
           showSelectedIcon: pill.showSelectedIcon,
           expandedInsets: constraints.hasBoundedWidth ? EdgeInsets.zero : null,
+          // The node's hairline, not the theme's. `SegmentedButton` otherwise outlines the pill
+          // with `ColorScheme.outline`, a step darker than the `outlineVariant` the tree names, so
+          // the same control was drawn in two colours — the app's against the page's.
+          style: border == null || !border.isVisible
+              ? null
+              : SegmentedButton.styleFrom(
+                  side: BorderSide(
+                    color: Color(border.color.value),
+                    width: border.width,
+                  ),
+                ),
         ),
       ),
     ),

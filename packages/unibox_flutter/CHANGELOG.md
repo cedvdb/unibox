@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **A zero share is a `Flexible`, and a scrolling one measures its child.** `flex: 0` is
+  `flex: 0 1 auto`: the box is laid out on the line and may shrink, but it takes no share — so a
+  row of chips hugs its last chip instead of filling the line. A viewport fills the constraints
+  it is given, so the hugging one is `IntrinsicWidth`/`IntrinsicHeight` around it.
 - **Two maps compose into one.** `UniboxSubstitutions.and(other)` lays one map over another, so an application can draw some components with a design system's map and some with its own — and the union goes through the same constructor, so a structural node is still refused whichever map it came from.
 - **A press a page recorded is replayed by pressing the widget that wears its key**, after the
   first frame, through the same hit testing a finger goes through - instead of calling the
