@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **Two maps compose into one.** `UniboxSubstitutions.and(other)` lays one map over another, so an application can draw some components with a design system's map and some with its own — and the union goes through the same constructor, so a structural node is still refused whichever map it came from.
 - **A press a page recorded is replayed by pressing the widget that wears its key**, after the
   first frame, through the same hit testing a finger goes through - instead of calling the
   callback the node happened to carry. That is what makes a component answer: a button keeps
