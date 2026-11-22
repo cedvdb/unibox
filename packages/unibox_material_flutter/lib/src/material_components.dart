@@ -105,10 +105,16 @@ Widget _icon(
 /// The `IconData` a node names.
 ///
 /// `IconData`'s family has to be a compile-time constant, so the two fonts the model names are
-/// stated here; `MaterialIcons` is `IconData`'s own default and needs no argument. A host that
-/// ships a third icon font maps this node itself — which is the substitution the map is for.
-// ignore: non_const_argument_for_const_parameter
-IconData _materialIcons(int codePoint) => IconData(codePoint);
+/// stated here. `MaterialIcons` is named rather than left to `IconData`'s default: the default is
+/// Flutter's, and a platform fork that defaults to no family draws the glyph out of whatever font
+/// the text happens to use — and compares unequal to the `Icons.*` constant the same glyph is.
+/// A host that ships a third icon font maps this node itself — which is the substitution the map
+/// is for.
+IconData _materialIcons(int codePoint) => IconData(
+  // ignore: non_const_argument_for_const_parameter
+  codePoint,
+  fontFamily: 'MaterialIcons',
+);
 
 IconData _symbols(int codePoint) =>
     // ignore: non_const_argument_for_const_parameter

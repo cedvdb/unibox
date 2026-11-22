@@ -274,9 +274,9 @@ void main() {
       final Icon icon = tester.widget<Icon>(find.byType(Icon));
 
       expect(icon.icon?.codePoint, 0xe570);
-      // No family argument is `IconData`'s own default, which is MaterialIcons: only the
-      // Symbols family has to be named, and `IconData` will not take a run-time one.
-      expect(icon.icon?.fontFamily, isNull);
+      // The family is the node's, named rather than left to the platform's default: only with
+      // it is the value the `Icons.*` constant of the same glyph.
+      expect(icon.icon?.fontFamily, 'MaterialIcons');
       expect(icon.size, 18);
       expect(icon.color, const Color(0xFF102030));
     },
@@ -313,6 +313,32 @@ void main() {
         gift,
         reason: 'the very constant the application named',
       );
+    },
+  );
+
+  testWidgets(
+    'names the family of a glyph it was not given, so it is the Icons constant',
+    (WidgetTester tester) async {
+      // A glyph the host's list does not name still has to draw from the icon font, and to be the
+      // value `Icons.*` is: a family left to the platform's default is neither.
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: renderFlutter(
+              material.MaterialIcon.codePoint(
+                0xe567,
+                fontFamily: 'MaterialIcons',
+              ),
+              scope: core.UniboxScope(
+                theme: material.MaterialPalette.lightTheme,
+              ),
+              substitutions: materialComponents(),
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.widget<Icon>(find.byType(Icon)).icon, Icons.search);
     },
   );
 
