@@ -378,12 +378,11 @@ void main() {
       );
 
   testWidgets(
-    'a pill in a scrolling row hugs its columns, and still expands in a '
-    'column that bounds it',
+    "a pill without a width hugs its columns, and one that states a width fills it",
     (WidgetTester tester) async {
-      // A row that scrolls gives its children no width at all. A `SegmentedButton` told to expand
-      // into that lays out at an infinite width and throws, so the pill hugs instead — which is
-      // what the document does with a grid whose parent sizes to content.
+      // A row that scrolls gives its children no width at all, and a `SegmentedButton` told to
+      // expand into that lays out at an infinite width and throws. The node's own width decides —
+      // as it does on the page — so the pill hugs, and the row can size to its chips.
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -406,14 +405,26 @@ void main() {
       final Size hugged = tester.getSize(find.byType(SegmentedButton<int>));
       expect(hugged.width, lessThan(360));
 
-      // The same pill in a column of the page fills the width it is given.
+      // A pill that states a width divides it between its segments.
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: SizedBox(
-              width: 360,
+            body: Align(
+              alignment: Alignment.topLeft,
               child: renderFlutter(
-                twoChoices(),
+                material.MaterialSegmentedButton(
+                  segments: <material.MaterialSegment>[
+                    const material.MaterialSegment(
+                      label: core.TextNode('Rooms'),
+                    ),
+                    const material.MaterialSegment(
+                      label: core.TextNode('Desks'),
+                    ),
+                  ],
+                  selected: 0,
+                  onSelect: (int index) {},
+                  width: 360,
+                ),
                 scope: core.UniboxScope(
                   theme: material.MaterialPalette.lightTheme,
                 ),

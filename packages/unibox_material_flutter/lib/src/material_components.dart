@@ -473,47 +473,45 @@ Widget _segmentedButton(
   // `SizedBox` meaningless, and a `SegmentedButton` in a taller box paints its selection at the
   // top of it. Loose constraints, then the control's own height.
   //
-  // The width is the document's rule, read off the constraints a scroll gives it: a grid with
-  // `width: 100%` fills a parent that bounds it and falls back to its own columns in one that
-  // sizes to content. So the pill expands where it is bounded — a half-width column it would
-  // otherwise overflow and be cut in — and hugs where it is not. A `SegmentedButton` told to
-  // expand inside a scrolling row lays out at an infinite width and throws.
-  return LayoutBuilder(
-    builder: (BuildContext context, BoxConstraints constraints) => Align(
-      alignment: Alignment.centerLeft,
-      child: SizedBox(
-        height: pill.density.adjust(
-          material.MaterialSegmentedButton.controlHeight,
-        ),
-        child: SegmentedButton<int>(
-          segments: <ButtonSegment<int>>[
-            for (int i = 0; i < pill.segments.length; i++)
-              ButtonSegment<int>(
-                value: i,
-                label: renderNode(pill.segments[i].label),
-                icon: pill.segments[i].icon == null
-                    ? null
-                    : renderNode(pill.segments[i].icon!),
-              ),
-          ],
-          selected: <int>{pill.selected},
-          onSelectionChanged: pill.onSelect == null
-              ? null
-              : (Set<int> chosen) => pill.onSelect!(chosen.first),
-          showSelectedIcon: pill.showSelectedIcon,
-          expandedInsets: constraints.hasBoundedWidth ? EdgeInsets.zero : null,
-          // The node's hairline, not the theme's. `SegmentedButton` otherwise outlines the pill
-          // with `ColorScheme.outline`, a step darker than the `outlineVariant` the tree names, so
-          // the same control was drawn in two colours — the app's against the page's.
-          style: border == null || !border.isVisible
-              ? null
-              : SegmentedButton.styleFrom(
-                  side: BorderSide(
-                    color: Color(border.color.value),
-                    width: border.width,
-                  ),
+  // The node's width decides, as it does on the page: a pill that states one divides it between its
+  // segments, and one that does not is as wide as its columns — which is what a row that scrolls
+  // holds. Reading it off the node rather than the constraints keeps the widget free of a
+  // `LayoutBuilder`, and a `LayoutBuilder` cannot answer an intrinsic measurement — which is what
+  // a viewport wrapped around this control asks for when the row it is in hugs.
+  return Align(
+    alignment: Alignment.centerLeft,
+    child: SizedBox(
+      height: pill.density.adjust(
+        material.MaterialSegmentedButton.controlHeight,
+      ),
+      child: SegmentedButton<int>(
+        segments: <ButtonSegment<int>>[
+          for (int i = 0; i < pill.segments.length; i++)
+            ButtonSegment<int>(
+              value: i,
+              label: renderNode(pill.segments[i].label),
+              icon: pill.segments[i].icon == null
+                  ? null
+                  : renderNode(pill.segments[i].icon!),
+            ),
+        ],
+        selected: <int>{pill.selected},
+        onSelectionChanged: pill.onSelect == null
+            ? null
+            : (Set<int> chosen) => pill.onSelect!(chosen.first),
+        showSelectedIcon: pill.showSelectedIcon,
+        expandedInsets: pill.width == null ? null : EdgeInsets.zero,
+        // The node's hairline, not the theme's. `SegmentedButton` otherwise outlines the pill
+        // with `ColorScheme.outline`, a step darker than the `outlineVariant` the tree names, so
+        // the same control was drawn in two colours — the app's against the page's.
+        style: border == null || !border.isVisible
+            ? null
+            : SegmentedButton.styleFrom(
+                side: BorderSide(
+                  color: Color(border.color.value),
+                  width: border.width,
                 ),
-        ),
+              ),
       ),
     ),
   );
