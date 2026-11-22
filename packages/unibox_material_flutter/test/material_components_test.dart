@@ -281,4 +281,63 @@ void main() {
       expect(icon.color, const Color(0xFF102030));
     },
   );
+
+  testWidgets(
+    "draws an icon from the host's own IconData, so the glyph ships",
+    (WidgetTester tester) async {
+      // The list is the app's: a glyph the shaker cannot see is a glyph a release build drops, and a
+      // codepoint read out of an `IconData` is not enough to keep it.
+      const IconData gift = IconData(0xe13e, fontFamily: 'MaterialIcons');
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: renderFlutter(
+              material.MaterialIcon.codePoint(
+                0xe13e,
+                fontFamily: 'MaterialIcons',
+              ),
+              scope: core.UniboxScope(
+                theme: material.MaterialPalette.lightTheme,
+              ),
+              substitutions: materialComponents(icons: const <IconData>[gift]),
+            ),
+          ),
+        ),
+      );
+
+      final Icon icon = tester.widget<Icon>(find.byType(Icon));
+
+      expect(
+        icon.icon,
+        gift,
+        reason: 'the very constant the application named',
+      );
+    },
+  );
+
+  testWidgets('falls back for a glyph the host did not name', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: renderFlutter(
+            material.MaterialIcon.codePoint(
+              0xe570,
+              fontFamily: 'MaterialIcons',
+            ),
+            scope: core.UniboxScope(theme: material.MaterialPalette.lightTheme),
+            substitutions: materialComponents(
+              icons: const <IconData>[
+                IconData(0xe13e, fontFamily: 'MaterialIcons'),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.widget<Icon>(find.byType(Icon)).icon?.codePoint, 0xe570);
+  });
 }
