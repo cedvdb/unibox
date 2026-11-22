@@ -134,10 +134,13 @@ CssDeclarations boxDeclarations(
     ..addIf('aspect-ratio', aspectRatio == null ? null : cssNumber(aspectRatio))
     // A span is read by the grid the box sits in and by nothing else, and a browser
     // clamps one wider than the track count the way the Flutter renderer does.
-    ..addIf(
-      'grid-column',
-      style.gridSpan == null ? null : 'span ${style.gridSpan}',
-    )
+    ..addIf('grid-column', switch (style.gridSpan) {
+      null => null,
+      // `span n` on a grid with fewer columns makes a browser add one and overflow; the row's own
+      // edges say "all of them" at any width.
+      final span when span.fillRow => '1 / -1',
+      final span => 'span ${span.tracks}',
+    })
     ..addIf('min-width', cssLength(style.minWidth))
     ..addIf('min-height', cssLength(style.minHeight))
     ..addIf('max-width', cssLength(style.maxWidth))

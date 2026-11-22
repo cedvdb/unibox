@@ -1,6 +1,7 @@
 import '../enums.dart';
 import 'box_border.dart';
 import 'box_color.dart';
+import 'grid_span.dart';
 import 'box_border_radius.dart';
 import 'box_fraction.dart';
 import 'box_shadow.dart';
@@ -150,7 +151,7 @@ final class BoxStyle {
   /// `grid-column: span 2` in a one track grid, and the reason both targets keep
   /// `auto-fill`: the count follows the width, and a span that does not fit has to
   /// follow the count.
-  final int? gridSpan;
+  final GridSpan? gridSpan;
 
   /// How overflowing content is treated.
   final Overflow? overflow;
@@ -433,7 +434,7 @@ final class BoxStyle {
     double? gap,
     bool? wrap,
     int? flex,
-    int? gridSpan,
+    GridSpan? gridSpan,
     Overflow? overflow,
     BoxPin? pin,
     double? pinOffset,

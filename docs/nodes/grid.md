@@ -63,7 +63,7 @@ GridNode(
   gap: 16,
   children: <UINode>[
     card, card,
-    Box(gridSpan: 3, children: <UINode>[banner]),   // the whole row
+    Box(gridSpan: GridSpan.row(), children: <UINode>[banner]),   // the whole row
     ...cards,
   ],
 )

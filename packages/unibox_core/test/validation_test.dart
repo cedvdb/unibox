@@ -960,7 +960,10 @@ void main() {
       // track the row does not have, which Flutter's measured row cannot draw.
       const GridNode grid = GridNode.columns(
         <int>[1, 1],
-        children: <UINode>[Box(gridSpan: 2), Box()],
+        children: <UINode>[
+          Box(gridSpan: GridSpan.tracks(2)),
+          Box(),
+        ],
       );
       final TreeIssue issue = validateTree(grid).single;
 

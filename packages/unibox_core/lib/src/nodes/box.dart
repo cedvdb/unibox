@@ -10,6 +10,7 @@ import '../tokens/box_shadow.dart';
 import '../tokens/box_shape.dart';
 import '../tokens/box_spacing.dart';
 import '../tokens/box_style.dart';
+import '../tokens/grid_span.dart';
 import '../tokens/box_text_style.dart';
 import '../tokens/box_transform.dart';
 import '../tokens/box_transition.dart';
@@ -154,7 +155,7 @@ class Box extends UINode {
   /// How many tracks of a [GridNode] this box occupies, or `null` for one.
   ///
   /// A card grid that has to be interrupted — a promo banner across the row
-  /// between the first two cards — is one grid whose banner says `gridSpan: 2`,
+  /// between the first two cards — is one grid whose banner says `gridSpan: GridSpan.tracks(2)`,
   /// rather than two grids that agree on the column count by accident.
   ///
   /// It is a token on the card and not a `GridItem` wrapper for the reason the model
@@ -164,10 +165,11 @@ class Box extends UINode {
   /// against, and would need its own name and its own case in both renderers.
   ///
   /// Only a box inside a [GridNode] has tracks to span; `validateTree` reports the
-  /// token anywhere else. A span wider than the grid is clamped to its column
-  /// count on both targets, so a full width banner is a large number rather than a
-  /// second rule.
-  final int? gridSpan;
+  /// token anywhere else. A count wider than the grid is clamped to its column count
+  /// on both targets; [GridSpan.row] is the whole row at every width, which a count
+  /// cannot state — a `span` wider than the grid makes a browser invent a column and
+  /// overflow.
+  final GridSpan? gridSpan;
 
   /// How content exceeding the box bounds is treated.
   final Overflow? overflow;

@@ -74,7 +74,7 @@ const List<GridCase> gridCases = <GridCase>[
       gap: 16,
       children: <core.UINode>[
         core.Box(key: 0, height: 40),
-        core.Box(key: 1, height: 40, gridSpan: 2),
+        core.Box(key: 1, height: 40, gridSpan: const core.GridSpan.tracks(2)),
         core.Box(key: 2, height: 40),
         core.Box(key: 3, height: 40),
       ],
@@ -92,11 +92,31 @@ const List<GridCase> gridCases = <GridCase>[
       maxColumns: 3,
       gap: 16,
       children: <core.UINode>[
-        core.Box(key: 0, height: 40, gridSpan: 3),
+        core.Box(key: 0, height: 40, gridSpan: const core.GridSpan.tracks(3)),
         core.Box(key: 1, height: 40),
       ],
     ),
     width: 375,
     expected: GridAppearance(spans: <int>[1, 1]),
+  ),
+  GridCase(
+    description:
+        'draws a banner across the whole row however many columns there are',
+    // The same tree at every width: `row` is every column the grid has, so the banner is
+    // the full row at three columns and at one, and a browser is never asked for a track
+    // that does not exist — which is what a count wider than the grid would do.
+    node: core.GridNode(
+      minItemWidth: 280,
+      maxColumns: 3,
+      gap: 16,
+      children: <core.UINode>[
+        core.Box(key: 0, height: 40),
+        core.Box(key: 1, height: 40),
+        core.Box(key: 2, height: 40, gridSpan: const core.GridSpan.row()),
+        core.Box(key: 3, height: 40),
+      ],
+    ),
+    width: 900,
+    expected: GridAppearance(spans: <int>[1, 1, 3, 1]),
   ),
 ];

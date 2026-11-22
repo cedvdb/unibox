@@ -20,6 +20,7 @@ import 'tokens/box_shadow.dart';
 import 'tokens/box_shape.dart';
 import 'tokens/unibox_scope.dart';
 import 'tokens/box_style.dart';
+import 'tokens/grid_span.dart';
 import 'tokens/box_text_style.dart';
 import 'tokens/box_transition.dart';
 import 'tokens/unibox_theme.dart';
@@ -834,7 +835,8 @@ void _validate(
 
     // A span is a statement about the grid around the box: outside one there are no
     // tracks, so the token can only do nothing.
-    final int? gridSpan = style.gridSpan;
+    final GridSpan? span = style.gridSpan;
+    final int? gridSpan = span?.tracks;
 
     if (gridSpan != null && gridSpan < 1) {
       issues.add(
@@ -842,9 +844,9 @@ void _validate(
           node: node,
           severity: TreeIssueSeverity.error,
           message:
-              'A box states gridSpan: $gridSpan, and a cell is one track or more. '
-              'Use 1 for the ordinary case, or a larger number for a card that '
-              'interrupts the row.',
+              'A box states gridSpan: GridSpan.tracks($gridSpan), and a cell is one '
+              'track or more. Use 1 for the ordinary case, or a larger number for a card '
+              'that interrupts the row — or GridSpan.row() for the whole of it.',
         ),
       );
     } else if (gridSpan != null && parent is! GridNode) {

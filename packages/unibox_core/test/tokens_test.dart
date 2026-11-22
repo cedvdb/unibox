@@ -526,17 +526,20 @@ void main() {
       // A bag can hold the span a component adds to a card, and the flat parameter
       // on the box still wins — the ordinary precedence, on a token that only a
       // grid reads.
-      const BoxStyle card = BoxStyle(gridSpan: 2);
-      const BoxStyle banner = BoxStyle(gridSpan: 3, gap: 8);
+      const BoxStyle card = BoxStyle(gridSpan: GridSpan.tracks(2));
+      const BoxStyle banner = BoxStyle(gridSpan: GridSpan.tracks(3), gap: 8);
 
-      expect(card.merge(banner).gridSpan, 3);
-      expect(card.merge(const BoxStyle()).gridSpan, 2);
-      expect(card.copyWith().gridSpan, 2);
-      expect(card, isNot(card.copyWith(gridSpan: 1)));
-      expect(card.toString(), contains('gridSpan: 2'));
+      expect(card.merge(banner).gridSpan, const GridSpan.tracks(3));
+      expect(card.merge(const BoxStyle()).gridSpan, const GridSpan.tracks(2));
+      expect(card.copyWith().gridSpan, const GridSpan.tracks(2));
+      expect(card, isNot(card.copyWith(gridSpan: const GridSpan.tracks(1))));
+      expect(card.toString(), contains('gridSpan: GridSpan.tracks(2)'));
       expect(
-        const Box(gridSpan: 1, styles: <BoxStyle>[card]).computedStyle.gridSpan,
-        1,
+        const Box(
+          gridSpan: GridSpan.tracks(1),
+          styles: <BoxStyle>[card],
+        ).computedStyle.gridSpan,
+        const GridSpan.tracks(1),
       );
     });
 
@@ -1139,7 +1142,7 @@ void main() {
         gap: 4,
         wrap: true,
         flex: 2,
-        gridSpan: 3,
+        gridSpan: GridSpan.tracks(3),
         overflow: Overflow.scroll,
         pin: BoxPin.start,
         pinOffset: 6,
