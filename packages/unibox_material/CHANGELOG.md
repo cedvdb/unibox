@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **The palette names the tertiary accent and the fixed ones.** `MaterialColorRole` gains `tertiary`, `onTertiary`, `primaryFixedDim` and `secondaryFixedDim`; `MaterialPalette.fromSeed` generates them, the baseline tables print them, and `uniboxThemeOf` reads them from a `ColorScheme`. A tree can now say "the rating mark is `primaryFixedDim`" instead of a design system inventing a role of its own for a colour Material already names — and a test holds the palette to every role the enum can state, so the list can only grow with a value behind it.
 - Four components keep what a host needs to draw them with the platform's own widget, the way
   `MaterialNavigationBar` already did: `MaterialButton` its `variant`, `icon` and `onPressed`,
   `MaterialChip` its `label`, `selected`, `onSelected` and `onDeleted`, `MaterialIconButton` its

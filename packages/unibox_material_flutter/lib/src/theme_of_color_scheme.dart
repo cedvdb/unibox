@@ -34,6 +34,10 @@ core.UniboxTheme uniboxThemeOf(
     material.MaterialColorRole.onSecondaryContainer: _of(
       scheme.onSecondaryContainer,
     ),
+    material.MaterialColorRole.tertiary: _of(scheme.tertiary),
+    material.MaterialColorRole.onTertiary: _of(scheme.onTertiary),
+    material.MaterialColorRole.primaryFixedDim: _of(scheme.primaryFixedDim),
+    material.MaterialColorRole.secondaryFixedDim: _of(scheme.secondaryFixedDim),
     material.MaterialColorRole.surface: _of(scheme.surface),
     material.MaterialColorRole.onSurface: _of(scheme.onSurface),
     material.MaterialColorRole.onSurfaceVariant: _of(scheme.onSurfaceVariant),

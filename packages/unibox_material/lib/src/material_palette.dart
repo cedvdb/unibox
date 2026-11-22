@@ -36,6 +36,18 @@ enum MaterialColorRole {
   /// The text and icons drawn on [secondaryContainer].
   onSecondaryContainer,
 
+  /// The third accent: a supporting highlight that is not the primary action.
+  tertiary,
+
+  /// The text and icons drawn on [tertiary].
+  onTertiary,
+
+  /// The primary accent kept in both schemes, a tone lower: a filled rating mark, a badge.
+  primaryFixedDim,
+
+  /// The secondary accent kept in both schemes, a tone lower.
+  secondaryFixedDim,
+
   /// The page itself.
   surface,
 
@@ -132,6 +144,10 @@ final class MaterialPalette {
     required this.onSecondary,
     required this.secondaryContainer,
     required this.onSecondaryContainer,
+    required this.tertiary,
+    required this.onTertiary,
+    required this.primaryFixedDim,
+    required this.secondaryFixedDim,
     required this.surface,
     required this.onSurface,
     required this.onSurfaceVariant,
@@ -218,6 +234,10 @@ final class MaterialPalette {
       onSecondary: role(MaterialDynamicColors.onSecondary),
       secondaryContainer: role(MaterialDynamicColors.secondaryContainer),
       onSecondaryContainer: role(MaterialDynamicColors.onSecondaryContainer),
+      tertiary: role(MaterialDynamicColors.tertiary),
+      onTertiary: role(MaterialDynamicColors.onTertiary),
+      primaryFixedDim: role(MaterialDynamicColors.primaryFixedDim),
+      secondaryFixedDim: role(MaterialDynamicColors.secondaryFixedDim),
       surface: role(MaterialDynamicColors.surface),
       onSurface: role(MaterialDynamicColors.onSurface),
       onSurfaceVariant: role(MaterialDynamicColors.onSurfaceVariant),
@@ -306,6 +326,18 @@ final class MaterialPalette {
   /// and not hidden.
   final BoxColor scrim;
 
+  /// The third accent: a supporting highlight that is not the primary action.
+  final BoxColor tertiary;
+
+  /// The text and icons drawn on [tertiary].
+  final BoxColor onTertiary;
+
+  /// The primary accent kept in both schemes, a tone lower: a filled rating mark, a badge.
+  final BoxColor primaryFixedDim;
+
+  /// The secondary accent kept in both schemes, a tone lower.
+  final BoxColor secondaryFixedDim;
+
   /// The layer Material paints while the pointer is on a control: 8% of
   /// [onSurface].
   ///
@@ -365,6 +397,10 @@ final class MaterialPalette {
       MaterialColorRole.onSecondary: onSecondary,
       MaterialColorRole.secondaryContainer: secondaryContainer,
       MaterialColorRole.onSecondaryContainer: onSecondaryContainer,
+      MaterialColorRole.tertiary: tertiary,
+      MaterialColorRole.onTertiary: onTertiary,
+      MaterialColorRole.primaryFixedDim: primaryFixedDim,
+      MaterialColorRole.secondaryFixedDim: secondaryFixedDim,
       MaterialColorRole.surface: surface,
       MaterialColorRole.onSurface: onSurface,
       MaterialColorRole.onSurfaceVariant: onSurfaceVariant,
@@ -401,6 +437,10 @@ final class MaterialPalette {
     onSecondary: BoxColor(0xFFFFFFFF),
     secondaryContainer: BoxColor(0xFFE8DEF8),
     onSecondaryContainer: BoxColor(0xFF1D192B),
+    tertiary: BoxColor(0xFF7D5260),
+    onTertiary: BoxColor(0xFFFFFFFF),
+    primaryFixedDim: BoxColor(0xFFD0BCFF),
+    secondaryFixedDim: BoxColor(0xFFCCC2DC),
     surface: BoxColor(0xFFFEF7FF),
     onSurface: BoxColor(0xFF1D1B20),
     onSurfaceVariant: BoxColor(0xFF49454F),
@@ -426,6 +466,10 @@ final class MaterialPalette {
     onSecondary: BoxColor(0xFF332D41),
     secondaryContainer: BoxColor(0xFF4A4458),
     onSecondaryContainer: BoxColor(0xFFE8DEF8),
+    tertiary: BoxColor(0xFFEFB8C8),
+    onTertiary: BoxColor(0xFF492532),
+    primaryFixedDim: BoxColor(0xFFD0BCFF),
+    secondaryFixedDim: BoxColor(0xFFCCC2DC),
     surface: BoxColor(0xFF141218),
     onSurface: BoxColor(0xFFE6E0E9),
     onSurfaceVariant: BoxColor(0xFFCAC4D0),
