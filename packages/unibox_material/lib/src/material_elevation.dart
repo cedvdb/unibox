@@ -12,7 +12,8 @@ import 'package:unibox_core/unibox_core.dart';
 /// 2x, so every row below its bottom edge is half a dp. Under level one the page reads
 /// `54, 32, 14, 4, 0` — darkness out of 255 — and clears within two and a half dp; under
 /// level five it reads `65, 60, 54, 49, 44, 40, 36, 32` and still fades at ten. Each level
-/// here is the gaussian that paints those rows, within three parts of 255 of them, and both
+/// here is the gaussian that paints those rows, within three parts of 255 of them — level
+/// one excepted, which the design tightened after that reading (see [level1]) — and both
 /// renderers are held to that one shape: the model states a blur radius in Flutter's unit,
 /// and `unibox_html`'s CSS layer writes the radius that paints the same deviation. A level therefore
 /// looks the same in a browser as in a Flutter application, which is the one thing a design
@@ -60,10 +61,16 @@ abstract final class MaterialElevation {
 
   /// Level one: a resting card, a sheet, a raised button.
   ///
-  /// The ladder's `Level 1` — `54, 33, 15, 5, 1` under the edge against its `54, 32, 14, 4,
-  /// 0`, and clear by two and a half dp.
+  /// The ladder's `Level 1` was read as `54, 32, 14, 4, 0` under the edge; the design has
+  /// since tightened the resting card to `0 0.55px 1.1px 0 rgba(0, 0, 0, 0.350)` in a
+  /// browser, and this is the shadow that paints it. `0.09` is the Flutter radius behind
+  /// that `1.1`: the web layer doubles the deviation on the way out (see `cssShadowBlur`),
+  /// so one token still paints one shadow on both renderers.
+  ///
+  /// It reads a little darker at the edge than the file's row and clears sooner — still the
+  /// softest level, since level one is what a surface casts while it touches the page.
   static const List<BoxShadow> level1 = <BoxShadow>[
-    BoxShadow(color: _restingShade, offsetY: 0.55, blurRadius: 0.61),
+    BoxShadow(color: _restingShade, offsetY: 0.55, blurRadius: 0.09),
   ];
 
   /// Level two: a card under the pointer, a menu about to open.
@@ -103,7 +110,7 @@ abstract final class MaterialElevation {
   /// A sheet leaves the bottom of the screen, so its height reads above it rather than
   /// below it — the one place Material mirrors a level instead of using it.
   static const List<BoxShadow> sheet = <BoxShadow>[
-    BoxShadow(color: _restingShade, offsetY: -0.55, blurRadius: 0.61),
+    BoxShadow(color: _restingShade, offsetY: -0.55, blurRadius: 0.09),
   ];
 
   /// The shade every level above the first is cast in: black at 40%.
@@ -113,9 +120,10 @@ abstract final class MaterialElevation {
   /// tone that goes with a level is what carries most of its weight.
   static const BoxColor _shade = BoxColor(0x66000000);
 
-  /// The shade level one is cast in: black at 34%.
+  /// The shade level one is cast in: black at 35%.
   ///
   /// Level one is a shade softer than the rest, which is what the ladder shows under a
   /// resting card: the first level of anything reads as the surface still touching the page.
-  static const BoxColor _restingShade = BoxColor(0x57000000);
+  /// The design states it as `0.350`; an eight-bit channel lands on 35%.
+  static const BoxColor _restingShade = BoxColor(0x59000000);
 }

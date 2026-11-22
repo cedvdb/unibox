@@ -18,12 +18,16 @@ import 'package:unibox_material/unibox_material.dart';
 /// reads `56, 40, 28, 17, 9` where the ladder reads `54, 32, 14, 4`, so a card here is a
 /// little tighter than the card beside it in a Flutter application, on purpose.
 ///
+/// Level one's card was tightened after the file was read — a browser now draws it as
+/// `0 0.55px 1.1px rgba(0, 0, 0, 0.35)`, one row under the edge and nothing below it — and
+/// the row below is what this test holds it to, measured the same way.
+///
 /// A row is half a dp: the card is 120 dp wide, rendered at a device pixel ratio of two,
 /// so the first row below its edge is half a dp down and the twelfth is six dp down. Six
 /// parts of 255 is the allowance — a rasteriser may differ in how it draws a gaussian; the
 /// shape is what the table states.
 const Map<int, List<int>> _ladder = <int, List<int>>{
-  1: <int>[54, 32, 14, 4, 0],
+  1: <int>[32, 0],
   2: <int>[62, 48, 37, 27, 18, 11, 6, 3, 1],
   3: <int>[64, 54, 45, 39, 32, 26, 19, 14, 10, 7],
   4: <int>[64, 58, 51, 45, 40, 35, 30, 25, 20, 16, 12, 10, 7, 5],
