@@ -7,7 +7,8 @@ import 'package:unibox_material/unibox_material.dart';
 /// Each list is the page's darkness out of 255, row by row below a card's bottom edge, on
 /// a 120 dp card rendered at 2x — so one row is half a dp. A level that paints these is a
 /// level that looks like the one in the design file; the example's Flutter suite is what
-/// checks the painting, because this package has no renderer.
+/// checks the painting, because this package has no renderer. Level one's card was
+/// tightened after that reading, and `MaterialElevation.level1` says what it became.
 const Map<int, List<int>> _ladder = <int, List<int>>{
   1: <int>[54, 32, 14, 4, 0],
   2: <int>[62, 48, 37, 27, 18, 11, 6, 3, 1],
@@ -23,7 +24,7 @@ void main() {
       // shadow that grows wider as the card rises. Written down here because this package
       // cannot ask a designer's file what a level looks like.
       expect(MaterialElevation.level1, const <BoxShadow>[
-        BoxShadow(color: BoxColor(0x57000000), offsetY: 0.55, blurRadius: 0.61),
+        BoxShadow(color: BoxColor(0x59000000), offsetY: 0.55, blurRadius: 0.09),
       ]);
       expect(MaterialElevation.level2, const <BoxShadow>[
         BoxShadow(color: BoxColor(0x66000000), offsetY: 0.95, blurRadius: 2.35),
@@ -91,7 +92,7 @@ void main() {
 
       expect(
         MaterialElevation.level1.single.color.opacity,
-        closeTo(0.34, 0.01),
+        closeTo(0.35, 0.01),
       );
       expect(
         MaterialElevation.level5.single.color.opacity,

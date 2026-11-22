@@ -342,6 +342,21 @@ void main() {
       expect(rule, isNot(contains('padding')));
     });
 
+    test('casts level one, as the browser states it', () {
+      // One token, one shadow: level one is a Flutter radius of 0.09, and the web writes the
+      // 1.1 that paints the same deviation. A resting card at 35% black, one row deep.
+      final Stylesheet sheet = Stylesheet();
+      final ElementPlan plan = planNode(MaterialCard(), sheet);
+      final String rule = sheet
+          .rulesSince((classes: 0, states: 0, frames: 0))
+          .firstWhere((String rule) => rule.startsWith('.${plan.className!}{'));
+
+      expect(
+        rule,
+        contains('box-shadow:0 0.55px 1.1px 0 rgba(0, 0, 0, 0.349)'),
+      );
+    });
+
     test('is one anchor when its whole surface is the destination', () {
       // The recipe the card documents: surface outside, ink inside, padding on the ink.
       final String html = toHtml(

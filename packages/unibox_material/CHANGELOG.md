@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- **Level one's card is the design's 1.1px shadow.** `MaterialElevation.level1` — and the
+  `sheet` that mirrors it — drops from a browser blur of 1.7 to 1.1 (a Flutter radius of 0.61 to
+  0.09) and rises from 34% to 35% black, so a resting card reads
+  `0 0.55px 1.1px 0 rgba(0, 0, 0, 0.35)` on the page and paints the same row in an application.
+  Two tests hold it: the example measures the row Flutter paints, and `unibox_html` states the
+  declaration the browser gets.
+
 - **The palette names the tertiary accent and the fixed ones.** `MaterialColorRole` gains `tertiary`, `onTertiary`, `primaryFixedDim` and `secondaryFixedDim`; `MaterialPalette.fromSeed` generates them, the baseline tables print them, and `uniboxThemeOf` reads them from a `ColorScheme`. A tree can now say "the rating mark is `primaryFixedDim`" instead of a design system inventing a role of its own for a colour Material already names — and a test holds the palette to every role the enum can state, so the list can only grow with a value behind it.
 - Four components keep what a host needs to draw them with the platform's own widget, the way
   `MaterialNavigationBar` already did: `MaterialButton` its `variant`, `icon` and `onPressed`,
