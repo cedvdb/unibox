@@ -339,3 +339,8 @@ hosts and pre-existing embedded hosts. It verifies a real keyed press, reveal an
 accessible host exposure. Static crawlability checks and the scale baseline pass.
 Live Comover catalogue/zone walkthroughs remain unchecked above: these local
 release smoke tests do not establish production data or backend behaviour.
+
+Final performance gate: `tool/performance.sh build/site` passes without changing
+baselines or budgets. Both measured pages score 100 in local Lighthouse runs;
+the compressed document is 5,727 bytes against the 5,854-byte baseline. These
+are local unthrottled measurements, not production latency claims.
