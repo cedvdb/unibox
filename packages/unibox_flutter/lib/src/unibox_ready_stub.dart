@@ -12,3 +12,12 @@ bool get wasTakenOver => false;
 /// Does nothing here: there is no document listening. A host calls it from an application that
 /// waits for data, and on every other target the call is free.
 void uniboxReady() {}
+
+/// No document reveal is pending on this platform.
+Future<bool> handoverRevealed() async => false;
+
+/// Native launches have no document awaiting host content.
+bool get awaitsHostReadiness => false;
+
+/// Native launches have no pending document transition to cancel.
+void cancelPendingHandover() {}

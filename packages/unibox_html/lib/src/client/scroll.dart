@@ -26,8 +26,18 @@ const String scrollScript =
   if (unibox.takeScroll) { return; }
 
   var recorded = [];
+  var taken = false;
+  var position = { dx: 0, dy: 0 };
+
+  unibox.documentScroll = function () {
+    if (document.documentElement.getAttribute('data-unibox-state') !== 'app') {
+      position = { dx: window.scrollX || 0, dy: window.scrollY || 0 };
+    }
+    return position;
+  };
 
   function snapshot() {
+    unibox.documentScroll();
     var found = [];
     var elements = document.querySelectorAll('[' + attribute + ']');
 
@@ -42,20 +52,28 @@ const String scrollScript =
     recorded = found;
   }
 
-  document.addEventListener('scroll', function () {
-    // The document is not the page any more: what a canvas scrolls is the application's, and the
-    // offsets of a page nobody can see are not something to replay.
+  function onScroll() {
     if (document.documentElement.getAttribute('data-unibox-state') === 'app') { return; }
-
     snapshot();
-  }, { capture: true, passive: true });
+  }
+  document.addEventListener('scroll', onScroll, { capture: true, passive: true });
   document.addEventListener('visibilitychange', snapshot);
   window.addEventListener('pointerdown', snapshot, { passive: true });
   window.addEventListener('pagehide', snapshot);
 
+  unibox.stopScrollRecording = function () {
+    snapshot();
+    document.removeEventListener('scroll', onScroll, true);
+    document.removeEventListener('visibilitychange', snapshot);
+    window.removeEventListener('pointerdown', snapshot);
+    window.removeEventListener('pagehide', snapshot);
+  };
+
   // The offsets recorded since the page arrived, taken once so a runtime that replays them
   // twice does not move twice.
   unibox.takeScroll = function () {
+    if (taken) { return []; }
+    taken = true;
     snapshot();
     var taken = recorded;
     recorded = [];

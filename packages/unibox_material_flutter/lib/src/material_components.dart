@@ -5,38 +5,18 @@ import 'package:unibox_flutter/unibox_flutter.dart';
 // design system's button is the one a node names.
 import 'package:unibox_material/unibox_material.dart' as material;
 
-/// The components this package draws with Flutter's own widgets.
+/// Native widgets for every retained Material declaration.
 ///
-/// The tree still describes the screen — a card states its surface, its radius and what it
-/// holds; a bar states its destinations and which one is the page — and the document built
-/// from the same tree draws those values. Here the *application* says that two of them are
-/// drawn by Flutter instead, because a widget carries what a token cannot: the platform's
-/// ink, its click, the reader's text scale, and the accessibility work the framework has
-/// already done.
-///
-/// What that costs is the pixel the two renderings shared. A card's shadow is Flutter's
-/// ladder rather than the design file's, a bar's indicator is the SDK's size rather than the
-/// model's, and a screen whose reveal depends on the bar matching the document should be
-/// served as a document instead of taken over. What it may never cost is the information:
-/// the same words, in the same order, announced the same way.
-///
-/// The map is one value an application builds once and hands to `renderFlutter`.
-///
-/// **Experimental, and small on purpose.** It maps the two components this workspace has the
-/// most to learn from — a card, whose shadow Flutter paints its own way, and a bar, whose
-/// indicator size is the SDK's — and it will grow a component at a time, if it grows at all:
-/// every entry is a place the page and the application are allowed to differ. The signature may
-/// move while that question settles.
+/// Hosts supply const icon values to preserve font tree shaking. The declarations
+/// remain useful server HTML; Flutter never falls back to a custom Material control.
 UniboxSubstitutions materialComponents({
   List<IconData> icons = const <IconData>[],
 }) => UniboxSubstitutions(<Type, NodeSubstitution>{
   material.MaterialCard: _card,
   material.MaterialButton: _button,
   material.MaterialChip: _chip,
-  material.MaterialListTile: _listTile,
-  material.MaterialSpinner: _spinner,
+  material.MaterialSegmentedButton: _segmentedButton,
   material.MaterialIconButton: _iconButton,
-  material.MaterialProgressRing: _progressRing,
   material.MaterialIcon: (BuildContext c, core.UINode n, Widget? w) =>
       _icon(c, n, w, icons),
 });
@@ -93,23 +73,14 @@ Widget _icon(
     // app.
     return Icon(
       named,
+      semanticLabel: icon.semantics?.label,
       size: text.fontSize,
       color: ink == null ? null : Color(ink.value),
     );
   }
 
-  return Text(
-    String.fromCharCode(icon.codePoint ?? 0),
-    style: TextStyle(
-      // The node's own family: a `MaterialIcon` always names one, so the glyph is drawn from the
-      // font the tree asked for rather than whatever the ambient text style happens to use.
-      fontFamily: icon.fontFamily,
-      fontSize: text.fontSize,
-      color: ink == null ? null : Color(ink.value),
-    ),
-    // The one thing a glyph of text has to be told: an icon does not grow with the reader's text
-    // size, and neither did the `Icon` this replaces.
-    textScaler: TextScaler.noScaling,
+  throw StateError(
+    'Register the icon\'s const IconData in materialComponents(icons: ...).',
   );
 }
 
@@ -126,11 +97,6 @@ Widget _card(BuildContext context, core.UINode node, Widget? content) {
   // press may paint over — a ripple that spills past a rounded corner is the same card drawn
   // two ways. Without these three, a substituted card is Flutter's card, in Flutter's colour,
   // with a square clip.
-  // The line too: an outlined card is a fill *and* a hairline, and `Card` draws a border only
-  // when its shape names one. Without it the outlined variant was a card with no edge, while
-  // the page drew the line the tree states.
-  final core.BoxBorder? border = style.border;
-
   return Card(
     // The margin the tree states is applied around this widget, by the renderer.
     margin: EdgeInsets.zero,
@@ -140,9 +106,12 @@ Widget _card(BuildContext context, core.UINode node, Widget? content) {
         : Color(style.backgroundColor!.value),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(style.borderRadius ?? 0),
-      side: border == null || !border.isVisible
+      side: style.border == null || !style.border!.isVisible
           ? BorderSide.none
-          : BorderSide(color: Color(border.color.value), width: border.width),
+          : BorderSide(
+              width: style.border!.width,
+              color: Color(style.border!.color.value),
+            ),
     ),
     clipBehavior: style.overflow == core.Overflow.hidden
         ? Clip.antiAlias
@@ -151,38 +120,141 @@ Widget _card(BuildContext context, core.UINode node, Widget? content) {
   );
 }
 
+VoidCallback? _action(
+  BuildContext context,
+  bool enabled,
+  VoidCallback? callback,
+  String? url,
+) {
+  if (!enabled) return null;
+  if (callback != null) return callback;
+  if (url == null) return null;
+  final FlutterLinkOpener? open = FlutterLinkScope.maybeOf(context);
+  if (open == null) {
+    throw StateError('A native destination needs FlutterLinkScope.');
+  }
+  return () {
+    open(url);
+  };
+}
+
+TextStyle _labelStyle(core.BoxTextStyle text) => TextStyle(
+  fontSize: text.fontSize,
+  fontFamily: text.fontFamily,
+  fontWeight: switch (text.fontWeight) {
+    core.FontWeight.light => FontWeight.w300,
+    core.FontWeight.normal => FontWeight.w400,
+    core.FontWeight.medium => FontWeight.w500,
+    core.FontWeight.semiBold => FontWeight.w600,
+    core.FontWeight.bold => FontWeight.w700,
+    null => null,
+  },
+  height: text.lineHeight,
+  letterSpacing: text.letterSpacing,
+);
+
 Widget _button(BuildContext context, core.UINode node, Widget? content) {
   final material.MaterialButton button = node as material.MaterialButton;
-  final Widget label = renderNode(button.label);
-  final VoidCallback? onPressed = button.enabled ? button.onPressed : null;
+  final Widget label = button.icon == null
+      ? renderNode(button.label)
+      : Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            renderNode(button.icon!),
+            const SizedBox(width: 8),
+            renderNode(button.label),
+          ],
+        );
+  final VoidCallback? onPressed = _action(
+    context,
+    button.enabled,
+    button.onPressed,
+    button.url,
+  );
 
-  final Widget pill = switch (button.variant) {
+  final core.BoxStyle declared = button.controlStyle.resolve(
+    UniboxScopeWidget.of(context).theme ?? core.UniboxTheme.none,
+  );
+  final core.BoxTextStyle? text = declared.textStyle;
+  final core.BoxBorder? border = declared.border;
+  final ButtonStyle style = ButtonStyle(
+    textStyle: text == null
+        ? null
+        : WidgetStatePropertyAll<TextStyle>(_labelStyle(text)),
+    minimumSize: WidgetStatePropertyAll<Size>(
+      Size(declared.minWidth ?? 0, declared.minHeight ?? 0),
+    ),
+    fixedSize: WidgetStatePropertyAll<Size>(
+      Size(
+        declared.width ?? double.infinity,
+        declared.height ?? double.infinity,
+      ),
+    ),
+    padding: declared.padding == null
+        ? null
+        : WidgetStatePropertyAll<EdgeInsetsGeometry>(
+            EdgeInsets.fromLTRB(
+              declared.padding!.left,
+              declared.padding!.top,
+              declared.padding!.right,
+              declared.padding!.bottom,
+            ),
+          ),
+    shape: WidgetStatePropertyAll<OutlinedBorder>(
+      RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(declared.borderRadius ?? 20),
+      ),
+    ),
+    side: border == null
+        ? null
+        : WidgetStatePropertyAll<BorderSide>(
+            BorderSide(width: border.width, color: Color(border.color.value)),
+          ),
+    backgroundColor: declared.backgroundColor == null
+        ? null
+        : WidgetStateProperty.resolveWith<Color?>(
+            (Set<WidgetState> states) => states.contains(WidgetState.disabled)
+                ? null
+                : Color(declared.backgroundColor!.value),
+          ),
+    foregroundColor: text?.color == null
+        ? null
+        : WidgetStateProperty.resolveWith<Color?>(
+            (Set<WidgetState> states) => states.contains(WidgetState.disabled)
+                ? null
+                : Color(text!.color!.value),
+          ),
+  );
+
+  final Widget control = switch (button.variant) {
     material.MaterialButtonVariant.filled => FilledButton(
       onPressed: onPressed,
+      onLongPress: button.onLongPress,
+      style: style,
       child: label,
     ),
     material.MaterialButtonVariant.tonal => FilledButton.tonal(
       onPressed: onPressed,
+      onLongPress: button.onLongPress,
+      style: style,
       child: label,
     ),
     material.MaterialButtonVariant.outlined => OutlinedButton(
       onPressed: onPressed,
+      onLongPress: button.onLongPress,
+      style: style,
       child: label,
     ),
     material.MaterialButtonVariant.text => TextButton(
       onPressed: onPressed,
+      onLongPress: button.onLongPress,
+      style: style,
       child: label,
     ),
   };
-
-  // A button is as wide as its label unless the tree states a width — the values draw it that
-  // way, and a Material button handed a stretched parent fills it instead. `Align` gives the
-  // widget the loose constraints it needs to hug; a stated width is what it fills.
-  final double? width = button.fillWidth;
-
-  return width == null
-      ? Align(alignment: AlignmentDirectional.centerStart, child: pill)
-      : SizedBox(width: width, child: pill);
+  return declared.width == null
+      ? Align(alignment: AlignmentDirectional.centerStart, child: control)
+      : SizedBox(width: declared.width, child: control);
 }
 
 /// The elevation level a card states, `0` to `5`, read from the shadow ladder it names.
@@ -211,8 +283,19 @@ int _levelOf(List<core.BoxShadow>? shadows) {
 
 Widget _chip(BuildContext context, core.UINode node, Widget? content) {
   final material.MaterialChip chip = node as material.MaterialChip;
-  final Widget label = renderNode(chip.label);
-  final VoidCallback? onDeleted = chip.onDeleted;
+  final Widget label = DefaultTextStyle.merge(
+    style: _labelStyle(
+      chip.controlStyle.textStyle ?? const core.BoxTextStyle(),
+    ),
+    child: renderNode(chip.label),
+  );
+  final VoidCallback? onDeleted = chip.enabled ? chip.onDeleted : null;
+  final VoidCallback? onPressed = _action(
+    context,
+    chip.enabled,
+    chip.onSelected,
+    chip.url,
+  );
   // What the chip carries is information: the glyph before the label, and the cross after it.
   final Widget? avatar = chip.leading == null
       ? null
@@ -221,83 +304,122 @@ Widget _chip(BuildContext context, core.UINode node, Widget? content) {
       ? null
       : renderNode(chip.trailing!);
 
+  final core.BoxStyle declared = chip.controlStyle.resolve(
+    UniboxScopeWidget.of(context).theme ?? core.UniboxTheme.none,
+  );
+  final OutlinedBorder shape = RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(declared.borderRadius ?? 0),
+  );
+
   // A chip with a cross is the input chip; one without is a choice, and a chip that says it
   // is chosen is a filter. Those are the three Material draws, and the node says which it is
   // by what it carries.
-  // The corner and the tap target are the tree's. `FilterChip` rounds itself into a stadium and
-  // pads its box to Material's 48 pixel tap target, where the node paints 32 pixels with an 8
-  // pixel corner — so a substituted chip was taller and rounder than the page's.
-  final core.BoxStyle style = _styleOf(context, chip);
-  final OutlinedBorder shape = RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(style.borderRadius ?? 0),
-  );
-
-  if (onDeleted != null) {
+  if (chip.onDeleted != null) {
     return InputChip(
+      selected: chip.selected,
+      isEnabled: chip.enabled,
+      shape: shape,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       label: label,
       avatar: avatar,
       deleteIcon: cross,
+      deleteButtonTooltipMessage: chip.removeLabel,
       onDeleted: onDeleted,
-      shape: shape,
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       // A chip whose whole pill drops the filter answers it too, as the node states it: the
       // cross is the second way to the same end, not the only one.
-      onPressed: chip.onSelected,
+      onPressed: onPressed,
     );
   }
 
+  if (onPressed == null && chip.onDeleted == null) {
+    return RawChip(
+      shape: shape,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      label: label,
+      avatar: avatar,
+      selected: chip.selected,
+      isEnabled: chip.enabled,
+      showCheckmark: false,
+    );
+  }
   return FilterChip(
+    shape: shape,
+    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
     label: label,
     avatar: avatar,
     // The node drew its own glyph for a chosen chip; Flutter's checkmark would be a second one.
     showCheckmark: false,
     selected: chip.selected,
-    onSelected: chip.onSelected == null ? null : (bool _) => chip.onSelected!(),
-    shape: shape,
-    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    onSelected: onPressed == null ? null : (bool _) => onPressed(),
   );
 }
 
 Widget _iconButton(BuildContext context, core.UINode node, Widget? content) {
   final material.MaterialIconButton button =
       node as material.MaterialIconButton;
-  final Widget icon = renderNode(button.icon);
+  final Widget glyph = renderNode(button.icon);
+  final int? count = button.badgeCount;
+  final Widget icon = count == null || count <= 0
+      ? glyph
+      : Badge.count(count: count, child: glyph);
 
-  return IconButton(
-    onPressed: button.onPressed,
-    tooltip: button.label,
-    icon: icon,
+  final VoidCallback? onPressed = _action(
+    context,
+    button.enabled,
+    button.onPressed,
+    button.url,
   );
-}
-
-Widget _progressRing(BuildContext context, core.UINode node, Widget? content) {
-  final material.MaterialProgressRing ring =
-      node as material.MaterialProgressRing;
-
-  return SizedBox(
-    width: ring.size,
-    height: ring.size,
-    child: CircularProgressIndicator(
-      value: ring.determinate ? ring.value.clamp(0, 1).toDouble() : null,
-      strokeWidth: ring.thickness,
-      semanticsLabel: ring.label,
+  final core.BoxStyle declared = button.controlStyle.resolve(
+    UniboxScopeWidget.of(context).theme ?? core.UniboxTheme.none,
+  );
+  final core.BoxBorder? border = declared.border;
+  final core.BoxSpacing? padding = declared.padding;
+  final ButtonStyle style = IconButton.styleFrom(
+    fixedSize: Size(declared.width ?? 40, declared.height ?? 40),
+    minimumSize: Size(declared.width ?? 40, declared.height ?? 40),
+    padding: padding == null
+        ? null
+        : EdgeInsets.fromLTRB(
+            padding.left,
+            padding.top,
+            padding.right,
+            padding.bottom,
+          ),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(declared.borderRadius ?? 20),
     ),
+    side: border == null
+        ? null
+        : BorderSide(width: border.width, color: Color(border.color.value)),
   );
+  return switch (button.variant) {
+    material.MaterialIconButtonVariant.standard => IconButton(
+      onPressed: onPressed,
+      tooltip: button.label,
+      style: style,
+      icon: icon,
+    ),
+    material.MaterialIconButtonVariant.filled => IconButton.filled(
+      onPressed: onPressed,
+      tooltip: button.label,
+      style: style,
+      icon: icon,
+    ),
+    material.MaterialIconButtonVariant.tonal => IconButton.filledTonal(
+      onPressed: onPressed,
+      tooltip: button.label,
+      style: style,
+      icon: icon,
+    ),
+    material.MaterialIconButtonVariant.outlined => IconButton.outlined(
+      onPressed: onPressed,
+      tooltip: button.label,
+      style: style,
+      icon: icon,
+    ),
+  };
 }
 
-/// A [ThemeData] built from [palette]: the one source of truth for the widgets a
-/// substitution draws.
-///
-/// The widgets this package swaps in — `FilledButton`, `FilterChip`, `NavigationBar`,
-/// `CircularProgressIndicator` — read their colours from `ColorScheme` and their type from
-/// `TextTheme`, not from the node they replaced. Without this they take Flutter's baseline
-/// scheme (the `6750A4` purple family), and the page and the app disagree about a design
-/// that only ever had one answer.
-///
-/// It is built role by role from the palette rather than from a seed, so the values are the
-/// ones the tree is drawn with: no second run of the colour algorithm, and no two versions of
-/// `material_color_utilities` to keep in step. The roles a `ColorScheme` names that this
-/// palette does not — `tertiary`, `inverseSurface`, `onErrorContainer` — keep Flutter's own
 /// defaults, and are written down here rather than left to be discovered.
 ThemeData materialThemeData(
   material.MaterialPalette palette, {
@@ -350,33 +472,80 @@ ThemeData materialThemeData(
   );
 }
 
-Widget _listTile(BuildContext context, core.UINode node, Widget? content) {
-  final material.MaterialListTile tile = node as material.MaterialListTile;
+Widget _segmentedButton(
+  BuildContext context,
+  core.UINode node,
+  Widget? content,
+) {
+  final material.MaterialSegmentedButton pill =
+      node as material.MaterialSegmentedButton;
+  final core.BoxStyle style = _styleOf(context, pill);
+  final core.BoxBorder? border = style.border;
 
-  // A tile paints its ink on the nearest `Material`, so a fill behind it — and a box in a
-  // tree usually has one — would hide the splash and grey the tile Flutter's default way.
-  // A transparent material is Flutter's own answer: the tile keeps its own layer, and the
-  // box behind it still states the colour.
-  return Material(
-    type: MaterialType.transparency,
-    child: ListTile(
-      title: renderNode(tile.title),
-      subtitle: tile.subtitle == null ? null : renderNode(tile.subtitle!),
-      leading: tile.leading == null ? null : renderNode(tile.leading!),
-      trailing: tile.trailing == null ? null : renderNode(tile.trailing!),
-      dense: tile.dense,
-      onTap: tile.onPressed,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+  // A row that stretches its children hands this a taller box than the control's own height,
+  // and `SegmentedButton` then paints its segments at the top of it — leaving the selection
+  // fill short of the pill's edge. The height the node states is the height it gets.
+  // `Align` first, so the widget is not stretched to the row's height: a tight height makes
+  // `SizedBox` meaningless, and a `SegmentedButton` in a taller box paints its selection at the
+  // top of it. Loose constraints, then the control's own height.
+  //
+  // The node's width decides, as it does on the page: a pill that states one divides it between its
+  // segments, and one that does not is as wide as its columns — which is what a row that scrolls
+  // holds. Reading it off the node rather than the constraints keeps the widget free of a
+  // `LayoutBuilder`, and a `LayoutBuilder` cannot answer an intrinsic measurement — which is what
+  // a viewport wrapped around this control asks for when the row it is in hugs.
+  return Align(
+    alignment: Alignment.centerLeft,
+    child: SizedBox(
+      height:
+          style.height ??
+          pill.density.adjust(material.MaterialSegmentedButton.controlHeight),
+      child: SegmentedButton<int>(
+        segments: <ButtonSegment<int>>[
+          for (int i = 0; i < pill.segments.length; i++)
+            ButtonSegment<int>(
+              value: i,
+              label: renderNode(pill.segments[i].label),
+              icon: pill.segments[i].icon == null
+                  ? null
+                  : renderNode(pill.segments[i].icon!),
+            ),
+        ],
+        selected: <int>{pill.selected},
+        onSelectionChanged: !pill.enabled
+            ? null
+            : (Set<int> chosen) {
+                final int index = chosen.first;
+                final String? url = pill.segments[index].url;
+                final VoidCallback? action = _action(
+                  context,
+                  true,
+                  url == null ? () => pill.onSelect?.call(index) : null,
+                  url,
+                );
+                action?.call();
+              },
+        showSelectedIcon: pill.showSelectedIcon,
+        expandedInsets: pill.width == null ? null : EdgeInsets.zero,
+        // The node's hairline, not the theme's. `SegmentedButton` otherwise outlines the pill
+        // with `ColorScheme.outline`, a step darker than the `outlineVariant` the tree names, so
+        // the same control was drawn in two colours — the app's against the page's.
+        style: SegmentedButton.styleFrom(
+          textStyle: _labelStyle(pill.labelStyle),
+          padding: EdgeInsets.fromLTRB(
+            pill.segmentPadding.left,
+            pill.segmentPadding.top,
+            pill.segmentPadding.right,
+            pill.segmentPadding.bottom,
+          ),
+          side: border == null || !border.isVisible
+              ? null
+              : BorderSide(
+                  color: Color(border.color.value),
+                  width: border.width,
+                ),
+        ),
+      ),
     ),
-  );
-}
-
-Widget _spinner(BuildContext context, core.UINode node, Widget? content) {
-  final material.MaterialSpinner spinner = node as material.MaterialSpinner;
-
-  return SizedBox(
-    width: spinner.size,
-    height: spinner.size,
-    child: const CircularProgressIndicator(),
   );
 }

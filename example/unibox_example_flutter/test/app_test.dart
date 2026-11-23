@@ -182,17 +182,35 @@ void main() {
       await pumpApp(tester);
       await openPage(tester, 'Sign up');
 
-      expect(find.text('✓'), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byType(FlutterOverlay),
+          matching: find.text('✓'),
+        ),
+        findsNothing,
+      );
 
       await tester.tap(find.text('Release notes'));
       await tester.pump();
 
-      expect(find.text('✓'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(FlutterOverlay),
+          matching: find.text('✓'),
+        ),
+        findsOneWidget,
+      );
 
       await tester.tap(find.text('Release notes'));
       await tester.pump();
 
-      expect(find.text('✓'), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byType(FlutterOverlay),
+          matching: find.text('✓'),
+        ),
+        findsNothing,
+      );
     });
 
     group('navigation', () {

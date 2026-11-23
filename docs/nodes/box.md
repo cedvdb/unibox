@@ -50,11 +50,10 @@ Box(
 | Parameter | Type | Default | Meaning |
 | --- | --- | --- | --- |
 | `backgroundColor` | `BoxColor?` | none | Colour behind the children. |
-| `border` | `BoxBorder?` | none | Line around the box, with a width, a colour and — for a shape's open outline — a cap. |
+| `border` | `BoxBorder?` | none | Line around the box, with a width and a colour. |
 | `borderRadius` | `double?` | square | Corner radius in logical pixels, the same on all four. |
 | `corners` | `BoxBorderRadius?` | square | The radius of each corner, for a box that is not round on all four — a filled text field rounds its top and leaves the bottom square. Takes precedence over `borderRadius`. |
 | `shadows` | `List<BoxShadow>?` | none | Drop shadows, painted in the order they are written: colour, offset, blur, spread. The blur is in logical pixels, in Flutter's unit, and the web writes the CSS blur that paints the same width. |
-| `shape` | `BoxShape?` | the rectangle | The outline the box is painted in, instead of its rectangle: a path in a view box, stretched to the box. The background fills it, the `border` is drawn along it, and the children are clipped to it when the box also says `overflow: Overflow.hidden`. See [shapes](#shapes). |
 | `opacity` | `double?` | solid | `0` (invisible) to `1` (solid). The box keeps its room either way. |
 | `transform` | `BoxTransform?` | none | Moves, turns or scales the box about its centre (`scale`, `rotation` in degrees, `offsetX`/`offsetY` in pixels, `fractionX`/`fractionY` in multiples of the box's own size). The fractions are the offsets that need no measurement — one tab, half a width — and they compose with the pixels. It paints differently without taking different room, so text inside never reflows. |
 | `transition` | `BoxTransition?` | none | How long a change of the paint, the opacity or the transform takes, and how it eases. See [motion](../../README.md#motion). |
@@ -137,69 +136,6 @@ both are the opposite of what an instinct says:
 So the recipe, in one line: **a section that must span says `crossAlign:
 CrossAlign.stretch`, and a row that must distribute is inside one that did.**
 
-## Shapes
-
-A box can be painted in an outline that is not a rectangle. The outline is a
-`BoxShape`: a path in a **view box**, so the same value draws the same silhouette at
-40 pixels and at 400.
-
-```dart
-const BoxShape hexagon = BoxShape(
-  viewBoxWidth: 100,
-  viewBoxHeight: 100,
-  commands: <BoxPathCommand>[
-    BoxPathMoveTo(50, 0),
-    BoxPathLineTo(93, 25),
-    BoxPathLineTo(93, 75),
-    BoxPathLineTo(50, 100),
-    BoxPathLineTo(7, 75),
-    BoxPathLineTo(7, 25),
-    BoxPathClose(),
-  ],
-);
-
-Box(width: 40, height: 40, shape: hexagon, backgroundColor: BoxColor.white)
-```
-
-The commands are the ones SVG's `d` attribute has — `M`, `L`, `C`, `Q`, `A` and `Z`
-— and every renderer has a method for each, so neither parses what the other wrote.
-The model ships three values over that vocabulary, because they are asked for far more
-often than the rest: `BoxShape.circle`, `BoxShape.ring` and `BoxShape.arc`.
-
-```dart
-// A ring: the region between the edge and a circle 12 units inside it.
-Box(width: 96, height: 96, shape: BoxShape.ring(thickness: 12), backgroundColor: grey)
-
-// A value over it: the same ring, a fraction of a turn, clockwise from twelve.
-Box(width: 96, height: 96, shape: BoxShape.ring(thickness: 12, sweep: 0.42), backgroundColor: accent)
-
-// A line: a circle's centreline, run along by an open path. What paints it is the border,
-// and `cap` is what its two ends look like — which is how Material's indicator is drawn.
-Box(
-  width: 48,
-  height: 48,
-  shape: BoxShape.arc(stroke: 4, sweep: 0.42, viewBox: 48),
-  border: BoxBorder(width: 4, color: accent, cap: BoxStrokeCap.round),
-)
-```
-
-Five things follow from a shape:
-
-- **The fill is the shape.** `backgroundColor` fills the path rather than the
-  rectangle, and `border` is a stroke along the same path.
-- **`fillRule` decides what is inside.** `BoxFillRule.evenOdd` punches a hole: two
-  circles become a ring, which is how a donut is drawn without a second outline.
-- **An open outline is a line, not a region.** `BoxShape.arc` closes nothing, so what a
-  reader sees is the border's stroke — and `BoxBorder.cap` (`butt`, `round`, `square`)
-  states how its two ends are drawn. A cap on a rectangle draws nothing, so
-  `validateTree` reports one there.
-- **Layout does not change.** Children are laid out in the same rectangle as before,
-  which is what puts a label inside the hole of a ring; `overflow: Overflow.hidden`
-  is what clips them to the outline.
-- **A shape paints; it does not cast.** It has no shadow (put the shadows on the box
-  around it) and it does not ease (there are no numbers to interpolate between two
-  outlines). `validateTree` reports a shaped box that also names a shadow or a
-  corner radius, because a box has one outline.
 
 ---
 

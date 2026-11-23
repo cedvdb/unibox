@@ -2,6 +2,23 @@ import 'package:test/test.dart';
 import 'package:unibox_html/unibox_html.dart';
 
 void main() {
+  test('a supplied app layer is released from inert accessibility hiding before focus', () {
+    final String script = bootScript(
+      'app.js',
+      hostId: 'existing-app',
+      reveal: RevealPolicy.onReady,
+    );
+    expect(script, contains("var hostId = 'existing-app'"));
+    expect(
+      script.indexOf("host.removeAttribute('aria-hidden')"),
+      lessThan(script.indexOf('host.focus(')),
+    );
+    expect(
+      script.indexOf("host.removeAttribute('inert')"),
+      lessThan(script.indexOf('host.focus(')),
+    );
+  });
+
   group('the reveal', () {
     test('never happens under the reader it would move', () {
       // The page changes hands at the reveal, and the element a reader is on goes with the

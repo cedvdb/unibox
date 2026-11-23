@@ -74,7 +74,7 @@ const List<GridCase> gridCases = <GridCase>[
       gap: 16,
       children: <core.UINode>[
         core.Box(key: 0, height: 40),
-        core.Box(key: 1, height: 40, gridSpan: const core.GridSpan.tracks(2)),
+        core.Box(key: 1, height: 40, gridSpan: core.GridSpan.tracks(2)),
         core.Box(key: 2, height: 40),
         core.Box(key: 3, height: 40),
       ],
@@ -92,7 +92,7 @@ const List<GridCase> gridCases = <GridCase>[
       maxColumns: 3,
       gap: 16,
       children: <core.UINode>[
-        core.Box(key: 0, height: 40, gridSpan: const core.GridSpan.tracks(3)),
+        core.Box(key: 0, height: 40, gridSpan: core.GridSpan.tracks(3)),
         core.Box(key: 1, height: 40),
       ],
     ),
@@ -112,7 +112,7 @@ const List<GridCase> gridCases = <GridCase>[
       children: <core.UINode>[
         core.Box(key: 0, height: 40),
         core.Box(key: 1, height: 40),
-        core.Box(key: 2, height: 40, gridSpan: const core.GridSpan.row()),
+        core.Box(key: 2, height: 40, gridSpan: core.GridSpan.row()),
         core.Box(key: 3, height: 40),
       ],
     ),

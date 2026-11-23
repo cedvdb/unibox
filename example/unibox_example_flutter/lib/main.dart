@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:unibox_flutter/handover.dart';
 import 'package:flutter/foundation.dart'
     show TargetPlatform, defaultTargetPlatform;
 import 'package:material_ui/material_ui.dart';
@@ -29,7 +32,7 @@ void main() => runApp(switch (hostedPageFor(pageAddress)) {
     // to, and what was pressed. Read once here, where a host does its other reads; every
     // other platform answers with nothing, because there is no page in front of it.
     offsets: scrollOffsetsFromPage(),
-    presses: pressesFromPage(),
+    presses: const <BoxPress>[],
   ),
 });
 
@@ -78,6 +81,21 @@ class ExampleApp extends StatefulWidget {
 
 class _ExampleAppState extends State<ExampleApp> {
   late ExampleSeed _seed = widget.seed;
+  final FlutterHandover _handover = FlutterHandover();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(_handover.complete(root: context));
+    });
+  }
+
+  @override
+  void dispose() {
+    _handover.dispose();
+    super.dispose();
+  }
 
   /// What following a link means here: a seed is a palette, so it is a rebuild;
   /// anything else is a destination this host does not serve, and it says so.

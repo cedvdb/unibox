@@ -383,9 +383,23 @@ String cssBoxShadows(List<core.BoxShadow> shadows) =>
 /// that contains a single quote is wrapped in double quotes instead of being
 /// escaped, which keeps the declaration readable.
 String cssFontFamily(String family) {
-  final bool hasSingle = family.contains("'");
+  final String quote = family.contains("'") ? '"' : "'";
+  final StringBuffer escaped = StringBuffer(quote);
 
-  return hasSingle ? '"$family"' : "'$family'";
+  for (final int unit in family.codeUnits) {
+    if (unit == quote.codeUnitAt(0) || unit == 92) {
+      escaped
+        ..write('\\')
+        ..writeCharCode(unit);
+    } else if (unit < 32 || unit == 127 || unit == 60) {
+      // Hex escapes protect CSS strings and HTML raw-text style elements alike.
+      escaped.write('\\${unit == 0 ? 'fffd' : unit.toRadixString(16)} ');
+    } else {
+      escaped.writeCharCode(unit);
+    }
+  }
+
+  return (escaped..write(quote)).toString();
 }
 
 /// The declarations that make the descendants of a box inherit its typography.

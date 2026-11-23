@@ -116,7 +116,6 @@ packages/unibox_core|dart test
 packages/unibox_testing|dart test
 packages/unibox_material|dart test
 packages/unibox_html|dart test
-packages/unibox_dom|dart test -p chrome
 packages/unibox_flutter|flutter test
 packages/unibox_material_flutter|flutter test
 example/unibox_example_shared|dart test
@@ -128,7 +127,7 @@ fi
 if [ "$build_docs" -eq 1 ]; then
   # dartdoc reports a problem as a warning and still exits 0, which is why CI
   # reads the log as well; a public member without a doc comment has to fail here.
-  for package in unibox_core unibox_testing unibox_material unibox_material_flutter unibox_html unibox_dom unibox_flutter; do
+  for package in unibox_core unibox_testing unibox_material unibox_material_flutter unibox_html unibox_flutter; do
     step "Documenting $package"
     output="$(mktemp -d)/docs"
     log="$(mktemp)"

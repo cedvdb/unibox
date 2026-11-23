@@ -18,8 +18,8 @@ which is the decision being asked for — not a demand that every token be compa
 thirty box tokens are deliberately outside the table, because a browser and a Flutter `Text` never
 agree about them; those sixteen are now written down instead of remembered.
 
-The same, for the callbacks on the nodes: each one has to be reached by the Flutter renderer and by
-`packages/unibox_dom/lib/src/events.dart`, or be classified. `Box.onHover` was declared, used by a
+Callbacks on nodes must be reached by the Flutter renderer or explicitly classified.
+Server HTML intentionally binds no application callbacks. `Box.onHover` was declared, used by a
 component, bound by nothing for a day, and every suite passed.
 
 What this cannot see, and does not claim to: whether a binding calls a callback *correctly* (that is
@@ -80,7 +80,6 @@ CLASSIFIED = {
         'border': 'spread into `borderWidth` and `borderColor`',
         'shadows': 'blur, spread and offset stay approximate on purpose, so the suites assert that a '
         'shadow is emitted and not what it blurs to',
-        'shape': 'a path in a view box, which neither output hands back',
         'gridSpan': 'compared by `GridAppearance` in `grid_cases.dart`, because what decides whether '
         'a span is honoured is the grid the box sits in and not the box that states it',
         'wrap': 'where a wrap breaks its lines depends on the width the box is drawn at, which the '
@@ -111,7 +110,6 @@ CALLBACKS = {
     'declares': 'packages/unibox_core/lib/src/nodes',
     'reaches': (
         ('the Flutter renderer', ('packages/unibox_flutter/lib/src',)),
-        ('the web runtime', ('packages/unibox_dom/lib/src/events.dart',)),
     ),
 }
 

@@ -1,75 +1,67 @@
-/// The presses a page records, and the script that records them.
-///
-/// A document has no state to change, so a press can only be remembered: the application
-/// that takes the page over reads the record and replays the intent, instead of a reader
-/// pressing a control and nothing happening twice.
+/// Recording of one intercepted intent while a document waits for Flutter.
 library;
 
 import 'keys.dart';
 
-/// The attribute a recorded press is keyed by.
-///
-/// The same one the renderer writes on every element a keyed node drew, so the application
-/// finds the element it is being told about.
+/// The stable identity shared by the document and the Flutter target.
 const String pressKeyAttribute = nodeKeyAttribute;
 
-/// How many presses a page keeps.
-///
-/// A reader who presses twenty times asked for the last one, and a record nobody reads is
-/// memory the page never gets back.
-const int pressRecordLimit = 8;
+/// Only the latest pending intent is retained during handover.
+const int pressRecordLimit = 1;
 
-/// The script that records the presses a page receives.
-///
-/// It reads the key of the nearest ancestor that has one, and the position of the press
-/// inside that element, in that element's own pixels — the same coordinates a Flutter
-/// renderer reports for the same press.
+/// Intercepts eligible keyed actions while preserving ordinary browser navigation.
 const String pressScript =
     '''
 (function () {
   'use strict';
   var attribute = '$pressKeyAttribute';
-  var limit = $pressRecordLimit;
   var unibox = window.unibox = window.unibox || {};
-
   if (unibox.takePressed) { return; }
-
   var pressed = [];
+  var taken = false;
 
-  function nearest(node) {
+  function capture(event) {
+    var state = document.documentElement.getAttribute('data-unibox-state');
+    if (!unibox.takeover || state === 'app' || state === 'failed' || taken) { return; }
+    if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button > 0) { return; }
+    var node = event.target;
+    var action = false;
+    var named = null;
     while (node && node.nodeType === 1) {
-      if (node.hasAttribute(attribute)) { return node; }
+      // Links retain navigation, downloads and new-tab behaviour in the browser.
+      if (node.tagName === 'A' && node.hasAttribute('href')) { return; }
+      if (node.hasAttribute('disabled') || node.getAttribute('aria-disabled') === 'true') { return; }
+      if (node.hasAttribute('data-unibox-action')) { action = true; }
+      if (!named && node.hasAttribute(attribute)) { named = node; }
       node = node.parentNode;
     }
-    return null;
-  }
-
-  document.addEventListener('pointerdown', function (event) {
-    // Once the application owns the page there is nothing left to replay: a press recorded now
-    // would be handed to it as intent it never had.
-    if (document.documentElement.getAttribute('data-unibox-state') === 'app') { return; }
-
-    var named = nearest(event.target);
-
-    if (!named) { return; }
-
+    if (!action || !named) { return; }
+    var matches = document.querySelectorAll('[' + attribute + ']');
+    var key = named.getAttribute(attribute);
+    var count = 0;
+    for (var i = 0; i < matches.length; i++) {
+      if (matches[i].getAttribute(attribute) === key) { count++; }
+    }
+    if (count !== 1) { return; }
     var box = named.getBoundingClientRect();
-
-    pressed.push({
-      key: named.getAttribute(attribute),
-      dx: event.clientX - box.left,
-      dy: event.clientY - box.top
-    });
-
-    if (pressed.length > limit) { pressed.shift(); }
-  }, { capture: true, passive: true });
-
-  // The presses recorded since the page arrived, oldest first, taken once: a runtime that
-  // replays them twice would press twice.
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    pressed = [{ key: key, dx: event.clientX - box.left, dy: event.clientY - box.top }];
+    unibox.hasPendingPress = true;
+  }
+  document.addEventListener('click', capture, { capture: true });
+  unibox.stopPressRecording = function (discard) {
+    document.removeEventListener('click', capture, true);
+    if (discard) { pressed = []; taken = true; }
+  };
   unibox.takePressed = function () {
-    var taken = pressed;
+    if (taken) { return []; }
+    taken = true;
+    document.removeEventListener('click', capture, true);
+    var result = pressed;
     pressed = [];
-    return taken;
+    unibox.hasPendingPress = false;
+    return result;
   };
 })();
 ''';

@@ -98,12 +98,11 @@ enum RevealPolicy {
   /// with holes in it.
   onFrame,
 
-  /// When the application says it is ready — and, if it never does, after `readyTimeout`.
+  /// When the host says its destination content and layout are ready.
   ///
   /// The right answer for a takeover, where the application has a scroll offset and a press to
-  /// replay: a first frame drawn before that replay is a page that jumps under the reader. An
-  /// application drawn by `unibox_flutter` says it is ready at its first draw without being
-  /// asked; one that waits for data calls `uniboxReady()` when the data is in.
+  /// replay. The host completes its `FlutterHandover` after data and layout are ready;
+  /// importing a renderer does not signal readiness. A timeout retains the document.
   onReady,
 }
 
@@ -116,9 +115,10 @@ enum RevealPolicy {
 /// [policy] decides when the boot starts — see [BootPolicy]. It is the one thing a host knows
 /// and a document cannot: which of the three kinds of page it published.
 ///
+/// [hostId] names an existing direct child of the document body for an embedded engine.
 /// [reveal] decides when the application is shown — see [RevealPolicy]. [readyTimeout] bounds
-/// the wait for [RevealPolicy.onReady]: a frame that is available is revealed when it expires, and
-/// a page with no frame at all goes back to being a document rather than staying blank.
+/// the wait for readiness: an incomplete application falls back to the document rather
+/// than revealing an intermediate layout or leaving a blank surface.
 ///
 /// The three labels are the sentences the handover says to a reader, and they are the host's
 /// because a library cannot write in a language it was not told about: [openLabel] names the
@@ -133,6 +133,7 @@ enum RevealPolicy {
 String bootScript(
   String src, {
   BootPolicy policy = BootPolicy.onPointer,
+  String? hostId,
   String openLabel = 'Open the application',
   RevealPolicy reveal = RevealPolicy.onFrame,
   Duration readyTimeout = const Duration(seconds: 8),
@@ -141,6 +142,7 @@ String bootScript(
   bool debug = false,
   bool query = true,
 }) => _bootTemplate
+    .replaceAll('%HOST%', hostId == null ? 'null' : "'${_jsString(hostId)}'")
     .replaceAll('%START%', _startOf(policy))
     .replaceAll('%INTENT%', _intentOf(policy))
     .replaceAll('%GUARD%', _guardOf(policy))
@@ -267,11 +269,15 @@ const String _bootTemplate = '''
   var asks = '%QUERY%' === 'true';
   var root = document.documentElement;
   var unibox = window.unibox = window.unibox || {};
+  var resolveReveal;
+  var revealed = new Promise(function (resolve) { resolveReveal = resolve; });
+  unibox.whenRevealed = function () { return revealed; };
   var booted = false;
   var wanted = false;
   var loaded = document.readyState === 'complete';
   var state = 'document';
   var before = null;
+  var hostId = %HOST%;
   var host = null;
   var observer = null;
   var framed = false;
@@ -382,7 +388,9 @@ const String _bootTemplate = '''
       return;
     }
 
-    before = [].slice.call(document.body.children);
+    host = hostId ? document.getElementById(hostId) : null;
+    if (host) { unibox.hostElement = host; }
+    before = [].slice.call(document.body.children).filter(function (child) { return child !== host; });
   }
 
   function inside(node) {
@@ -509,6 +517,7 @@ const String _bootTemplate = '''
 
     unibox.booted = true;
     unibox.takeover = true;
+    unibox.waitsForContent = wants === 'ready';
 
     window.addEventListener('flutter-first-frame', onFrame, { once: true });
 
@@ -538,6 +547,7 @@ const String _bootTemplate = '''
   // What an application says when it is worth showing. A frame still has to arrive: a canvas that
   // has not painted is a blank page with extra steps.
   unibox.ready = function () {
+    if (state === 'app' || state === 'failed') { return; }
     mark('ready');
 
     if (framed) {
@@ -547,14 +557,20 @@ const String _bootTemplate = '''
     }
   };
 
+  unibox.cancel = function () {
+    if (state !== 'app' && state !== 'failed') { fail('handover cancelled by the host'); }
+  };
+
   // Never under a reader, then focus, then announce, then take the document out of the page — in
   // that order, because `inert` blurs whatever is inside it.
   function reveal() {
     if (state === 'app' || state === 'failed') {
       return;
     }
+    if (unibox.stopPressRecording) { unibox.stopPressRecording(false); }
+    if (unibox.stopScrollRecording) { unibox.stopScrollRecording(); }
 
-    if (document.activeElement !== document.body && inside(document.activeElement)) {
+    if (document.activeElement !== document.body && inside(document.activeElement) && !unibox.hasPendingPress && !document.activeElement.hasAttribute('data-unibox-open')) {
       document.addEventListener('focusout', function () {
         setTimeout(reveal, 0);
       }, { once: true });
@@ -571,6 +587,7 @@ const String _bootTemplate = '''
     held = framedAt === 0 ? 0 : Math.round(performance.now()) - framedAt;
     root.setAttribute('data-unibox-held', String(held));
     mark('reveal');
+    if (host) { host.removeAttribute('aria-hidden'); host.removeAttribute('inert'); }
     to('ready');
 
     if (host && host.focus) {
@@ -585,6 +602,7 @@ const String _bootTemplate = '''
     lock();
     retire();
     to('app');
+    resolveReveal(true);
     check();
   }
 
@@ -649,14 +667,15 @@ const String _bootTemplate = '''
     }
 
     if (state !== 'app' && state !== 'failed') {
-      report('the application never said ready; revealed after %TIMEOUT%ms');
-      reveal();
+      fail('the application never said ready after %TIMEOUT%ms');
     }
   }
 
   // A page that cannot become an application is still a page: everything is undone, and the
   // reader keeps what they were reading.
   function fail(reason) {
+    if (unibox.stopPressRecording) { unibox.stopPressRecording(true); }
+    if (unibox.stopScrollRecording) { unibox.stopScrollRecording(); }
     clearTimeout(timer);
     timer = 0;
 
@@ -686,6 +705,7 @@ const String _bootTemplate = '''
     unlock();
     mark('failed');
     to('failed');
+    resolveReveal(false);
     report(reason);
   }
 

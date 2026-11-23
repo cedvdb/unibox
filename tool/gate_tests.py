@@ -164,21 +164,22 @@ def test_surface_check():
         write('packages/unibox_core/lib/src/nodes/box.dart',
               'class Box {\n  final TapCallback? onTap;\n}\n')
         write('packages/unibox_flutter/lib/src/box.dart', 'void build() => box.onTap?.call();\n')
-        write('packages/unibox_dom/lib/src/events.dart', 'void bind() => box.onTap?.call();\n')
+
 
         refused = surface_check.findings(work)
         check('surface_check refuses a token nobody classified',
               any('wiggle' in problem for problem in refused), str(refused))
         check('surface_check accepts a token the table carries',
               not any('`gap`' in problem for problem in refused), str(refused))
-        check('surface_check accepts a callback both targets reach',
+        check('surface_check accepts a callback the widget target binds',
               not any('onTap' in problem for problem in refused), str(refused))
 
         # The bug it exists for: `Box.onHover` was declared, used by a component, and bound by
         # nothing for a day, with every suite green.
-        write('packages/unibox_dom/lib/src/events.dart', '// nothing is bound here\n')
+
+        write('packages/unibox_flutter/lib/src/box.dart', '// no callback binding\n')
         unbound = surface_check.findings(work)
-        check('surface_check refuses a callback the web never binds',
+        check('surface_check refuses a callback the widget target never binds',
               any('onTap' in problem for problem in unbound), str(unbound))
 
         # A reason written down once is what the red asks for, and it is what the map is for.

@@ -67,10 +67,11 @@ Future<void> main(List<String> arguments) async {
 
   try {
     final String target = await _pageTarget(port);
-    final Duration measured = await _measure(target, url);
+    final bool handover = arguments.contains('--handover');
+    final Duration measured = await _measure(target, url, handover: handover);
 
     stdout.writeln(
-      '${measured.inMilliseconds} ms from navigation to the first frame '
+      '${measured.inMilliseconds} ms from navigation to ${handover ? 'handover and replay' : 'the first frame'} '
       '(real time, unthrottled, this machine)',
     );
   } finally {
@@ -120,7 +121,11 @@ Future<String> _pageTarget(int port) async {
 }
 
 /// How long [url] takes to paint its first Flutter frame.
-Future<Duration> _measure(String socketUrl, String url) async {
+Future<Duration> _measure(
+  String socketUrl,
+  String url, {
+  bool handover = false,
+}) async {
   final WebSocket socket = await WebSocket.connect(socketUrl);
   final Stream<Map<String, Object?>> answers = socket
       .map(
@@ -155,13 +160,29 @@ Future<Duration> _measure(String socketUrl, String url) async {
     clock.start();
     await send('Page.navigate', <String, Object?>{'url': url});
 
+    bool requested = false;
     while (clock.elapsed < timeout) {
+      if (handover && !requested) {
+        final Map<String, Object?> response = await send(
+          'Runtime.evaluate',
+          <String, Object?>{
+            'expression': "(() => { const action = document.querySelector('[data-unibox-key=\"example-signup\"]'); if (!action || document.readyState !== 'complete') return false; action.scrollIntoView({block: 'center'}); window.dispatchEvent(new Event('pointermove')); action.click(); return true; })()",
+            'returnByValue': true,
+          },
+        );
+        final Object? value =
+            ((response['result'] as Map<String, Object?>?)?['result']
+                as Map<String, Object?>?)?['value'];
+        requested = value == true;
+      }
       final Map<String, Object?> answer = await send(
         'Runtime.evaluate',
         <String, Object?>{
           // The mark the probe writes, read through the protocol: under real time there is no
           // cheap way to wait for a paint from outside the page.
-          'expression': "document.documentElement.getAttribute('data-unibox-boot-ms') || ''",
+          'expression': handover
+              ? "document.documentElement.getAttribute('data-unibox-state') === 'app' && !document.querySelector('flutter-view, flt-glass-pane')?.closest('[aria-hidden=\"true\"], [inert]') && !document.getElementById('existing-app')?.matches('[aria-hidden=\"true\"], [inert]') && (document.body.textContent.includes('Join Unibox') || Array.from(document.querySelectorAll('[aria-label]')).some(node => (node.getAttribute('aria-label') || '').includes('Join Unibox'))) ? String(Math.round(performance.now())) : ''"
+              : "document.documentElement.getAttribute('data-unibox-boot-ms') || ''",
           'returnByValue': true,
         },
       );
@@ -176,11 +197,18 @@ Future<Duration> _measure(String socketUrl, String url) async {
 
       await Future<void>.delayed(const Duration(milliseconds: 25));
     }
+    final diagnostic = await send('Runtime.evaluate', <String, Object?>{
+      'expression': "JSON.stringify({state: document.documentElement.getAttribute('data-unibox-state'), text: document.body.innerText.slice(-1200), semantics: Array.from(document.querySelectorAll('[aria-label]')).map(n => n.getAttribute('aria-label')).slice(-20)})",
+      'returnByValue': true,
+    });
+    stderr.writeln(diagnostic);
   } finally {
     await socket.close();
   }
 
-  throw TimeoutException('No first frame within ${timeout.inSeconds} s.');
+  throw TimeoutException(
+    'No ${handover ? 'handover with replay' : 'first frame'} within ${timeout.inSeconds} s.',
+  );
 }
 
 /// The Chrome binary, by the name each platform installs it under.

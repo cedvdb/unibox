@@ -109,12 +109,12 @@ void main() {
       expect(buildExampleDocument().write(), isNot(contains('unibox-build')));
     });
 
-    test('carries the client rendering, and starts no application', () {
+    test('is a readable document without a browser runtime', () {
       // The page a reader acts on is the page a crawler read: a document that runs itself. Nothing
       // here downloads Flutter, so an inspector sees markup and a press is answered by the client.
       final String html = buildExampleDocument().write();
 
-      expect(html, contains('src="../main.client.js"'));
+      expect(html, isNot(contains('main.client.js')));
       expect(html, isNot(contains('unibox.boot')));
       expect(html, isNot(contains('flutter_bootstrap.js')));
     });

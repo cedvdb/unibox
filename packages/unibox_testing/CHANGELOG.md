@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Retain the shared appearance contract for the HTML and Flutter renderers after removing the DOM runtime.
+
 - The grid table holds `GridSpan.row()`: a banner is the whole row at every column count, and
   the reader understands `grid-column: 1 / -1` as every column rather than as one.
 - `BehaviourCase` and `behaviourCases`: the half of the contract the appearance tables cannot

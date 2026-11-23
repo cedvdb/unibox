@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:unibox_example_shared/unibox_example_shared.dart';
 import 'package:unibox_flutter/unibox_flutter.dart';
 import 'package:unibox_material/unibox_material.dart';
+import 'package:unibox_material_flutter/unibox_material_flutter.dart';
 import 'package:unibox_core/unibox_core.dart';
 
 /// A card's rows reach its edges.
@@ -25,13 +26,17 @@ void main() {
     addTearDown(tester.view.reset);
 
     await tester.pumpWidget(
-      Directionality(
-        textDirection: TextDirection.ltr,
-        child: renderFlutter(
-          buildApartmentsPage(),
-          // The page's own palette: it names the example's roles, and the Material
-          // ones its components name are lent by the same theme.
-          scope: UniboxScope(theme: ExamplePalette.themeFor(ExampleSeed.blue)),
+      MaterialApp(
+        home: Scaffold(
+          body: renderFlutter(
+            buildApartmentsPage(),
+            substitutions: materialComponents(),
+            // The page's own palette: it names the example's roles, and the Material
+            // ones its components name are lent by the same theme.
+            scope: UniboxScope(
+              theme: ExamplePalette.themeFor(ExampleSeed.blue),
+            ),
+          ),
         ),
       ),
     );

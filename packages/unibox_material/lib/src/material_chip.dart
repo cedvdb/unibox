@@ -1,51 +1,14 @@
 import 'package:unibox_core/unibox_core.dart';
 
 import 'material_density.dart';
-import 'material_ink_well.dart';
+import 'material_surface.dart';
 import 'material_palette.dart';
 import 'material_typography.dart';
 
-/// A Material 3 filter chip: a label in a pill, selected or not.
+/// A Material chip declaration with supplied selection and removal actions.
 ///
-/// ```dart
-/// MaterialChip(label: const TextNode('Two rooms'), selected: true, onTap: filter)
-/// MaterialChip(label: const TextNode('Studio'), onTap: filter)
-/// ```
-///
-/// It is a [Box] around a [MaterialInkWell], like [MaterialButton]: the fill and the
-/// line are the box's, the hover, focus and press tints are the well's, and the ink a
-/// press leaves is clipped to the pill. **The padding is the well's alone** — one node
-/// carries the room inside the chip, so the tint reaches exactly the edge of the pill
-/// it belongs to. Two paddings, one on each, is what made the example's chips tint far
-/// beyond themselves when they were composed by hand.
-///
-/// The height it *paints* is Material's 32: `labelLarge`'s 20 pixel line with six above
-/// and below. The region a finger hits is 48, because Material states one target for a
-/// touch screen and a 32 pixel chip is below it: the pill is centred in a target of
-/// [minTapTarget], which is the size the chip takes in a row.
-/// Selected, the chip fills with `secondaryContainer` and drops its line — no border,
-/// because the fill is the state — and a leading check is drawn when [leading] is
-/// given; unselected it has an `outline` line and the quieter `onSurfaceVariant` label.
-///
-/// A chip is a control, so it announces itself as a button when it can be pressed,
-/// and says whether it is on: `pressed` is the state a screen reader hears — "pressed"
-/// or "not pressed", `aria-pressed` in a browser — and not a colour.
-///
-/// **What it can carry.** [leading] is a node before the label — where Material puts a
-/// check on a chosen filter chip — and `trailing` is one after it. [onRemove] adds the
-/// close of an input chip: a round 18 pixel target of its own inside the pill, so a
-/// press on the cross removes the chip instead of choosing it, and the cross itself is
-/// [trailing] — a glyph the application draws or writes, because a font is a host
-/// asset. [removeSemanticsLabel] is what that target announces: a row of applied
-/// filters should say which one it removes, because eleven chips that all say "Remove"
-/// tell a reader nothing about what is about to go.
-///
-/// **A chip can be a destination.** [url] makes the pill an anchor instead of a press:
-/// the browser follows it with no runtime, a crawler reads it, and the chip still tints
-/// and ripples. A selected destination chip says `aria-current="page"` instead of
-/// `aria-pressed`, because a pressed state belongs to a button and the chip is a link
-/// now. It cannot also carry [onRemove]: a remove target inside a link is interactive
-/// content in an `<a>`, which `validateTree` reports and this constructor refuses.
+/// Flutter uses a native chip. Server HTML preserves the labels, selection and
+/// real destinations without an application store or ink runtime.
 final class MaterialChip extends Box {
   /// Creates a chip around [label].
   ///
@@ -54,7 +17,7 @@ final class MaterialChip extends Box {
   /// inside the pill, [height] the pill it paints (32 unless it says otherwise),
   /// [tapTargetHeight] the room a finger gets around it (48), [gap] the space
   /// between a node and the label, and [borderRadius] the corner. [labelStyle] and
-  /// [ink] are the type and the splash. [removeSemanticsLabel] is the name of the
+  /// typography are shared with the native control. [removeSemanticsLabel] is the name of the
   /// chip's own close, which defaults to "Remove".
   MaterialChip({
     required UINode label,
@@ -67,8 +30,7 @@ final class MaterialChip extends Box {
     UINode? trailing,
     TapCallback? onRemove,
     String? removeSemanticsLabel,
-    bool enabled = true,
-    BoxColor? ink,
+    super.enabled,
     double height = controlHeight,
     double tapTargetHeight = minTapTarget,
     double borderRadius = radius,
@@ -83,7 +45,20 @@ final class MaterialChip extends Box {
        leading = leading,
        trailing = trailing,
        selected = selected,
+       controlStyle = BoxStyle(
+         borderRadius: borderRadius,
+         padding:
+             padding ??
+             _insetsFor(
+               leading: leading,
+               trailing: trailing,
+               hasRemove: onRemove != null,
+             ),
+         textStyle: labelStyle ?? MaterialTypography.labelLarge,
+       ),
+       removeLabel = removeSemanticsLabel,
        onSelected = onTap,
+       url = url,
        onDeleted = onRemove,
        assert(
          url == null || onRemove == null,
@@ -105,7 +80,7 @@ final class MaterialChip extends Box {
          // an alpha role per token.
          opacity: enabled ? null : 0.38,
          children: <UINode>[
-           MaterialInkWell(
+           materialSurface(
              onTap: onTap,
              url: url,
              newTab: newTab,
@@ -116,14 +91,12 @@ final class MaterialChip extends Box {
              // sits on. The 48 around it is the target, which is not paint: a chip
              // that painted 48 would be a chip Material does not have.
              height: height,
-             tapTargetHeight: tapTargetHeight,
              // A taller pill than the default still reads: the content is centred in
              // it rather than pinned to its top.
              mainAlign: MainAlign.center,
              fill: selected ? _selectedFill : null,
              border: selected ? null : _outline,
              borderRadius: borderRadius,
-             ink: ink ?? _inkOf(selected),
              // Material pads only the side a node sits on: 16 where the label meets
              // the edge, 8 where an 18 pixel glyph does, 8 between them.
              padding:
@@ -133,7 +106,7 @@ final class MaterialChip extends Box {
                    trailing: trailing,
                    hasRemove: onRemove != null,
                  ),
-             transition: transition ?? MaterialInkWell.defaultTransition,
+             transition: transition ?? materialSurfaceTransition,
              // A chip that navigates is a link: it can say which page it is, and not
              // whether it is pressed, because `aria-pressed` is a button's state and a
              // link is not a button. The role is the tag's; a component that passed one
@@ -165,6 +138,15 @@ final class MaterialChip extends Box {
            ),
          ],
        );
+
+  /// Shared typography and insets used by the native chip.
+  final BoxStyle controlStyle;
+
+  /// The accessible name of the native removal affordance.
+  final String? removeLabel;
+
+  /// The destination opened by the native host when no action overrides it.
+  final String? url;
 
   /// The label the chip draws.
   final UINode label;
@@ -301,11 +283,10 @@ final class MaterialChip extends Box {
     required bool enabled,
     required bool selected,
   }) {
-    return MaterialInkWell(
+    return materialSurface(
       onTap: onRemove,
       enabled: enabled,
       borderRadius: 9,
-      ink: _inkOf(selected),
       width: 18,
       height: 18,
       mainAlign: MainAlign.center,
@@ -324,6 +305,10 @@ final class MaterialChip extends Box {
   static BoxColor _inkOf(bool selected) => selected
       ? const BoxColor.role(MaterialColorRole.onSecondaryContainer)
       : const BoxColor.role(MaterialColorRole.onSurfaceVariant);
+
+  /// Native widget rendering is required on Flutter.
+  @override
+  bool get requiresWidgetSubstitution => true;
 
   /// The name this node answers to in an inspector.
   @override

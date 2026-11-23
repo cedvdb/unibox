@@ -222,6 +222,7 @@ UINode _navigationItem(
 /// places to go and this is an action.
 UINode _signUp({required TapCallback onTap}) {
   return Box(
+    key: 'example-signup',
     onTap: onTap,
     direction: Axis.horizontal,
     mainAlign: MainAlign.center,

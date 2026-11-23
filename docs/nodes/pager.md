@@ -43,10 +43,9 @@ that is a component's business — the same line the model draws between a token
 
 **Worth knowing.** The settled report is what lets one store drive both the pager and a bar
 above it: a press states the index, a swipe reports the one it settled on, and nothing has to
-tell them apart. On the web the index is applied with
-`scrollTo` and reported from the browser's own `scrollend` (with a debounced `scroll` for
-browsers that lack it); in Flutter it is the viewport's own page, applied after the frame that
-laid the pager out.
+tell them apart. Server HTML is a snapshot of the declared index, without client-side
+callback delivery. In Flutter it is the viewport's own page, applied after the frame
+that laid the pager out.
 
 ---
 

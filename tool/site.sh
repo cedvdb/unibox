@@ -115,16 +115,6 @@ done
 # the site rather than inside it: the folder is published exactly as it is.
 printf '%s' "$base" >"$(dirname "$site")/.unibox-site-base"
 
-step 'Compiling the client rendering'
-# One file, compiled from the same package the documents are written from: the site's interactive
-# layer is the tree itself, not a second description of it.
-# `-Dunibox-build` is what lets the client know it was compiled for this document: a page whose
-# markup came from another build is patched, and one from this build is adopted without rendering.
-dart compile js -O4 \
-  ${build:+-Dunibox-build="$build"} \
-  example/unibox_example_html/web/main.client.dart \
-  -o "$site/web/main.client.js"
-
 step 'Writing robots and .nojekyll'
 # The sitemap is the build's: it is written from the pages themselves, at the canonical
 # addresses they state, so it cannot list an address a page denies. This step only points a

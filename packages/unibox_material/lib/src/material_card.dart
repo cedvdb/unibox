@@ -4,89 +4,14 @@ import 'material_elevation.dart';
 import 'material_palette.dart';
 import 'material_typography.dart';
 
-/// A Material 3 card: a surface with the shape, elevation and body typography Material
-/// gives a card, drawn as a [Box].
+/// A Material card declaration for server HTML and Flutter's native `Card`.
 ///
-/// ```dart
-/// const MaterialCard(
-///   padding: BoxSpacing.all(16),
-///   children: <UINode>[
-///     TextNode('Order summary', style: MaterialTypography.titleMedium),
-///     TextNode('Two nights, one room.'),
-///   ],
-/// );
-/// ```
-///
-/// It adds no renderer work: it *is* a box, so both targets draw it with the
-/// renderer they already have, and every token it sets is one the conformance
-/// table already pins. What the class buys is the combination — a 12 pixel radius, a
-/// level one drop shadow, a white surface and `bodyMedium` for the texts inside — and a
-/// name that says a card. A node that extends [Box] renders as that box on both targets,
-/// which the renderer suites pin.
-///
-/// **It is a surface, not a press.** Flutter's `Card` carries no press either: a press
-/// belongs to the [MaterialInkWell] inside the card, which is the one node that can paint
-/// the tints and the ink *over* the surface and clip them to its corners. A card that is a
-/// destination is a card around a well or — when the whole surface is the control — a
-/// [MaterialInkWell] given the card's tokens ([MaterialCard.elevatedShadows], the radius,
-/// the surface colour), which is one element instead of two and has no ring of padding no
-/// press can reach. Its own padding is therefore unset — a zero would write `padding: 0`
-/// on every card, a declaration that changes nothing — and a card with content states the
-/// room it needs, on the content or on the well.
-///
-/// **What it is not.** It is not a colour scheme: Material picks a card's surface
-/// from `surfaceContainerLow`, so the default is the baseline light value written
-/// out, and a themed application passes the roles it wants —
-/// `color: const BoxColor.role(MaterialColorRole.surfaceContainerLow)`, `border: BoxBorder(color:
-/// const BoxColor.role(MaterialColorRole.outlineVariant))` — from a `MaterialPalette`.
-///
-/// The three official variants are named constructors, as in Flutter's `Card`:
-/// [MaterialCard.elevated] (`surfaceContainerLow` and the level one shadow),
-/// [MaterialCard.filled] (`surfaceContainerHighest`) and [MaterialCard.outlined]
-/// (`surface` and a 1 pixel `outlineVariant` border). Each takes the card's whole
-/// parameter list and lets the caller replace the surface, the line or the shadow
-/// it starts from.
-///
-/// **The escape hatch is a [Box].** The card states its surface and the layout of its
-/// content; anything else — a style bag, opacity, a transform, a size bound — is a plain
-/// box around it, and the `Box` you would have written is the one this class builds.
+/// Flutter hosts install the Material substitution map. Application actions belong
+/// to a host-owned surface inside the card; this component declares content and paint.
 final class MaterialCard extends Box {
-  /// Creates a card, with the tokens Material gives one.
+  /// Creates a card with shared surface, spacing and content declarations.
   ///
-  /// `color`, `borderRadius`, `shadows`, `border` and `textStyle` are the card's own
-  /// defaults; every one is a parameter so an application can theme them without giving
-  /// up the card. So is `crossAlign`, and it stretches: a card's content spans the card,
-  /// which is what Material's own card does, and what makes a `width: double.infinity`
-  /// inside a card mean the same thing on both targets — a percentage inside a box that
-  /// hugs its own content resolves to `auto` in CSS and fills in Flutter, which is how
-  /// the example's rows came to stop half way across the card on the web.
-  ///
-  /// **The padding is unset, and a press is not this node's.** Flutter's `Card` has no
-  /// padding either: a surface that pads is a surface whose padding no press can reach, so
-  /// the room a reader sees but cannot press — and the ink never runs into the corners. A
-  /// card that carries content gives the padding to the content or, when the whole card is
-  /// pressable, to the [MaterialInkWell] inside it:
-  ///
-  /// ```dart
-  /// MaterialCard(
-  ///   children: <UINode>[
-  ///     MaterialInkWell(
-  ///       url: '/spots/abc',
-  ///       padding: const BoxSpacing.all(16),
-  ///       child: content,
-  ///     ),
-  ///   ],
-  /// )
-  /// ```
-  ///
-  /// That is Flutter's own composition, `Card(child: InkWell(...))`, and it is the only
-  /// one that can work: a well paints its tints and its ink *under* its child, so a well
-  /// around the card would paint them behind an opaque surface.
-  ///
-  /// **A card can be pinned.** `pin` and `pinOffset` are the card's as much as any other
-  /// box's: a card pinned to the start of the box that scrolls it stays there while the
-  /// results pass under it, and it needs no height — the room it keeps in the flow is the
-  /// height it lays itself out at.
+  /// Application actions belong to a host-owned surface inside the card.
   const MaterialCard({
     super.key,
     super.children,
@@ -328,6 +253,10 @@ final class MaterialCard extends Box {
   /// outside the parity contract, so the value states the shape of the shadow, not a pixel
   /// promise.
   static const List<BoxShadow> elevatedShadows = MaterialElevation.level1;
+
+  /// Native widget rendering is required on Flutter.
+  @override
+  bool get requiresWidgetSubstitution => true;
 
   /// The name this node answers to in an inspector.
   ///

@@ -1,3 +1,7 @@
+> Historical decision record. References to the former DOM runtime are retained
+> as context; the current supported targets are server HTML and Flutter. See
+> [the current design](../design.md) for the active scope.
+
 # A fold that moves a layout
 
 **Status: decision note, for review. This pass changes no code.**

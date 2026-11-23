@@ -2,6 +2,24 @@ import 'package:test/test.dart';
 import 'package:unibox_core/unibox_core.dart';
 
 void main() {
+  test('a finite box bounds a filling child inside a scrolling row', () {
+    expect(
+      validateTree(
+        const Box(
+          direction: Axis.horizontal,
+          overflow: Overflow.scroll,
+          children: <UINode>[
+            Box(
+              width: 18,
+              children: <UINode>[Box(width: double.infinity, height: 18)],
+            ),
+          ],
+        ),
+      ),
+      isEmpty,
+    );
+  });
+
   group('validateTree', () {
     test('accepts a responsive image', () {
       const ImageNode image = ImageNode(
@@ -1293,82 +1311,6 @@ void main() {
       );
 
       expect(issues.single.message, contains('not by both'));
-    });
-  });
-
-  group('shapes', () {
-    const BoxShape hexagon = BoxShape(
-      viewBoxWidth: 100,
-      viewBoxHeight: 100,
-      commands: <BoxPathCommand>[BoxPathMoveTo(0, 0), BoxPathClose()],
-    );
-
-    test('accepts a shaped box that names no rectangle', () {
-      expect(validateTree(const Box(shape: hexagon)), isEmpty);
-    });
-
-    test('reports a shape and a corner radius together', () {
-      final List<TreeIssue> issues = validateTree(
-        const Box(shape: hexagon, borderRadius: 8),
-      );
-
-      expect(issues.single.message, contains('one outline'));
-    });
-
-    test('reports a shape and a shadow, which the model cannot draw', () {
-      final List<TreeIssue> issues = validateTree(
-        const Box(shape: hexagon, shadows: <BoxShadow>[BoxShadow()]),
-      );
-
-      expect(issues.single.message, contains('shadow'));
-    });
-
-    test('reports a shape with no command', () {
-      final List<TreeIssue> issues = validateTree(
-        const Box(
-          shape: BoxShape(
-            viewBoxWidth: 10,
-            viewBoxHeight: 10,
-            commands: <BoxPathCommand>[],
-          ),
-        ),
-      );
-
-      expect(issues.single.message, contains('no command'));
-    });
-
-    test('accepts a capped border on a shaped box', () {
-      expect(
-        validateTree(
-          const Box(
-            shape: BoxShape.circle,
-            border: BoxBorder(cap: BoxStrokeCap.round),
-          ),
-        ),
-        isEmpty,
-      );
-    });
-
-    test('reports a cap on a rectangle, which has no ends to cap', () {
-      final List<TreeIssue> issues = validateTree(
-        const Box(border: BoxBorder(cap: BoxStrokeCap.round)),
-      );
-
-      expect(issues.single.message, contains('cap'));
-    });
-
-    test('reports a view box with no size', () {
-      final List<TreeIssue> issues = validateTree(
-        const Box(
-          shape: BoxShape(
-            viewBoxWidth: 0,
-            viewBoxHeight: 100,
-            commands: <BoxPathCommand>[BoxPathMoveTo(0, 0), BoxPathClose()],
-          ),
-        ),
-      );
-
-      expect(issues.single.message, contains('view box'));
     });
   });
 

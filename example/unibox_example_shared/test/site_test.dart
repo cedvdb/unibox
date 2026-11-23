@@ -61,7 +61,8 @@ void main() {
           '2|Make Flutter Web pages indexable',
           '2|Material',
           '3|Type scale',
-          '3|Segments',
+          '3|Cards',
+          '3|Buttons',
         ]),
       );
       // The catalogue carries the palette picker, so the page names the example's
@@ -238,50 +239,41 @@ void main() {
       );
     });
 
-    test(
-      'offers the source, and shows the example instead of linking to it',
-      () {
-        final UINode page = buildSitePage(frame: _frame);
-        // Every destination on the page: the source link, the wordmark, the palette swatches.
-        final List<LinkNode> links = _flatten(page)
-            .whereType<LinkNode>()
-            .toList();
-
-        expect(
-          links.map((LinkNode link) => link.url),
-          containsAll(<String>[repositoryUrl, '$repositoryUrl#readme']),
-        );
-
-        // Nothing on this page opens the example: it is drawn in the two frames and
-        // that is the only way it is seen from here.
-        expect(
-          links.where(
-            (LinkNode link) =>
-                link.url.startsWith('web/') || link.url.startsWith('flutter/'),
-          ),
-          isEmpty,
-        );
-      },
-    );
-
-    test('leads with the components, then the scale, then the palette', () {
-      final List<String> blocks = _headings(buildSitePage(frame: _frame))
-          .where((String heading) => heading.startsWith('3|'))
-          .map((String heading) => heading.substring(2))
+    test('offers the source and navigable component examples', () {
+      final UINode page = buildSitePage(frame: _frame);
+      // Every destination on the page: the source link, the wordmark, the palette swatches.
+      final List<LinkNode> links = _flatten(page)
+          .whereType<LinkNode>()
           .toList();
 
-      // The order is the request, not an accident: a page is built out of
-      // components, and the scale and the palette are what those components name.
-      expect(blocks, <String>[
-        'Buttons',
-        'Chips',
-        'Segments',
-        'Cards and tiles',
-        'Type scale',
-        'Colour roles',
-        'Shapes',
-      ]);
+      expect(
+        links.map((LinkNode link) => link.url),
+        containsAll(<String>[repositoryUrl, '$repositoryUrl#readme']),
+      );
+
+      expect(links.map((LinkNode link) => link.url), contains('web/listings/'));
     });
+
+    test(
+      'shows the supported components, then typography and colour roles',
+      () {
+        final List<String> blocks = _headings(buildSitePage(frame: _frame))
+            .where((String heading) => heading.startsWith('3|'))
+            .map((String heading) => heading.substring(2))
+            .toList();
+
+        // The order is the request, not an accident: a page is built out of
+        // components, and the scale and the palette are what those components name.
+        expect(blocks, <String>[
+          'Cards',
+          'Buttons',
+          'Chips',
+          'Segments',
+          'Type scale',
+          'Colour roles',
+        ]);
+      },
+    );
 
     test(
       'draws the nodes the rest of the page never shows, and names them',

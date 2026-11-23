@@ -1,32 +1,7 @@
-/// The web renderer: a Unibox tree as HTML a search engine can read.
+/// Server HTML and CSS from the same declarations Flutter renders as widgets.
 ///
-/// A Flutter screen is a canvas, which a crawler, a link preview and a reader without
-/// JavaScript all see as nothing. This package renders the same tree as a document: real
-/// text, real headings, real links, one stylesheet, no framework and no runtime.
-///
-/// ```dart
-/// import 'package:unibox_html/unibox_html.dart';
-///
-/// final String page = ListingsPage(listings).toHtml();
-/// final String document = toDocument(
-///   ListingsPage(listings),
-///   head: const DocumentHead(title: 'Apartments'),
-/// );
-/// ```
-///
-/// It is the whole web target in one package, in three layers that only the web knows about:
-/// what a token becomes as CSS (`src/css/`), what a node becomes as an element (`src/element/`)
-/// and the document those are written into. Splitting them into packages bought nothing —
-/// the third renderer they were split for was deleted — while every split is a version to keep
-/// in step. `unibox_dom` builds the same plan in a page, which is what keeps the two web
-/// renderings one design.
-///
-/// ## What a document is
-///
-/// A snapshot of a state, not a running application. A `StatefulNode` draws the state its
-/// store starts in, an `OverlayNode` draws its overlay open, and no callback becomes a
-/// listener: there is nothing in the output that needs a runtime. Interactivity is the
-/// application's, once it takes the page over — or `unibox_dom`'s, which keeps the stores.
+/// Application state and interaction belong to the host. Optional server handover
+/// helpers are also exposed through `package:unibox_html/handover.dart`.
 library;
 
 export 'src/client/all.dart' show uniboxClientScript;

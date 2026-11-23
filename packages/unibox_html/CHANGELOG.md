@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Remove the interactive DOM target; record only intercepted keyed actions and support explicit host readiness and an existing Flutter app layer.
+
+- Reject control-character script URLs and escape font names safely in CSS and HTML stylesheets.
+
 - **A zero share keeps its content as the basis** (`flex-basis: auto`), where a share starts at
   zero. `flex: 0` is `flex: 0 1 auto`: on the line to shrink, never to grow.
 - A box that spans `GridSpan.row()` is drawn as `grid-column: 1 / -1` — the row's own edges — so

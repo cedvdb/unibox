@@ -95,7 +95,21 @@ cat >"$probe" <<'PROBE'
 </html>
 PROBE
 
+# Exercise the mixed-document host mode against the same release application.
+host_probe="$site/web/handover-host-check/index.html"
+mkdir -p "$(dirname "$host_probe")"
+python3 - "$site/web/takeover/index.html" "$host_probe" <<'PYTHON'
+import pathlib
+import sys
+html = pathlib.Path(sys.argv[1]).read_text()
+html = html.replace('var hostId = null;', "var hostId = 'existing-app';")
+html = html.replace('<body>', '<body><div id="existing-app" aria-hidden="true" inert style="position:fixed;inset:0"></div>', 1)
+pathlib.Path(sys.argv[2]).write_text(html)
+PYTHON
+
 cleanup() {
+  rm -f "$host_probe"
+  rmdir "$(dirname "$host_probe")" 2>/dev/null || true
   rm -f "$probe"
   rmdir "$(dirname "$probe")" 2>/dev/null || true
   kill "${SERVER:-0}" 2>/dev/null || true
@@ -155,6 +169,12 @@ if ! grep -q 'flt-glass-pane\|flutter-view' "$work/dom.html"; then
 fi
 
 printf '\n==> The document boots: Flutter painted into it.\n'
+
+printf '\n==> Checking host readiness and keyed press replay\n'
+dart run tool/boot_time.dart "${url%web/boot-check/}web/takeover/" --handover
+printf '\n==> Checking a pre-existing application host and accessible reveal\n'
+dart run tool/boot_time.dart "${url%web/boot-check/}web/handover-host-check/" --handover
+
 
 # The dump above cannot time it — virtual time moves faster than the clock — so the number comes
 # from a second browser driven over the DevTools protocol, in real time.

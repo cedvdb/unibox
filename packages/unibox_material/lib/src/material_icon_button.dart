@@ -1,7 +1,7 @@
 import 'package:unibox_core/unibox_core.dart';
 
 import 'material_density.dart';
-import 'material_ink_well.dart';
+import 'material_surface.dart';
 import 'material_palette.dart';
 import 'material_typography.dart';
 
@@ -24,55 +24,9 @@ enum MaterialIconButtonVariant {
   outlined,
 }
 
-/// A Material 3 icon button: one glyph in a 40 pixel square, with the ink of a press.
+/// An icon action declaration rendered by a native Flutter icon button.
 ///
-/// ```dart
-/// MaterialIconButton(
-///   icon: MaterialIcon.ligature('tune'),
-///   label: 'Filters',
-///   onTap: openFilters,
-/// )
-/// MaterialIconButton(
-///   icon: MaterialIcon.ligature('notifications'),
-///   label: 'Notifications',
-///   badgeCount: 3,
-///   onTap: openInbox,
-/// )
-/// ```
-///
-/// It is a [Box] around a [MaterialInkWell], the way [MaterialButton] is: the fill and the
-/// line are the well's surface, the hover, focus and press tints are the well's, over that
-/// surface, and the ink starts where the press landed. Neither renderer has to know the
-/// name, and the class adds no token the conformance table does not already pin.
-///
-/// **The square is Material's, and it is a parameter.** A control with no text has to be
-/// big enough to hit: 40 by 40 with a 24 pixel glyph, which is what Material states for a
-/// touch target. [height] and [width] are the square — a control that names only a height
-/// is as wide as it is tall — [iconSize] is the room the glyph is centred in, [padding]
-/// the space inside the fill, and [borderRadius] the corner, a full round by default.
-/// [ink] is the splash and [transition] the easing of the tints.
-///
-/// **Every colour is a role**, so a dark theme restyles all four variants without a
-/// parameter: `primary`/`onPrimary` for [MaterialIconButtonVariant.filled],
-/// `secondaryContainer`/`onSecondaryContainer` for [MaterialIconButtonVariant.tonal],
-/// `onSurfaceVariant` for the glyph of the other two, and `outline` for the line of
-/// [MaterialIconButtonVariant.outlined].
-///
-/// **[badgeCount] is a pill over the corner of the glyph** — `error` behind, `onError` in
-/// front, 16 pixels tall and as wide as the number needs — placed where the top right of
-/// the glyph is, so a counter sits over the icon it counts rather than beside it. It is a
-/// picture: it is hidden from a screen reader, because a count is a fact the control's own
-/// name should carry — `label: 'Notifications, 3 unread'`.
-///
-/// **What Material draws that this does not.** A toggle icon button states
-/// `aria-pressed` and changes its shape when it is on; this node has one shape, so a
-/// toggle is the caller's rebuild — the store picks the variant — and it announces no
-/// pressed state, because a `pressed` no view can change is a state a reader is told
-/// wrongly. Material also draws a tooltip, an icon theme the glyph inherits, and a badge
-/// that scales in: a tooltip is platform chrome, the glyph's size is its own token, and a
-/// scale is a transition this model can say, so a caller who wants either draws it. The
-/// ripple is the ink's, drawn from boxes rather than by the platform, so both targets
-/// paint it the same way.
+/// The host supplies the glyph and action. Server HTML retains its accessible name.
 final class MaterialIconButton extends Box {
   /// Creates an icon button around [icon].
   ///
@@ -85,7 +39,7 @@ final class MaterialIconButton extends Box {
     TapCallback? onTap,
     String? url,
     bool newTab = false,
-    bool enabled = true,
+    super.enabled,
     int? badgeCount,
     MaterialIconButtonVariant variant = MaterialIconButtonVariant.standard,
     double height = controlHeight,
@@ -93,7 +47,6 @@ final class MaterialIconButton extends Box {
     BoxSpacing? padding,
     double iconSize = defaultIconSize,
     double borderRadius = radius,
-    BoxColor? ink,
     BoxTransition? transition,
     MaterialDensity density = MaterialDensity.standard,
     super.margin,
@@ -101,8 +54,19 @@ final class MaterialIconButton extends Box {
   }) : icon = icon,
        label = label,
        onPressed = onTap,
+       url = url,
        badgeCount = badgeCount,
        variant = variant,
+       controlStyle = BoxStyle(
+         width: width ?? density.adjust(height),
+         height: density.adjust(height),
+         borderRadius: borderRadius,
+         padding: padding ?? const BoxSpacing.all(_inset),
+         backgroundColor: _fillOf(variant),
+         border: variant == MaterialIconButtonVariant.outlined
+             ? _outline
+             : null,
+       ),
        super(
          // A row around the control, so a parent that stretches its children — a card's
          // column, a grid track — has something invisible to stretch without widening the
@@ -125,15 +89,20 @@ final class MaterialIconButton extends Box {
              badgeCount: badgeCount,
              variant: variant,
              height: density.adjust(height),
-             width: width ?? height,
+             width: width ?? density.adjust(height),
              padding: padding,
              iconSize: iconSize,
              borderRadius: borderRadius,
-             ink: ink,
              transition: transition,
            ),
          ],
        );
+
+  /// The declared control dimensions and paint used by the native widget.
+  final BoxStyle controlStyle;
+
+  /// The destination opened by the native host when no action overrides it.
+  final String? url;
 
   /// The height Material gives an icon button: the smallest square a finger is aimed at.
   /// The glyph the control draws.
@@ -183,26 +152,24 @@ final class MaterialIconButton extends Box {
     required BoxSpacing? padding,
     required double iconSize,
     required double borderRadius,
-    required BoxColor? ink,
     required BoxTransition? transition,
   }) {
     final BoxColor foreground = _foregroundOf(variant);
 
-    final UINode target = MaterialInkWell(
+    final UINode target = materialSurface(
       onTap: onTap,
       url: url,
       newTab: newTab,
       enabled: enabled,
       width: width,
-      height: density.adjust(height),
+      height: height,
       borderRadius: borderRadius,
       // The surface is the well's, so the tints are layered *over* the fill rather than
       // under it, and the ink is clipped to the rounded square.
       fill: _fillOf(variant),
       border: variant == MaterialIconButtonVariant.outlined ? _outline : null,
-      ink: ink ?? foreground,
       padding: padding ?? const BoxSpacing.all(_inset),
-      transition: transition ?? MaterialInkWell.defaultTransition,
+      transition: transition ?? materialSurfaceTransition,
       semantics: BoxSemantics(
         role: BoxRole.button,
         label: label,
@@ -228,7 +195,7 @@ final class MaterialIconButton extends Box {
     // not make the control wider than the finger it was sized for.
     return StackNode(
       width: width,
-      height: density.adjust(height),
+      height: height,
       children: <UINode>[target, _badge(badgeCount)],
     );
   }
@@ -291,6 +258,10 @@ final class MaterialIconButton extends Box {
           MaterialColorRole.onSecondaryContainer,
         ),
       };
+
+  /// Native widget rendering is required on Flutter.
+  @override
+  bool get requiresWidgetSubstitution => true;
 
   /// The name this node answers to in an inspector.
   @override

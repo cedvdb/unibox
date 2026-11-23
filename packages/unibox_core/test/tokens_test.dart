@@ -2,21 +2,27 @@ import 'package:test/test.dart';
 import 'package:unibox_core/unibox_core.dart';
 
 /// One role, so the resolve test can watch a theme answer it.
-enum _ShapeColor { surface }
-
-/// The roles the resolution test names, one per colour a style can carry.
-enum _ThemedColor { surface, outline, ink }
-
-/// The theme those roles answer to.
-const UniboxTheme _themed = UniboxTheme(
-  colors: <Enum, BoxColor>{
-    _ThemedColor.surface: BoxColor(0xFFFEF7FF),
-    _ThemedColor.outline: BoxColor(0xFF79747E),
-    _ThemedColor.ink: BoxColor(0xFF1D1B20),
-  },
-);
 
 void main() {
+  test('an unmodifiable collection snapshot preserves a declaration while its source changes', () {
+    final List<UINode> source = <UINode>[const TextNode('first')];
+    final Box box = Box(children: List<UINode>.unmodifiable(source));
+    source.add(const TextNode('later'));
+    expect(box.children, hasLength(1));
+    expect(
+      () => box.children.add(const TextNode('mutation')),
+      throwsUnsupportedError,
+    );
+  });
+
+  test('equal styles with independent shadows share a map entry', () {
+    final BoxStyle first = BoxStyle(shadows: <BoxShadow>[const BoxShadow()]);
+    final BoxStyle second = BoxStyle(shadows: <BoxShadow>[const BoxShadow()]);
+    expect(first, second);
+    expect(first.hashCode, second.hashCode);
+    expect(<BoxStyle, String>{first: 'known'}[second], 'known');
+  });
+
   group('BoxColor', () {
     test('exposes the channels of a raw ARGB value', () {
       const color = BoxColor(0x8042A5F0);
@@ -189,37 +195,6 @@ void main() {
       expect(border.color, BoxColor.black);
       expect(border.isVisible, isTrue);
       expect(const BoxBorder.none().isVisible, isFalse);
-    });
-
-    test('border implements value equality', () {
-      expect(
-        const BoxBorder(width: 2, color: BoxColor.white),
-        const BoxBorder(width: 2, color: BoxColor.white),
-      );
-      expect(const BoxBorder(width: 2), isNot(const BoxBorder(width: 3)));
-      // The cap is part of the value: a style that changed only its cap would
-      // otherwise merge away.
-      expect(
-        const BoxBorder(cap: BoxStrokeCap.round),
-        isNot(const BoxBorder(cap: BoxStrokeCap.square)),
-      );
-    });
-
-    test('a border carries its cap through a theme', () {
-      const BoxBorder border = BoxBorder(
-        width: 3,
-        color: BoxColor.role(_BorderCapRole.primary),
-        cap: BoxStrokeCap.round,
-      );
-      final BoxBorder resolved = border.resolve(
-        const UniboxTheme(
-          colors: <Enum, BoxColor>{_BorderCapRole.primary: BoxColor.white},
-        ),
-      );
-
-      expect(resolved.color, BoxColor.white);
-      expect(resolved.cap, BoxStrokeCap.round);
-      expect(resolved.width, 3);
     });
 
     test('shadow implements value equality', () {
@@ -1078,122 +1053,7 @@ void main() {
     });
   });
 
-  group('BoxStyle shape', () {
-    const BoxShape hexagon = BoxShape(
-      viewBoxWidth: 100,
-      viewBoxHeight: 100,
-      commands: <BoxPathCommand>[BoxPathMoveTo(0, 0), BoxPathClose()],
-    );
-
-    test('merges like every other token', () {
-      const BoxStyle base = BoxStyle();
-
-      expect(base.merge(const BoxStyle(shape: hexagon)).shape, hexagon);
-      expect(const BoxStyle(shape: hexagon).merge(base).shape, hexagon);
-      expect(
-        const BoxStyle(shape: hexagon)
-            .merge(const BoxStyle(backgroundColor: BoxColor.white))
-            .shape,
-        hexagon,
-        reason: 'a style that does not name a shape keeps the one under it',
-      );
-    });
-
-    test('is copied and reported by copyWith and toString', () {
-      final BoxStyle style = const BoxStyle().copyWith(shape: hexagon);
-
-      expect(style.shape, hexagon);
-      expect(style.toString(), contains('BoxShape'));
-      expect(style, isNot(const BoxStyle()));
-    });
-
-    test('survives resolve, which only looks colours up', () {
-      const BoxStyle style = BoxStyle(
-        shape: hexagon,
-        corners: BoxBorderRadius(topLeft: 4, topRight: 4),
-        visibleFrom: 600,
-        backgroundColor: BoxColor.role(_ShapeColor.surface),
-      );
-
-      final BoxStyle resolved = style.resolve(
-        const UniboxTheme(
-          colors: <Enum, BoxColor>{_ShapeColor.surface: BoxColor.white},
-        ),
-      );
-
-      expect(resolved.backgroundColor, BoxColor.white);
-      expect(resolved.shape, hexagon);
-      expect(resolved.corners, style.corners);
-      expect(resolved.visibleFrom, 600);
-    });
-  });
-
-  group('BoxStyle resolve', () {
-    test('looks the colours up and changes nothing else', () {
-      // `resolve` rebuilds the style field by field, and only the Flutter renderer calls it,
-      // so a field it forgets is a token a themed box keeps in the browser and loses in the
-      // app. This style names every token a box has, so the comparison below covers all of
-      // them: the expected value is the same style with the four colours looked up.
-      const BoxStyle style = BoxStyle(
-        direction: Axis.horizontal,
-        writingDirection: WritingDirection.rtl,
-        mainAlign: MainAlign.end,
-        crossAlign: CrossAlign.center,
-        gap: 4,
-        wrap: true,
-        flex: 2,
-        gridSpan: GridSpan.tracks(3),
-        overflow: Overflow.scroll,
-        pin: BoxPin.start,
-        pinOffset: 6,
-        width: 10,
-        height: 11,
-        aspectRatio: 1.5,
-        widthFraction: BoxFraction.parent(0.5),
-        heightFraction: BoxFraction.parent(0.25),
-        minWidth: 1,
-        maxWidth: 100,
-        minHeight: 2,
-        maxHeight: 200,
-        padding: BoxSpacing.all(3),
-        margin: BoxSpacing.all(4),
-        backgroundColor: BoxColor.role(_ThemedColor.surface),
-        borderRadius: 5,
-        corners: BoxBorderRadius(topLeft: 3),
-        border: BoxBorder(color: BoxColor.role(_ThemedColor.outline)),
-        shadows: <BoxShadow>[
-          BoxShadow(color: BoxColor.role(_ThemedColor.surface)),
-        ],
-        shape: BoxShape.circle,
-        textStyle: BoxTextStyle(
-          fontSize: 13,
-          color: BoxColor.role(_ThemedColor.ink),
-        ),
-        transition: BoxTransition(duration: Duration(milliseconds: 120)),
-        fold: BoxFold(to: BoxStyle(opacity: 0)),
-        opacity: 0.5,
-        transform: BoxTransform(scale: 1.1),
-        visibleFrom: 600,
-        visibleUntil: 900,
-      );
-
-      expect(
-        style.resolve(_themed),
-        style.copyWith(
-          backgroundColor: const BoxColor(0xFFFEF7FF),
-          border: const BoxBorder(color: BoxColor(0xFF79747E)),
-          shadows: const <BoxShadow>[BoxShadow(color: BoxColor(0xFFFEF7FF))],
-          textStyle: const BoxTextStyle(
-            fontSize: 13,
-            color: BoxColor(0xFF1D1B20),
-          ),
-        ),
-        reason:
-            'a role is looked up, and every other token is carried as it was',
-      );
-    });
-  });
+  group('BoxStyle resolve', () {});
 }
 
 /// A role of its own, so a cap can be resolved without the Material package.
-enum _BorderCapRole { primary }

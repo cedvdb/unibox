@@ -163,7 +163,7 @@ UINode _siteLink(
     newTab: newTab,
     padding: const BoxSpacing.symmetric(horizontal: 10, vertical: 6),
     borderRadius: 8,
-    transition: MaterialInkWell.defaultTransition,
+    transition: const BoxTransition(duration: Duration(milliseconds: 150)),
     hoverStyle: BoxStyle(backgroundColor: palette.surfaceContainer),
     children: <UINode>[
       if (icon == null)

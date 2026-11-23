@@ -64,8 +64,6 @@ jobs:
       - name: Check that the documents still crawl
         run: python3 tool/doc_check.py build/site "$SITE_URL"
 
-      - name: Check that the client answers a press
-        run: tool/dom_check.sh build/site
 
       # The numbers, against the budgets — and against `tool/performance_baseline.json`, so a slow
       # drift that stays inside a budget is still named in the log.

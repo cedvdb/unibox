@@ -41,15 +41,6 @@ Document buildSiteDocument({
       raw: <String>['<style>${fontFaceCss('')}$siteCss</style>'],
     ),
     scope: core.UniboxScope(theme: siteThemeFor(seed)),
-    // A site a crawler reads is a document: the recorders are what a reader who interacts
-    // with the catalogue leaves behind, and nothing here starts an application.
-    scripts: <DocumentScript>[
-      // The recorders first: they are what a reader who acts before the client arrives leaves behind.
-      DocumentScript.inline(body: '$pressScript\n$scrollScript'),
-      // Then the rendering that makes the page interactive without Flutter: the catalogue's chips,
-      // its segmented button and its dialog, drawn from the same tree by the same stores.
-      DocumentScript(src: 'web/main.client.js'),
-    ],
   );
 }
 

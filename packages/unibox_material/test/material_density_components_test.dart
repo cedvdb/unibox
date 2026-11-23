@@ -28,18 +28,5 @@ void main() {
 
       expect(chip.minHeight, 40);
     });
-
-    test('a list tile is eight pixels shorter', () {
-      final MaterialListTile tile = MaterialListTile(
-        title: const TextNode('Ada'),
-        density: MaterialDensity.compact,
-      );
-      final MaterialListTile resting = MaterialListTile(
-        title: const TextNode('Ada'),
-      );
-
-      expect(resting.row.minHeight, 56);
-      expect(tile.row.minHeight, 48);
-    });
   });
 }

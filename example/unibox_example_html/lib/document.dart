@@ -49,16 +49,6 @@ Document buildExampleDocument({String? build}) {
       raw: <String>['<style>${fontFaceCss('../../')}$pageCss</style>'],
     ),
     scope: UniboxScope(theme: ExamplePalette.themeFor(ExampleSeed.defaultSeed)),
-    // A document that runs itself rather than one that becomes an application. The client renderer
-    // adopts this markup and keeps it: a reader acts on real elements — the same ones a crawler
-    // read — and Flutter is nowhere on the page. That is the difference worth showing, and it is
-    // also what makes the comparison honest: the left frame is HTML before and after a press.
-    scripts: const <DocumentScript>[
-      // The client renderer, which adopts this markup and keeps it: a reader acts on the same
-      // elements the crawler read, and Flutter is nowhere on the page. One directory up, because
-      // this document is one directory down from the file `tool/site.sh` compiles.
-      DocumentScript(src: '../main.client.js'),
-    ],
   );
 }
 
@@ -72,12 +62,12 @@ Document buildExampleDocument({String? build}) {
 /// landmark, before any widget is asked for.
 Document buildComponentsDocument({String? build}) {
   return Document(
-    node: buildMaterialSection(),
+    node: buildMaterialSection(listingsUrl: '../listings/'),
     head: DocumentHead(
       title: 'Components — Unibox',
       description:
           'The Material components this workspace draws, from one tree: a card, a '
-          'navigation bar, a button, a chip and a tab strip.',
+          'button, a chip and a segmented control.',
       meta: <String, String>{
         'unibox-build': ?build,
         'unibox-page': 'components',
@@ -89,9 +79,6 @@ Document buildComponentsDocument({String? build}) {
       raw: <String>['<style>${fontFaceCss('../../')}$pageCss</style>'],
     ),
     scope: UniboxScope(theme: ExamplePalette.themeFor(ExampleSeed.defaultSeed)),
-    // The client renderer adopts this markup, so the bar and the tabs answer a press on the web
-    // the way they do in the app — without Flutter, on the elements a crawler read.
-    scripts: const <DocumentScript>[DocumentScript(src: '../main.client.js')],
   );
 }
 

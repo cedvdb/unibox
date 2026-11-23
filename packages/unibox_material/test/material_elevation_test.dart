@@ -141,7 +141,5 @@ void main() {
       expect(MaterialCard.elevatedShadows, MaterialElevation.level1);
       expect(const MaterialCard().shadows, MaterialElevation.level1);
     });
-
-    test('a dialog is raised at level three', () {});
   });
 }

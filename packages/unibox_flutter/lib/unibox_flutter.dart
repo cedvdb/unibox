@@ -30,7 +30,6 @@ export 'src/press_replay.dart' show pressRecorded;
 export 'src/page_scroll.dart' show scrollOffsetsFromPage;
 export 'src/render.dart';
 export 'src/scroll_scope.dart' show UniboxScrollScope;
-export 'src/shape.dart' show pathOf, toStrokeCap;
 export 'src/stack_node.dart' show FlutterStack;
 export 'src/stateful_node.dart' show FlutterStateful;
 export 'src/substitutions.dart'

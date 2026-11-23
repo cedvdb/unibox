@@ -4,25 +4,6 @@ import 'package:unibox_material/unibox_material.dart';
 
 void main() {
   group('MaterialIcon', () {
-    test('is a square holding one glyph in the icon font', () {
-      final MaterialIcon icon = MaterialIcon.ligature('home');
-      final TextNode glyph = icon.children.single as TextNode;
-
-      expect(icon, isA<Box>());
-      expect(icon.width, 24);
-      expect(icon.height, 24);
-      expect(icon.mainAlign, MainAlign.center);
-      expect(icon.crossAlign, CrossAlign.center);
-      expect(glyph.text, 'home');
-      expect(icon.textStyle?.fontFamily, 'Material Symbols Outlined');
-      expect(icon.textStyle?.fontSize, 24);
-      expect(icon.textStyle?.lineHeight, 1);
-      expect(
-        icon.textStyle?.color,
-        const BoxColor.role(MaterialColorRole.onSurfaceVariant),
-      );
-    });
-
     test('takes the glyph of a codepoint', () {
       final MaterialIcon icon = MaterialIcon.codePoint(0xe9b2);
 

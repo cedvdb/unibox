@@ -2,49 +2,30 @@
 
 ## Unreleased
 
-- `MaterialButton` keeps the width its fill states as `fillWidth`. The width sits on the fill
-  inside the button's row, so a host that draws the component with its own widget — which
-  receives the node and not the children it built — could not tell a button that hugs its label
-  from one the tree pins, and drew every one of them at the width of its parent.
+- Native controls own their ink; remove the custom `ink` arguments and honour declared button sizing and icon-button variants.
 
-- **The text field is gone.** `MaterialTextField` was the one component whose whole job was a
-  host's chrome: a focus line, a floating label and an error a field could show itself. A field
-  with no chrome is what the model states — a `TextInputNode` inside a `Box` that draws the fill
-  and the line, with the label and the error as `TextNode`s beside it — and the example's sign-up
-  form has been built that way all along.
-
-- **The dialog and the bottom sheet are gone.** `MaterialDialog` and `MaterialBottomSheet` were
-  the last two components with no widget to map them to: an overlay's slots and its dismissal
-  policy are the node's, so a tree that needs one states an `OverlayNode` and a `Box`. The
-  catalogue loses the section that showed them, and the example's sign-up dialog — a plain
-  `OverlayNode` all along — is what a dialog looks like now.
-
-- **The navigation bar and the tabs are gone.** `MaterialNavigationBar`,
-  `MaterialTabBar` and `MaterialTabs` were the two biggest components with no tree drawing
-  them: a screen's destinations and its tab strip are furniture an application places itself.
-  `MaterialTabs` went with the bar it is built on, and the substitution map loses the two
-  widgets it named for them.
-
-- **The scaffold and the two app bars are gone.** `MaterialScaffold`, `MaterialAppBar` and
-  `MaterialLargeAppBar` described a screen's chrome — a bar that stays, the body under it, a bar
-  whose height a store drives — which belongs to the application, and Flutter's `Scaffold` and
-  `AppBar` already draw it. With no widget to map them to, they were the first entries on this
-  package's list of components that had no second half; the example's catalogue loses the two
-  sections that showed them.
+- Reduce Material to palette, typography, cards, buttons, chips, segmented controls, codepoint icons and icon buttons. Remove custom ink, stateful controls, shapes and progress indicators.
 
 - **The palette names the tertiary accent and the fixed ones.** `MaterialColorRole` gains `tertiary`, `onTertiary`, `primaryFixedDim` and `secondaryFixedDim`; `MaterialPalette.fromSeed` generates them, the baseline tables print them, and `uniboxThemeOf` reads them from a `ColorScheme`. A tree can now say "the rating mark is `primaryFixedDim`" instead of a design system inventing a role of its own for a colour Material already names — and a test holds the palette to every role the enum can state, so the list can only grow with a value behind it.
 - Four components keep what a host needs to draw them with the platform's own widget, the way
-  `MaterialSegmentedButton` does: `MaterialButton` its `variant`, `icon` and `onPressed`,
+  `MaterialNavigationBar` already did: `MaterialButton` its `variant`, `icon` and `onPressed`,
   `MaterialChip` its `label`, `selected`, `onSelected` and `onDeleted`, `MaterialIconButton` its
   `icon`, `label`, `onPressed`, `badgeCount` and `variant`, and `MaterialProgressRing` its
   `value`, `size`, `thickness`, `label` and `determinate`. A substitution receives the node and
   not the children it built, so a parameter it cannot read is a component it cannot draw.
 
-- `MaterialSegmentedButton` keeps its `segments`, its `selected` index and its `onSelect`
-  callback as fields. A host that draws the pill with the platform's own `SegmentedButton` —
-  through a renderer substitution — receives the node and not the children it built, so without
-  them it could not hand the same segments to a widget. Nothing in the tree reads them: the
-  children are still built once, by the constructor.
+- `MaterialNavigationBar` keeps its `destinations`, its `selected` index and its `onSelect`
+  callback as fields. A host that draws the bar with the platform's own `NavigationBar` — through
+  a renderer substitution — receives the node and not the children it built, so without them it
+  could not hand the same destinations to a widget. Nothing in the tree reads them: the children
+  are still built once, by the constructor.
+
+- `MaterialTabs` follows the tabs it is drawn with. The store was created with the number of tabs
+  the component had when it mounted and kept it, so a parent that drew the component again over a
+  different set left the two halves disagreeing: a choice past the last tab drew a page the tree no
+  longer held — a `RangeError` — and a tab the tree gained refused every press. The component now
+  reconciles its state with the node drawn over it (`StatefulNode.update`), moving a lost choice to
+  the last tab a page exists for and letting a new tab be chosen.
 
 - `MaterialProgressRing` and `MaterialSpinner` announce a labelled ring as a progress bar:
   `role="progressbar"` on the web and `SemanticsRole.progressBar` in Flutter, with the label as

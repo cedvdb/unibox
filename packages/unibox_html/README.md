@@ -1,5 +1,11 @@
 # unibox_html
 
+Server HTML and CSS from platform-independent declarations. No client renderer
+or application event runtime is provided. Callbacks belong to the Flutter host;
+real destinations remain ordinary browser links. Optional handover helpers are
+available through `package:unibox_html/handover.dart`, without a Flutter SDK
+dependency. See [handover](../../docs/takeover.md).
+
 The web renderer: a Unibox tree as HTML a search engine can read.
 
 A Flutter screen is a canvas, which a crawler, a link preview and a reader without
@@ -9,7 +15,6 @@ text, real headings, real links, one stylesheet — with no framework and no run
 It holds the whole web target in one package, in the three layers a node passes through on
 its way to a browser: the **CSS** a design token becomes (`lib/src/css/`), the **element
 plan** a node becomes (`lib/src/element/`), and the document those are written into.
-`unibox_dom` builds the same plan in a page, which is why the two web renderings cannot
 drift. They are directories rather than packages because a package boundary is a version to
 keep in step, and the third renderer they were split for was deleted.
 
@@ -181,7 +186,6 @@ right — is what it reads in; nothing is inferred on the page's behalf.
 ## The CSS a token becomes
 
 A token is a Dart value in `unibox_core`; CSS is text. `lib/src/css/` is the single place
-where one becomes the other, so this renderer and `unibox_dom` produce the same declarations
 for the same tree.
 
 That is not tidiness. A class name is a hash of its declarations, which is what makes six
@@ -217,7 +221,6 @@ than inheriting one from a transition that happens to be running.
 
 `ElementPlan` is the whole decision of what a tree becomes, as a value: a tag, its
 attributes in a fixed order, the class it wears, and the elements inside it. It carries no
-markup, which is why `toHtml()` writes it to a string and `unibox_dom` builds nodes from the
 same value instead of deciding again what a `Box` looks like — that is what lets a client
 adopt a server's page rather than repaint it.
 
@@ -229,7 +232,6 @@ cancel a browser's link paint are the whole difference: the class stays the box'
 the children stay where they were, and the element takes the pointer even with nothing
 inside it. There is no `role` and no `tabindex` on it — the tag is the role, and an anchor is
 already in the tab order — so the markup a crawler reads is the control a reader presses.
-`unibox_dom` binds the press: a plain click is cancelled and answered by the tree, and a
 modifier, a middle click or a `newTab` stays the browser's.
 
 **A box says whether the pointer may land on it.** Left unset, the class states what the box

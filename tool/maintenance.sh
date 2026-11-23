@@ -33,14 +33,11 @@ python3 tool/seo_report.py build/site
 # printed where a maintainer will see them next to the build that produced them. A quoted
 # number that no longer matches is a lie in the shop window.
 step 'The numbers the README quotes'
-client=build/site/web/main.client.js
 engine=build/site/flutter/main.dart.js
-for file in "$client" "$engine"; do
+for file in "$engine"; do
   if [ -f "$file" ]; then
     printf '  %-40s %8s gzipped\n' "$file" "$(gzip -c "$file" | wc -c | tr -d ' ')"
   else
     printf '  %-40s %s\n' "$file" 'missing'
   fi
 done
-printf '\n  README: the site client is 67 KB gzipped, the Flutter build 718 KB before Canvaskit.\n'
-printf '  Update those two numbers in the same commit as anything that moves them.\n'

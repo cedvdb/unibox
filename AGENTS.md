@@ -1,93 +1,87 @@
 # Working in this repository
 
-Instructions for AI coding agents, and for the humans who review their work. Read
-this file before changing anything.
-
-Unibox describes a screen once, as an immutable Dart tree, and draws it twice: as
-Flutter widgets in an application and as HTML/CSS in a browser. The value of the
-project is that the two renderings agree, so most of what follows is about keeping
-them in step.
-
-The reason it exists is search. A screen drawn in Flutter is a canvas, which a search
-engine, a link preview and a reader without JavaScript all see as nothing, and writing
-the page a second time is how a team ends up with two designs that drift. A tree is
-served one of two ways — the server renders it read-only and the Flutter app takes the
-page over, or the page is a document with no Flutter on it at all. Only the screens
-that have to be found need either; the rest of an application stays ordinary Flutter.
-
-The unit is therefore the **region, not the screen**: a band, a card, a footer, a list. A
-component in a tree is described once and drawn by each target's own implementation — Flutter's
-widget in the app, CSS in the document — and the two owe the same *information* and a
-close-enough appearance, never the same pixel (`design.md` §5.4). An interactive screen (a map, a
-live search, a sheet, a booking bar) stays ordinary Flutter around those bands; a tree that tries
-to describe one is over-specified for the document that has to serve it (§5.6).
+Read this file before changing anything. Unibox declares UI regions once in pure
+Dart and renders them as server HTML/CSS and Flutter widgets. Its value is keeping
+content and design decisions in agreement without maintaining two descriptions.
+The unit is a region: a band, card, footer or list. The application owns page
+composition, routes, data, state and complex interaction.
 
 ## Read in this order
 
 1. This file.
-2. [`design.md`](design.md) §5 — the API conventions: naming, precedence,
-   dimensions, parity, interaction, non-goals.
-3. The node or token you are about to change, in `packages/unibox_core/lib/src/`.
-4. `packages/unibox_testing/lib/src/` — the appearance both renderers owe.
-5. The renderer you are changing, and `test/support/appearance.dart` beside it.
+2. `design.md` section 5: API conventions and boundaries.
+3. The affected node or token in `packages/unibox_core/lib/src/`.
+4. `packages/unibox_testing/lib/src/`: the shared presentation contract.
+5. The affected renderer and its output-reading test support.
 
-[`llms.txt`](llms.txt) indexes every document in the repository; the user-facing
-guide is [`README.md`](README.md).
+`llms.txt` indexes documentation. `README.md` is the user guide.
 
-## The layout
+## Current scope
 
-| Path | What it holds | Touch it when |
-| --- | --- | --- |
-| `packages/unibox_core/lib/src/nodes/` | `UINode` and the twelve nodes: `Box`, `TextNode`, `ImageNode`, `LinkNode` (a `Box` that names a destination), `PagerNode` (a `Box` that settles on one child), `StackNode`, `PositionedNode`, `TextInputNode`, `StatefulNode`, `OverlayNode`, `GridNode`, `EmbedNode` | a node gains or loses a parameter |
-| `packages/unibox_core/lib/src/tokens/` | `BoxStyle`, `BoxTextStyle`, `BoxColor`, `BoxColors`, `BoxSpacing`, `BoxBorder`, `BoxBorderRadius`, `BoxShadow`, `BoxShape` (a path in a view box), `BoxTransform`, `BoxTransition`, `BoxSemantics` | a design token is added or its meaning changes |
-| `packages/unibox_core/lib/src/enums.dart` | layout, alignment, overflow and typography enums | a value both targets can express is missing |
-| `packages/unibox_core/lib/src/validation.dart` | `validateTree` and `TreeIssue` | a construct becomes impossible to render faithfully |
-| `packages/unibox_flutter/lib/src/` | one file per node (`FlutterBox`, `FlutterText`, ...), `values.dart` (token → Flutter), `render.dart` (dispatch and the validation assert) | the Flutter target has to change |
-| `packages/unibox_html/lib/src/` | the web: `css/` (the token-to-CSS mapping, the class hash and the state rules), `element/` (`ElementPlan`, `planNode` and `Stylesheet` — what a node becomes), and the writer (`render.dart`, `document.dart`, `client/`) | a token's CSS, a node's element or the document changes |
-| `packages/unibox_dom/lib/src/` | the client renderer: `mount.dart` (`DomView`), `patch.dart` (plan → element), `events.dart` (a callback → a listener) | the page has to react |
-| `packages/unibox_testing/lib/src/` | `BoxAppearance` + `boxCases`, `TextAppearance` + `textCases`, `OverlayAppearance` + `overlayCases` | a presentational token is added or changed |
-| `packages/unibox_material/lib/src/` | the Material 3 type scale: `MaterialTypography` (the fifteen roles as `const BoxTextStyle` values), `MaterialTypeRole`, the colour roles as `MaterialPalette` (`light`/`dark`, or grown from one seed by `fromSeed`, with `MaterialSchemeVariant` naming how the seed is spent), `MaterialElevation` (the six heights as `BoxShadow` lists), and the components built on the drawn nodes, one line each in `README.md#material` — `MaterialCard`, `MaterialListTile`, `MaterialButton`, `MaterialIconButton` (a glyph in a square, with a count over its corner), `MaterialChip`, `MaterialSegmentedButton`, `MaterialIcon` and `MaterialProgressRing` (a value, as a ring of a shape), all `Box`es; `MaterialInkWell` (its tints and the ink a press spreads) and `MaterialSpinner` (the step that ring turns), both `StatefulNode`s; `MaterialCheckMark` (a `StackNode`: Material's tick, drawn) | a design-system role is added, a scale or a palette changes, or a component is added |
-| `packages/unibox_material_flutter/lib/src/` | `materialComponents()`: the substitution map that draws `MaterialCard` with `Card` and `MaterialButton` with `FilledButton`, over the values `unibox_material` states | a component gains a widget, or an application asks for one more |
+- No DOM application runtime, client reconciliation or hydration package.
+- No custom path/shape token, drawn ring, progress indicator or custom Material ink.
+- Optional handover coordinates HTML-to-Flutter rendering. The host explicitly
+  supplies readiness and its page controller or restoration callback. Read
+  `docs/takeover.md` before changing capture, restore, replay, reveal or fallback.
+- Material is palette, typography, card, button, chip, segmented control, codepoint
+  icon and icon button, plus supporting values. Every Material component requires
+  a native Flutter substitution. Do not silently reinstate custom widget fallbacks.
+- Application-specific surfaces and indicators belong to the consumer.
+- The optional stateful region adapter remains; it does not own application routing,
+  networking or data. Material components consume supplied state and callbacks.
 
-| `packages/unibox_core/lib/src/state/` | `Store` and `StateStore`: the state a `StatefulNode` draws and the lifecycle a renderer calls | a store member, the publish rule or a lifecycle rule changes |
-| `packages/*/test/support/` | the harnesses (`pumpNode`, `inNode`, `stylesOf`, ...) and `appearance.dart`, which reads the presentation back out of the output | a test needs a new fact |
-======
-| `example/unibox_example_shared/` | the example as one `StatefulNode` (`ExamplePageNode`, `ExampleState`, `ExampleStore`) and the trees it is built from, the site as one page (`buildSitePage`) whose sections are the claim with the comparison inside it (`buildHeroSection`), the vocabulary that names the nodes the page had not drawn (`buildVocabularySection`) and the catalogue that closes it (`buildMaterialSection`), plus the palette grown from one seed | the example or the site content changes |
-| `example/unibox_example_flutter/`, `example/unibox_example_html/` | hosts: the surface, the link policy, and the documents — never layout or state | the surface, a link or a document changes |
-| `README.md`, `design.md`, package READMEs | the user guide, the reasoning, the per-target mapping tables | public API or behaviour changes |
-| `docs/nodes/` | one page per node: its parameters, the model's defaults and what each target does, reached from the summary tables in `README.md` | a node gains or loses a parameter, or its documentation changes |
-| `AI_INSTRUCTIONS.md` | the consumer-facing counterpart: rules and a translation table for an assistant writing application code | a parameter is renamed or a default changes |
-| `RELEASE.md` | the release checklist | never automatically; it is a human procedure |
+## Layout
+
+| Path | Responsibility |
+| --- | --- |
+| `packages/unibox_core/lib/src/nodes/` | Immutable declarations and their parameters |
+| `packages/unibox_core/lib/src/tokens/` | Shared presentation values, defaults and value semantics |
+| `packages/unibox_core/lib/src/validation.dart` | Constructs the targets cannot honour |
+| `packages/unibox_core/lib/src/state/` | Optional store lifecycle and handover record values |
+| `packages/unibox_flutter/lib/src/` | Widget rendering, generic substitutions and optional handover |
+| `packages/unibox_html/lib/src/` | Element planning, CSS, writing, documents and server handover helpers |
+| `packages/unibox_testing/lib/src/` | Presentation and bounded behaviour expectations |
+| `packages/unibox_material/lib/src/` | Small pure Dart Material vocabulary and design values |
+| `packages/unibox_material_flutter/lib/src/` | Native Material mappings and Flutter theme conversion |
+| `packages/*/test/support/` | Harnesses and readers of actual renderer output |
+| `example/unibox_example_shared/` | Shared region trees and the small catalogue |
+| `example/unibox_example_flutter/` | Flutter surface, link policy and readiness |
+| `example/unibox_example_html/` | Documents and server metadata |
+| `docs/nodes/` | Node parameter/default/target references |
+
+Flutter box internals are split by responsibility: `box.dart` orchestrates,
+`box_pinning.dart` handles sticky positioning, `box_layout.dart` handles stretching,
+and `box_folding.dart` handles scroll-driven paint. They are private parts of one
+library, not new public abstractions.
 
 ## Commands
 
-Everything runs from the repository root: it is a [Dart workspace](https://dart.dev/tools/pub/workspaces),
-so the packages share one resolution.
+Run from the repository root, a Dart workspace with shared resolution.
 
-| What | Command |
+| Task | Command |
 | --- | --- |
-| Resolve the workspace | `flutter pub get` |
-| Format check, analysis and every suite | `tool/verify.sh` |
-| Format check and analysis only | `tool/verify.sh --fast` |
-| Rewrite formatting, then verify | `tool/verify.sh --fix` |
-| Also build the API docs | `tool/verify.sh --docs` |
-| Every number: budgets, boot to frame, bytes | `tool/performance.sh` |
-| Accept today's numbers as the baseline | `tool/performance.sh --update` |
-| A big page: plan, stylesheet and text, against a baseline | `tool/scale.sh` |
-| Accept a new scale baseline, after reading the table | `tool/scale.sh --update` |
-| One suite, the fast loop | `(cd packages/unibox_html && dart test)` |
-| The monthly pass: gate, budget, site, the quoted numbers | `tool/maintenance.sh` |
-| Does the index point at files that exist? | `python3 tool/check_docs.py` |
-| Has every token a decided place in the table? | `python3 tool/surface_check.py` |
+| Resolve | `flutter pub get` |
+| Complete gate | `tool/verify.sh` |
+| Format, then verify | `tool/verify.sh --fix` |
+| Format/analysis fast loop | `tool/verify.sh --fast` |
+| Include API docs | `tool/verify.sh --docs` |
+| Document links | `python3 tool/check_docs.py` |
+| Token/callback coverage | `python3 tool/surface_check.py` |
+| Gate regression tests | `python3 tool/gate_tests.py` |
+| Large-page baseline | `tool/scale.sh` |
+| Build example documents and Flutter | `tool/site.sh` |
+| Built document checks | `python3 tool/doc_check.py build/site` |
+| Browser boot check | `tool/boot_check.sh build/site` |
+| Performance reports and budgets | `tool/performance.sh` |
+| Monthly maintenance | `tool/maintenance.sh` |
 
-Every suite, exactly as CI runs them — one command per directory, in dependency order:
+Suites, in dependency order:
 
 ```shell
 (cd packages/unibox_core && dart test)
 (cd packages/unibox_testing && dart test)
 (cd packages/unibox_material && dart test)
 (cd packages/unibox_html && dart test)
-(cd packages/unibox_dom && dart test -p chrome)
 (cd packages/unibox_flutter && flutter test)
 (cd packages/unibox_material_flutter && flutter test)
 (cd example/unibox_example_shared && dart test)
@@ -95,334 +89,112 @@ Every suite, exactly as CI runs them — one command per directory, in dependenc
 (cd example/unibox_example_flutter && flutter test)
 ```
 
-`dart test` for the pure Dart packages, `flutter test` for the two that build
-widgets. A single suite is the loop while you work; `tool/verify.sh` is the gate
-before a commit, and `dart analyze` is strict here (`strict-casts`,
-`strict-inference`, `strict-raw-types`), so an untyped `dynamic` will not pass.
+The gate checks Flutter against `.flutter-version`. If they disagree before the
+first edit, report the environment failure and stop. Never change SDK constraints,
+`.flutter-version`, workflows, budgets or checks to make an incompatible local run
+appear green. Baselines may be updated only after reading and explaining measurements.
 
-### If the gate fails before your first edit
+## Non-negotiable rules
 
-`tool/verify.sh` prints the Flutter it is running and compares it with
-`.flutter-version`, the one file the workflows read too. When they disagree it stops
-before anything else, because that failure says nothing about the change in front of
-you: say so and stop. Never edit `environment.sdk`, `.flutter-version` or a workflow
-to make a local run pass, and never widen a budget or a check to silence a red step —
-a gate somebody loosens is worse than no gate, because the green tick that follows is
-a lie.
+1. Core stays pure Dart with no package dependencies or platform imports.
+2. Defaults belong to the model. Neither renderer falls back to a different host
+   default for a property the model decides.
+3. Bags merge left to right; flat parameters win; state overlays resting values;
+   disabled state wins over other states.
+4. Core primitives do not retain accidental platform chrome. Native substitutions
+   deliberately use platform interaction while preserving declared information.
+5. Parity is tested. A presentational token needs an isolated contract case and a
+   place in the all-token case, with readers of actual output on both targets.
+6. Docs and changelogs move with code. Every public member has a doc comment; use
+   backticks for type names in README prose to avoid unintended dartdoc references.
+7. Dependencies flow from renderers to core. Neither generic renderer knows Material.
+   The optional Material Flutter mapping is the boundary that knows both.
+8. Design systems are values plus components built from existing nodes. Retained
+   Material components must also have complete native Flutter mappings.
+9. Application state stays with the host. A store used by a stateful region is created
+   and disposed by its renderer, never stored on the declaration itself. Copied
+   constructor parameters reconcile through `update`.
+10. Const-compatible collection arguments must remain immutable after construction.
+    Use const collections or unmodifiable snapshots. Value equality and hashing must
+    agree by contents wherever values serve as map or stylesheet-cache keys.
 
-## The rules that are not negotiable
+## Recipes
 
-1. **`unibox_core` stays pure Dart.** No `dart:ui`, no Flutter, no web framework, and no
-   package dependencies at all. `packages/unibox_core/test/purity_test.dart`
-   enforces it, and it is the reason a third renderer stays possible.
-2. **Defaults belong to the model.** When a token is unset, the answer is written
-   in core (`BoxStyle.resolvedDirection`, `BoxTextStyle.defaults`,
-   `ImageNode.resolvedFit`) and both renderers use it. Never fall back to a host
-   default: Flutter's 14px text and the browser's 16px are exactly the drift the
-   model exists to prevent.
-3. **Flat parameters win over style bags.** `Box.computedStyle` merges `styles`
-   left to right, then the flat parameters. A state style
-   overlays the resting one, and `disabled` overlays every state.
-4. **No platform chrome.** Neither renderer keeps the decoration its host adds to
-   a control: not Material's field underline, not the browser's input border,
-   focus ring, link underline or heading margin. A control looks the way the tree
-   says it looks.
-5. **Parity is tested, not promised.** A presentational token is in
-   `unibox_testing`, with one case that isolates it and a place in the
-   "every token at once" case, or the token is not finished.
-6. **Docs and changelogs move with the code.** A public change updates the README
-   tables, the package README and the `## Unreleased` section of every
-   `CHANGELOG.md` it touches. `dart doc` warnings fail CI, which means every
-   public member keeps a doc comment.
-7. **One direction of dependency.** Renderers depend on core; core never imports a
-   renderer. A renderer knows nothing of the other renderer, and neither knows
-   `unibox_material`. The one package that knows both a renderer and the design system is
-   `unibox_material_flutter`, and it is an application's: it depends on the two and nothing
-   depends on it, which is what keeps the map a choice rather than a layer.
-8. **A design system is a package of values, plus nodes built from nodes.**
-   `unibox_material` holds the Material 3 type scale as `const` `BoxTextStyle`
-   values and the components built from `Box` (`MaterialCard`,
-   `MaterialListTile`). It depends on `unibox_core` and on Material's own colour
-   algorithm — pure Dart, no widget layer — and adds no renderer code:
-   a look is a value, and a component is a node that extends the node already drawn
-   for it, never a new node type.
-9. **State lives in a store, not in a node.** `StatefulNode` carries a factory
-   and a view; the renderer creates the store, calls `onMount`, rebuilds and
-   disposes it. The tree stays immutable, the view returns one tree, and an overlay
-   is a node inside that tree rather than a second slot on the view.
+### Layout, paint or typography tokens
 
-## How a change lands
+Update the core field, constructor, merge/copy operations, equality, hash,
+`isEmpty` where applicable and diagnostic output. Update flat node parameters and
+their precedence. Add transition support when the token is paint that can ease.
+Update both renderer mappings, state rules and stylesheet identity. Update the
+shared appearance field, difference reader, isolated case and all-token case.
+Update node docs, defaults, renderer mappings and affected Unreleased changelogs.
+Do not add a token that only one public spelling can reach.
 
-The recipes below are the touch points the tests hold you to. Read a whole recipe
-before editing: half the work is on the other side of the repository, and a change
-that lands on one target only fails the suites.
+### Nodes and constructs
 
-### A. A layout or paint token on `Box`
+A node is immutable and documented, exported by core, supported by each renderer
+or explicitly host-owned through an embed. Add tests on both targets and validation
+for impossible combinations. A geometry decision that the appearance table cannot
+read needs renderer-level layout tests. Update the node reference and package tables.
+New packages require root workspace and CI membership together.
 
-1. `packages/unibox_core/lib/src/tokens/box_style.dart` — the field, the
-   constructor, `merge`, `==`, `hashCode` and `toString`. Miss one and a bag
-   silently stops merging the token.
-2. `packages/unibox_core/lib/src/nodes/box.dart` — the flat constructor parameter
-   and the entry in `_flatStyle`. The flat spelling is the one most callers use,
-   and it has to beat a bag.
-3. If the token is painted, `packages/unibox_core/lib/src/tokens/box_transition.dart`
-   — a `BoxProperty` member and a place in `BoxProperty.paint`; otherwise the token cannot
-   be eased and `validateTree` cannot see it.
-4. Flutter: `packages/unibox_flutter/lib/src/values.dart` (the mapping, when the
-   token is a new value type), `lib/src/box.dart` (where the decoration, the
-   transform or the sizing is built) and `test/support/appearance.dart` (how the
-   appearance is read back for the contract).
-5. The web target: `packages/unibox_html/lib/src/css/` (the declarations, the four state rules
-   `:hover`, `:focus-visible`, `:active`, `[aria-disabled="true"]`, and the class hash) and
-   `packages/unibox_html/lib/src/element/` and the writer beside it (the element plan, the
-   emitter, the document) — plus `test/support/appearance.dart`.
-6. The contract: `packages/unibox_testing/lib/src/appearance.dart` (the field
-   in `BoxAppearance` and in `differencesFrom`) and `lib/src/cases.dart` (one case
-   that isolates the token, plus the token in the "every token at once" case).
-   `test/cases_test.dart` asserts that no two cases expect the same presentation
-   and that the last case carries every token, so this step fails loudly when it
-   is skipped.
-7. Core tests for the merge and the precedence: `test/tokens_test.dart` and
-   `test/box_test.dart`.
-8. Docs: the `Box` page in `docs/nodes/box.md`, its summary row in `README.md`, the
-   defaults table and the motion section of `packages/unibox_core/README.md`,
-   `design.md` §5.2/§5.4 when a rule changes, and the changelogs.
+### Renderer differences
 
-### B. A typography token
+Start with a failing shared expectation when the fact belongs in the contract.
+Fix the target that drifts; never relax one target's expectation independently.
+When the fact cannot be compared through the table, test the renderer behaviour
+and document the approximation. Valid finite descendants inside an unbounded outer
+axis must remain accepted; do not widen validation to conceal a renderer bug.
 
-1. `packages/unibox_core/lib/src/tokens/box_text_style.dart` — the field, the
-   constructor, `copyWith`, `merge`, `==`, `hashCode`, `isEmpty` and `toString`.
-   `isEmpty` decides whether a renderer writes anything at all, so a new token
-   has to be in it.
-2. `packages/unibox_core/lib/src/nodes/text_node.dart` — the flat parameter and
-   the `computedStyle` overlay. A token that only exists in `BoxTextStyle` is a
-   token the common spelling cannot reach.
-3. If the default changes, `BoxTextStyle.defaults` and the "Default typography"
-   section of `packages/unibox_core/README.md` move together.
-4. Flutter: `lib/src/values.dart` (`toTextStyle`) and the widget that consumes it
-   (`text_node.dart`, plus `text_input_node.dart` when a field adopts it).
-5. The web: `packages/unibox_html/lib/src/css/values.dart` (`typographyDeclarations`,
-   `defaultTypographyDeclarations`) and the emitter beside it (`textDeclarations`, and the
-   `:root` block `sheetWithRoot` writes).
-6. The contract: `packages/unibox_testing/lib/src/text_appearance.dart` and
-   `lib/src/text_cases.dart`, including `defaultTextAppearance` when the default
-   is what changed. `textAppearanceOf` in both `test/support/appearance.dart`
-   files has to read the new fact back out of the output.
-7. Docs: [typography](README.md#typography), the core README, the changelogs.
+### Callbacks and native substitutions
 
-### C. A node type
+Flutter binds application callbacks. Server HTML writes real links and accessible
+control meaning, without application event listeners. Handover is a separate opt-in
+capture mechanism, not DOM interaction. Test both that an action runs when eligible
+and that it does not run while disabled or after browser-handled navigation.
 
-1. `packages/unibox_core/lib/src/nodes/<name>_node.dart`: a `const` immutable
-   class extending `UINode`, a doc comment on the class and on every member, and
-   an export in `lib/unibox_core.dart`. Add the `Node` suffix only when the bare
-   name collides with a Flutter or HTML name — `Text`, `Image`, `Stack`,
-   `Positioned` and `Link` do, `Box` does not. Both `test/naming_test.dart` files
-   enforce the import half of that rule.
-2. `packages/unibox_core/lib/src/validation.dart` when the node only makes sense
-   in one place (`PositionedNode` in a stack, an item in a list, an embed with
-   something to draw), with a case in `test/validation_test.dart`.
-3. Flutter: `lib/src/<name>_node.dart` with an `Unibox<Name>` widget, the export
-   in `lib/unibox_flutter.dart`, the case in the `renderNode` switch of
-   `lib/src/render.dart`, a `<name>_widget_test.dart`, and the new export listed
-   in `test/naming_test.dart`.
-4. The web: a `_plan<Name>` in `packages/unibox_html/lib/src/render.dart`, the case in
-   its `planNode` switch — whose `_ =>` fallback throws `UnsupportedError`, so a
-   forgotten case is a runtime failure rather than a compile error — and a test in
-   `packages/unibox_html/test/`. Its declarations go in `packages/unibox_html/lib/src/css/`.
-5. The contract, only when the node carries presentational tokens the tables cover
-   (boxes and texts). A node with no token — a link, an embed — is pinned by the
-   renderer suites instead, which is honest: there is no appearance to compare.
-6. Docs: the node's page in `docs/nodes/`, its summary row in `README.md`, the node
-   table of `packages/unibox_core/README.md`, the mapping tables of both renderer
-   READMEs, and the changelogs. The example changes only if it demonstrates the node.
+Substitutions are keyed by exact component type. Do not allow replacing structural
+nodes wholesale. Preserve words, order, destinations, semantics, selection and
+required actions. Verify native controls with the mapping installed, and verify a
+missing required map is reported. Keep necessary component parameters as fields so
+builders do not infer them from arbitrary descendants.
 
-### D. A difference between the two renderers
+### Handover
 
-Parity is a contract case, not a hunch, so a bug is fixed from the table
-outwards:
+Keep server helpers consumable without Flutter. The application chooses boot policy,
+readiness and destination scroll ownership. Preserve normal browser links and modified
+clicks. Record at most one latest intercepted keyed action and consume it once.
+Restore before reveal and replay only after actual reveal. Missing, disabled,
+ambiguous, stale and offscreen targets are discarded. Test loading, failure, focus,
+continued scrolling and direct Flutter entry; do not use an arbitrary region's first
+frame as the application's readiness signal.
 
-1. Write the failing case in `packages/unibox_testing` first: the expected
-   appearance for the token, in a case that isolates it. Run both renderer suites
-   and read which one disagrees.
-2. Fix the renderer that drifts — often both, because the table holds both to one
-   answer. Never relax the expected value for one target, and never edit one
-   suite's expectation: both suites import the same table.
-3. When the fact cannot be read back out of one target's output, the table is the
-   wrong place for it. Use a renderer-level test and record the asymmetry in the
-   "what stays approximate" section of the relevant README, next to the others —
-   a documented difference is a decision, an undocumented one is a bug.
-4. If the drift is a construct rather than a token, it belongs in `validateTree`:
-   a tree no renderer can honour faithfully is reported, not painted differently.
+### Examples and consumers
 
-### E. The example
-
-`example/unibox_example_shared` holds the trees, the state and the palette — the
-example as one `StatefulNode`, and the site as one page whose sections are `siteSection`s of
-the same package; the two hosts hold only what a tree cannot know. Change the shared
-tree first, keep the hosts to the surface and the link policy, and never lay anything
-out in a host — a host that measures or spaces is the drift the conformance tables
-cannot catch.
-
-### F. A stateful node
-
-1. `packages/unibox_core/lib/src/nodes/stateful_node.dart` decides what the node
-   receives; an application extends it (`class X extends StatefulNode<S, C>`) and
-   never changes it.
-2. The store implements `Store<S>`, or extends `StateStore` from `unibox_core`;
-   its publish rule is tested in `packages/unibox_core/test/state_store_test.dart`.
-3. **A parameter the store copied is reconciled in `update`.** A store is created once
-   per place in the tree and cannot see a node, so anything it read at creation — a count,
-   a seed value — is stale the moment the same place draws a node with another parameter.
-   A component like that states `update: (state, store) => store.reconcile(…)` and tests it
-   in its own suite, with no renderer: `createStore()` then `updateFor(state, store)` is the
-   whole contract (`packages/unibox_material/test/material_tabs_test.dart`).
-4. Flutter: `lib/src/stateful_node.dart` renders it once for every node, and hands the store
-   to `updateFor` from `didUpdateWidget`; the suite needs a test in `test/stateful_node_test.dart`
-   (a publish, a dispose, a node drawn again over it) rather than a renderer per component.
-5. The web: `_planStateful` in `packages/unibox_html/lib/src/render.dart` creates the
-   store, draws the state it starts with and never calls `onMount` — a document is a
-   snapshot — and `test/render_test.dart` pins it. A page that reacts ships
-   `packages/unibox_dom`, where `_Mount.applyNode` reconciles the store of a slot that is
-   drawn again, and `test/stateful_test.dart` pins both halves.
-6. The contract: a case in `packages/unibox_testing/lib/src/behaviour_cases.dart` when the
-   rule is one every renderer owes — a publish redraws the page, a store drawn again is
-   reconciled. Both suites play the one table (`test/behaviour_test.dart` on each side), so
-   the answer is written once and cannot be relaxed for one target.
-7. Docs: the `StatefulNode` page in `docs/nodes/stateful.md` and the core README, the
-   `## Behaviour` section of the testing README, and the changelogs.
-
-### H. A callback on a node
-
-A callback is not finished when the model has it. Three of the bugs found while writing the client were
-one mistake in three places: a callback the model declared, a component that relied on it, and a
-renderer that bound nothing — so the control looked alive in Flutter and did nothing on the web.
-
-1. `packages/unibox_core/lib/src/callbacks.dart` and the node that carries it.
-2. Every renderer binds it: `packages/unibox_flutter/lib/src/<node>.dart` for the app, and
-   `packages/unibox_dom/lib/src/events.dart` for the web — the one file a new callback has to reach on a
-   page. `Box.onHover` was dead for a day because it did not.
-3. A test on each target that the callback runs, and one that it does *not* run when it should not — a
-   long press swallowing its click, a modified click left to the browser.
-4. `packages/unibox_testing` only if the page looks different for it; a callback that changes no pixels
-   has no place in the appearance table.
-
-### G. An overlay
-
-1. `packages/unibox_core/lib/src/nodes/overlay_node.dart` — the node and its
-   policy, and `validation.dart` when a new combination can do nothing.
-2. Flutter: `lib/src/overlay_node.dart` presents it through an `OverlayPortal` on
-   the root overlay; the suite needs a test in `test/overlay_widget_test.dart`.
-3. The web: `_planOverlay` in `packages/unibox_html/lib/src/render.dart` writes a fixed
-   layer that is never drawn in the flow of its parent, and hides it unless the page
-   was rendered to show it (`showOverlays`).
-4. The contract: `OverlayAppearance` and `overlayCases` in `unibox_testing`, read
-   back from each renderer's output.
-5. Docs: the node's page in `docs/nodes/overlay.md`, the core and renderer READMEs, and
-   the changelogs.
-
-### I. A component a host draws itself
-
-`renderFlutter(page, substitutions: …)` lets an application paint a component with the
-platform's own widget — a `Card` for a card, a `NavigationBar` for a bar. It is a door, not
-a second renderer, and the rule that keeps it one is in `design.md` §5.22.
-
-1. `unibox_flutter`: a builder takes the node and the inside the renderer built, so layout,
-   structure and content stay the model's and only the surface is the widget's. `content`
-   is `null` for a leaf, which is how an `ImageNode` reaches a cache the app already has.
-2. The map refuses the structural nodes by construction. Do not widen that set: a box or a
-   text that a widget replaced would end parity for every tree, not for one component.
-3. A component a substitution must be able to read keeps its parameters as fields — that is
-   why `MaterialButton` holds its `label` and its `onPressed`. Without them
-   the builder receives the node and cannot rebuild the control.
-4. The test is the bargain, in the example that depends on both packages
-   (`test/material_widgets_test.dart`): the widget when the map is there, the values when it
-   is not, and the same words and the same press either way.
-5. Docs: the "Substitution" section of the Flutter README, the component's section in
-   `unibox_material`, `design.md` §5.22, and both changelogs. `unibox_testing` does not
-   change — a substitution is outside the appearance table by design, because the two
-   renderings are allowed to differ there and nowhere else.
+Shared declarations belong in the pure Dart shared package. Hosts own their surface,
+link policy, native substitutions and readiness. Consumer migrations must preserve
+existing worktree edits. Use coherent dependency overrides for local verification;
+do not publish a branch or change release pins without the appropriate review.
 
 ## Definition of done
 
-- `tool/verify.sh` passes. Add `--docs` when a public API changed **or a README was
-  edited** — dartdoc renders every package README and treats a bare `[Box]` in the
-  prose as a doc reference, so an unresolved one fails the docs job. Prose about a
-  type belongs in backticks, not brackets.
-- A new or changed token has a contract case and is in the "every token at once"
-  case; a new construct has a validation rule; a new node has a test on both
-  targets. `tool/surface_check.py` enforces the first half by name: a token that
-  reaches `box_style.dart` without a field in `BoxAppearance`, and without a reason
-  in that script's classified map, fails the gate.
-- Every public member has a doc comment, and the docs that describe the changed
-  behaviour are updated in the same commit.
-- Each `CHANGELOG.md` touched has a bullet under `## Unreleased`, written as what
-  changed for the user, not which file changed.
+- `tool/verify.sh` passes; include `--docs` for a public API or README change.
+- Presentation changes have the shared cases and output readers they require;
+  constructs and callbacks have meaningful renderer tests.
+- Public members are documented; current guides agree with the actual supported
+  vocabulary; each affected changelog has user-facing Unreleased entries.
+- Relevant site, handover, scale and consumer checks pass, or external/baseline
+  limitations are identified with evidence. Never describe unrun checks as passed.
 
-## Code and prose style
+## Style and commits
 
-- `dart format` at the default width, single quotes, `prefer_final_locals`,
-  `sort_constructors_first`, `unawaited_futures` — see `analysis_options.yaml`.
-  Run `tool/verify.sh --fix` rather than formatting by hand.
-- Comments and doc comments explain *why*, in prose sentences, and the public ones
-  are part of the API: `dart doc` has no patience for an undocumented public
-  member.
-- Prose in this repository is British English (`colour`, `centre`, `behaviour`)
-  while identifiers are American (`BoxColor`, `backgroundColor`, `center`), because
-  the identifiers are the API and the prose is the explanation.
-- Tests read as sentences about behaviour — `'keeps a gap between two children'` —
-  never `'test gap'`. A test that only restates the implementation is not worth
-  adding; one that pins a decision is.
-- A new abstraction earns its file. The repo has no `utils.dart`, no service
-  layer, no generated code, and `BoxStyle` is deliberately hand written.
+Use `dart format` at default width, single quotes, final locals and the strict
+analyser configuration. Prefer `tool/verify.sh --fix`. Tests read as sentences
+about behaviour. Comments explain why. Prose is British English; identifiers keep
+the API's American spelling. Avoid unrelated cleanups and abstractions without a
+concrete responsibility.
 
-## Commits
-
-Conventional Commits, one verified change per commit:
-
-```text
-feat(core): let a box wear several style bags
-fix(flutter): clip a rounded box to its radius
-test(conformance): hold both renderers to the transform and the opacity
-docs: describe the style bags and the parts of a transition
-```
-
-The scope is the package that owns the change (`core`, `css`, `html`, `flutter`,
-`conformance`, `example`), or none for docs and the plan. The subject is a
-lowercase phrase about what changed for the user, without a full stop. A change
-that touches both renderers is one commit when both sides are the same decision,
-and two when each side is independently reviewable.
-
-## Out of scope
-
-- **Releasing.** Do not bump a version, close a changelog or remove
-  `publish_to: none`. [`RELEASE.md`](RELEASE.md) is a human checklist; CI never
-  publishes.
-- **New dependencies.** `unibox_core` has none and keeps none. A renderer takes a
-  dependency only when its host cannot do the job otherwise, and never on the
-  other renderer.
-- **A new workspace package** without listing it in the root `pubspec.yaml`
-  workspace and in CI.
-- **Breaking a public spelling.** Additions are minor; a rename or a removal is made
-  outright — there is one consumer, this repository, so no deprecated forwarding
-  member is kept (`design.md` §5.7).
-- **Unrelated cleanups.** A commit that reformats, renames or refactors something
-  the change did not need makes the review harder and hides the real diff.
-
-## Where the detail is
-
-| Question | Read |
-| --- | --- |
-| How do I use a node? | [`docs/nodes/`](docs/nodes/README.md) — one page per node, with the parameter tables and the model's defaults |
-| Why is the model shaped this way? | [`design.md`](design.md) — defaults, precedence, parity, non-goals |
-| What does a token do on Flutter? | [`packages/unibox_flutter/README.md`](packages/unibox_flutter/README.md) |
-| What does a token do on the web? | [`packages/unibox_html/README.md`](packages/unibox_html/README.md) |
-| What is the model's default? | [`packages/unibox_core/README.md`](packages/unibox_core/README.md) |
-| How does a node own state? | [`packages/unibox_core/README.md#state`](packages/unibox_core/README.md#state) |
-| Which Material type role or component should I use? | [`packages/unibox_material/README.md`](packages/unibox_material/README.md), with one line per component in [`README.md#material`](README.md#material) |
-| What has to look the same on both? | [`packages/unibox_testing/README.md`](packages/unibox_testing/README.md) |
-| What does a page with thousands of nodes cost? | [`PERFORMANCE.md`](PERFORMANCE.md) — the shapes measured and the baseline `tool/scale.sh` holds them to |
-| How do I build an application with this, as an assistant? | [`AI_INSTRUCTIONS.md`](AI_INSTRUCTIONS.md) — the consumer-facing file, written to be pasted into a context |
-| How do I contribute? | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
-| What does maintenance look like, and what runs on its own? | [`MAINTENANCE.md`](MAINTENANCE.md) |
-| How is a release cut? | [`RELEASE.md`](RELEASE.md) |
-| How do the examples fit together? | [`example/README.md`](example/README.md) |
+Use Conventional Commits, one verified, coherent decision per commit. Package
+scopes name the owner (`core`, `html`, `flutter`, `conformance`, `example`). Do not
+release, bump versions, close changelogs, add unnecessary dependencies or edit
+`RELEASE.md`; release remains a human procedure.

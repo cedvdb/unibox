@@ -2,17 +2,9 @@
 
 ## Unreleased
 
-- Three shapes the map was inventing, found by putting the catalogue's two renderings side by
-  side: a substituted **card** draws the hairline an outlined card states (a `Card` paints a
-  border only when its shape names one, so the outlined variant had no edge); a substituted
-  **chip** wears the tree's 8 pixel corner and its 32 pixel height instead of `FilterChip`'s
-  stadium in a 48 pixel tap target; and a substituted **button** hugs its label unless the tree
-  states a width, where a Material button handed a stretched parent filled it.
+- Preserve declared card outlines, chip corners and compact targets, and button widths when substituting native controls; buttons without a width hug their labels.
 
-- The map names two components fewer: `MaterialTextField` is gone from the package, and
-  `MaterialSegmentedButton` stays out deliberately — its chosen segment carries a drawn tick
-  where `SegmentedButton` draws `Icons.check` from a font, so the app draws the pill from its
-  values and both targets show the same control.
+- Require native widget rendering for the retained vocabulary; preserve destinations, disabled state and chip selection. Unregistered icon glyphs are reported instead of approximated.
 
 - **A glyph the host did not name is drawn as text, not as a run-time `IconData`.** `flutter build`
   records every `IconData` construction and refuses to subset the icon fonts when an argument is
@@ -45,9 +37,8 @@
 
 - `MaterialTabBar` stays out deliberately: a `TabBar` is half a component — a controller and a
   view — and Flutter asserts the tab role on its children, which a strip drawn from a node
-  cannot promise. The scaffold and the two app bars, the navigation bar and the tab bar with the
-  tabs built on it, the dialog and the sheet are gone from `unibox_material` altogether: a
-  screen's chrome, its furniture and its overlays are the application's.
+  cannot promise. So do `MaterialScaffold`, `MaterialTabs`, `MaterialDialog` and
+  `MaterialBottomSheet`, whose slots and policy live in the node.
 
 - `materialThemeData(palette)` is the other half of the map: a `ThemeData` built role by role
   from a `MaterialPalette`. A substituted widget takes its colours from `ColorScheme` and its
