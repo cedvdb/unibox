@@ -100,20 +100,42 @@ jobs:
                    {role: "user", content: $change}
                  ]}' > "$RUNNER_TEMP/request.json"
 
-          if ! curl -sS --max-time 120 -o "$RUNNER_TEMP/response.json" \
+          # The status is kept as well as the body: a key the provider refused and a model it does
+          # not have both arrive as a body that is not an answer, and the status tells the two apart
+          # at a glance in the log.
+          #
+          # `--retry` is what the provider's own 503 asked for — "this model is currently
+          # experiencing high demand ... spikes in demand are usually temporary" — and curl retries
+          # exactly that kind of error by itself, 503 included, so the spike is ridden out instead of
+          # silencing the review of the pull request that most needs reading. The last attempt is
+          # still the one the warning quotes.
+          if ! http="$(curl -sS --max-time 120 --retry 3 --retry-delay 2 --retry-max-time 100 \
+                 -o "$RUNNER_TEMP/response.json" -w '%{http_code}' \
                  -H "Authorization: Bearer $KEY" \
                  -H 'content-type: application/json' \
-                 --data @"$RUNNER_TEMP/request.json" "$ENDPOINT"; then
+                 --data @"$RUNNER_TEMP/request.json" "$ENDPOINT")"; then
             echo '::warning title=The reviewer could not reach the endpoint::Nothing was posted. Check vars.REVIEW_ENDPOINT, and whether the runner can reach it.'
             exit 0
           fi
 
-          answer="$(jq -r '.choices[0].message.content // empty' "$RUNNER_TEMP/response.json")"
+          # The answer is read from a body that may not be an answer at all, so the read has to
+          # survive it. The provider does not speak only the shape an OpenAI request implies: Gemini
+          # reports a failure as `[{ "error": { … } }]` — an array of one — where OpenAI reports an
+          # object, and jq exits 5 on the shape it did not expect. An assignment takes the status of
+          # its substitution, so `set -e` turned that into a failed step, and a key the provider
+          # refused made a pull request red: the gate this job promises never to be. Hence the
+          # `|| true`: a body that is not an answer is the warning below, never the exit code.
+          answer="$(jq -r 'try (.choices[0].message.content // empty) catch empty' "$RUNNER_TEMP/response.json" 2>/dev/null || true)"
           if [ -z "$answer" ]; then
-            # An expired key, or a request the model refused, looks like this. It is an annotation
-            # and not a failed job on purpose: a reviewer that turns a pull request red has become a
-            # gate, and this is not one.
-            echo "::warning title=The reviewer returned nothing::$(jq -c '.error // .' "$RUNNER_TEMP/response.json" | head -c 300)"
+            # An expired key, a model the endpoint does not have or a request the model refused looks
+            # like this. It is an annotation and not a failed job on purpose: a reviewer that turns a
+            # pull request red has become a gate, and this is not one. The reason travels with the
+            # warning, read out of either shape, because "the provider said no" is not something a
+            # maintainer can act on and the sentence it said is.
+            reason="$(jq -c 'if type == "array" then (.[0] // {}) else . end | .error // .' "$RUNNER_TEMP/response.json" 2>/dev/null || true)"
+            reason="${reason:0:300}"
+            printf '::warning title=The reviewer returned nothing (%s)::%s\n' \
+              "${http:-no status}" "${reason:-the body was not JSON}"
             exit 0
           fi
 
