@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Three shapes the map was inventing, found by putting the catalogue's two renderings side by
+  side: a substituted **card** draws the hairline an outlined card states (a `Card` paints a
+  border only when its shape names one, so the outlined variant had no edge); a substituted
+  **chip** wears the tree's 8 pixel corner and its 32 pixel height instead of `FilterChip`'s
+  stadium in a 48 pixel tap target; and a substituted **button** hugs its label unless the tree
+  states a width, where a Material button handed a stretched parent filled it.
+
 - The map names two components fewer: `MaterialTextField` is gone from the package, and
   `MaterialSegmentedButton` stays out deliberately — its chosen segment carries a drawn tick
   where `SegmentedButton` draws `Icons.check` from a font, so the app draws the pill from its

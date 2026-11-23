@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- `MaterialButton` keeps the width its fill states as `fillWidth`. The width sits on the fill
+  inside the button's row, so a host that draws the component with its own widget — which
+  receives the node and not the children it built — could not tell a button that hugs its label
+  from one the tree pins, and drew every one of them at the width of its parent.
+
 - **The text field is gone.** `MaterialTextField` was the one component whose whole job was a
   host's chrome: a focus line, a floating label and an error a field could show itself. A field
   with no chrome is what the model states — a `TextInputNode` inside a `Box` that draws the fill

@@ -367,7 +367,7 @@ final class MaterialButton extends Box {
           border ??
           (variant == MaterialButtonVariant.outlined ? _outline : null),
       borderRadius: borderRadius,
-      width: width,
+      fillWidth: width,
       height: height,
       density: density,
       margin: margin,
@@ -413,7 +413,7 @@ final class MaterialButton extends Box {
     super.key,
     super.margin,
     BoxBorder? border,
-    double? width,
+    this.fillWidth,
     double? height,
     required this.label,
     required this.variant,
@@ -434,7 +434,7 @@ final class MaterialButton extends Box {
          crossAlign: CrossAlign.center,
          children: <UINode>[
            Box(
-             width: width,
+             width: fillWidth,
              height: height,
              // The minimum is the well's, not the fill's: a floor stated here would paint
              // a pill bigger than the box that takes the press, and the ends of a button
@@ -449,6 +449,15 @@ final class MaterialButton extends Box {
            ),
          ],
        );
+
+  /// The width the fill states, or null when it hugs its label.
+  ///
+  /// A field because the width sits on the fill *inside* this button's row, and a host that
+  /// draws the component with its own widget receives the node and not the children it built:
+  /// without it a substituted button could not know whether to hug or to fill. It is not
+  /// [Box.width]: the row this button is has none, which is what lets a stretched parent hand
+  /// it the room while the fill keeps the size the label asks for.
+  final double? fillWidth;
 
   /// The label the button draws.
   final UINode label;
