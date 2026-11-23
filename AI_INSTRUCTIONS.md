@@ -55,8 +55,7 @@ host that renders it.
   `BoxTextStyle` values, the colour roles as `MaterialPalette` (`light` and `dark`,
   each a `const` set of `BoxColor`s — or a palette grown from one brand colour with
   `MaterialPalette.fromSeed(seed, variant:, isDark:, contrastLevel:)`), and the
-  components built on nodes the renderers already draw: `MaterialScaffold`,
-  `MaterialAppBar`, `MaterialLargeAppBar`, `MaterialCard`, `MaterialListTile`,
+  components built on nodes the renderers already draw: `MaterialCard`, `MaterialListTile`,
   `MaterialButton`, `MaterialIconButton`, `MaterialChip`, `MaterialTabBar`,
   `MaterialSegmentedButton`, `MaterialNavigationBar`, `MaterialIcon` and
   `MaterialProgressRing` are `Box` subclasses; `MaterialInkWell`, `MaterialTabs`,

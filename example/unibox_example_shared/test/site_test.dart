@@ -283,8 +283,6 @@ void main() {
         'Tabs',
         'Secondary tabs',
         'Pages',
-        'Scaffold',
-        'App bars',
         'Dialog',
         'Type scale',
         'Colour roles',

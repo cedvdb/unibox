@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- **The scaffold and the two app bars are gone.** `MaterialScaffold`, `MaterialAppBar` and
+  `MaterialLargeAppBar` described a screen's chrome — a bar that stays, the body under it, a bar
+  whose height a store drives — which belongs to the application, and Flutter's `Scaffold` and
+  `AppBar` already draw it. With no widget to map them to, they were the first entries on this
+  package's list of components that had no second half; the example's catalogue loses the two
+  sections that showed them.
+
 - Four components keep what a host needs to draw them with the platform's own widget, the way
   `MaterialNavigationBar` already did: `MaterialButton` its `variant`, `icon` and `onPressed`,
   `MaterialChip` its `label`, `selected`, `onSelected` and `onDeleted`, `MaterialIconButton` its

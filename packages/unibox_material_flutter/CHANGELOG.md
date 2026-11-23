@@ -16,8 +16,9 @@
 
 - `MaterialTabBar` stays out deliberately: a `TabBar` is half a component — a controller and a
   view — and Flutter asserts the tab role on its children, which a strip drawn from a node
-  cannot promise. So do `MaterialScaffold`, `MaterialTabs`, `MaterialDialog` and
-  `MaterialBottomSheet`, whose slots and policy live in the node.
+  cannot promise. So do `MaterialTabs`, `MaterialDialog` and `MaterialBottomSheet`, whose slots
+  and policy live in the node — and the scaffold and the two app bars are gone from
+  `unibox_material` altogether, since a screen's chrome is the application's.
 
 - `materialThemeData(palette)` is the other half of the map: a `ThemeData` built role by role
   from a `MaterialPalette`. A substituted widget takes its colours from `ColorScheme` and its

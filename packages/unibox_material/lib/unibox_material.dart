@@ -37,7 +37,6 @@
 /// transitions.
 library;
 
-export 'src/material_app_bar.dart';
 export 'src/material_bottom_sheet.dart';
 export 'src/material_button.dart';
 export 'src/material_card.dart';
@@ -49,12 +48,10 @@ export 'src/material_elevation.dart';
 export 'src/material_icon.dart';
 export 'src/material_icon_button.dart';
 export 'src/material_ink_well.dart';
-export 'src/material_large_app_bar.dart';
 export 'src/material_list_tile.dart';
 export 'src/material_navigation_bar.dart';
 export 'src/material_palette.dart';
 export 'src/material_progress_ring.dart';
-export 'src/material_scaffold.dart';
 export 'src/material_scheme_variant.dart';
 export 'src/material_segmented_button.dart';
 export 'src/material_text_field.dart';

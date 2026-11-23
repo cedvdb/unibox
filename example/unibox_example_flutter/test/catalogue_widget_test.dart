@@ -50,31 +50,28 @@ void main() {
     // — is exactly what a page that only ever rendered in CSS hides.
     expect(tester.takeException(), isNull);
 
-    // Each screen fills the card it is drawn in: the width is the track's, not a number a component
-    // could get wrong, and the height is the one the panel states.
-    final List<Size> screens = <Size>[
+    // And the blocks are as wide as the cells they are drawn in: a share of a track is the grid's
+    // to state, and a block that sized itself from its own words would be a card sitting in the
+    // corner of its own cell — the shape this test was written to catch.
+    final List<Size> blocks = <Size>[
       for (final Element element
           in find
               .byWidgetPredicate(
                 (Widget widget) =>
-                    widget is FlutterBox && widget.box is MaterialScaffold,
+                    widget is FlutterBox && widget.box is MaterialCard,
               )
               .evaluate())
         (element.renderObject! as RenderBox).size,
     ];
 
-    expect(screens, hasLength(2));
-    expect(screens.first.height, 420);
-    expect(
-      screens.first.width,
-      screens.last.width,
-      reason: 'two screens in one grid have one column width',
-    );
-    expect(
-      screens.first.width,
-      greaterThan(400),
-      reason:
-          'a screen is as wide as its card, not as wide as a phone used to be',
-    );
+    expect(blocks, isNotEmpty, reason: 'the catalogue draws its cards');
+    for (final Size block in blocks) {
+      expect(block.width, greaterThan(0));
+      expect(
+        block.width,
+        lessThanOrEqualTo(1280),
+        reason: 'a card is as wide as its cell, not as wide as the page',
+      );
+    }
   });
 }

@@ -121,8 +121,9 @@ void main() {
     // One rendering is the design system's values and holds no widget; the other is the map,
     // and a card is a `Card` there.
     expect(find.byType(Card), findsWidgets);
-    // The catalogue holds two of them: the section's, and the one a scaffold stands on.
-    expect(find.byType(NavigationBar), findsNWidgets(2));
+    // The catalogue holds one, the navigation bar's own section: the screens that used to carry a
+    // second went with the scaffold, which is the application's furniture rather than a component.
+    expect(find.byType(NavigationBar), findsOneWidget);
     expect(find.textContaining('The values'), findsOneWidget);
     expect(find.textContaining('Flutter widgets, vanilla'), findsOneWidget);
   });

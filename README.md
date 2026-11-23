@@ -378,8 +378,6 @@ not.
 | --- | --- | --- |
 | `MaterialTypography`, `MaterialTypeRole` | the fifteen type roles of Material 3, as `const BoxTextStyle` values | [The scale](packages/unibox_material/README.md#the-scale) |
 | `MaterialPalette`, `MaterialColorRole` | the colour roles as a palette: the baseline `light` and `dark`, or one grown from a seed with `fromSeed` | [The palette and the theme](packages/unibox_material/README.md#the-palette-and-the-theme) |
-| `MaterialScaffold` | a screen: an app bar that stays, a body, and a bottom bar | [The scaffold](packages/unibox_material/README.md#the-scaffold) |
-| `MaterialAppBar`, `MaterialLargeAppBar` | the top app bar, and the one with air above its headline that folds as it leaves | [The app bars](packages/unibox_material/README.md#the-app-bars) |
 | `MaterialCard` | Material's elevated surface, padded and rounded | [The card](packages/unibox_material/README.md#the-card) |
 | `MaterialListTile` | one row of a list: a leading node, a title, a subtitle and a trailing node | [The list tile](packages/unibox_material/README.md#the-list-tile) |
 | `MaterialButton` | a label on a fill, in four shapes: `filled`, `tonal`, `outlined` and `text` | [The button](packages/unibox_material/README.md#the-button) |
@@ -681,8 +679,8 @@ The box states a surface too, and it is the surface a pull past either end revea
 lets a scroller be pulled, and the gap that opens is the box's own `backgroundColor`. State
 the bar's colour there and the pull reads as the bar gaining room; leave it out and the pull
 shows whatever is behind the box. `unibox_material` makes that one statement instead of two:
-`MaterialAppBar.surface` is the colour the bar paints *and* the colour a list under it
-states.
+the bar paints the container role and the list under it states the surface role, so the pull
+reveals the page and never the edge of a bar.
 
 ### A look that arrives as the reader scrolls
 
