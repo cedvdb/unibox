@@ -62,8 +62,13 @@ core.BoxStyle _styleOf(BuildContext context, core.Box node) => node
 /// dropped. Passing the values means the mapping *uses* them, so every glyph in the list ships —
 /// and the widget is handed a compile-time constant, which is what `IconData` asks for.
 ///
-/// A glyph the list does not name is still drawn, from an `IconData` built at run time, with the
-/// caveat written where it belongs: the font may not contain it.
+/// A glyph the list does not name is drawn as the *character* it is, from the node's own font
+/// family: no `IconData` is built at run time, because one would cost the application its whole
+/// icon subsetter. `flutter build` records every `IconData` construction and refuses to subset the
+/// fonts when an argument is not a constant — "This application cannot tree shake icons fonts. It
+/// has non-constant instances of IconData." — and a codepoint read from a tree is never one. Text
+/// draws the same glyph out of the same font; it only loses `Icon`'s ambient `IconTheme`, which
+/// this sets from the node.
 Widget _icon(
   BuildContext context,
   core.UINode node,
@@ -75,15 +80,6 @@ Widget _icon(
   final core.BoxTextStyle text = style.textStyle ?? const core.BoxTextStyle();
   final core.BoxColor? ink = text.color;
 
-  // A platform icon, not a glyph of text: `Icon` states its own size, follows the ambient
-  // `IconTheme`, and is not scaled by the reader's text size — which is what an icon is in an
-  // app. It draws the node's codepoint and family, so the two renderings still say the same
-  // thing; only the *shape* of the mark is the platform's.
-  //
-  // The font still has to be in the binary: Flutter subsets an icon font to the glyphs a const
-  // `IconData` in the application names, and the codepoint here is a run-time value. That is the
-  // host's side of the bargain, and the reason an application reads its codepoints from
-  // `Icons.*` rather than writing literals.
   // The node's codepoint, as the host named it if it did. `IconData` requires a constant, so the
   // list is the only way to hand `Icon` one it can keep — see the note on this function.
   IconData? named;
@@ -95,37 +91,30 @@ Widget _icon(
     }
   }
 
-  return Icon(
-    named ?? _unnamed(icon),
-    size: text.fontSize,
-    color: ink == null ? null : Color(ink.value),
+  if (named != null) {
+    // A platform icon, not a glyph of text: `Icon` states its own size, follows the ambient
+    // `IconTheme`, and is not scaled by the reader's text size — which is what an icon is in an
+    // app.
+    return Icon(
+      named,
+      size: text.fontSize,
+      color: ink == null ? null : Color(ink.value),
+    );
+  }
+
+  return Text(
+    String.fromCharCode(icon.codePoint ?? 0),
+    style: TextStyle(
+      // The node's own family: a `MaterialIcon` always names one, so the glyph is drawn from the
+      // font the tree asked for rather than whatever the ambient text style happens to use.
+      fontFamily: icon.fontFamily,
+      fontSize: text.fontSize,
+      color: ink == null ? null : Color(ink.value),
+    ),
+    // The one thing a glyph of text has to be told: an icon does not grow with the reader's text
+    // size, and neither did the `Icon` this replaces.
+    textScaler: TextScaler.noScaling,
   );
-}
-
-/// The `IconData` a node names.
-///
-/// `IconData`'s family has to be a compile-time constant, so the two fonts the model names are
-/// stated here. `MaterialIcons` is named rather than left to `IconData`'s default: the default is
-/// Flutter's, and a platform fork that defaults to no family draws the glyph out of whatever font
-/// the text happens to use — and compares unequal to the `Icons.*` constant the same glyph is.
-/// A host that ships a third icon font maps this node itself — which is the substitution the map
-/// is for.
-IconData _materialIcons(int codePoint) => IconData(
-  // ignore: non_const_argument_for_const_parameter
-  codePoint,
-  fontFamily: 'MaterialIcons',
-);
-
-IconData _symbols(int codePoint) =>
-    // ignore: non_const_argument_for_const_parameter
-    IconData(codePoint, fontFamily: 'Material Symbols Outlined');
-
-IconData _unnamed(material.MaterialIcon icon) {
-  final int codePoint = icon.codePoint ?? 0;
-
-  return icon.fontFamily == material.MaterialIcon.defaultFontFamily
-      ? _symbols(codePoint)
-      : _materialIcons(codePoint);
 }
 
 Widget _card(BuildContext context, core.UINode node, Widget? content) {

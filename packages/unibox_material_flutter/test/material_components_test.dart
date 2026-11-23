@@ -250,7 +250,7 @@ void main() {
   });
 
   testWidgets(
-    "draws an icon with a platform icon, at the node's size and colour",
+    "draws a glyph the host did not name as text, so no IconData is built at run time",
     (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -271,14 +271,16 @@ void main() {
         ),
       );
 
-      final Icon icon = tester.widget<Icon>(find.byType(Icon));
+      // A run-time `IconData` costs the application its icon subsetter, so the fallback is the
+      // character itself, out of the family the node names.
+      expect(find.byType(Icon), findsNothing);
+      final Text glyph = tester.widget<Text>(find.text(String.fromCharCode(0xe570)));
 
-      expect(icon.icon?.codePoint, 0xe570);
-      // The family is the node's, named rather than left to the platform's default: only with
-      // it is the value the `Icons.*` constant of the same glyph.
-      expect(icon.icon?.fontFamily, 'MaterialIcons');
-      expect(icon.size, 18);
-      expect(icon.color, const Color(0xFF102030));
+      expect(glyph.style?.fontFamily, 'MaterialIcons');
+      expect(glyph.style?.fontSize, 18);
+      expect(glyph.style?.color, const Color(0xFF102030));
+      // An icon does not grow with the reader's text size.
+      expect(glyph.textScaler, TextScaler.noScaling);
     },
   );
 
@@ -317,10 +319,10 @@ void main() {
   );
 
   testWidgets(
-    'names the family of a glyph it was not given, so it is the Icons constant',
+    'names the family of a glyph it was not given, so it draws from the icon font',
     (WidgetTester tester) async {
-      // A glyph the host's list does not name still has to draw from the icon font, and to be the
-      // value `Icons.*` is: a family left to the platform's default is neither.
+      // A glyph the host's list does not name still has to draw from the icon font: a family left
+      // to the ambient text style would draw it out of whatever font the text happens to use.
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -338,7 +340,9 @@ void main() {
         ),
       );
 
-      expect(tester.widget<Icon>(find.byType(Icon)).icon, Icons.search);
+      final Text glyph = tester.widget<Text>(find.text(String.fromCharCode(0xe567)));
+
+      expect(glyph.style?.fontFamily, 'MaterialIcons');
     },
   );
 
@@ -364,7 +368,7 @@ void main() {
       ),
     );
 
-    expect(tester.widget<Icon>(find.byType(Icon)).icon?.codePoint, 0xe570);
+    expect(find.text(String.fromCharCode(0xe570)), findsOneWidget);
   });
 
   material.MaterialSegmentedButton twoChoices({VoidCallback? onRemove}) =>

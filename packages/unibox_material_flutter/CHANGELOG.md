@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **A glyph the host did not name is drawn as text, not as a run-time `IconData`.** `flutter build`
+  records every `IconData` construction and refuses to subset the icon fonts when an argument is
+  not a constant — *"This application cannot tree shake icons fonts. It has non-constant instances
+  of IconData."* — and the fallback built one from the node's codepoint, which is exactly such an
+  argument. Every application that drew a `MaterialIcon` node through this mapping could not be
+  built with tree shaking on. The glyph is now the character itself, out of the family the node
+  names, at the node's size and ink and with `TextScaler.noScaling` — the same glyph from the same
+  font, which is what the document draws. A codepoint the host's `icons:` list does name still
+  draws with `Icon` and its constant, which is what keeps it in the subset.
 - **A segmented pill is outlined with the node's hairline.** `SegmentedButton` otherwise draws
   `ColorScheme.outline`, a step darker than the `outlineVariant` a tree names — so the same
   control was two colours: the application's against the document's.
