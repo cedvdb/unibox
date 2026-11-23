@@ -272,6 +272,15 @@ class FlutterBoxState extends State<FlutterBox> {
           physics: pager == null ? null : const PageScrollPhysics(),
           child: content,
         );
+
+        // A zero share hugs its content: the viewport is as wide as what it holds while the line
+        // has room, and scrolls once it has not — `flex: 0 1 auto` in CSS. A viewport fills the
+        // constraints it is given unless it is told to measure its child instead.
+        if (style.flex == 0) {
+          content = style.resolvedDirection == core.Axis.horizontal
+              ? IntrinsicWidth(child: content)
+              : IntrinsicHeight(child: content);
+        }
       }
 
       // A scroll view pulled past its end is decorated by its host: a Material application glows,
@@ -1065,13 +1074,21 @@ class FlutterBoxState extends State<FlutterBox> {
     final int? flex = childStyle.flex;
     final bool expands = mainSize == double.infinity && mainMax == null;
     final bool hasFlex = flex != null && flex > 0;
+    // A zero share is on the line to shrink and nothing else: it keeps its content's size while
+    // there is room for it, and gives the room back when there is not — `flex: 0 1 auto` on the
+    // other target, which is what a scroller that hugs its last chip states.
+    final bool hugsAndShrinks = flex == 0;
 
-    if (!expands && !hasFlex) {
+    if (!expands && !hasFlex && !hugsAndShrinks) {
       return child;
     }
 
     if (!flexible) {
       return child;
+    }
+
+    if (hugsAndShrinks) {
+      return Flexible(child: child);
     }
 
     return Expanded(flex: hasFlex ? flex : 1, child: child);

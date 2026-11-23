@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- **A glyph the host did not name is drawn as text, not as a run-time `IconData`.** `flutter build`
+  records every `IconData` construction and refuses to subset the icon fonts when an argument is
+  not a constant — *"This application cannot tree shake icons fonts. It has non-constant instances
+  of IconData."* — and the fallback built one from the node's codepoint, which is exactly such an
+  argument. Every application that drew a `MaterialIcon` node through this mapping could not be
+  built with tree shaking on. The glyph is now the character itself, out of the family the node
+  names, at the node's size and ink and with `TextScaler.noScaling` — the same glyph from the same
+  font, which is what the document draws. A codepoint the host's `icons:` list does name still
+  draws with `Icon` and its constant, which is what keeps it in the subset.
+- **A segmented pill is outlined with the node's hairline.** `SegmentedButton` otherwise draws
+  `ColorScheme.outline`, a step darker than the `outlineVariant` a tree names — so the same
+  control was two colours: the application's against the document's.
 - **A `MaterialIcons` glyph names its family.** The mapping built `IconData(codePoint)` and left the family to `IconData`'s default — which is Flutter's, not the platform's: a fork that defaults to no family draws the glyph from whatever font the text uses, and the value compares unequal to the `Icons.*` constant that names the same glyph (a `find.byIcon` cannot find it). The family is stated, as the Material Symbols one already was.
 - **A segmented button hugs inside a row that scrolls, and expands where the page bounds it.** The mapping told `SegmentedButton` to expand always, which lays out at an infinite width inside a scrolling row — the action bar's row — and throws. What the document does with a grid of `width: 100%` is now the rule the app reads off its constraints: expand in a parent that bounds the pill, hug in one that sizes to content.
 - **A chip with a cross answers its own pill as well as the cross.** `MaterialChip(onTap:, onRemove:)` states both ways to drop a filter, and the mapping dropped the first: the whole pill now removes, as it does on the page.

@@ -132,6 +132,48 @@ void main() {
       expect(tester.widget<Expanded>(find.byType(Expanded)).flex, 2);
     });
 
+    testWidgets('keeps a zero share at its content, on the line to shrink', (
+      tester,
+    ) async {
+      // `flex: 0` is `flex: 0 1 auto`: the box is flexible — it may shrink below its content —
+      // but it takes no share, so a row of chips hugs its last chip instead of filling the line.
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: Center(
+            child: SizedBox(
+              width: 400,
+              child: renderFlutter(
+                const core.Box(
+                  direction: core.Axis.horizontal,
+                  children: <core.UINode>[
+                    core.Box(
+                      key: 'row',
+                      flex: 0,
+                      direction: core.Axis.horizontal,
+                      overflow: core.Overflow.scroll,
+                      children: <core.UINode>[
+                        core.Box(width: 120, height: 20),
+                        core.Box(width: 120, height: 20),
+                      ],
+                    ),
+                    core.Box(key: 'button', width: 40, height: 20),
+                  ],
+                ),
+                scope: const core.UniboxScope(theme: null),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // On the line without a share: a `Flexible`, never an `Expanded`; and a viewport that
+      // measures its child, so it is as wide as what it holds.
+      expect(find.byType(Flexible), findsOneWidget);
+      expect(find.byType(Expanded), findsNothing);
+      expect(find.byType(IntrinsicWidth), findsOneWidget);
+    });
+
     testWidgets('inserts horizontal gap separators between children', (
       tester,
     ) async {

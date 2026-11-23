@@ -250,7 +250,7 @@ void main() {
   });
 
   testWidgets(
-    "draws an icon with a platform icon, at the node's size and colour",
+    "draws a glyph the host did not name as text, so no IconData is built at run time",
     (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -271,14 +271,16 @@ void main() {
         ),
       );
 
-      final Icon icon = tester.widget<Icon>(find.byType(Icon));
+      // A run-time `IconData` costs the application its icon subsetter, so the fallback is the
+      // character itself, out of the family the node names.
+      expect(find.byType(Icon), findsNothing);
+      final Text glyph = tester.widget<Text>(find.text(String.fromCharCode(0xe570)));
 
-      expect(icon.icon?.codePoint, 0xe570);
-      // The family is the node's, named rather than left to the platform's default: only with
-      // it is the value the `Icons.*` constant of the same glyph.
-      expect(icon.icon?.fontFamily, 'MaterialIcons');
-      expect(icon.size, 18);
-      expect(icon.color, const Color(0xFF102030));
+      expect(glyph.style?.fontFamily, 'MaterialIcons');
+      expect(glyph.style?.fontSize, 18);
+      expect(glyph.style?.color, const Color(0xFF102030));
+      // An icon does not grow with the reader's text size.
+      expect(glyph.textScaler, TextScaler.noScaling);
     },
   );
 
@@ -317,10 +319,10 @@ void main() {
   );
 
   testWidgets(
-    'names the family of a glyph it was not given, so it is the Icons constant',
+    'names the family of a glyph it was not given, so it draws from the icon font',
     (WidgetTester tester) async {
-      // A glyph the host's list does not name still has to draw from the icon font, and to be the
-      // value `Icons.*` is: a family left to the platform's default is neither.
+      // A glyph the host's list does not name still has to draw from the icon font: a family left
+      // to the ambient text style would draw it out of whatever font the text happens to use.
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -338,7 +340,9 @@ void main() {
         ),
       );
 
-      expect(tester.widget<Icon>(find.byType(Icon)).icon, Icons.search);
+      final Text glyph = tester.widget<Text>(find.text(String.fromCharCode(0xe567)));
+
+      expect(glyph.style?.fontFamily, 'MaterialIcons');
     },
   );
 
@@ -364,7 +368,7 @@ void main() {
       ),
     );
 
-    expect(tester.widget<Icon>(find.byType(Icon)).icon?.codePoint, 0xe570);
+    expect(find.text(String.fromCharCode(0xe570)), findsOneWidget);
   });
 
   material.MaterialSegmentedButton twoChoices({VoidCallback? onRemove}) =>
@@ -378,12 +382,11 @@ void main() {
       );
 
   testWidgets(
-    'a pill in a scrolling row hugs its columns, and still expands in a '
-    'column that bounds it',
+    "a pill without a width hugs its columns, and one that states a width fills it",
     (WidgetTester tester) async {
-      // A row that scrolls gives its children no width at all. A `SegmentedButton` told to expand
-      // into that lays out at an infinite width and throws, so the pill hugs instead — which is
-      // what the document does with a grid whose parent sizes to content.
+      // A row that scrolls gives its children no width at all, and a `SegmentedButton` told to
+      // expand into that lays out at an infinite width and throws. The node's own width decides —
+      // as it does on the page — so the pill hugs, and the row can size to its chips.
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -406,14 +409,26 @@ void main() {
       final Size hugged = tester.getSize(find.byType(SegmentedButton<int>));
       expect(hugged.width, lessThan(360));
 
-      // The same pill in a column of the page fills the width it is given.
+      // A pill that states a width divides it between its segments.
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: SizedBox(
-              width: 360,
+            body: Align(
+              alignment: Alignment.topLeft,
               child: renderFlutter(
-                twoChoices(),
+                material.MaterialSegmentedButton(
+                  segments: <material.MaterialSegment>[
+                    const material.MaterialSegment(
+                      label: core.TextNode('Rooms'),
+                    ),
+                    const material.MaterialSegment(
+                      label: core.TextNode('Desks'),
+                    ),
+                  ],
+                  selected: 0,
+                  onSelect: (int index) {},
+                  width: 360,
+                ),
                 scope: core.UniboxScope(
                   theme: material.MaterialPalette.lightTheme,
                 ),
@@ -427,6 +442,45 @@ void main() {
       expect(tester.getSize(find.byType(SegmentedButton<int>)).width, 360);
     },
   );
+
+  testWidgets('outlines a segmented pill with the hairline the tree names', (
+    WidgetTester tester,
+  ) async {
+    // `SegmentedButton` outlines itself with `ColorScheme.outline` unless it is told otherwise,
+    // which is a step darker than the `outlineVariant` a tree states — so the app drew a
+    // different pill than the page for the same node.
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: renderFlutter(
+            material.MaterialSegmentedButton(
+              segments: <material.MaterialSegment>[
+                const material.MaterialSegment(label: core.TextNode('Rooms')),
+                const material.MaterialSegment(label: core.TextNode('Desks')),
+              ],
+              selected: 0,
+              onSelect: (int index) {},
+              border: const core.BoxBorder(
+                color: core.BoxColor(0xFF112233),
+                width: 2,
+              ),
+            ),
+            scope: core.UniboxScope(theme: material.MaterialPalette.lightTheme),
+            substitutions: materialComponents(),
+          ),
+        ),
+      ),
+    );
+
+    final SegmentedButton<int> pill = tester.widget<SegmentedButton<int>>(
+      find.byType(SegmentedButton<int>),
+    );
+
+    expect(
+      pill.style?.side?.resolve(<WidgetState>{}),
+      const BorderSide(color: Color(0xFF112233), width: 2),
+    );
+  });
 
   testWidgets('a removable chip answers its own pill as well as its cross', (
     WidgetTester tester,

@@ -133,6 +133,12 @@ final class BoxStyle {
   final bool? wrap;
 
   /// How much of the remaining space this box should take up.
+  ///
+  /// [Box.flex] of one or more is a share of it. Zero is the third case a flex line has and
+  /// neither of the other two states: the box is *flexible* — it is laid out on the line and
+  /// may shrink below its content, which is what a row that scrolls does — but it takes no
+  /// share, so it stays as wide as its content while the line has room. A row of chips that
+  /// should hug the last chip and scroll past it names `flex: 0` on the scroller.
   final int? flex;
 
   /// How many tracks of a grid this box occupies, or `null` for one.

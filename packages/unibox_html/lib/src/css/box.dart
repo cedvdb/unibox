@@ -112,7 +112,11 @@ CssDeclarations boxDeclarations(
       ..add('flex-shrink', '1')
       // `0` and not `0px`: a basis of zero is a number the layout reads, and the two
       // renderers have to spell it the same way for a class name to match.
-      ..add('flex-basis', '0');
+      //
+      // A zero share keeps the content's own basis: the box is on the line to shrink, not to
+      // start from nothing — `flex: 0 1 auto`, which is what a scroller that hugs its last chip
+      // and scrolls past it states.
+      ..add('flex-basis', flex == 0 ? 'auto' : '0');
   }
 
   declarations

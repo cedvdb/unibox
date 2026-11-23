@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **A zero share keeps its content as the basis** (`flex-basis: auto`), where a share starts at
+  zero. `flex: 0` is `flex: 0 1 auto`: on the line to shrink, never to grow.
 - A box that spans `GridSpan.row()` is drawn as `grid-column: 1 / -1` — the row's own edges — so
   a banner stays the width of the grid when a narrow layout leaves it one column, where
   `grid-column: span 3` would overflow it.
