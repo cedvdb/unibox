@@ -36,14 +36,12 @@ This is the list, and anything outside it is a candidate for deletion rather tha
 | Component | Flutter draws it as |
 | --- | --- |
 | `MaterialCard` | `Card` |
-| `MaterialNavigationBar` | `NavigationBar` |
 | `MaterialButton` (four shapes) | `FilledButton`, `.tonal`, `OutlinedButton`, `TextButton` |
 | `MaterialChip` | `FilterChip`, `InputChip` |
 | `MaterialIconButton` | `IconButton` |
 | `MaterialListTile` | `ListTile` |
 | `MaterialTextField` | `TextField` |
 | `MaterialProgressRing`, `MaterialSpinner` | `CircularProgressIndicator` |
-| `MaterialTabBar` | `TabBar` |
 | `MaterialSegmentedButton` | `SegmentedButton` |
 
 **Document-only, and kept because everything else is built from them:** `MaterialInkWell`,
@@ -55,8 +53,7 @@ a card or a band states.
 What they lack is a substitution, which is a question about who paints the press, not a reason
 to delete them: as values and nodes they already draw the same on both targets.
 
-**Document-only, and therefore candidates for deletion:** `MaterialTabs`, `MaterialDialog`,
-`MaterialBottomSheet`. Each is a slots-and-policy component that a widget cannot replace
+**Document-only, and therefore candidates for deletion:** `MaterialDialog`, `MaterialBottomSheet`. Each is a slots-and-policy component that a widget cannot replace
 surface-for-surface, and nothing else in the package is built from it. A band that needs one
 usually needs a `Box` and a link instead.
 
@@ -653,66 +650,7 @@ landed, and a press after that writes none until the press lands on another pixe
 `EmbedNode` remains the escape hatch when a host-side animation is what the effect
 needs.
 
-## The tabs and the segmented button
-
-`MaterialTabBar` is one row of tabs with an indicator under the chosen one, and
-`MaterialTabs` is that bar with the page of the chosen tab under it: a `StatefulNode`
-whose store holds the index, so a press swaps the page on both targets.
-
-```dart
-MaterialTabs(
-  tabs: const <MaterialTab>[
-    MaterialTab(label: TextNode('Overview')),
-    MaterialTab(label: TextNode('Listings')),
-  ],
-  pages: <UINode>[overview, listings],
-)
-```
-
-The bar on its own takes `selected` and `onSelect` and draws no page, which is what an
-application wants when the page is its own node — above a pager, above a page that swaps,
-beside a preview. A *primary* bar distributes its tabs across the width and a *secondary*
-one packs them to the start at their own width.
-
-A set of tabs is a parameter with a sting: the store is created once per place in the tree
-and holds the count it was made with, so a component drawn over a different set has to be
-told. `MaterialTabs` reconciles there — a choice past the last tab moves to the last one a
-page exists for, and a tab the tree gained can be chosen — so a list whose tabs follow its
-data cannot draw a page that is not there, and a bar cannot offer a destination that does
-nothing.
-
-A bar is as wide as its parent and hands that width down, so a primary tab is a third of a
-three-tab bar: the width of a tab is the bar's, and the bar's is the parent's. Give it a
-narrower parent to make the tabs tighter, which is also the only lever — the bar states
-`width: double.infinity` and takes no width of its own.
-
-A bar is a box, so it can be a bar: `pin: BoxPin.start` holds it at the top of the box that
-scrolls the page under it, and `pinOffset` puts a second bar under the first. It needs no
-height to do it — the room the flow keeps is the height the bar measures.
-
-The bar's measurements are parameters, and only one of them differs between the variants:
-a tab is 48 tall with 8 across inside, 4 between an icon and its label, 3 pixels of
-indicator. `height`, `tabPadding`, `labelGap`, `indicatorHeight` and `labelStyle` replace
-them — and `tabPadding` also settles the difference, because a secondary tab's default
-room is 16 rather than 8.
-
-Its indicator is one element, a share of the bar wide, laid from the start edge and moved by a
-multiple of its own width — so it slides between tabs with a `transform` a transition eases, and
-nobody has to measure a tab. That is the *primary* bar, whose tabs are equal columns by
-definition. It begins at the start edge rather than the centre: an aligned child fills the
-layer and the alignment places it, so a centred indicator is already half a bar along and every
-step after that lands one tab too far.
-
-A *secondary* bar packs its tabs to the start and gives each one its label's width, so a share
-would land under no tab at all. Each tab carries its own underline instead, pinned across the
-bottom of a stack its label sizes — the one width a tree can have that its siblings do not
-share, and still no measurement: a stack takes the size of the child it lays out. It fades
-between tabs rather than sliding, because where the next label *starts* is the one distance
-this tree cannot state.
-
-It does not page between tabs: a swipe needs a pager under the bar, and a tab press swaps the
-page rather than moving one. `PagerNode` is the pager — it pages by drag and reports the page it
-settled on — and the example's tabs demo composes it with a `MaterialTabBar` over one store.
+## The segmented button
 
 `MaterialSegmentedButton` is two to five choices in one divided pill. It takes `pin` and
 `pinOffset` like any box, which is what a filter row that stays at the top of a scrolling
@@ -922,138 +860,6 @@ cross come from a font, and a font is a host asset this package does not ship.
 glyphs from boxes instead. `removeSemanticsLabel` names what the cross removes, which a
 row of applied filters should pass: eleven chips that all announce "Remove" leave a reader
 with no idea which one is about to go.
-
-## The navigation bar
-
-`MaterialNavigationBar` is three to five destinations along the bottom edge of a
-screen, one of them the page it is on. `pin: BoxPin.end` is what holds it at that edge when
-the page it sits in scrolls.
-
-```dart
-MaterialNavigationBar(
-  destinations: <MaterialNavigationDestination>[
-    MaterialNavigationDestination(
-      label: const TextNode('Listings'),
-      icon: MaterialIcon.ligature(
-        'list',
-        color: MaterialNavigationBar.inactiveIconColor,
-      ),
-      selectedIcon: MaterialIcon.ligature(
-        'list',
-        color: MaterialNavigationBar.activeIconColor,
-      ),
-    ),
-    MaterialNavigationDestination(label: const TextNode('Map')),
-  ],
-  selected: destination,
-  onSelect: store.choose,
-)
-```
-
-| Token | Value |
-| --- | --- |
-| height | `80` |
-| container | `surfaceContainer`, and a `nav` landmark on the web |
-| share | every destination is `flex: 1` and as tall as the bar |
-| indicator | 64 by 32 at radius 16, `secondaryContainer`, behind the chosen icon |
-| label | `labelMedium`: `onSurface` when chosen, `onSurfaceVariant` when not |
-| ink | the label's own colour, from where the press landed |
-| hover layer | `hoverLayer` in the pill's shape, faded over 50ms — `InkResponse`'s own hover duration |
-| press | the splash alone: the indicator's highlight colour is transparent in Material, so a press inks the pill and then the pill settles into its new colour |
-| room | 12 above the pill, 4 between it and the label, 16 below |
-
-Every number in that table is a parameter — `height`, `indicatorWidth`,
-`indicatorHeight`, `itemPadding` and `labelGap` — so a bar with taller destinations, a
-wider pill or a different rhythm is the same component. Their defaults are the ones
-Material states, which is what makes them add up to the bar's 80.
-
-Each destination is a `Box` whose share is the control — a hover anywhere in it lights
-the pill inside it — and the pill itself is three layers: the indicator colour, the hover
-layer over it, and an ink well carrying the icon. The pill is filled only while the
-destination is the chosen one. The 12 pixels above the pill, the 4 between it and
-the label, and the 16 below add up to the bar's 80 with `labelMedium`'s 16 pixel
-line box — which is why a destination needs no height of its own and both targets
-put the icon in the same place.
-
-**The icon is the caller's, and so is its colour.** A picture carries its own colour
-on both targets — typography is the one inherited axis — so `activeIconColor` and
-`inactiveIconColor` are public constants to build the two glyphs with, and
-`selectedIcon` is the filled variant Material pairs with an outlined one. A
-destination with no picture keeps its empty pill, so the labels of a bar still line
-up.
-
-**What it announces.** Each destination is a button that says whether it is chosen
-and, when it is, that it is the current page — `aria-current="page"` on the web,
-the selected item of a set in Flutter. That is the *only* state it sets: `aria-selected`
-belongs to options, tabs and rows and not to a button, and Flutter already reads
-`current` as the selected state, so one fact reaches both targets and neither is told
-something invalid. The bar itself is a `nav` landmark on the web, which Flutter's screen
-readers have no counterpart for. A tab strip's arrow keys are deliberately not modelled
-(`BoxRole` has no tab), so the role is a button.
-
-**Where it sits is the tree's business**, and so is the safe area: the bar is a row
-that fills the width and states its height, and being at the bottom is a
-`PositionedNode` at the bottom of a `StackNode`, or the last row of a full height
-column.
-
-**What a host that draws its own bar reads.** A renderer substitution receives the node, not
-the children the constructor built, so `destinations`, `selected` and `onSelect` are kept as
-fields: a Flutter application can hand the same destinations to a `NavigationBar` and the same
-index to `selectedIndex`, and the words and the chosen page survive the swap. What does not
-survive it is the pixel — the indicator's 64 by 32 is the SDK's, not this class's — which is the
-trade `unibox_flutter`'s README records under "Substitution".
-
-**The pill arrives, the way Flutter draws it.** The chosen destination's indicator is
-stretched sideways out of its icon — `scaleX` from 40% to full, at its own height — over
-500ms, and faded over 100ms, which is `MaterialNavigationBar.indicatorTransition`'s two
-parts: the fade is the base speed and the stretch its own (`BoxTransitionPart`). The pill
-is in the tree at every destination and only its look changes, so a switch never inserts a
-node; the model eases paint and never layout, which is also why the pill does not travel
-*along* the bar between destinations. Two approximations: `easeOut` is the closest curve
-the model shares with CSS to Material's emphatic easing, and the reverse uses the same one
-where Flutter flips a differently shaped curve. The label changes colour at once, and the
-icon swaps rather than cross-fading, because a text colour is not a paint a transition
-eases and the icon is the caller's node.
-
-**Three layers in the pill, and the order is the behaviour.** A destination is one control
-— a box over the whole share, which is what a finger presses and what a reader hears — and
-inside it the indicator is three layers, which is the arrangement Flutter draws:
-
-1. **the colour**, 64 by 32 at radius 16, which fades in over 100ms and stretches sideways
-   out of the icon over 500 as a destination becomes the chosen one;
-2. **the hover layer** over it, faded over 50ms — a hover is not a selection, so it neither
-   stretches nor waits for one, and a hovered destination that is *also* chosen keeps its
-   colour and gains a tint instead of trading one for the other;
-3. **an ink well** carrying the icon, whose tints are transparent and whose splash is the
-   press: Material gives a navigation destination a transparent highlight colour, so a
-   press shows ink inside the pill and then the indicator settling into its new colour, with
-   no grey flash in between.
-
-Flutter confines the ink with `_IndicatorInkWell.getRectCallback` to the indicator's rect,
-and its ripple is an ink feature above the indicator and under the icon — the same three
-layers, painted in the same order.
-
-**The hover needs the runtime today, and what is missing is a token, not a stylesheet.**
-The pointer is over the **share** and the tint is in the **pill**, and CSS says that in one
-line — `.share:hover .pill { background-color: … }`. What the model cannot say is that the
-two are related: a `stateStyles` entry describes the box it is on, and nothing in the tree
-means *while I am hovered, a descendant of mine paints*. So the renderer has no rule to
-write, and it will not guess which of a box's children should change — a look that a
-renderer invents is the drift the contract exists to prevent. Where a runtime is present —
-Flutter, or `unibox_dom` in a browser — the destination keeps the hover in its store and
-the pill lights; a document with no runtime draws the pill for the chosen destination only.
-
-Closing the gap is a small feature and not a trick: a box states *which* descendant wears
-its state, the plan emits `.share:hover .pill` after both classes exist (the parent is
-planned before its children, so this is a second pass), and Flutter answers the same
-declaration from its own hover state — which would also let this component drop its store,
-because a hover is the host's interaction and not the tree's state.
-Two things keep the press single. The pill answers a press itself and its click stops
-there — the innermost control wins, which is Flutter's gesture arena — so `onSelect` is
-called once whichever layer the press landed on. And the label is a layer that takes no
-pointer, so a press on it reaches the destination under it; that press selects without
-ink, which is the one place this differs from Flutter, where a ripple starts anywhere in
-destination and is still drawn inside the indicator.
 
 ## The dialog and the bottom sheet
 

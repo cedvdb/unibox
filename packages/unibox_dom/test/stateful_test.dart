@@ -53,7 +53,7 @@ final class Counter extends core.StatefulNode<int, CounterStore> {
 }
 
 /// A store that copied its ceiling from the node that created it, and the component that
-/// reconciles it — the shape `MaterialTabs` has, reduced to one number.
+/// reconciles it — the shape a tab set has, reduced to one number.
 final class CeilingStore extends core.StateStore<int> {
   CeilingStore() : super(0);
 

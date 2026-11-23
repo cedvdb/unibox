@@ -71,26 +71,19 @@ void main() {
           .where((Box box) => box.computedStyle.overflow == Overflow.scroll)
           .toList();
 
-      // Two rows of chips that overflow and two pagers. A pager scrolls for a different reason —
-      // it settles on a child — so it is counted here and told apart below.
-      expect(scrollers, hasLength(4));
+      // Two rows of chips that overflow and the `Pages` pager. A pager scrolls for a different
+      // reason — it settles on a child — so it is counted here and told apart below.
+      expect(scrollers, hasLength(3));
       expect(_textsIn(scrollers.first), contains('Two rooms'));
       expect(_textsIn(scrollers[1]), contains('Garden'));
 
       final List<PagerNode> paged = scrollers.whereType<PagerNode>().toList();
 
-      expect(paged, hasLength(2));
-      // One is told which page it shows, and that is the one a press can move; the other is left to
-      // the reader, which is what a pager is in a document.
-      expect(
-        paged.where((PagerNode pager) => pager.index != null),
-        hasLength(1),
-      );
-      // The tabs come first in the catalogue, and theirs is the pager a press can move; the `Pages`
-      // block is left to the reader, which is what a pager is in a document.
-      expect(paged.first.index, 0);
-      expect(paged.last.index, isNull);
-      expect(_textsIn(paged.last), contains('Three'));
+      expect(paged, hasLength(1));
+      // The `Pages` block is left to the reader, which is what a pager is in a document; the
+      // catalogue no longer states one a press drives, since the tabs that did are gone.
+      expect(paged.single.index, isNull);
+      expect(_textsIn(paged.single), contains('Three'));
     });
 
     test(

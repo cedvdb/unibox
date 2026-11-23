@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **The navigation bar and the tabs are gone.** `MaterialNavigationBar`,
+  `MaterialTabBar` and `MaterialTabs` were the two biggest components with no tree drawing
+  them: a screen's destinations and its tab strip are furniture an application places itself.
+  `MaterialTabs` went with the bar it is built on, and the substitution map loses the two
+  widgets it named for them.
+
 - **The scaffold and the two app bars are gone.** `MaterialScaffold`, `MaterialAppBar` and
   `MaterialLargeAppBar` described a screen's chrome — a bar that stays, the body under it, a bar
   whose height a store drives — which belongs to the application, and Flutter's `Scaffold` and

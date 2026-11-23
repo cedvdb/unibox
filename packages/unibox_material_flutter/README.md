@@ -63,9 +63,9 @@ the content.
 
 A substitution may change the paint. It may not change the information. A page and an
 application that disagree about content were never the same screen, so a component here is
-built from the node it was given: `MaterialNavigationBar` keeps its `destinations`, its
+built from the node it was given: `MaterialSegmentedButton` keeps its `segments`, its
 `selected` index and its `onSelect` precisely so this package can hand them to a
-`NavigationBar` unchanged.
+`SegmentedButton` unchanged.
 
 ## What it costs
 
@@ -77,9 +77,9 @@ not to do. So the rule is per screen and checkable: **a takeover screen may only
 components whose two renderings agree.** A screen that does not is served as a document with
 no Flutter on it, or held to `?unibox=compare` in the example.
 
-**The components the map names.** `MaterialCard`, `MaterialNavigationBar`,
-`MaterialButton` (all four shapes), `MaterialChip`, `MaterialIconButton`,
-`MaterialProgressRing`, `MaterialListTile`, `MaterialTextField` and `MaterialSpinner`. A type it does not name is drawn from the values, exactly as before, so
+**The components the map names.** `MaterialCard`, `MaterialButton` (all four shapes),
+`MaterialChip`, `MaterialIconButton`, `MaterialProgressRing`, `MaterialListTile`,
+`MaterialSegmentedButton`, `MaterialTextField` and `MaterialSpinner`. A type it does not name is drawn from the values, exactly as before, so
 the map can arrive one component at a time — and `UniboxSubstitutions` refuses the structural
 nodes (`Box`, `TextNode`, a stack, a grid, a link, a field) by construction, so it cannot become
 a second renderer.

@@ -383,11 +383,9 @@ not.
 | `MaterialButton` | a label on a fill, in four shapes: `filled`, `tonal`, `outlined` and `text` | [The button](packages/unibox_material/README.md#the-button) |
 | `MaterialIconButton` | one glyph in a square, with a count over its corner | [The icon button](packages/unibox_material/README.md#the-icon-button) |
 | `MaterialInkWell` | the press itself: the tints, and the ink a press spreads | [The ink well](packages/unibox_material/README.md#the-ink-well) |
-| `MaterialTabBar`, `MaterialTabs` | one row of tabs with an indicator, and that bar above the page of the chosen tab | [The tabs and the segmented button](packages/unibox_material/README.md#the-tabs-and-the-segmented-button) |
-| `MaterialSegmentedButton` | two to five choices in one divided pill | [The tabs and the segmented button](packages/unibox_material/README.md#the-tabs-and-the-segmented-button) |
+| `MaterialSegmentedButton` | two to five choices in one divided pill | [The segmented button](packages/unibox_material/README.md#the-segmented-button) |
 | `MaterialTextField` | a field that owns its text, its focus and whether it has been touched | [The text field](packages/unibox_material/README.md#the-text-field) |
 | `MaterialChip` | a compact choice: a pill with a label, and a node on either side | [The chip](packages/unibox_material/README.md#the-chip) |
-| `MaterialNavigationBar` | three to five destinations along the bottom edge, one of them current | [The navigation bar](packages/unibox_material/README.md#the-navigation-bar) |
 | `MaterialDialog`, `MaterialBottomSheet` | the two surfaces an `OverlayNode` presents | [The dialog and the bottom sheet](packages/unibox_material/README.md#the-dialog-and-the-bottom-sheet) |
 | `MaterialIcon` | one glyph of an icon font, centred in a 24 pixel square | [The icon](packages/unibox_material/README.md#the-icon) |
 | `MaterialCheckMark` | Material's tick, drawn from boxes, for an application that ships no icon font | [The one glyph this package draws](packages/unibox_material/README.md#the-one-glyph-this-package-draws) |
