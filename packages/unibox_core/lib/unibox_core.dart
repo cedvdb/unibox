@@ -45,7 +45,6 @@ export 'src/tokens/box_fold.dart';
 export 'src/tokens/box_fraction.dart';
 export 'src/tokens/box_semantics.dart';
 export 'src/tokens/box_shadow.dart';
-export 'src/tokens/box_shape.dart';
 export 'src/tokens/box_spacing.dart';
 export 'src/tokens/box_style.dart';
 export 'src/tokens/grid_span.dart' show GridSpan;

@@ -1,1160 +1,220 @@
-# Unibox Design Blueprint
+# Design
 
-## 1. Intent & Architecture
-Unibox describes **regions** of a page once, as pure Dart nodes, and renders them twice: as HTML
-and CSS for a crawler and a first paint, and in a Flutter application — where a component is
-drawn by the platform's own widget, not by a copy of it.
+## 1. Purpose
 
-The unit is the region, not the screen. A band that must be found (a hero, a card, a footer, a
-list) is a tree both targets draw; an interactive screen — a map, a search, a sheet, a booking
-bar — stays ordinary Flutter around those bands (§5.6).
+Unibox is a UI declaration that can be rendered as server HTML/CSS or as Flutter
+widgets. It shares regions rather than owning application screens. Searchable
+content and application content should come from the same declaration, avoiding
+two descriptions that drift whenever wording or design changes.
 
-- **Workspace:** Dart 3.13+ workspace in `packages/`:
-  - `packages/unibox_core`: Pure Dart AST & tokens. Zero dependencies (no Flutter, no web framework, no `dart:ui`).
-  - `packages/unibox_html`: Depends on `unibox_core` only. The web, in the two layers a node becomes there — its element plan and the CSS it wears — and the fragment or document they are written into.
-  - `packages/unibox_dom`: Depends on `unibox_core` + `unibox_html`. Builds the same plan in a browser and keeps it in step with the stores.
-  - `packages/unibox_flutter`: Depends on `unibox_core` + Flutter SDK.
-  - `packages/unibox_material`: Optional design-system tokens and one component (the Material 3 type scale and `MaterialCard`). Depends on `unibox_core` only; no renderer depends on it.
-  - `packages/unibox_material_flutter`: Optional, for an application that would rather keep its widgets: `materialComponents()`, the substitution map that draws two of `unibox_material`'s components with Flutter's own. Depends on the design system and on `unibox_flutter`; nothing depends on it.
-- **Engineering Agency:** You have permission to diverge, adjust signatures, or simplify types where it makes sense, as long as the packages remain decoupled and work seamlessly across both platforms.
+A card, footer, heading or list is a suitable region. Maps, booking workflows,
+routing and asynchronous data ownership remain with the application. The model
+does not attempt to reproduce Flutter or a browser application framework.
 
----
+## 2. Dependency boundaries
 
-## 2. Shared Types & Tokens (`unibox_core`)
+- `unibox_core` has no package dependencies and no platform imports.
+- `unibox_html` depends on core and produces documents and fragments.
+- `unibox_flutter` depends on core and Flutter and produces widgets.
+- `unibox_testing` holds shared test expectations and never ships with an app.
+- `unibox_material` holds optional values and declarations built from core nodes.
+- `unibox_material_flutter` knows both the Material declarations and Flutter and
+  supplies native substitutions. Generic renderers know nothing of Material.
 
-- **`BoxColor`**: Encapsulates 32-bit ARGB (`0xAARRGGBB`) with `.rgb()`, `.rgba()` and `white`, `black`, `transparent` next to the constructors. **`BoxColors`** is the palette an interface reaches for before it has one of its own (the grey ladder and the common hues, at the values Flutter's `Colors` uses for the same names); the hues cannot sit on `BoxColor` itself, where `red`, `green` and `blue` are the channel getters.
-- **`BoxSpacing`**: Represents margin/padding (`all`, `symmetric`, `only`, `zero`).
-- **Dimensions**: Standard `double?` for width, height, min/max dimensions.
-  - Standard numbers (`width: 250`) represent logical pixels / px.
-  - `double.infinity` represents expanding to fill available space (`100%` on web, `Expanded` / infinite constraints in Flutter).
-- **Layout Enums**:
-  - `Axis`: `horizontal`, `vertical`.
-  - `MainAlign`: `start`, `center`, `end`, `spaceBetween`, `spaceAround`, `spaceEvenly`.
-  - `CrossAlign`: `start`, `center`, `end`, `stretch`.
-  - `Overflow`: `visible`, `hidden`, `scroll`.
-  - `ImageFit`: `cover`, `contain`, `fill`.
-  - `FontWeight`: `light` (`300`), `normal` (`400`), `medium` (`500`), `semiBold`
-    (`600`), `bold` (`700`). Those five are the weights of the two type scales the
-    model targets — Material 3 uses `300` for its light label roles and Roboto
-    ships exactly `300`, `400`, `500`, `700` — and they are the ones both engines
-    draw the same way. `w100`, `w200`, `w800` and `w900` are out: a browser
-    synthesises a weight a family does not have while Flutter picks the nearest
-    face and warns, so the same token would look different on the two targets. A
-    variable font would make the range expressible, and the model is not a font
-    file: it would have to name a family and an axis, which belongs to the host.
-  - `TextAlign`: `left`, `center`, `right`, `justify`.
-  - `TextOverflow`: `clip`, `ellipsis`.
+There is no DOM application runtime. HTML planning and CSS emission are internal
+rendering mechanisms, not a browser state/reconciliation layer.
 
----
+## 3. Rendering
 
-## 3. Primitives to Implement (`unibox_core`)
+Core nodes are descriptions; targets implement them independently. The HTML
+pipeline plans elements and their stylesheet, then writes markup through one
+escaping boundary. Flutter builds widgets through its dispatcher and layout
+implementations. Neither target wraps the other.
 
-All nodes extend `abstract class UINode`.
+Defaults are model values. A missing direction means a column on both targets;
+missing typography uses the model's scale. Platform defaults must not silently
+change the declared presentation.
 
-1. **`Box`** (Layout & Container):
-   - **Flat layout props:** `direction`, `mainAlign`, `crossAlign`, `gap`, `flex`, `overflow`.
-   - **Direction default:** an unset `direction` resolves to `Axis.vertical` (`BoxStyle.resolvedDirection`), so every box is a flex container on every target and `gap`, `mainAlign`, `crossAlign` and a child's `flex` never silently do nothing.
-   - **Dimensions:** `width`, `height`, `minWidth`, `maxWidth`, `minHeight`, `maxHeight` (`double?`).
-   - **Visuals:** `padding`, `margin`, `backgroundColor`, `borderRadius` (`double?`), `corners`
-     (`BoxBorderRadius?` — the four radii, for a shape that is not round everywhere), `border`,
-     `shadows`.
-   - **Actions:** `onTap`, `onTapDown`, `onLongPress`, `onHover`.
-   - **Navigation:** `url`, `newTab` — the box is the `<a href>` when it names one (§5.5).
-   - **Tokens/Overrides:** Optional `style: BoxStyle?` and `hoverStyle: BoxStyle?`.
-   - `computedStyle`: Helper that overlays explicit flat parameters onto `style`.
-2. **`TextNode`**: `text`, `fontSize`, `fontWeight`, `color`, `textAlign`, `maxLines`, `overflow`.
-3. **`ImageNode`**: `src`, `alt`, `width`, `height`, `fit`, `borderRadius`.
-4. **`StackNode`**: Container for layered children (`children: List<UINode>`).
-5. **`PositionedNode`**: Direct child of `StackNode` (`top`, `right`, `bottom`, `left`, `child`).
-6. **`TextInputNode`**: `value`, `placeholder`, `obscureText`, `multiline`, `maxLines`, `onChanged`, `onSubmitted`.
+## 4. Optional handover
 
-4. **`LinkNode`** (extends `Box`): `url`, `newTab` — the box that *is* the anchor, with
-   every box parameter it needs to be a card, a button or a segment (§5.5).
+Handover belongs to the boundary between renderings. Server helpers live in the
+HTML package and Flutter coordination lives in the Flutter package, behind optional
+handover entry points. A server must not require the Flutter SDK to configure it.
 
----
+The host chooses when to start Flutter and when the intended route, data and
+layout are ready. The bridge keeps HTML visible, captures position and intercepted
+intent, restores to a host-supplied scroll controller or callback, reveals the app,
+transfers focus and replays one pending keyed press. A first frame is not content
+readiness. Failed startup or readiness retains the document.
 
-## 4. Platform Mappings
+See [the handover contract](docs/takeover.md) for focus, recording, fallback and
+mixed-page responsibilities.
 
-### Flutter (`unibox_flutter`)
-- Provide `node.toWidget()` and `renderFlutter(UINode)`.
-- `Box` maps to a `Row`/`Column`; an unset direction means a column.
-- `Box` with `overflow: Overflow.scroll` wraps in `SingleChildScrollView`.
-- `onTap` maps to `GestureDetector`.
-- `onHover` maps to `MouseRegion`.
-- `LinkNode` is a `Box`, so it needs no widget of its own: it is a click-cursor region that
-  says `Semantics(link: true)`, opens through `FlutterLinkScope` unless it has an `onTap`,
-  and activates with `Enter`. The box keeps its own gesture, so its pressed state and its
-  ink stay its own.
-- `StackNode` / `PositionedNode` map to Flutter `Stack` and `Positioned`.
-- `TextInputNode` renders managed `TextField`.
-- `PagerNode` is the scroll view above with `PageScrollPhysics`: `index` is applied with a jump
-  after the frame that laid the pager out, and `onPageChanged` is the page read back from the
-  viewport at the end of a scroll. It is a `Box`, so it needs no widget of its own.
-
-### The web (`unibox_html`)
-- Provide `toHtml(UINode)` for a fragment and `toDocument(UINode, head: …)` for a page.
-- `Box` renders a `<div>` with `box-sizing: border-box`.
-- Map layout to CSS flexbox (`display: flex`, `gap`, etc.); a box without a
-  direction is a flex column.
-- `width == double.infinity` maps to `100%`.
-- `LinkNode` is a native `<a>` tag with `href` and `target`: the box's own class and
-  declarations, plus the two that cancel what a browser paints on every link.
-- `StackNode` renders `<div style="position: relative">`.
-- `PositionedNode` renders `<div style="position: absolute">`.
-- `TextInputNode` renders `<input>` or `<textarea>`.
-- `PagerNode` renders the same `<div>` with `overflow: auto`, `scroll-snap-type` for its own axis
-  and `scroll-snap-align: start` on its children; the index is a `scrollTo` without easing, and
-  the settled page is read from `scrollend`.
-
----
-
-## 5. API Conventions
-
-These rules are part of the public contract: a change that violates them is a
-breaking change even when it compiles.
+## 5. API conventions
 
 ### 5.1 Naming
-- Nodes live in `unibox_core` and extend `UINode`.
-- Every node but `Box` carries the `Node` suffix. The suffix answers Flutter,
-  which consumes the tree: `Text`, `Image`, `Stack` and `Positioned` are all
-  widgets, so four of six names would have to be qualified anyway and the family
-  is better off uniform. `Box` has no Flutter counterpart and stays unsuffixed.
-- Tokens are prefixed with `Box` (`BoxColor`, `BoxSpacing`, `BoxBorder`,
-  `BoxShadow`, `BoxStyle`), enums are unprefixed (`Axis`, `MainAlign`, ...).
-- Renderer side classes are prefixed with their target (`FlutterBox`, `FlutterText`, ...). The platform is the *package's* job, so the class
-  says which one it belongs to and the model keeps one vocabulary: a `Box` is a
-  `Box` in the tree, and each target names the thing that draws it. Both packages
-  export the same shape — the entry point, the extension, the embed node and one
-  class per node, all public, so a host or a test can address a rendered node
-  without depending on its position. What the web renderer does not export is the
-  link scope, because the web needs no hook: a `<a href>` navigates itself. A
-  renderer package exports only those names and **never** re-exports
-  The rule covers classes and typedefs alike: `FlutterWidgetNode` and
-  `FlutterWidgetEmbedBuilder` are the Flutter-side names for the embed that
-  carries a `Widget`, `HtmlEmbed` the web one, `FlutterLinkOpener` the signature a host implements to follow a
-  link. Only functions are exempt, because they already name their target
-  (`renderFlutter`) or extend a core type (`toWidget`).
-  `unibox_core`, so a host file can import it next to `flutter/material.dart`;
-  the `naming_test.dart` of each renderer package writes every export out
-  beside that import to keep it true.
-- `unibox_core` itself does not stay out of Flutter's way, and a host that needs
-  both imports the tree with a prefix:
-  `import 'package:unibox_core/unibox_core.dart' as core;`.
-  - Reported by the analyzer: `Axis`, `BoxBorder`, `BoxShadow`, `TextOverflow`.
-  - Reported by nothing: `TextAlign`, `FontWeight`. Flutter re-exports those two
-    from `dart:ui`, and an SDK declaration loses to a package declaration without
-    a diagnostic, so the failure surfaces later as
-    `a value of type 'TextAlign' can't be assigned to a parameter of type
-    'TextAlign?'`.
-  - A tree in its own renderer-free library needs neither prefix nor `hide`,
-    because no file sees both APIs. That is the arrangement the example uses.
+
+Core structural nodes use the `Node` suffix except `Box`: `TextNode`, `ImageNode`,
+`LinkNode`, `GridNode`, `StackNode`, `PositionedNode`, `PagerNode`, `TextInputNode`,
+`StatefulNode`, `OverlayNode`, `EmbedNode`. Component names belong to their design
+system. Tokens use the `Box` prefix and enum identifiers use ordinary type names.
+Renderer widget names use `Flutter`. Renderers do not re-export core; Flutter
+hosts prefix core imports where identifiers overlap platform names.
 
 ### 5.2 Precedence
-1. Flat node parameters (`gap`, `padding`, `fontSize`, ...).
-2. `style` tokens (`BoxStyle`, `BoxTextStyle`).
-3. Inherited typography from the closest ancestor box.
-4. The host ambient style (Flutter `DefaultTextStyle`, page CSS).
-5. Renderer defaults.
 
-`computedStyle` exposes levels 1 and 2, so both renderers resolve the same
-values. Level 3 is the only inherited level: layout, spacing and sizing are
-never inherited (CSS does not inherit them either).
+Style bags merge left to right. Flat node parameters overlay the bags. State styles
+overlay the resting style; disabled state wins over other states. Typography and
+writing direction may inherit. Other layout and paint values do not inherit.
+An unspecified value is decided by the model, rather than the ambient host.
 
 ### 5.3 Dimensions
-- `double` values are logical pixels, which the web renderer emits as `px`.
-- `double.infinity` fills the available space: `100%` on the web, `Expanded`
-  inside a flex parent and an infinite `BoxConstraints` elsewhere in Flutter.
-- Unbounded parents plus an infinite dimension is a layout error in both
-  targets, exactly like combining `double.infinity` with an unbounded
-  `SizedBox` in plain Flutter. `validateTree` reports it while the tree is
-  built — the box, and the parent that offered it no end — rather than leaving
-  a page that looks fine to throw during layout on one target and resolve to
-  something else on the other.
-- There are four kinds of size, and they are four tokens because they answer
-  four different questions: a number of pixels (`width`), a share of the parent
-  (`widthFraction`), a shape (`aspectRatio`), and — the newest — a share of a
-  *place* rather than of a parent (`BoxFraction.viewport`). The third is the one a
-  tree could not state at all — a thumbnail that keeps its corners square at any
-  width is not a width and not a share — and it divides whatever side the layout
-  settles, which is what `AspectRatio` and `aspect-ratio` both do. A ratio beside a
-  stated width *and* height states nothing: both targets keep the two sizes, so
-  `validateTree` reports the box that says all three.
-- A share names what it is a share of, because "a fraction" alone was the wrong
-  question: the parent is the extent a box *may* be given, and the viewport is the
-  one extent it knows without being given one. A panel on a page that scrolls has no
-  parent height to share, which is why `heightFraction: BoxFraction.viewport(1,
-  minus: 216)` exists — the screen, less the header and the bar above it — and why it
-  is the same statement in both targets: `max(0px, calc(100dvh - 216px))` on the web,
-  the window's height less the inset in Flutter. A share of the parent stays a
-  percentage, so a tree that already states one draws exactly as it did.
+
+Numbers are logical pixels, emitted as CSS pixels. Infinite dimensions fill the
+available extent, which must be bounded. Parent fractions, viewport fractions,
+aspect ratios and maximum sizes express distinct constraints. Finite sizes and
+caps can bound descendants even inside an otherwise unbounded scroll axis.
+A capped fill must yield to its parent's available space and retain its alignment
+when the parent is wider than the cap.
 
 ### 5.4 Parity
 
-**What parity is owed, and to whom.** A tree says what a region *is* — its content, its order, its
-links, its semantics, its scale — and both renderers owe that exactly. Its *paint* is owed
-closely, not exactly: one side is a stylesheet, the other a framework, and asking them for the
-same pixel buys a re-implementation of the framework rather than a description of the page. So
-the contract has two tiers: **information identical** (children, order, words, destinations,
-roles, type scale, spacing scale) and **appearance close** (a component may be drawn by the
-target's own widget, and the two are allowed to differ by what the platform adds — a shadow, a
-state layer, a density step). None of this covers the primitives, where both targets have the
-same thing to say and the conformance table holds them to it.
+Content, order, destinations and accessible meaning must agree. Primitives share
+a presentation table; native component paint may differ where the platforms do.
+Typography tokens and spacing are decisions; font rasterisation and line breaking
+belong to the engines. Do not promise pixel identity or infer rendered geometry
+merely because CSS declarations and widget parameters agree.
 
-- One tree, one shape: a node has to produce the same layout on both targets, so
-  a default that only one of them has is a bug. `direction` is the case that
-  matters: an unset direction means `Axis.vertical` everywhere rather than the
-  `Column` of one target and the block flow of the other.
-- A default lives in the model (`BoxStyle.resolvedDirection`), not in each
-  renderer, so the two can only ever agree on it.
-- A token that cannot take effect is either honoured or reported by
-  `validateTree`; silently accepting it is not an option. `crossAlign: baseline` is
-  the case that decided it: a baseline is a horizontal line, so it aligns the children
-  of a row, and on a column Flutter lays them out as if the value were `start` while a
-  browser shifts them sideways along the axis. The value stays — a row of a 14px label
-  and a 24px price needs it, and both targets draw it the same way — and the column
-  that states it is reported instead. The baseline itself has one name, the
-  alphabetic one: CSS cannot ask for another, so the model does not offer a choice
-  only one target could honour.
-- A token whose effect only exists while the content moves is still a parity claim.
-  `pin` says where a bar comes to rest in the viewport that scrolls it, which no static
-  appearance can show: the bar looks the same pinned or not. So the token is held to the
-  facts that *are* checkable — the slot in the flow, the paint order, the height the bar
-  measures for itself — and each renderer's suite scrolls it rather than the appearance
-  table. That height is measured rather than stated, on both targets and for the same
-  reason: `position: sticky` needs no height because the element keeps its own room in the
-  flow, and Flutter now does the same — the bar is laid out once, at the viewport's width
-  and its own height, and the slot the flow holds open reads that number back. A bar whose
-  labels wrap is therefore a bar with no stated height, which is what the model wanted and
-  what the two engines disagreed about. So is the bar's **containing block**: a browser
-  bounds a sticky element by the box it sits in, so a panel inside a row of cards comes to
-  rest at the edge it names and leaves with the row's bottom edge — and both targets now
-  draw exactly that, at any depth below the box that scrolls. It was a rule the model
-  enforced rather than a rule it described, and the enforcement was wrong: a target that
-  cannot express a browser's own answer is the target's problem. The share a `flex` asks for
-  is still reported, and for a different reason: a bar measures its own height, and a
-  browser would grow it with the free space it has. A pin with no scrolling box above it is
-  the one documented asymmetry: a browser pins it to the document, which scrolls a page, and
-  Flutter has no viewport to pin it to, which the Flutter README records beside `srcSet`.
-- A fold is the third kind of motion, and the first that is a *position* rather than a
-  state or a clock. A state changes and a transition hides the swap; a fold does not
-  change anything — it paints another look the further the box has travelled out of its
-  viewport, so what the tree describes is one thing at every offset and the reader chooses
-  where the clock stops. That is why it may not move a layout: a frame of an eased layout
-  is a picture neither engine can be held to, while a frame of an eased *look* is a number
-  both render them identically. The web gets the position from `view()` on the element
-  itself and the app from the box's own rectangle in the viewport; a browser without
-  scroll-driven animations ignores the animation and shows the resting look, which is what
-  every target shows before anything scrolls.
-- Filling a width needs a width to fill. `width: double.infinity` means "as wide as I
-  am offered": Flutter hands a child the incoming constraint, and a browser resolves
-  `100%` against its parent's width — which, for a column that hugs its content, is
-  `auto`, so the child hugs too. The two then disagree, and the example's listing rows
-  did: the price stopped half way across the card. The model's answer is the parent's
-  `crossAlign: CrossAlign.stretch`, which both targets honour (a flex `stretch`, a
-  `CrossAxisAlignment.stretch`), and a component that holds a row states it —
-  `MaterialCard` stretches what it holds for exactly this reason. A stretch fills
-  what states no size there and leaves the rest alone: a child that names its own
-  `width` keeps it, as a browser leaves a flex item whose cross size is not `auto`
-  alone, and a child that names a `maxWidth` stops at the cap rather than at the
-  track. So the renderer says "you are stretched" rather than handing the child a
-  tight width, because a tight constraint wins over the child's own tokens — the
-  reason the catalogue's tab strips and its pager came out as wide as the section in
-  Flutter while the document kept them narrow.
-- Platform chrome belongs to the tree. A node never keeps a decoration its
-  platform adds by itself — no Material underline under a field, no user agent
-  border, focus ring or padding around an input, no user agent underline under a
-  link, no tap highlight over a control a finger pressed — because the same node
-  would then look different on the two targets. The tap highlight is why the
-  document's `:root` block sets `-webkit-tap-highlight-color: transparent`: it is
-  inherited, so one declaration reaches every element, and a tree that answers a
-  press with its own ink answers it alone. Whatever a field or a link should look
-  like is expressed as a box around it.
-  The focus ring is the subtle case: a browser draws it around the field, which
-  sits inside the padding and the border of the box that wraps it, so keeping it
-  paints a second frame inside the one the tree asked for. Dropping it leaves the
-  caret as the only cue, which is the one thing both targets draw, and it is
-  left out for the reason given below: a field cannot be given a frame by the tree yet.
-- A state rule may only contribute the tokens of its state. The browser layers
-  `:hover` over the resting rule exactly like the Flutter renderer merges a
-  state style, so a state rule that restated the layout would reset it.
-- A box that hides what leaves it hides it *inside* its border, on both targets:
-  CSS clips an element's overflow to its padding box, and the Flutter renderer clips the
-  same rectangle, with the corner radius reduced by the border's width as CSS reduces it.
-  A child that fills a bordered box therefore stops at the line rather than painting over
-  it — a chosen segment keeps the outline of the pill around it, and a hover tint covers
-  the segment and not the pixel strip a browser leaves alone.
-- Parity is *tested*, not assumed: `unibox_testing` lists the boxes every
-  renderer has to present the same way and the texts every renderer has to
-  typeset the same way, and each renderer suite reads the appearance back out of
-  its own output — the Flutter one from the widget tree, the web one from the
-  emitted CSS. A renderer that drops a token therefore fails its own suite, and
-  because both answer the same entry, one target cannot be relaxed without the
-  other failing.
-- The contract stops where the two platforms stop agreeing, and it says so: what
-  is compared is what a renderer *declares* — layout, spacing, paint, the
-  typography tokens, alignment and truncation — never what a text engine makes of
-  it. Glyph rasterisation, hinting and line breaking belong to the engine, and
-  `unibox_testing/README.md` has the table that says which is which. One
-  length is exempt from that, because both sides compute it the same way: a line
-  box is `fontSize * lineHeight` on both, and the glyphs sit in it by the rule CSS
-  uses — half-leading, the extra height split evenly above and below them, which
-  the Flutter renderer asks for explicitly rather than accepting Flutter's
-  proportional default, because the two rules put the same text a pixel or two
-  apart inside a box of exactly the same height.
-- A line across a run of text is a typography token, not a shape. `decoration`,
-  `decorationColor` and `decorationThickness` live on `BoxTextStyle` and on
-  `TextNode`, because a struck through price is not geometry: the tree it used to
-  need — a `StackNode` and a one pixel box positioned over the middle of a line —
-  breaks the moment the type scale changes, and states a line the text engine
-  already knows how to draw through its own line box.
-  - Three of CSS's five decoration lines are in the model — `none`, `lineThrough`,
-    `underline` — and the two that are out are out for the parity rule: `overline`
-    has no counterpart in Flutter's `TextDecoration`, and `double` and `wavy` are
-    styles a browser draws itself while Flutter paints one solid line, so a tree
-    that asked for either would be honoured on one target and approximated on the
-    other. `none` is a value rather than an absence so a style bag can state it
-    after a base that underlines.
-  - A line is stated **once**. A browser propagates a box's line to every text
-    inside it and lets a descendant add a line but never remove one, while Flutter
-    lets the inner `TextStyle` replace the outer; a decoration stated below a
-    decorated box would therefore be drawn twice on the web and once in the app, so
-    `validateTree` reports it.
-  - `decorationThickness` is a length in logical pixels, which is what
-    `text-decoration-thickness` takes. Flutter has no absolute thickness — its
-    `TextStyle.decorationThickness` is a multiple of the thickness the font asks for
-    — so the app draws the font's own line and the token is the second documented
-    asymmetry, beside `srcSet`, rather than a number two targets spell differently.
-- The default typography is part of the model, not of a host: renderers install
-  `BoxTextStyle.defaults` at the root of the tree they render — a
-  `DefaultTextStyle` around the widget tree, a `:root` rule on the page — because
-  the hosts disagree about the answer (14 logical pixels of black in Flutter, 16
-  pixels of `canvastext`, a colour that flips with the theme, in a browser) and a
-  default that lives in the host is the drift this library exists to remove. The
-  font family is the one token the default leaves out: a font file is an asset of
-  the application, so unset means the platform's UI font on both targets
-  (`system-ui` in CSS, the engine default in Flutter).
-- The surface a tree is drawn on is host business: a `100%` box needs a root with
-  a height, and a font needs a host that has one. An application declares both in
-  its own idiom (`MaterialApp`, or the head `toDocument` writes) and the renderer stays out of
-  it.
-- The *size* of that surface is host business too, which is why a breakpoint is
-  not a token. A box cannot ask how wide the window is, so a page that has to
-  know takes the answer as a parameter and each host produces it the way its
-  medium allows: Flutter measures the window before it builds, the web host hands
-  the question to CSS as a media query, because a static render happens before a
-  viewport exists. Both answers reduce to the same two layouts as long as a
-  hidden element is equivalent to an absent one — a `display: none` box takes no
-  room, like a node that was never added.
-- No node may inherit a *look* from its platform. Whatever the tree does not
-  declare is decided by the model and written into the output, because the two
-  hosts answer differently and both answers would be visible: a box without a
-  direction is a column, a text without typography gets
-  `BoxTextStyle.defaults`, an image without a fit scales down, a text area
-  without `maxLines` is one row tall with no resize grip, and a stack child that
-  is not positioned keeps its own size instead of stretching to the cell. Each of
-  those was a divergence before it was a default, and none of them is a token: the
-  tree still says nothing, the renderers just stop asking the user agent.
-- Approximate is allowed where the platforms genuinely differ: font face, line
-  breaking, how a blur is rasterised, placeholder, caret and selection colours,
-  scrollbars, hit testing. Similar, not identical.
+A new presentational token needs an isolated case and the all-token case, plus
+output readers on both targets. Geometry, scroll and behaviour that cannot be
+read from that table need renderer-level tests. Unsupported constructs belong in
+validation or in a documented platform approximation, never a silent fallback.
 
 ### 5.5 Interaction
-- A box reacts to tap, long press, hover, focus and press. These five states
-  exist on pointer, keyboard and touch input alike, so no state is web-only or
-  Flutter-only.
-- `enabled: false` suppresses callbacks, keeps the node in the accessibility
-  tree as disabled, and never changes layout.
-- **A decoration takes no pointer.** A box that paints something *over* a control —
-  a count over a button's corner — would otherwise be the element the pointer finds
-  there, and the control under it would never see the hover, the hand or the press it
-  looks like it offers. `Box.capturesPointer: false` says the box is a picture: the web
-  writes `pointer-events: none` and Flutter wraps it in `IgnorePointer`, which are the
-  same statement, so the corner behaves the way it looks. Left unset the box decides,
-  because the rule is not “paint nothing” but “paint nothing that is a target”: a box
-  with children, a callback or a state style takes the pointer, and a painted leaf lets
-  it through to whatever it was drawn for.
-- Styling a state uses `stateStyles`, never a per-platform mechanism.
-- Keyboard focus is opt-in: a box joins the tab order only when its
-  `BoxSemantics.role` is one the user can act on. A plain container never does.
-- **A destination is a link, not a callback.** An interaction that has to work
-  without the application is an `<a href>` or a form; a press that waits for an
-  engine to arrive is neither. So a node that *navigates* names its destination, and the
-  node is the element: `LinkNode` is a `Box` — the same look, the same children, the same
-  press — with a `url` on it, so on the web it is a real `<a href>` a crawler can follow, a
-  reader without the runtime can use, and anyone can copy or open in a new tab. It is a
-  *node* rather than a field on `Box` because a destination is not style: it brings its own
-  attributes, its own press, its own activation and its own content model, and a picture or a
-  line of text is the same node wrapping that leaf. It is not a *wrapper* because a wrapper states no layout: the
-  control inside one keeps the `flex` share, the height and the padding the anchor should
-  have had, and its press is a press the link never sees.
-- **The tag is the role.** A link is an `<a href>`, which is the
-  whole of what a link is, so an explicit `role`, a `tabindex` and the states of a
-  control (`aria-checked`, `aria-selected`) are not written for it, and a
-  component that passed `BoxRole.button` announces a link without changing
-  anything. What a destination can say about itself is `aria-current`. On Flutter
-  the same rule is `Semantics(link: true)`: the accessible tree says what the
-  element says.
-- **`<a>` is an element, so the element token can say it.** `BoxSemantics.element:
-  BoxElement.a` is an anchor and `url` implies one — the tag comes from the element
-  in every case, which is why a box that names a destination *and* a landmark is
-  reported rather than one of them silently winning. Stating the element alone is a
-  placeholder anchor: no `href`, so nothing follows it and nothing tabs to it.
-- **A press the tree answers is still a link.** A box with both a `url` and an
-  `onTap` runs the handler and does not navigate — the web cancels the click and
-  Flutter does not call the opener — while the `href` stays for a reader without
-  the runtime, for a new tab and for a crawler. A modifier, a middle click and
-  `newTab` stay the browser's, in both cases.
-- **A link cannot contain a control.** HTML forbids interactive content inside
-  `<a>`, and neither target can say whether a press on the inner control runs it
-  or follows the link, so `validateTree` reports it (§5.4). The destination and
-  the control are composed as siblings, or the control *is* the destination.
-- Dragging, scrolling gestures and pointer move tracking are out of scope.
+
+Flutter binds supplied callbacks. Server HTML is a snapshot with no application
+event runtime. A destination is a real link. Controls retain declared accessible
+roles and enabled/selected state. Platform chrome must not add an accidental
+second appearance to core primitives; native substitutions deliberately use the
+platform's control behaviour.
+
+Handover records only intercepted actions with stable, page-wide keys. Normal
+browser links and modified clicks keep their browser behaviour. A pending intent
+is consumed once, after the application has actually been revealed.
 
 ### 5.6 Non-goals
-- No CSS cascade: no selectors, no specificity, no `inherit` keyword, no
-  `!important`. Typography is the single inherited axis.
-- No style sheet abstraction with class names; shared looks are expressed as
-  `const BoxStyle` values.
-- No breakpoint that changes *structure*: a width may dress a node differently
-  (`visibleFrom` / `visibleUntil`, §5.15), never decide which children exist, and
-  never be read from a viewport the other renderer cannot see.
-- **A component is described once and drawn by the target's own implementation.** The node
-  says what the component *is*; Flutter draws it with its widget, the document with CSS. This
-  is not a second design: it is the same description, and what binds the two is the node's
-  information plus a set of values both sides share and test (`unibox_material_flutter`,
-  `materialThemeData`). Contrast a **third-party component runtime**, which is refused: a
-  library injected at run time that brings its own token layer (`--md-sys-*`, `--mdui-*`) next
-  to the tree, the host theme and the CSS, so the design has two owners and neither is the tree.
-  `@material/web` is also in maintenance mode pending new maintainers by its own README.
-- **The unit is the region.** A tree that describes an interactive *screen* is over-specified
-  for the document, which will not draw most of it: a map, a live search, a drag handle, a
-  route transition. Those stay the host's; the tree describes the bands around them, and an
-  `EmbedNode` is the door for the one or two that must sit inside a band.
-- A grid is the model's second layout engine, and the last one. `GridNode` is
-  admitted because its answer is one arithmetic rule — a column count and a cell
-  width from a single minimum — that both targets can apply and a test can read
-  back; a table is refused because column sizing, collapsing borders and header
-  association are a family of algorithms with no single answer to compare. The
-  test is the same in both cases: can the result be read back and compared?
-- No widget/component wrapper API: renderers only translate nodes. `EmbedNode`
-  is the single, explicit exception: host content enters the tree as an opaque
-  payload that only its own renderer accepts, and any other renderer throws.
-  A **substitution** (§5.22) is a third shape and deliberately not a wrapper: the
-  renderer still builds the node, its layout and its inside, and the host only says
-  which widget paints the result.
+
+Unibox does not own application routes, networking, data stores, deployment or
+SEO policy. It provides no client DOM application, generic path/vector API,
+custom Material ripple engine or progress-ring subsystem. Hosts supply artwork,
+native indicators and complex interaction through embeds or substitutions.
 
 ### 5.7 Compatibility
-- Additions (new optional parameters, new nodes, new tokens) are minor.
-- Renames and removals are breaking, and are made outright: this library has one
-  consumer, the repository itself, so an old spelling is not kept as a deprecated
-  forwarding member. The change lands on every call site here and there is nothing
-  else holding the old name.
-- Every published change is listed in the package `CHANGELOG.md`.
-
-### 5.8 Structure and semantics
-- A node says what it *is* as well as how it looks, and the two are separate
-  tokens: `BoxSemantics.element` picks the element a box becomes, `BoxRole` picks
-  the ARIA role of a hand drawn control, `TextNode.headingLevel` says a text is a
-  heading, and `expanded`, `selected`, `pressed`, `hidden` and `liveRegion` describe
-  its state. None of them changes a pixel, which is the test the semantics tests run:
-  a heading measures the same as the text it would be without the element.
-- `selected` and `pressed` are not interchangeable. `aria-selected` belongs to an
-  *option*, a tab, a row or a grid cell — the item of a set — while a toggle button
-  states its own state with `aria-pressed`. A browser ignores both when they sit on
-  the wrong role, so a chip or a segment that said "selected" was announced as an
-  ordinary button, and the state was lost on the web alone.
-- A heading is a text and not a container: `<h1>`–`<h6>` on the web,
-  `Semantics(header: true, headingLevel: n)` in Flutter. The element brings no look
-  of its own — the renderer cancels the user agent's margin, size and weight —
-  because typography is the tree's business. `BoxRole.heading` stays for a heading
-  that cannot be written as one run of text. The cancellation is in the heading's
-  own class, which is why a heading and a plain text of the same typography are two
-  looks: sharing one let whichever was planned first answer for both, and a plain
-  text planned before the card's title gave the `<h2>` a class that said nothing
-  about its element — the user agent's `1.5em` size then came back and the same
-  card stood a third taller on the page than in the app.
-- The two targets are not equally expressive, and the gap is documented instead of
-  papered over: HTML has landmarks (`main`, `nav`, `header`, `footer`, `aside`) and
-  Flutter has none, so a landmark is structure a browser gets and a Flutter screen
-  reader does not need. Where Flutter *does* have the concept — a list, its items,
-  a form — both targets say the same thing.
-- The renderer states the reset a semantic element needs. A `<ul>`, an `<ol>` and
-  a `<figure>` come with an indent or a margin that no Flutter counterpart has, so
-  the space is written as `0` unless the box declares it; a `role` is only written
-  when the element does not already imply it.
-- Structure that HTML forbids is a tree error, not a rendering surprise: a
-  `BoxElement.li` outside a `ul` or an `ol` is reported by `validateTree`.
-- What stays host work: navigation between documents (a `LinkNode`, or the host's
-  router), `aria-current`, figure captions, tables, and anything that describes the
-  *document* rather than the tree (see 5.6).
-- Motion is a token before it is an embed. `BoxTransition` states a duration and a
-  curve, and the curve is one of the five CSS and Flutter define with the same
-  control points, so a hover fade is interpolated identically on both targets. It
-  covers the paint and never the layout: a transition that moved things would make
-  the two targets agree on the duration and disagree on the result.
-- `opacity` and `transform` are paint too. Both are values the tree states
-  (`BoxTransform`: scale, rotation in degrees, offset in logical pixels), both paint
-  the box without giving it different room, and both are in the transitioned set —
-  which is what makes a press-scale or a fade-in a state style rather than an
-  animation. A transform is applied about the centre in a fixed order (translate,
-  rotate, scale) because CSS and Flutter both compose matrices left to right and
-  neither may choose the order, and its parts are interpolated one by one: a matrix
-  lerp would shrink a box that only turns. Anything that ripples from a pointer
-  position or runs a timeline of its own is not a token, and that is what the next
-  bullet is for.
-- The escape hatch is `EmbedNode`, and it is the one place the model admits that
-  two implementations may differ: a node carries opaque objects, one per renderer
-  that can draw it, and each renderer takes the first one whose type it
-  understands — a `Widget` or a builder that wraps the child, a `Component` or a
-  builder that wraps the child. The model names no target, so a third renderer
-  needs no change here, and a node class it has never seen renders as long as it
-  brings a payload of a shape that renderer draws. Nothing about an embed is in the
-  conformance contract, because the two halves can look different by definition;
-  what the model can check is that the hatch is not empty (`validateTree`) and that
-  a renderer never silently skips a node it cannot draw.
-- The portable route stays the token set: transitions, opacity and transforms are
-  the effects both platforms express exactly, and an embed is for what is left
-  over. When that work lands, an effect belongs in a token first and in an embed
-  only if it cannot be described as one.
-
-### 5.9 Design systems are packages
-- A design system is a set of token values, not a mode of a renderer. It lives in
-  its own package, depends on `unibox_core` (and on nothing that draws), and
-  exports `const` values a tree can use — so the renderers never learn that
-  Material exists and a tree typeset with Material's scale is drawn by the same
-  code as one with hand written values.
-- `unibox_material` is the first one: the fifteen roles of the Material 3 type
-  scale as `BoxTextStyle` values. Each role is a complete look (size, weight,
-  tracking, line height), because a partial style would let the surrounding text
-  turn a `titleMedium` bold. `color` and `fontFamily` are the two tokens left
-  unset, and for the same reason they are left unset in `BoxTextStyle.defaults`:
-  a colour scheme and a font file are the application's, and inheritance is what
-  lets one scale serve a light theme, a dark theme and a branded control.
-- A line height is written as the division the specification's pixel height
-  implies (`64 / 57` for display large), because the token is a multiple of the
-  font size on both targets; the resulting line box is the specification's, and
-  the suite checks `fontSize * lineHeight` against it.
-- `unibox_core` stays neutral about design systems. It has one default, chosen so
-  that the two hosts cannot disagree, and no opinion about a particular brand's
-  scale. A second design system can be added as a second package without touching
-  the core or a renderer, and an application that wants no system at all is not
-  made to carry one.
-- A design system is values for looks and nodes for structure. A role enters a
-  tree through `Box.textStyle` or `TextNode.style`, and a product that wants its
-  own names writes a class of `const` values in its own package. No
-  `TitleText`-shaped wrapper is exported: a look baked into a node type cannot
-  read a theme (the tree has no context), names a look like a structure
-  (`headingLevel` is a separate token) and duplicates Material's own vocabulary.
-- A component that owns children is a node, and it is built from the node that
-  already draws it. `unibox_material` exports `MaterialCard`, a `Box` with the
-  card's surface, shape, elevation and body typography: no renderer change, no new
-  token and therefore no conformance case, and the two suites pin the property it
-  rests on — a node that extends `Box` renders as that box on both targets. The
-  distinction is what keeps the package honest: a look is a value, a component is
-  a node, and neither is a new renderer.
-- A text takes one `style`, not a list of them. Typography composes by
-  inheritance (`Box.textStyle`) and by `merge` at author time, so a
-  `TextNode.styles` list would add a second, node local cascade — the CSS cascade
-  §5.6 rules out.
-- A value can be computed. `MaterialPalette.fromSeed` grows the twenty-four colour
-  roles from one brand colour with Material's own algorithm
-  (`material_color_utilities`, pure Dart, Apache-2.0, no widget layer), and the
-  result is still a value: the tree reads it while it is built, no renderer
-  resolves anything at paint time, and the package gained a dependency rather than
-  a mode. It is the one dependency a value package may take — an algorithm that
-  answers with a colour, not a host that answers with a picture. The written
-  `MaterialPalette.light`/`.dark` stay, because they are the specification's
-  baseline scheme and because a `const` value composes into other `const` values.
-- `BoxStyle` and `BoxTextStyle` are `final` classes with structural equality and
-  a `merge` that returns the base type, so a preset is always a value and never a
-  subtype. A catalogue type (`TextStyles`, `BoxStyles`) would therefore be a
-  namespace of constants; since the core holds kinds rather than looks, that
-  namespace belongs to `unibox_material` or to the application.
-- The cost asymmetry fixes the order of work: a preset catalogue can be added to
-  an application at any time, or to a package as a minor release, while a
-  component layer inside the published API could only be withdrawn as a breaking
-  change. The token vocabulary is therefore the layer to stabilise, and every
-  convenience sits above it.
-
-
-
-### 5.10 A subtree that owns its state
-- `StatefulNode` is the one node with a lifecycle. It carries `create` — a factory,
-  never an instance — `view`, a function of the state, and optionally `update`. A renderer
-  calls `createStore`, subscribes, calls `onMount`, rebuilds on a notification, and calls
-  `onUnmount` and `dispose` on unmount. The tree itself stays immutable, so it can
-  still be built, compared and rendered twice.
-- A store outlives the node that created it: it is kept at a place in the tree, so a node
-  drawn there again keeps the state — and with the state, whatever the store copied from
-  the node that was there before. The view is the other way round: it is built from the
-  node drawn *now*, so a parameter it reads is always current. `update` is the seam
-  between the two. A renderer calls it when a node of the same type and key replaces
-  another, before the view is built, and a component brings its state back in line with
-  the parameters that changed — a tab set whose count it can select, a field whose value it
-  was seeded with. It is optional, because a component whose state copies nothing needs no
-  seam, and it may publish, because a state equal to the current one publishes nothing.
-  Without it the two halves drift with no error: the page draws a control offering a
-  destination that a store believes does not exist, which is what happened to
-  `MaterialTabs` before the hook existed.
-- The state is a value. A `Store` publishes an immutable state and notifies a
-  listener; `StateStore` drops a published value equal to the current one, so a
-  rebuild follows a change of the description rather than a call.
-- The view returns one tree for the state. Every state a component can be in — a
-  pending request, a result, an error — is therefore an ordinary tree that the
-  renderers, `validateTree` and the conformance table already handle. A view draws
-  no overlay of its own: a dialog is an `OverlayNode` in the tree the view returns
-  (§5.13), so the state decides whether it is there and the node decides how it is
-  presented — there is no second slot on the view to fill, and nothing about a
-  dialog that a view has to know.
-- A store is pure Dart, in the core. `StateStore` keeps its own listener list and
-  a guarded `state` setter, so the model keeps its promise of no package
-  dependencies and one store still runs in Flutter, in a browser and in a
-  `dart test`. `flutter/foundation` cannot be used: core and the web renderer may
-  not import Flutter, and a state layer per target is the drift this project
-  exists to remove.
-- `StatefulNode` is a component in the sense of §5.9 — a node built from nodes —
-  with one difference: its children come from a view the renderer builds at render
-  time, so `validateTree` sees an empty child list and a renderer validates each
-  view in debug builds.
-- The string renderer draws the state the store starts with: it creates the store, reads its
-  state, renders the tree and never calls `onMount`. A document has no runtime, so a press
-  cannot change it. A page that reacts is one of two things: an application that takes the
-  document over, or the client renderer (§5, `unibox_dom`), which adopts the same markup and
-  keeps the same stores — a node is constructed there because its behaviour is Dart closures,
-  which no markup can carry. A first state of "loading" therefore renders a page that loads, and
-  a store that starts with the server's data renders the page as it should look.
-- The vocabulary is the model's: a node, a store, a state and a view. There are no
-  events, no cubits and no blocs — those are one naming of a pattern this model
-  describes in its own words, and borrowing them would promise an API the library
-  does not have.
-
-
-### 5.11 Presentation is written once
-
-A tree repeats itself. Six listings share a look, a label appears in two places, and
-writing the declarations on each element makes the output cost grow with the number
-of elements instead of with the number of *distinct* looks. The web renderer
-collects them: every distinct set of declarations becomes one class rule in a single
-`<style>` element, and the element carries the class (`UniboxStylesheet`).
-
-A class name shared between two elements was not enough, which is what the earlier
-shape got wrong: a box that styled an interaction state emitted its own `<style>`
-element next to itself, so the *name* was deduplicated while the *rules* were written
-once per instance — six identical cards, six identical blocks.
-
-Two consequences are the reason for the rule, and neither is about size:
-
-- **A host keeps the last word.** An inline style outranks every stylesheet, so a
-  page with one per element cannot be themed by a custom property, a
-  `@media (prefers-color-scheme: dark)` block or a rule of the host's own. A class
-  can be outranked, which is what makes a design system a value the host supplies
-  rather than a copy of the host's values in the markup.
-- **The markup says what, not how.** An element reads as its structure and carries
-  one class; the CSS next to it can be cached and read.
-
-Flutter needs no equivalent: a widget tree has no serialised output, and the
-allocation cost of a decoration is a profiled concern rather than a correctness one.
-The parity of the two renderings is unaffected — the conformance table compares
-resolved values, and where a value lives is invisible to it.
-
-A component rendered outside a rendering — `renderNode` called directly, or a node's
-renderer used in a test — still writes its declarations inline, because there is no
-sheet in scope to register them in.
-
-### 5.12 A colour role is a value the host answers
-
-A tree that carries literal colours is a third copy of a design system: the host has
-its `ColorScheme`, the page its stylesheet, and every element its own hex. So a
-colour can name a **role** — an `enum` member — and the application supplies a
-`UniboxTheme` that says what each role is worth.
-
-The role is typed rather than a string because a string is a name the compiler
-cannot check and a reader cannot rename; the theme is keyed by the same enum value,
-so "the colour this role is worth" is a map lookup on an identity, and
-`validateTree(root, scope: scope)` reports a role the theme does not define.
-
-The theme is an **argument**, not a scope a node looks up: `renderFlutter(node,
-scope: …)` resolves each role while it builds the widget tree, `toDocument(node,
-scope: …)` writes the theme once in `:root` and points the rules at
-`var(--unibox-color-…)`. Two pages rendered in one process can carry different
-scopes, a tree stays `const`, and the whole palette is emitted on the web whether or
-not a node uses each role — a host stylesheet has to be able to read one the tree
-leaves alone.
-
-The argument is one value and not one per fact: `UniboxScope` carries the theme, the
-language the page is written in and the direction its rows run, so a host that adds a
-second ambience adds a field there rather than a parameter to every rendering call. It is
-**environment, not domain** — what the page is *about* is a parameter of the component that
-shows it, because a node that read one could not be rendered twice. And there is no scope
-a node looks up from inside the tree: a lookup would be a second source of truth, and the
-targets would answer it differently (§5.10).
-
-What follows honestly: a role is a runtime failure if no theme is given (it is
-reported, and the renderers refuse the tree rather than paint nothing), the
-conformance table compares a value in Flutter with a `var()` and a `:root` block on
-the web, and the CSS name follows the enum identifier, so renaming a member is a
-breaking change for a host stylesheet that names it.
-
-### 5.13 Overlays are nodes
-- Content above the page is a node, not a mode: `OverlayNode` wraps the content,
-  sits in the tree where the state says it belongs, and disappears from the tree
-  when the state says so. Presence is the tree's answer; there is no `open` flag
-  and no overlay slot on a view, so a `StatefulNode` never learns that a dialog
-  exists.
-- The node states policy, not mechanism: `onDismiss`, `barrierDismissible`,
-  `barrierColor` and `alignment`. How an overlay is presented belongs to the
-  renderer — an `OverlayPortal` on the root overlay in Flutter, a fixed layer in
-  the browser — which is what keeps it escaping the clipping of the box it sits
-  in.
-- An overlay is never drawn in the flow of its parent. A target that cannot
-  present one must say so; rendering the content inline would make the same tree
-  a modal on one side and a paragraph on the other.
-- The layer is the window, and it bounds the content. A dialog holding more than
-  the window scrolls inside it on both targets — a scroll view over the layer in
-  Flutter, `overflow: auto` on the layer in the browser — because the alternative
-  is two answers to one question: a flex item centred in a box is allowed to be
-  taller than it, so the web drew the example's sign-up card at the height of its
-  content while Flutter drew it at the height of the frame, and the same node came
-  out two heights. The placement is a margin for the same reason: a keyword that
-  centres an oversize item puts its start edge outside the scrollport, where no
-  scroll reaches, while an auto margin centres what fits and falls back to zero
-  when it does not.
-- `validateTree` reports the two combinations that cannot do anything: a
-  dismissible barrier with no `onDismiss`, and a content that fills its height,
-  which the layer has no end for.
-- Dismissing is interaction, so on the web it waits for the client build; the
-  server writes the layer and its barrier so the page looks right first.
-
-### 5.14 Reflow is a grid
-
-A tree states a rule, not a breakpoint. `GridNode(minItemWidth, maxColumns, gap)`
-means "fit as many columns of at least `minItemWidth` as the width allows, stop at
-`maxColumns`, and let the tracks share the width", and nothing in it knows a
-viewport:
-
-- the web renderer writes `repeat(auto-fill, minmax(min(100%, max(minItemWidth,
-  (100% - (maxColumns - 1) * gap) / maxColumns)), 1fr))`, which the browser
-  resolves against the width of the grid itself;
-- Flutter applies the same arithmetic — `columnsFor` and `cellWidthFor` in core —
-  to the constraints of the grid, so the two agree at **every** width rather than
-  at the widths a breakpoint happens to name. Measured in Chromium and WebKit
-  18.2 at 250, 375, 600, 899, 900, 901, 1280 and 1440: the counts and gutters are
-  identical and the cards agree to the 1/64 pixel a browser lays out with, which
-  is why a sweep compares widths with a 0.02 pixel tolerance.
-
-The clamp is not decoration: below `minItemWidth` the CSS track is `100%`, which
-is the one column `cellWidthFor` answers. The `max(...)` is the cap: the minimum
-track becomes a share of the width once the width fits `maxColumns`, so the count
-stops there and the cards keep growing.
-
-**The last row is where the targets could disagree, so the model fixes it.**
-`auto-fill` creates every track whether or not a card lands in it, so a short last
-row leaves its remaining tracks empty. Flutter pads the row with empty slots of the
-same width and uses no `Expanded` or `Flexible`, because a flexing child would
-stretch over the empty track in one target and not in the other. A grid child
-therefore may not flex or size itself: `validateTree` reports a `flex`, a finite
-`width` and an infinite `height`, and it reports an image whose height would wait
-for the file unless the height is known at layout time (a finite height, both
-dimensions, or an ancestor with a definite height — a ratio box, when the model
-has one, joins that list).
-
-`align-items: start` on both targets is the other half: a row is as tall as its
-tallest card and shorter cards are not stretched, which is also what keeps the
-Flutter side free of intrinsic measurement a card containing a scroll view could
-not answer.
-
-**A cell may span tracks.** `Box.gridSpan` says how many columns a card covers, so a
-banner that interrupts the grid — a promo between the first two cards, then the rest
-— is one grid with one spanning child, rather than two grids whose column counts
-agree only because they are computed from the same width. Three rules keep the two
-targets together:
-
-- the span is written as `grid-column: span n` on the card and read by the grid it
-  sits in, which is why `validateTree` reports it on a box that has no `GridNode`
-  around it;
-- both keep `auto-fill`, so the count comes from the width and a span is **clamped**
-  to it: `span 3` in a one column grid is one column, which is what a browser does
-  with a span wider than the explicit grid and what `GridNode.spanOf` answers;
-- a span that does not fit what is left of the row starts a new row and leaves the
-  rest of the current one empty, which is `auto-flow: row`. `GridNode.spanWidthFor`
-  is the width of a spanning card — `n` tracks and the `n - 1` gutters between them
-  — so Flutter gives it the same cell a browser lays out.
-
-`unibox_testing` holds the placement: a `GridCase` states a width, and both suites
-read the tracks each child ended up in — Flutter from the width the layout gave it,
-the web from the class it wears.
-### 5.15 Visibility is a style, and a width is measured where it is drawn
-
-**The screen.** A listings page: cards in a grid on a wide surface with a map beside
-them, and below 900 logical pixels a single column of cards with a floating button
-that opens the map as an overlay. It is the first screen in this project that
-genuinely needs to *dress* a node differently at a different width — not just
-distribute it differently — so it is also the first one that pins this rule.
-
-Four mechanisms carry it, and only one of them is new:
-
-| What the screen needs | Mechanism | Why it is not a breakpoint in the tree |
-| --- | --- | --- |
-| two cards per row, then one | `GridNode(minItemWidth: 280, maxColumns: 2)` | arithmetic on the grid's own width (§5.14) |
-| the map beside the cards, and absent when narrow | `Box.visibleFrom: 900` | the map stays in the tree and in the DOM; only its `display` changes |
-| the floating button when narrow, and gone when wide | `Box.visibleUntil: 900` | the same token, the other direction |
-| the map as its own view on a phone | `StatefulNode` state plus an `OverlayNode` | state may change structure; width may not |
-
-**Why a width is measured on the box, not on the window.** `visibleFrom` becomes a
-**container query** on the web — `@container (min-width: 900px) { … }` — and a
-`LayoutBuilder` over the box's constraints in Flutter. *Which* box declares the
-container is the renderer's decision, not the author's: a box whose subtree holds a
-threshold becomes `container-type: inline-size`, so the nearest enclosing layout box
-is what a threshold measures, on both targets, and a node drawn in a panel — a card
-in a sidebar, one half of the showcase — measures the panel rather than the window. A media query would measure the *viewport* while Flutter
-measures the *node*, and the two disagree the moment a node is not full bleed: in
-the showcase each panel is about 640 pixels wide inside a 1280 pixel window, so a
-media query would say "wide" exactly where Flutter says 640. Container queries ask
-the same question of the same box, which is what makes the two renderings agree at
-every width rather than on full-width pages only.
-
-**Why not a `LayoutBuilder` in the tree.** A tree that measures the surface and
-returns a *different* subtree cannot be rendered by a server — no viewport exists at
-export time — and two subtrees duplicate the content in the crawlable DOM. So the
-node states a threshold and the renderer resolves it; the child is always present,
-on both targets, at every width.
-
-**Hidden is not absent.** `display: none` removes the *boxes*, not the markup: the
-element and its subtree stay in the DOM, stay in the HTML a crawler reads, and stay
-queryable — what they lose is layout, paint, focus and their place in the
-accessibility tree. That is the property the whole design leans on (the markup is the
-same at every width, so nothing that adopts it can draw a different page), and it is
-also its price: a hidden subtree still ships, and an `<iframe>` inside one may still
-load. Hiding because of **state** is the opposite and stays the view's job — a node
-the view does not return is genuinely absent from the DOM, which is why the map's
-overlay only exists while it is open.
-
-That leaves one honest tension in this screen: the map appears inline on a wide
-surface and as an overlay on a narrow one, so while the overlay is open a phone holds
-two copies — one unpainted. A single instance would need the map's *placement* to
-depend on state and width together, which is the compound rule this design refuses.
-The rule that keeps it honest is therefore measurable: **exactly one map is painted at
-every width**, which the example's tests assert, and the unpainted copy is documented
-rather than assumed away.
-
-One rule fell out of using it: a hidden box **releases what it claimed** — a
-`flex` factor included — because `display: none` removes a flex item from the layout
-rather than leaving a gap. The Flutter renderer keeps the subtree alive in a
-zero-sized box so its state survives the width change, which is the closest a widget
-tree gets to the DOM that stays.
-
-What that buys, stated as the invariants the feature has to keep:
-
-- the markup is identical at every width, so a client that adopts it draws the same
-  page;
-- every variant is in the CSS, mobile-first: the base rule describes the narrow
-  layout and the container query adds the wide one, so a browser without container
-  queries still renders the mobile layout rather than a broken desktop one;
-- a hidden box takes no room, exactly like an absent node, which is what Flutter's
-  `Visibility` does with the same threshold;
-- removing a threshold removes exactly its rules — the box's own class rule and its
-  one query block — and nothing else;
-- no renderer reads a viewport anywhere: the web asks CSS, Flutter asks the
-  constraints of the node it is drawing.
-
-### 5.16 A name is for a developer, and it is not a look
-- An element's `class` is the hash of its declarations, which is what makes six
-  listings with one look cost one rule. That name says nothing to a reader, so every
-  element a node drew also carries the name of its node:
-  `data-unibox-node="material-card"`.
-- It is written always, and not behind a flag. A name carries no look, so there is
-  nothing a switch could protect; and a page cannot disagree between its server render
-  and the client that adopts it when there is no switch for the two to differ on.
-- It is an attribute and not a class because `class` is the stylesheet's namespace. A
-  second class there would either carry no rule — misleading every reader of the
-  output, including the suites, which resolve a look through the classes an element
-  wears — or become a look a host can write and Flutter cannot draw.
-- A label is never part of the presentation: no class, no class key, no rule, no
-  element, no layout. Two node types with the same look share one class and one rule
-  while carrying different names, which the suite pins.
-- The name is a **literal** a node states in `UINode.debugLabel`, never its type: a
-  compiled build mangles class names, so a derived name reads `minified:-s` in a
-  browser — measured in a `dart compile js -O2` build, which is why every node of
-  `unibox_core` and `unibox_material` states one and why a subclass that says nothing
-  inherits the name of the node it extends.
-- What it is not: a semantic. A screen reader hears the element, its `role` and its
-  `aria-*`; nothing reads the label back, and nothing may start to.
-- A wrapper a renderer invents — a stack's cell — has no name, because no node drew
-  it. That absence is meaningful: an element without the attribute is not part of the
-  description.
-
-======
-### 5.17 A shape is a path in a view box
-
-- A box is a rectangle, and every design system eventually asks for something else: a
-  ring, a badge, a triangle, a gauge. The answer is one token, `BoxStyle.shape`, whose
-  value is a `BoxShape` — a path and the view box it was authored in.
-- **A view box and not the box's own numbers.** The outline is written in the
-  coordinates it was authored in — a 100 by 100 grid, or whatever an SVG said — and
-  each renderer stretches it to the box. One value then draws the same silhouette at 40
-  pixels and at 400, and a shape copied out of a drawing tool needs no arithmetic.
-- **A command list and not an SVG `d` string.** `dart:ui` has no path parser, so a
-  string would put a parser in the Flutter renderer. With the model owning the six
-  commands SVG's `d` has, every renderer maps them to its own primitive — `Path` in
-  Flutter, the `d` attribute on the web — and neither parses what the other wrote.
-- **The shape is the box's outline, not an effect over it.** The background fills the
-  path, the border is a stroke along the path, and `overflow: hidden` clips the children
-  to it. A box still has exactly one outline, which is why `validateTree` reports a
-  shape next to a corner radius.
-- **`fillRule` is part of the value.** `BoxFillRule.evenOdd` makes a subpath inside
-  another punch a hole, so a ring is two circles and no stroke token: the effect that
-  motivated shapes in the first place needs no second primitive. A partial ring is the
-  same ring cut short — one subpath of two arcs and two radial edges, filled under
-  `nonZero` — which is why `BoxShape.ring(thickness:, sweep:)` can be a value rather
-  than a component, and why a progress indicator is two boxes instead of a node type.
-  The model ships that factory and `BoxShape.circle` because arc arithmetic is the one
-  thing every caller would otherwise get subtly wrong; anything else is composed.
-- **Layout does not know.** A shape paints differently and lays out identically: the
-  children stay in the same rectangle, which is what puts a label in the hole of a ring
-  and why a shape cannot be used to place anything.
-- **What it is not.** It does not cast a shadow, it cannot be interpolated (two
-  outlines have no numbers between them), and two outlines cannot be combined. Each of
-  those is a `validateTree` report or an `EmbedNode`, never a silent approximation.
-- Canvas is the wrong layer for this and stays the escape hatch: a painter has no
-  implementation on the server — `dart:ui` does not exist on the VM — so a page drawn by
-  one is invisible to a crawler and impossible to render without the client bundle. A
-  path is a value: it can be compared, cached as a class, rendered on the server and
-  held to the same numbers by both targets.
-
-<<<<<< HEAD
-### 5.18 A key is identity, and a host may have to find it
-
-- `UINode.key` identifies a node among its siblings so a renderer keeps an element
-  attached to it. A web renderer also writes it out — `data-unibox-key="page"` — so a
-  host can find the element a node drew without counting siblings.
-- That is what a page needs in order to survive being replaced by an application: a
-  document that was scrolled, or a control that was pressed, before the runtime arrived
-  names what it was looking at, and the tree that takes over answers for it. The
-  identity already existed; writing it out is what makes it readable from outside the
-  tree.
-- Only a `String` or an `int` is written. Any other key's `toString()` is an instance
-  hash, so a server render and the browser it sends the markup to would name one node
-  two ways — a page that disagrees with itself, which is worse than one that says
-  nothing. Such a key stays a `ValueKey` and nothing more.
-- It is an attribute, never an `id`: an `id` is unique in a document while a key is
-  unique among the siblings of one node, so the same tree drawn twice on a page — a
-  card in a listing and the same card alone — is valid for a key and invalid for an
-  `id`; and an `id` is fragment-addressable and styleable, which is a look one target
-  applies and the other cannot draw.
-- A key that has to be found again should be unique in the document as well. That is a
-  fact about the tree a host builds, not a rule `validateTree` can check: only a
-  document knows how many trees it holds.
-- The key is not a semantic and not a look: no class, no rule, no element, nothing read
-  back, and two elements with the same look keep sharing one class while carrying
-  different keys — the same argument §5.16 makes for the name.
-
-### 5.19 A locale is an input, and the host chooses it
-
-- The model holds strings, and a string is a value like a colour: copy is decided where
-  the tree is built. What it refuses is an ambient lookup. `Localizations.of` reads a
-  `BuildContext`, and `toDocument` renders a tree with no context, no binding and no
-  second frame — a tree that reads the locale is a tree that cannot be a page. The
-  pattern is therefore one builder called once per language, not one page that swaps its
-  text: `UINode buildPage({required SiteCopy copy, required SiteRoutes routes})`.
-- The copy is a `const` instance per locale, not a `Map` of keys. A missing key in a map
-  is a blank on one page at runtime; a missing `required` field is a compile error in
-  every language, which is the whole reason a translated page starts as a class.
-- Copy and routes travel together and come from one tag. The bug a localised site
-  actually has is a page in one language whose links, canonical or `alternates` point at
-  another — so a builder takes the editions it needs from a single value, never a `String`
-  from one place and a path from another.
-- The address is the source of truth, because a crawler sends no `Accept-Language` and
-  keeps no cookie: `/de/apartments/` is the German page, and a language switch is a `url`
-  on the box that names the other address — followable, crawlable and shareable, the same shape the example's
-  palette picker uses to be a page a crawler can reach. A state in a store is the honest
-  answer for a language change inside an application; a link is the honest answer for a
-  page that has to be found.
-- One document per locale, and each one states its own set: `lang` for the language it is
-  written in, and a `DocumentHead` whose `canonical` is its own address and whose
-  `alternates` are the whole set, itself included. `hreflang` is the only thing that tells a
-  search engine three pages of translated text are one page in three languages rather than
-  three pages competing for one query.
-- Beyond one page, `.arb` and `intl` belong to the application. `intl` is a pure Dart
-  package, so the no-dependency rule — which binds `unibox_core` — leaves a consumer free
-  to use it; plurals, number and date formats and collation are exactly the things a
-  renderer must not pick an implementation of, because it would have to pick one on both
-  targets. The model's share of localisation is what a translated page still has to say
-  correctly: real strings, `alt` text, `BoxSemantics.label`, and headings at the level the
-  page's structure asks for.
-- What the model deliberately does not grow: a `locale` on a node (a language is a property of
-  the document, §5.6, and a node is a region of a document), a mutable current locale (one
-  build step writes every language in one process, so a global would make output depend on
-  write order), and a key catalogue in core (a key map gives up the compiler's help and would
-  be the first dependency the model cannot have).
-
-### 5.20 A writing direction is a region's, and the page states its own
-
-- `WritingDirection` is the direction the words flow in — `ltr` or `rtl` — and it is not `Axis`.
-  A row lays its children along one axis whichever way the words in it read: Arabic in a row is
-  the same rectangle with the children packed from the other side. Naming it after the text
-  would be wrong for the same reason it is not the axis: `direction` in CSS moves a flex row,
-  its logical edges and its scrollbar, and `dir` on a page moves all of that at once.
-- **It inherits, and it has no default in the model.** CSS inherits `direction` and Flutter's
-  `Directionality` is an ambient inherited widget, so a box states one and everything inside it
-  reads that way — which makes it the second token, after typography, that a box hands to its
-  descendants. Resolving an unset one is the one place the model refuses to answer, and the
-  reason is not a host's convenience: a direction belongs to the script the words are written
-  in, and the model cannot read words it did not write. A stated `ltr` would overrule a page
-  that is correctly Arabic, and a guess from `lang` would be wrong for the languages written in
-  both scripts. So a box that says nothing inherits from the box above it, and the root of that
-  inheritance is the page: `dir` on `<html>` in a document (§5.19's `lang` sits beside it, and
-  the two are deliberately separate attributes), and the application's own `Directionality` in
-  Flutter. A tree written right to left states it once, at its root.
-- **No `auto`.** CSS's `dir="auto"` reads the first strong character of the text, and Flutter
-  has no counterpart: a value only one target can honour is a bug here (§4). "Let the text
-  decide" is a page that states nothing, not a third value.
-- **Named `WritingDirection` and not `TextDirection`.** `dart:ui` declares `TextDirection`, Flutter
-  re-exports it, and an SDK declaration loses to a package declaration without a diagnostic
-  (§5.1) — the silent half of the collision rule. `BoxDirection` was the other candidate and
-  reads against `BoxStyle.direction`, which is an `Axis`; "writing direction" is also the term the
-  CSS specification uses, so the web renderer needs no translation of the word itself.
-- **Neither renderer keeps a table of what mirrors.** The direction is one declaration in the
-  class and one `Directionality` around the flex, and every `start`/`end` the two engines already
-  understand follows from it. That is the whole implementation, and it is why the token costs
-  nothing on either target.
-- **The names that were already reading ones are now resolved that way.** `BoxAlignment.topStart`
-  is the corner the words begin at, and both targets were not saying so: the web mapped it to
-  `justify-content: start`, which follows the direction, while Flutter mapped it to
-  `Alignment.topLeft`, which does not — so an aligned child in a right-to-left page landed on the
-  mirrored side of the control the page had drawn. It is an `AlignmentDirectional` now, which is
-  the whole of the fix, and it is the case that shows why the physical names in §5.20's next
-  paragraph are the ones worth being suspicious of.
-- **What it does not do yet, stated rather than implied.** The physical vocabulary stays physical:
-  `BoxSpacing.left`, `PositionedNode.left` and `BoxBorderRadius.topLeft` keep the edge they name
-  in either direction, and `TextAlign` has `left` and `right` but no `start` and `end`. A tree can
-  therefore be read right to left and still pin one inset to one side — deliberate for a badge on
-  a physical corner, and a gap for a `padding` that means "the reading start". Adding those
-  values is a change to the vocabulary rather than to this token, and it is the next one.
-
-### 5.21 A grid is one node with two track rules
-
-`GridNode` holds equal columns whose count follows the width — a card grid that reflows —
-and one row of columns whose flex factors are stated: `1fr 2fr 1fr`. The second form is
-what a segmented button is built on, and it is the first form's sibling because CSS says
-so: `grid-template-columns: repeat(auto-fill, minmax(…))` and `grid-template-columns: 1fr
-2fr 1fr` are one property, one engine and one node.
-
-**What the stated form means.** One factor per child, in one row: every column is as wide
-as the widest content per unit — `max(intrinsicᵢ / factorᵢ)` — times its own factor, so a
-row of `[1, 2, 1]` over a `nav` of 80 and a `main` of 200 is 100, 200 and 100, and it hugs
-at the sum of the factors. Given a width, the factors divide it instead, and a narrow
-parent shrinks every column rather than overhanging the row. The template is the grid's,
-not the child's, exactly as `grid-template-columns` and Flutter's `TableColumnWidth` are
-the container's: a child that states a `flex`, a width or a `gridSpan` is reported, because
-a column is the grid's answer. One factor per child is what makes it one row rather than a
-matrix, and neither target has a second row to flow into: a stated template is a row.
-
-The width is not a token. A grid takes the width it is given and measures when it is given
-none, which is one rule for both forms: a browser writes `width: 100%`, whose used value is
-`auto` against a box with no width yet, and Flutter fills the width it is offered on the
-same terms. A pill of segments therefore fills the cell it was given and hugs inside a row
-that scrolls — no `width: double.infinity` in the tree, and no mode for the renderer to
-choose between.
-
-**Why not a token on `Box`.** §5.1's test for a token is that both hosts already draw the
-same element with another property: `wrap` is `flex-wrap`. A grid is a different engine —
-`display: grid` with its own track rules on the web, a row measured through intrinsic
-widths in Flutter — and a boolean or a `columns:` on `Box` would quietly reinterpret
-`direction`, `wrap`, `mainAlign` and the `flex` of every child as well. `Box`'s contract is
-"a `Row`/`Column` in Flutter, a flex container in CSS", and it stays that.
-
-**Where the component ends and the node begins.** The rule is not `MaterialSegmentedButton`'s
-to keep: `unibox_material` ships values and nodes, not renderer code. The component owns the
-geometry (a pill of 40, its outline, the fill of the chosen segment) and the hairline
-between two segments, which is drawn *inside* the segment it opens rather than laid out
-between them: a child between two columns sits outside every column, and takes room none of
-them can divide.
-
-**Two idioms, one invariant.** Neither target invents an equaliser:
-
-- a browser already has one — `grid-template-columns: minmax(0, 1fr) minmax(0, 2fr)
-  minmax(0, 1fr)`. In an intrinsic sizing pass a `fr` track takes the largest of its
-  item's max-content contribution divided by its factor, and every track is that unit times
-  its own factor, so the grid hugs at the sum of the factors; with a definite width the
-  tracks divide it in the same proportions. The floor is zero rather than `auto`, which is
-  what `1fr` alone means and what would have kept the longest word from ever being cut: a
-  column is a part of the width the grid was handed;
-- Flutter measures, which is the same rule in the arithmetic the SDK's own
-  `SegmentedButton` uses: each child's `getMaxIntrinsicWidth(double.infinity)`, the largest
-  per factor for every column, clamped to the room the parent offers. A `Row` of `Expanded`
-  children inside an `IntrinsicWidth` *is* that arithmetic — a flex container reports
-  `max(intrinsicᵢ / flexᵢ) × Σflex`, and layout then gives each child its factor's share —
-  and the constraint clamp is the narrower parent. Laying the children out at their own
-  intrinsic width (a `Table`, a `Flexible` row) is the hugging rule this replaced.
-
-**What the model refuses.** A child of a stated grid that states a `flex` or a width of its
-own — the column is the grid's answer, and a browser would honour a width inside a track
-where Flutter overwrites it with the tight width of the column — and a `gridSpan`, because
-the template already says which column each child has. What a child *does* with the width
-it is handed is the child's business: a label that fills it and ellipsises is how a
-segmented button keeps one line.
-
-**A stretched column needs a height to stretch to.** `align-items: stretch` makes every
-column as tall as the tallest one and needs nothing else; a flex can only stretch a child
-to a height it already has, and a box above a row hands it none — a column lays its
-children out with an endless main axis, and Flutter refuses to fill one. So the Flutter
-renderer lays a stretching line out twice when it has no end: once to find its tallest
-child, once tight to that extent, which is the extent the children then fill. A line that
-was given an end — a row in a box that states its height — is laid out once, so the trees
-that already worked pay nothing; and the two targets agree: every column the tallest one's
-
-### 5.22 A host may draw a component with its own widget
-
-A design system in this repository is values plus nodes (§5.9), and both renderers draw those
-values, so a card is the same card on a page and in an application. That is the whole of the
-parity claim, and it is the right claim for the primitives: a box's fill, a line of type, a gap.
-
-A *component* is where the claim costs the application something a token cannot pay. `Card`,
-`NavigationBar`, `Chip` and `FilledButton` carry behaviour their look does not describe: the
-platform's ink, the click and the haptic on a press, the reader's text scale growing the control
-with it, `disableAnimations`, the tap-target minimum, a decade of accessibility work — and each
-of those arrives in a Flutter release the application already gets. A tree that re-derives the
-look keeps the page and forfeits the behaviour, forever, one fix at a time.
-
-So a rendering may be given a map of node type → builder — `renderFlutter(page,
-substitutions: …)` — and an application that already owns a component draws it. The rules are
-what keep it from becoming a second renderer:
-
-- **The renderer still builds the node.** The builder receives the node and its inside — the
-  children laid out with the direction, the gap, the alignment and the padding the tree asked
-  for — so layout, structure and content stay the model's. Only the surface is the widget's.
-- **Paint may change; information may not.** The same words, in the same order, with the same
-  links, semantics, roles and tap targets. A page and an application that disagree about content
-  were never the same screen, and a component is not allowed to make them.
-- **Keyed by the exact runtime type, and closed over the structural nodes.** `Box`, `TextNode`,
-  `StackNode`, `PositionedNode`, `GridNode`, `LinkNode`, `PagerNode`, `TextInputNode`,
-  `OverlayNode` and `EmbedNode` are refused by construction. Substituting one of those is not a
-  component preference; it is another renderer, and it would end §5.4 for every tree.
-- **Empty by default.** The document renderer has no substitutions and needs none, which is why
-  `unibox_testing` and the `:root` typography are unchanged by this door existing.
-
-**What it costs is the pixel, and the cost lands on the takeover.** `Card` spends elevation
-through `drawShadow`, whose ladder is not the one the design file measured (§5.9,
-`MaterialElevation`), and `NavigationBar` states its indicator's size internally. A substituted
-component therefore *may* lay out differently from the document that was on screen — which is
-the one thing `docs/takeover.md`'s reveal promises not to do. The rule that follows is per
-screen, and checkable: **a takeover screen may only use components whose two renderings agree.**
-A screen that does not is served as a document with no Flutter on it, or held to
-`?unibox=compare`. Component choice decides takeover viability; nothing about it is a host's
-private taste.
-
-The comparison with `EmbedNode` is worth naming, because both carry a platform value. An embed
-says *the model does not describe this*, so the tree is outside the contract and only one renderer
-can draw it. A substitution says *the model describes this and the application prefers its own
-painter*, so both renderers still have the node and the contract still applies — to the
-information, always, and to the paint wherever the two agree.
-
-**Status.** The rule is settled and the door is the standard wiring of a Flutter host: a document
-is served first, the application takes it over, and from then on a Material node is Flutter's own
-widget. `unibox_material_flutter` maps eight components; the structural ones (`MaterialScaffold`,
-`MaterialTabs`, `MaterialDialog`, `MaterialBottomSheet`) and the ink well stay out, because their
-slots, their policy or their role belong to the node rather than to the surface a widget replaces.
-What remains open is how far the list should grow, and the density of a document — CSS has no
-platform to read.
-
-height, whatever the box above says.
+
+Packages remain experimental and unpublished until a human release procedure.
+Breaking names are removed outright rather than kept as deprecated forwarders.
+Consumers must resolve a coherent revision across packages. Do not bump versions
+or change SDK pins as part of an implementation convenience.
+
+### 5.8 Immutable declarations
+
+Nodes and tokens retain const-compatible constructors. Collection arguments remain
+caller-owned and must not be mutated after construction. Use const collections or
+unmodifiable snapshots when their source can change. Equality and hashing of value
+tokens must agree by value, including collection contents used by caches.
+
+### 5.9 Design systems
+
+A design system is values plus components built from existing core nodes. The
+small Material vocabulary is palette, typography, card, button, chip, segmented
+control, codepoint icon and icon button, with supporting density/elevation values.
+Every retained Material component requires a native Flutter substitution. Having
+a native mapping is necessary but does not justify an unbounded catalogue.
+Application-specific components belong to the application.
+
+### 5.10 Themes and assets
+
+Colour roles resolve through a host-supplied theme; a missing role is reported.
+Fonts, image files and icon assets belong to the host. Codepoint icons require
+matching const `IconData` registration in the native Material mapping; do not
+replace an unregistered glyph with an approximate text renderer.
+
+### 5.11 Validation
+
+Validate constructs that cannot honour the declaration on both targets. A validator
+must also accept valid bounded descendants: an outer scroll axis does not invalidate
+a filling child inside a finite box. Validation is not a substitute for renderer tests.
+
+### 5.12 State
+
+Applications own state and rebuild declarations when it changes. The existing
+optional `StatefulNode`/store adapter remains a bounded region lifecycle facility:
+create, mount, subscribe, reconcile and dispose. It introduces no router or data
+layer and is not used to reimplement Material controls. HTML reads a snapshot and
+does not start store side effects. A store's copied parameters reconcile in `update`.
+
+### 5.13 Semantics
+
+Headings, landmarks, accessible names, selection and disabled state are information.
+A document and a native substitution must preserve them. Decorative content should
+not become an extra target or accessible name.
+
+### 5.14 Embeds
+
+An embed explicitly hands an implementation to a host for a region the declaration
+does not describe. It is outside primitive appearance parity. Raw HTML embeds are
+trusted host markup; ordinary text, URLs and style strings remain escaped values.
+
+### 5.15 Motion
+
+State transitions ease declared paint values. Scroll effects that remain in core
+must not turn application state into a browser runtime. Document reduced-motion
+and unsupported-engine behaviour explicitly. Removed paths have no transition API.
+
+### 5.16 Pagers and scrolling
+
+Scroll positions and page selection are supplied or exposed to the host. Handover's
+page offset is distinct from a keyed region's internal offset. Never guess which
+Flutter scrollable corresponds to the whole document.
+
+### 5.17 Overlays
+
+The generic overlay node remains available for declared region presentation.
+Application flow and opening/closing policy belong to host state. Removed Material
+dialog and sheet wrappers do not require removing the generic primitive.
+
+### 5.18 Responsive regions
+
+Visibility thresholds can select a declaration's alternate fragments. The host
+owns responsive page composition that needs different structures or native layouts.
+Hidden and absent content must take the same layout space: none.
+
+### 5.19 Native density
+
+The host supplies platform density when the retained design system needs it.
+Density does not give the declaration permission to read a platform runtime.
+
+### 5.20 Text
+
+The model owns default typography, inheritance and decoration semantics. Absolute
+text-decoration thickness is a documented approximation in Flutter, whose native
+API expresses a font-relative multiplier. Input caret, selection, text shaping and
+font availability remain platform responsibilities.
+
+### 5.21 Grids
+
+A grid owns its tracks. Spans are clamped to the available columns; a whole-row
+span remains a whole row at every width. Explicit column factors divide bounded
+space or the measured intrinsic extent according to the same declared rule.
+
+### 5.22 Native substitutions
+
+Substitutions are keyed by exact component type. Structural primitives cannot be
+replaced wholesale. A builder receives the declaration and its rendered content;
+whole native controls may consume the component's retained parameters instead.
+Content, order, destinations, accessible meaning and actions must survive.
+
+A component can require a native widget substitution without importing Flutter.
+The generic renderer reports a missing required mapping. HTML still renders its
+core declaration. Native paint differences must be explicit, and shared regions
+used during handover need real layout checks at representative sizes.

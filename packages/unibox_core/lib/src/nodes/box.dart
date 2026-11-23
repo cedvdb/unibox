@@ -7,7 +7,6 @@ import '../tokens/box_fraction.dart';
 import '../tokens/box_border_radius.dart';
 import '../tokens/box_semantics.dart';
 import '../tokens/box_shadow.dart';
-import '../tokens/box_shape.dart';
 import '../tokens/box_spacing.dart';
 import '../tokens/box_style.dart';
 import '../tokens/grid_span.dart';
@@ -73,7 +72,6 @@ class Box extends UINode {
     this.corners,
     this.border,
     this.shadows,
-    this.shape,
     this.textStyle,
     this.transition,
     this.fold,
@@ -284,13 +282,6 @@ class Box extends UINode {
   /// a penumbra and a wide ambient layer, and a browser paints all three.
   final List<BoxShadow>? shadows;
 
-  /// The outline the box is painted in, instead of its rectangle.
-  ///
-  /// A shape paints the box's region: the background fills the path, the [border]
-  /// is drawn along it, and the children are clipped to it when the box also says
-  /// `overflow: Overflow.hidden`. It changes nothing about layout.
-  final BoxShape? shape;
-
   // Typography.
 
   /// The typography inherited by the children of this box.
@@ -498,7 +489,6 @@ class Box extends UINode {
     corners: corners,
     border: border,
     shadows: shadows,
-    shape: shape,
     textStyle: textStyle,
     transition: transition,
     fold: fold,

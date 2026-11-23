@@ -479,20 +479,7 @@ UINode _mapButton() {
     borderRadius: 16,
     backgroundColor: const BoxColor.role(MaterialColorRole.primaryContainer),
     children: <UINode>[
-      MaterialInkWell(
-        onTap: () {},
-        borderRadius: 16,
-        ink: const BoxColor.role(MaterialColorRole.onPrimaryContainer),
-        padding: const BoxSpacing.symmetric(horizontal: 20, vertical: 14),
-        child: TextNode(
-          'Map',
-          style: MaterialTypography.labelLarge.merge(
-            BoxTextStyle(
-              color: const BoxColor.role(MaterialColorRole.onPrimaryContainer),
-            ),
-          ),
-        ),
-      ),
+      MaterialButton.tonal(label: const TextNode('Map'), onTap: () {}),
     ],
   );
 }
@@ -522,7 +509,7 @@ UINode _filterChip(
   return MaterialChip(
     label: TextNode(label),
     selected: selected,
-    leading: selected ? MaterialCheckMark(color: onSelected, size: 12) : null,
+    leading: selected ? TextNode('✓', color: onSelected, fontSize: 12) : null,
     trailing: selected ? glyphClose(onSelected) : null,
     onRemove: selected ? () => onFilter?.call(null) : null,
     onTap: () => onFilter?.call(selected ? null : label),

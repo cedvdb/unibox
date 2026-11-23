@@ -28,8 +28,9 @@ final class Takeover {
   /// Creates the takeover of a page.
   const Takeover({
     required this.boot,
+    this.hostId,
     this.policy = BootPolicy.onPointer,
-    this.reveal = RevealPolicy.onFrame,
+    this.reveal = RevealPolicy.onReady,
     this.readyTimeout = const Duration(seconds: 8),
     this.loadingLabel = 'Opening the application…',
     this.readyLabel = 'The application is ready',
@@ -42,6 +43,9 @@ final class Takeover {
 
   /// The url of the loader that boots the application, relative to the document.
   final String boot;
+
+  /// An existing direct child of the document body that hosts the Flutter engine.
+  final String? hostId;
 
   /// When the boot starts.
   final BootPolicy policy;
@@ -107,6 +111,7 @@ final class Takeover {
     bootScript(
       boot,
       policy: policy,
+      hostId: hostId,
       openLabel: openLabel,
       reveal: reveal,
       readyTimeout: readyTimeout,

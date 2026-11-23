@@ -6,7 +6,6 @@ Unibox is a Dart 3.13 workspace of seven packages, in one direction only: the mo
 then the web, then the widgets. `packages/unibox_core` holds the node tree and the design
 tokens and has no dependencies at all. The web is one package with two layers a node
 becomes in a browser: `packages/unibox_html` turns a token into CSS declarations and a node
-into an element plan, and writes that plan as a document. `packages/unibox_dom` adopts
 that document in a browser and keeps it in step with the stores the tree created.
 `packages/unibox_flutter` draws the same tree as widgets. `packages/unibox_testing` holds
 the tables of expected presentation that the renderer suites are checked against, so the
@@ -81,7 +80,6 @@ coding agent needs are in [AGENTS.md](AGENTS.md), and a human contributing needs
   element plan a node becomes, and the document those are written into, which a search
   engine can read with no framework and no runtime. Pure Dart, no dependencies; both web
   renderings are built from it.
-- [unibox_dom](packages/unibox_dom/README.md): the client renderer — adopts the markup the
   server wrote and patches it as the stores publish, so a page is interactive without
   Flutter.
 - [unibox_flutter](packages/unibox_flutter/README.md): the Flutter renderer
@@ -151,10 +149,11 @@ coding agent needs are in [AGENTS.md](AGENTS.md), and a human contributing needs
 - [packages/unibox_core/CHANGELOG.md](packages/unibox_core/CHANGELOG.md),
   [packages/unibox_flutter/CHANGELOG.md](packages/unibox_flutter/CHANGELOG.md),
   [packages/unibox_html/CHANGELOG.md](packages/unibox_html/CHANGELOG.md),
-  [packages/unibox_dom/CHANGELOG.md](packages/unibox_dom/CHANGELOG.md): the unreleased
   changes, which is where a new token is described for the user.
 - [PERFORMANCE.md](PERFORMANCE.md): what a page with thousands of nodes costs, the three
   shapes the benchmark measures, the baseline CI holds them to, and the six places the
   pipeline was not linear before they were fixed.
 - [example/unibox_example_shared/lib/](example/unibox_example_shared/lib/): the
   example trees as plain Dart, the arrangement to copy for a real application.
+
+- [docs/plan-focused-rendering.md](docs/plan-focused-rendering.md): scope reduction, migration tasks and implementation status.

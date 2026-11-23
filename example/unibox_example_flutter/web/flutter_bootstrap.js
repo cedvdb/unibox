@@ -13,6 +13,7 @@ _flutter.loader.load({
   config: {
     entrypointBaseUrl: base,
     canvasKitBaseUrl: new URL('canvaskit/', base).href,
-    assetBase: base
+    assetBase: base,
+    hostElement: window.unibox && window.unibox.hostElement ? window.unibox.hostElement : undefined
   }
 });

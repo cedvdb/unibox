@@ -116,7 +116,7 @@ List<BoxPress> replayPresses(UINode tree, Iterable<BoxPress> presses) {
     // A destination with no handler is the browser's: the page is already following it, and
     // firing whatever the tree would have done would be a second answer to one press.
     final void Function()? callback = switch (node) {
-      final Box box => box.onTap,
+      final Box box when box.enabled => box.onTap,
       _ => null,
     };
 

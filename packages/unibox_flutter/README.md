@@ -1,5 +1,14 @@
 # unibox_flutter
 
+Renders shared declarations as widgets. The application owns routing, state and
+page composition. Material declarations require their native substitution map.
+
+Optional handover is exposed by `package:unibox_flutter/handover.dart`. Call
+`FlutterHandover.complete(controller: controller)` after the intended route, data
+and layout are ready. It restores the latest document offset once, reveals the
+app and replays one intercepted keyed action. A stateful region does not signal
+readiness automatically. See [handover](../../docs/takeover.md).
+
 Flutter renderer for [Unibox](../unibox_core) layout primitives.
 
 ```dart
@@ -47,8 +56,6 @@ with their target.
 | `overflow: Overflow.hidden`         | `ClipRect`, or a `ClipPath` to the padding box when the box draws a `border` or a `borderRadius`, inside the decoration so the shadow survives |
 | `GridNode.columns`                  | a `Row` of `Expanded` children at their factors inside an `IntrinsicWidth`, so a column is the widest content per unit and a width the grid was given is divided; `CrossAlign.stretch` adds an `IntrinsicHeight` |
 | `PositionedNode.alignment`          | `Positioned.fill` around an `Align`, with a directional alignment so a start or an end follows the writing direction |
-| `shape`                            | `CustomPaint` with a `Path`: the fill, then the border as a stroke along it |
-| `shape` + `overflow: Overflow.hidden` | `ClipPath` to the same path                       |
 | `overflow: Overflow.scroll`         | `SingleChildScrollView`                             |
 | `PagerNode`                         | the same scroll view with `PageScrollPhysics`, so a drag settles on a child rather than between two; `index` is applied after the frame that laid it out, and `onPageChanged` is read from the viewport at the end of a scroll. It is a `Box`, so it is drawn by `FlutterBox` and needs no widget of its own |
 | `pin` / `pinOffset`                 | the flow unchanged, with the bar drawn at the edge it names: a `_RenderPinnedBar` over the viewport's own layer for a bar the viewport holds, and a `_NestedPin` translation, clamped to the parent's box, for a pin deeper in the tree. Both repaint on every scroll, so nothing rebuilds, and the bar keeps its slot — which is the height it measured for itself, so no height has to be stated |
@@ -60,7 +67,6 @@ with their target.
 | `onHover` / `hoverStyle`            | `MouseRegion` and the hovered token set             |
 | `onScroll`                          | `NotificationListener<ScrollUpdateNotification>` around the scroll view, reporting `metrics.pixels` when the notification's `depth` is zero |
 
-A `shape` is painted through a `CustomPaint` and built with `pathOf(shape, size)`:
 the commands become a `Path`, so the same value draws the same silhouette at any
 size, and the stroke is centred on the outline (half of it therefore lies outside a
 box whose outline touches its edge, as it does in the browser). `ClipPath` clips the
@@ -465,9 +471,8 @@ with an `onTap` is handled by the tree and the scope is not asked: one press, on
 loading the document too. A destination with neither a scope nor an `onTap` is reported as
 a host configuration error in debug builds instead of silently doing nothing.
 
-Because the gesture stays the box's own, its pressed state and the ink a `MaterialInkWell`
-starts on tap-down are its own too: a component is a destination by being given a url, and
-the control a reader presses is the control a crawler reads.
+A component with a native substitution uses the native widget's interaction. A
+destination remains the same address in the document and the application.
 
 ## Stack mapping
 

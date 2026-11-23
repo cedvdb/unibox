@@ -154,12 +154,13 @@ void main() {
       );
     });
 
-    test('carries the recorders and no boot', () {
+    test('is a document without a browser application runtime', () {
       // The site is a document with a catalogue to press things in; nothing here starts an
       // application over it.
       final String html = buildSiteDocument().write();
 
-      expect(html, contains('unibox.takePressed'));
+      expect(html, isNot(contains('unibox.takePressed')));
+      expect(html, isNot(contains('main.client.js')));
       expect(html, isNot(contains('unibox.boot')));
     });
   });

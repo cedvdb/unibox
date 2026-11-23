@@ -5,510 +5,199 @@ import 'package:unibox_flutter/unibox_flutter.dart';
 import 'package:unibox_material/unibox_material.dart' as material;
 import 'package:unibox_material_flutter/unibox_material_flutter.dart';
 
-/// Holds the map to the bargain it makes.
-///
-/// A component an application draws with the platform's own widget may look different — that
-/// is the point — but it may not say anything different. These cases pin both halves: the
-/// widget is there when the map is, the tree's own values are there when it is not, and the
-/// words and the chosen destination are the same either way.
 void main() {
-  core.UINode tree() => core.Box(
-    children: <core.UINode>[
-      material.MaterialCard(
-        children: <core.UINode>[const core.TextNode('Order summary')],
+  Future<void> draw(
+    WidgetTester tester,
+    core.UINode node, {
+    bool native = true,
+  }) => tester.pumpWidget(
+    MaterialApp(
+      home: Scaffold(
+        body: renderFlutter(
+          node,
+          scope: core.UniboxScope(theme: material.MaterialPalette.lightTheme),
+          substitutions: native
+              ? materialComponents(icons: const <IconData>[Icons.search])
+              : const UniboxSubstitutions.none(),
+        ),
       ),
-      material.MaterialNavigationBar(
-        destinations: const <material.MaterialNavigationDestination>[
-          material.MaterialNavigationDestination(
-            label: core.TextNode('Listings'),
-          ),
-          material.MaterialNavigationDestination(label: core.TextNode('Map')),
-        ],
-        selected: 1,
-        onSelect: (int index) {},
-      ),
-    ],
+    ),
   );
 
-  Future<void> pumpTree(WidgetTester tester, {required bool substituted}) =>
-      tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Align(
-              alignment: Alignment.topLeft,
-              child: SizedBox(
-                width: 360,
-                child: renderFlutter(
-                  tree(),
-                  scope: core.UniboxScope(
-                    theme: material.MaterialPalette.lightTheme,
-                  ),
-                  substitutions: substituted
-                      ? materialComponents()
-                      : const UniboxSubstitutions.none(),
-                ),
+  testWidgets('replays a keyed press through the native button once', (
+    tester,
+  ) async {
+    int calls = 0;
+    await draw(
+      tester,
+      material.MaterialButton(
+        key: 'save',
+        label: const core.TextNode('Save'),
+        onTap: () => calls++,
+      ),
+    );
+    expect(
+      pressRecorded(const <core.BoxPress>[core.BoxPress(key: 'save')]),
+      hasLength(1),
+    );
+    await tester.pump();
+    expect(calls, 1);
+  });
+
+  testWidgets(
+    'native buttons preserve explicit dimensions and long press actions',
+    (tester) async {
+      int calls = 0;
+      await draw(
+        tester,
+        material.MaterialButton(
+          label: const core.TextNode('Save'),
+          width: 180,
+          height: 48,
+          onTap: () {},
+          onLongPress: () => calls++,
+        ),
+      );
+      expect(tester.getSize(find.byType(FilledButton)).width, 180);
+      await tester.longPress(find.text('Save'));
+      expect(calls, 1);
+    },
+  );
+
+  testWidgets('native controls follow declared destinations through the host', (
+    tester,
+  ) async {
+    String? opened;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: FlutterLinkScope(
+            open: (String url) => opened = url,
+            child: renderFlutter(
+              material.MaterialButton(
+                label: const core.TextNode('Listings'),
+                url: '/listings',
               ),
+              scope: core.UniboxScope(
+                theme: material.MaterialPalette.lightTheme,
+              ),
+              substitutions: materialComponents(),
             ),
           ),
         ),
+      ),
+    );
+    await tester.tap(find.text('Listings'));
+    expect(opened, '/listings');
+  });
+
+  testWidgets(
+    'requires the native mapping rather than silently drawing a control',
+    (tester) async {
+      await draw(
+        tester,
+        const material.MaterialCard(
+          children: <core.UINode>[core.TextNode('Card')],
+        ),
+        native: false,
       );
+      expect(tester.takeException(), isA<StateError>());
+    },
+  );
 
-  testWidgets('draws the components the application owns with its widgets', (
-    WidgetTester tester,
-  ) async {
-    await pumpTree(tester, substituted: true);
-
+  testWidgets('draws a native card with the declared content', (tester) async {
+    await draw(
+      tester,
+      const material.MaterialCard(
+        children: <core.UINode>[core.TextNode('Order summary')],
+      ),
+    );
     expect(find.byType(Card), findsOneWidget);
-    expect(find.byType(NavigationBar), findsOneWidget);
-  });
-
-  testWidgets('draws the tree values when nothing is substituted', (
-    WidgetTester tester,
-  ) async {
-    await pumpTree(tester, substituted: false);
-
-    expect(find.byType(Card), findsNothing);
-    expect(find.byType(NavigationBar), findsNothing);
     expect(find.text('Order summary'), findsOneWidget);
   });
 
-  testWidgets('keeps the words and the destination that is chosen', (
-    WidgetTester tester,
+  testWidgets('a native button answers once and honours disabled state', (
+    tester,
   ) async {
-    await pumpTree(tester, substituted: true);
-
-    expect(find.text('Order summary'), findsOneWidget);
-
-    final NavigationBar bar = tester.widget<NavigationBar>(
-      find.byType(NavigationBar),
-    );
-
-    expect(bar.selectedIndex, 1);
-    expect(
-      bar.destinations
-          .map(
-            (Widget destination) =>
-                (destination as NavigationDestination).label,
-          )
-          .toList(),
-      <String>['Listings', 'Map'],
-    );
-  });
-
-  testWidgets('draws the four controls with the platform widgets too', (
-    WidgetTester tester,
-  ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: renderFlutter(
-            core.Box(
-              children: <core.UINode>[
-                material.MaterialButton.filled(
-                  label: const core.TextNode('Save'),
-                  onTap: () {},
-                ),
-                material.MaterialChip(
-                  label: const core.TextNode('Two rooms'),
-                  selected: true,
-                  onTap: () {},
-                ),
-                material.MaterialIconButton(
-                  icon: const core.TextNode('I'),
-                  label: 'More',
-                  onTap: () {},
-                ),
-                material.MaterialProgressRing(value: 0.4, label: '40%'),
-              ],
-            ),
-            scope: core.UniboxScope(theme: material.MaterialPalette.lightTheme),
-            substitutions: materialComponents(),
-          ),
-        ),
+    int calls = 0;
+    await draw(
+      tester,
+      material.MaterialButton(
+        label: const core.TextNode('Save'),
+        onTap: () => calls++,
       ),
     );
-
     expect(find.byType(FilledButton), findsOneWidget);
-    expect(find.byType(FilterChip), findsOneWidget);
-    expect(find.byType(IconButton), findsOneWidget);
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    // The words are the tree's either way.
-    expect(find.text('Save'), findsOneWidget);
-    expect(find.text('Two rooms'), findsOneWidget);
-  });
-
-  testWidgets('draws a tile too', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: renderFlutter(
-            core.Box(
-              children: <core.UINode>[
-                material.MaterialListTile(
-                  title: const core.TextNode('Ada Lovelace'),
-                  onTap: () {},
-                ),
-              ],
-            ),
-            scope: core.UniboxScope(theme: material.MaterialPalette.lightTheme),
-            substitutions: materialComponents(),
-          ),
-        ),
+    await tester.tap(find.text('Save'));
+    expect(calls, 1);
+    await draw(
+      tester,
+      material.MaterialButton(
+        label: const core.TextNode('Save'),
+        enabled: false,
+        onTap: () => calls++,
       ),
     );
-
-    expect(find.byType(ListTile), findsOneWidget);
-    expect(find.text('Ada Lovelace'), findsOneWidget);
+    await tester.tap(find.text('Save'));
+    expect(calls, 1);
   });
 
-  testWidgets('draws a field and a spinner with the platform widgets too', (
-    WidgetTester tester,
+  testWidgets('a native segmented control reports the chosen destination', (
+    tester,
   ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: renderFlutter(
-            core.Box(
-              children: <core.UINode>[
-                material.MaterialTextField(
-                  label: 'Email',
-                  placeholder: 'ada@example.com',
-                ),
-                material.MaterialSpinner(),
-              ],
-            ),
-            scope: core.UniboxScope(theme: material.MaterialPalette.lightTheme),
-            substitutions: materialComponents(),
-          ),
-        ),
-      ),
-    );
-
-    expect(find.byType(TextField), findsOneWidget);
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    expect(find.text('Email'), findsOneWidget);
-  });
-
-  testWidgets('draws a tab strip with the platform widget too', (
-    WidgetTester tester,
-  ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: renderFlutter(
-            material.MaterialTabBar(
-              tabs: const <material.MaterialTab>[
-                material.MaterialTab(label: core.TextNode('Overview')),
-                material.MaterialTab(label: core.TextNode('Details')),
-              ],
-              selected: 1,
-            ),
-            scope: core.UniboxScope(theme: material.MaterialPalette.lightTheme),
-            substitutions: materialComponents(),
-          ),
-        ),
-      ),
-    );
-
-    expect(find.byType(TabBar), findsOneWidget);
-    expect(find.text('Overview'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
-
-  group('a substituted card', () {
-    testWidgets('wears the corner, the fill and the clip the tree states', (
-      WidgetTester tester,
-    ) async {
-      // A card is not `CardTheme`'s card: the node states a radius, a colour role and whether
-      // a press may paint past its edge. A ripple outside a rounded corner is one card drawn
-      // two ways, and a fill from the wrong palette is two designs.
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: renderFlutter(
-              material.MaterialCard(
-                color: const core.BoxColor(0xFF102030),
-                borderRadius: 12,
-                overflow: core.Overflow.hidden,
-                children: <core.UINode>[const core.TextNode('Order summary')],
-              ),
-              substitutions: materialComponents(),
-            ),
-          ),
-        ),
-      );
-
-      final Card card = tester.widget<Card>(find.byType(Card));
-
-      expect(card.color, const Color(0xFF102030));
-      expect(card.clipBehavior, Clip.antiAlias);
-      expect(
-        (card.shape! as RoundedRectangleBorder).borderRadius,
-        BorderRadius.circular(12),
-      );
-    });
-  });
-
-  testWidgets(
-    "draws a glyph the host did not name as text, so no IconData is built at run time",
-    (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: renderFlutter(
-              material.MaterialIcon.codePoint(
-                0xe570,
-                size: 18,
-                color: const core.BoxColor(0xFF102030),
-                fontFamily: 'MaterialIcons',
-              ),
-              scope: core.UniboxScope(
-                theme: material.MaterialPalette.lightTheme,
-              ),
-              substitutions: materialComponents(),
-            ),
-          ),
-        ),
-      );
-
-      // A run-time `IconData` costs the application its icon subsetter, so the fallback is the
-      // character itself, out of the family the node names.
-      expect(find.byType(Icon), findsNothing);
-      final Text glyph = tester.widget<Text>(find.text(String.fromCharCode(0xe570)));
-
-      expect(glyph.style?.fontFamily, 'MaterialIcons');
-      expect(glyph.style?.fontSize, 18);
-      expect(glyph.style?.color, const Color(0xFF102030));
-      // An icon does not grow with the reader's text size.
-      expect(glyph.textScaler, TextScaler.noScaling);
-    },
-  );
-
-  testWidgets(
-    "draws an icon from the host's own IconData, so the glyph ships",
-    (WidgetTester tester) async {
-      // The list is the app's: a glyph the shaker cannot see is a glyph a release build drops, and a
-      // codepoint read out of an `IconData` is not enough to keep it.
-      const IconData gift = IconData(0xe13e, fontFamily: 'MaterialIcons');
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: renderFlutter(
-              material.MaterialIcon.codePoint(
-                0xe13e,
-                fontFamily: 'MaterialIcons',
-              ),
-              scope: core.UniboxScope(
-                theme: material.MaterialPalette.lightTheme,
-              ),
-              substitutions: materialComponents(icons: const <IconData>[gift]),
-            ),
-          ),
-        ),
-      );
-
-      final Icon icon = tester.widget<Icon>(find.byType(Icon));
-
-      expect(
-        icon.icon,
-        gift,
-        reason: 'the very constant the application named',
-      );
-    },
-  );
-
-  testWidgets(
-    'names the family of a glyph it was not given, so it draws from the icon font',
-    (WidgetTester tester) async {
-      // A glyph the host's list does not name still has to draw from the icon font: a family left
-      // to the ambient text style would draw it out of whatever font the text happens to use.
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: renderFlutter(
-              material.MaterialIcon.codePoint(
-                0xe567,
-                fontFamily: 'MaterialIcons',
-              ),
-              scope: core.UniboxScope(
-                theme: material.MaterialPalette.lightTheme,
-              ),
-              substitutions: materialComponents(),
-            ),
-          ),
-        ),
-      );
-
-      final Text glyph = tester.widget<Text>(find.text(String.fromCharCode(0xe567)));
-
-      expect(glyph.style?.fontFamily, 'MaterialIcons');
-    },
-  );
-
-  testWidgets('falls back for a glyph the host did not name', (
-    WidgetTester tester,
-  ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: renderFlutter(
-            material.MaterialIcon.codePoint(
-              0xe570,
-              fontFamily: 'MaterialIcons',
-            ),
-            scope: core.UniboxScope(theme: material.MaterialPalette.lightTheme),
-            substitutions: materialComponents(
-              icons: const <IconData>[
-                IconData(0xe13e, fontFamily: 'MaterialIcons'),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-
-    expect(find.text(String.fromCharCode(0xe570)), findsOneWidget);
-  });
-
-  material.MaterialSegmentedButton twoChoices({VoidCallback? onRemove}) =>
+    int selected = 0;
+    await draw(
+      tester,
       material.MaterialSegmentedButton(
-        segments: <material.MaterialSegment>[
-          const material.MaterialSegment(label: core.TextNode('Rooms')),
-          const material.MaterialSegment(label: core.TextNode('Desks')),
+        segments: const <material.MaterialSegment>[
+          material.MaterialSegment(label: core.TextNode('Day')),
+          material.MaterialSegment(label: core.TextNode('Week')),
         ],
-        selected: 0,
-        onSelect: (int index) {},
-      );
-
-  testWidgets(
-    "a pill without a width hugs its columns, and one that states a width fills it",
-    (WidgetTester tester) async {
-      // A row that scrolls gives its children no width at all, and a `SegmentedButton` told to
-      // expand into that lays out at an infinite width and throws. The node's own width decides —
-      // as it does on the page — so the pill hugs, and the row can size to its chips.
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: renderFlutter(
-              core.Box(
-                direction: core.Axis.horizontal,
-                overflow: core.Overflow.scroll,
-                children: <core.UINode>[twoChoices()],
-              ),
-              scope: core.UniboxScope(
-                theme: material.MaterialPalette.lightTheme,
-              ),
-              substitutions: materialComponents(),
-            ),
-          ),
-        ),
-      );
-
-      expect(tester.takeException(), isNull);
-      final Size hugged = tester.getSize(find.byType(SegmentedButton<int>));
-      expect(hugged.width, lessThan(360));
-
-      // A pill that states a width divides it between its segments.
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Align(
-              alignment: Alignment.topLeft,
-              child: renderFlutter(
-                material.MaterialSegmentedButton(
-                  segments: <material.MaterialSegment>[
-                    const material.MaterialSegment(
-                      label: core.TextNode('Rooms'),
-                    ),
-                    const material.MaterialSegment(
-                      label: core.TextNode('Desks'),
-                    ),
-                  ],
-                  selected: 0,
-                  onSelect: (int index) {},
-                  width: 360,
-                ),
-                scope: core.UniboxScope(
-                  theme: material.MaterialPalette.lightTheme,
-                ),
-                substitutions: materialComponents(),
-              ),
-            ),
-          ),
-        ),
-      );
-
-      expect(tester.getSize(find.byType(SegmentedButton<int>)).width, 360);
-    },
-  );
-
-  testWidgets('outlines a segmented pill with the hairline the tree names', (
-    WidgetTester tester,
-  ) async {
-    // `SegmentedButton` outlines itself with `ColorScheme.outline` unless it is told otherwise,
-    // which is a step darker than the `outlineVariant` a tree states — so the app drew a
-    // different pill than the page for the same node.
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: renderFlutter(
-            material.MaterialSegmentedButton(
-              segments: <material.MaterialSegment>[
-                const material.MaterialSegment(label: core.TextNode('Rooms')),
-                const material.MaterialSegment(label: core.TextNode('Desks')),
-              ],
-              selected: 0,
-              onSelect: (int index) {},
-              border: const core.BoxBorder(
-                color: core.BoxColor(0xFF112233),
-                width: 2,
-              ),
-            ),
-            scope: core.UniboxScope(theme: material.MaterialPalette.lightTheme),
-            substitutions: materialComponents(),
-          ),
-        ),
+        selected: selected,
+        onSelect: (int value) => selected = value,
       ),
     );
-
-    final SegmentedButton<int> pill = tester.widget<SegmentedButton<int>>(
-      find.byType(SegmentedButton<int>),
-    );
-
-    expect(
-      pill.style?.side?.resolve(<WidgetState>{}),
-      const BorderSide(color: Color(0xFF112233), width: 2),
-    );
+    expect(find.byType(SegmentedButton<int>), findsOneWidget);
+    await tester.tap(find.text('Week'));
+    expect(selected, 1);
   });
 
-  testWidgets('a removable chip answers its own pill as well as its cross', (
-    WidgetTester tester,
+  testWidgets('native chips preserve selection and removal actions', (
+    tester,
   ) async {
-    int presses = 0;
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: renderFlutter(
-            material.MaterialChip(
-              label: const core.TextNode('Terrace'),
-              selected: true,
-              onTap: () => presses++,
-              onRemove: () => presses += 10,
-              trailing: const core.TextNode('x'),
-            ),
-            scope: core.UniboxScope(theme: material.MaterialPalette.lightTheme),
-            substitutions: materialComponents(),
-          ),
-        ),
+    int deleted = 0;
+    await draw(
+      tester,
+      material.MaterialChip(
+        label: const core.TextNode('Brussels'),
+        selected: true,
+        onTap: () {},
+        onRemove: () => deleted++,
       ),
     );
+    expect(find.byType(InputChip), findsOneWidget);
+    await tester.tap(find.byTooltip('Delete'));
+    expect(deleted, 1);
+  });
 
-    await tester.tap(find.text('Terrace'));
-    expect(presses, 1, reason: 'the whole pill drops the filter');
-
-    await tester.tap(find.text('x'));
-    expect(presses, 11, reason: 'so does the cross beside it');
+  testWidgets('native icons and icon buttons preserve their glyph and label', (
+    tester,
+  ) async {
+    int calls = 0;
+    await draw(
+      tester,
+      material.MaterialIconButton(
+        icon: material.MaterialIcon.codePoint(
+          Icons.search.codePoint,
+          fontFamily: Icons.search.fontFamily ?? 'MaterialIcons',
+        ),
+        label: 'Search',
+        onTap: () => calls++,
+      ),
+    );
+    expect(find.byType(IconButton), findsOneWidget);
+    expect(find.byType(Icon), findsWidgets);
+    await tester.tap(find.byType(IconButton));
+    expect(calls, 1);
   });
 }

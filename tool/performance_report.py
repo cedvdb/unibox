@@ -70,7 +70,6 @@ def sizes(site):
 
     return {
         'document': gzipped(os.path.join(site, 'web/listings/index.html')),
-        'client': gzipped(os.path.join(site, 'web/main.client.js')),
         'fonts': sum(gzipped(path) for path in fonts),
         'photos': sum(gzipped(path) for path in photos),
     }

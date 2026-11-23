@@ -3,6 +3,10 @@
 /// Nodes are immutable descriptions of a piece of UI. Renderers translate them
 /// to Flutter widgets or to HTML.
 ///
+/// Collections supplied to nodes and tokens must not be mutated after construction.
+/// Use const collections or unmodifiable snapshots when their source can change;
+/// const constructors retain their arguments rather than defensively copying them.
+///
 /// Custom nodes may extend this class, renderers will report nodes they do not
 /// support.
 ///
@@ -38,6 +42,12 @@ abstract class UINode {
   /// siblings, which is a fact about the tree rather than a rule this class can
   /// enforce.
   final Object? key;
+
+  /// Whether a widget renderer must use a host-provided native substitution.
+  ///
+  /// A design-system component can declare its document appearance while requiring
+  /// the application's widget implementation for native interaction.
+  bool get requiresWidgetSubstitution => false;
 
   /// The direct child nodes of this node in paint order.
   ///

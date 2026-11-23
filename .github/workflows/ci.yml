@@ -72,9 +72,6 @@ jobs:
       - name: unibox_html
         working-directory: packages/unibox_html
         run: dart test
-      - name: unibox_dom
-        working-directory: packages/unibox_dom
-        run: dart test -p chrome
       - name: unibox_flutter
         working-directory: packages/unibox_flutter
         run: flutter test
@@ -149,7 +146,6 @@ jobs:
           unibox_material
           unibox_material_flutter
           unibox_html
-          unibox_dom
           unibox_flutter
           PACKAGES
 
@@ -184,8 +180,6 @@ jobs:
         run: tool/boot_check.sh build/site
       - name: Check that the documents still crawl
         run: python3 tool/doc_check.py build/site
-      - name: Check that the client answers a press
-        run: tool/dom_check.sh build/site
 
       # Lighthouse starts a browser and takes a few minutes, which is why it is the last step of a job
       # of its own rather than part of the fast loop. A page outside its budget fails the build.

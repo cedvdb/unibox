@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Require native widget rendering for the retained vocabulary; preserve destinations, disabled state and chip selection. Unregistered icon glyphs are reported instead of approximated.
+
 - **A glyph the host did not name is drawn as text, not as a run-time `IconData`.** `flutter build`
   records every `IconData` construction and refuses to subset the icon fonts when an argument is
   not a constant — *"This application cannot tree shake icons fonts. It has non-constant instances

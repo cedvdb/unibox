@@ -2,94 +2,20 @@ import 'package:unibox_core/unibox_core.dart';
 
 import 'material_palette.dart';
 
-/// A Material icon: one glyph of an icon font, centred in a square [Box].
+/// A declared icon glyph, drawn by Flutter's native `Icon` substitution.
 ///
-/// ```dart
-/// MaterialIcon.codePoint(Symbols.home.codePoint);   // by codepoint
-/// MaterialIcon.ligature('home');                     // by ligature name
-/// MaterialIcon.ligature('delete', color: palette.error, label: 'Delete');
-/// ```
-///
-/// An icon is text set in an icon font, so it needs no node of its own and no
-/// embed: both renderers already draw a text with a family, a size and a colour,
-/// and the glyph follows the same tokens as any other text. That is also why the
-/// icon recolours with `color` and scales with `size`, which an image cannot.
-///
-/// **The font is the host's.** Like any font file it is an asset the model does
-/// not carry: declare the family in the application — `fonts:` in the Flutter
-/// pubspec, an `@font-face` for the web — and name it with [fontFamily]. A host
-/// without the font draws the character of the glyph as plain text.
-///
-/// **Tree shaking wants codepoints, not ligatures.** Flutter's
-/// `--tree-shake-icons` reads const `IconData` instances out of the application
-/// and subsets the fonts they name; a ligature name is a string, so nothing is
-/// found and the whole font ships. Pass a codepoint that comes from a const
-/// `IconData` — `Symbols.home` from `material_symbols_icons`, or a `const
-/// IconData(0xe9b2, fontFamily: …)` of your own — and the font is subset to the
-/// glyphs the application uses. A web export has no shaker of its own: serve the
-/// subset the Flutter build wrote, or one from `pyftsubset`, with its
-/// `@font-face`.
-///
-/// **Accessibility.** An icon beside a text is decoration and is hidden from
-/// assistive technology; pass [label] when it stands alone and it is announced
-/// instead.
+/// Both hosts ship the named font. Flutter hosts register matching const
+/// `IconData` values in `materialComponents(icons: ...)` to preserve tree shaking.
 final class MaterialIcon extends Box {
-  /// Creates an icon from a [codePoint] of [fontFamily].
-  ///
-  /// Take [codePoint] from a const `IconData` — that is what the tree shaker
-  /// reads, and a literal ships the whole font. `Symbols.home.codePoint`, or a
-  /// const list of the symbols an application uses, both work.
+  /// Declares a glyph from a font supplied by both hosts.
   MaterialIcon.codePoint(
-    int codePoint, {
-    Object? key,
+    this.codePoint, {
+    super.key,
     double size = defaultSize,
     BoxColor? color,
-    String fontFamily = defaultFontFamily,
+    this.fontFamily = defaultFontFamily,
     String? label,
-  }) : this._(
-         codePoint: codePoint,
-         glyph: String.fromCharCode(codePoint),
-         key: key,
-         size: size,
-         color:
-             color ?? const BoxColor.role(MaterialColorRole.onSurfaceVariant),
-         fontFamily: fontFamily,
-         label: label,
-       );
-
-  /// Creates an icon from the ligature [name] of a symbol font.
-  ///
-  /// The convenient form for `Material Symbols`: both a browser and Flutter
-  /// substitute the ligature. It is also the form the tree shaker cannot follow,
-  /// so the whole font ships; [MaterialIcon.codePoint] is the small one.
-  MaterialIcon.ligature(
-    String name, {
-    Object? key,
-    double size = defaultSize,
-    BoxColor? color,
-    String fontFamily = defaultFontFamily,
-    String? label,
-  }) : this._(
-         codePoint: null,
-         glyph: name,
-         key: key,
-         size: size,
-         color:
-             color ?? const BoxColor.role(MaterialColorRole.onSurfaceVariant),
-         fontFamily: fontFamily,
-         label: label,
-       );
-
-  MaterialIcon._({
-    required this.codePoint,
-    required String glyph,
-    required super.key,
-    required double size,
-    required BoxColor color,
-    required String fontFamily,
-    required String? label,
-  }) : fontFamily = fontFamily,
-       super(
+  }) : super(
          width: size,
          height: size,
          mainAlign: MainAlign.center,
@@ -99,32 +25,31 @@ final class MaterialIcon extends Box {
            fontFamily: fontFamily,
            fontSize: size,
            fontWeight: FontWeight.normal,
-           lineHeight: 1,
            letterSpacing: 0,
-           color: color,
+           lineHeight: 1,
+           color:
+               color ?? const BoxColor.role(MaterialColorRole.onSurfaceVariant),
          ),
-         children: <UINode>[TextNode(glyph, maxLines: 1)],
+         children: <UINode>[
+           TextNode(String.fromCharCode(codePoint), maxLines: 1),
+         ],
        );
 
-  /// The glyph's codepoint in [fontFamily], or `null` when the icon is a ligature name.
-  ///
-  /// A renderer that draws an icon with its platform's own widget reads this: Flutter builds an
-  /// `IconData` from it, which is also the constant the icon subsetter looks for in an app.
-  final int? codePoint;
+  /// The glyph's codepoint in the font shipped by the hosts.
+  final int codePoint;
 
-  /// The family the glyph belongs to: `MaterialIcons`, `Material Symbols Outlined`, or one an
-  /// application ships. A codepoint only means something inside its own font.
+  /// The family containing the glyph.
   final String fontFamily;
 
-  /// The size Material draws an icon at: 24 logical pixels.
+  /// The standard icon size in logical pixels.
   static const double defaultSize = 24;
 
-  /// The family the Material Symbols font is declared under.
+  /// The default host-supplied icon family.
   static const String defaultFontFamily = 'Material Symbols Outlined';
 
-  /// The name this node answers to in an inspector.
-  ///
-  /// A literal, not the type name: a compiled build mangles the latter.
   @override
-  String? get debugLabel => 'material-icon';
+  bool get requiresWidgetSubstitution => true;
+
+  @override
+  String get debugLabel => 'material-icon';
 }

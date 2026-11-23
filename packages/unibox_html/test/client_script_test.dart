@@ -6,13 +6,6 @@ import 'package:unibox_html/unibox_html.dart';
 
 void main() {
   group('a press the page may paint', () {
-    test('is not invented by the renderer', () {
-      // Ink is the ink well's: a `MaterialInkWell` draws it in Flutter because the node
-      // says so, so a document cannot paint one for every box that listens — that would
-      // be a look one target can draw and the other cannot.
-      expect(toHtml(core.Box(onTap: () {})), isNot(contains('unibox-ink')));
-    });
-
     test('is recorded where a node keyed the element', () {
       final String html = toHtml(core.Box(key: 'cta', onTap: () {}));
 
@@ -37,9 +30,11 @@ void main() {
     test('listens once for the whole page, in the capture phase', () {
       // So a control added later works without being registered, and a press is caught
       // whatever it landed on.
-      expect(pressScript, contains("addEventListener('pointerdown'"));
+      expect(pressScript, contains("addEventListener('click'"));
       expect(pressScript, contains('capture: true'));
-      expect(pressScript, contains('passive: true'));
+      expect(pressScript, contains('event.preventDefault()'));
+      expect(pressScript, contains('data-unibox-action'));
+      expect(pressScript, contains("node.tagName === 'A'"));
     });
 
     test('records a press in the pixels of the element it landed on', () {
@@ -56,14 +51,11 @@ void main() {
     test('stops recording once the application owns the page', () {
       // A press or a scroll recorded after the reveal would be replayed as intent the reader never
       // had — on a document they can no longer see.
-      for (final String script in <String>[pressScript, scrollScript]) {
-        expect(
-          script,
-          contains(
-            "document.documentElement.getAttribute('data-unibox-state') === 'app'",
-          ),
-        );
-      }
+      expect(pressScript, contains("state === 'app'"));
+      expect(
+        scrollScript,
+        contains("getAttribute('data-unibox-state') === 'app'"),
+      );
     });
 
     test('is what a host gets when it asks for the page behaviour', () {

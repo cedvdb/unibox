@@ -67,7 +67,7 @@ it.
 document drawn by `unibox_html` has none — it creates the store only to read it, draws **the
 state it starts with** and never calls `onMount`, so a page that loads is a page that says it
 is loading. A page that reacts is one an application takes over, or one that ships the client
-renderer: `unibox_dom` adopts the markup, keeps the stores and patches the page as they
+renderer: the server HTML remains a snapshot; the Flutter host rebuilds the view as values
 publish, which is the same node and the same store a widget tree would have.
 
 **A layout is a state too, and a document cannot follow a scroll.** `unibox_html` draws the
@@ -78,7 +78,7 @@ but the number it would need is the scroll offset, and the one scroll-driven mot
 has is `fold:` — paint only, because a frame of an eased layout is a picture neither engine
 can be held to. So a layout that follows the scroll is the application's: a `StatefulNode`
 whose view puts `onScroll` on the box that scrolls and keeps the offset it is handed, drawn
-by Flutter, or by a page that ships `unibox_dom` and draws that state again.
+by Flutter. No DOM application runtime is provided.
 
 The behaviour half of the contract is tested without either target: a
 [`BehaviourCase`](../../packages/unibox_testing/README.md#behaviour) names a component, the

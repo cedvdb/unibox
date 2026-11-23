@@ -15,5 +15,4 @@ export 'box.dart';
 export 'declarations.dart';
 export 'nodes.dart';
 export 'rules.dart';
-export 'shape.dart';
 export 'values.dart';

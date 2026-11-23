@@ -1,64 +1,18 @@
-/// Material Design 3 for Unibox: the type scale, the palette, and the components
-/// built from them.
+/// Optional Material values and declarations for HTML and native Flutter widgets.
 ///
-/// The package holds values and nodes, and no renderer code. The fifteen roles of
-/// the Material 3 type scale are `const BoxTextStyle` values, the colour roles are
-/// `const BoxColor` values ([MaterialPalette]), and every component is a node built
-/// from the node that already draws it — a card and a tile are a `Box`, a dialog and
-/// a sheet are an `OverlayNode`. A look is a value and a component is a node, so
-/// neither renderer has to know that this package exists.
-///
-/// ```dart
-/// import 'package:unibox_core/unibox_core.dart';
-/// import 'package:unibox_material/unibox_material.dart';
-///
-/// const palette = MaterialPalette.light;
-///
-/// MaterialCard(
-///   children: <UINode>[
-///     TextNode('Order summary', style: MaterialTypography.titleLarge),
-///     const TextNode('Two nights, one room.'),
-///   ],
-/// )
-/// ```
-///
-/// The palette is a value the tree wears, not a scope anything looks up: a
-/// component takes `palette:` and reads its roles while the tree is built, so a
-/// theme change is a rebuild. A palette is either one of the specification's two
-/// baseline schemes (`MaterialPalette.light`, `.dark`) or one grown from a single
-/// brand colour with `MaterialPalette.fromSeed`, which runs Material's own
-/// colour algorithm. Making the host's `ColorScheme` and the page's CSS
-/// custom properties agree with it is the application's job, which is why this
-/// package depends on `unibox_core` and that algorithm alone and never imports
-/// Flutter or a web framework.
-///
-/// What the components leave to the platform is written down on each of them: the
-/// ripple, the floating label, the caret and selection colours, and Material's modal
-/// transitions.
+/// Flutter hosts install `materialComponents()` from `unibox_material_flutter`.
+/// Application state and native interaction remain with the host.
 library;
 
-export 'src/material_app_bar.dart';
-export 'src/material_bottom_sheet.dart';
 export 'src/material_button.dart';
 export 'src/material_card.dart';
-export 'src/material_check_mark.dart';
 export 'src/material_chip.dart';
 export 'src/material_density.dart';
-export 'src/material_dialog.dart';
 export 'src/material_elevation.dart';
 export 'src/material_icon.dart';
 export 'src/material_icon_button.dart';
-export 'src/material_ink_well.dart';
-export 'src/material_large_app_bar.dart';
-export 'src/material_list_tile.dart';
-export 'src/material_navigation_bar.dart';
 export 'src/material_palette.dart';
-export 'src/material_progress_ring.dart';
-export 'src/material_scaffold.dart';
 export 'src/material_scheme_variant.dart';
 export 'src/material_segmented_button.dart';
-export 'src/material_text_field.dart';
 export 'src/material_type_role.dart';
 export 'src/material_typography.dart';
-export 'src/material_tab_bar.dart';
-export 'src/material_tabs.dart';

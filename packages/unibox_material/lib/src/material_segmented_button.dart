@@ -2,8 +2,7 @@ import 'package:unibox_core/unibox_core.dart';
 
 import 'material_density.dart';
 
-import 'material_check_mark.dart';
-import 'material_ink_well.dart';
+import 'material_surface.dart';
 import 'material_palette.dart';
 import 'material_typography.dart';
 
@@ -42,73 +41,10 @@ final class MaterialSegment {
   final bool newTab;
 }
 
-/// A Material 3 segmented button: two to five choices in one divided pill.
+/// A supplied selection or a set of destinations, rendered natively in Flutter.
 ///
-/// ```dart
-/// MaterialSegmentedButton(
-///   segments: const <MaterialSegment>[
-///     MaterialSegment(label: TextNode('Day')),
-///     MaterialSegment(label: TextNode('Week')),
-///     MaterialSegment(label: TextNode('Month')),
-///   ],
-///   selected: 1,
-///   onSelect: (int index) => period = index,
-/// )
-/// ```
-///
-/// The container is one box: 40 pixels tall, fully rounded, a 1 pixel `outline`
-/// line, and `overflow: hidden` so the chosen segment's fill is cut to the rounded
-/// ends it reaches rather than needing a radius of its own. Each segment is a box
-/// around a [MaterialInkWell], so the tint and the ink cover the segment and not just
-/// its label; the 1 pixel rule between two segments is a box the colour of the outline,
-/// layered over the segment it opens.
-///
-/// **The columns are equal.** A segment is a column of the control and never a width of
-/// its own: the control measures its widest segment — the label, the icon beside it and the
-/// padding around both — and every segment is that wide, so a control of "Rent" beside
-/// "Rent to buy" is two equal halves rather than a button beside a bigger one. That is
-/// what Material's own `SegmentedButton` does, and it is the tree's own rule: the pill is a
-/// [Box] around a [GridNode] that states one column per segment. With no width the pill
-/// hugs its columns — a row that scrolls gets a control exactly as wide as its content,
-/// and the widest label sets the width of every segment — and a width divides that width
-/// equally instead, which is what a pill stretched across a cell wants. A column that the
-/// room does not stretch to cuts its label (see below) rather than widening the pill.
-///
-/// **The line is the caller's.** [border] is the container's line *and* the rules
-/// between its segments — one hairline the model draws as a box, at the start of every
-/// segment but the first — and the default is Material's `outline`, so a theme that draws
-/// its segmented control with `outlineVariant` — Material's own `SegmentedButton` does —
-/// says so once rather than reaching into this package.
-///
-/// **The chosen segment shows a check**, in place of the icon it would otherwise draw
-/// — Material's own behaviour, so a control that carries pictures still says which
-/// choice is on. The check is a [MaterialCheckMark] — drawn from boxes, because a font
-/// is a host asset and this package ships none. Pass `showSelectedIcon: false` for a
-/// control whose fill is enough, and the icon stays where it is.
-///
-/// **A segment's label is one line.** A segment is a column of the control's width and not
-/// a width of its own, so a label longer than that column — a translation, or any label at
-/// a larger text scale — gives way instead of widening the pill or painting over the
-/// segment beside it: a text is drawn with `maxLines: 1` and an ellipsis, and any other
-/// node is cut at the column. Only a parent too narrow for `count ×` the widest segment
-/// reaches it, because the widest label is what set the column every label is given.
-///
-/// **A set of destinations is a set of links.** Give the segments a [MaterialSegment.url]
-/// and the control stops being a set of buttons: each unselected choice is one `<a href>`
-/// with the segment's padding and fill, so a crawler reads where the choices lead, a page
-/// with no runtime follows them, and the ink still ripples because the anchor is the well.
-/// The chosen one is the page the reader is on: it is not a link to itself, it is not in
-/// the tab order, and it says `aria-current="page"`. [onSelect] is then not called for a
-/// segment that has a url — the destination is the press.
-///
-/// **What Material draws that this does not.** A set of selecting segments announces no
-/// `radiogroup`: a radio promises arrow keys between the choices and a single tab stop
-/// for the set, and a box activates with `Enter` and `Space` alone — on both targets,
-/// which is why `BoxRole` has no radio either. Each selecting segment is a toggle button
-/// that says whether it is pressed (`aria-pressed`, Flutter's `toggled`), which is true of
-/// the control without promising behaviour the model cannot keep. A disabled control
-/// fades as one (38%), rather than drawing `onSurface` at 12% under a 38% label, which
-/// the model cannot say without an alpha role per token.
+/// State belongs to the host. The server declaration preserves labels, order,
+/// selection and real links without a client application runtime.
 final class MaterialSegmentedButton extends Box {
   /// Creates a segmented button with [segments], [selected] of them chosen.
   ///
@@ -127,7 +63,7 @@ final class MaterialSegmentedButton extends Box {
     BoxBorder border = _outline,
     BoxSpacing padding = _segmentPadding,
     double iconGap = _iconGap,
-    BoxTextStyle labelStyle = MaterialTypography.labelLarge,
+    this.labelStyle = MaterialTypography.labelLarge,
     this.density = MaterialDensity.standard,
     // A width is divided equally between the segments; without one the pill is as wide as
     // its columns and hugs them — a row that scrolls, or a control in the corner of a page.
@@ -140,6 +76,7 @@ final class MaterialSegmentedButton extends Box {
     super.key,
   }) : segments = List<MaterialSegment>.unmodifiable(segments),
        selected = selected,
+       segmentPadding = padding,
        onSelect = onSelect,
        showSelectedIcon = showSelectedIcon,
        assert(
@@ -149,7 +86,7 @@ final class MaterialSegmentedButton extends Box {
          'press: give the control an onSelect, or give every segment a url.',
        ),
        super(
-         height: height,
+         height: density.adjust(height),
          // A disabled segmented button fades as one control rather than greying each
          // segment: Material draws the label at 38%, and one opacity is what this
          // model can say without an alpha role per token.
@@ -175,7 +112,7 @@ final class MaterialSegmentedButton extends Box {
                    showSelectedIcon: showSelectedIcon,
                    first: i == 0,
                    border: border,
-                   height: height,
+                   height: density.adjust(height),
                    padding: padding,
                    iconGap: iconGap,
                    labelStyle: labelStyle,
@@ -186,6 +123,12 @@ final class MaterialSegmentedButton extends Box {
            ),
          ],
        );
+
+  /// Typography shared by the segment labels and native control.
+  final BoxTextStyle labelStyle;
+
+  /// Insets around each segment's label in either rendering.
+  final BoxSpacing segmentPadding;
 
   /// The segments, in the order they are drawn.
   final List<MaterialSegment> segments;
@@ -260,10 +203,10 @@ final class MaterialSegmentedButton extends Box {
     final String? url = link && !selected ? segment.url : null;
     // Material puts the check of the chosen segment *in place of* its icon, so a
     // control that carries pictures still says which one is chosen. The mark is drawn
-    // from boxes ([MaterialCheckMark]): a glyph from a font is a host asset, and this
+    // from boxes (a text check): a glyph from a font is a host asset, and this
     // package ships none.
     final UINode? leading = selected && showSelectedIcon
-        ? MaterialCheckMark(color: foreground, size: iconSize)
+        ? TextNode('✓', fontSize: iconSize, color: foreground)
         : segment.icon;
 
     return Box(
@@ -278,12 +221,11 @@ final class MaterialSegmentedButton extends Box {
       children: <UINode>[
         StackNode(
           children: <UINode>[
-            MaterialInkWell(
+            materialSurface(
               onTap: link ? null : onTap,
               url: url,
               newTab: url != null && segment.newTab,
               enabled: enabled,
-              ink: foreground,
               // A height, not an infinity: the segment is already as tall as the control,
               // and an infinite height inside a column is a constraint Flutter refuses.
               //
@@ -294,7 +236,7 @@ final class MaterialSegmentedButton extends Box {
               width: double.infinity,
               height: height,
               mainAlign: MainAlign.center,
-              transition: transition ?? MaterialInkWell.defaultTransition,
+              transition: transition ?? materialSurfaceTransition,
               semantics: _semanticsOf(segment, selected: selected, link: link),
               child: Box(
                 padding: padding,
@@ -465,6 +407,10 @@ final class MaterialSegmentedButton extends Box {
   static BoxColor _foregroundOf(bool selected) => selected
       ? const BoxColor.role(MaterialColorRole.onSecondaryContainer)
       : const BoxColor.role(MaterialColorRole.onSurface);
+
+  /// Native widget rendering is required on Flutter.
+  @override
+  bool get requiresWidgetSubstitution => true;
 
   /// The name this node answers to in an inspector.
   @override

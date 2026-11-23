@@ -153,7 +153,16 @@ class UniboxSubstitutionsWidget extends InheritedWidget {
     BuildContext context,
     core.UINode node,
     Widget? content,
-  ) => maybeOf(context)?.forNode(node)?.call(context, node, content);
+  ) {
+    final NodeSubstitution? builder = maybeOf(context)?.forNode(node);
+    if (builder == null && node.requiresWidgetSubstitution) {
+      throw StateError(
+        '${node.debugName} requires a native widget substitution. '
+        'Install the design system\'s substitution map on renderFlutter.',
+      );
+    }
+    return builder?.call(context, node, content);
+  }
 
   @override
   bool updateShouldNotify(UniboxSubstitutionsWidget oldWidget) =>

@@ -5,7 +5,6 @@ import 'grid_span.dart';
 import 'box_border_radius.dart';
 import 'box_fraction.dart';
 import 'box_shadow.dart';
-import 'box_shape.dart';
 import 'box_spacing.dart';
 import 'box_text_style.dart';
 import 'box_transform.dart';
@@ -63,7 +62,6 @@ final class BoxStyle {
     this.corners,
     this.border,
     this.shadows,
-    this.shape,
     this.textStyle,
     this.transition,
     this.fold,
@@ -284,14 +282,6 @@ final class BoxStyle {
   /// entry paints on top, as it does in CSS.
   final List<BoxShadow>? shadows;
 
-  /// The outline the box is painted in, instead of its rectangle.
-  ///
-  /// Unset means the box is a rectangle, which is what [borderRadius] and
-  /// [corners] round. A shape takes over the outline: the background fills it, the
-  /// [border] is drawn along it, and [borderRadius] and [corners] no longer apply —
-  /// `validateTree` reports a box that states both, because a box has one outline.
-  final BoxShape? shape;
-
   // Typography.
 
   /// The typography inherited by the descendants of the box.
@@ -415,7 +405,6 @@ final class BoxStyle {
       shadows: shadows
           ?.map((BoxShadow shadow) => shadow.resolve(theme))
           .toList(growable: false),
-      shape: shape,
       textStyle: textStyle?.resolve(theme),
       transition: transition,
       fold: fold,
@@ -460,7 +449,6 @@ final class BoxStyle {
     BoxBorderRadius? corners,
     BoxBorder? border,
     List<BoxShadow>? shadows,
-    BoxShape? shape,
     BoxTextStyle? textStyle,
     BoxTransition? transition,
     BoxFold? fold,
@@ -497,7 +485,6 @@ final class BoxStyle {
       corners: corners ?? this.corners,
       border: border ?? this.border,
       shadows: shadows ?? this.shadows,
-      shape: shape ?? this.shape,
       textStyle: textStyle ?? this.textStyle,
       transition: transition ?? this.transition,
       fold: fold ?? this.fold,
@@ -549,7 +536,6 @@ final class BoxStyle {
       corners: other.corners ?? corners,
       border: other.border ?? border,
       shadows: other.shadows ?? shadows,
-      shape: other.shape ?? shape,
       textStyle: textStyle?.merge(other.textStyle) ?? other.textStyle,
       transition: other.transition ?? transition,
       fold: other.fold ?? fold,
@@ -590,7 +576,6 @@ final class BoxStyle {
       other.corners == corners &&
       other.border == border &&
       _sameShadows(other.shadows, shadows) &&
-      other.shape == shape &&
       other.textStyle == textStyle &&
       other.transition == transition &&
       other.fold == fold &&
@@ -627,13 +612,14 @@ final class BoxStyle {
     borderRadius,
     corners,
     border,
-    shadows,
-    shape,
+    shadows == null ? null : Object.hashAll(shadows!),
     textStyle,
     transition,
     fold,
     opacity,
     transform,
+    visibleFrom,
+    visibleUntil,
   ]);
 
   @override
@@ -666,7 +652,6 @@ final class BoxStyle {
       if (corners != null) 'corners: $corners',
       if (border != null) 'border: $border',
       if (shadows != null) 'shadows: $shadows',
-      if (shape != null) 'shape: $shape',
       if (textStyle != null) 'textStyle: $textStyle',
       if (transition != null) 'transition: $transition',
       if (fold != null) 'fold: $fold',

@@ -10,15 +10,20 @@ void main() {
   final String html = buildComponentsDocument().write();
 
   test('carries the words of every component on the page', () {
-    expect(html, contains('Filled'));
-    expect(html, contains('Listings'));
-    expect(html, contains('Two rooms'));
-    expect(html, contains('Day'));
-    expect(html, contains('Overview'));
+    for (final String label in <String>[
+      'Cards',
+      'Buttons',
+      'Chips',
+      'Segments',
+      'Type scale',
+      'Colour roles',
+    ]) {
+      expect(html, contains(label));
+    }
   });
 
-  test('writes the bar as a nav landmark, the way the tree asks', () {
-    expect(html, contains('<nav'));
+  test('writes each specimen as a named section', () {
+    expect(RegExp('<section').allMatches(html).length, greaterThanOrEqualTo(6));
   });
 
   test('says which page it is, and carries the stylesheet in the head', () {

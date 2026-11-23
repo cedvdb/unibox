@@ -39,7 +39,6 @@ void main() {
     final List<Object?> exported = <Object?>[
       FlutterBox,
       FlutterGrid,
-      pathOf,
       FlutterImage,
       FlutterLinkScope,
       FlutterOverlay,
@@ -57,7 +56,7 @@ void main() {
       noSubstitutions,
     ];
 
-    expect(exported, hasLength(18));
+    expect(exported, hasLength(17));
     expect(widget, isNotNull);
     expect(renderFlutter, isNotNull);
   });

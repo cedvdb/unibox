@@ -1,5 +1,10 @@
 # unibox_core
 
+The declaration model is platform independent. Collections passed to const-capable
+constructors remain caller-owned and must not be mutated after construction; use
+const collections or unmodifiable snapshots. Components may require native widget
+substitution while retaining a server-renderable declaration.
+
 Platform agnostic Unibox AST, style tokens and layout types.
 
 This package has zero external dependencies: it never imports `dart:ui`,
@@ -24,7 +29,6 @@ Flutter or the web renderer. Renderers live in `unibox_flutter` and `unibox_html
 | `StateStore`      | the ready made `Store`: one state value and its listeners     |
 | `BoxColor`, `BoxColors`, `BoxSpacing`, `BoxBorder`, `BoxShadow` | visual tokens            |
 | `BoxAlignment`    | where a child sits in a stack cell: nine positions, and a `Start` or an `End` follows the writing direction |
-| `BoxShape`, `BoxPathCommand`, `BoxFillRule` | an outline a box is painted in            |
 | `BoxStyle`        | a bundle of every layout and visual token                     |
 | `BoxTextStyle`    | a bundle of typography tokens                                 |
 
@@ -59,7 +63,6 @@ and the difference would show:
 | `ImageNode.fit` | `ImageFit.scaleDown` (`ImageNode.resolvedFit`), i.e. `BoxFit.scaleDown` and `object-fit: scale-down` |
 | `TextInputNode` chrome | none on either target: no border, padding, background, focus ring or resize grip, and the typography of the tree |
 | `StackNode` clipping | none, and a child that is not positioned keeps its own size |
-| `Box.shape` | the rectangle: a box paints its border box, and a corner radius rounds it |
 
 Writing direction is the one token with no answer in this table, and the reason is in the
 model rather than in a host: a direction belongs to the script the words are written in,
@@ -182,7 +185,7 @@ targets share, in the order a browser applies it — the range first, then the c
 `BoxFold.looks` is the set a renderer eases, and it is the same set a transition covers,
 which is what makes a fold paint only. `validateTree` reports a fold that names
 a layout token, one that names nothing, one that takes more than the whole exit, one on
-a box that pins (a pinned bar never leaves), one on a shaped box, a border whose width
+a box that pins (a pinned bar never leaves), a border whose width
 a fold would move, and one look eased by both a transition and a fold.
 
 ## Structure and semantics

@@ -1,7 +1,7 @@
 import 'package:unibox_core/unibox_core.dart';
 
 import 'material_density.dart';
-import 'material_ink_well.dart';
+import 'material_surface.dart';
 import 'material_palette.dart';
 import 'material_typography.dart';
 
@@ -24,46 +24,10 @@ enum MaterialButtonVariant {
   text,
 }
 
-/// A Material 3 button: a label on a fill, with the ink of a press.
+/// A Material button declaration with a native Flutter substitution.
 ///
-/// ```dart
-/// MaterialButton.filled(label: const TextNode('Create account'), onTap: save)
-/// MaterialButton.outlined(label: const TextNode('Cancel'), onTap: close)
-/// MaterialButton.text(label: const TextNode('Learn more'), onTap: open)
-/// ```
-///
-/// It is a [Box] around a [MaterialInkWell], the way [MaterialListTile] is: the fill
-/// is painted by the box, the hover, focus and press tints by the well *over* that
-/// fill — so the colour of the button does not wash out under a tint — and the ink
-/// starts where the press landed. Neither renderer has to know the name, and the
-/// class adds no token the conformance table does not already pin.
-///
-/// **Every variant paints the same 40 pixels.** Material gives a button a minimum of
-/// 64 by 40, and 40 is `labelLarge`'s 20 pixel line with ten above and ten below. The
-/// three filled shapes state 24 across and that 10; the text shape is narrower, 12
-/// across, which is what makes it read as quieter than the ones that carry a fill —
-/// and its vertical room is the same ten, so it is the same height and a row of the
-/// four lines up. A disabled button is drawn at 38% and takes no ink, which is what
-/// the field does when it is disabled.
-///
-/// **The pill is the press.** The minimum belongs to the well rather than to the fill
-/// around it, so the fill hugs a control that is never smaller than the button it
-/// paints: a caller's four pixels of vertical room still gives a 40 pixel target, and a
-/// pinned width widens the press with the pill.
-///
-/// **Every measurement is a parameter.** `padding` is the room inside the fill,
-/// `iconGap` the space between `icon` and the label, `borderRadius` the corner,
-/// `minWidth` and `height` the size the press may not go under, and `width` an exact
-/// one. A minimum outranks a size on both targets — `min-width` beats `width` in CSS,
-/// and a `ConstrainedBox` in Flutter clamps the same way — so `width: 40` on a button
-/// is 64 wide on both. The label is centred in whatever the press turns out to be,
-/// which is what keeps a full-width button's label in the middle of it rather than
-/// against its left edge.
-///
-/// **Every colour is a role**, so a dark theme restyles all four variants without a
-/// parameter: `primary`/`onPrimary` for [MaterialButtonVariant.filled],
-/// `primaryContainer`/`onPrimaryContainer` for [MaterialButtonVariant.tonal], and
-/// `primary` with `outline` for the two that have no fill.
+/// The application supplies actions and destinations; no store or ink runtime
+/// is created. The HTML declaration exposes the same content and design values.
 final class MaterialButton extends Box {
   /// Creates a filled button around [label].
   factory MaterialButton({
@@ -76,7 +40,6 @@ final class MaterialButton extends Box {
     LongPressCallback? onLongPress,
     HoverCallback? onHover,
     bool enabled = true,
-    BoxColor? ink,
     double borderRadius = _radius,
     BoxSpacing? padding,
     BoxTextStyle? labelStyle,
@@ -100,7 +63,6 @@ final class MaterialButton extends Box {
     onLongPress: onLongPress,
     onHover: onHover,
     enabled: enabled,
-    ink: ink,
     borderRadius: borderRadius,
     padding: padding,
     labelStyle: labelStyle,
@@ -129,7 +91,6 @@ final class MaterialButton extends Box {
     LongPressCallback? onLongPress,
     HoverCallback? onHover,
     bool enabled = true,
-    BoxColor? ink,
     double borderRadius = _radius,
     BoxSpacing? padding,
     BoxTextStyle? labelStyle,
@@ -152,7 +113,6 @@ final class MaterialButton extends Box {
     onLongPress: onLongPress,
     onHover: onHover,
     enabled: enabled,
-    ink: ink,
     borderRadius: borderRadius,
     padding: padding,
     labelStyle: labelStyle,
@@ -178,7 +138,6 @@ final class MaterialButton extends Box {
     LongPressCallback? onLongPress,
     HoverCallback? onHover,
     bool enabled = true,
-    BoxColor? ink,
     double borderRadius = _radius,
     BoxSpacing? padding,
     BoxTextStyle? labelStyle,
@@ -202,7 +161,6 @@ final class MaterialButton extends Box {
     onLongPress: onLongPress,
     onHover: onHover,
     enabled: enabled,
-    ink: ink,
     borderRadius: borderRadius,
     padding: padding,
     labelStyle: labelStyle,
@@ -228,7 +186,6 @@ final class MaterialButton extends Box {
     LongPressCallback? onLongPress,
     HoverCallback? onHover,
     bool enabled = true,
-    BoxColor? ink,
     double borderRadius = _radius,
     BoxSpacing? padding,
     BoxTextStyle? labelStyle,
@@ -252,7 +209,6 @@ final class MaterialButton extends Box {
     onLongPress: onLongPress,
     onHover: onHover,
     enabled: enabled,
-    ink: ink,
     borderRadius: borderRadius,
     padding: padding,
     labelStyle: labelStyle,
@@ -278,7 +234,6 @@ final class MaterialButton extends Box {
     LongPressCallback? onLongPress,
     HoverCallback? onHover,
     bool enabled = true,
-    BoxColor? ink,
     double borderRadius = _radius,
     BoxSpacing? padding,
     BoxTextStyle? labelStyle,
@@ -302,7 +257,6 @@ final class MaterialButton extends Box {
     onLongPress: onLongPress,
     onHover: onHover,
     enabled: enabled,
-    ink: ink,
     borderRadius: borderRadius,
     padding: padding,
     labelStyle: labelStyle,
@@ -332,7 +286,6 @@ final class MaterialButton extends Box {
     LongPressCallback? onLongPress,
     HoverCallback? onHover,
     bool enabled = true,
-    BoxColor? ink,
     double borderRadius = _radius,
     BoxSpacing? padding,
     BoxTextStyle? labelStyle,
@@ -352,7 +305,6 @@ final class MaterialButton extends Box {
     // cannot do it — the padding and the label already add up to 40.
     final BoxSpacing insets = _roomFor(padding ?? _paddingOf(variant), density);
     final BoxColor? fill = _fillOf(variant);
-    final BoxColor inkColor = ink ?? foreground;
 
     return MaterialButton._(
       key: key,
@@ -361,6 +313,26 @@ final class MaterialButton extends Box {
       icon: icon,
       enabled: enabled,
       onPressed: onTap,
+      onLongPress: onLongPress,
+      onHover: onHover,
+      controlStyle: BoxStyle(
+        width: width,
+        height: height,
+        minWidth: minWidth,
+        minHeight: height ?? density.adjust(_height),
+        padding: insets,
+        backgroundColor: fill,
+        border:
+            border ??
+            (variant == MaterialButtonVariant.outlined ? _outline : null),
+        borderRadius: borderRadius,
+        textStyle:
+            labelStyle ??
+            MaterialTypography.labelLarge.merge(
+              BoxTextStyle(color: foreground),
+            ),
+      ),
+      url: url,
       fill: fill,
       // A line is what makes the outlined shape, and any shape may be given one.
       border:
@@ -371,7 +343,7 @@ final class MaterialButton extends Box {
       height: height,
       density: density,
       margin: margin,
-      inkWell: MaterialInkWell(
+      surface: materialSurface(
         onTap: onTap,
         url: url,
         newTab: newTab,
@@ -379,9 +351,8 @@ final class MaterialButton extends Box {
         onHover: onHover,
         enabled: enabled,
         borderRadius: borderRadius,
-        ink: inkColor,
         padding: insets,
-        transition: transition ?? MaterialInkWell.defaultTransition,
+        transition: transition ?? materialSurfaceTransition,
         semantics: semantics ?? _roleFor(onTap),
         // The press is the size of the pill: a pinned width and height are the well's,
         // and so is the floor, so no part of the pill is a look without a target.
@@ -418,10 +389,14 @@ final class MaterialButton extends Box {
     required this.label,
     required this.variant,
     required this.onPressed,
+    required this.controlStyle,
+    super.onLongPress,
+    super.onHover,
+    this.url,
     required this.density,
     super.enabled,
     this.icon,
-    required UINode inkWell,
+    required UINode surface,
     BoxColor? fill,
     double borderRadius = _radius,
   }) : super(
@@ -445,10 +420,16 @@ final class MaterialButton extends Box {
              backgroundColor: fill,
              borderRadius: borderRadius,
              border: border,
-             children: <UINode>[inkWell],
+             children: <UINode>[surface],
            ),
          ],
        );
+
+  /// The destination opened by the native host when no action overrides it.
+  final String? url;
+
+  /// The declared control dimensions and paint read by the native mapping.
+  final BoxStyle controlStyle;
 
   /// The label the button draws.
   final UINode label;
@@ -582,8 +563,12 @@ final class MaterialButton extends Box {
       };
 
   /// The role a button announces, which is a button when it can be tapped.
-  static BoxSemantics? _roleFor(TapCallback? onTap) =>
-      onTap == null ? null : const BoxSemantics(role: BoxRole.button);
+  static BoxSemantics _roleFor(TapCallback? onTap) =>
+      const BoxSemantics(role: BoxRole.button);
+
+  /// Native widget rendering is required on Flutter.
+  @override
+  bool get requiresWidgetSubstitution => true;
 
   /// The name this node answers to in an inspector.
   @override

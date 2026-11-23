@@ -1,3 +1,7 @@
+> Current scope: benchmarks cover server planning, CSS and writing, plus Flutter
+> boot and handover. Notes about DOM adoption below are historical: that runtime
+> has been removed and no DOM client bundle is measured or shipped.
+
 # Performance, and the pages that have a lot of nodes
 
 What a tree costs to turn into a page, how that is measured, and what holds it there.

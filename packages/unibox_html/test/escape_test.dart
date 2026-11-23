@@ -1,7 +1,27 @@
 import 'package:test/test.dart';
+import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_html/unibox_html.dart';
 
 void main() {
+  test(
+    'a font family cannot terminate the stylesheet in a document or fragment',
+    () {
+      const TextNode node = TextNode(
+        'safe',
+        fontFamily: '</style><script>alert(1)</script>',
+      );
+      for (final String html in <String>[toHtml(node), toDocument(node)]) {
+        expect(html, isNot(contains('<script>alert(1)</script>')));
+        expect(RegExp('</style>').allMatches(html).length, 1);
+      }
+    },
+  );
+
+  test('font names preserve quotes and backslashes as CSS string content', () {
+    expect(cssFontFamily(r'a\b'), r"'a\\b'");
+    expect(cssFontFamily('a\nb'), r"'a\a b'");
+  });
+
   group('text between two tags', () {
     test('keeps what a reader typed', () {
       expect(escapeText('2 bedrooms · £1,200'), '2 bedrooms · £1,200');

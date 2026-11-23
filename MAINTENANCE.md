@@ -43,10 +43,9 @@ Then, from what it printed:
 3. **Dependabot.** Read the diff, not the CI badge: a `pubspec.lock` diff is the whole
    change, and the interesting part is a major version. Merge when green; if a major needs
    code changes, do it in a commit of its own.
-4. **The numbers in the README.** The client's size (`67 KB`), the Flutter build's
-   (`718 KB`) and the page budgets are measurements, and `tool/maintenance.sh` prints the
-   current ones. A quoted number that no longer matches is a lie in the shop window —
-   update the README in the same commit as the change that moved it.
+4. **The performance reports.** Review document, font, photo and Flutter build sizes
+   against the existing budgets. No DOM client is shipped. Update any quoted numbers
+   alongside the change that moves them; never loosen a budget to conceal a regression.
 5. **Issues.** A parity report with a tree in it is usually a case missing from
    `packages/unibox_testing`: write the case there first, watch both suites, and fix the
    renderer that disagrees. That order is in

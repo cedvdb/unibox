@@ -87,7 +87,7 @@ draws, or `redraw` the component with a node whose parameters changed. A suite p
 the table with its own three moves — `draw` a tree, `press` a key, read `textAt` a
 key — and `behaviourDifferences` returns every disagreement rather than failing, so
 the suite owns the assertion. `unibox_flutter` pumps and taps a widget tree,
-`unibox_dom` mounts and clicks a page.
+Server HTML intentionally binds no callbacks.
 
 Behaviour cases are not per token, so they do not belong beside the appearance tables
 one to one: a case is worth writing when a component's *state* is what a renderer
@@ -140,27 +140,8 @@ An overlay's bound is at the same edge. `OverlayAppearance.scrolls` is in the ta
 because both outputs say it — `overflow: auto` on the layer, a scroll view between
 the layer and the content — but the height it produces is a measurement, and a
 string renderer emits markup rather than a laid-out page. Each renderer suite pins
-the measurement instead: `packages/unibox_dom/test/overlay_test.dart` mounts a
-dialog taller than the browser window and reads the content's box back out of the
-document, and `packages/unibox_flutter/test/overlay_widget_test.dart` pumps one into
-a fixed surface and drags it. A difference there is a card drawn at a different
-height, which is how the drift was found.
-
-The geometry of a `BoxShape` is not in the table either, for a different reason: it
-is exact on both targets, but it is *not a fact one rendering can read back and the
-other state*. Flutter paints a `Path` and the web writes a `d` attribute, so there
-is no third thing to compare them against — they are the same description, not two
-measurements of one look. Each renderer suite pins it instead: `pathOf` against the
-bounds and the containment of a known shape, the `d` against the commands. A
-difference there shows up as a changed path, which is a louder failure than a
-drifted colour.
-
-One combination inside the model has no exact counterpart, which is why it is not
-in the table: `maxLines` with `TextOverflow.clip`. Flutter cuts the text off after
-the last line; a `-webkit-line-clamp` box always ends it with an ellipsis, and
-`text-overflow: clip` does not take the ellipsis away (checked in Chrome, not
-assumed). An application that needs the two to agree uses `maxLines` with
-`TextOverflow.ellipsis`.
+the measurement instead in each surviving renderer's own suite. Custom paths and
+rings are outside the declaration vocabulary.
 
 ## Testing
 

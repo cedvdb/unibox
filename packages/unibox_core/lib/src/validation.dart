@@ -17,7 +17,6 @@ import 'tokens/box_fold.dart';
 import 'tokens/box_fraction.dart';
 import 'tokens/box_semantics.dart';
 import 'tokens/box_shadow.dart';
-import 'tokens/box_shape.dart';
 import 'tokens/unibox_scope.dart';
 import 'tokens/box_style.dart';
 import 'tokens/grid_span.dart';
@@ -700,7 +699,6 @@ void _validate(
         if (fold.to.maxHeight != null) 'maxHeight',
         if (fold.to.padding != null) 'padding',
         if (fold.to.margin != null) 'margin',
-        if (fold.to.shape != null) 'shape',
         if (fold.to.textStyle != null) 'textStyle',
         if (fold.to.transition != null) 'transition',
         if (fold.to.fold != null) 'fold',
@@ -767,31 +765,13 @@ void _validate(
         );
       }
 
-      // A shaped box paints a path through a layer of its own, which a fold cannot reach: the
-      // layer draws the fill and the stroke, and the box paints no background of its own.
-      if (style.shape != null) {
-        issues.add(
-          TreeIssue(
-            node: node,
-            severity: TreeIssueSeverity.error,
-            message:
-                'A folded box states a shape, and a shape paints its fill and its stroke through '
-                'a layer of its own: a fold reaches the background, the border colour, the '
-                'radius, the shadows, the opacity and the transform, and none of them is what '
-                'the path is painted with. Fold the box around the shape, or drop the fold.',
-          ),
-        );
-      }
-
       // A border's colour eases; its width is layout in a browser and paint in Flutter, which is
       // the one property this repository refuses to animate for exactly that reason.
       final BoxBorder? border = style.border;
       final BoxBorder? foldedBorder = fold.to.border;
 
       if (foldedBorder != null &&
-          (border == null ||
-              border.width != foldedBorder.width ||
-              border.cap != foldedBorder.cap)) {
+          (border == null || border.width != foldedBorder.width)) {
         issues.add(
           TreeIssue(
             node: node,
@@ -939,69 +919,6 @@ void _validate(
           message:
               'A box declares both borderRadius and corners, and a box has one '
               'shape: keep corners when the four differ.',
-        ),
-      );
-    }
-
-    final BoxShape? shape = style.shape;
-
-    if (shape != null) {
-      if (style.borderRadius != null || style.corners != null) {
-        issues.add(
-          TreeIssue(
-            node: node,
-            message:
-                'A box declares both a shape and a corner radius, and a box has '
-                'one outline: a shape is the outline, so drop borderRadius and '
-                'corners.',
-          ),
-        );
-      }
-
-      if (style.shadows?.isNotEmpty ?? false) {
-        issues.add(
-          TreeIssue(
-            node: node,
-            message:
-                'A shaped box cannot cast a shadow: the model has no shadow of a '
-                'shape. Put the shadow on the box around it.',
-          ),
-        );
-      }
-
-      if (shape.isEmpty) {
-        issues.add(
-          TreeIssue(
-            node: node,
-            message: 'A shape with no command paints nothing: give it at least a move.',
-          ),
-        );
-      }
-
-      if (shape.viewBoxWidth <= 0 || shape.viewBoxHeight <= 0) {
-        issues.add(
-          TreeIssue(
-            node: node,
-            message:
-                'A shape is drawn in a ${shape.viewBoxWidth} by '
-                '${shape.viewBoxHeight} view box, and both sides have to be more '
-                'than zero for the outline to have a size.',
-          ),
-        );
-      }
-    }
-
-    // A cap is where an outline ends, which only a shape has: a rectangle's border
-    // meets itself at four corners and no target paints a cap there.
-    final BoxBorder? border = style.border;
-
-    if (shape == null && border != null && border.cap != BoxStrokeCap.butt) {
-      issues.add(
-        TreeIssue(
-          node: node,
-          message:
-              'A border cap is drawn where an outline has ends, and a rectangular '
-              'border has none: give the box a shape, or leave the cap at butt.',
         ),
       );
     }
@@ -1623,8 +1540,14 @@ Box? _viewportOf(UINode node, Box? above) {
   final Axis direction = style.resolvedDirection;
 
   return (
-    unboundedWidth || (scrolls && direction == Axis.horizontal),
-    unboundedHeight || (scrolls && direction == Axis.vertical),
+    (unboundedWidth &&
+            !(style.width?.isFinite ?? false) &&
+            !(style.maxWidth?.isFinite ?? false)) ||
+        (scrolls && direction == Axis.horizontal),
+    (unboundedHeight &&
+            !(style.height?.isFinite ?? false) &&
+            !(style.maxHeight?.isFinite ?? false)) ||
+        (scrolls && direction == Axis.vertical),
   );
 }
 

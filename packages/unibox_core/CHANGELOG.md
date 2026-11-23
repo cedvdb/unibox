@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Remove custom paths and stroke caps; declare when a component requires a native widget substitution. Collection arguments must remain immutable after construction.
+
+- Keep equal shadow styles interchangeable as map and stylesheet cache keys.
+
 - **`flex: 0` is a child on the line that takes no share.** One and up is a share of the room;
   zero is the third case a flex line has — flexible enough to shrink below its content, so a
   row that scrolls can hug its last chip and still give room back — which is `flex: 0 1 auto`

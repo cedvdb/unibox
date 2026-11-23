@@ -55,3 +55,31 @@ JSObject? get _unibox {
 
 @JS('window')
 external JSObject get _window;
+
+/// Waits until the document has actually revealed Flutter, or retained its fallback.
+Future<bool> handoverRevealed() async {
+  final JSObject? api = _unibox;
+  if (api == null) return false;
+  final JSAny? method = api.getProperty('whenRevealed'.toJS);
+  if (method == null || !method.isA<JSFunction>()) return false;
+  final JSAny? promise = api.callMethod('whenRevealed'.toJS);
+  if (promise == null) return false;
+  final JSBoolean result = await (promise as JSPromise<JSBoolean>).toDart;
+  return result.toDart;
+}
+
+/// Whether this document requires an explicit host content-readiness signal.
+bool get awaitsHostReadiness {
+  final JSObject? api = _unibox;
+  final JSAny? value = api?.getProperty('waitsForContent'.toJS);
+  return value != null && value.isA<JSBoolean>() && (value as JSBoolean).toDart;
+}
+
+/// Cancels an unrevealed transition while retaining the document fallback.
+void cancelPendingHandover() {
+  final JSObject? api = _unibox;
+  final JSAny? method = api?.getProperty('cancel'.toJS);
+  if (api != null && method != null && method.isA<JSFunction>()) {
+    api.callMethod('cancel'.toJS);
+  }
+}

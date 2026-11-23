@@ -9,6 +9,14 @@ void main() {
       expect(isRiskyUrl('JavaScript:alert(1)'), isTrue);
       expect(isRiskyUrl(' javascript:alert(1)'), isTrue);
       expect(isRiskyUrl('vbscript:msgbox(1)'), isTrue);
+      for (final String value in <String>[
+        'java\nscript:alert(1)',
+        'java\tscript:alert(1)',
+        '\u0000java\rscript:alert(1)',
+      ]) {
+        expect(isRiskyUrl(value), isTrue);
+        expect(safeUrlValue(value), '#');
+      }
     });
 
     test('is not a destination a reader can go to', () {

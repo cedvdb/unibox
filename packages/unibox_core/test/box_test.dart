@@ -13,27 +13,6 @@ void main() {
       expect(box.isInteractive, isFalse);
     });
 
-    test('reaches the shape from the flat parameter, and that wins', () {
-      const BoxShape hexagon = BoxShape(
-        viewBoxWidth: 10,
-        viewBoxHeight: 10,
-        commands: <BoxPathCommand>[BoxPathMoveTo(0, 0), BoxPathClose()],
-      );
-      const Box box = Box(
-        shape: BoxShape.circle,
-        styles: <BoxStyle>[BoxStyle(shape: hexagon)],
-      );
-
-      expect(box.computedStyle.shape, BoxShape.circle);
-      expect(
-        const Box(styles: <BoxStyle>[BoxStyle(shape: hexagon)])
-            .computedStyle
-            .shape,
-        hexagon,
-        reason: 'a bag still reaches the token when no flat parameter names it',
-      );
-    });
-
     test('reaches the ratio from the flat parameter, and that wins', () {
       const Box box = Box(
         aspectRatio: 1.5,

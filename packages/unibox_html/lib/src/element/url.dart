@@ -6,7 +6,10 @@
 /// It belongs to the plan rather than to a renderer: a `javascript:` href is a script that runs
 /// when a reader clicks, whichever target set the attribute.
 bool isRiskyUrl(String value) {
-  final String normalised = value.trimLeft().toLowerCase();
+  final String normalised = value
+      .replaceAll(RegExp(r'[\t\n\r]'), '')
+      .replaceFirst(RegExp(r'^[\x00-\x20]+'), '')
+      .toLowerCase();
 
   return normalised.startsWith('javascript:') ||
       normalised.startsWith('vbscript:');

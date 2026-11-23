@@ -80,7 +80,6 @@ final class PagerNode extends Box {
     super.corners,
     super.border,
     super.shadows,
-    super.shape,
     super.textStyle,
     super.transition,
     super.fold,
