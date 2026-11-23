@@ -17,13 +17,9 @@ void main() {
       material.MaterialCard(
         children: <core.UINode>[const core.TextNode('Order summary')],
       ),
-      material.MaterialSegmentedButton(
-        segments: <material.MaterialSegment>[
-          material.MaterialSegment(label: const core.TextNode('Day')),
-          material.MaterialSegment(label: const core.TextNode('Week')),
-        ],
-        selected: 1,
-        onSelect: (int index) {},
+      material.MaterialButton.filled(
+        label: const core.TextNode('Save'),
+        onTap: () {},
       ),
     ],
   );
@@ -57,7 +53,7 @@ void main() {
     await pumpTree(tester, substituted: true);
 
     expect(find.byType(Card), findsOneWidget);
-    expect(find.byType(SegmentedButton<int>), findsOneWidget);
+    expect(find.byType(FilledButton), findsOneWidget);
   });
 
   testWidgets('draws the tree values when nothing is substituted', (
@@ -66,24 +62,22 @@ void main() {
     await pumpTree(tester, substituted: false);
 
     expect(find.byType(Card), findsNothing);
-    expect(find.byType(SegmentedButton<int>), findsNothing);
+    expect(find.byType(FilledButton), findsNothing);
     expect(find.text('Order summary'), findsOneWidget);
   });
 
-  testWidgets('keeps the words and the segment that is chosen', (
+  testWidgets('keeps the words, and the press that answers them', (
     WidgetTester tester,
   ) async {
     await pumpTree(tester, substituted: true);
 
     expect(find.text('Order summary'), findsOneWidget);
-
-    final SegmentedButton<int> pill = tester.widget<SegmentedButton<int>>(
-      find.byType(SegmentedButton<int>),
+    expect(find.text('Save'), findsOneWidget);
+    expect(
+      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+      isNotNull,
+      reason: 'a button a tree says is pressable answers its press either way',
     );
-
-    expect(pill.selected, <int>{1});
-    expect(find.text('Day'), findsOneWidget);
-    expect(find.text('Week'), findsOneWidget);
   });
 
   testWidgets('draws the four controls with the platform widgets too', (
@@ -152,22 +146,14 @@ void main() {
     expect(find.text('Ada Lovelace'), findsOneWidget);
   });
 
-  testWidgets('draws a field and a spinner with the platform widgets too', (
+  testWidgets('draws a spinner with the platform widget too', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
           body: renderFlutter(
-            core.Box(
-              children: <core.UINode>[
-                material.MaterialTextField(
-                  label: 'Email',
-                  placeholder: 'ada@example.com',
-                ),
-                material.MaterialSpinner(),
-              ],
-            ),
+            material.MaterialSpinner(),
             scope: core.UniboxScope(theme: material.MaterialPalette.lightTheme),
             substitutions: materialComponents(),
           ),
@@ -175,9 +161,7 @@ void main() {
       ),
     );
 
-    expect(find.byType(TextField), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    expect(find.text('Email'), findsOneWidget);
   });
 
   group('a substituted card', () {
@@ -338,117 +322,6 @@ void main() {
     );
 
     expect(find.text(String.fromCharCode(0xe570)), findsOneWidget);
-  });
-
-  material.MaterialSegmentedButton twoChoices({VoidCallback? onRemove}) =>
-      material.MaterialSegmentedButton(
-        segments: <material.MaterialSegment>[
-          const material.MaterialSegment(label: core.TextNode('Rooms')),
-          const material.MaterialSegment(label: core.TextNode('Desks')),
-        ],
-        selected: 0,
-        onSelect: (int index) {},
-      );
-
-  testWidgets(
-    "a pill without a width hugs its columns, and one that states a width fills it",
-    (WidgetTester tester) async {
-      // A row that scrolls gives its children no width at all, and a `SegmentedButton` told to
-      // expand into that lays out at an infinite width and throws. The node's own width decides —
-      // as it does on the page — so the pill hugs, and the row can size to its chips.
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: renderFlutter(
-              core.Box(
-                direction: core.Axis.horizontal,
-                overflow: core.Overflow.scroll,
-                children: <core.UINode>[twoChoices()],
-              ),
-              scope: core.UniboxScope(
-                theme: material.MaterialPalette.lightTheme,
-              ),
-              substitutions: materialComponents(),
-            ),
-          ),
-        ),
-      );
-
-      expect(tester.takeException(), isNull);
-      final Size hugged = tester.getSize(find.byType(SegmentedButton<int>));
-      expect(hugged.width, lessThan(360));
-
-      // A pill that states a width divides it between its segments.
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Align(
-              alignment: Alignment.topLeft,
-              child: renderFlutter(
-                material.MaterialSegmentedButton(
-                  segments: <material.MaterialSegment>[
-                    const material.MaterialSegment(
-                      label: core.TextNode('Rooms'),
-                    ),
-                    const material.MaterialSegment(
-                      label: core.TextNode('Desks'),
-                    ),
-                  ],
-                  selected: 0,
-                  onSelect: (int index) {},
-                  width: 360,
-                ),
-                scope: core.UniboxScope(
-                  theme: material.MaterialPalette.lightTheme,
-                ),
-                substitutions: materialComponents(),
-              ),
-            ),
-          ),
-        ),
-      );
-
-      expect(tester.getSize(find.byType(SegmentedButton<int>)).width, 360);
-    },
-  );
-
-  testWidgets('outlines a segmented pill with the hairline the tree names', (
-    WidgetTester tester,
-  ) async {
-    // `SegmentedButton` outlines itself with `ColorScheme.outline` unless it is told otherwise,
-    // which is a step darker than the `outlineVariant` a tree states — so the app drew a
-    // different pill than the page for the same node.
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: renderFlutter(
-            material.MaterialSegmentedButton(
-              segments: <material.MaterialSegment>[
-                const material.MaterialSegment(label: core.TextNode('Rooms')),
-                const material.MaterialSegment(label: core.TextNode('Desks')),
-              ],
-              selected: 0,
-              onSelect: (int index) {},
-              border: const core.BoxBorder(
-                color: core.BoxColor(0xFF112233),
-                width: 2,
-              ),
-            ),
-            scope: core.UniboxScope(theme: material.MaterialPalette.lightTheme),
-            substitutions: materialComponents(),
-          ),
-        ),
-      ),
-    );
-
-    final SegmentedButton<int> pill = tester.widget<SegmentedButton<int>>(
-      find.byType(SegmentedButton<int>),
-    );
-
-    expect(
-      pill.style?.side?.resolve(<WidgetState>{}),
-      const BorderSide(color: Color(0xFF112233), width: 2),
-    );
   });
 
   testWidgets('a removable chip answers its own pill as well as its cross', (

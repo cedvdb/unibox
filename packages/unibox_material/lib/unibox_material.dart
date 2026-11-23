@@ -37,13 +37,11 @@
 /// transitions.
 library;
 
-export 'src/material_bottom_sheet.dart';
 export 'src/material_button.dart';
 export 'src/material_card.dart';
 export 'src/material_check_mark.dart';
 export 'src/material_chip.dart';
 export 'src/material_density.dart';
-export 'src/material_dialog.dart';
 export 'src/material_elevation.dart';
 export 'src/material_icon.dart';
 export 'src/material_icon_button.dart';
@@ -53,6 +51,5 @@ export 'src/material_palette.dart';
 export 'src/material_progress_ring.dart';
 export 'src/material_scheme_variant.dart';
 export 'src/material_segmented_button.dart';
-export 'src/material_text_field.dart';
 export 'src/material_type_role.dart';
 export 'src/material_typography.dart';

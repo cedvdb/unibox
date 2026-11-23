@@ -242,8 +242,8 @@ so there is one description of it and no second one to keep in step.
 Elsewhere the app draws Material nodes with Flutter's own widgets — that is the standard
 wiring of a host, because a document is served first and the app takes it over. This page
 draws the catalogue **twice, side by side**: once from the design system's values, which is
-what the document is served, and once with the map, where a card is a `Card` and a pill a
-`SegmentedButton`. The captions say which is which, and the
+what the document is served, and once with the map, where a card is a `Card` and a button a
+`FilledButton`. The captions say which is which, and the
 sections line up across the fold — which is why the page asks for a desktop window: at 1920 each
 half gets the 960 a page needs, and at 1280 one of the demos overflows. No address parameter is needed, and the two pages that are held
 to each other — the listings and the site — carry no switch at all: a proof that can be asked to
@@ -373,10 +373,10 @@ relative link, and both frames, to the domain root.
 The site is a node tree as well, so it is built with the library it documents: its sections
 are boxes and text, drawn by the same renderer that draws the example.
 
-The catalogue's dialog is the exception that proves the rule: the button is a
+The example's sign-up dialog is the exception that proves the rule: the button is a
 `MaterialInkWell` over a filled box, so a press leaves ink where it landed, and the
-`MaterialDialog` is in the tree only while the demo's store says it is open. A document has
-no store, so it draws the resting well and no dialog until an application takes the page over.
+`OverlayNode` is in the tree only while the page's store says it is open. A document has no
+store, so it draws the resting well and no dialog until an application takes the page over.
 
 The one thing the model cannot describe is an `<iframe>`, and that is what `EmbedNode` is for:
 the comparison's two frames are the only non-node content on the site, and the page around

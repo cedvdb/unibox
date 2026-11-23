@@ -58,12 +58,9 @@ host that renders it.
   components built on nodes the renderers already draw: `MaterialCard`, `MaterialListTile`,
   `MaterialButton`, `MaterialIconButton`, `MaterialChip`, `MaterialSegmentedButton`,
   `MaterialIcon` and `MaterialProgressRing` are `Box` subclasses; `MaterialInkWell`,
-  `MaterialTextField` and `MaterialSpinner` are `StatefulNode`s (the ink a press spreads;
-  the text, the focus and whether the field has been touched; the value nobody knows);
-  `MaterialCheckMark` is
-  a `StackNode` (Material's tick, drawn, so a chosen control needs no font); and
-  `MaterialDialog` and `MaterialBottomSheet` are `OverlayNode`s. The palette is a
-  value the tree wears — pass the roles into the builders; there is no `Theme`
+  `MaterialSpinner` is a `StatefulNode` (the value nobody knows); `MaterialCheckMark` is
+  a `StackNode` (Material's tick, drawn, so a chosen control needs no font). The palette
+  is a value the tree wears — pass the roles into the builders; there is no `Theme`
   lookup at render time. Wiring the same roles into the platform (`ColorScheme`, CSS
   custom properties) is the application's job.
 
@@ -211,10 +208,9 @@ host that renders it.
 | `Stack` + `Positioned` | `StackNode` + `PositionedNode` |
 | `Semantics(button: true, label:)` | `semantics: BoxSemantics(role: BoxRole.button, label: …)` |
 | `Semantics(button: true, toggled: true)`, `aria-pressed` | `semantics: BoxSemantics(role: BoxRole.button, pressed: true)` — a toggle button, which is what a chip and a segment are; `selected` is for the item of a set (an option, a tab) and a browser ignores it on a button |
-| `TextField` | `TextInputNode(value:, placeholder:, inputType:, onChanged:)`, or `MaterialTextField(label:, validator:, onChanged:)` for Material's frame, which validates itself once the field has been touched |
+| `TextField` | `TextInputNode(value:, placeholder:, inputType:, onChanged:)` — a field with no chrome of its own, because the tree states the frame: a `Box` for the fill and the line, a `TextNode` for the label, and the error under it |
 | `FilledButton`, `TextButton`, `OutlinedButton`, `ElevatedButton` | `MaterialButton.filled(…)`, `.text(…)`, `.outlined(…)` or `.tonal(…)` — a label on a fill with the ink of a press; all four paint 40 tall and at least 64 wide, and `padding`, `height`, `minWidth` and `iconGap` restyle them |
-| `showDialog`, `Dialog` | `MaterialDialog(title:, content:, actions:, onDismiss:)` — an `OverlayNode`, not a call |
-| `showModalBottomSheet` | `MaterialBottomSheet(title:, content:, actions:)` — the same overlay at the bottom |
+| `showDialog`, `showModalBottomSheet`, an `Overlay` | `OverlayNode(barrier:, dismissible:, alignment:, child:)` — an overlay is a node in the tree, placed where the state says it belongs, never a call: the dialog's surface is a `Box` with `MaterialElevation.level3` and the sheet's a `Box` at the bottom edge |
 | `SegmentedButton`, a `ToggleButtons` row | `MaterialSegmentedButton(segments:, selected:, onSelect:)` — one pill of equal segments, the chosen one filled: a segment is always as wide as the widest one, whether or not the control has a `width`, which is what a segmented button is. `border` is the line around the pill and between its segments. A segment with a `url` is a destination: one `<a href>` per unchosen choice, no `onSelect`, and `aria-current` on the chosen one |
 | `Chip`, `FilterChip`, `ChoiceChip` | `MaterialChip(label:, selected:, leading:, onTap:)` — 32 pixels tall, an outline when unselected, the secondary container when chosen; `padding`, `height` and `gap` make a denser one, and `onRemove` adds a close target whose name is `removeSemanticsLabel` |
 | `Icon(Icons.check)`, under a chosen chip or segment | `MaterialCheckMark(color:, size:)` — Material's tick drawn from two strokes, no font asset needed |

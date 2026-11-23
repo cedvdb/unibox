@@ -40,9 +40,7 @@ This is the list, and anything outside it is a candidate for deletion rather tha
 | `MaterialChip` | `FilterChip`, `InputChip` |
 | `MaterialIconButton` | `IconButton` |
 | `MaterialListTile` | `ListTile` |
-| `MaterialTextField` | `TextField` |
 | `MaterialProgressRing`, `MaterialSpinner` | `CircularProgressIndicator` |
-| `MaterialSegmentedButton` | `SegmentedButton` |
 | `MaterialIcon` | `Icon`, from the host's own `IconData` list (`materialComponents(icons:)`) |
 
 **Document-only, and kept because everything else is built from them:** `MaterialInkWell`,
@@ -53,10 +51,12 @@ draws and the node a chosen chip puts in its `leading` slot. What they lack is a
 which is a question about who paints the press, not a reason to delete them: as values and nodes
 they already draw the same on both targets.
 
-**Document-only, and therefore candidates for deletion:** `MaterialDialog` and
-`MaterialBottomSheet`. Each is a slots-and-policy component that a widget cannot replace
-surface-for-surface, and nothing else in the package is built from it. A band that needs one
-usually needs a `Box` and a link instead.
+**The list is closed.** Everything else the package used to hold was on it and is gone: the
+scaffold and the two app bars, the navigation bar and the tabs — a screen's chrome and its
+furniture are the application's, and Flutter draws the first of them itself. The dialog and the
+bottom sheet went the same way: an overlay whose slots and policy a widget cannot replace
+surface-for-surface, and nothing else in the package was built from it. A tree that needs one
+states an `OverlayNode` and a `Box`.
 
 The scaffold and the two app bars were on that list and are gone. A screen's chrome — the bar that
 stays, the body under it, the bar that gives its height back as the reader scrolls — is the
@@ -657,6 +657,12 @@ needs.
 `pinOffset` like any box, which is what a filter row that stays at the top of a scrolling
 list of results needs.
 
+**The app draws this one from its values, not with Flutter's `SegmentedButton`.** The chosen
+segment carries a tick drawn from two strokes (`MaterialCheckMark`) where the widget draws
+`Icons.check` from an icon font, so a substitution would put two different ticks on one
+control — and a glyph is an asset this package ships none of. Everything else about the pill
+is a token both targets already read, so the values render it identically on both.
+
 ```dart
 MaterialSegmentedButton(
   segments: const <MaterialSegment>[
@@ -752,64 +758,6 @@ has no group role: every selecting segment is a button that says whether it is t
 one. A disabled control fades as one at 38% rather than drawing `onSurface` at 12% under a
 38% label, which would need an alpha role per token.
 
-## The text field
-
-`MaterialTextField` is a field with a state of its own: it is a `StatefulNode`, so it
-knows the text, whether it has focus, and whether the user has touched it, and it
-draws its own focus line, its own floating label and its own error.
-
-```dart
-MaterialTextField(
-  label: 'Email',
-  inputType: InputType.email,
-  helper: 'We only use it for the receipt.',
-  validator: (String value) =>
-      value.contains('@') ? null : 'Enter an address with an @',
-  onChanged: store.setEmail,
-)
-```
-
-The field holds what only it can know. What the value is *worth* — the request it
-starts, the button it enables — is the form's store, reached through `onChanged`.
-`initialValue` seeds the text the user then owns, `value` controls it from outside, and
-`error` shows a message the form decided on ("that address is taken"); all three
-outrank what the store starts with.
-
-`validator` is asked once the field has been touched, which is a keystroke or leaving
-it. Answering `null` means nothing is wrong: the line and the label stay in the resting
-colour and `helper` is the quiet message under the field. Answering a message turns the
-line, the label and the row under the field into `error`, so an address becomes valid
-and invalid as it is typed, with no flag passing through the host.
-
-| State | Line |
-| --- | --- |
-| resting | `onSurfaceVariant`, one pixel |
-| hover | `onSurface`, one pixel |
-| focused | `primary`, two pixels |
-| touched, and the validator answered | `error`, two pixels while focused, and the label and message with it |
-
-The line is a shadow with no blur, because `BoxBorder` draws all four sides and a
-filled field has none, and the value's padding lives on the input so a press anywhere
-in the fill focuses the field. `contentPadding` is the room at the sides of the label,
-the value and the message — the three stay in one column — and `messageGap` is the space
-between the fill and the line under it.
-
-**The label has Material's two positions.** Empty and unfocused, the label *is* the
-line inside the field: body size, `onSurfaceVariant`, drawn as the input's own hint so
-that the caret and the label are one piece of text and the field is 56 pixels tall.
-Once the field holds a value or takes focus, the label shrinks to `bodySmall` at the top
-of the fill and the value takes the row below it, which keeps the same 56 pixels.
-Material animates the move and the model has no triggered timeline for a layout change,
-so this one steps.
-
-**Rounded at the top, square at the bottom.** Material's filled field is a shape cut to
-the lines it sits between, so the field names the two top corners through
-`BoxBorderRadius` and leaves the bottom two alone.
-
-The caret, the selection, the IME and autofill are the platform's, because the input
-node delegates them — so a dark app renders the same field with
-`UniboxScope(theme: MaterialPalette.darkTheme)` *and* a matching `ColorScheme` to `MaterialApp`.
-
 ## The chip
 
 `MaterialChip` is a filter chip: a label in a pill, chosen or not.
@@ -861,45 +809,6 @@ cross come from a font, and a font is a host asset this package does not ship.
 glyphs from boxes instead. `removeSemanticsLabel` names what the cross removes, which a
 row of applied filters should pass: eleven chips that all announce "Remove" leave a reader
 with no idea which one is about to go.
-
-## The dialog and the bottom sheet
-
-Both are `OverlayNode`s, so they sit in the tree where the state says they belong, and
-no renderer knows their names.
-
-```dart
-MaterialDialog(
-  title: 'Delete listing?',
-  content: const TextNode('The listing and its photos are removed.'),
-  actions: <UINode>[Cancel(onTap: store.close), Delete(onTap: store.delete)],
-  onDismiss: store.close,
-)
-
-MaterialBottomSheet(
-  title: 'Filter listings',
-  content: FilterForm(state: state, store: store),
-  actions: <UINode>[Apply(onTap: store.applyFilters)],
-  onDismiss: store.closeFilters,
-)
-```
-
-| | Dialog | Sheet |
-| --- | --- | --- |
-| alignment | centre | bottom |
-| surface | `surfaceContainerHigh` | `surfaceContainerLow` |
-| width | 280 to 560 | up to 640 |
-| barrier | `scrim`, dismissible by default | the same |
-| title | `headlineSmall` in `onSurface` | the same |
-| actions | a row against the end | the same |
-| room | 24 of padding, 16 between the parts, radius 28, 8 between the actions and 8 above them | the same, rounded at the top only |
-
-Every number in the last row is a parameter: `color`, `padding`, `gap`, `borderRadius`,
-`actionGap` and `actionMargin` restyle the surface without a second component, which is
-what a dialog on a small screen needs. A sheet's action row now keeps the 8 pixels above
-it that a dialog's does, so the two read as one component at two edges.
-
-Material's modal entrance and exit transitions are not here, and the sheet rounds only
-its two upper corners because it rises from the edge.
 
 ## The icon
 
@@ -1013,9 +922,8 @@ Material's own tone ladder ends, rather than a sixth tone this palette does not 
 The catalogue in the example draws all six pairs in one grid, which is what makes the climb
 visible at all.
 
-A component names the level it rests at rather than writing a shadow, which is what keeps
-`MaterialCard`, `MaterialDialog` and `MaterialBottomSheet` in step: an app that replaces one
-level replaces it on every surface that uses it. A level states its blur in Flutter's unit,
+A component names the level it rests at rather than writing a shadow, which is what keeps every
+surface in step: an app that replaces one level replaces it wherever it is used. A level states its blur in Flutter's unit,
 and the web writes the CSS blur that paints the same width, so a card whose shadow is read at
 the edge is the same height on the page as in the app. What stays outside the parity contract
 is how the two engines *rasterise* that blur — a gaussian is drawn differently in a browser

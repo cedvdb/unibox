@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- The map names two components fewer: `MaterialTextField` is gone from the package, and
+  `MaterialSegmentedButton` stays out deliberately — its chosen segment carries a drawn tick
+  where `SegmentedButton` draws `Icons.check` from a font, so the app draws the pill from its
+  values and both targets show the same control.
+
 - **A glyph the host did not name is drawn as text, not as a run-time `IconData`.** `flutter build`
   records every `IconData` construction and refuses to subset the icon fonts when an argument is
   not a constant — *"This application cannot tree shake icons fonts. It has non-constant instances
@@ -33,10 +38,9 @@
 
 - `MaterialTabBar` stays out deliberately: a `TabBar` is half a component — a controller and a
   view — and Flutter asserts the tab role on its children, which a strip drawn from a node
-  cannot promise. So do `MaterialDialog` and `MaterialBottomSheet`, whose slots and policy live
-  in the node — and the scaffold, the two app bars, the navigation bar and the tab bar with the
-  tabs that are built on it are gone from `unibox_material` altogether, since a screen's chrome
-  and its furniture are the application's.
+  cannot promise. The scaffold and the two app bars, the navigation bar and the tab bar with the
+  tabs built on it, the dialog and the sheet are gone from `unibox_material` altogether: a
+  screen's chrome, its furniture and its overlays are the application's.
 
 - `materialThemeData(palette)` is the other half of the map: a `ThemeData` built role by role
   from a `MaterialPalette`. A substituted widget takes its colours from `ColorScheme` and its

@@ -62,7 +62,6 @@ void main() {
           '2|Material',
           '3|Type scale',
           '3|Segments',
-          '3|Dialog',
         ]),
       );
       // The catalogue carries the palette picker, so the page names the example's
@@ -277,10 +276,7 @@ void main() {
         'Buttons',
         'Chips',
         'Segments',
-        'Text fields',
         'Cards and tiles',
-        'Pages',
-        'Dialog',
         'Type scale',
         'Colour roles',
         'Shapes',

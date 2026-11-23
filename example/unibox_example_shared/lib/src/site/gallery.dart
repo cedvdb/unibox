@@ -56,31 +56,11 @@ UINode buildMaterialSection({
         ),
         _section(
           palette,
-          'Text fields',
-          _fields(palette),
-          note: 'The filled field, with its own focus, label and error.',
-        ),
-        _section(
-          palette,
           'Cards and tiles',
           _cards(palette),
           note:
               'All six heights on the surface Material tints to match, the two other '
               'shapes a card comes in, and a row that says who it is.',
-        ),
-        _section(
-          palette,
-          'Pages',
-          _pager(palette),
-          note:
-              'A pager: `PagerNode` settles on one child at a time, and its children are the '
-              'size the tree states. Swipe it sideways.',
-        ),
-        _section(
-          palette,
-          'Dialog',
-          DialogDemo(seed: seed),
-          note: 'An OverlayNode: in the tree only while it is open.',
         ),
         // Then the values. The samples are the argument: fifteen lines of text and a
         // wall of swatches need a name, not a paragraph.
@@ -530,49 +510,6 @@ UINode _removableView(Set<String> chips, ChipsStore store) {
   );
 }
 
-/// A pager: a horizontal box that settles on a child instead of between two.
-///
-/// The pager is exactly one page wide, which is the contract `PagerNode` states — a page is a
-/// child the size of the box, and `validateTree` reports a child that is not. Stated that way, the
-/// two targets agree for a reason rather than by luck: CSS snaps to the child's own
-/// `scroll-snap-align` edge, and Flutter's page physics snaps to the viewport's, which is the same
-/// edge when the two are the same width.
-UINode _pager(MaterialPalette palette) {
-  const double page = 240;
-  const double height = 120;
-
-  return PagerNode(
-    width: page,
-    height: height,
-    direction: Axis.horizontal,
-    borderRadius: 12,
-    children: <UINode>[
-      for (final (int index, String caption) in <String>[
-        'One',
-        'Two',
-        'Three',
-      ].indexed)
-        Box(
-          width: page,
-          height: height,
-          padding: const BoxSpacing.all(16),
-          backgroundColor: index.isEven
-              ? palette.secondaryContainer
-              : palette.surfaceContainerHigh,
-          crossAlign: CrossAlign.center,
-          children: <UINode>[
-            TextNode(
-              caption,
-              style: MaterialTypography.headlineSmall.copyWith(
-                color: palette.onSecondaryContainer,
-              ),
-            ),
-          ],
-        ),
-    ],
-  );
-}
-
 /// A segmented button that keeps the choice it was given.
 /// The choice is the state: the view puts the segment the store says is chosen into
 /// the button, and a press asks for another one — the same shape as the dialog demo,
@@ -636,55 +573,6 @@ UINode _viewSwitchView(int chosen, ViewStore store) {
     ],
     selected: chosen,
     onSelect: store.choose,
-  );
-}
-
-/// Two fields, one in each of the label's positions, and both validating.
-///
-/// The pair is a comparison, so the only thing that differs is the value: the first
-/// is empty and its label *is* the line, the second starts with the beginning of an
-/// address and its label has floated to the top of the fill. Typing in either asks
-/// the same validator, so a half finished address turns the line and the message
-/// red and finishing it takes both away — the state is the field's, not the page's.
-UINode _fields(MaterialPalette palette) {
-  const String hint = 'you@example.com';
-  const String helper = 'We only use it for the receipt.';
-  String? invalidAddress(String value) =>
-      value.contains('@') ? null : 'Enter an address with an @';
-
-  return GridNode(
-    minItemWidth: 280,
-    maxColumns: 2,
-    gap: 24,
-    children: <UINode>[
-      Box(
-        width: double.infinity,
-        children: <UINode>[
-          MaterialTextField(
-            width: double.infinity,
-            label: 'Email',
-            placeholder: hint,
-            helper: helper,
-            inputType: InputType.email,
-            validator: invalidAddress,
-          ),
-        ],
-      ),
-      Box(
-        width: double.infinity,
-        children: <UINode>[
-          MaterialTextField(
-            width: double.infinity,
-            label: 'Email',
-            placeholder: hint,
-            helper: helper,
-            inputType: InputType.email,
-            initialValue: 'ada@',
-            validator: invalidAddress,
-          ),
-        ],
-      ),
-    ],
   );
 }
 
@@ -857,98 +745,4 @@ final class SegmentedStore extends StateStore<int> {
 final class SegmentedDemo extends StatefulNode<int, SegmentedStore> {
   /// Creates the demo, with its first segment chosen.
   SegmentedDemo() : super(create: SegmentedStore.new, view: _segmentedView);
-}
-
-/// The state of the dialog demo: open, or closed.
-final class DialogDemoStore extends StateStore<bool> {
-  /// Creates the demo with its dialog closed.
-  DialogDemoStore() : super(false);
-
-  /// Opens the dialog.
-  void open() => state = true;
-
-  /// Closes the dialog.
-  void close() => state = false;
-}
-
-/// A button that opens a dialog of its own.
-///
-/// Presence is the state: the view puts the `MaterialDialog` in the tree while
-/// [DialogDemoStore] says it is open, and leaves it out when it closes. That is the
-/// whole mechanism a dialog needs — the node carries the barrier and the dismissal.
-final class DialogDemo extends StatefulNode<bool, DialogDemoStore> {
-  /// Creates the demo, with its dialog closed.
-  DialogDemo({this.seed = ExampleSeed.defaultSeed})
-    : super(
-        create: DialogDemoStore.new,
-        view: (bool open, DialogDemoStore store) =>
-            _dialogView(open, store, ExamplePalette.materialFor(seed)),
-      );
-
-  /// The seed the demo is drawn with, which its own tree reads when it is built.
-  final ExampleSeed seed;
-}
-
-/// The button, the dialog when it is open, and what the section says about it.
-UINode _dialogView(bool open, DialogDemoStore store, MaterialPalette palette) {
-  // A grid, so the button and the note beside it stack on a narrow window instead
-  // of pushing the page sideways.
-  return GridNode(
-    minItemWidth: 240,
-    maxColumns: 3,
-    gap: 24,
-    children: <UINode>[
-      // At its own size, like every control on this page: a grid item fills its track, and
-      // this button without a wrapper became a banner whose tint was wider than its label.
-      _natural(
-        Box(
-          backgroundColor: palette.primary,
-          borderRadius: 20,
-          children: <UINode>[
-            MaterialInkWell(
-              onTap: store.open,
-              borderRadius: 20,
-              ink: palette.onPrimary,
-              padding: const BoxSpacing.symmetric(horizontal: 20, vertical: 10),
-              child: TextNode(
-                'Delete listing',
-                style: MaterialTypography.labelLarge.copyWith(
-                  color: palette.onPrimary,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      Box(
-        width: double.infinity,
-        children: <UINode>[
-          TextNode(
-            'Title, content and actions, on the surface a dialog is raised by. The '
-            'button is a MaterialInkWell over a filled box, so a press leaves ink; '
-            'the dialog is in the tree only while it is open.',
-            style: MaterialTypography.labelSmall.copyWith(
-              color: palette.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-      if (open)
-        MaterialDialog(
-          title: 'Delete listing?',
-          content: const TextNode('The photos go with it.'),
-          actions: <UINode>[
-            MaterialButton.text(
-              label: const TextNode('Cancel'),
-              onTap: store.close,
-            ),
-            MaterialButton.text(
-              label: const TextNode('Delete'),
-              onTap: store.close,
-            ),
-          ],
-          onDismiss: store.close,
-        ),
-    ],
-  );
 }
