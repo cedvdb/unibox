@@ -103,7 +103,14 @@ jobs:
           # The status is kept as well as the body: a key the provider refused and a model it does
           # not have both arrive as a body that is not an answer, and the status tells the two apart
           # at a glance in the log.
-          if ! http="$(curl -sS --max-time 120 -o "$RUNNER_TEMP/response.json" -w '%{http_code}' \
+          #
+          # `--retry` is what the provider's own 503 asked for — "this model is currently
+          # experiencing high demand ... spikes in demand are usually temporary" — and curl retries
+          # exactly that kind of error by itself, 503 included, so the spike is ridden out instead of
+          # silencing the review of the pull request that most needs reading. The last attempt is
+          # still the one the warning quotes.
+          if ! http="$(curl -sS --max-time 120 --retry 3 --retry-delay 2 --retry-max-time 100 \
+                 -o "$RUNNER_TEMP/response.json" -w '%{http_code}' \
                  -H "Authorization: Bearer $KEY" \
                  -H 'content-type: application/json' \
                  --data @"$RUNNER_TEMP/request.json" "$ENDPOINT")"; then
