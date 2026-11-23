@@ -63,9 +63,8 @@ the content.
 
 A substitution may change the paint. It may not change the information. A page and an
 application that disagree about content were never the same screen, so a component here is
-built from the node it was given: `MaterialSegmentedButton` keeps its `segments`, its
-`selected` index and its `onSelect` precisely so this package can hand them to a
-`SegmentedButton` unchanged.
+built from the node it was given: a `MaterialButton` keeps its `label` and its `onPressed`
+precisely so this package can hand them to a `FilledButton` unchanged.
 
 ## What it costs
 
@@ -78,8 +77,8 @@ components whose two renderings agree.** A screen that does not is served as a d
 no Flutter on it, or held to `?unibox=compare` in the example.
 
 **The components the map names.** `MaterialCard`, `MaterialButton` (all four shapes),
-`MaterialChip`, `MaterialIcon`, `MaterialIconButton`, `MaterialProgressRing`, `MaterialListTile`,
-`MaterialSegmentedButton`, `MaterialTextField` and `MaterialSpinner`.
+`MaterialChip`, `MaterialIcon`, `MaterialIconButton`, `MaterialProgressRing`, `MaterialListTile`
+and `MaterialSpinner`.
 
 **An icon needs the host's list.** `materialComponents(icons:)` takes the `IconData` values the
 application already names, because `flutter build` keeps a glyph only while a constant `IconData`

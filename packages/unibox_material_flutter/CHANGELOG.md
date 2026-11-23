@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- The map names two components fewer: `MaterialTextField` is gone from the package, and
+  `MaterialSegmentedButton` stays out deliberately — its chosen segment carries a drawn tick
+  where `SegmentedButton` draws `Icons.check` from a font, so the app draws the pill from its
+  values and both targets show the same control.
+
 - **A glyph the host did not name is drawn as text, not as a run-time `IconData`.** `flutter build`
   records every `IconData` construction and refuses to subset the icon fonts when an argument is
   not a constant — *"This application cannot tree shake icons fonts. It has non-constant instances

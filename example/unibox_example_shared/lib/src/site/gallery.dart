@@ -56,12 +56,6 @@ UINode buildMaterialSection({
         ),
         _section(
           palette,
-          'Text fields',
-          _fields(palette),
-          note: 'The filled field, with its own focus, label and error.',
-        ),
-        _section(
-          palette,
           'Cards and tiles',
           _cards(palette),
           note:
@@ -630,55 +624,6 @@ UINode _viewSwitchView(int chosen, ViewStore store) {
     ],
     selected: chosen,
     onSelect: store.choose,
-  );
-}
-
-/// Two fields, one in each of the label's positions, and both validating.
-///
-/// The pair is a comparison, so the only thing that differs is the value: the first
-/// is empty and its label *is* the line, the second starts with the beginning of an
-/// address and its label has floated to the top of the fill. Typing in either asks
-/// the same validator, so a half finished address turns the line and the message
-/// red and finishing it takes both away — the state is the field's, not the page's.
-UINode _fields(MaterialPalette palette) {
-  const String hint = 'you@example.com';
-  const String helper = 'We only use it for the receipt.';
-  String? invalidAddress(String value) =>
-      value.contains('@') ? null : 'Enter an address with an @';
-
-  return GridNode(
-    minItemWidth: 280,
-    maxColumns: 2,
-    gap: 24,
-    children: <UINode>[
-      Box(
-        width: double.infinity,
-        children: <UINode>[
-          MaterialTextField(
-            width: double.infinity,
-            label: 'Email',
-            placeholder: hint,
-            helper: helper,
-            inputType: InputType.email,
-            validator: invalidAddress,
-          ),
-        ],
-      ),
-      Box(
-        width: double.infinity,
-        children: <UINode>[
-          MaterialTextField(
-            width: double.infinity,
-            label: 'Email',
-            placeholder: hint,
-            helper: helper,
-            inputType: InputType.email,
-            initialValue: 'ada@',
-            validator: invalidAddress,
-          ),
-        ],
-      ),
-    ],
   );
 }
 

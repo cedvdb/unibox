@@ -276,7 +276,6 @@ void main() {
         'Buttons',
         'Chips',
         'Segments',
-        'Text fields',
         'Cards and tiles',
         'Pages',
         'Type scale',

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- **The text field is gone.** `MaterialTextField` was the one component whose whole job was a
+  host's chrome: a focus line, a floating label and an error a field could show itself. A field
+  with no chrome is what the model states — a `TextInputNode` inside a `Box` that draws the fill
+  and the line, with the label and the error as `TextNode`s beside it — and the example's sign-up
+  form has been built that way all along.
+
 - **The dialog and the bottom sheet are gone.** `MaterialDialog` and `MaterialBottomSheet` were
   the last two components with no widget to map them to: an overlay's slots and its dismissal
   policy are the node's, so a tree that needs one states an `OverlayNode` and a `Box`. The

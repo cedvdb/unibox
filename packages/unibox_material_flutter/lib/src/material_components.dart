@@ -34,8 +34,6 @@ UniboxSubstitutions materialComponents({
   material.MaterialButton: _button,
   material.MaterialChip: _chip,
   material.MaterialListTile: _listTile,
-  material.MaterialSegmentedButton: _segmentedButton,
-  material.MaterialTextField: _textField,
   material.MaterialSpinner: _spinner,
   material.MaterialIconButton: _iconButton,
   material.MaterialProgressRing: _progressRing,
@@ -344,28 +342,6 @@ Widget _listTile(BuildContext context, core.UINode node, Widget? content) {
   );
 }
 
-Widget _textField(BuildContext context, core.UINode node, Widget? content) {
-  final material.MaterialTextField field = node as material.MaterialTextField;
-
-  // Vanilla on purpose: the field is Flutter's own, with the label, the hint and the message
-  // the node states — its chrome is the widget's, which is what a substitution is for.
-  return TextField(
-    enabled: field.enabled,
-    obscureText: field.obscureText,
-    maxLines: field.multiline ? null : 1,
-    decoration: InputDecoration(
-      // The node's field is filled, with a line under it; Flutter states the same shape with
-      // these two, and an outlined field is the `border` that states a box instead.
-      filled: true,
-      border: const UnderlineInputBorder(),
-      labelText: field.label,
-      hintText: field.placeholder,
-      helperText: field.helper,
-      errorText: field.error,
-    ),
-  );
-}
-
 Widget _spinner(BuildContext context, core.UINode node, Widget? content) {
   final material.MaterialSpinner spinner = node as material.MaterialSpinner;
 
@@ -373,66 +349,5 @@ Widget _spinner(BuildContext context, core.UINode node, Widget? content) {
     width: spinner.size,
     height: spinner.size,
     child: const CircularProgressIndicator(),
-  );
-}
-
-Widget _segmentedButton(
-  BuildContext context,
-  core.UINode node,
-  Widget? content,
-) {
-  final material.MaterialSegmentedButton pill =
-      node as material.MaterialSegmentedButton;
-  final core.BoxStyle style = _styleOf(context, pill);
-  final core.BoxBorder? border = style.border;
-
-  // A row that stretches its children hands this a taller box than the control's own height,
-  // and `SegmentedButton` then paints its segments at the top of it — leaving the selection
-  // fill short of the pill's edge. The height the node states is the height it gets.
-  // `Align` first, so the widget is not stretched to the row's height: a tight height makes
-  // `SizedBox` meaningless, and a `SegmentedButton` in a taller box paints its selection at the
-  // top of it. Loose constraints, then the control's own height.
-  //
-  // The node's width decides, as it does on the page: a pill that states one divides it between its
-  // segments, and one that does not is as wide as its columns — which is what a row that scrolls
-  // holds. Reading it off the node rather than the constraints keeps the widget free of a
-  // `LayoutBuilder`, and a `LayoutBuilder` cannot answer an intrinsic measurement — which is what
-  // a viewport wrapped around this control asks for when the row it is in hugs.
-  return Align(
-    alignment: Alignment.centerLeft,
-    child: SizedBox(
-      height: pill.density.adjust(
-        material.MaterialSegmentedButton.controlHeight,
-      ),
-      child: SegmentedButton<int>(
-        segments: <ButtonSegment<int>>[
-          for (int i = 0; i < pill.segments.length; i++)
-            ButtonSegment<int>(
-              value: i,
-              label: renderNode(pill.segments[i].label),
-              icon: pill.segments[i].icon == null
-                  ? null
-                  : renderNode(pill.segments[i].icon!),
-            ),
-        ],
-        selected: <int>{pill.selected},
-        onSelectionChanged: pill.onSelect == null
-            ? null
-            : (Set<int> chosen) => pill.onSelect!(chosen.first),
-        showSelectedIcon: pill.showSelectedIcon,
-        expandedInsets: pill.width == null ? null : EdgeInsets.zero,
-        // The node's hairline, not the theme's. `SegmentedButton` otherwise outlines the pill
-        // with `ColorScheme.outline`, a step darker than the `outlineVariant` the tree names, so
-        // the same control was drawn in two colours — the app's against the page's.
-        style: border == null || !border.isVisible
-            ? null
-            : SegmentedButton.styleFrom(
-                side: BorderSide(
-                  color: Color(border.color.value),
-                  width: border.width,
-                ),
-              ),
-      ),
-    ),
   );
 }

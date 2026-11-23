@@ -46,8 +46,8 @@ guide is [`README.md`](README.md).
 | `packages/unibox_html/lib/src/` | the web: `css/` (the token-to-CSS mapping, the class hash and the state rules), `element/` (`ElementPlan`, `planNode` and `Stylesheet` — what a node becomes), and the writer (`render.dart`, `document.dart`, `client/`) | a token's CSS, a node's element or the document changes |
 | `packages/unibox_dom/lib/src/` | the client renderer: `mount.dart` (`DomView`), `patch.dart` (plan → element), `events.dart` (a callback → a listener) | the page has to react |
 | `packages/unibox_testing/lib/src/` | `BoxAppearance` + `boxCases`, `TextAppearance` + `textCases`, `OverlayAppearance` + `overlayCases` | a presentational token is added or changed |
-| `packages/unibox_material/lib/src/` | the Material 3 type scale: `MaterialTypography` (the fifteen roles as `const BoxTextStyle` values), `MaterialTypeRole`, the colour roles as `MaterialPalette` (`light`/`dark`, or grown from one seed by `fromSeed`, with `MaterialSchemeVariant` naming how the seed is spent), `MaterialElevation` (the six heights as `BoxShadow` lists), and the components built on the drawn nodes, one line each in `README.md#material` — `MaterialCard`, `MaterialListTile`, `MaterialButton`, `MaterialIconButton` (a glyph in a square, with a count over its corner), `MaterialChip`, `MaterialSegmentedButton`, `MaterialIcon` and `MaterialProgressRing` (a value, as a ring of a shape), all `Box`es; `MaterialInkWell` (its tints and the ink a press spreads), `MaterialTextField` (the text, the focus and whether it has been touched, which is what lets it show its own error) and `MaterialSpinner` (the step that ring turns), all `StatefulNode`s; `MaterialCheckMark` (a `StackNode`: Material's tick, drawn) | a design-system role is added, a scale or a palette changes, or a component is added |
-| `packages/unibox_material_flutter/lib/src/` | `materialComponents()`: the substitution map that draws `MaterialCard` with `Card` and `MaterialSegmentedButton` with `SegmentedButton`, over the values `unibox_material` states | a component gains a widget, or an application asks for one more |
+| `packages/unibox_material/lib/src/` | the Material 3 type scale: `MaterialTypography` (the fifteen roles as `const BoxTextStyle` values), `MaterialTypeRole`, the colour roles as `MaterialPalette` (`light`/`dark`, or grown from one seed by `fromSeed`, with `MaterialSchemeVariant` naming how the seed is spent), `MaterialElevation` (the six heights as `BoxShadow` lists), and the components built on the drawn nodes, one line each in `README.md#material` — `MaterialCard`, `MaterialListTile`, `MaterialButton`, `MaterialIconButton` (a glyph in a square, with a count over its corner), `MaterialChip`, `MaterialSegmentedButton`, `MaterialIcon` and `MaterialProgressRing` (a value, as a ring of a shape), all `Box`es; `MaterialInkWell` (its tints and the ink a press spreads) and `MaterialSpinner` (the step that ring turns), both `StatefulNode`s; `MaterialCheckMark` (a `StackNode`: Material's tick, drawn) | a design-system role is added, a scale or a palette changes, or a component is added |
+| `packages/unibox_material_flutter/lib/src/` | `materialComponents()`: the substitution map that draws `MaterialCard` with `Card` and `MaterialButton` with `FilledButton`, over the values `unibox_material` states | a component gains a widget, or an application asks for one more |
 
 | `packages/unibox_core/lib/src/state/` | `Store` and `StateStore`: the state a `StatefulNode` draws and the lifecycle a renderer calls | a store member, the publish rule or a lifecycle rule changes |
 | `packages/*/test/support/` | the harnesses (`pumpNode`, `inNode`, `stylesOf`, ...) and `appearance.dart`, which reads the presentation back out of the output | a test needs a new fact |
@@ -332,11 +332,11 @@ a second renderer, and the rule that keeps it one is in `design.md` §5.22.
 2. The map refuses the structural nodes by construction. Do not widen that set: a box or a
    text that a widget replaced would end parity for every tree, not for one component.
 3. A component a substitution must be able to read keeps its parameters as fields — that is
-   why `MaterialSegmentedButton` holds `segments`, `selected` and `onSelect`. Without them
+   why `MaterialButton` holds its `label` and its `onPressed`. Without them
    the builder receives the node and cannot rebuild the control.
 4. The test is the bargain, in the example that depends on both packages
    (`test/material_widgets_test.dart`): the widget when the map is there, the values when it
-   is not, and the same words, order and chosen segment either way.
+   is not, and the same words and the same press either way.
 5. Docs: the "Substitution" section of the Flutter README, the component's section in
    `unibox_material`, `design.md` §5.22, and both changelogs. `unibox_testing` does not
    change — a substitution is outside the appearance table by design, because the two
