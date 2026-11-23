@@ -17,12 +17,10 @@ void main() {
       material.MaterialCard(
         children: <core.UINode>[const core.TextNode('Order summary')],
       ),
-      material.MaterialNavigationBar(
-        destinations: const <material.MaterialNavigationDestination>[
-          material.MaterialNavigationDestination(
-            label: core.TextNode('Listings'),
-          ),
-          material.MaterialNavigationDestination(label: core.TextNode('Map')),
+      material.MaterialSegmentedButton(
+        segments: <material.MaterialSegment>[
+          material.MaterialSegment(label: const core.TextNode('Day')),
+          material.MaterialSegment(label: const core.TextNode('Week')),
         ],
         selected: 1,
         onSelect: (int index) {},
@@ -59,7 +57,7 @@ void main() {
     await pumpTree(tester, substituted: true);
 
     expect(find.byType(Card), findsOneWidget);
-    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.byType(SegmentedButton<int>), findsOneWidget);
   });
 
   testWidgets('draws the tree values when nothing is substituted', (
@@ -68,31 +66,24 @@ void main() {
     await pumpTree(tester, substituted: false);
 
     expect(find.byType(Card), findsNothing);
-    expect(find.byType(NavigationBar), findsNothing);
+    expect(find.byType(SegmentedButton<int>), findsNothing);
     expect(find.text('Order summary'), findsOneWidget);
   });
 
-  testWidgets('keeps the words and the destination that is chosen', (
+  testWidgets('keeps the words and the segment that is chosen', (
     WidgetTester tester,
   ) async {
     await pumpTree(tester, substituted: true);
 
     expect(find.text('Order summary'), findsOneWidget);
 
-    final NavigationBar bar = tester.widget<NavigationBar>(
-      find.byType(NavigationBar),
+    final SegmentedButton<int> pill = tester.widget<SegmentedButton<int>>(
+      find.byType(SegmentedButton<int>),
     );
 
-    expect(bar.selectedIndex, 1);
-    expect(
-      bar.destinations
-          .map(
-            (Widget destination) =>
-                (destination as NavigationDestination).label,
-          )
-          .toList(),
-      <String>['Listings', 'Map'],
-    );
+    expect(pill.selected, <int>{1});
+    expect(find.text('Day'), findsOneWidget);
+    expect(find.text('Week'), findsOneWidget);
   });
 
   testWidgets('draws the four controls with the platform widgets too', (
@@ -189,32 +180,6 @@ void main() {
     expect(find.text('Email'), findsOneWidget);
   });
 
-  testWidgets('draws a tab strip with the platform widget too', (
-    WidgetTester tester,
-  ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: renderFlutter(
-            material.MaterialTabBar(
-              tabs: const <material.MaterialTab>[
-                material.MaterialTab(label: core.TextNode('Overview')),
-                material.MaterialTab(label: core.TextNode('Details')),
-              ],
-              selected: 1,
-            ),
-            scope: core.UniboxScope(theme: material.MaterialPalette.lightTheme),
-            substitutions: materialComponents(),
-          ),
-        ),
-      ),
-    );
-
-    expect(find.byType(TabBar), findsOneWidget);
-    expect(find.text('Overview'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
-
   group('a substituted card', () {
     testWidgets('wears the corner, the fill and the clip the tree states', (
       WidgetTester tester,
@@ -274,7 +239,9 @@ void main() {
       // A run-time `IconData` costs the application its icon subsetter, so the fallback is the
       // character itself, out of the family the node names.
       expect(find.byType(Icon), findsNothing);
-      final Text glyph = tester.widget<Text>(find.text(String.fromCharCode(0xe570)));
+      final Text glyph = tester.widget<Text>(
+        find.text(String.fromCharCode(0xe570)),
+      );
 
       expect(glyph.style?.fontFamily, 'MaterialIcons');
       expect(glyph.style?.fontSize, 18);
@@ -340,7 +307,9 @@ void main() {
         ),
       );
 
-      final Text glyph = tester.widget<Text>(find.text(String.fromCharCode(0xe567)));
+      final Text glyph = tester.widget<Text>(
+        find.text(String.fromCharCode(0xe567)),
+      );
 
       expect(glyph.style?.fontFamily, 'MaterialIcons');
     },

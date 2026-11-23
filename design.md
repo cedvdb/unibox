@@ -594,8 +594,8 @@ same thing to say and the conformance table holds them to it.
   was seeded with. It is optional, because a component whose state copies nothing needs no
   seam, and it may publish, because a state equal to the current one publishes nothing.
   Without it the two halves drift with no error: the page draws a control offering a
-  destination that a store believes does not exist, which is what happened to
-  `MaterialTabs` before the hook existed.
+  destination that a store believes does not exist, which is what happened to a tab set
+  before the hook existed.
 - The state is a value. A `Store` publishes an immutable state and notifies a
   listener; `StateStore` drops a published value equal to the current one, so a
   rebuild follows a change of the description rather than a call.
@@ -1151,9 +1151,11 @@ information, always, and to the paint wherever the two agree.
 
 **Status.** The rule is settled and the door is the standard wiring of a Flutter host: a document
 is served first, the application takes it over, and from then on a Material node is Flutter's own
-widget. `unibox_material_flutter` maps eight components; the structural ones (`MaterialScaffold`,
-`MaterialTabs`, `MaterialDialog`, `MaterialBottomSheet`) and the ink well stay out, because their
-slots, their policy or their role belong to the node rather than to the surface a widget replaces.
+widget. `unibox_material_flutter` maps ten components; the structural ones (`MaterialDialog`,
+`MaterialBottomSheet`) and the ink well stay out, because their slots, their policy or their
+role belong to the node rather than to the surface a widget replaces. A screen's
+chrome is not a component at all: Flutter's `Scaffold` and `AppBar` are what an application has,
+and the package states no scaffold and no app bar for it to disagree with.
 What remains open is how far the list should grow, and the density of a document — CSS has no
 platform to read.
 

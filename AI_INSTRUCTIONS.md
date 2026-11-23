@@ -55,14 +55,12 @@ host that renders it.
   `BoxTextStyle` values, the colour roles as `MaterialPalette` (`light` and `dark`,
   each a `const` set of `BoxColor`s — or a palette grown from one brand colour with
   `MaterialPalette.fromSeed(seed, variant:, isDark:, contrastLevel:)`), and the
-  components built on nodes the renderers already draw: `MaterialScaffold`,
-  `MaterialAppBar`, `MaterialLargeAppBar`, `MaterialCard`, `MaterialListTile`,
-  `MaterialButton`, `MaterialIconButton`, `MaterialChip`, `MaterialTabBar`,
-  `MaterialSegmentedButton`, `MaterialNavigationBar`, `MaterialIcon` and
-  `MaterialProgressRing` are `Box` subclasses; `MaterialInkWell`, `MaterialTabs`,
-  `MaterialTextField` and `MaterialSpinner` are `StatefulNode`s
-  (the ink a press spreads; the page of the chosen tab; the text, the focus and
-  whether the field has been touched; the value nobody knows); `MaterialCheckMark` is
+  components built on nodes the renderers already draw: `MaterialCard`, `MaterialListTile`,
+  `MaterialButton`, `MaterialIconButton`, `MaterialChip`, `MaterialSegmentedButton`,
+  `MaterialIcon` and `MaterialProgressRing` are `Box` subclasses; `MaterialInkWell`,
+  `MaterialTextField` and `MaterialSpinner` are `StatefulNode`s (the ink a press spreads;
+  the text, the focus and whether the field has been touched; the value nobody knows);
+  `MaterialCheckMark` is
   a `StackNode` (Material's tick, drawn, so a chosen control needs no font); and
   `MaterialDialog` and `MaterialBottomSheet` are `OverlayNode`s. The palette is a
   value the tree wears — pass the roles into the builders; there is no `Theme`
@@ -218,7 +216,6 @@ host that renders it.
 | `showDialog`, `Dialog` | `MaterialDialog(title:, content:, actions:, onDismiss:)` — an `OverlayNode`, not a call |
 | `showModalBottomSheet` | `MaterialBottomSheet(title:, content:, actions:)` — the same overlay at the bottom |
 | `SegmentedButton`, a `ToggleButtons` row | `MaterialSegmentedButton(segments:, selected:, onSelect:)` — one pill of equal segments, the chosen one filled: a segment is always as wide as the widest one, whether or not the control has a `width`, which is what a segmented button is. `border` is the line around the pill and between its segments. A segment with a `url` is a destination: one `<a href>` per unchosen choice, no `onSelect`, and `aria-current` on the chosen one |
-| `NavigationBar`, `BottomNavigationBar` | `MaterialNavigationBar(destinations:, selected:, onSelect:)` — one 80 pixel row of equal shares, the chosen destination on a `secondaryContainer` pill; where it sits is the tree's business, so being at the bottom is the last row of a column or a `PositionedNode` |
 | `Chip`, `FilterChip`, `ChoiceChip` | `MaterialChip(label:, selected:, leading:, onTap:)` — 32 pixels tall, an outline when unselected, the secondary container when chosen; `padding`, `height` and `gap` make a denser one, and `onRemove` adds a close target whose name is `removeSemanticsLabel` |
 | `Icon(Icons.check)`, under a chosen chip or segment | `MaterialCheckMark(color:, size:)` — Material's tick drawn from two strokes, no font asset needed |
 | `InkWell`, `InkResponse` | `MaterialInkWell(onTap:, borderRadius:, ink:, child:)` — a state layer plus the ink a press spreads; it paints no surface, so the filled box goes around it. `url:` makes it a destination instead of a callback, and `fill:`/`border:`/`shadows:` give it the surface so one node can be a whole control |

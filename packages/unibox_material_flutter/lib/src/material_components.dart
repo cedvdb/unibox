@@ -31,12 +31,10 @@ UniboxSubstitutions materialComponents({
   List<IconData> icons = const <IconData>[],
 }) => UniboxSubstitutions(<Type, NodeSubstitution>{
   material.MaterialCard: _card,
-  material.MaterialNavigationBar: _navigationBar,
   material.MaterialButton: _button,
   material.MaterialChip: _chip,
   material.MaterialListTile: _listTile,
   material.MaterialSegmentedButton: _segmentedButton,
-  material.MaterialTabBar: _tabBar,
   material.MaterialTextField: _textField,
   material.MaterialSpinner: _spinner,
   material.MaterialIconButton: _iconButton,
@@ -145,48 +143,6 @@ Widget _card(BuildContext context, core.UINode node, Widget? content) {
         : Clip.none,
     child: content,
   );
-}
-
-Widget _navigationBar(BuildContext context, core.UINode node, Widget? content) {
-  final material.MaterialNavigationBar bar =
-      node as material.MaterialNavigationBar;
-
-  // The destinations are information; the surface, the indicator and the height are the
-  // theme's, so the bar is Flutter's own and its colours arrive the way Material sends them.
-  return NavigationBar(
-    selectedIndex: bar.selected,
-    onDestinationSelected: bar.onSelect,
-    destinations: <NavigationDestination>[
-      for (final material.MaterialNavigationDestination destination
-          in bar.destinations)
-        NavigationDestination(
-          icon: destination.icon == null
-              ? const SizedBox.shrink()
-              : renderNode(destination.icon!),
-          selectedIcon: destination.selectedIcon == null
-              ? null
-              : renderNode(destination.selectedIcon!),
-          label: _labelOf(destination),
-        ),
-    ],
-  );
-}
-
-/// The words a destination says.
-///
-/// A platform bar takes a `String`, so a destination whose label is a picture or a box
-/// cannot be handed to one — that is one of the approximations a substitution accepts, and
-/// it is why a label in this tree is a line of text.
-String _labelOf(material.MaterialNavigationDestination destination) {
-  final String? spoken = destination.semanticsLabel;
-
-  if (spoken != null) {
-    return spoken;
-  }
-
-  final core.UINode label = destination.label;
-
-  return label is core.TextNode ? label.text : '';
 }
 
 Widget _button(BuildContext context, core.UINode node, Widget? content) {
@@ -417,31 +373,6 @@ Widget _spinner(BuildContext context, core.UINode node, Widget? content) {
     width: spinner.size,
     height: spinner.size,
     child: const CircularProgressIndicator(),
-  );
-}
-
-Widget _tabBar(BuildContext context, core.UINode node, Widget? content) {
-  final material.MaterialTabBar bar = node as material.MaterialTabBar;
-
-  // The strip is the half of a tab set a node states on its own: the pages beside it are the
-  // tree's. A `TabBar` needs a controller, so one is made for it here.
-  return DefaultTabController(
-    length: bar.tabs.length,
-    initialIndex: bar.selected,
-    child: TabBar(
-      onTap: bar.onSelect,
-      // The node's indicator is as wide as the tab, not as the label.
-      indicatorSize: TabBarIndicatorSize.tab,
-      tabs: <Widget>[
-        for (final material.MaterialTab tab in bar.tabs)
-          Tab(
-            text: tab.label is core.TextNode
-                ? (tab.label as core.TextNode).text
-                : null,
-            icon: tab.icon == null ? null : renderNode(tab.icon!),
-          ),
-      ],
-    ),
   );
 }
 

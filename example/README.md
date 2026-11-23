@@ -242,8 +242,8 @@ so there is one description of it and no second one to keep in step.
 Elsewhere the app draws Material nodes with Flutter's own widgets — that is the standard
 wiring of a host, because a document is served first and the app takes it over. This page
 draws the catalogue **twice, side by side**: once from the design system's values, which is
-what the document is served, and once with the map, where a card is a `Card` and a bar a
-`NavigationBar`. The captions say which is which, and the
+what the document is served, and once with the map, where a card is a `Card` and a pill a
+`SegmentedButton`. The captions say which is which, and the
 sections line up across the fold — which is why the page asks for a desktop window: at 1920 each
 half gets the 960 a page needs, and at 1280 one of the demos overflows. No address parameter is needed, and the two pages that are held
 to each other — the listings and the site — carry no switch at all: a proof that can be asked to

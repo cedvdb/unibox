@@ -378,18 +378,14 @@ not.
 | --- | --- | --- |
 | `MaterialTypography`, `MaterialTypeRole` | the fifteen type roles of Material 3, as `const BoxTextStyle` values | [The scale](packages/unibox_material/README.md#the-scale) |
 | `MaterialPalette`, `MaterialColorRole` | the colour roles as a palette: the baseline `light` and `dark`, or one grown from a seed with `fromSeed` | [The palette and the theme](packages/unibox_material/README.md#the-palette-and-the-theme) |
-| `MaterialScaffold` | a screen: an app bar that stays, a body, and a bottom bar | [The scaffold](packages/unibox_material/README.md#the-scaffold) |
-| `MaterialAppBar`, `MaterialLargeAppBar` | the top app bar, and the one with air above its headline that folds as it leaves | [The app bars](packages/unibox_material/README.md#the-app-bars) |
 | `MaterialCard` | Material's elevated surface, padded and rounded | [The card](packages/unibox_material/README.md#the-card) |
 | `MaterialListTile` | one row of a list: a leading node, a title, a subtitle and a trailing node | [The list tile](packages/unibox_material/README.md#the-list-tile) |
 | `MaterialButton` | a label on a fill, in four shapes: `filled`, `tonal`, `outlined` and `text` | [The button](packages/unibox_material/README.md#the-button) |
 | `MaterialIconButton` | one glyph in a square, with a count over its corner | [The icon button](packages/unibox_material/README.md#the-icon-button) |
 | `MaterialInkWell` | the press itself: the tints, and the ink a press spreads | [The ink well](packages/unibox_material/README.md#the-ink-well) |
-| `MaterialTabBar`, `MaterialTabs` | one row of tabs with an indicator, and that bar above the page of the chosen tab | [The tabs and the segmented button](packages/unibox_material/README.md#the-tabs-and-the-segmented-button) |
-| `MaterialSegmentedButton` | two to five choices in one divided pill | [The tabs and the segmented button](packages/unibox_material/README.md#the-tabs-and-the-segmented-button) |
+| `MaterialSegmentedButton` | two to five choices in one divided pill | [The segmented button](packages/unibox_material/README.md#the-segmented-button) |
 | `MaterialTextField` | a field that owns its text, its focus and whether it has been touched | [The text field](packages/unibox_material/README.md#the-text-field) |
 | `MaterialChip` | a compact choice: a pill with a label, and a node on either side | [The chip](packages/unibox_material/README.md#the-chip) |
-| `MaterialNavigationBar` | three to five destinations along the bottom edge, one of them current | [The navigation bar](packages/unibox_material/README.md#the-navigation-bar) |
 | `MaterialDialog`, `MaterialBottomSheet` | the two surfaces an `OverlayNode` presents | [The dialog and the bottom sheet](packages/unibox_material/README.md#the-dialog-and-the-bottom-sheet) |
 | `MaterialIcon` | one glyph of an icon font, centred in a 24 pixel square | [The icon](packages/unibox_material/README.md#the-icon) |
 | `MaterialCheckMark` | Material's tick, drawn from boxes, for an application that ships no icon font | [The one glyph this package draws](packages/unibox_material/README.md#the-one-glyph-this-package-draws) |
@@ -569,7 +565,7 @@ scale as `const BoxTextStyle` values (`MaterialTypography.titleLarge`,
 `MaterialTypography.bodyMedium`, ...), the colour roles as a `MaterialPalette` value —
 written down for the baseline scheme, or grown from one brand colour with
 `MaterialPalette.fromSeed` — and the components built from the same tokens, from a
-scaffold and an app bar to a card, a list tile, a button and a dialog. It is optional
+card and a list tile to a button, a chip, a pill and a dialog. It is optional
 and pure Dart, and the renderers do not know it exists — a tree that uses it is drawn
 by the same two renderers as one that does not. [The Material section](#material) has
 one line for each component.
@@ -681,8 +677,8 @@ The box states a surface too, and it is the surface a pull past either end revea
 lets a scroller be pulled, and the gap that opens is the box's own `backgroundColor`. State
 the bar's colour there and the pull reads as the bar gaining room; leave it out and the pull
 shows whatever is behind the box. `unibox_material` makes that one statement instead of two:
-`MaterialAppBar.surface` is the colour the bar paints *and* the colour a list under it
-states.
+the bar paints the container role and the list under it states the surface role, so the pull
+reveals the page and never the edge of a bar.
 
 ### A look that arrives as the reader scrolls
 
@@ -854,8 +850,8 @@ a custom property. Nothing in a tree is written inline.
 | `packages/unibox_html` | The web: `toHtml(node)` (or `node.toHtml()`) and `toDocument(node)`, over the two layers a node becomes in a browser — its element plan and the CSS it wears — which `unibox_dom` builds from too. |
 | `packages/unibox_dom` | The client renderer: `DomView.adopt(tree, root)` keeps the markup a server wrote and patches it as the stores publish. |
 | `packages/unibox_testing` | The tables both renderers are tested against. Development only, not published. |
-| `packages/unibox_material` | The Material 3 type scale, the colour roles as a theme — the baseline scheme written down, or a palette grown from one seed colour — and the components built from them, from a scaffold and an app bar to a card, a list tile, a button, a dialog and a sheet. Optional: no renderer depends on it, and [the Material section](#material) has one line for each component. |
-| `packages/unibox_material_flutter` | Optional, for an application: `materialComponents()`, the map that draws `unibox_material`'s card and navigation bar with Flutter's own widgets. Depends on the design system and the renderer; nothing depends on it. Experimental, and the newest package here — [status](packages/unibox_material_flutter/README.md#project-status). |
+| `packages/unibox_material` | The Material 3 type scale, the colour roles as a theme — the baseline scheme written down, or a palette grown from one seed colour — and the components built from them, from a card and a list tile to a button, a chip, a pill, a dialog and a sheet. Optional: no renderer depends on it, and [the Material section](#material) has one line for each component. |
+| `packages/unibox_material_flutter` | Optional, for an application: `materialComponents()`, the map that draws `unibox_material`'s card and its segmented pill with Flutter's own widgets. Depends on the design system and the renderer; nothing depends on it. Experimental, and the newest package here — [status](packages/unibox_material_flutter/README.md#project-status). |
 | `example/` | The example — a listings page and a sign-up dialog, one node tree — and the site: one page, the example drawn by both renderers beside the claim it makes. |
 
 Dependencies point one way: both renderers depend on `unibox_core`, never the other
