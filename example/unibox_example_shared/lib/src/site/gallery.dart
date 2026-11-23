@@ -62,14 +62,6 @@ UINode buildMaterialSection({
               'All six heights on the surface Material tints to match, the two other '
               'shapes a card comes in, and a row that says who it is.',
         ),
-        _section(
-          palette,
-          'Pages',
-          _pager(palette),
-          note:
-              'A pager: `PagerNode` settles on one child at a time, and its children are the '
-              'size the tree states. Swipe it sideways.',
-        ),
         // Then the values. The samples are the argument: fifteen lines of text and a
         // wall of swatches need a name, not a paragraph.
         _section(palette, 'Type scale', _typeScale(palette)),
@@ -513,49 +505,6 @@ UINode _removableView(Set<String> chips, ChipsStore store) {
           style: MaterialTypography.labelLarge.copyWith(
             color: const BoxColor.role(MaterialColorRole.onSurfaceVariant),
           ),
-        ),
-    ],
-  );
-}
-
-/// A pager: a horizontal box that settles on a child instead of between two.
-///
-/// The pager is exactly one page wide, which is the contract `PagerNode` states — a page is a
-/// child the size of the box, and `validateTree` reports a child that is not. Stated that way, the
-/// two targets agree for a reason rather than by luck: CSS snaps to the child's own
-/// `scroll-snap-align` edge, and Flutter's page physics snaps to the viewport's, which is the same
-/// edge when the two are the same width.
-UINode _pager(MaterialPalette palette) {
-  const double page = 240;
-  const double height = 120;
-
-  return PagerNode(
-    width: page,
-    height: height,
-    direction: Axis.horizontal,
-    borderRadius: 12,
-    children: <UINode>[
-      for (final (int index, String caption) in <String>[
-        'One',
-        'Two',
-        'Three',
-      ].indexed)
-        Box(
-          width: page,
-          height: height,
-          padding: const BoxSpacing.all(16),
-          backgroundColor: index.isEven
-              ? palette.secondaryContainer
-              : palette.surfaceContainerHigh,
-          crossAlign: CrossAlign.center,
-          children: <UINode>[
-            TextNode(
-              caption,
-              style: MaterialTypography.headlineSmall.copyWith(
-                color: palette.onSecondaryContainer,
-              ),
-            ),
-          ],
         ),
     ],
   );

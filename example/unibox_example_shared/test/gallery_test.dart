@@ -71,19 +71,12 @@ void main() {
           .where((Box box) => box.computedStyle.overflow == Overflow.scroll)
           .toList();
 
-      // Two rows of chips that overflow and the `Pages` pager. A pager scrolls for a different
-      // reason — it settles on a child — so it is counted here and told apart below.
-      expect(scrollers, hasLength(3));
+      // Two rows of chips that overflow, and nothing else: the pager that used to sit beside
+      // them is a node of the model, not a Material component, so it left the catalogue.
+      expect(scrollers, hasLength(2));
       expect(_textsIn(scrollers.first), contains('Two rooms'));
       expect(_textsIn(scrollers[1]), contains('Garden'));
-
-      final List<PagerNode> paged = scrollers.whereType<PagerNode>().toList();
-
-      expect(paged, hasLength(1));
-      // The `Pages` block is left to the reader, which is what a pager is in a document; the
-      // catalogue no longer states one a press drives, since the tabs that did are gone.
-      expect(paged.single.index, isNull);
-      expect(_textsIn(paged.single), contains('Three'));
+      expect(scrollers.whereType<PagerNode>(), isEmpty);
     });
 
     test(

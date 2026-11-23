@@ -277,7 +277,6 @@ void main() {
         'Chips',
         'Segments',
         'Cards and tiles',
-        'Pages',
         'Type scale',
         'Colour roles',
         'Shapes',
