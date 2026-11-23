@@ -126,6 +126,11 @@ Widget _card(BuildContext context, core.UINode node, Widget? content) {
   // press may paint over — a ripple that spills past a rounded corner is the same card drawn
   // two ways. Without these three, a substituted card is Flutter's card, in Flutter's colour,
   // with a square clip.
+  // The line too: an outlined card is a fill *and* a hairline, and `Card` draws a border only
+  // when its shape names one. Without it the outlined variant was a card with no edge, while
+  // the page drew the line the tree states.
+  final core.BoxBorder? border = style.border;
+
   return Card(
     // The margin the tree states is applied around this widget, by the renderer.
     margin: EdgeInsets.zero,
@@ -135,6 +140,9 @@ Widget _card(BuildContext context, core.UINode node, Widget? content) {
         : Color(style.backgroundColor!.value),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(style.borderRadius ?? 0),
+      side: border == null || !border.isVisible
+          ? BorderSide.none
+          : BorderSide(color: Color(border.color.value), width: border.width),
     ),
     clipBehavior: style.overflow == core.Overflow.hidden
         ? Clip.antiAlias
@@ -148,7 +156,7 @@ Widget _button(BuildContext context, core.UINode node, Widget? content) {
   final Widget label = renderNode(button.label);
   final VoidCallback? onPressed = button.enabled ? button.onPressed : null;
 
-  return switch (button.variant) {
+  final Widget pill = switch (button.variant) {
     material.MaterialButtonVariant.filled => FilledButton(
       onPressed: onPressed,
       child: label,
@@ -166,6 +174,15 @@ Widget _button(BuildContext context, core.UINode node, Widget? content) {
       child: label,
     ),
   };
+
+  // A button is as wide as its label unless the tree states a width — the values draw it that
+  // way, and a Material button handed a stretched parent fills it instead. `Align` gives the
+  // widget the loose constraints it needs to hug; a stated width is what it fills.
+  final double? width = button.fillWidth;
+
+  return width == null
+      ? Align(alignment: AlignmentDirectional.centerStart, child: pill)
+      : SizedBox(width: width, child: pill);
 }
 
 /// The elevation level a card states, `0` to `5`, read from the shadow ladder it names.
@@ -207,12 +224,22 @@ Widget _chip(BuildContext context, core.UINode node, Widget? content) {
   // A chip with a cross is the input chip; one without is a choice, and a chip that says it
   // is chosen is a filter. Those are the three Material draws, and the node says which it is
   // by what it carries.
+  // The corner and the tap target are the tree's. `FilterChip` rounds itself into a stadium and
+  // pads its box to Material's 48 pixel tap target, where the node paints 32 pixels with an 8
+  // pixel corner — so a substituted chip was taller and rounder than the page's.
+  final core.BoxStyle style = _styleOf(context, chip);
+  final OutlinedBorder shape = RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(style.borderRadius ?? 0),
+  );
+
   if (onDeleted != null) {
     return InputChip(
       label: label,
       avatar: avatar,
       deleteIcon: cross,
       onDeleted: onDeleted,
+      shape: shape,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       // A chip whose whole pill drops the filter answers it too, as the node states it: the
       // cross is the second way to the same end, not the only one.
       onPressed: chip.onSelected,
@@ -226,6 +253,8 @@ Widget _chip(BuildContext context, core.UINode node, Widget? content) {
     showCheckmark: false,
     selected: chip.selected,
     onSelected: chip.onSelected == null ? null : (bool _) => chip.onSelected!(),
+    shape: shape,
+    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
   );
 }
 
