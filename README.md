@@ -386,7 +386,6 @@ not.
 | `MaterialSegmentedButton` | two to five choices in one divided pill | [The segmented button](packages/unibox_material/README.md#the-segmented-button) |
 | `MaterialTextField` | a field that owns its text, its focus and whether it has been touched | [The text field](packages/unibox_material/README.md#the-text-field) |
 | `MaterialChip` | a compact choice: a pill with a label, and a node on either side | [The chip](packages/unibox_material/README.md#the-chip) |
-| `MaterialDialog`, `MaterialBottomSheet` | the two surfaces an `OverlayNode` presents | [The dialog and the bottom sheet](packages/unibox_material/README.md#the-dialog-and-the-bottom-sheet) |
 | `MaterialIcon` | one glyph of an icon font, centred in a 24 pixel square | [The icon](packages/unibox_material/README.md#the-icon) |
 | `MaterialCheckMark` | Material's tick, drawn from boxes, for an application that ships no icon font | [The one glyph this package draws](packages/unibox_material/README.md#the-one-glyph-this-package-draws) |
 | `MaterialProgressRing`, `MaterialSpinner` | a value as a ring of a shape, and the step that ring turns | [The circular progress indicator](packages/unibox_material/README.md#the-circular-progress-indicator) |
@@ -565,7 +564,7 @@ scale as `const BoxTextStyle` values (`MaterialTypography.titleLarge`,
 `MaterialTypography.bodyMedium`, ...), the colour roles as a `MaterialPalette` value —
 written down for the baseline scheme, or grown from one brand colour with
 `MaterialPalette.fromSeed` — and the components built from the same tokens, from a
-card and a list tile to a button, a chip, a pill and a dialog. It is optional
+card and a list tile to a button, a chip, a pill and a field. It is optional
 and pure Dart, and the renderers do not know it exists — a tree that uses it is drawn
 by the same two renderers as one that does not. [The Material section](#material) has
 one line for each component.
@@ -850,7 +849,7 @@ a custom property. Nothing in a tree is written inline.
 | `packages/unibox_html` | The web: `toHtml(node)` (or `node.toHtml()`) and `toDocument(node)`, over the two layers a node becomes in a browser — its element plan and the CSS it wears — which `unibox_dom` builds from too. |
 | `packages/unibox_dom` | The client renderer: `DomView.adopt(tree, root)` keeps the markup a server wrote and patches it as the stores publish. |
 | `packages/unibox_testing` | The tables both renderers are tested against. Development only, not published. |
-| `packages/unibox_material` | The Material 3 type scale, the colour roles as a theme — the baseline scheme written down, or a palette grown from one seed colour — and the components built from them, from a card and a list tile to a button, a chip, a pill, a dialog and a sheet. Optional: no renderer depends on it, and [the Material section](#material) has one line for each component. |
+| `packages/unibox_material` | The Material 3 type scale, the colour roles as a theme — the baseline scheme written down, or a palette grown from one seed colour — and the components built from them, from a card and a list tile to a button, a chip, a pill and a field. Optional: no renderer depends on it, and [the Material section](#material) has one line for each component. |
 | `packages/unibox_material_flutter` | Optional, for an application: `materialComponents()`, the map that draws `unibox_material`'s card and its segmented pill with Flutter's own widgets. Depends on the design system and the renderer; nothing depends on it. Experimental, and the newest package here — [status](packages/unibox_material_flutter/README.md#project-status). |
 | `example/` | The example — a listings page and a sign-up dialog, one node tree — and the site: one page, the example drawn by both renderers beside the claim it makes. |
 

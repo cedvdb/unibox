@@ -76,12 +76,6 @@ UINode buildMaterialSection({
               'A pager: `PagerNode` settles on one child at a time, and its children are the '
               'size the tree states. Swipe it sideways.',
         ),
-        _section(
-          palette,
-          'Dialog',
-          DialogDemo(seed: seed),
-          note: 'An OverlayNode: in the tree only while it is open.',
-        ),
         // Then the values. The samples are the argument: fifteen lines of text and a
         // wall of swatches need a name, not a paragraph.
         _section(palette, 'Type scale', _typeScale(palette)),
@@ -857,98 +851,4 @@ final class SegmentedStore extends StateStore<int> {
 final class SegmentedDemo extends StatefulNode<int, SegmentedStore> {
   /// Creates the demo, with its first segment chosen.
   SegmentedDemo() : super(create: SegmentedStore.new, view: _segmentedView);
-}
-
-/// The state of the dialog demo: open, or closed.
-final class DialogDemoStore extends StateStore<bool> {
-  /// Creates the demo with its dialog closed.
-  DialogDemoStore() : super(false);
-
-  /// Opens the dialog.
-  void open() => state = true;
-
-  /// Closes the dialog.
-  void close() => state = false;
-}
-
-/// A button that opens a dialog of its own.
-///
-/// Presence is the state: the view puts the `MaterialDialog` in the tree while
-/// [DialogDemoStore] says it is open, and leaves it out when it closes. That is the
-/// whole mechanism a dialog needs — the node carries the barrier and the dismissal.
-final class DialogDemo extends StatefulNode<bool, DialogDemoStore> {
-  /// Creates the demo, with its dialog closed.
-  DialogDemo({this.seed = ExampleSeed.defaultSeed})
-    : super(
-        create: DialogDemoStore.new,
-        view: (bool open, DialogDemoStore store) =>
-            _dialogView(open, store, ExamplePalette.materialFor(seed)),
-      );
-
-  /// The seed the demo is drawn with, which its own tree reads when it is built.
-  final ExampleSeed seed;
-}
-
-/// The button, the dialog when it is open, and what the section says about it.
-UINode _dialogView(bool open, DialogDemoStore store, MaterialPalette palette) {
-  // A grid, so the button and the note beside it stack on a narrow window instead
-  // of pushing the page sideways.
-  return GridNode(
-    minItemWidth: 240,
-    maxColumns: 3,
-    gap: 24,
-    children: <UINode>[
-      // At its own size, like every control on this page: a grid item fills its track, and
-      // this button without a wrapper became a banner whose tint was wider than its label.
-      _natural(
-        Box(
-          backgroundColor: palette.primary,
-          borderRadius: 20,
-          children: <UINode>[
-            MaterialInkWell(
-              onTap: store.open,
-              borderRadius: 20,
-              ink: palette.onPrimary,
-              padding: const BoxSpacing.symmetric(horizontal: 20, vertical: 10),
-              child: TextNode(
-                'Delete listing',
-                style: MaterialTypography.labelLarge.copyWith(
-                  color: palette.onPrimary,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      Box(
-        width: double.infinity,
-        children: <UINode>[
-          TextNode(
-            'Title, content and actions, on the surface a dialog is raised by. The '
-            'button is a MaterialInkWell over a filled box, so a press leaves ink; '
-            'the dialog is in the tree only while it is open.',
-            style: MaterialTypography.labelSmall.copyWith(
-              color: palette.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-      if (open)
-        MaterialDialog(
-          title: 'Delete listing?',
-          content: const TextNode('The photos go with it.'),
-          actions: <UINode>[
-            MaterialButton.text(
-              label: const TextNode('Cancel'),
-              onTap: store.close,
-            ),
-            MaterialButton.text(
-              label: const TextNode('Delete'),
-              onTap: store.close,
-            ),
-          ],
-          onDismiss: store.close,
-        ),
-    ],
-  );
 }

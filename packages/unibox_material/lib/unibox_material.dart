@@ -37,13 +37,11 @@
 /// transitions.
 library;
 
-export 'src/material_bottom_sheet.dart';
 export 'src/material_button.dart';
 export 'src/material_card.dart';
 export 'src/material_check_mark.dart';
 export 'src/material_chip.dart';
 export 'src/material_density.dart';
-export 'src/material_dialog.dart';
 export 'src/material_elevation.dart';
 export 'src/material_icon.dart';
 export 'src/material_icon_button.dart';

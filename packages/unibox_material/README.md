@@ -53,10 +53,12 @@ draws and the node a chosen chip puts in its `leading` slot. What they lack is a
 which is a question about who paints the press, not a reason to delete them: as values and nodes
 they already draw the same on both targets.
 
-**Document-only, and therefore candidates for deletion:** `MaterialDialog` and
-`MaterialBottomSheet`. Each is a slots-and-policy component that a widget cannot replace
-surface-for-surface, and nothing else in the package is built from it. A band that needs one
-usually needs a `Box` and a link instead.
+**The list is closed.** Everything else the package used to hold was on it and is gone: the
+scaffold and the two app bars, the navigation bar and the tabs — a screen's chrome and its
+furniture are the application's, and Flutter draws the first of them itself. The dialog and the
+bottom sheet went the same way: an overlay whose slots and policy a widget cannot replace
+surface-for-surface, and nothing else in the package was built from it. A tree that needs one
+states an `OverlayNode` and a `Box`.
 
 The scaffold and the two app bars were on that list and are gone. A screen's chrome — the bar that
 stays, the body under it, the bar that gives its height back as the reader scrolls — is the
@@ -862,6 +864,356 @@ glyphs from boxes instead. `removeSemanticsLabel` names what the cross removes, 
 row of applied filters should pass: eleven chips that all announce "Remove" leave a reader
 with no idea which one is about to go.
 
+## The icon button
+
+`MaterialIconButton` is one glyph in a 40 pixel square, with the ink of a press: the shape
+every application was drawing by hand — a box, a glyph inside it and a counter over the
+corner — as one node.
+
+```dart
+MaterialIconButton(
+  icon: MaterialIcon.ligature('tune'),
+  label: 'Filters',
+  onTap: openFilters,
+)
+MaterialIconButton(
+  icon: MaterialIcon.codePoint(Symbols.notifications.codePoint),
+  label: 'Notifications, 3 unread',
+  badgeCount: 3,
+  variant: MaterialIconButtonVariant.filled,
+  onTap: openInbox,
+)
+```
+
+| Variant | Fill | Glyph | Line |
+| --- | --- | --- | --- |
+| `standard` | none | `onSurfaceVariant` | — |
+| `filled` | `primary` | `onPrimary` | — |
+| `tonal` | `secondaryContainer` | `onSecondaryContainer` | — |
+| `outlined` | none | `onSurfaceVariant` | `outline` |
+
+**The square is Material's.** 40 by 40, which is the smallest thing a finger is aimed at,
+with the glyph centred in a 24 pixel box and 8 pixels of room round it. `height` and
+`width` are the square — a control that names only a height is as wide as it is tall —
+`iconSize`, `padding`, `borderRadius`, `ink` and `transition` are the rest of the
+measurements, and `label` is what a screen reader says, because a glyph with no text beside
+it names nothing. A control with no label leaves the reading order rather than announcing
+an anonymous button.
+
+**The badge is placed, not added.** `badgeCount` draws a pill of `error` with `onError`
+labelled text, 16 pixels tall and as wide as the number needs, pinned to the top right
+corner of the square — which is the corner of the glyph once the 8 pixel inset is taken
+off. It sits in a `StackNode` over the square instead of beside it, so a count can never
+grow the target the finger needs, and it is hidden from a screen reader: a count nobody is
+told is a picture, and the control's own `label` is where the fact belongs. It is hidden
+from the *pointer* as well — `capturesPointer: false` — because the corner it covers is
+the first place a thumb lands: a badge that took the pointer there was a square whose
+hover, hand and press stopped at a picture, on both targets.
+
+**What Material draws that this does not.** A toggle icon button states `aria-pressed` and
+changes its shape when it is on; this node has one shape, so a toggle is the caller's
+rebuild — the store picks the variant — and it announces no pressed state, because a
+`pressed` no view can change is a state a reader is told wrongly. There is no tooltip (that
+is platform chrome), and the badge does not scale in (a transition the tree can say, if a
+caller wants one).
+
+## The ink well
+
+`MaterialInkWell` is a tappable region: the three state layers of the palette, and
+the ink a press spreads from where it landed.
+
+```dart
+Box(
+  backgroundColor: palette.primary,
+  borderRadius: 20,
+  children: <UINode>[
+    MaterialInkWell(
+      onTap: store.save,
+      borderRadius: 20,
+      ink: palette.onPrimary,
+      padding: const BoxSpacing.symmetric(horizontal: 20, vertical: 10),
+      child: TextNode(
+        'Save',
+        style: MaterialTypography.labelLarge.copyWith(color: palette.onPrimary),
+      ),
+    ),
+  ],
+)
+```
+
+| Token | Value |
+| --- | --- |
+| hover, focus, press | `hoverLayer`, `focusLayer`, `pressedLayer` |
+| transition | 100ms, so a tint eases instead of flashing |
+| ink | `onSurface`, 12% where the press landed, 280 pixels wide at the end, gone after 450ms |
+| role | `BoxRole.button` when it can be tapped |
+| `url` | the region is a destination instead of a callback: one `<a href>`, wherever the press is |
+| `minWidth`, `minHeight` | a floor on the shape — the box that takes the press — rather than on a fill around it |
+| `shadows`, `textStyle` | the well can be a whole surface — a card — rather than a press inside one |
+
+**A floor belongs to the shape.** `minWidth` and `minHeight` are the smallest the region
+paints, and they are stated on the box that takes the press rather than on a fill around
+it: a pill bigger than its control has ends that look pressable and are not. The floor is
+never a clamp — a label taller than it grows the region. The tints are a box of their own
+inside the shape, so they take the same floor and the same size: a `Sign in` pill held up
+by a 32 pixel floor tints all 32 of its pixels rather than the 20 of its label, and one a
+64 pixel floor widens tints across its whole width rather than the middle of it. The
+shape's own line is drawn inside its box on both targets, and what the well hides is
+hidden inside that line — so a bordered pill a floor holds up is tinted up to its outline
+on the page and in the app, and no state ever paints over the line it belongs to.
+
+The ripple is **state, not a renderer feature**. A press adds a drop to a
+`MaterialInkStore`, a timer advances it every frame, and the view draws one box per
+drop — a circle centred on the press, growing as it fades. Both targets therefore
+draw the ink out of nodes they already draw, which is why the conformance table
+needs no case for it: there is no second implementation to hold in step. A page
+rendered without a client runtime subscribes to nothing, so it shows the resting
+well, and a region that cannot be pressed listens to no pointer at all.
+
+It paints **no surface unless it is given one**: the tints and the ink have to sit above
+the fill they belong to, so by default the filled box goes around the ink well. Wrapped
+the other way round the fill would hide both. Pass `fill:` — and `border:` with it —
+and the well paints that surface itself, under a layer of tints of its own, which is
+what a control needs when the whole of it is one target. The well clips its own content
+to `borderRadius`, which is what keeps a drop inside a rounded button, and `ink` is the
+one colour that is not a role — the ink has to contrast with the fill around the well,
+which the well cannot see.
+
+**A target can be taller than the shape.** `tapTargetHeight` makes the region a finger
+can hit taller than the shape it paints, with the shape centred in it: Material states
+48 for a touch target over a 32 pixel chip. The tints, the ink and the fill stay on the
+shape — a tint is the shape — so the extra room takes the press and paints nothing, and
+a drop that lands in it still starts where the pill would see the press. It is layout
+and not paint: a row of chips is as tall as the target.
+
+**A well can be a destination.** `url` puts the anchor wherever the press is — on the shape
+in the plain case, on the outer box when the well paints a surface, and on the target when
+`tapTargetHeight` adds one — which is one rule: where the press goes, the `href` goes. An
+anchor is pressable with no callback, so the ink still starts on tap-down; an `<a>` inside
+an `<a>` is not a link at all, which is why a shape inside a taller target names nothing.
+The web follows the `href` with no runtime and a crawler reads it; Flutter opens it through
+the host's link scope while the box keeps its ripple and its press state.
+
+What it is not is a timeline the host owns: the ink is a state machine and a timer,
+so a press costs a rebuild of one subtree per frame for 450ms. On the web that rebuild
+stops costing anything after the first press — a drop is a fixed circle scaled out of
+nothing, so every frame of every press asks for a look the sheet already has. A ripple
+writes 30 rules the first time it is pressed in a place, one of which is where it
+landed, and a press after that writes none until the press lands on another pixel.
+`EmbedNode` remains the escape hatch when a host-side animation is what the effect
+needs.
+
+## The segmented button
+
+`MaterialSegmentedButton` is two to five choices in one divided pill. It takes `pin` and
+`pinOffset` like any box, which is what a filter row that stays at the top of a scrolling
+list of results needs.
+
+```dart
+MaterialSegmentedButton(
+  segments: const <MaterialSegment>[
+    MaterialSegment(label: TextNode('Day')),
+    MaterialSegment(label: TextNode('Week')),
+    MaterialSegment(label: TextNode('Month')),
+  ],
+  selected: 1,
+  onSelect: store.choose,
+)
+```
+
+| Token | Value |
+| --- | --- |
+| height, radius | 40, and 20: a full round. `height`, `borderRadius`, `padding` (12 across each segment's content), `iconGap` (8) and `labelStyle` are parameters |
+| line | a 1 pixel `outline` line, `overflow: hidden` so a chosen fill is cut to the rounded ends it reaches. `border` is the line around the pill *and* between its segments, so a theme that draws the control with `outlineVariant` says it once |
+| chosen | a `secondaryContainer` fill, an `onSecondaryContainer` label, a check, and `pressed` for a screen reader |
+| check | 18 pixels, a `MaterialCheckMark`, in place of the chosen segment's icon; `showSelectedIcon: false` keeps the icon |
+| icon | `iconSize` = 18, 8 from the label and 12 from the segment's edge |
+| label | `labelLarge`, `onSurface` or `onSecondaryContainer`, on one line: a text too long for its share is cut with an ellipsis |
+| dividers | a box as wide as the border's line and the colour of it, at the start of every segment but the first, layered over the segment it opens |
+| width | the segments are the children of a `GridNode.columns`, one column per segment and all of one factor: a width divides it and no width hugs at the count of them |
+| disabled | the whole control at 38%, with no ink on any segment |
+
+The container is one box and each segment is a box around a `MaterialInkWell`, so the
+tint and the ink cover the segment rather than its label, and the container's clip
+keeps them inside the pill. The well's content is centred and its stack stretches —
+that is what the well's `mainAlign` and `crossAlign` are for, and why a segment can
+say `width: double.infinity` and mean it on both targets.
+
+**The columns are equal, whether or not the control has a width.** The pill is a box
+around a `GridNode` of one column per segment, so the widest segment — its label, its icon
+and its padding — sets the width of every column. Without a width the pill hugs at the count of them, which
+is what a pill in a row of its own wants, a horizontally scrolling row included; a width
+divides it, which is what one a column or a grid track stretches wants. `width:
+double.infinity` fills the space the parent gives and divides it equally, which is what
+Material's own control does; the example's gallery does exactly that, and its listings page
+passes a fixed 216.
+
+The rule between two segments is drawn inside the segment it opens rather than between the
+two: a share is the whole of its width, so a box laid out between two shares would take
+room neither can divide, and would push the label off the centre of its own share.
+
+**A component's internals are the component's.** The `GridNode` above is the segmented
+button's layout and not a grid the page drew, so a test that walks a tree should reach it
+through the component — the component's own children, or the component itself — rather than
+by node type: `nodesOfType<GridNode>(page).first` finds whichever grid comes first, and a
+page with cards on it has grids of its own. There is deliberately no flag on the node for
+this: a token nothing paints is a token the appearance tables cannot hold, and a walker that
+asks the component is asking the question it means.
+
+**An icon sits at the start of its segment.** The label fills the room beside it
+and is centred there, rather than the pair being centred as a group — the
+control's own choice, and one the tree has to state: a row is as wide as its
+content, so the row that holds the icon and the label fills the column the
+segment was given, and the layer around them states that it fills the column
+first. Without those widths the two targets drew the same segment differently:
+the document centred the icon and the words together, and its chosen fill hugged
+them, while Flutter drew both across the column.
+
+**A label is one line.** A segment is a share of the control's width and not a width of its
+own, so a label longer than that share — a translation, or any label at twice the text
+scale — gives way instead of widening the pill or painting over the segment beside it: a
+text is drawn with `maxLines: 1` and an ellipsis, and any other node is cut at the share.
+Only a parent narrower than the shares reaches it: the widest label is what set the share
+every other label is given.
+
+A chosen segment draws an 18 pixel check in place of its icon, which is what Material
+does, so a control of pictures still says which one is on. The check is a
+`MaterialCheckMark` — two rotated bars with Material's own weight, because an icon font
+is a host asset and this package ships none — and `showSelectedIcon: false` leaves the
+icon where it is for a control whose fill is enough.
+
+**A set of destinations is a set of links.** Give the segments a `url` and the control
+stops being a set of buttons: each unchosen choice is one `<a href>` with the segment's
+padding and fill, so a crawler reads where they lead and a page with no runtime follows
+them. The chosen one is the page the reader is on — no link to itself, not in the tab
+order, `aria-current="page"` — and `onSelect` is not called for a segment that has a url,
+because the destination is the press:
+
+```dart
+MaterialSegmentedButton(
+  selected: 1,
+  segments: const <MaterialSegment>[
+    MaterialSegment(label: TextNode('Day'), url: '/?period=day'),
+    MaterialSegment(label: TextNode('Week'), url: '/?period=week'),
+  ],
+)
+```
+
+**What stays approximate.** The container is not a `radiogroup`, because `BoxSemantics`
+has no group role: every selecting segment is a button that says whether it is the chosen
+one. A disabled control fades as one at 38% rather than drawing `onSurface` at 12% under a
+38% label, which would need an alpha role per token.
+
+## The text field
+
+`MaterialTextField` is a field with a state of its own: it is a `StatefulNode`, so it
+knows the text, whether it has focus, and whether the user has touched it, and it
+draws its own focus line, its own floating label and its own error.
+
+```dart
+MaterialTextField(
+  label: 'Email',
+  inputType: InputType.email,
+  helper: 'We only use it for the receipt.',
+  validator: (String value) =>
+      value.contains('@') ? null : 'Enter an address with an @',
+  onChanged: store.setEmail,
+)
+```
+
+The field holds what only it can know. What the value is *worth* — the request it
+starts, the button it enables — is the form's store, reached through `onChanged`.
+`initialValue` seeds the text the user then owns, `value` controls it from outside, and
+`error` shows a message the form decided on ("that address is taken"); all three
+outrank what the store starts with.
+
+`validator` is asked once the field has been touched, which is a keystroke or leaving
+it. Answering `null` means nothing is wrong: the line and the label stay in the resting
+colour and `helper` is the quiet message under the field. Answering a message turns the
+line, the label and the row under the field into `error`, so an address becomes valid
+and invalid as it is typed, with no flag passing through the host.
+
+| State | Line |
+| --- | --- |
+| resting | `onSurfaceVariant`, one pixel |
+| hover | `onSurface`, one pixel |
+| focused | `primary`, two pixels |
+| touched, and the validator answered | `error`, two pixels while focused, and the label and message with it |
+
+The line is a shadow with no blur, because `BoxBorder` draws all four sides and a
+filled field has none, and the value's padding lives on the input so a press anywhere
+in the fill focuses the field. `contentPadding` is the room at the sides of the label,
+the value and the message — the three stay in one column — and `messageGap` is the space
+between the fill and the line under it.
+
+**The label has Material's two positions.** Empty and unfocused, the label *is* the
+line inside the field: body size, `onSurfaceVariant`, drawn as the input's own hint so
+that the caret and the label are one piece of text and the field is 56 pixels tall.
+Once the field holds a value or takes focus, the label shrinks to `bodySmall` at the top
+of the fill and the value takes the row below it, which keeps the same 56 pixels.
+Material animates the move and the model has no triggered timeline for a layout change,
+so this one steps.
+
+**Rounded at the top, square at the bottom.** Material's filled field is a shape cut to
+the lines it sits between, so the field names the two top corners through
+`BoxBorderRadius` and leaves the bottom two alone.
+
+The caret, the selection, the IME and autofill are the platform's, because the input
+node delegates them — so a dark app renders the same field with
+`UniboxScope(theme: MaterialPalette.darkTheme)` *and* a matching `ColorScheme` to `MaterialApp`.
+
+## The chip
+
+`MaterialChip` is a filter chip: a label in a pill, chosen or not.
+
+```dart
+MaterialChip(label: const TextNode('Two rooms'), selected: true, onTap: filter)
+MaterialChip(label: const TextNode('Studio'), onTap: filter)
+```
+
+| Token | Value |
+| --- | --- |
+| height | `controlHeight` = 32 painted, in a target of `minTapTarget` = 48: the pill is centred in the room Material gives a finger, so an 18 pixel glyph can make neither a taller chip nor a smaller one. `height` and `tapTargetHeight` are parameters |
+| radius | 8, the small shape of Material 3, or `borderRadius` |
+| unselected | no fill, a 1 pixel `outline` line, `onSurfaceVariant` label |
+| selected | `secondaryContainer` fill, no line, `onSecondaryContainer` label |
+| room | 16 on a side the label reaches, 8 on a side a node sits (`iconSize` = 18), 8 between them — Material pads the side, not the chip. `padding` replaces all of it and `gap` the space to a node |
+| label | `labelLarge`, `onSurfaceVariant` or `onSecondaryContainer`; a `labelStyle` replaces the type and the state keeps the colour |
+| hover, focus, press | `hoverLayer`, `focusLayer`, `pressedLayer` over the pill |
+| disabled | the pill at 38%, with no ink: Material draws the label at 38% and the line at 12%, and one opacity is what this model can say without an alpha role per token |
+| leading, trailing | a node before and after the label — a check, a folder, a cross |
+| onRemove | an 18 pixel round target inside the pill: a press on it removes the chip, not the choice. `removeSemanticsLabel` is what that target announces, and it defaults to "Remove" |
+
+It is a `Box` around a `MaterialInkWell`, like `MaterialButton`, and the padding is
+**the well's alone**: one node carries the room inside the chip, so the tint of a
+hover reaches exactly the edge of the pill. Two paddings — one on the well and one on
+a box inside it — is what made a hand-built chip tint 14 pixels past itself. The well
+clips to the radius, so the ink of a press stays inside too.
+
+A chip is a control: it announces itself as a button when it can be pressed, and says
+whether it is on — `pressed`, which a screen reader announces and a browser writes as
+`aria-pressed`. It is not `selected`: `aria-selected` is only honoured on an option, a
+tab, a row or a grid cell, so a button that carried it said nothing about its state on
+the web, and said "selected" on a phone — one control described two ways.
+
+**What stays approximate.** A chosen filter chip shows a check mark in Material; here the
+check is `leading`, because a chip carries whatever node the caller gives it.
+`MaterialCheckMark` is the one to pass, and it is what the example passes: the mark is
+drawn from boxes, so it needs no font and looks like Material's own. The 48 pixel target
+is the room around the pill and not a painted shape, so hovering the pill's top and
+bottom eight pixels takes the press but paints no tint.
+
+`leading` and `trailing` take a node each, and `onRemove` turns the chip into an input
+chip: the trailing node is wrapped in a round well of its own, so a press on the cross
+removes the chip instead of choosing it. That well centres its node on both axes — a
+well is a column, and a cross pinned to its start would leave the ring of a hover four
+pixels off the cross it belongs to. The glyph itself is the caller's — a folder and a
+cross come from a font, and a font is a host asset this package does not ship.
+`MaterialIcon` is the way in when an application has one; the example draws its four
+glyphs from boxes instead. `removeSemanticsLabel` names what the cross removes, which a
+row of applied filters should pass: eleven chips that all announce "Remove" leave a reader
+with no idea which one is about to go.
+
 ## The dialog and the bottom sheet
 
 Both are `OverlayNode`s, so they sit in the tree where the state says they belong, and
@@ -1013,9 +1365,8 @@ Material's own tone ladder ends, rather than a sixth tone this palette does not 
 The catalogue in the example draws all six pairs in one grid, which is what makes the climb
 visible at all.
 
-A component names the level it rests at rather than writing a shadow, which is what keeps
-`MaterialCard`, `MaterialDialog` and `MaterialBottomSheet` in step: an app that replaces one
-level replaces it on every surface that uses it. A level states its blur in Flutter's unit,
+A component names the level it rests at rather than writing a shadow, which is what keeps every
+surface in step: an app that replaces one level replaces it wherever it is used. A level states its blur in Flutter's unit,
 and the web writes the CSS blur that paints the same width, so a card whose shadow is read at
 the edge is the same height on the page as in the app. What stays outside the parity contract
 is how the two engines *rasterise* that blur — a gaussian is drawn differently in a browser

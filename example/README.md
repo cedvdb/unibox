@@ -373,10 +373,10 @@ relative link, and both frames, to the domain root.
 The site is a node tree as well, so it is built with the library it documents: its sections
 are boxes and text, drawn by the same renderer that draws the example.
 
-The catalogue's dialog is the exception that proves the rule: the button is a
+The example's sign-up dialog is the exception that proves the rule: the button is a
 `MaterialInkWell` over a filled box, so a press leaves ink where it landed, and the
-`MaterialDialog` is in the tree only while the demo's store says it is open. A document has
-no store, so it draws the resting well and no dialog until an application takes the page over.
+`OverlayNode` is in the tree only while the page's store says it is open. A document has no
+store, so it draws the resting well and no dialog until an application takes the page over.
 
 The one thing the model cannot describe is an `<iframe>`, and that is what `EmbedNode` is for:
 the comparison's two frames are the only non-node content on the site, and the page around
