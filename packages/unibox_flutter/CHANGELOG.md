@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Aim keyed replay at a native control’s unique tap surface when it hugs inside a stretched wrapper.
+
 - Add explicit host-directed handover with page scroll restoration; require native mappings for components that declare them and remove custom path painting.
 
 - **A zero share is a `Flexible`, and a scrolling one measures its child.** `flex: 0` is

@@ -41,7 +41,8 @@ List<core.BoxPress> pressRecorded(
     final Widget target = matches.single.widget;
     if (target is FlutterBox && !target.box.enabled) continue;
 
-    final RenderObject? object = matches.single.findRenderObject();
+    final RenderObject? object =
+        _tapSurface(matches.single) ?? matches.single.findRenderObject();
 
     if (object is! RenderBox || !object.hasSize || !object.attached) {
       continue;
@@ -89,4 +90,23 @@ void _visitKeyed(Element node, Object key, List<Element> found) {
   }
 
   node.visitChildren((Element child) => _visitKeyed(child, key, found));
+}
+
+// A native control may hug inside a larger keyed alignment wrapper. Its semantic
+// tap surface gives replay the same hit target a reader presses, without invoking
+// the callback directly or guessing a point in the wrapper's empty space.
+RenderBox? _tapSurface(Element node) {
+  final List<RenderBox> surfaces = <RenderBox>[];
+  void visit(Element element) {
+    final Widget widget = element.widget;
+    if (widget is Semantics && widget.properties.onTap != null) {
+      final RenderObject? object = element.findRenderObject();
+      if (object is RenderBox && object.hasSize) surfaces.add(object);
+      return;
+    }
+    element.visitChildren(visit);
+  }
+
+  visit(node);
+  return surfaces.length == 1 ? surfaces.single : null;
 }

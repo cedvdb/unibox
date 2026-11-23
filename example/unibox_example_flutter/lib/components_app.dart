@@ -19,6 +19,7 @@ class ComponentsApp extends StatelessWidget {
     return surface(
       title: 'Unibox — native Material',
       scope: scope,
+      palette: ExamplePalette.materialFor(ExampleSeed.defaultSeed),
       child: FlutterLinkScope(
         open: (String url) => debugPrint('Following $url'),
         child: SingleChildScrollView(

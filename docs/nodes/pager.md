@@ -42,11 +42,10 @@ differ by exactly the thing the model refuses to leave to a host. Where a move s
 that is a component's business — the same line the model draws between a token and a look.
 
 **Worth knowing.** The settled report is what lets one store drive both the pager and a bar
-above it: the example's tabs demo composes a `MaterialTabBar` with a `PagerNode` over one store,
-and needs no marker to tell a press from a swipe. On the web the index is applied with
-`scrollTo` and reported from the browser's own `scrollend` (with a debounced `scroll` for
-browsers that lack it); in Flutter it is the viewport's own page, applied after the frame that
-laid the pager out.
+above it: a press states the index, a swipe reports the one it settled on, and nothing has to
+tell them apart. Server HTML is a snapshot of the declared index, without client-side
+callback delivery. In Flutter it is the viewport's own page, applied after the frame
+that laid the pager out.
 
 ---
 

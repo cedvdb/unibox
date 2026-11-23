@@ -24,16 +24,79 @@ void main() {
     ),
   );
 
+  testWidgets('keeps the declared outline on a native card', (tester) async {
+    await draw(
+      tester,
+      material.MaterialCard.outlined(
+        children: const <core.UINode>[core.TextNode('Summary')],
+      ),
+    );
+    final Card card = tester.widget<Card>(find.byType(Card));
+    final BorderSide side = (card.shape! as RoundedRectangleBorder).side;
+    expect(side.width, 1);
+    expect(
+      side.color,
+      Color(material.MaterialPalette.light.outlineVariant.value),
+    );
+  });
+
+  testWidgets('keeps the declared corner and compact native chip target', (
+    tester,
+  ) async {
+    await draw(
+      tester,
+      material.MaterialChip(
+        label: const core.TextNode('Two rooms'),
+        onTap: () {},
+      ),
+    );
+    final FilterChip chip = tester.widget<FilterChip>(find.byType(FilterChip));
+    expect(
+      (chip.shape! as RoundedRectangleBorder).borderRadius,
+      BorderRadius.circular(material.MaterialChip.radius),
+    );
+    expect(chip.materialTapTargetSize, MaterialTapTargetSize.shrinkWrap);
+  });
+
+  testWidgets('hugs a native button label unless a width is declared', (
+    tester,
+  ) async {
+    Future<void> pump(double? width) => draw(
+      tester,
+      core.Box(
+        width: 400,
+        crossAlign: core.CrossAlign.stretch,
+        children: <core.UINode>[
+          material.MaterialButton.filled(
+            label: const core.TextNode('Confirm'),
+            onTap: () {},
+            width: width,
+          ),
+        ],
+      ),
+    );
+    await pump(null);
+    expect(tester.getSize(find.byType(FilledButton)).width, lessThan(400));
+    await pump(400);
+    expect(tester.getSize(find.byType(FilledButton)).width, 400);
+  });
+
   testWidgets('replays a keyed press through the native button once', (
     tester,
   ) async {
     int calls = 0;
     await draw(
       tester,
-      material.MaterialButton(
-        key: 'save',
-        label: const core.TextNode('Save'),
-        onTap: () => calls++,
+      core.Box(
+        width: 400,
+        crossAlign: core.CrossAlign.stretch,
+        children: <core.UINode>[
+          material.MaterialButton(
+            key: 'save',
+            label: const core.TextNode('Save'),
+            onTap: () => calls++,
+          ),
+        ],
       ),
     );
     expect(

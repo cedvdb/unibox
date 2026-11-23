@@ -419,8 +419,8 @@ The message a consumer is shown:
 > have to agree at every one of them.
 >
 > A band whose **height** follows the reader is a store and a rebuild instead — `onScroll` into a
-> `StateStore`, the view stating the next number. `MaterialLargeAppBar` records why Material's
-> collapsing bar is that and not a fold. On the web the difference is when it starts: the served
+> `StateStore`, the view stating the next number. Material's large app bar, the one the example
+> used to draw until the component was removed, is why: its collapse is that, not a fold. On the web the difference is when it starts: the served
 > document shows the resting height, and the height begins to follow the scroll when the
 > application takes the page over.
 

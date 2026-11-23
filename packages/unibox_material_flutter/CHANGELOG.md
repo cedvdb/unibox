@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Preserve declared card outlines, chip corners and compact targets, and button widths when substituting native controls; buttons without a width hug their labels.
+
 - Require native widget rendering for the retained vocabulary; preserve destinations, disabled state and chip selection. Unregistered icon glyphs are reported instead of approximated.
 
 - **A glyph the host did not name is drawn as text, not as a run-time `IconData`.** `flutter build`

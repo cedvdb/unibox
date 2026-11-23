@@ -106,7 +106,7 @@ Widget _card(BuildContext context, core.UINode node, Widget? content) {
         : Color(style.backgroundColor!.value),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(style.borderRadius ?? 0),
-      side: style.border == null
+      side: style.border == null || !style.border!.isVisible
           ? BorderSide.none
           : BorderSide(
               width: style.border!.width,
@@ -252,9 +252,9 @@ Widget _button(BuildContext context, core.UINode node, Widget? content) {
       child: label,
     ),
   };
-  return declared.width == double.infinity
-      ? SizedBox(width: double.infinity, child: control)
-      : control;
+  return declared.width == null
+      ? Align(alignment: AlignmentDirectional.centerStart, child: control)
+      : SizedBox(width: declared.width, child: control);
 }
 
 /// The elevation level a card states, `0` to `5`, read from the shadow ladder it names.
@@ -304,6 +304,13 @@ Widget _chip(BuildContext context, core.UINode node, Widget? content) {
       ? null
       : renderNode(chip.trailing!);
 
+  final core.BoxStyle declared = chip.controlStyle.resolve(
+    UniboxScopeWidget.of(context).theme ?? core.UniboxTheme.none,
+  );
+  final OutlinedBorder shape = RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(declared.borderRadius ?? 0),
+  );
+
   // A chip with a cross is the input chip; one without is a choice, and a chip that says it
   // is chosen is a filter. Those are the three Material draws, and the node says which it is
   // by what it carries.
@@ -311,6 +318,8 @@ Widget _chip(BuildContext context, core.UINode node, Widget? content) {
     return InputChip(
       selected: chip.selected,
       isEnabled: chip.enabled,
+      shape: shape,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       label: label,
       avatar: avatar,
       deleteIcon: cross,
@@ -324,6 +333,8 @@ Widget _chip(BuildContext context, core.UINode node, Widget? content) {
 
   if (onPressed == null && chip.onDeleted == null) {
     return RawChip(
+      shape: shape,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       label: label,
       avatar: avatar,
       selected: chip.selected,
@@ -332,6 +343,8 @@ Widget _chip(BuildContext context, core.UINode node, Widget? content) {
     );
   }
   return FilterChip(
+    shape: shape,
+    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
     label: label,
     avatar: avatar,
     // The node drew its own glyph for a chosen chip; Flutter's checkmark would be a second one.
