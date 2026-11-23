@@ -46,6 +46,11 @@ class ComponentsApp extends StatelessWidget {
     return surface(
       title: 'Unibox — the Material catalogue, drawn twice',
       scope: UniboxScope(theme: theme),
+      // The same palette the values are drawn with. Without it `Theme.of` is Flutter's baseline
+      // scheme, so the widgets half of the comparison came out in Material's purple while the
+      // values beside it were the example's colours — a difference the page was inventing.
+      palette: ExamplePalette.materialFor(ExampleSeed.defaultSeed),
+      density: density,
       child: SingleChildScrollView(
         // Side by side, on the window the comparison asks for: a desktop page. Each half is
         // the full catalogue at the width a page gets on a 1920 screen — 960 — so the sections

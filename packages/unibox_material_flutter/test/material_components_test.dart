@@ -196,6 +196,117 @@ void main() {
         BorderRadius.circular(12),
       );
     });
+
+    testWidgets('draws the line an outlined card states', (
+      WidgetTester tester,
+    ) async {
+      // An outlined card is a fill *and* a hairline; `Card` paints a border only when its shape
+      // names one, so without it the outlined variant was the filled one with a different colour.
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: renderFlutter(
+              material.MaterialCard.outlined(
+                borderRadius: 12,
+                children: <core.UINode>[const core.TextNode('Order summary')],
+              ),
+              scope: core.UniboxScope(
+                theme: material.MaterialPalette.lightTheme,
+              ),
+              substitutions: materialComponents(),
+            ),
+          ),
+        ),
+      );
+
+      final Card card = tester.widget<Card>(find.byType(Card));
+      final BorderSide side = (card.shape! as RoundedRectangleBorder).side;
+
+      expect(
+        side.color,
+        Color(material.MaterialPalette.light.outlineVariant.value),
+        reason: "the role the outlined card names, not CardTheme's outline",
+      );
+      expect(side.width, 1);
+    });
+  });
+
+  testWidgets('draws a chip at the corner the tree states, not a stadium', (
+    WidgetTester tester,
+  ) async {
+    // `FilterChip` rounds itself into a stadium and pads its box to Material's 48 pixel tap
+    // target, where the node paints 32 pixels with an 8 pixel corner — so a substituted chip
+    // came out taller and rounder than the page's, one row of chips in two shapes.
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: renderFlutter(
+            material.MaterialChip(
+              label: const core.TextNode('Two rooms'),
+              selected: true,
+              onTap: () {},
+            ),
+            scope: core.UniboxScope(theme: material.MaterialPalette.lightTheme),
+            substitutions: materialComponents(),
+          ),
+        ),
+      ),
+    );
+
+    final FilterChip chip = tester.widget<FilterChip>(find.byType(FilterChip));
+
+    expect(
+      (chip.shape! as RoundedRectangleBorder).borderRadius,
+      BorderRadius.circular(material.MaterialChip.radius),
+    );
+    expect(chip.materialTapTargetSize, MaterialTapTargetSize.shrinkWrap);
+  });
+
+  testWidgets('hugs its label unless the tree states a width', (
+    WidgetTester tester,
+  ) async {
+    // The values draw a button as wide as its label; a Material button handed a stretched parent
+    // fills it, so a button inside a card was a full-width bar in the app and a pill on the page.
+    Future<void> pump(material.MaterialButton button) => tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            width: 400,
+            child: renderFlutter(
+              core.Box(
+                crossAlign: core.CrossAlign.stretch,
+                children: <core.UINode>[button],
+              ),
+              scope: core.UniboxScope(
+                theme: material.MaterialPalette.lightTheme,
+              ),
+              substitutions: materialComponents(),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await pump(
+      material.MaterialButton.filled(
+        label: const core.TextNode('Confirm'),
+        onTap: () {},
+      ),
+    );
+    expect(
+      tester.getSize(find.byType(FilledButton)).width,
+      lessThan(400),
+      reason: 'a button with no stated width is as wide as its label',
+    );
+
+    await pump(
+      material.MaterialButton.filled(
+        label: const core.TextNode('Confirm'),
+        onTap: () {},
+        width: 400,
+      ),
+    );
+    expect(tester.getSize(find.byType(FilledButton)).width, 400);
   });
 
   testWidgets(
