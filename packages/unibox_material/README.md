@@ -46,10 +46,19 @@ This is the list, and anything outside it is a candidate for deletion rather tha
 | `MaterialTabBar` | `TabBar` |
 | `MaterialSegmentedButton` | `SegmentedButton` |
 
-**Document-only today, and therefore candidates for deletion:** `MaterialTabs`, `MaterialDialog`,
-`MaterialBottomSheet`, `MaterialIcon`, `MaterialCheckMark`, `MaterialInkWell`. Each is either a
-slots-and-policy component that a widget cannot replace surface-for-surface, or a drawing rather
-than a control. A band that needs one of them usually needs a `Box` and a link instead.
+**Document-only, and kept because everything else is built from them:** `MaterialInkWell`,
+`MaterialIcon`, `MaterialCheckMark`. None has a Flutter widget of its own to map to, and none
+needs one — they are the parts the components above, and the bands an application assembles, are
+made of: the ink well is the press inside eight of them, the check mark is the tick a chosen
+segment draws and the node a chosen chip puts in its `leading` slot, and an icon is the codepoint
+a card or a band states.
+What they lack is a substitution, which is a question about who paints the press, not a reason
+to delete them: as values and nodes they already draw the same on both targets.
+
+**Document-only, and therefore candidates for deletion:** `MaterialTabs`, `MaterialDialog`,
+`MaterialBottomSheet`. Each is a slots-and-policy component that a widget cannot replace
+surface-for-surface, and nothing else in the package is built from it. A band that needs one
+usually needs a `Box` and a link instead.
 
 The scaffold and the two app bars were on that list and are gone. A screen's chrome — the bar that
 stays, the body under it, the bar that gives its height back as the reader scrolls — is the
