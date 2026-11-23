@@ -155,4 +155,53 @@ void main() {
     expect(none.isEmpty, isTrue);
     expect(none.forNode(const core.Box()), isNull);
   });
+
+  testWidgets('composes two maps into the one a host draws with', (
+    WidgetTester tester,
+  ) async {
+    // An application draws some components with a design system's map and some with its own, so
+    // the two have to be one map by the time the renderer sees them.
+    final UniboxSubstitutions designSystem = UniboxSubstitutions(
+      <Type, NodeSubstitution>{_Card: _asPlatformCard},
+    );
+    final UniboxSubstitutions own = UniboxSubstitutions(
+      <Type, NodeSubstitution>{_OtherCard: _asPlatformCard},
+    );
+
+    await pumpNode(
+      tester,
+      const core.Box(
+        children: <core.UINode>[
+          _Card(children: <core.UINode>[core.TextNode('One')]),
+          _OtherCard(children: <core.UINode>[core.TextNode('Two')]),
+        ],
+      ),
+      substitutions: designSystem.and(own),
+    );
+
+    expect(inNode(find.byType(Card)), findsNWidgets(2));
+    expect(find.text('One'), findsOneWidget);
+    expect(find.text('Two'), findsOneWidget);
+  });
+
+  testWidgets('lets the later map correct an entry', (
+    WidgetTester tester,
+  ) async {
+    Widget asOutline(BuildContext context, core.UINode node, Widget? content) =>
+        Card(elevation: 0, child: content);
+
+    await pumpNode(
+      tester,
+      const _Card(children: <core.UINode>[core.TextNode('Hi')]),
+      substitutions: UniboxSubstitutions(<Type, NodeSubstitution>{
+        _Card: _asPlatformCard,
+      }).and(UniboxSubstitutions(<Type, NodeSubstitution>{_Card: asOutline})),
+    );
+
+    expect(
+      tester.widget<Card>(inNode(find.byType(Card)).first).elevation,
+      0,
+      reason: 'the map composed last wins',
+    );
+  });
 }

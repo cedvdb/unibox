@@ -78,8 +78,14 @@ components whose two renderings agree.** A screen that does not is served as a d
 no Flutter on it, or held to `?unibox=compare` in the example.
 
 **The components the map names.** `MaterialCard`, `MaterialButton` (all four shapes),
-`MaterialChip`, `MaterialIconButton`, `MaterialProgressRing`, `MaterialListTile`,
-`MaterialSegmentedButton`, `MaterialTextField` and `MaterialSpinner`. A type it does not name is drawn from the values, exactly as before, so
+`MaterialChip`, `MaterialIcon`, `MaterialIconButton`, `MaterialProgressRing`, `MaterialListTile`,
+`MaterialSegmentedButton`, `MaterialTextField` and `MaterialSpinner`.
+
+**An icon needs the host's list.** `materialComponents(icons:)` takes the `IconData` values the
+application already names, because `flutter build` keeps a glyph only while a constant `IconData`
+for it is part of the program and refuses to subset the icon fonts when one is built at run time —
+a codepoint read out of an icon (`Icons.sell.codePoint`) is folded to an integer and dropped. A
+glyph the list does not name is drawn as the character it is, from the node's own font family. A type it does not name is drawn from the values, exactly as before, so
 the map can arrive one component at a time — and `UniboxSubstitutions` refuses the structural
 nodes (`Box`, `TextNode`, a stack, a grid, a link, a field) by construction, so it cannot become
 a second renderer.

@@ -43,17 +43,18 @@ This is the list, and anything outside it is a candidate for deletion rather tha
 | `MaterialTextField` | `TextField` |
 | `MaterialProgressRing`, `MaterialSpinner` | `CircularProgressIndicator` |
 | `MaterialSegmentedButton` | `SegmentedButton` |
+| `MaterialIcon` | `Icon`, from the host's own `IconData` list (`materialComponents(icons:)`) |
 
 **Document-only, and kept because everything else is built from them:** `MaterialInkWell`,
-`MaterialIcon`, `MaterialCheckMark`. None has a Flutter widget of its own to map to, and none
-needs one — they are the parts the components above, and the bands an application assembles, are
-made of: the ink well is the press inside eight of them, the check mark is the tick a chosen
-segment draws and the node a chosen chip puts in its `leading` slot, and an icon is the codepoint
-a card or a band states.
-What they lack is a substitution, which is a question about who paints the press, not a reason
-to delete them: as values and nodes they already draw the same on both targets.
+`MaterialCheckMark`. Neither has a Flutter widget of its own to map to, and neither needs one —
+they are the parts the components above, and the bands an application assembles, are made of:
+the ink well is the press inside eight of them, and the check mark is the tick a chosen segment
+draws and the node a chosen chip puts in its `leading` slot. What they lack is a substitution,
+which is a question about who paints the press, not a reason to delete them: as values and nodes
+they already draw the same on both targets.
 
-**Document-only, and therefore candidates for deletion:** `MaterialDialog`, `MaterialBottomSheet`. Each is a slots-and-policy component that a widget cannot replace
+**Document-only, and therefore candidates for deletion:** `MaterialDialog` and
+`MaterialBottomSheet`. Each is a slots-and-policy component that a widget cannot replace
 surface-for-surface, and nothing else in the package is built from it. A band that needs one
 usually needs a `Box` and a link instead.
 

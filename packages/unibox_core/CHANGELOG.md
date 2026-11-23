@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- **`flex: 0` is a child on the line that takes no share.** One and up is a share of the room;
+  zero is the third case a flex line has — flexible enough to shrink below its content, so a
+  row that scrolls can hug its last chip and still give room back — which is `flex: 0 1 auto`
+  in CSS.
 - `Box.gridSpan` is a `GridSpan`, not a count: `GridSpan.tracks(2)` is two columns and
   `GridSpan.row()` is the whole row however many columns there are. A count wider than the grid
   used to be the way to say "full width", which a browser answers by inventing a column and

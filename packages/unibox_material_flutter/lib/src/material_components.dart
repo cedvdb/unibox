@@ -22,23 +22,26 @@ import 'package:unibox_material/unibox_material.dart' as material;
 ///
 /// The map is one value an application builds once and hands to `renderFlutter`.
 ///
-/// **Experimental, and small on purpose.** It maps the components this workspace has the most
-/// to learn from — a card, whose shadow Flutter paints its own way, and a pill, whose selection
-/// the SDK sizes for itself — and it will grow a component at a time, if it grows at all:
+/// **Experimental, and small on purpose.** It maps the two components this workspace has the
+/// most to learn from — a card, whose shadow Flutter paints its own way, and a bar, whose
+/// indicator size is the SDK's — and it will grow a component at a time, if it grows at all:
 /// every entry is a place the page and the application are allowed to differ. The signature may
 /// move while that question settles.
-UniboxSubstitutions materialComponents() =>
-    UniboxSubstitutions(<Type, NodeSubstitution>{
-      material.MaterialCard: _card,
-      material.MaterialButton: _button,
-      material.MaterialChip: _chip,
-      material.MaterialListTile: _listTile,
-      material.MaterialSegmentedButton: _segmentedButton,
-      material.MaterialTextField: _textField,
-      material.MaterialSpinner: _spinner,
-      material.MaterialIconButton: _iconButton,
-      material.MaterialProgressRing: _progressRing,
-    });
+UniboxSubstitutions materialComponents({
+  List<IconData> icons = const <IconData>[],
+}) => UniboxSubstitutions(<Type, NodeSubstitution>{
+  material.MaterialCard: _card,
+  material.MaterialButton: _button,
+  material.MaterialChip: _chip,
+  material.MaterialListTile: _listTile,
+  material.MaterialSegmentedButton: _segmentedButton,
+  material.MaterialTextField: _textField,
+  material.MaterialSpinner: _spinner,
+  material.MaterialIconButton: _iconButton,
+  material.MaterialProgressRing: _progressRing,
+  material.MaterialIcon: (BuildContext c, core.UINode n, Widget? w) =>
+      _icon(c, n, w, icons),
+});
 
 /// The tokens [node] resolves to under the theme in force.
 ///
@@ -48,6 +51,69 @@ UniboxSubstitutions materialComponents() =>
 core.BoxStyle _styleOf(BuildContext context, core.Box node) => node
     .computedStyle
     .resolve(UniboxScopeWidget.of(context).theme ?? core.UniboxTheme.none);
+
+/// An icon, drawn with the platform's own widget.
+///
+/// [icons] is the host's own list of `IconData`, and it is the reason this parameter exists: the
+/// icon subsetter keeps a glyph only while an `IconData` naming it is part of the application's
+/// program, and a codepoint read out of one (`Icons.sell.codePoint`) is folded to an integer and
+/// dropped. Passing the values means the mapping *uses* them, so every glyph in the list ships —
+/// and the widget is handed a compile-time constant, which is what `IconData` asks for.
+///
+/// A glyph the list does not name is drawn as the *character* it is, from the node's own font
+/// family: no `IconData` is built at run time, because one would cost the application its whole
+/// icon subsetter. `flutter build` records every `IconData` construction and refuses to subset the
+/// fonts when an argument is not a constant — "This application cannot tree shake icons fonts. It
+/// has non-constant instances of IconData." — and a codepoint read from a tree is never one. Text
+/// draws the same glyph out of the same font; it only loses `Icon`'s ambient `IconTheme`, which
+/// this sets from the node.
+Widget _icon(
+  BuildContext context,
+  core.UINode node,
+  Widget? content,
+  List<IconData> icons,
+) {
+  final material.MaterialIcon icon = node as material.MaterialIcon;
+  final core.BoxStyle style = _styleOf(context, icon);
+  final core.BoxTextStyle text = style.textStyle ?? const core.BoxTextStyle();
+  final core.BoxColor? ink = text.color;
+
+  // The node's codepoint, as the host named it if it did. `IconData` requires a constant, so the
+  // list is the only way to hand `Icon` one it can keep — see the note on this function.
+  IconData? named;
+  for (final IconData known in icons) {
+    if (known.codePoint == icon.codePoint &&
+        known.fontFamily == icon.fontFamily) {
+      named = known;
+      break;
+    }
+  }
+
+  if (named != null) {
+    // A platform icon, not a glyph of text: `Icon` states its own size, follows the ambient
+    // `IconTheme`, and is not scaled by the reader's text size — which is what an icon is in an
+    // app.
+    return Icon(
+      named,
+      size: text.fontSize,
+      color: ink == null ? null : Color(ink.value),
+    );
+  }
+
+  return Text(
+    String.fromCharCode(icon.codePoint ?? 0),
+    style: TextStyle(
+      // The node's own family: a `MaterialIcon` always names one, so the glyph is drawn from the
+      // font the tree asked for rather than whatever the ambient text style happens to use.
+      fontFamily: icon.fontFamily,
+      fontSize: text.fontSize,
+      color: ink == null ? null : Color(ink.value),
+    ),
+    // The one thing a glyph of text has to be told: an icon does not grow with the reader's text
+    // size, and neither did the `Icon` this replaces.
+    textScaler: TextScaler.noScaling,
+  );
+}
 
 Widget _card(BuildContext context, core.UINode node, Widget? content) {
   final material.MaterialCard card = node as material.MaterialCard;
@@ -149,6 +215,9 @@ Widget _chip(BuildContext context, core.UINode node, Widget? content) {
       avatar: avatar,
       deleteIcon: cross,
       onDeleted: onDeleted,
+      // A chip whose whole pill drops the filter answers it too, as the node states it: the
+      // cross is the second way to the same end, not the only one.
+      onPressed: chip.onSelected,
     );
   }
 
@@ -314,6 +383,8 @@ Widget _segmentedButton(
 ) {
   final material.MaterialSegmentedButton pill =
       node as material.MaterialSegmentedButton;
+  final core.BoxStyle style = _styleOf(context, pill);
+  final core.BoxBorder? border = style.border;
 
   // A row that stretches its children hands this a taller box than the control's own height,
   // and `SegmentedButton` then paints its segments at the top of it — leaving the selection
@@ -321,6 +392,12 @@ Widget _segmentedButton(
   // `Align` first, so the widget is not stretched to the row's height: a tight height makes
   // `SizedBox` meaningless, and a `SegmentedButton` in a taller box paints its selection at the
   // top of it. Loose constraints, then the control's own height.
+  //
+  // The node's width decides, as it does on the page: a pill that states one divides it between its
+  // segments, and one that does not is as wide as its columns — which is what a row that scrolls
+  // holds. Reading it off the node rather than the constraints keeps the widget free of a
+  // `LayoutBuilder`, and a `LayoutBuilder` cannot answer an intrinsic measurement — which is what
+  // a viewport wrapped around this control asks for when the row it is in hugs.
   return Align(
     alignment: Alignment.centerLeft,
     child: SizedBox(
@@ -343,9 +420,18 @@ Widget _segmentedButton(
             ? null
             : (Set<int> chosen) => pill.onSelect!(chosen.first),
         showSelectedIcon: pill.showSelectedIcon,
-        // The node divides the width it is given evenly; a `SegmentedButton` hugs its labels unless
-        // it is told to expand, and a pill that hugs inside a half-width column overflows and is cut.
-        expandedInsets: EdgeInsets.zero,
+        expandedInsets: pill.width == null ? null : EdgeInsets.zero,
+        // The node's hairline, not the theme's. `SegmentedButton` otherwise outlines the pill
+        // with `ColorScheme.outline`, a step darker than the `outlineVariant` the tree names, so
+        // the same control was drawn in two colours — the app's against the page's.
+        style: border == null || !border.isVisible
+            ? null
+            : SegmentedButton.styleFrom(
+                side: BorderSide(
+                  color: Color(border.color.value),
+                  width: border.width,
+                ),
+              ),
       ),
     ),
   );

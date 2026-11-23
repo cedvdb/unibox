@@ -47,6 +47,7 @@ final class MaterialIcon extends Box {
     String fontFamily = defaultFontFamily,
     String? label,
   }) : this._(
+         codePoint: codePoint,
          glyph: String.fromCharCode(codePoint),
          key: key,
          size: size,
@@ -69,6 +70,7 @@ final class MaterialIcon extends Box {
     String fontFamily = defaultFontFamily,
     String? label,
   }) : this._(
+         codePoint: null,
          glyph: name,
          key: key,
          size: size,
@@ -79,13 +81,15 @@ final class MaterialIcon extends Box {
        );
 
   MaterialIcon._({
+    required this.codePoint,
     required String glyph,
     required super.key,
     required double size,
     required BoxColor color,
     required String fontFamily,
     required String? label,
-  }) : super(
+  }) : fontFamily = fontFamily,
+       super(
          width: size,
          height: size,
          mainAlign: MainAlign.center,
@@ -101,6 +105,16 @@ final class MaterialIcon extends Box {
          ),
          children: <UINode>[TextNode(glyph, maxLines: 1)],
        );
+
+  /// The glyph's codepoint in [fontFamily], or `null` when the icon is a ligature name.
+  ///
+  /// A renderer that draws an icon with its platform's own widget reads this: Flutter builds an
+  /// `IconData` from it, which is also the constant the icon subsetter looks for in an app.
+  final int? codePoint;
+
+  /// The family the glyph belongs to: `MaterialIcons`, `Material Symbols Outlined`, or one an
+  /// application ships. A codepoint only means something inside its own font.
+  final String fontFamily;
 
   /// The size Material draws an icon at: 24 logical pixels.
   static const double defaultSize = 24;
