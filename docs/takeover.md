@@ -9,8 +9,7 @@ application state or page composition. Server helpers are available through
 
 Use `Takeover` with `toDocument` for a Unibox document. A mixed document can install
 `uniboxClientScript` and `bootScript` itself. `hostId` identifies an existing direct
-child of the document body if Flutter uses `hostElement`; otherwise the bridge
-identifies elements the engine adds after boot.
+child of the document body. When omitted, the bridge creates a fixed viewport host.
 
 ```dart
 final scripts = <String>[
@@ -23,9 +22,13 @@ final scripts = <String>[
 ];
 ```
 
-The bridge exposes a supplied host as `window.unibox.hostElement`; the application
-bootstrap may pass it into Flutter's engine configuration. Comover already supplies
-its host directly. Reveal removes initial `inert` and `aria-hidden` markers.
+The bridge exposes `window.unibox.hostElement` before loading the bundle. Pass it
+as the engine configuration's `hostElement`, as the example bootstrap does. If no
+`hostId` is supplied, the bridge creates a fixed viewport host. Embedding the engine
+keeps it from resizing the document or resetting its scroll during startup; a
+full-page engine would overwrite the position before the Flutter host can read it.
+Reveal removes initial `inert` and `aria-hidden` markers. A direct Flutter launch
+has no handover host and uses its normal engine configuration.
 
 The host supplies the loader, start policy, accessible labels, optional CSP nonce
 through `Takeover`, and whether developer comparison modes are permitted. Prefetch

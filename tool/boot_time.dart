@@ -166,7 +166,7 @@ Future<Duration> _measure(
         final Map<String, Object?> response = await send(
           'Runtime.evaluate',
           <String, Object?>{
-            'expression': "(() => { const action = document.querySelector('[data-unibox-key=\"example-signup\"]'); if (!action || document.readyState !== 'complete') return false; action.scrollIntoView({block: 'center'}); window.dispatchEvent(new Event('pointermove')); action.click(); return true; })()",
+            'expression': "(() => { const action = document.querySelector('[data-unibox-key=\"listing-save\"]'); if (!action || document.readyState !== 'complete') return false; const target = action.matches('[data-unibox-action]') ? action : action.querySelector('[data-unibox-action]'); if (!target) return false; action.scrollIntoView({block: 'center'}); window.__uniboxProbeScroll = window.scrollY; window.dispatchEvent(new Event('pointermove')); target.click(); return true; })()",
             'returnByValue': true,
           },
         );
@@ -181,7 +181,7 @@ Future<Duration> _measure(
           // The mark the probe writes, read through the protocol: under real time there is no
           // cheap way to wait for a paint from outside the page.
           'expression': handover
-              ? "document.documentElement.getAttribute('data-unibox-state') === 'app' && !document.querySelector('flutter-view, flt-glass-pane')?.closest('[aria-hidden=\"true\"], [inert]') && !document.getElementById('existing-app')?.matches('[aria-hidden=\"true\"], [inert]') && (document.body.textContent.includes('Join Unibox') || Array.from(document.querySelectorAll('[aria-label]')).some(node => (node.getAttribute('aria-label') || '').includes('Join Unibox'))) ? String(Math.round(performance.now())) : ''"
+              ? "document.documentElement.getAttribute('data-unibox-state') === 'app' && window.__uniboxProbeScroll > 0 && Math.abs(window.unibox.documentScroll().dy - window.__uniboxProbeScroll) < 1 && !document.querySelector('flutter-view, flt-glass-pane')?.closest('[aria-hidden=\"true\"], [inert]') && !document.getElementById('existing-app')?.matches('[aria-hidden=\"true\"], [inert]') && (document.body.textContent.includes('Homes saved') || Array.from(document.querySelectorAll('[aria-label]')).some(node => (node.getAttribute('aria-label') || '').includes('Homes saved'))) ? String(Math.round(performance.now())) : ''"
               : "document.documentElement.getAttribute('data-unibox-boot-ms') || ''",
           'returnByValue': true,
         },

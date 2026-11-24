@@ -1,156 +1,88 @@
 import 'dart:async';
 
-import 'package:unibox_flutter/handover.dart';
-import 'package:flutter/foundation.dart'
-    show TargetPlatform, defaultTargetPlatform;
 import 'package:material_ui/material_ui.dart';
-import 'package:unibox_core/unibox_core.dart'
-    show BoxPress, BoxScrollOffset, UniboxScope, UniboxTheme;
+import 'package:unibox_core/unibox_core.dart' as core;
 import 'package:unibox_example_shared/unibox_example_shared.dart';
+import 'package:unibox_flutter/handover.dart';
 import 'package:unibox_flutter/unibox_flutter.dart';
-import 'package:unibox_material/unibox_material.dart'
-    show MaterialDensity, MaterialPlatform;
 import 'package:unibox_material_flutter/unibox_material_flutter.dart';
 
 import 'components_app.dart';
 import 'page_address.dart';
 import 'site.dart';
 import 'surface.dart';
+import 'link_policy.dart';
 
 void main() => runApp(switch (hostedPageFor(pageAddress)) {
-  // The root of the Flutter build: the site page, drawn by the other renderer, so a reader
-  // can compare the two renderings of one tree.
-  HostedPage.site => SiteApp(seed: seedFromUrl()),
-  // The components page: one tree of Material components, and the address says which
-  // rendering draws it.
-  HostedPage.components => ComponentsApp(),
-  // Everywhere else: the example. That is the route below the build's root, the takeover
-  // document the HTML page frames, and every platform that was never served a document.
-  HostedPage.example => ExampleApp(
-    seed: seedFromUrl(),
-    // What the page recorded before the application existed: where a region was scrolled
-    // to, and what was pressed. Read once here, where a host does its other reads; every
-    // other platform answers with nothing, because there is no page in front of it.
-    offsets: scrollOffsetsFromPage(),
-    presses: const <BoxPress>[],
-  ),
+  HostedPage.site => const SiteApp(),
+  HostedPage.components => const ComponentsApp(),
+  HostedPage.example => const ExampleApp(),
 });
 
-/// The palette the page starts in, read from `?seed=<name>` the way the site reads it.
-///
-/// The picker is a row of links, so the choice travels as an address on both targets: the
-/// browser loads the page with it, and this host reads it here once and then answers the
-/// same addresses in the tree without loading anything.
-ExampleSeed seedFromUrl() =>
-    ExampleSeed.fromName(pageAddress.queryParameters['seed']);
-
-/// The Flutter host of the shared page.
-///
-/// The page is one node — [ExamplePageNode] — so this file is only what a node
-/// cannot know: the surface the tree is drawn on, the theme its colour roles name,
-/// and what following a link means. [FlutterStateful] creates the page's store,
-/// subscribes to it, disposes it and installs the theme.
-///
-/// The seed is the one piece of state this host keeps. A palette is a theme, a theme
-/// is installed by the host, and the tree only names roles — so choosing a seed is a
-/// rebuild of this widget with another theme, and the page's own store (the dialog,
-/// the filter, the fields) stays where it was.
+/// Renders the shared declaration and completes document-to-Flutter handover.
 class ExampleApp extends StatefulWidget {
-  /// Creates the example application.
-  ///
-  /// [seed] is the palette it starts in, which the picker then replaces.
-  const ExampleApp({
-    super.key,
-    this.seed = ExampleSeed.defaultSeed,
-    this.offsets = const <BoxScrollOffset>[],
-    this.presses = const <BoxPress>[],
-  });
-
-  /// The palette the page is drawn with on the first frame.
-  final ExampleSeed seed;
-
-  /// Where each region of the page was scrolled to, before the application arrived.
-  final List<BoxScrollOffset> offsets;
-
-  /// What was pressed before the application arrived.
-  final List<BoxPress> presses;
+  /// Creates the Flutter host without adding presentation outside the declaration.
+  const ExampleApp({super.key});
 
   @override
   State<ExampleApp> createState() => _ExampleAppState();
 }
 
 class _ExampleAppState extends State<ExampleApp> {
-  late ExampleSeed _seed = widget.seed;
+  final ScrollController _page = ScrollController();
   final FlutterHandover _handover = FlutterHandover();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) unawaited(_handover.complete(root: context));
+      if (mounted) {
+        unawaited(_handover.complete(controller: _page, root: context));
+      }
     });
   }
 
   @override
   void dispose() {
     _handover.dispose();
+    _page.dispose();
     super.dispose();
   }
 
-  /// What following a link means here: a seed is a palette, so it is a rebuild;
-  /// anything else is a destination this host does not serve, and it says so.
-  void _open(String url) {
-    final String? name = Uri.tryParse(url)?.queryParameters['seed'];
-
-    if (name == null) {
-      debugPrint('Following $url');
-      return;
-    }
-
-    setState(() => _seed = ExampleSeed.fromName(name));
-  }
+  void _save(BuildContext context) => unawaited(
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Homes saved'),
+        content: const Text('These homes are in your saved collection.'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Done'),
+          ),
+        ],
+      ),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
-    final UniboxTheme uniboxTheme = ExamplePalette.themeFor(_seed);
-    // The platform this app is, so the components are built and drawn at its density.
-    final MaterialDensity density = MaterialDensity.forPlatform(
-      switch (defaultTargetPlatform) {
-        TargetPlatform.android => MaterialPlatform.android,
-        TargetPlatform.iOS => MaterialPlatform.ios,
-        TargetPlatform.fuchsia => MaterialPlatform.fuchsia,
-        TargetPlatform.macOS => MaterialPlatform.macos,
-        TargetPlatform.windows => MaterialPlatform.windows,
-        TargetPlatform.linux => MaterialPlatform.linux,
-      },
+    final scope = core.UniboxScope(
+      theme: ExamplePalette.themeFor(ExampleSeed.defaultSeed),
     );
-
-    // The surface — the family, the scheme, the scaffold — is the same one the site page is
-    // drawn on, so the two renderings of the page cannot disagree about it.
     return surface(
-      title: 'Unibox example',
-      scope: UniboxScope(theme: uniboxTheme),
-      palette: ExamplePalette.materialFor(_seed),
-      density: density,
-      // Read once, as the controller's initial position, so a region is where the
-      // reader left it at the first layout rather than after a correction.
-      child: UniboxScrollScope(
-        offsets: widget.offsets,
-        child: FlutterLinkScope(
-          open: _open,
-          // The theme answers the colour roles the page names; the component
-          // installs it, so the host states it once and cannot forget a scope. The
-          // node is told the same seed, because the picker marks which one is in
-          // force — and two places saying it is the only way the mark can lie.
-          child: FlutterStateful(
-            node: ExamplePageNode(seed: _seed),
-            scope: UniboxScope(theme: uniboxTheme),
-            // A Material node is drawn by Flutter's own widget, on every screen: a document
-            // is served first and this app takes over, so the widgets are the standard
-            // rendering and not a special case.
-            substitutions: materialComponents(),
-            // The presses are answered by the node that owns the callbacks, once.
-            presses: widget.presses,
+      title: 'Unibox — one UI, two renderers',
+      scope: scope,
+      palette: ExamplePalette.materialFor(ExampleSeed.defaultSeed),
+      child: Builder(
+        builder: (context) => SingleChildScrollView(
+          controller: _page,
+          child: ExampleLinks(
+            child: renderFlutter(
+              buildListingExample(onSave: () => _save(context)),
+              scope: scope,
+              substitutions: materialComponents(),
+            ),
           ),
         ),
       ),

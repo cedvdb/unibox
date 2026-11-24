@@ -1,11 +1,8 @@
 # unibox_example_flutter
 
-The native Flutter host for the shared declarations. It supplies the surface,
-fonts, link policy and required Material substitution map. It does not define a
-second copy of the shared regions.
+Renders `buildListingExample` without adding presentation around it. The host
+supplies fonts, native Material substitutions, link policy, a page scroll controller
+and handover readiness. The keyed save action opens a native confirmation dialog.
 
-The handover example explicitly completes a `FlutterHandover` after its initial
-layout and disposes the coordinator with its host. The component catalogue uses
-native widgets only. The bootstrap can use an existing host supplied by the bridge.
-
-See [the examples](../README.md) and [handover](../../docs/takeover.md).
+Build the [live handover example](../README.md) with `tool/site.sh` from the root.
+A direct `flutter run` is also available for renderer inspection.

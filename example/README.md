@@ -1,13 +1,51 @@
-# Examples
+# Example
 
-The shared pure Dart package declares the example's content and site sections. The
-HTML host writes documents; the Flutter host supplies its theme, navigation, native
-Material mappings and handover readiness. The site is a document, not a DOM application.
+**One declaration → HTML and Flutter → handover.**
 
-The Material section demonstrates only cards, buttons, chips and segmented choices,
-with palette and typography. Broader application controls belong to the Flutter host.
+[`buildListingExample`](unibox_example_shared/lib/src/apartments.dart) defines the
+entire example UI once. Both hosts render that function with the same data, theme,
+content, layout and keys. Only asset paths and callbacks differ.
 
-Build with `tool/site.sh`. Check HTML with `python3 tool/doc_check.py build/site`
-and the HTML-to-Flutter transition with `tool/boot_check.sh build/site`.
+- [HTML host](unibox_example_html/lib/document.dart): metadata, fonts and handover scripts.
+- [Flutter host](unibox_example_flutter/lib/main.dart): native mappings, page scroll controller and readiness.
 
-See [the repository guide](../README.md) and [handover contract](../docs/takeover.md).
+## Run
+
+From the repository root with the pinned Flutter SDK:
+
+```sh
+flutter pub get
+tool/site.sh --serve
+```
+
+The landing page restores the original hero, indexability explanation and illustrated
+node vocabulary, followed by inline Material and typography specimens. Those
+specimens contain no navigation links.
+
+The left frame is the HTML reference. The right frame starts with that same HTML,
+then hands over to Flutter. Scroll or press **Save these homes** during loading;
+Flutter restores the position and replays the action, opening **Homes saved**.
+
+| Route | Purpose |
+| --- | --- |
+| `/` | Original visual presentation, current examples and live handover |
+| `/web/takeover/` | Full-size handover demo |
+| `/web/listings/` | HTML reference for comparison |
+| `/flutter/listings/` | Direct Flutter rendering for inspection |
+| `/web/components/`, `/flutter/components/` | Material component reference |
+
+The reference routes inspect the renderers; the intended flow is HTML to Flutter.
+Hosts own routing, data and actions. They do not add a second version of this UI.
+
+## Verify
+
+```sh
+tool/verify.sh --docs
+tool/site.sh
+python3 tool/doc_check.py build/site
+tool/boot_check.sh build/site
+```
+
+Tests compare the initial content against the shared declaration, cover narrow
+and wide layouts with enlarged text, and exercise nonzero scroll restoration and
+keyed replay in a release browser. See the [handover contract](../docs/takeover.md).

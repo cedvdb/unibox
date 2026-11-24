@@ -15,7 +15,10 @@ void main() {
       'Buttons',
       'Chips',
       'Segments',
-      'Type scale',
+      'Typography',
+      'Display large',
+      'Headline medium',
+      'Body medium',
       'Colour roles',
     ]) {
       expect(html, contains(label));
@@ -29,5 +32,10 @@ void main() {
   test('says which page it is, and carries the stylesheet in the head', () {
     expect(html, contains('unibox-page'));
     expect(html, contains('<style>'));
+  });
+  test('displays specimens rather than linking to other pages', () {
+    expect(html, isNot(contains('<a ')));
+    expect(html, contains('Display large'));
+    expect(html, contains('Label small'));
   });
 }

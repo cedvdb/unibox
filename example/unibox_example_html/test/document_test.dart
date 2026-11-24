@@ -1,169 +1,54 @@
 import 'package:test/test.dart';
 import 'package:unibox_example_html/document.dart';
+import 'package:unibox_html/unibox_html.dart';
 
-/// What an example document owes a crawler, a reader and the application that takes it over.
 void main() {
-  group('an example document', () {
-    test('states the language a reader and a crawler need', () {
-      expect(buildExampleDocument().write(), contains('<html lang="en">'));
-    });
-
-    test('describes the page to a search engine', () {
-      final String html = buildExampleDocument().write();
-
-      expect(html, contains('<title>Apartments — Unibox</title>'));
-      expect(
-        html,
-        contains('<meta name="description" content="Six apartments'),
-      );
-      expect(html, contains('<meta property="og:title"'));
-    });
-
-    test('names the mark a tab shows', () {
-      // A document that names no icon leaves the browser asking the origin for
-      // `/favicon.ico`, which a project site answers with a 404. This page sits two directories
-      // down, so it is the same mark by a different path.
-      expect(
-        buildExampleDocument().write(),
-        contains('<link rel="icon" href="../../favicon.svg" '),
-      );
-    });
-
-    test('writes the palette into the root, as custom properties', () {
-      final String html = buildExampleDocument().write();
-
-      expect(html, contains('--unibox-color-canvas:'));
-      expect(html, contains('--unibox-color-accent:'));
-    });
-
-    test('points the tree at those properties instead of a value', () {
-      expect(
-        buildExampleDocument().write(),
-        contains('background-color:var(--unibox-color-canvas)'),
-      );
-    });
-
-    test('says it is a light page, and leaves the reader alone', () {
-      // A statement, not a preference: the browser paints its scrollbars and its caret to match
-      // the page. The example never follows the system, because it is drawn twice — a document
-      // and a Flutter build — and two frames that disagree about the scheme break its one claim.
-      final String document = buildExampleDocument().write();
-
-      expect(document, contains('color-scheme:light'));
-      expect(document, isNot(contains('prefers-color-scheme')));
-    });
-
-    test('gives the page box a height to fill', () {
-      // `double.infinity` renders as `100%`, which needs something to resolve against.
-      expect(
-        buildExampleDocument().write(),
-        contains('html, body { height: 100%'),
-      );
-    });
-
-    test('removes the default body margin', () {
-      expect(buildExampleDocument().write(), contains('margin: 0'));
-    });
-
-    test(
-      'asks for the family both hosts ship, and declares its four weights',
-      () {
-        final String html = buildExampleDocument().write();
-
-        expect(html, contains('font-family: UniboxText'));
-
-        for (final String weight in <String>['400', '500', '600', '700']) {
-          expect(html, contains('font-weight: $weight;'));
-          expect(html, contains('roboto-$weight.woff2'));
-        }
-      },
-    );
-
-    test('renders the shared tree, with its text as text', () {
-      final String html = buildExampleDocument().write();
-
-      // The dialog's copy is not here: the form is only in the tree while it is open.
+  test(
+    'renders the HTML reference from the same declaration used for handover',
+    () {
+      final html = buildExampleDocument(build: 'test-revision').write();
+      expect(html, contains('<html lang="en">'));
+      expect(html, contains('<title>Find your next home — Unibox</title>'));
+      expect(html, contains('test-revision'));
+      expect(html, contains('<h1'));
+      expect(html, contains('<h2'));
       expect(html, contains('Rue de Turenne 12'));
-      expect(html, contains('data-unibox-node="text"'));
-    });
-
-    test('publishes the state the application starts in, with no dialog', () {
-      // A dialog is not a page: nothing links to it and a crawler has nothing to index
-      // under it, so the one document is the page the form opens over.
-      final String html = buildExampleDocument().write();
-
-      expect(html, isNot(contains('role="dialog"')));
-      expect(html, contains('Rue de Turenne 12'));
-    });
-
-    test('marks the page title as a heading', () {
-      // A crawler reads structure, not a font size.
-      expect(buildExampleDocument().write(), contains('<h1'));
-    });
-
-    test('names the build it came from when it is told one', () {
-      expect(
-        buildExampleDocument(build: 'abc123').write(),
-        contains('<meta name="unibox-build" content="abc123">'),
-      );
-      expect(buildExampleDocument().write(), isNot(contains('unibox-build')));
-    });
-
-    test('is a readable document without a browser runtime', () {
-      // The page a reader acts on is the page a crawler read: a document that runs itself. Nothing
-      // here downloads Flutter, so an inspector sees markup and a press is answered by the client.
-      final String html = buildExampleDocument().write();
-
-      expect(html, isNot(contains('main.client.js')));
-      expect(html, isNot(contains('unibox.boot')));
+      expect(RegExp('<article').allMatches(html), hasLength(6));
+      expect(RegExp('<h3').allMatches(html), hasLength(6));
+      expect(html, contains('alt="A room in Rue de Turenne 12"'));
+      expect(html, contains('href="https://github.com/cedvdb/unibox"'));
       expect(html, isNot(contains('flutter_bootstrap.js')));
-    });
-
-    test('says which tree it draws, so one bundle serves both pages', () {
+      expect(html, contains('listing-save'));
       expect(
+        toHtml(buildExampleDocument().node),
+        toHtml(buildTakeoverDocument().node),
+      );
+      expect(html, isNot(contains('<input')));
+    },
+  );
+  test(
+    'opts into keyed capture and host readiness only on the handover page',
+    () {
+      final html = buildTakeoverDocument().write();
+      expect(html, contains(boot));
+      expect(html, contains('data-unibox-key="listing-save"'));
+      expect(html, contains('data-unibox-action'));
+      expect(html, contains("var wants = 'ready'"));
+      expect(html, contains('Save these homes'));
+      expect(html, isNot(contains('role="dialog"')));
+    },
+  );
+  test(
+    'ships local font declarations and a site icon on both document paths',
+    () {
+      for (final html in <String>[
         buildExampleDocument().write(),
-        contains('<meta name="unibox-page" content="example">'),
-      );
-    });
-  });
-
-  group('the takeover document', () {
-    test('paints the document first and the application on a signal', () {
-      // The right-hand frame of the comparison is shown rather than arrived at, so its boot waits
-      // for a reader to move, scroll, touch or type anywhere on the page that holds it — and it
-      // never starts merely because the browser went idle. That idle boot cost a phone 1.9
-      // seconds of blocking for a frame it may never have scrolled to.
-      final String html = buildTakeoverDocument().write();
-
-      expect(
-        html,
-        contains('Rue de Turenne 12'),
-        reason: 'the markup is the first paint',
-      );
-      expect(html, contains('unibox.boot'));
-      expect(html, contains('window.top'));
-      expect(html, isNot(contains('requestIdleCallback')));
-    });
-
-    test('may be inspected only in a build that says so', () {
-      // `?unibox=debug`, `?unibox=profile` and `?unibox=compare` all *show* something the host did
-      // not publish, so the address can only reach them where the build allowed it. `--dev` is
-      // that build; a deployment is not.
-      expect(
-        buildTakeoverDocument(debug: true).write(),
-        contains('var debug = true;'),
-      );
-      expect(buildTakeoverDocument().write(), contains('var debug = false;'));
-    });
-
-    test('boots through the loader this project owns, not a patched copy', () {
-      // One artefact at any depth: the loader reads its base from its own url, so the takeover
-      // document asks for `../../flutter/flutter_bootstrap.js` and the bootstrap answers with an
-      // absolute path. `app.js` — a rewritten copy of Flutter's loader — is gone with the reason.
-      expect(
         buildTakeoverDocument().write(),
-        contains('"../../flutter/flutter_bootstrap.js"'),
-      );
-    });
-  });
+      ]) {
+        expect(html, contains('roboto-400.woff2'));
+        expect(html, contains('../../favicon.svg'));
+        expect(html, contains('../../assets/photos/apartment-1.jpg'));
+      }
+    },
+  );
 }

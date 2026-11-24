@@ -1,34 +1,13 @@
-/// The Unibox example.
+/// Stateless example regions and the documentation site's declarations.
 ///
-/// [ExamplePageNode] is the application the site compares: a [StatefulNode] whose
-/// store holds the form and whether the sign-up dialog is open, and whose view draws
-/// the navigation bar, the listings and the dialog. The tree is plain Dart, so the
-/// same node renders as Flutter widgets in `unibox_example_flutter` and as a document in
-/// `unibox_example_html`.
-///
-/// The site itself is one page — [buildSitePage] — of four bars: the hero, which makes the
-/// claim, gives the three reasons for it and settles it with the same tree drawn twice; the
-/// bar that shows what a search engine is served and what the Flutter build does with the
-/// page afterwards; the vocabulary, which says a screen is containers, draws the four nodes
-/// the hero never named and takes them apart; and the Material catalogue, which closes the
-/// page with the design system all of it is drawn with.
-/// Its sections are node trees too, so the site is drawn with the library it documents.
-///
-/// The host is what a node cannot be: a surface and the way a link opens. Each host
-/// of the example is one small file for exactly that reason.
+/// Hosts supply data, actions, page composition and optional handover readiness.
 library;
 
 export 'src/apartments.dart';
-export 'src/icons.dart';
-export 'src/page_node.dart';
-export 'src/page.dart';
-export 'src/page_state.dart';
-export 'src/signup_card.dart';
+export 'src/theme.dart';
 export 'src/site/gallery.dart';
 export 'src/site/hero.dart';
 export 'src/site/indexable.dart';
+export 'src/site/vocabulary.dart';
 export 'src/site/section.dart';
 export 'src/site/site.dart';
-export 'src/site/vocabulary.dart';
-export 'src/seed_picker.dart';
-export 'src/theme.dart';

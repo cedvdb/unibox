@@ -4,20 +4,7 @@ import 'package:unibox_material/unibox_material.dart';
 import '../theme.dart';
 import 'section.dart';
 
-/// The bar that answers the question the hero raises: what does a search engine
-/// actually get?
-///
-/// The hero claims that a Flutter screen has an HTML form; this bar is that form,
-/// written on the left and served on the right. The two cards are the same screen, so a
-/// reader compares the tree with its markup rather than taking an adjective on trust —
-/// and what the markup holds is the whole of what a crawler can see: a real `h1`, real
-/// text and a link with an `href`.
-///
-/// The two paragraphs underneath are the part a reader cannot see from the cards: Flutter
-/// still takes the page over once the build has arrived, and none of this has to be done
-/// to the whole application at once. The second also says what the library does not do —
-/// urls, copy, metadata, a sitemap and the deployment stay the application's — because a
-/// page that promised all of search would be a page that had not been read.
+/// The HTML a search engine receives, beside the Dart declaration that produced it.
 UINode buildIndexableSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
   final MaterialPalette palette = ExamplePalette.materialFor(seed);
 
@@ -31,10 +18,8 @@ UINode buildIndexableSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
           palette,
           title: 'Make Flutter Web pages indexable',
           lead:
-              'Flutter Web paints into a canvas, so a search engine is served an empty '
-              'page: no text, no heading, no link to follow. Unibox writes the same tree '
-              'as markup, so the page a crawler reads is the page a visitor lands on — '
-              'and the app that takes it over is the one you already have.',
+              'Serve real headings, text and links before Flutter loads. '
+              'One declaration keeps the HTML and application UI in step.',
         ),
         GridNode(
           minItemWidth: 360,
@@ -48,8 +33,7 @@ UINode buildIndexableSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
               "      'Apartments in Amsterdam',",
               '      headingLevel: 1,',
               '    ),',
-              '    Box(',
-              "      url: 'apartments/amsterdam',",
+              "    LinkNode('apartments/amsterdam',",
               "      children: <UINode>[TextNode('See all')],",
               '    ),',
               '  ],',
@@ -76,19 +60,15 @@ UINode buildIndexableSection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
               palette,
               title: 'Flutter still takes the page over',
               body:
-                  'The build is prefetched while the reader reads and boots into the '
-                  'page it was served, at the scroll and with the presses they already '
-                  'made. From there the dialogs, the forms and the screens behind the '
-                  'list are ordinary Flutter.',
+                  'HTML appears first. Flutter takes over when ready, restoring the '
+                  'scroll position and replaying an intercepted keyed action.',
             ),
             _point(
               palette,
-              title: 'Adopted one page at a time',
+              title: 'Use your existing Flutter app',
               body:
-                  'Describe only the pages that have to be found; the rest of the '
-                  'application stays the Flutter it already is. Unibox makes the '
-                  'rendering crawlable and keeps the UI in one place — urls, copy, '
-                  'metadata, a sitemap and the deployment remain the application\'s.',
+                  'Share the regions that need an HTML rendering. Your app keeps its '
+                  'routing, data and state.',
             ),
           ],
         ),

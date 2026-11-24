@@ -1,159 +1,60 @@
 # Unibox
 
-> One immutable Dart description of a screen, drawn by Flutter and rendered as HTML a crawler can read.
+> One declarative UI, two renderers, and Flutter handover.
 
-Unibox is a Dart 3.13 workspace of seven packages, in one direction only: the model,
-then the web, then the widgets. `packages/unibox_core` holds the node tree and the design
-tokens and has no dependencies at all. The web is one package with two layers a node
-becomes in a browser: `packages/unibox_html` turns a token into CSS declarations and a node
-that document in a browser and keeps it in step with the stores the tree created.
-`packages/unibox_flutter` draws the same tree as widgets. `packages/unibox_testing` holds
-the tables of expected presentation that the renderer suites are checked against, so the
-renderings cannot drift apart silently. `packages/unibox_material` turns the Material 3
-type scale and colour roles into the same tokens and builds its components on `Box`;
-`packages/unibox_material_flutter` lets an application draw two of those components with
-Flutter's own widgets instead.
+Six packages separate the declaration model, server and Flutter targets,
+small Material vocabulary, native mapping and shared test contracts. Hosts own
+application state, page composition and handover readiness. There is no
+DOM application runtime. Start with README.md and example/README.md; repository
+rules live in AGENTS.md and API decisions in design.md.
 
-Paths in this file are relative to the repository root. This is an index: the rules a
-coding agent needs are in [AGENTS.md](AGENTS.md), and a human contributing needs
-[CONTRIBUTING.md](CONTRIBUTING.md).
+## Documentation and source index
 
-## Start here
-
-- [AGENTS.md](AGENTS.md): the instruction set for a coding agent — non-negotiable
-  rules, repository map, commands, and the touch points for a token, a node type,
-  a parity fix or an example change.
-- [README.md](README.md): the user guide. The model, serving a tree, a summary of the
-  twelve nodes and of the Material components, typography, motion, semantics, and
-  what the host owns.
-- [design.md](design.md): why the model looks like this — defaults, precedence,
-  dimensions, parity, interaction, non-goals, compatibility.
-
-## The node reference
-
-- [docs/nodes/README.md](docs/nodes/README.md): the twelve node types in eleven pages —
-  `PositionedNode` beside its stack — with the parameters a node takes, the model's
-  defaults and what each target does.
-- [docs/nodes/box.md](docs/nodes/box.md): the container, its layout and paint tokens, and
-  the shapes it can be painted in.
-- [docs/nodes/text.md](docs/nodes/text.md): a run of text, its typography and its heading
-  level.
-- [docs/nodes/image.md](docs/nodes/image.md): a picture, its fit, and the responsive
-  attributes only the web reads.
-- [docs/nodes/link.md](docs/nodes/link.md): a box that names a destination, and what
-  cannot be one.
-- [docs/nodes/stack.md](docs/nodes/stack.md): layers, and `PositionedNode` placing one of
-  them.
-- [docs/nodes/text-input.md](docs/nodes/text-input.md): a field, a password field or a
-  text area, with no chrome of its own.
-- [docs/nodes/stateful.md](docs/nodes/stateful.md): a store, a view, and the lifecycle a
-  renderer calls.
-- [docs/nodes/grid.md](docs/nodes/grid.md): columns that follow the width, a row of stated
-  factors, and the child that spans them.
-- [docs/nodes/pager.md](docs/nodes/pager.md): a box that settles on one child at a time,
-  the reported page, and the jump it moves with.
-- [docs/nodes/overlay.md](docs/nodes/overlay.md): a dialog, a sheet or a menu, and the
-  policy behind it.
-- [docs/nodes/embed.md](docs/nodes/embed.md): one implementation per renderer, for what the
-  model cannot describe.
-- [docs/takeover.md](docs/takeover.md): the design for the handover — a takeover with three
-  states instead of one, a reveal that waits until the application is the same page, the debug
-  mode an integrator reads, and why the Flutter build's bootstrap is a file the project owns.
-- [README.md#material](README.md#material): every Material component in one line, with a
-  link to the section that documents it.
-
-## Building an app with Unibox
-
-- [AI_INSTRUCTIONS.md](AI_INSTRUCTIONS.md): the condensed model, a Flutter/CSS →
-  Unibox translation table, a complete component, a stateful page with a dialog and
-  a checklist, written to be pasted into an assistant's context by someone writing
-  application code.
-- [example/unibox_example_shared/lib/](example/unibox_example_shared/lib/): a complete
-  application as one `StatefulNode` — navigation bar, list, form, dialog — in plain
-  Dart. The arrangement to copy for a real application.
-
-## Packages
-
-- [unibox_core](packages/unibox_core/README.md): the model — nodes, tokens,
-  defaults, validation. Pure Dart; never imports `dart:ui`, Flutter or a web framework.
-- [unibox_html](packages/unibox_html/README.md): the web — the CSS a token becomes, the
-  element plan a node becomes, and the document those are written into, which a search
-  engine can read with no framework and no runtime. Pure Dart, no dependencies; both web
-  renderings are built from it.
-  server wrote and patches it as the stores publish, so a page is interactive without
-  Flutter.
-- [unibox_flutter](packages/unibox_flutter/README.md): the Flutter renderer
-  (`renderFlutter`, `node.toWidget()`), node by node, with what differs from the web.
-- [unibox_testing](packages/unibox_testing/README.md): the contract — the presentation
-  (`BoxAppearance` + `boxCases`, `TextAppearance` + `textCases`, `OverlayAppearance` +
-  `overlayCases`) and the behaviour (`BehaviourCase` + `behaviourCases`, played by both
-  renderer suites) — and the line between "the same" and "close enough". Test only.
-- [unibox_material](packages/unibox_material/README.md): the Material 3 type roles
-  as `BoxTextStyle` values (`MaterialTypography`, `MaterialTypeRole`), the colour
-  roles as `MaterialPalette` (`light`/`dark`, or grown from one seed colour with
-  `fromSeed` and its `MaterialSchemeVariant`), and the components built on the nodes
-  the renderers already draw — a scaffold, app bars, a card, a list tile, a button,
-  an icon button, a chip, tabs, a segmented button, an ink well, a text field, an
-  icon and a check mark, a navigation bar, a progress ring and a spinner, a dialog
-  and a bottom sheet — optional and pure Dart, one line each in
-  [README.md#material](README.md#material).
-- [unibox_material_flutter](packages/unibox_material_flutter/README.md): the door an
-  application uses to draw `unibox_material`'s card and navigation bar with Flutter's own
-  widgets (`materialComponents()`), what that may change (paint) and what it may not
-  (information), and the pixel it costs at a takeover.
-
-## Working on the repository
-
-- [CONTRIBUTING.md](CONTRIBUTING.md): setup, the fast loop, what "done" means for a token
-  or a node, the commit convention, and what is out of scope.
-- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md): the Contributor Covenant in short, and where a
-  report goes.
-- [MAINTENANCE.md](MAINTENANCE.md): what runs on its own (CI, the weekly gate,
-  Dependabot), the monthly pass, what a human decides, and the prompt that hands a
-  maintenance task to an assistant.
-- [tool/verify.sh](tool/verify.sh): format check, analysis and the test
-  suites, the way CI runs them; it reads `.flutter-version` first, and stops when the
-  machine's Flutter is not the one the repository is developed against. `--fast` skips the
-  suites, `--docs` adds `dart doc`.
-- [tool/scale.sh](tool/scale.sh): the synthetic benchmark — a page with thousands of
-  nodes, planned and written — and `tool/scale_check.py`, which holds it to the
-  baseline in `tool/scale_baseline.json`. Runs in CI.
-- [tool/maintenance.sh](tool/maintenance.sh): the slower monthly pass — the gate with the
-  docs, the performance budget, the site build and the numbers the README quotes.
-- [.github/workflows/ci.yml](.github/workflows/ci.yml), and
-  [.github/workflows/weekly.yml](.github/workflows/weekly.yml) for the scheduled gate:
-  what continuous integration
-  actually runs, including the docs job that fails on a `dart doc` warning.
-- [.github/workflows/review.yml](.github/workflows/review.yml) and
-  [.github/agent/review-prompt.md](.github/agent/review-prompt.md): the second reader — every
-  pull request is read against `AGENTS.md` and answered in one comment. It approves nothing.
-- [tool/surface_check.py](tool/surface_check.py): every token has a place in the appearance table
-  or a reason in the script's map, and every callback is reached by both renderers.
-- [.github/ISSUE_TEMPLATE/maintenance_task.yml](.github/ISSUE_TEMPLATE/maintenance_task.yml): the
-  form that makes an issue `agent-ready` — the recipe, the package, the line that has to pass.
-  [MAINTENANCE.md](MAINTENANCE.md#the-queue) says what the labels mean.
-- [RELEASE.md](RELEASE.md): the human release checklist. CI never publishes.
-- [docs/fold-layout-decision.md](docs/fold-layout-decision.md): why a fold may not move a
-  layout, and why it stays that way — what the rule buys, what a scroll-driven size is measured
-  to cost on both targets, why a size that follows the scroll is a store rather than a fold, and
-  the two CSS defects that have to be fixed for the resting page to be right.
-- [example/README.md](example/README.md): the example's trees, the two hosts, and how a
-  document and a Flutter app are built from them.
-
-## Optional
-
-- [CLAUDE.md](CLAUDE.md): the three-page pointer a Claude Code session reads, which forwards
-  to [AGENTS.md](AGENTS.md) rather than repeating it.
-- [analysis_options.yaml](analysis_options.yaml): the strict analyzer settings and
-  the enabled lints.
-- [packages/unibox_core/CHANGELOG.md](packages/unibox_core/CHANGELOG.md),
-  [packages/unibox_flutter/CHANGELOG.md](packages/unibox_flutter/CHANGELOG.md),
-  [packages/unibox_html/CHANGELOG.md](packages/unibox_html/CHANGELOG.md),
-  changes, which is where a new token is described for the user.
-- [PERFORMANCE.md](PERFORMANCE.md): what a page with thousands of nodes costs, the three
-  shapes the benchmark measures, the baseline CI holds them to, and the six places the
-  pipeline was not linear before they were fixed.
-- [example/unibox_example_shared/lib/](example/unibox_example_shared/lib/): the
-  example trees as plain Dart, the arrangement to copy for a real application.
-
-- [docs/plan-focused-rendering.md](docs/plan-focused-rendering.md): scope reduction, migration tasks and implementation status.
+- [AGENTS.md](AGENTS.md)
+- [CONTRIBUTING.md](CONTRIBUTING.md)
+- [README.md](README.md)
+- [design.md](design.md)
+- [docs/nodes/README.md](docs/nodes/README.md)
+- [docs/nodes/box.md](docs/nodes/box.md)
+- [docs/nodes/text.md](docs/nodes/text.md)
+- [docs/nodes/image.md](docs/nodes/image.md)
+- [docs/nodes/link.md](docs/nodes/link.md)
+- [docs/nodes/stack.md](docs/nodes/stack.md)
+- [docs/nodes/text-input.md](docs/nodes/text-input.md)
+- [docs/nodes/stateful.md](docs/nodes/stateful.md)
+- [docs/nodes/grid.md](docs/nodes/grid.md)
+- [docs/nodes/pager.md](docs/nodes/pager.md)
+- [docs/nodes/overlay.md](docs/nodes/overlay.md)
+- [docs/nodes/embed.md](docs/nodes/embed.md)
+- [docs/takeover.md](docs/takeover.md)
+- [README.md#material](README.md#material)
+- [AI_INSTRUCTIONS.md](AI_INSTRUCTIONS.md)
+- [example/unibox_example_shared/lib/](example/unibox_example_shared/lib/)
+- [unibox_core](packages/unibox_core/README.md)
+- [unibox_html](packages/unibox_html/README.md)
+- [unibox_flutter](packages/unibox_flutter/README.md)
+- [unibox_testing](packages/unibox_testing/README.md)
+- [unibox_material](packages/unibox_material/README.md)
+- [unibox_material_flutter](packages/unibox_material_flutter/README.md)
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+- [MAINTENANCE.md](MAINTENANCE.md)
+- [tool/verify.sh](tool/verify.sh)
+- [tool/scale.sh](tool/scale.sh)
+- [tool/maintenance.sh](tool/maintenance.sh)
+- [.github/workflows/ci.yml](.github/workflows/ci.yml)
+- [.github/workflows/weekly.yml](.github/workflows/weekly.yml)
+- [.github/workflows/review.yml](.github/workflows/review.yml)
+- [.github/agent/review-prompt.md](.github/agent/review-prompt.md)
+- [tool/surface_check.py](tool/surface_check.py)
+- [.github/ISSUE_TEMPLATE/maintenance_task.yml](.github/ISSUE_TEMPLATE/maintenance_task.yml)
+- [MAINTENANCE.md](MAINTENANCE.md#the-queue)
+- [RELEASE.md](RELEASE.md)
+- [docs/fold-layout-decision.md](docs/fold-layout-decision.md)
+- [example/README.md](example/README.md)
+- [CLAUDE.md](CLAUDE.md)
+- [analysis_options.yaml](analysis_options.yaml)
+- [packages/unibox_core/CHANGELOG.md](packages/unibox_core/CHANGELOG.md)
+- [packages/unibox_flutter/CHANGELOG.md](packages/unibox_flutter/CHANGELOG.md)
+- [packages/unibox_html/CHANGELOG.md](packages/unibox_html/CHANGELOG.md)
+- [PERFORMANCE.md](PERFORMANCE.md)
+- [docs/plan-focused-rendering.md](docs/plan-focused-rendering.md)

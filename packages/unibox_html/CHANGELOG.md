@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Clarify stateless shared regions, host-owned application behaviour and explicit optional handover in the guides and worked example.
+
+- Supply an embedded engine host during handover so Flutter startup preserves a long document’s scroll position before restoration. Bootstraps should pass `window.unibox.hostElement` to the engine.
+
 - Remove the interactive DOM target; record only intercepted keyed actions and support explicit host readiness and an existing Flutter app layer.
 
 - Reject control-character script URLs and escape font names safely in CSS and HTML stylesheets.

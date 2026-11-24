@@ -28,13 +28,15 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: renderFlutter(
-            buildApartmentsPage(),
-            substitutions: materialComponents(),
-            // The page's own palette: it names the example's roles, and the Material
-            // ones its components name are lent by the same theme.
-            scope: UniboxScope(
-              theme: ExamplePalette.themeFor(ExampleSeed.blue),
+          body: SingleChildScrollView(
+            child: renderFlutter(
+              buildApartmentCard(exampleApartments.first),
+              substitutions: materialComponents(),
+              // The page's own palette: it names the example's roles, and the Material
+              // ones its components name are lent by the same theme.
+              scope: UniboxScope(
+                theme: ExamplePalette.themeFor(ExampleSeed.blue),
+              ),
             ),
           ),
         ),

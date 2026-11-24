@@ -284,14 +284,14 @@ final class InkRipple extends EmbedNode {
 
 Nothing in this package knows what those payloads are. Each renderer draws the
 first one whose type it understands — a `Widget` or a `Widget` builder in Flutter,
-a `Component` or a `Component` builder on the web — and reports the node when it
+trusted HTML markup on the server — and reports the node when it
 finds none, or two. So a node class this package has never heard of renders
 everywhere that can draw one of its payloads, and a third renderer needs no change
 here.
 
 The payloads are platform values, which is the honest cost of the hatch: the node
 has to be built either in a package that can see both types or, more usually, with
-the host injecting its own half — the same shape the example uses for the map.
+the host injecting its own half. The example uses this boundary for its preview frames.
 `validateTree` reports an embed that carries nothing at all.
 
 ## State

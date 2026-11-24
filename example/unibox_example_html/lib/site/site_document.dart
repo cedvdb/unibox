@@ -6,24 +6,7 @@ import '../fonts.dart';
 import 'favicon.dart';
 import 'iframe_node.dart';
 
-/// The document the site is served as.
-///
-/// One page, four bars — the claim with the comparison inside it, what a crawler is
-/// served, the vocabulary, the catalogue — so there is one title and one description, and
-/// they describe the whole of it: the search engine reason first, because that is the
-/// reason a reader arrives from one.
-///
-/// The page is longer than a viewport, so nothing here gives it the height of one: it scrolls,
-/// and its bars paint their own backgrounds down its whole length. The body margin is removed
-/// for the reason [pageCss] gives.
-///
-/// The metadata is the host's, not the tree's: a title and a description describe a *document*,
-/// while a node tree describes a region of one.
-///
-/// [build] is the commit the document was rendered from, written into the head as
-/// `unibox-build`. A tab opened before a deploy and the deployed page look the same, down to a
-/// layout the new build has already fixed, so the one thing that separates them is a fact
-/// carried by the document itself.
+/// The server document for the renderer comparison and live handover.
 Document buildSiteDocument({
   ExampleSeed seed = ExampleSeed.defaultSeed,
   String? build,
@@ -31,11 +14,8 @@ Document buildSiteDocument({
   return Document(
     node: sitePageTree(seed: seed),
     head: DocumentHead(
-      title: 'Unibox — SEO-friendly Flutter Web without duplicating your UI',
-      description:
-          'Flutter SEO without a second UI: build the interface once in Dart, serve it '
-          'as real HTML and CSS to a search engine, and draw it as Flutter widgets in '
-          'the app.',
+      title: 'Unibox — Flutter UI. Searchable HTML.',
+      description: 'One Dart UI rendered as searchable HTML and Flutter widgets, with live handover.',
       meta: <String, String>{'unibox-build': ?build, 'unibox-page': 'site'},
       links: <DocumentLink>[faviconLink(''), ...fontPreloadLinks('')],
       raw: <String>['<style>${fontFaceCss('')}$siteCss</style>'],
@@ -44,11 +24,7 @@ Document buildSiteDocument({
   );
 }
 
-/// The site as one tree, built by the document and adopted by the client.
-///
-/// A frame is the one thing the model cannot describe, so the same node arrives in both: the document
-/// writes it as markup a crawler can follow, and the client builds the identical element from the
-/// identical payload.
+/// The site uses host-supplied frames to compare the same UI before and after Flutter handover.
 core.UINode sitePageTree({ExampleSeed seed = ExampleSeed.defaultSeed}) =>
     buildSitePage(
       seed: seed,
@@ -56,30 +32,11 @@ core.UINode sitePageTree({ExampleSeed seed = ExampleSeed.defaultSeed}) =>
           IframeNode(src: src, title: title),
     );
 
-/// The palette the site is drawn with, in the document and in the browser.
-///
-/// The header's picker is a row of links to `?seed=<name>`, so the palette a reader chose is in
-/// the address: the export writes the default one, and the runtime asks the address which one to
-/// draw. Nothing else about the page changes — the tree names roles, and a theme is what answers
-/// them.
+/// The design values shared by the documentation hosts.
 core.UniboxTheme siteThemeFor(ExampleSeed seed) =>
     ExamplePalette.themeFor(seed);
 
-/// The palette a query string names, or the default one.
-///
-/// A location's `search` arrives with its `?`, which `Uri.splitQueryString` does not expect: it
-/// would read the key as `?seed` and answer with the default palette.
-ExampleSeed seedFromQuery(String search) => ExampleSeed.fromName(
-  Uri.splitQueryString(
-    search.startsWith('?') ? search.substring(1) : search,
-  )['seed'],
-);
-
-/// The rules that describe the surface of the site rather than its tree.
-///
-/// The font is the one thing the model leaves to the application, and the stack is written raw
-/// because a comma separated list is a CSS construct while a `BoxTextStyle.fontFamily` names
-/// one family.
+/// Fonts and document background belong to the HTML host.
 const String siteCss = '''
 body { margin: 0; font-family: UniboxText, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif }
 

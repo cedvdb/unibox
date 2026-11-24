@@ -328,7 +328,7 @@ and supplies optional, host-directed handover without a browser application runt
   unchanged revision. They concern photo markup/CORS/loading and struck pricing.
   Their expectations were not weakened. Emulator-dependent backend suites and
   live catalogue/zone acceptance remain separate integration work.
-- Comover currently uses local `pubspec_overrides.yaml` files in app, server and
+- During initial validation Comover used local `pubspec_overrides.yaml` files in app, server and
   explore_v2 to test one coherent candidate. Before merging that repository,
   replace those local resolutions with a single committed Unibox revision and
   regenerate its lockfiles. No remote dependency pins, release or deployment
@@ -344,3 +344,20 @@ Final performance gate: `tool/performance.sh build/site` passes without changing
 baselines or budgets. Both measured pages score 100 in local Lighthouse runs;
 the compressed document is 5,727 bytes against the 5,854-byte baseline. These
 are local unthrottled measurements, not production latency claims.
+
+## 24 November: matching examples in the original visual presentation
+
+Both hosts render `buildListingExample` with identical content, layout, styling
+and action keys. Asset paths and callbacks are host inputs. The HTML reference
+sits beside a live Flutter handover; reference routes inspect renderers rather
+than promote standalone HTML usage.
+
+The original hero, branching diagram, indexability code cards and illustrated
+node vocabulary are restored around those newer examples. Material controls and
+all fifteen typography roles render inline, with no navigation links in either
+showcase. Tests pin the section order, short hero copy, absence of showcase links,
+matching example trees, narrow/wide layouts and real handover/replay.
+
+The earlier local override instructions are historical: Comover's submitted PR
+uses an immutable Unibox revision and portable lockfiles. Live Comover and emulator
+acceptance remain the separate unchecked items above.

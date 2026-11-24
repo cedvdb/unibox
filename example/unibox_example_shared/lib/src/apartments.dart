@@ -1,14 +1,9 @@
 import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_material/unibox_material.dart';
 
-import 'icons.dart';
-import 'theme.dart';
-
 /// A listing on the apartments page.
 ///
-/// Plain data, like the signup form: the page is a function of the list, so a
-/// host can hand it what it loaded from wherever it loads things from without
-/// touching the tree.
+/// Hosts supply this data to the listing region after loading or filtering it.
 final class Apartment {
   /// Creates a listing.
   const Apartment({
@@ -63,7 +58,7 @@ final class Apartment {
   final String? badge;
 
   /// The one line summary under the name.
-  String get summary => '$rooms rooms · $area m²';
+  String get summary => '$rooms ${rooms == 1 ? 'room' : 'rooms'} · $area m²';
 
   /// The asking rent.
   String get priceLine => '€$rent';
@@ -72,12 +67,6 @@ final class Apartment {
   String get locationLine => '$district · $city';
 }
 
-/// The listings the example shows: one flat per capital, six of them in all.
-///
-/// More of them than fit on a normal window, which is the point: the page
-/// scrolls under the navigation bar instead of growing the page. Every capital is a
-/// euro country, so one currency is honest for the lot, and each street is named in the
-/// language of the city it is in.
 const List<Apartment> exampleApartments = <Apartment>[
   Apartment(
     name: 'Rue de Turenne 12',
@@ -147,382 +136,88 @@ const List<Apartment> exampleApartments = <Apartment>[
   ),
 ];
 
-/// The capitals the example's listings stand in, once each, in the order it names them.
-///
-/// The two lines that describe the list count its cities through this rather than
-/// repeating a number: a seventh capital changes the page without changing a word of it.
-List<String> get exampleCapitals => <String>{
-  for (final Apartment apartment in exampleApartments) apartment.city,
-}.toList();
-
-/// How a page of listings is drawn.
-///
-/// Two values and not a breakpoint: the segmented button above the listings picks one,
-/// and the grid it feeds answers for the width on its own — one column is what a grid
-/// with `maxColumns: 1` is, at any width.
-/// The filter a listing row starts with.
-///
-/// It is here and not in the page state so that the page can be built on its own — the
-/// state points at this value rather than the other way round.
-const String defaultListingFilter = 'Two rooms';
-
-enum ListingsView {
-  /// One column: a row per listing.
-  list,
-
-  /// A reflowing grid, one or two across.
-  grid,
-}
-
-/// The apartments page: a search bar, the filters, the listings and the map.
-///
-/// The page scrolls, the frame does not. The scrolling box is the page itself
-/// and the bar above it belongs to the frame, so the navigation stays where it
-/// is while the list moves — on both targets, from `Overflow.scroll`, which is
-/// a `SingleChildScrollView` in Flutter and `overflow: auto` in CSS.
-///
-/// The padding sits on a box *inside* the scrolling one on purpose: Flutter puts
-/// the padding of a scrolling box around its viewport (so it stays put), while
-/// CSS puts it inside the scrollport (so it scrolls away). Moving it one level
-/// in leaves both renderers scrolling the same content.
-///
-/// The map is a column beside the cards on a wide surface — `visibleFrom` is the whole
-/// of that decision — and it is in the markup at every width, because it is one tree.
-/// A narrow page has nowhere to put a column, so it carries a pill floating over the
-/// bottom of the list instead: the same tree at every window, and the placement a phone
-/// gets.
-Box buildApartmentsPage({
-  /// How far the document that draws this page sits from the site root, so a bundled photo resolves.
-  ///
-  /// `''` in an application, whose assets are looked up by bundle key, and `'../../'` in a document
-  /// two directories down. It is a host fact — the tree cannot know where it is drawn — and it is the
-  /// only thing a bundled image needs from one.
+/// A shared listing region; the host supplies data and action callbacks.
+UINode buildListingRegion({
+  List<Apartment> apartments = exampleApartments,
   String photoPrefix = '',
-  String? filter = defaultListingFilter,
-  ListingsView view = ListingsView.grid,
-  void Function(String? filter)? onFilter,
-  void Function(ListingsView view)? onView,
-}) {
-  return Box(
-    flex: 1,
-    direction: Axis.vertical,
-    width: double.infinity,
-    // The page is the `<main>` landmark; the stack below it is what a floating
-    // control is placed against.
-    semantics: const BoxSemantics(element: BoxElement.main),
-    children: <UINode>[
-      StackNode(
-        width: double.infinity,
-        height: double.infinity,
-        children: <UINode>[
-          // The list scrolls under the button rather than with it.
-          Box(
-            // A key is how a page that was scrolled before the application arrived is put back
-            // where the reader left it: the document writes it, and the app finds the region by
-            // it. One region per page, so the key is unique in the document.
-            key: 'listings',
-            width: double.infinity,
-            height: double.infinity,
-            direction: Axis.vertical,
-            overflow: Overflow.scroll,
-            children: <UINode>[
-              _content(
-                photoPrefix: photoPrefix,
-                filter: filter,
-                view: view,
-                onFilter: onFilter,
-                onView: onView,
-              ),
-            ],
+  TapCallback? onSave,
+}) => Box(
+  width: double.infinity,
+  gap: 24,
+  children: <UINode>[
+    TextNode(
+      '${apartments.length} ${apartments.length == 1 ? 'home' : 'homes'} across Europe',
+      headingLevel: 2,
+      style: MaterialTypography.headlineSmall,
+    ),
+    if (apartments.isEmpty)
+      const TextNode('No homes match your search. Try another city.'),
+    GridNode(
+      minItemWidth: 280,
+      maxColumns: 2,
+      gap: 16,
+      children: <UINode>[
+        for (final Apartment apartment in apartments)
+          buildApartmentCard(
+            apartment,
+            photoPrefix: photoPrefix,
+            ahead: apartment == apartments.first,
           ),
-          PositionedNode(
-            alignment: BoxAlignment.bottomCenter,
-            // The cell holds one box, and the pill sits inside it. A width threshold
-            // measures the box it is drawn in, and the page above this stack is a
-            // `<main>` landmark rather than a box, so a threshold placed straight into
-            // the cell had nothing to measure. This box spans the page and centres the
-            // pill in it.
-            child: Box(
-              width: double.infinity,
-              crossAlign: CrossAlign.center,
-              children: <UINode>[_mapButton()],
-            ),
-          ),
-        ],
+      ],
+    ),
+    if (onSave != null)
+      MaterialButton(
+        key: 'listing-save',
+        label: const TextNode('Save these homes'),
+        onTap: onSave,
       ),
-    ],
-  );
-}
+    const LinkNode(
+      'https://github.com/cedvdb/unibox',
+      children: <UINode>[TextNode('Source')],
+    ),
+  ],
+);
 
-/// Everything the page holds, in the box that scrolls.
-Box _content({
-  required String photoPrefix,
-  required String? filter,
-  required ListingsView view,
-  required void Function(String? filter)? onFilter,
-  required void Function(ListingsView view)? onView,
-}) {
-  return Box(
-    direction: Axis.vertical,
-    width: double.infinity,
-    padding: const BoxSpacing.all(20),
-    gap: 16,
-    textStyle: ExampleType.body,
-    children: <UINode>[
-      _heading(),
-      _searchBar(),
-      _filters(filter: filter, onFilter: onFilter, view: view, onView: onView),
-      Box(
-        direction: Axis.horizontal,
-        width: double.infinity,
-        gap: 16,
-        crossAlign: CrossAlign.start,
-        children: <UINode>[
-          Box(
-            flex: 3,
-            direction: Axis.vertical,
-            gap: 12,
-            children: <UINode>[
-              _resultLine(),
-              // The cards reflow on their own: one column when the column is
-              // narrow, two once it can hold them, and the tracks share the
-              // width. The count comes from the model's arithmetic on the web
-              // as well as in Flutter, so neither target needs a breakpoint.
-              GridNode(
-                minItemWidth: 240,
-                maxColumns: view == ListingsView.list ? 1 : 2,
-                gap: 12,
-                children: <UINode>[
-                  for (final (int index, Apartment apartment)
-                      in exampleApartments.indexed)
-                    // The first card's photo is the largest thing above the fold, so it says so and
-                    // the browser fetches it ahead of the five nobody has scrolled to yet.
-                    _card(apartment, photoPrefix, ahead: index == 0),
-                ],
-              ),
-            ],
-          ),
-          Box(
-            flex: 2,
-            direction: Axis.vertical,
-            // The map is drawn beside the listings only on a wide surface.
-            visibleFrom: 900,
-            children: <UINode>[_map()],
-          ),
-        ],
-      ),
-    ],
-  );
-}
-
-/// The title of the page and the line under it.
+/// The exact same example declaration used by the HTML and Flutter renderers.
 ///
-/// The title is marked as a heading, which is what a screen reader announces and
-/// what a crawler uses to read the structure of the page: the web renderer writes
-/// `role="heading"` and the Flutter one a `Semantics.header`.
-UINode _heading() {
-  return TextNode('Apartments', headingLevel: 1, style: ExampleType.title);
-}
-
-/// The search bar: a rounded field with a drawn magnifier.
-///
-/// The magnifier is two boxes and a transform rather than an icon font, so the
-/// example ships no asset for it and both targets draw the same shape.
-UINode _searchBar() {
-  return Box(
-    width: double.infinity,
-    minHeight: 52,
-    direction: Axis.horizontal,
-    crossAlign: CrossAlign.center,
-    gap: 12,
-    padding: const BoxSpacing.symmetric(horizontal: 18, vertical: 12),
-    borderRadius: 26,
-    border: const BoxBorder(color: BoxColor.role(MaterialColorRole.outline)),
-    backgroundColor: const BoxColor.role(ExampleColor.panel),
-    children: <UINode>[
-      _magnifier(),
-      Box(
-        flex: 1,
-        children: <UINode>[
-          TextNode(
-            '${exampleCapitals.length} capitals · two rooms · under €2 000',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: MaterialTypography.bodyLarge.merge(
-              BoxTextStyle(
-                color: const BoxColor.role(MaterialColorRole.onSurfaceVariant),
-              ),
-            ),
-          ),
-        ],
-      ),
-    ],
-  );
-}
-
-/// A magnifier drawn from two boxes: a ring and a handle at forty-five degrees.
-UINode _magnifier() {
-  return StackNode(
-    children: <UINode>[
-      Box(
-        width: 12,
-        height: 12,
-        borderRadius: 999,
-        border: const BoxBorder(
-          width: 2,
-          color: BoxColor.role(MaterialColorRole.onSurfaceVariant),
+/// Only asset locations and the host callback differ between targets. Layout,
+/// typography, content and action keys are declared here once.
+UINode buildListingExample({
+  String photoPrefix = '',
+  required TapCallback onSave,
+}) => Box(
+  width: double.infinity,
+  backgroundColor: const BoxColor.role(MaterialColorRole.surface),
+  textStyle: MaterialTypography.bodyMedium.copyWith(
+    fontFamily: 'UniboxText',
+    color: const BoxColor.role(MaterialColorRole.onSurface),
+  ),
+  crossAlign: CrossAlign.center,
+  padding: const BoxSpacing.all(24),
+  children: <UINode>[
+    Box(
+      width: double.infinity,
+      maxWidth: 912,
+      gap: 24,
+      semantics: const BoxSemantics(element: BoxElement.main),
+      children: <UINode>[
+        const TextNode(
+          'Find your next home',
+          headingLevel: 1,
+          style: MaterialTypography.headlineMedium,
         ),
-      ),
-      PositionedNode(
-        left: 11,
-        top: 11,
-        child: Box(
-          width: 6,
-          height: 2,
-          backgroundColor: const BoxColor.role(
-            MaterialColorRole.onSurfaceVariant,
-          ),
-          transform: const BoxTransform(rotation: 45),
-        ),
-      ),
-    ],
-  );
-}
+        buildListingRegion(photoPrefix: photoPrefix, onSave: onSave),
+      ],
+    ),
+  ],
+);
 
-/// The filters, and how the listings are drawn beside them.
-///
-/// One row and not two: the chips and the layout switch are the same decision — what the
-/// page shows and how it shows it — and a row that spans the page is also the box the
-/// width tokens are measured against, so the switch and the two chips a narrow surface
-/// cannot hold disappear at the same threshold they always did.
-UINode _filters({
-  required String? filter,
-  required void Function(String? filter)? onFilter,
-  required ListingsView view,
-  required void Function(ListingsView view)? onView,
+/// A shared content card, with a real photograph and no application state.
+UINode buildApartmentCard(
+  Apartment apartment, {
+  String photoPrefix = '',
+  bool ahead = false,
 }) {
-  return Box(
-    direction: Axis.horizontal,
-    crossAlign: CrossAlign.center,
-    mainAlign: MainAlign.spaceBetween,
-    gap: 12,
-    width: double.infinity,
-    children: <UINode>[
-      Box(
-        flex: 1,
-        direction: Axis.horizontal,
-        crossAlign: CrossAlign.center,
-        gap: 8,
-        children: <UINode>[
-          _filterChip('Two rooms', filter: filter, onFilter: onFilter),
-          _filterChip('Studio', filter: filter, onFilter: onFilter),
-          Box(
-            visibleFrom: 900,
-            children: <UINode>[
-              _filterChip('With a garden', filter: filter, onFilter: onFilter),
-            ],
-          ),
-        ],
-      ),
-      Box(
-        // The same threshold the two chips a narrow surface cannot hold already use:
-        // below it the row belongs to the chips, and a switch squeezed into what is
-        // left is a control that looks broken.
-        visibleFrom: 900,
-        children: <UINode>[
-          MaterialSegmentedButton(
-            width: 216,
-            segments: <MaterialSegment>[
-              MaterialSegment(
-                label: const TextNode('List'),
-                icon: glyphList(
-                  const BoxColor.role(MaterialColorRole.onSurfaceVariant),
-                ),
-                semanticsLabel: 'As a list',
-              ),
-              MaterialSegment(
-                label: const TextNode('Grid'),
-                icon: glyphGrid(
-                  const BoxColor.role(MaterialColorRole.onSurfaceVariant),
-                ),
-                semanticsLabel: 'As a grid',
-              ),
-            ],
-            selected: view == ListingsView.list ? 0 : 1,
-            onSelect: (int index) => onView?.call(
-              index == 0 ? ListingsView.list : ListingsView.grid,
-            ),
-          ),
-        ],
-      ),
-    ],
-  );
-}
-
-/// The floating action at the bottom of the page.
-///
-/// It is here for where it sits, not for what it does. A `PositionedNode` with an
-/// alignment fills the page and puts the pill at the bottom centre of it, and the pill's
-/// own margin is the 24 pixels between it and the edge: no renderer measures a window, and
-/// the listing scrolls under it because the stack it is placed in does not scroll. Only a
-/// narrow page draws it, because from 900 pixels the map has a column of its own.
-///
-/// The press is deliberately empty. A wide page shows the map beside the cards and a
-/// narrow one has nowhere to put it, so the pill is the *shape* of a floating action —
-/// its elevation, its radius, the ink a press leaves — rather than a way into a view that
-/// is not there.
-UINode _mapButton() {
-  return Box(
-    visibleUntil: 900,
-    margin: const BoxSpacing.only(bottom: 24),
-    shadows: MaterialElevation.level3,
-    borderRadius: 16,
-    backgroundColor: const BoxColor.role(MaterialColorRole.primaryContainer),
-    children: <UINode>[
-      MaterialButton.tonal(label: const TextNode('Map'), onTap: () {}),
-    ],
-  );
-}
-
-/// The line above the listings: how many there are, and in how many capitals.
-UINode _resultLine() {
-  return TextNode(
-    '${exampleApartments.length} apartments in ${exampleCapitals.length} capitals',
-    style: ExampleType.muted,
-  );
-}
-
-/// One filter: chosen, it shows a check in front and a cross that clears it.
-///
-/// That is Material's filter chip: the check says what is on, the cross says it can be
-/// turned off, and both are drawn glyphs rather than a font this example does not ship.
-UINode _filterChip(
-  String label, {
-  required String? filter,
-  required void Function(String? filter)? onFilter,
-}) {
-  final bool selected = filter == label;
-  const BoxColor onSelected = BoxColor.role(
-    MaterialColorRole.onSecondaryContainer,
-  );
-
-  return MaterialChip(
-    label: TextNode(label),
-    selected: selected,
-    leading: selected ? TextNode('✓', color: onSelected, fontSize: 12) : null,
-    trailing: selected ? glyphClose(onSelected) : null,
-    onRemove: selected ? () => onFilter?.call(null) : null,
-    onTap: () => onFilter?.call(selected ? null : label),
-  );
-}
-
-/// One listing: a photo, the name, where it is, what it feels like and the rent.
-///
-/// The card is a `MaterialCard` — a `Box` with Material's surface, radius,
-/// elevation and body type — so the example shows the design system as well as the
-/// model. Its width is the grid's track and its height is its content; the grid
-/// top-aligns the cards of a row, so a shorter card does not stretch.
-UINode _card(Apartment apartment, String photoPrefix, {bool ahead = false}) {
   return MaterialCard(
     semantics: const BoxSemantics(element: BoxElement.article),
     direction: Axis.vertical,
@@ -558,6 +253,7 @@ UINode _card(Apartment apartment, String photoPrefix, {bool ahead = false}) {
             children: <UINode>[
               TextNode(
                 apartment.name,
+                headingLevel: 3,
                 style: MaterialTypography.titleMedium.merge(
                   BoxTextStyle(
                     color: const BoxColor.role(MaterialColorRole.onSurface),
@@ -620,136 +316,5 @@ UINode _card(Apartment apartment, String photoPrefix, {bool ahead = false}) {
         ],
       ),
     ],
-  );
-}
-
-/// The map: a rounded panel with roads, the capitals the flats stand in and the price of
-/// three of them.
-///
-/// It is drawn from nodes rather than embedded, which is the honest thing for an
-/// example: a real map is a third-party embed, and this one shows the shape of a
-/// map — a surface, a few roads as thin rotated boxes, a city with the price of a flat
-/// in it, place by place — without a key, a script or a network call.
-UINode _map() {
-  const BoxColor plot = BoxColor(0xFFE7EFE4);
-
-  return Box(
-    width: double.infinity,
-    minHeight: 420,
-    borderRadius: 16,
-    border: const BoxBorder(
-      color: BoxColor.role(MaterialColorRole.outlineVariant),
-    ),
-    overflow: Overflow.hidden,
-    backgroundColor: const BoxColor.role(MaterialColorRole.surfaceContainerLow),
-    children: <UINode>[
-      StackNode(
-        children: <UINode>[
-          // The sizer: a stack of positioned children has no size of its own, and a
-          // `Stack` needs a bounded one. This child is the map's area; everything
-          // else is placed over it.
-          Box(width: double.infinity, height: 420),
-          // Two parks and three roads: enough to read as a map, and all of it a box.
-          PositionedNode(
-            left: 40,
-            top: 60,
-            child: Box(
-              width: 130,
-              height: 90,
-              borderRadius: 12,
-              backgroundColor: plot,
-            ),
-          ),
-          PositionedNode(
-            left: 250,
-            top: 240,
-            child: Box(
-              width: 110,
-              height: 70,
-              borderRadius: 12,
-              backgroundColor: plot,
-            ),
-          ),
-          PositionedNode(
-            left: -40,
-            top: 150,
-            child: Box(
-              width: 520,
-              height: 6,
-              backgroundColor: const BoxColor.role(
-                MaterialColorRole.surfaceContainerHighest,
-              ),
-              transform: const BoxTransform(rotation: -14),
-            ),
-          ),
-          PositionedNode(
-            left: 120,
-            top: 320,
-            child: Box(
-              width: 420,
-              height: 6,
-              backgroundColor: const BoxColor.role(
-                MaterialColorRole.surfaceContainerHighest,
-              ),
-              transform: const BoxTransform(rotation: 9),
-            ),
-          ),
-          PositionedNode(
-            left: 300,
-            top: -30,
-            child: Box(
-              width: 6,
-              height: 470,
-              backgroundColor: const BoxColor.role(
-                MaterialColorRole.surfaceContainerHighest,
-              ),
-              transform: const BoxTransform(rotation: 6),
-            ),
-          ),
-          // The capitals, the way a map names them, each beside what a flat costs there.
-          _mapLabel('Paris', left: 24, top: 24),
-          _mapLabel('Berlin', left: 210, top: 120),
-          _mapLabel('Lisbon', left: 40, top: 250),
-          _mapLabel('Rome', left: 190, top: 360),
-          // What the flats cost, pinned where they are.
-          _pricePin('€1850', left: 96, top: 92),
-          _pricePin('€1240', left: 232, top: 208),
-          _pricePin('€980', left: 60, top: 300),
-        ],
-      ),
-    ],
-  );
-}
-
-/// A city name on the map.
-UINode _mapLabel(String name, {required double left, required double top}) {
-  return PositionedNode(
-    left: left,
-    top: top,
-    child: TextNode(
-      name,
-      style: MaterialTypography.labelSmall.merge(
-        BoxTextStyle(
-          color: const BoxColor.role(MaterialColorRole.onSurfaceVariant),
-        ),
-      ),
-    ),
-  );
-}
-
-/// A price pinned on the map: the one shape Material gives a pin.
-UINode _pricePin(String price, {required double left, required double top}) {
-  return PositionedNode(
-    left: left,
-    top: top,
-    child: Box(
-      borderRadius: 999,
-      padding: const BoxSpacing.symmetric(horizontal: 12, vertical: 6),
-      backgroundColor: const BoxColor.role(MaterialColorRole.primary),
-      textStyle: MaterialTypography.labelLarge.merge(
-        BoxTextStyle(color: const BoxColor.role(MaterialColorRole.onPrimary)),
-      ),
-      children: <UINode>[TextNode(price)],
-    ),
   );
 }

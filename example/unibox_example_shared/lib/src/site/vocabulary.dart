@@ -4,18 +4,7 @@ import 'package:unibox_material/unibox_material.dart';
 import '../theme.dart';
 import 'section.dart';
 
-/// The second bar: what the whole vocabulary amounts to, once, as one card.
-///
-/// The bar's claim is the smallest sentence the library can be described in: a screen is
-/// containers, and a container holds text, a picture, a field or more containers. Nothing
-/// else is on offer — there is no widget to learn beside a box — which is why the four nodes
-/// a card is built from are the four a reader would otherwise never notice: a picture, a
-/// stack, a child placed at an offset and a field with no chrome.
-///
-/// So the bar is one small card, the same card taken apart, and the two calls the taken
-/// apart tree is for. The picture is not a screenshot of the card — it *is* the list beside
-/// it, which is the whole of what the library claims, and it is why the card is text a
-/// crawler reads rather than an image of text it cannot.
+/// A composed card beside the primitive nodes it is made from.
 UINode buildVocabularySection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
   final MaterialPalette palette = ExamplePalette.materialFor(seed);
 
@@ -32,11 +21,8 @@ UINode buildVocabularySection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
           palette,
           title: 'Just boxes',
           lead:
-              'A screen is containers: a box holds text, a picture, a field, or more '
-              'boxes, and there is no widget or element to learn beside it. The four '
-              'nodes this page had not drawn yet are the parts a card is made of — a '
-              'field with no chrome, a stack, a picture, and a child placed at an '
-              'offset. The list beside the card is that card, taken apart.',
+              'Compose text, images, fields and positioned content with the same small '
+              'set of nodes. The card and its parts are shown below.',
         ),
         GridNode(
           minItemWidth: 360,
@@ -53,13 +39,6 @@ UINode buildVocabularySection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
               children: <UINode>[_tree(palette), _calls(palette)],
             ),
           ],
-        ),
-        TextNode(
-          'The hero, the catalogue and this bar are the same nodes, drawn by the same '
-          'two calls.',
-          style: MaterialTypography.labelMedium.copyWith(
-            color: palette.onSurfaceVariant,
-          ),
         ),
       ],
     ),

@@ -1,11 +1,7 @@
 # unibox_example_shared
 
-Pure Dart declarations shared by the example's server HTML and Flutter host.
-The application sample owns its form state through the optional region adapter;
-the Material catalogue contains only the small supported native vocabulary.
+`buildListingExample` declares the example once: heading, cards and save action.
+HTML and Flutter render the same tree with the same theme and data.
 
-The server reads a snapshot. Flutter installs the native Material map and the host
-signals handover readiness after the intended layout exists. No DOM application
-runtime, custom path token, ink store or progress-ring component is required.
-
-See [the examples](../README.md) and [handover](../../docs/takeover.md).
+The package is pure Dart. Hosts supply asset paths and callbacks, and coordinate
+[Flutter handover](../README.md).

@@ -389,7 +389,15 @@ const String _bootTemplate = '''
     }
 
     host = hostId ? document.getElementById(hostId) : null;
-    if (host) { unibox.hostElement = host; }
+    if (!host) {
+      // An embedded engine leaves the document's scroll and body sizing intact
+      // while it loads. A full-page engine resets them before the host can restore.
+      host = document.createElement('div');
+      host.setAttribute('data-unibox-host', 'true');
+      host.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(host);
+    }
+    unibox.hostElement = host;
     before = [].slice.call(document.body.children).filter(function (child) { return child !== host; });
   }
 
@@ -454,6 +462,7 @@ const String _bootTemplate = '''
     var sheet = document.createElement('style');
     sheet.setAttribute('data-unibox-handover', 'true');
     sheet.textContent = [
+      '[data-unibox-host]{position:fixed;inset:0}',
       '[data-unibox-compare] [data-unibox-app]{opacity:.5}',
       '[data-unibox-state="booting"] [data-unibox-app]{opacity:0;visibility:hidden;pointer-events:none}',
       '[data-unibox-app]:focus{outline:none}',

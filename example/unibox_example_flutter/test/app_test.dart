@@ -1,290 +1,83 @@
+import 'dart:io';
+
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:unibox_example_flutter/main.dart';
+import 'package:unibox_flutter/unibox_flutter.dart';
 import 'package:unibox_core/unibox_core.dart' as core;
 import 'package:unibox_example_shared/unibox_example_shared.dart';
-import 'package:unibox_flutter/unibox_flutter.dart';
 
-import 'support/harness.dart';
-
-/// Fills both fields with a valid name and email address.
-Future<void> fillForm(WidgetTester tester) async {
-  await tester.enterText(nameField(), 'Ada');
-  await tester.enterText(emailField(), 'ada@example.com');
-  await tester.pump();
+Future<void> loadFonts() async {
+  for (final weight in <String>['400', '500', '600', '700']) {
+    final bytes = ByteData.sublistView(
+      File('assets/fonts/roboto-$weight.ttf').readAsBytesSync(),
+    );
+    await (FontLoader(
+      'UniboxText',
+    )..addFont(Future<ByteData>.value(bytes))).load();
+  }
 }
 
 void main() {
-  group('ExampleApp', () {
-    testWidgets('renders the shared page with the dialog closed', (
+  setUpAll(loadFonts);
+  testWidgets(
+    'renders exactly the text of the shared declaration with no extra controls',
+    (tester) async {
+      final declaration = buildListingExample(onSave: () {});
+      Iterable<core.UINode> flatten(core.UINode node) sync* {
+        yield node;
+        for (final child in node.children) {
+          yield* flatten(child);
+        }
+      }
+
+      final expected = flatten(declaration)
+          .whereType<core.TextNode>()
+          .map((node) => node.text)
+          .toList();
+      await tester.pumpWidget(const ExampleApp());
+      await tester.pumpAndSettle();
+      final actual = tester
+          .widgetList<Text>(find.byType(Text))
+          .map((text) => text.data ?? text.textSpan?.toPlainText() ?? '')
+          .toList();
+      expect(actual, expected);
+      expect(find.byType(TextField), findsNothing);
+      expect(find.byType(FilterChip), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets('a keyed region action opens a host-owned native dialog', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const ExampleApp());
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Save these homes'));
+    await tester.pumpAndSettle();
+    expect(
+      pressRecorded(const <core.BoxPress>[core.BoxPress(key: 'listing-save')]),
+      hasLength(1),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(find.text('Homes saved'), findsOneWidget);
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+  });
+  for (final width in <double>[375, 1200]) {
+    testWidgets('the shared UI fits a $width wide surface with enlarged text', (
       tester,
     ) async {
-      await pumpApp(tester);
-
-      expect(find.text('Rue de Turenne 12'), findsOneWidget);
-      expect(find.text('Join Unibox'), findsNothing);
-      expect(find.byType(TextField), findsNothing);
+      tester.view.physicalSize = Size(width, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      tester.platformDispatcher.textScaleFactorTestValue = 1.3;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await tester.pumpWidget(const ExampleApp());
+      await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
     });
-
-    testWidgets('bounces a pull past the end, the way a browser does', (
-      WidgetTester tester,
-    ) async {
-      await pumpApp(tester);
-
-      // The physics is the host's — a renderer drops the overscroll *decoration* and nothing else
-      // — so a platform that clamps would show no pull at all. The browser rubber-bands wherever
-      // it runs, so this host states the same physics for every scroller in the tree and the two
-      // renderings of the page agree about what a pull looks like.
-      final ScrollableState scrollable = tester.state<ScrollableState>(
-        find.byType(Scrollable).first,
-      );
-
-      expect(
-        scrollable.position.physics,
-        isA<BouncingScrollPhysics>(),
-        reason: 'a pull past the end is a pull on both targets',
-      );
-    });
-
-    testWidgets('draws the page in the palette the picker chooses', (
-      tester,
-    ) async {
-      await pumpApp(tester);
-
-      core.UniboxScope installed() => tester
-          .widget<UniboxScopeWidget>(find.byType(UniboxScopeWidget))
-          .scope;
-
-      expect(
-        installed().theme,
-        ExamplePalette.themeFor(ExampleSeed.defaultSeed),
-      );
-
-      // The swatch is a link to this page with `?seed=<name>`: the host answers the
-      // address with another theme instead of loading anything, so the page keeps
-      // its store — the dialog, the filter and the fields stay where they were.
-      await tester.tap(find.bySemanticsLabel('Blue palette'));
-      await tester.pump();
-
-      expect(installed().theme, ExamplePalette.themeFor(ExampleSeed.blue));
-      expect(
-        installed().theme!.resolve(
-          const core.BoxColor.role(ExampleColor.accent),
-        ),
-        ExamplePalette.materialFor(ExampleSeed.blue).primary,
-      );
-      // Nothing navigated: the page is still the one the reader was on.
-      expect(find.text('Rue de Turenne 12'), findsOneWidget);
-    });
-
-    testWidgets('opens the sign-up dialog from the bar', (tester) async {
-      await pumpApp(tester);
-
-      await openPage(tester, 'Sign up');
-
-      expect(find.text('Join Unibox'), findsOneWidget);
-      expect(find.text('One description, two renderers.'), findsOneWidget);
-      expect(find.byType(TextField), findsNWidgets(2));
-      expect(find.text('Ada Lovelace'), findsOneWidget);
-      expect(find.text('ada@example.com'), findsOneWidget);
-      expect(find.text('Create account'), findsOneWidget);
-      expect(find.text('Read the docs'), findsOneWidget);
-    });
-
-    testWidgets('closes the dialog when the barrier is pressed', (
-      tester,
-    ) async {
-      await pumpApp(tester);
-      await openPage(tester, 'Sign up');
-
-      // The top left corner is the barrier: the card is centred in the window.
-      await tester.tapAt(const Offset(10, 10));
-      await tester.pump();
-
-      expect(find.text('Join Unibox'), findsNothing);
-      expect(find.text('Rue de Turenne 12'), findsOneWidget);
-    });
-
-    testWidgets('fills the surface the window gives it', (tester) async {
-      // The page box of the tree fills the viewport on the web, so the Flutter
-      // box fills the window instead of shrinking to the card: same tree, same
-      // surface, on both targets.
-      await pumpApp(tester);
-
-      final Rect page = tester.getRect(find.byType(FlutterBox).first);
-
-      expect(
-        page,
-        Offset.zero & tester.view.physicalSize / tester.view.devicePixelRatio,
-      );
-    });
-
-    testWidgets('keeps the entered values and reports the form as complete', (
-      tester,
-    ) async {
-      await pumpApp(tester);
-      await openPage(tester, 'Sign up');
-
-      await fillForm(tester);
-
-      expect(tester.widget<TextField>(nameField()).controller!.text, 'Ada');
-      expect(
-        tester.widget<TextField>(emailField()).controller!.text,
-        'ada@example.com',
-      );
-      expect(find.text('Looks good - press Create account.'), findsOneWidget);
-    });
-
-    testWidgets('shows the confirmation after submitting', (tester) async {
-      await pumpApp(tester);
-      await openPage(tester, 'Sign up');
-      await fillForm(tester);
-
-      await tester.tap(find.text('Create account'));
-      await tester.pump();
-
-      expect(
-        find.text('Thanks, Ada! We will write to ada@example.com.'),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('ignores a submission while the form is incomplete', (
-      tester,
-    ) async {
-      await pumpApp(tester);
-      await openPage(tester, 'Sign up');
-
-      await tester.tap(find.text('Create account'));
-      await tester.pump();
-
-      expect(find.textContaining('Thanks, '), findsNothing);
-      expect(find.text('Add a name and an email address.'), findsNothing);
-    });
-
-    testWidgets('submits when enter is pressed in the email field', (
-      tester,
-    ) async {
-      await pumpApp(tester);
-      await openPage(tester, 'Sign up');
-      await fillForm(tester);
-
-      await tester.testTextInput.receiveAction(TextInputAction.done);
-      await tester.pump();
-
-      expect(
-        find.text('Thanks, Ada! We will write to ada@example.com.'),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('toggles the newsletter opt-in', (tester) async {
-      await pumpApp(tester);
-      await openPage(tester, 'Sign up');
-
-      expect(
-        find.descendant(
-          of: find.byType(FlutterOverlay),
-          matching: find.text('✓'),
-        ),
-        findsNothing,
-      );
-
-      await tester.tap(find.text('Release notes'));
-      await tester.pump();
-
-      expect(
-        find.descendant(
-          of: find.byType(FlutterOverlay),
-          matching: find.text('✓'),
-        ),
-        findsOneWidget,
-      );
-
-      await tester.tap(find.text('Release notes'));
-      await tester.pump();
-
-      expect(
-        find.descendant(
-          of: find.byType(FlutterOverlay),
-          matching: find.text('✓'),
-        ),
-        findsNothing,
-      );
-    });
-
-    group('navigation', () {
-      testWidgets('dismisses the dialog onto the listings', (tester) async {
-        await pumpApp(tester);
-        await openPage(tester, 'Sign up');
-
-        await closeDialog(tester);
-
-        expect(find.text('Join Unibox'), findsNothing);
-        expect(find.text('Rue de Turenne 12'), findsOneWidget);
-        expect(find.byType(TextField), findsNothing);
-      });
-
-      testWidgets('comes back to the card with the form intact', (
-        tester,
-      ) async {
-        await pumpApp(tester);
-        await openPage(tester, 'Sign up');
-        await fillForm(tester);
-
-        await closeDialog(tester);
-        await openPage(tester, 'Sign up');
-
-        expect(find.text('Join Unibox'), findsOneWidget);
-        expect(tester.widget<TextField>(nameField()).controller!.text, 'Ada');
-        expect(find.text('Looks good - press Create account.'), findsOneWidget);
-      });
-
-      testWidgets('keeps the listings readable on a small surface', (
-        tester,
-      ) async {
-        // The card is a row whose text column takes what is left, so the name, the
-        // summary and the rent wrap inside the card instead of widening it.
-        await pumpApp(tester, surface: const Size(500, 800));
-
-        expect(tester.takeException(), isNull);
-        expect(find.text('Rue de Turenne 12'), findsOneWidget);
-        expect(find.text('€1850'), findsOneWidget);
-
-        final Rect card = tester.getRect(
-          find
-              .ancestor(
-                of: find.text('Rue de Turenne 12'),
-                matching: find.byType(FlutterBox),
-              )
-              .last,
-        );
-        expect(card.width, lessThanOrEqualTo(500));
-      });
-
-      testWidgets('scrolls the listings under the navigation', (tester) async {
-        // Short enough that the six listings do not fit, which is the case the
-        // scroll view exists for.
-        await pumpApp(tester, surface: const Size(900, 700));
-
-        final double bar = tester.getTopLeft(find.text('Unibox')).dy;
-        final double before = tester
-            .getTopLeft(find.text('Rue de Turenne 12'))
-            .dy;
-
-        await tester.drag(
-          find.byType(SingleChildScrollView),
-          const Offset(0, -200),
-        );
-        await tester.pump();
-
-        expect(
-          tester.getTopLeft(find.text('Rue de Turenne 12')).dy,
-          lessThan(before),
-        );
-        // The navigation belongs to the frame, not to the page that scrolls.
-        expect(tester.getTopLeft(find.text('Unibox')).dy, bar);
-      });
-    });
-  });
+  }
 }

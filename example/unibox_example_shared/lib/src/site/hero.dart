@@ -14,21 +14,7 @@ typedef ShowcaseFrame = UINode Function({
   required String title,
 });
 
-/// The first bar: the claim, and the diagram that answers it.
-///
-/// A one-line claim and one chip that branches into the two things the tree becomes, each
-/// branch carrying the live rendering it produces. That is the whole pitch in one screen:
-/// a stranger reads *one tree*, sees it split into HTML and Flutter, and can type into
-/// either half of the diagram to check that it is real.
-///
-/// The claim leads with the reason someone goes looking for the library — a Flutter page
-/// that a search engine can read — and the architecture follows it as the answer. The
-/// diagram is the same claim drawn: the left branch is the markup a crawler is served, the
-/// right one the widgets the visitor uses, and both come from the one tree above them.
-///
-/// The copy above the diagram is set large and the room around it is wide, because that
-/// is what makes a page of plain boxes read as a modern one — scale and space, not a
-/// second set of colours.
+/// One Dart declaration branching into HTML and a live Flutter handover.
 UINode buildHeroSection({
   required ShowcaseFrame frame,
   ExampleSeed seed = ExampleSeed.defaultSeed,
@@ -89,10 +75,8 @@ UINode _claim(MaterialPalette palette) {
       // claims are the model's — the document is what arrives, and the application is
       // revealed over it rather than instead of it.
       TextNode(
-        'Visitors get the page immediately — real text, real headings, real links, the '
-        'page a search engine indexes — and Flutter takes it over once it is ready, '
-        'without a blank screen. One tree in Dart, drawn twice: there is no second UI '
-        'to keep in step.',
+        'One Dart declaration, rendered as HTML and Flutter widgets. Visitors read the '
+        'HTML while Flutter loads; handover preserves their scroll position and pending action.',
         style: MaterialTypography.titleMedium.copyWith(
           color: palette.onSurfaceVariant,
         ),
@@ -106,8 +90,7 @@ UINode _claim(MaterialPalette palette) {
 /// It is the answer to *what is this*, drawn rather than described — a single chip where
 /// the tree is, an arrow down each branch, and the live rendering each branch produces
 /// directly under its own name. The frames are not a screenshot, so the diagram is not a
-/// picture of an architecture: it *is* the architecture, and a reader can type into
-/// either half of it.
+/// picture of an architecture: it *is* the architecture, and both frames show the same declaration.
 ///
 /// The two branch names are the page's `h2`s, because they are what the page is about:
 /// a crawler that reads *HTML and CSS* and *Flutter* as two sections of one document has
@@ -140,9 +123,9 @@ UINode _diagram(
           _branch(
             palette,
             label: 'HTML and CSS',
-            note: 'the page a search engine reads: real text, real headings, real links',
+            note: 'HTML and CSS from the same Dart declaration.',
             flowKey: 'hero-flow-html',
-            src: 'web/listings/?seed=${seed.name}',
+            src: 'web/listings/',
             frame: frame,
           ),
           _branch(
@@ -152,11 +135,9 @@ UINode _diagram(
             // cannot say about itself: a reader who sees a still page has no way to
             // tell whether it is a document waiting to become an application or a
             // screenshot of one. The frame is neither — it is the takeover, live.
-            note:
-                'the same tree as widgets — a document until you touch it, then the '
-                'application draws it. The handover is live in this frame',
+            note: 'The same UI, with live HTML-to-Flutter handover.',
             flowKey: 'hero-flow-flutter',
-            src: 'web/takeover/?seed=${seed.name}',
+            src: 'web/takeover/',
             frame: frame,
           ),
         ],

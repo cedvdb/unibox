@@ -1,115 +1,58 @@
-import 'package:flutter/foundation.dart'
-    show TargetPlatform, defaultTargetPlatform;
 import 'package:flutter/widgets.dart';
 import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_example_shared/unibox_example_shared.dart';
 import 'package:unibox_flutter/unibox_flutter.dart';
-import 'package:unibox_material/unibox_material.dart'
-    show MaterialDensity, MaterialPlatform;
 import 'package:unibox_material_flutter/unibox_material_flutter.dart';
 
+import 'link_policy.dart';
+import 'page_address.dart';
 import 'showcase_frame.dart';
 import 'surface.dart';
 
-/// The two trees this one build draws, and the address that says which.
+/// Renderer inspection and component reference destinations in the example bundle.
 enum HostedPage {
-  /// The site page, at the root of the Flutter build: `/flutter/`.
+  /// The documentation guide at the Flutter build root.
   site,
 
-  /// The example, at every other address: the route below the build's root, a takeover
-  /// document, a phone.
+  /// The same example declaration used by the server and handover.
   example,
 
-  /// The components page, at `/flutter/components/`: one tree of Material components, drawn
-  /// from the values — and from Flutter's own widgets when the address asks for them.
+  /// Optional Material declarations with native widget substitutions.
   components,
 }
 
-/// The page the application was loaded at, read from [address].
-///
-/// One build draws both trees, and the address is what says which. The Flutter build is
-/// served one directory below the site, so its *root* is the site page and the route below
-/// it — `/flutter/listings/` — is the example on its own. A takeover document
-/// (`web/takeover/`, the right frame of the HTML page) boots the same bundle and draws the
-/// example, because that is the page its frame framed. Everything else — a phone, a test, a
-/// `flutter run` at the server's root — is the example, which is what this application was
-/// before the site had a Flutter rendering.
+/// The host selects a destination without an application router in Unibox.
 HostedPage hostedPageFor(Uri address) {
-  final List<String> segments = address.pathSegments
-      .where((String segment) => segment.isNotEmpty)
-      .toList(growable: false);
-
-  if (segments.contains('components')) {
-    return HostedPage.components;
-  }
-
+  final segments = address.pathSegments
+      .where((value) => value.isNotEmpty)
+      .toList();
+  if (segments.contains('components')) return HostedPage.components;
   return segments.isNotEmpty && segments.last == 'flutter'
       ? HostedPage.site
       : HostedPage.example;
 }
 
-/// The Flutter host of the site page.
-///
-/// The page `unibox_html` writes at `/`, drawn by the renderer that draws the application,
-/// so the two renderings of one tree can be held side by side. The tree *is* the page; this
-/// file is only what a node cannot know — the surface, the theme, what following a link
-/// means, and the frames.
-class SiteApp extends StatefulWidget {
-  /// Creates the site page in [seed]'s palette.
+/// The project guide can itself be rendered by the Flutter target.
+class SiteApp extends StatelessWidget {
+  /// Uses the same shared design values as the HTML guide.
   const SiteApp({super.key, this.seed = ExampleSeed.defaultSeed});
 
-  /// The palette the page is drawn with on the first frame, which the picker replaces.
+  /// A palette supplied by this documentation host.
   final ExampleSeed seed;
 
   @override
-  State<SiteApp> createState() => _SiteAppState();
-}
-
-class _SiteAppState extends State<SiteApp> {
-  late ExampleSeed _seed = widget.seed;
-
-  /// What following a link means here: a seed is a palette, so it is a rebuild; anything
-  /// else is a destination this build does not serve — the site's own pages are the HTML
-  /// rendering's business — and it says so rather than doing nothing.
-  void _open(String url) {
-    final String? name = Uri.tryParse(url)?.queryParameters['seed'];
-
-    if (name == null) {
-      debugPrint('Following $url');
-      return;
-    }
-
-    setState(() => _seed = ExampleSeed.fromName(name));
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final UniboxTheme theme = ExamplePalette.themeFor(_seed);
-    // The platform this app is, so the components are built and drawn at its density.
-    final MaterialDensity density = MaterialDensity.forPlatform(
-      switch (defaultTargetPlatform) {
-        TargetPlatform.android => MaterialPlatform.android,
-        TargetPlatform.iOS => MaterialPlatform.ios,
-        TargetPlatform.fuchsia => MaterialPlatform.fuchsia,
-        TargetPlatform.macOS => MaterialPlatform.macos,
-        TargetPlatform.windows => MaterialPlatform.windows,
-        TargetPlatform.linux => MaterialPlatform.linux,
-      },
-    );
-
+    final scope = UniboxScope(theme: ExamplePalette.themeFor(seed));
     return surface(
-      title: 'Unibox — the site, drawn by Flutter',
-      scope: UniboxScope(theme: theme),
-      palette: ExamplePalette.materialFor(_seed),
-      density: density,
-      child: FlutterLinkScope(
-        open: _open,
-        // A document scrolls; a column of sections taller than the window needs one scroll view
-        // around it, which is the whole of what the other renderer gets from the browser.
+      title: 'Unibox — shared UI regions',
+      scope: scope,
+      palette: ExamplePalette.materialFor(seed),
+      child: ExampleLinks(
+        base: pageAddress.resolve('../'),
         child: SingleChildScrollView(
           child: renderFlutter(
-            buildSitePage(frame: showcaseFrame, seed: _seed),
-            scope: UniboxScope(theme: theme),
+            buildSitePage(seed: seed, frame: showcaseFrame),
+            scope: scope,
             substitutions: materialComponents(),
           ),
         ),

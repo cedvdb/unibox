@@ -8,15 +8,12 @@ dependency. See [handover](../../docs/takeover.md).
 
 The web renderer: a Unibox tree as HTML a search engine can read.
 
-A Flutter screen is a canvas, which a crawler, a link preview and a reader without
-JavaScript all see as nothing. This package renders the same tree as a document — real
-text, real headings, real links, one stylesheet — with no framework and no runtime.
+Flutter rendering alone does not supply a server HTML document. This package renders
+Unibox declarations as readable text, headings, images and real links. It does not
+convert an arbitrary Flutter widget tree into HTML.
 
-It holds the whole web target in one package, in the three layers a node passes through on
-its way to a browser: the **CSS** a design token becomes (`lib/src/css/`), the **element
-plan** a node becomes (`lib/src/element/`), and the document those are written into.
-drift. They are directories rather than packages because a package boundary is a version to
-keep in step, and the third renderer they were split for was deleted.
+Its CSS mapping, element planning and document writing are layers within one package.
+Hosts compose documents around shared regions and own metadata, assets and URLs.
 
 Pure Dart, with the model as its only dependency. A document can be rendered in a server, in
 a build step, in a command line tool, and, for a host whose backend is not Dart, compiled to
@@ -249,25 +246,23 @@ declarations that class is given — then compares it with the table the Flutter
 held to. That is the whole claim of the package: a document and a widget built from one
 node look the same, and a token that drifted fails a test rather than a screenshot review.
 
-## The scripts a page may carry
+## Optional handover
 
-A document needs no JavaScript. The two scripts it may carry are for the handover — a page that
-becomes an application — and each is a file a host includes, so a page that does not need one
-pays for nothing:
+A document needs no JavaScript. To opt into a document-to-Flutter transition, use
+`Takeover` or install the helpers from `package:unibox_html/handover.dart` in a
+mixed document.
 
-| Script | What it does |
+| Helper | Responsibility |
 | --- | --- |
-| `scrollScript` | records where each keyed region is scrolled to, and answers `window.unibox.takeScroll()` |
-| `pressScript` | records the key and the position of a press, and answers `window.unibox.takePressed()` |
-| `bootScript(url, policy:)` | loads the application on a signal, never before the first paint, and hands the page over |
-| `uniboxClientScript` | both recorders, for a host that wants one file |
-
-`Takeover` is how a page asks for all of it at once:
+| `scrollScript` | Record the latest document position and keyed region offsets |
+| `pressScript` | Record one eligible intercepted keyed action; preserve normal links |
+| `uniboxClientScript` | Both recorders, without an application event runtime |
+| `bootScript` | Start the supplied loader according to host policy and coordinate reveal/fallback |
 
 ```dart
-final String page = toDocument(
-  ListingsPage(listings),
-  head: const DocumentHead(title: 'Apartments'),
+final page = toDocument(
+  region,
+  head: const DocumentHead(title: 'Homes'),
   takeover: const Takeover(
     boot: '/flutter/flutter_bootstrap.js',
     reveal: RevealPolicy.onReady,
@@ -275,102 +270,36 @@ final String page = toDocument(
 );
 ```
 
-It prefetches the loader at a low priority — deferring the download as well as the execution is
-how a page gets a good score and a two-second dead click — and places the recorders before the
-boot, because the application asks what the reader did. `record: false` is for a page that only
-has to boot.
+The bridge exposes `window.unibox.hostElement` before loading the bundle. Pass it
+as the engine configuration's `hostElement`. If a mixed document already has a
+host, supply its `hostId`; otherwise the bridge creates a fixed viewport host.
+This keeps an embedded engine from resetting the document's scroll during loading.
 
-### The handover has three states, and it says so
+The document remains readable while the hidden engine starts. The Flutter host
+explicitly signals readiness after its route, data and layout exist, supplying
+its page scroll controller or a restoration callback. A renderer does not signal
+readiness on behalf of the application. `Takeover` defaults to `onReady`;
+`onFrame` is an explicit alternative. Failure or readiness timeout retains the
+HTML instead of revealing an incomplete application.
 
-Starting the engine and showing it are two different moments, and the second is the one a reader
-feels. The boot writes `data-unibox-state` on the document element — `document`, `booting`,
-`ready`, `app`, `failed` — and a host can style any of them:
+The bridge writes `data-unibox-state`: `document`, `booting`, `ready`, `app` or
+`failed`. Reveal transfers focus, announces readiness and retires the document.
+A focused reader is respected unless an intercepted action has requested the
+transition. Host-owned animation should respect reduced-motion preferences.
 
-| State | The document | The application |
-| --- | --- | --- |
-| `document` | the page | not started |
-| `booting` | still the page: readable, pressable, scrollable, recording | loading, `opacity: 0`, unreachable by pointer or Tab |
-| `ready` | about to go | announced, fading in if the host's CSS says so |
-| `app` | `inert`, out of the tree a reader sees, then removed | the page |
-| `failed` | the page, unharmed | gone |
+Normal links and modified clicks keep their browser behaviour. Only eligible
+actions with stable, document-wide keys are intercepted. At most one latest
+pending action is consumed after reveal. Server HTML does not execute application
+callbacks or synchronise host state.
 
-Three things follow from it, and none of them is the host's to remember:
+`BootPolicy` controls startup: `immediately`, `onPointer` or `onIntent`.
+`onIntent` offers a keyboard-accessible open control rather than starting on a
+focus move. The document-only escape hatch `?unibox=document` disables startup.
+With `debug: true`, `?unibox=debug`, `?unibox=profile` and `?unibox=compare`
+enable diagnostics. `query: false` disables those address-based policies.
 
-- **The engine is found, not named.** Everything that appears in the body after the boot is the
-  application's, whatever this Flutter version calls it — `flutter-view` today, `flt-glass-pane`
-  before it. It is marked `data-unibox-app` and given `tabindex="-1"`, which is what a host's CSS
-  styles and what the reveal focuses.
-- **The reveal is an accessibility event.** Focus moves into the application, one `role="status"`
-  sentence (`Takeover.readyLabel`) is announced in the document's language, and only then does the
-  document become `inert` and leave the page. It never happens while a reader is focused inside
-  the document — on any policy, because the reveal is what takes the element away, not the boot.
-- **Nothing moves for a reader who asked for less motion.** The library writes the state and a
-  small rule; a host that wants a crossfade writes the transition in its own stylesheet, inside
-  `@media (prefers-reduced-motion: no-preference)`.
-
-`RevealPolicy` decides when the application is worth showing. `onFrame` (the default) shows the
-engine's first frame; `onReady` waits for the application to say it has drawn the state it was
-given — which `unibox_flutter` says without being asked, and which is the right answer for a page
-whose scroll offset and press are being replayed. `readyTimeout` bounds either: a frame that is
-available is revealed when it expires, and a page with no frame at all goes back to being a
-document rather than staying blank.
-
-### The address may narrow, and a debug build may inspect
-
-| Parameter | Effect | Needs `Takeover(debug: true)` |
-| --- | --- | --- |
-| `?unibox=document` | never boot; the page stays the document | no — it can only take an application away |
-| `?unibox=debug` | the marks and the two checks a host cannot see for itself | yes |
-| `?unibox=profile` | the same marks as `unibox:*` performance measures and as `window.unibox.profile` | yes |
-| `?unibox=compare` | keeps the document and draws the application at 50% over it | yes |
-
-`?unibox=document` is the escape hatch an accessibility story needs: a reader who wants the text
-can say so in a url they can bookmark, share or paste into a ticket, and it survives a reload.
-`?unibox=compare` is the cheapest way to see whether the two renderings of one tree agree — the
-takeover already *is* two renderings, so the comparison is free. `Takeover(query: false)` turns
-the whole table off, including the escape hatch.
-
-`BootPolicy` is the one choice left, and it is a choice about the page rather than about an event:
-`immediately` for a screen nobody arrives at by accident, `onPointer` (the default) for an
-application's front door, and `onIntent` for a page that is *shown* rather than arrived at — the
-right-hand half of a comparison, a preview inside someone else's page. `onPointer`'s idle boot is
-what a front door wants and the wrong thing for a frame: the frame is a window in a page the reader
-came for, and the engine it starts competes with that page's own reading. `onIntent` never boots
-unbidden, and it reads its signals from the top document when that is the same origin — a pointer
-in the middle of the host page never reaches a frame's own window — and from the frame's own
-window, so moving over the frame itself answers too.
-
-Its signals are the ones that mean *looking*: `pointermove`, `pointerover`, `touchstart` and
-`wheel`. A key, a focus move and a press are deliberately **not** signals, because the boot
-replaces every element in the document: booting on a keystroke would take the page from a keyboard
-reader mid-read, and a press is answered by the document, which is the accessible rendering. That
-is only half a policy — a reader who never moves a pointer would be left with a document and no
-application — so the frame carries **a way in**: a real `<button>`, first in its body, named by
-`Takeover.openLabel` (`'Open the apartments in Flutter'`), Tab-reachable before anything else and
-moved out of the page until it takes the focus, which is the skip control every reader already
-knows. Pressing it boots the application and removes the control. So the application is never
-unreachable, and it is never something that happens *to* a reader of the document.
-
-The boot also waits while the frame holds the focus, and that waits for `onIntent` alone: a front
-door's document is a first frame rather than the page, so its boot is not held back by a focus
-someone put there while the application arrives. None of the policies boots before the first paint.
-
-## A shaped box
-
-`Box(shape: …)` is painted by a layer of its own: an `<svg>` over the box with one `<path>`, its
-outline stretched with the box rather than fitted inside it. The fill and the stroke arrive as
-custom properties (`--unibox-shape-fill`, …), because they belong to the path and not to the
-element — which is what lets a hover of the box paint the shape. A box that also clips its content
-carries the `clipPath` the layer writes, in bounding box units, so one outline fits whatever
-element it is applied to.
-
-The outline is not in `unibox_testing`: the table compares tokens a value can describe, and a path
-is a list of commands. It is pinned by a renderer test instead.
-
-## The takeover's own checks
-
-`tool/lighthouse.sh` measures the exported pages against a budget, and `tool/boot_check.sh` asks a
-browser whether the document becomes the application at all, serving the build under the path prefix
-it was built for — the one question no byte-level check
-can answer. `tool/boot_time.dart` says how long that took, in real time, because a one-shot dump
-runs the page under virtual time and would report a number that means nothing.
+See the [handover contract](../../docs/takeover.md) and
+[worked examples](../../example/README.md) for lifecycle, scroll restoration and
+bootstrap integration. The main example compares independent hosts; a separate
+long document demonstrates restoration and keyed replay. `tool/boot_check.sh`
+checks both automatic and supplied engine hosts in a real release browser.
