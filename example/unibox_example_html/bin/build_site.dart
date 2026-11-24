@@ -4,7 +4,7 @@ import 'package:unibox_example_html/site/favicon.dart';
 import 'package:unibox_example_html/site/pages.dart';
 import 'package:unibox_html/unibox_html.dart';
 
-/// Writes the guide, independent hosts and optional handover document to files.
+/// Writes the renderer comparison and live handover example to files.
 ///
 /// Run `dart run bin/build_site.dart --out=build/site` from this package.
 /// `--url=` supplies canonical addresses; `--dev` enables handover diagnostics.

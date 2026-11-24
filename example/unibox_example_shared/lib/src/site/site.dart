@@ -2,11 +2,9 @@ import 'package:unibox_core/unibox_core.dart';
 import 'package:unibox_material/unibox_material.dart';
 
 import '../theme.dart';
-import 'gallery.dart';
 import 'hero.dart';
-import 'indexable.dart';
+import 'handover.dart';
 import 'section.dart';
-import 'vocabulary.dart';
 
 /// The project source and documentation.
 const String repositoryUrl = 'https://github.com/cedvdb/unibox';
@@ -33,10 +31,7 @@ UINode buildSitePage({
           mainAlign: MainAlign.spaceBetween,
           children: <UINode>[
             TextNode('Unibox', style: MaterialTypography.titleLarge),
-            LinkNode(
-              repositoryUrl,
-              children: <UINode>[TextNode('Source and documentation')],
-            ),
+            LinkNode(repositoryUrl, children: <UINode>[TextNode('GitHub')]),
           ],
         ),
       ),
@@ -45,17 +40,26 @@ UINode buildSitePage({
         semantics: const BoxSemantics(element: BoxElement.main),
         children: <UINode>[
           buildHeroSection(frame: frame, seed: seed),
-          buildIndexableSection(seed: seed),
-          buildVocabularySection(seed: seed),
-          buildMaterialSection(seed: seed),
+          buildHandoverSection(seed: seed),
         ],
       ),
       siteSection(
         vertical: 24,
         element: BoxElement.footer,
-        child: const TextNode(
-          'Experimental, unpublished and deliberately small. '
-          'Share declarations where both targets need the same content. Keep application behaviour with the host.',
+        child: const Box(
+          direction: Axis.horizontal,
+          gap: 24,
+          wrap: true,
+          children: <UINode>[
+            LinkNode(
+              repositoryUrl,
+              children: <UINode>[TextNode('Documentation')],
+            ),
+            LinkNode(
+              'web/components/',
+              children: <UINode>[TextNode('Material components')],
+            ),
+          ],
         ),
       ),
     ],

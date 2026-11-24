@@ -1,10 +1,10 @@
 # Unibox
 
-> Pure Dart UI regions rendered as server HTML/CSS and Flutter widgets.
+> One declarative UI, two renderers, and Flutter handover.
 
 Six packages separate the declaration model, server and Flutter targets,
 small Material vocabulary, native mapping and shared test contracts. Hosts own
-application state, page composition and optional handover readiness. There is no
+application state, page composition and handover readiness. There is no
 DOM application runtime. Start with README.md and example/README.md; repository
 rules live in AGENTS.md and API decisions in design.md.
 

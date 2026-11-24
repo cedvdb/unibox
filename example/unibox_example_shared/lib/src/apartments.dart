@@ -136,11 +136,7 @@ const List<Apartment> exampleApartments = <Apartment>[
   ),
 ];
 
-/// A stateless region shared by a server document and an ordinary Flutter page.
-///
-/// The host supplies already-filtered data. Search, routing, dialogs and scroll
-/// ownership stay outside this declaration. Only the optional save action needs
-/// Flutter; all listing information remains readable in a static document.
+/// A shared listing region; the host supplies data and action callbacks.
 UINode buildListingRegion({
   List<Apartment> apartments = exampleApartments,
   String photoPrefix = '',
@@ -172,12 +168,46 @@ UINode buildListingRegion({
     if (onSave != null)
       MaterialButton(
         key: 'listing-save',
-        label: const TextNode('Save this search'),
+        label: const TextNode('Save these homes'),
         onTap: onSave,
       ),
     const LinkNode(
       'https://github.com/cedvdb/unibox',
-      children: <UINode>[TextNode('View the shared declaration on GitHub')],
+      children: <UINode>[TextNode('Source')],
+    ),
+  ],
+);
+
+/// The exact same example declaration used by the HTML and Flutter renderers.
+///
+/// Only asset locations and the host callback differ between targets. Layout,
+/// typography, content and action keys are declared here once.
+UINode buildListingExample({
+  String photoPrefix = '',
+  required TapCallback onSave,
+}) => Box(
+  width: double.infinity,
+  backgroundColor: const BoxColor.role(MaterialColorRole.surface),
+  textStyle: MaterialTypography.bodyMedium.copyWith(
+    fontFamily: 'UniboxText',
+    color: const BoxColor.role(MaterialColorRole.onSurface),
+  ),
+  crossAlign: CrossAlign.center,
+  padding: const BoxSpacing.all(24),
+  children: <UINode>[
+    Box(
+      width: double.infinity,
+      maxWidth: 912,
+      gap: 24,
+      semantics: const BoxSemantics(element: BoxElement.main),
+      children: <UINode>[
+        const TextNode(
+          'Find your next home',
+          headingLevel: 1,
+          style: MaterialTypography.headlineMedium,
+        ),
+        buildListingRegion(photoPrefix: photoPrefix, onSave: onSave),
+      ],
     ),
   ],
 );

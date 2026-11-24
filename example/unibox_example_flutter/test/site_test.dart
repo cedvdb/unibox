@@ -6,7 +6,7 @@ import 'app_test.dart' show loadFonts;
 
 void main() {
   setUpAll(loadFonts);
-  test('selects the native catalogue and the independent listing host', () {
+  test('selects the component reference and the shared example rendering', () {
     expect(
       hostedPageFor(Uri.parse('https://example.com/flutter/components/')),
       HostedPage.components,
@@ -25,7 +25,7 @@ void main() {
     );
   });
   for (final width in <double>[375, 1440]) {
-    testWidgets('the region-first guide renders at $width without overflow', (
+    testWidgets('the renderer comparison renders at $width without overflow', (
       tester,
     ) async {
       tester.view.physicalSize = Size(width, 1000);
@@ -33,7 +33,7 @@ void main() {
       addTearDown(tester.view.reset);
       await tester.pumpWidget(const SiteApp());
       await tester.pumpAndSettle();
-      expect(find.text('One region. HTML and Flutter.'), findsOneWidget);
+      expect(find.text('One UI. Two renderers.'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   }

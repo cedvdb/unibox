@@ -1,11 +1,7 @@
 # unibox_example_shared
 
-Pure Dart data and stateless declarations: an apartment card, a listing grid and
-sections of the documentation site. `buildListingRegion` accepts a supplied list
-and an optional save callback. It owns no search state, navigation or dialogs.
+`buildListingExample` declares the example once: heading, cards and save action.
+HTML and Flutter render the same tree with the same theme and data.
 
-The server renders the region into its document. The Flutter app renders it
-among native widgets with `materialComponents()`. The separate Material section
-shows the optional supported vocabulary.
-
-See [the worked examples](../README.md).
+The package is pure Dart. Hosts supply asset paths and callbacks, and coordinate
+[Flutter handover](../README.md).

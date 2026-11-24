@@ -9,12 +9,12 @@ import 'page_address.dart';
 import 'showcase_frame.dart';
 import 'surface.dart';
 
-/// The three independent destinations served by the one example bundle.
+/// Renderer inspection and component reference destinations in the example bundle.
 enum HostedPage {
   /// The documentation guide at the Flutter build root.
   site,
 
-  /// The ordinary application containing the shared listing region.
+  /// The same example declaration used by the server and handover.
   example,
 
   /// Optional Material declarations with native widget substitutions.

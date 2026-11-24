@@ -6,7 +6,7 @@ import '../fonts.dart';
 import 'favicon.dart';
 import 'iframe_node.dart';
 
-/// The server document for the region-first project guide.
+/// The server document for the renderer comparison and live handover.
 Document buildSiteDocument({
   ExampleSeed seed = ExampleSeed.defaultSeed,
   String? build,
@@ -14,8 +14,8 @@ Document buildSiteDocument({
   return Document(
     node: sitePageTree(seed: seed),
     head: DocumentHead(
-      title: 'Unibox — shared UI regions for HTML and Flutter',
-      description: 'Declare shared content in pure Dart. Render readable server HTML and native Flutter widgets, with optional host-directed handover.',
+      title: 'Unibox — one UI, two renderers',
+      description: 'One declarative UI in Dart. Server HTML and Flutter widgets, with seamless handover.',
       meta: <String, String>{'unibox-build': ?build, 'unibox-page': 'site'},
       links: <DocumentLink>[faviconLink(''), ...fontPreloadLinks('')],
       raw: <String>['<style>${fontFaceCss('')}$siteCss</style>'],
@@ -24,7 +24,7 @@ Document buildSiteDocument({
   );
 }
 
-/// The site uses host-supplied frames to compare independent renderings.
+/// The site uses host-supplied frames to compare the same UI before and after Flutter handover.
 core.UINode sitePageTree({ExampleSeed seed = ExampleSeed.defaultSeed}) =>
     buildSitePage(
       seed: seed,

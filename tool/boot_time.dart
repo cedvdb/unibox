@@ -181,7 +181,7 @@ Future<Duration> _measure(
           // The mark the probe writes, read through the protocol: under real time there is no
           // cheap way to wait for a paint from outside the page.
           'expression': handover
-              ? "document.documentElement.getAttribute('data-unibox-state') === 'app' && window.__uniboxProbeScroll > 0 && Math.abs(window.unibox.documentScroll().dy - window.__uniboxProbeScroll) < 1 && !document.querySelector('flutter-view, flt-glass-pane')?.closest('[aria-hidden=\"true\"], [inert]') && !document.getElementById('existing-app')?.matches('[aria-hidden=\"true\"], [inert]') && (document.body.textContent.includes('Search saved') || Array.from(document.querySelectorAll('[aria-label]')).some(node => (node.getAttribute('aria-label') || '').includes('Search saved'))) ? String(Math.round(performance.now())) : ''"
+              ? "document.documentElement.getAttribute('data-unibox-state') === 'app' && window.__uniboxProbeScroll > 0 && Math.abs(window.unibox.documentScroll().dy - window.__uniboxProbeScroll) < 1 && !document.querySelector('flutter-view, flt-glass-pane')?.closest('[aria-hidden=\"true\"], [inert]') && !document.getElementById('existing-app')?.matches('[aria-hidden=\"true\"], [inert]') && (document.body.textContent.includes('Homes saved') || Array.from(document.querySelectorAll('[aria-label]')).some(node => (node.getAttribute('aria-label') || '').includes('Homes saved'))) ? String(Math.round(performance.now())) : ''"
               : "document.documentElement.getAttribute('data-unibox-boot-ms') || ''",
           'returnByValue': true,
         },

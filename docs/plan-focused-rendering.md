@@ -345,30 +345,20 @@ baselines or budgets. Both measured pages score 100 in local Lighthouse runs;
 the compressed document is 5,727 bytes against the 5,854-byte baseline. These
 are local unthrottled measurements, not production latency claims.
 
-## 24 November: region-first example and wording
+## 24 November: one declaration, two renderers, Flutter handover
 
-The primary worked example now shares stateless apartment cards and a listing
-region. Native Flutter search, filtering, dialogs and page scrolling stay in the
-host. The server composes a useful document without an event runtime. The guide
-compares these independent hosts and links separately to handover and Material.
-The retired shared application store, form, map and palette-picker code is removed.
+Both hosts render `buildListingExample` with identical content, layout, styling
+and action keys. Asset paths and callbacks are host inputs. The example does not
+add Flutter-only search, filters or explanatory shell content. The landing page
+centres on the two selling points, with a live handover next to the HTML reference;
+reference routes inspect renderers rather than promote standalone HTML usage.
 
-The root README now contains a shared declaration and separate runnable server
-and Flutter entry points. Those snippets were executed/analysed against the pinned
-SDK. Package guides and the documentation index no longer claim automatic host
-readiness or advertise the removed shape/DOM features.
+Tests require identical HTML trees for the reference and handover documents and
+exact initial Flutter text matching the shared declaration. Narrow/wide geometry,
+nonzero document scroll restoration and keyed action replay remain covered. The
+short landing page has a corresponding copy floor and a maximum-copy regression
+check; structural, renderer and performance requirements are retained.
 
-A real nonzero-scroll handover check exposed full-page engine startup resetting
-the document before restoration. The bridge now supplies an embedded engine host;
-the bootstrap passes it to Flutter. Browser acceptance checks preserve the recorded
-position and replay the nested HTML button into a native host dialog, for both
-created and supplied engine hosts.
-
-Full workspace verification, API docs, crawlability and existing performance
-budgets pass. Mobile/desktop rendering was inspected, with no horizontal overflow
-in the independent 390-pixel hosts. The guide's measured first paint was slower
-than the saved baseline; budgets and baselines were not changed to hide that.
-
-The earlier local override instructions are historical: the submitted Comover PR
-uses an immutable pushed Unibox revision and portable lockfiles. Live Comover and
-emulator acceptance remain the separate unchecked items above.
+The earlier local override instructions are historical: Comover's submitted PR
+uses an immutable Unibox revision and portable lockfiles. Live Comover and emulator
+acceptance remain the separate unchecked items above.

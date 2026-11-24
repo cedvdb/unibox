@@ -4,43 +4,33 @@ import 'package:unibox_material/unibox_material.dart';
 import '../theme.dart';
 import 'section.dart';
 
-/// A host-supplied frame displaying another example surface.
+/// A host-supplied frame displaying a renderer.
 typedef ShowcaseFrame = UINode Function({
   required String src,
   required String title,
 });
 
-/// The primary comparison: a static document and a normal Flutter application.
+/// One declaration rendered twice, with a live Flutter handover.
 UINode buildHeroSection({
   required ShowcaseFrame frame,
   ExampleSeed seed = ExampleSeed.defaultSeed,
 }) {
   final palette = ExamplePalette.materialFor(seed);
   return siteSection(
+    vertical: 48,
     background: palette.surface,
     child: Box(
       width: double.infinity,
-      gap: 32,
+      gap: 24,
       children: <UINode>[
         const TextNode(
-          'Unibox · shared UI regions',
-          style: MaterialTypography.labelLarge,
-        ),
-        const TextNode(
-          'One region. HTML and Flutter.',
+          'One UI. Two renderers.',
           headingLevel: 1,
           style: MaterialTypography.displayMedium,
         ),
         const TextNode(
-          'Declare the content both surfaces need in pure Dart. Serve it as HTML and CSS, '
-          'then render the same declaration as Flutter widgets inside your application. '
-          'Keep your page composition, search, maps, navigation and booking flows in their hosts.',
+          'Declare once in Dart. Serve HTML first. Hand over to Flutter when ready.',
           style: MaterialTypography.titleMedium,
-        ),
-        const TextNode(
-          'The listing cards below come from one declaration. The server adds a document '
-          'title and metadata. The Flutter app adds its own search, filters and dialog. '
-          'The two examples run independently: this comparison does not perform a handover.',
         ),
         GridNode(
           minItemWidth: 360,
@@ -48,15 +38,15 @@ UINode buildHeroSection({
           gap: 24,
           children: <UINode>[
             _preview(
-              'Server document',
-              'Readable text, photographs and real links. No application runtime.',
+              'HTML and CSS',
+              'The server rendering.',
               'web/listings/',
               frame,
             ),
             _preview(
-              'Flutter application',
-              'Native search and filters around the shared listing region.',
-              'flutter/listings/',
+              'Flutter',
+              'The same UI, with live handover.',
+              'web/takeover/',
               frame,
             ),
           ],

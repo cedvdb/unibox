@@ -1,13 +1,14 @@
 import 'package:test/test.dart';
 import 'package:unibox_example_html/document.dart';
+import 'package:unibox_html/unibox_html.dart';
 
 void main() {
   test(
-    'publishes useful listing content without Flutter or an event runtime',
+    'renders the HTML reference from the same declaration used for handover',
     () {
       final html = buildExampleDocument(build: 'test-revision').write();
       expect(html, contains('<html lang="en">'));
-      expect(html, contains('<title>Shared listings — Unibox</title>'));
+      expect(html, contains('<title>Find your next home — Unibox</title>'));
       expect(html, contains('test-revision'));
       expect(html, contains('<h1'));
       expect(html, contains('<h2'));
@@ -17,7 +18,11 @@ void main() {
       expect(html, contains('alt="A room in Rue de Turenne 12"'));
       expect(html, contains('href="https://github.com/cedvdb/unibox"'));
       expect(html, isNot(contains('flutter_bootstrap.js')));
-      expect(html, isNot(contains('listing-save')));
+      expect(html, contains('listing-save'));
+      expect(
+        toHtml(buildExampleDocument().node),
+        toHtml(buildTakeoverDocument().node),
+      );
       expect(html, isNot(contains('<input')));
     },
   );
@@ -29,7 +34,7 @@ void main() {
       expect(html, contains('data-unibox-key="listing-save"'));
       expect(html, contains('data-unibox-action'));
       expect(html, contains("var wants = 'ready'"));
-      expect(html, contains('Save this search'));
+      expect(html, contains('Save these homes'));
       expect(html, isNot(contains('role="dialog"')));
     },
   );

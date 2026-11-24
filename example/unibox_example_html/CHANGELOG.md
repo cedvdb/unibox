@@ -2,4 +2,4 @@
 
 ## Unreleased
 
-- Share a stateless listing region between independent server and Flutter hosts; keep native search, filters and dialogs in the application, and demonstrate handover separately.
+- Use one shared example declaration for both renderers, with matching initial UI and live Flutter handover. Keep the guide brief and move component reference material off the landing page.

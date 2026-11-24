@@ -6,7 +6,7 @@ import 'support/tree.dart';
 
 void main() {
   test(
-    'compares independent hosts and keeps handover a separate destination',
+    'shows HTML beside a live handover with only the two selling points',
     () {
       final sources = <String>[];
       final page = buildSitePage(
@@ -15,17 +15,11 @@ void main() {
           return TextNode(title);
         },
       );
-      expect(sources, <String>['web/listings/', 'flutter/listings/']);
-      expect(
-        flatten(page).whereType<LinkNode>().map((node) => node.url),
-        contains('web/takeover/'),
-      );
-      expect(
-        flatten(page)
-            .whereType<TextNode>()
-            .where((node) => node.headingLevel == 1),
-        hasLength(1),
-      );
+      expect(sources, <String>['web/listings/', 'web/takeover/']);
+      final text = textsIn(page).join(' ');
+      expect(text, contains('One UI. Two renderers.'));
+      expect(text, contains('HTML first. Flutter next.'));
+      expect(text.split(RegExp(r'\s+')).length, lessThan(180));
       expect(
         validateTree(
           page,
