@@ -72,8 +72,8 @@ abstract final class MaterialElevation {
   /// The radius looks smaller than the design's pixel because it is that pixel read
   /// backwards. A browser reads a blur of `1px` as a deviation of `0.5`, and Flutter reads
   /// a radius of nothing as the same `0.5` — but nothing is how this model draws a
-  /// hairline, so the web layer keeps writing `0` for it. [`_restingBlur`] is then the
-  /// smallest radius that still writes a whole CSS pixel: `1px`, at a deviation of `0.502`
+  /// hairline, so the web layer keeps writing `0` for it. The radius below is then the
+  /// smallest that still writes a whole CSS pixel: `1px`, at a deviation of `0.502`
   /// against the page's `0.5`.
   static const List<BoxShadow> level1 = <BoxShadow>[
     BoxShadow(color: _restingShade, offsetY: 0.5, blurRadius: _restingBlur),
