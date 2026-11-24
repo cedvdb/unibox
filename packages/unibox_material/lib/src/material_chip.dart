@@ -14,7 +14,7 @@ final class MaterialChip extends Box {
   ///
   /// Every measurement Material gives a chip is a parameter, so an application can
   /// tighten a row of chips without giving up the component: [padding] is the room
-  /// inside the pill, [height] the pill it paints (32 unless it says otherwise),
+  /// inside the pill, [height] the pill it paints (38 unless it says otherwise),
   /// [tapTargetHeight] the room a finger gets around it (48), [gap] the space
   /// between a node and the label, and [borderRadius] the corner. [labelStyle] and
   /// typography are shared with the native control. [removeSemanticsLabel] is the name of the
@@ -177,7 +177,14 @@ final class MaterialChip extends Box {
   static const double radius = 8;
 
   /// The height Material gives a chip, whatever it carries.
-  static const double controlHeight = 32;
+  ///
+  /// Thirty-eight is the pill Flutter's own chip paints: a 20 pixel label with eight above and
+  /// below and the line around it. Material's table states 32, which is where this started, but
+  /// a declaration that states a pill no native chip draws makes every substitution carry the
+  /// difference — the widget had to be told a density step to come down to it. The number is a
+  /// parameter ([height]), so a caller that wants the tighter pill says so and the native chip
+  /// is told, rather than the other way round.
+  static const double controlHeight = 38;
 
   /// The height of the region a finger has to hit.
   ///
@@ -209,8 +216,9 @@ final class MaterialChip extends Box {
 
   /// The room inside the pill: Material pads only the sides a node sits on.
   ///
-  /// Six above and below is `labelLarge`'s 20 pixel line plus twelve inside the 32
-  /// pixel pill, which is what makes the default height and this room agree.
+  /// Eight above and below is the padding Flutter's own chip paints around a `labelLarge`
+  /// line, so the 20 pixel line and the 1 pixel outline make the 38 pixel [controlHeight] with
+  /// nothing left for a native chip to be told.
   static BoxSpacing _insetsFor({
     required UINode? leading,
     required UINode? trailing,
@@ -218,8 +226,8 @@ final class MaterialChip extends Box {
   }) => BoxSpacing.only(
     left: leading == null ? _labelInset : _nodeInset,
     right: (trailing == null && !hasRemove) ? _labelInset : _nodeInset,
-    top: 6,
-    bottom: 6,
+    top: 8,
+    bottom: 8,
   );
 
   /// The size Material gives the node inside a chip.

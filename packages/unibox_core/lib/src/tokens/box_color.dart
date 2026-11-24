@@ -23,14 +23,25 @@ final class BoxColor {
   const BoxColor(int value)
     : _value = value,
       role = null,
+      _roleAlpha = 0xFF,
       assert(value >= 0 && value <= 0xFFFFFFFF, 'value must fit in 32 bits');
 
-  /// Creates a color the theme defines under [role].
+  /// Creates a color the theme defines under [role], painted at [alpha].
   ///
   /// The role is an `enum` member, so a misspelling is a compile error and the
   /// theme's map is keyed by the same value: a role the theme forgets is found by
   /// `validateTree`, not by a reader looking at a blank box.
-  const BoxColor.role(this.role) : _value = 0;
+  ///
+  /// [alpha] is the one thing a tree may state about a role besides which role it is, and
+  /// it is what a state layer is made of: `BoxColor.role(onPrimary, 20)` is the accent
+  /// content colour at eight percent, which is what Material tints a filled button with
+  /// while the pointer rests on it. A theme resolves the role and keeps the alpha, so the
+  /// page (a `color-mix` of the custom property) and the application (the resolved colour)
+  /// paint the same tint without either of them naming a value.
+  const BoxColor.role(this.role, [int alpha = 0xFF])
+    : assert(alpha >= 0 && alpha <= 0xFF, 'alpha must be between 0 and 255'),
+      _value = 0,
+      _roleAlpha = alpha;
 
   /// Creates an opaque color from its red, green and blue channels.
   const BoxColor.rgb(int red, int green, int blue)
@@ -38,7 +49,8 @@ final class BoxColor {
       assert(green >= 0 && green <= 0xFF, 'green must be between 0 and 255'),
       assert(blue >= 0 && blue <= 0xFF, 'blue must be between 0 and 255'),
       _value = 0xFF000000 | (red << 16) | (green << 8) | blue,
-      role = null;
+      role = null,
+      _roleAlpha = 0xFF;
 
   /// Creates a color from its red, green, blue and alpha channels.
   ///
@@ -49,7 +61,8 @@ final class BoxColor {
       assert(blue >= 0 && blue <= 0xFF, 'blue must be between 0 and 255'),
       assert(alpha >= 0 && alpha <= 0xFF, 'alpha must be between 0 and 255'),
       _value = (alpha << 24) | (red << 16) | (green << 8) | blue,
-      role = null;
+      role = null,
+      _roleAlpha = 0xFF;
 
   /// A fully transparent color.
   static const BoxColor transparent = BoxColor(0x00000000);
@@ -67,6 +80,10 @@ final class BoxColor {
   bool get isRole => role != null;
 
   final int _value;
+
+  /// The alpha a role is painted at. A colour with channels of its own carries its alpha in
+  /// [_value], so this is the opaque default for it.
+  final int _roleAlpha;
 
   /// The raw `0xAARRGGBB` value of this color.
   ///
@@ -87,7 +104,10 @@ final class BoxColor {
   }
 
   /// The alpha channel, `0` (transparent) to `255` (opaque).
-  int get alpha => (value >> 24) & 0xFF;
+  ///
+  /// A role states one too, and reading it is not reading [value]: the colour is the
+  /// theme's to give, while the alpha is the tree's to state.
+  int get alpha => role == null ? (_value >> 24) & 0xFF : _roleAlpha;
 
   /// The red channel, `0` to `255`.
   int get red => (value >> 16) & 0xFF;
@@ -108,23 +128,31 @@ final class BoxColor {
   bool get isOpaque => alpha == 0xFF;
 
   /// Returns a copy of this color with the given [alpha] channel (`0`-`255`).
-  BoxColor withAlpha(int alpha) => BoxColor.rgba(red, green, blue, alpha);
+  ///
+  /// A role stays a role: what changes is the alpha it is painted at, which is how a state
+  /// layer names a colour the theme supplies rather than one the tree fixes.
+  BoxColor withAlpha(int alpha) => role == null
+      ? BoxColor.rgba(red, green, blue, alpha)
+      : BoxColor.role(role!, alpha);
 
   /// Returns a copy of this color with the given [opacity] (`0.0`-`1.0`).
   BoxColor withOpacity(double opacity) {
     final clamped = opacity.clamp(0.0, 1.0);
-    return BoxColor.rgba(red, green, blue, (clamped * 0xFF).round());
+    return withAlpha((clamped * 0xFF).round());
   }
 
   @override
   bool operator ==(Object other) =>
-      other is BoxColor && other.role == role && other._value == _value;
+      other is BoxColor &&
+      other.role == role &&
+      other._value == _value &&
+      other._roleAlpha == _roleAlpha;
 
   @override
-  int get hashCode => Object.hash(role, _value);
+  int get hashCode => Object.hash(role, _value, _roleAlpha);
 
   @override
   String toString() => role == null
       ? 'BoxColor(0x${_value.toRadixString(16).padLeft(8, '0').toUpperCase()})'
-      : 'BoxColor.role($role)';
+      : 'BoxColor.role($role${isOpaque ? '' : ', ${opacity.toStringAsFixed(2)}'})';
 }

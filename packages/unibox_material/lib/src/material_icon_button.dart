@@ -167,6 +167,9 @@ final class MaterialIconButton extends Box {
       // The surface is the well's, so the tints are layered *over* the fill rather than
       // under it, and the ink is clipped to the rounded square.
       fill: _fillOf(variant),
+      // The layer is a tint of the glyph, which is Material's rule for a control whose only
+      // content is an icon.
+      ink: foreground,
       border: variant == MaterialIconButtonVariant.outlined ? _outline : null,
       padding: padding ?? const BoxSpacing.all(_inset),
       transition: transition ?? materialSurfaceTransition,

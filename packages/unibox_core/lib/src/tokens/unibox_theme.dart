@@ -95,7 +95,9 @@ final class UniboxTheme {
       );
     }
 
-    return value;
+    // A tree may state the alpha a role is painted at — it is how a state layer names a
+    // colour the theme supplies — so the role's channels arrive with the tree's alpha.
+    return color.isOpaque ? value : value.withAlpha(color.alpha);
   }
 
   /// This theme with [other]'s colours laid over it.

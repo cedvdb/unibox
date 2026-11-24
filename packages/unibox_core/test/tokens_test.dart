@@ -1,7 +1,8 @@
 import 'package:test/test.dart';
 import 'package:unibox_core/unibox_core.dart';
 
-/// One role, so the resolve test can watch a theme answer it.
+/// One role, so the alpha test can name a colour the theme owns.
+enum _TestRole { primary }
 
 void main() {
   test('an unmodifiable collection snapshot preserves a declaration while its source changes', () {
@@ -52,6 +53,27 @@ void main() {
 
     test('defaults rgba to an opaque color', () {
       expect(const BoxColor.rgba(1, 2, 3).value, 0xFF010203);
+    });
+
+    test('carries the alpha a role is painted at', () {
+      // A role is the theme's colour and the tree's alpha. It is how a state layer names one:
+      // `onPrimary` at eight percent is what Material tints a filled button with, and the tree
+      // states the percentage without knowing the palette.
+      const BoxColor layer = BoxColor.role(_TestRole.primary, 20);
+
+      expect(layer.isRole, isTrue);
+      expect(layer.alpha, 20);
+      expect(layer.isOpaque, isFalse);
+      expect(layer.opacity, closeTo(20 / 0xFF, 1e-9));
+      expect(() => layer.value, throwsStateError);
+
+      // The role survives a change of alpha, and only the alpha changes.
+      expect(layer.withOpacity(0.5), BoxColor.role(_TestRole.primary, 0x80));
+      expect(
+        BoxColor.role(_TestRole.primary).withAlpha(0x00),
+        BoxColor.role(_TestRole.primary, 0),
+      );
+      expect(layer, isNot(BoxColor.role(_TestRole.primary)));
     });
 
     test('provides presets', () {

@@ -18,6 +18,14 @@ String cssNumber(double value) =>
 /// and a radius cannot spell the same nothing two ways.
 String cssPixels(double value) => value == 0 ? '0' : '${cssNumber(value)}px';
 
+/// A fraction as the percentage `color-mix` reads, to two decimals.
+///
+/// Two decimals because the alpha a tree states is an eight bit channel: eight percent is 20
+/// of 255, which is 7.84% — the page paints the number the application resolves, rather than
+/// the round one that was asked for.
+String cssPercentage(double fraction) =>
+    cssNumber((fraction * 100 * 100).roundToDouble() / 100);
+
 /// A model dimension as CSS writes it.
 ///
 /// `double.infinity` expands to the space available (`100%`), which is the one
@@ -90,8 +98,25 @@ String? cssRoleReference(core.BoxColor color) {
 
 /// [color] as a declaration value: its role when it names one, its channels
 /// otherwise.
-String cssColorOrRole(core.BoxColor color) =>
-    cssRoleReference(color) ?? cssColor(color);
+///
+/// A role the tree paints at an alpha is the one case a custom property cannot answer alone:
+/// `var(--unibox-color-on-primary)` is a colour, and CSS has no way to put an alpha on one.
+/// `color-mix` is the function that can — the role at its percentage against `transparent` —
+/// and it is what a state layer is written as, so the page tints a control with the same
+/// shade of its ink that the application resolves from the same role.
+String cssColorOrRole(core.BoxColor color) {
+  final String? role = cssRoleReference(color);
+
+  if (role == null) {
+    return cssColor(color);
+  }
+
+  if (color.isOpaque) {
+    return role;
+  }
+
+  return 'color-mix(in srgb, $role ${cssPercentage(color.opacity)}%, transparent)';
+}
 
 /// A model [core.ImageFit] as the CSS `object-fit` keyword.
 ///

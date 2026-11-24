@@ -343,11 +343,36 @@ void main() {
     }
   });
 
-  testWidgets('hovers a native button with the palette state layer', (
+  test('states the layers a chip reads from the theme', () {
+    // A native chip's ink well takes its hover, focus and press from the theme, where a button
+    // derives them from its own foreground. Left to Flutter the value is `Colors.black` at
+    // four percent, which neither Material's table nor this palette names.
+    final ThemeData theme = materialThemeData(material.MaterialPalette.light);
+
+    expect(
+      theme.hoverColor,
+      Color(material.MaterialPalette.light.hoverLayer.value),
+    );
+    expect(
+      theme.focusColor,
+      Color(material.MaterialPalette.light.focusLayer.value),
+    );
+    expect(
+      theme.highlightColor,
+      Color(material.MaterialPalette.light.pressedLayer.value),
+    );
+    expect(
+      theme.splashColor,
+      Color(material.MaterialPalette.light.pressedLayer.value),
+    );
+  });
+
+  testWidgets('leaves the native hover alone when the node states no layer', (
     tester,
   ) async {
-    // Flutter's filled button hovers with `onPrimary`; the page hovers it with `onSurface`.
-    // One declaration, one hover: the widget is handed the palette's own layer.
+    // A state layer is the declaration's: the page paints a tint of the control's own ink, and
+    // a native button's default hover is that same rule. So the substitution states nothing,
+    // and a declaration that names its own layer keeps the page and the widget in one colour.
     await draw(
       tester,
       material.MaterialButton.filled(
@@ -359,16 +384,7 @@ void main() {
     final FilledButton button = tester.widget<FilledButton>(
       find.byType(FilledButton),
     );
-    final WidgetStateProperty<Color?> overlay = button.style!.overlayColor!;
 
-    expect(
-      overlay.resolve(<WidgetState>{WidgetState.hovered}),
-      Color(material.MaterialPalette.light.hoverLayer.value),
-    );
-    expect(
-      overlay.resolve(<WidgetState>{WidgetState.pressed}),
-      Color(material.MaterialPalette.light.pressedLayer.value),
-    );
-    expect(overlay.resolve(<WidgetState>{WidgetState.disabled}), isNull);
+    expect(button.style?.overlayColor, isNull);
   });
 }

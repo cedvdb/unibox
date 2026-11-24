@@ -65,6 +65,21 @@ void main() {
       expect(cssColorOrRole(role), cssRoleReference(role));
     });
 
+    test('is a mix of the custom property when the role states an alpha', () {
+      // A custom property is a colour, and CSS has no way to put an alpha on one: `color-mix`
+      // is the function that can. It is how a state layer is written — the role's colour at
+      // the percentage the tree stated — and the page paints the shade the application
+      // resolves from the same role.
+      const core.BoxColor layer = core.BoxColor.role(_Role.primary, 20);
+
+      expect(
+        cssColorOrRole(layer),
+        'color-mix(in srgb, var(--unibox-color-primary) 7.84%, transparent)',
+      );
+      expect(cssPercentage(0.08), '8');
+      expect(cssPercentage(0.5), '50');
+    });
+
     test('falls back to its channels when it names no role', () {
       expect(cssRoleReference(const core.BoxColor(0xFF112233)), isNull);
       expect(cssColorOrRole(const core.BoxColor(0xFF112233)), '#112233');

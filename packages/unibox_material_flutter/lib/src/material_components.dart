@@ -138,47 +138,6 @@ VoidCallback? _action(
   };
 }
 
-/// The state layers a substituted control paints, in the palette's own colours.
-///
-/// A document paints a hover as `hoverLayer`, a keyboard focus as `focusLayer` and a press as
-/// `pressedLayer` — one shade of `onSurface`, whatever a control's fill is. Flutter's own
-/// buttons derive theirs from the *foreground* instead, so a filled button lightens with
-/// `onPrimary` on one target while the page darkens it with `onSurface`: the same control in
-/// two colours, which is what a page that holds the two renderings side by side shows.
-/// Handing the widget the palette's layers is what makes one declaration one hover.
-///
-/// `null` for a theme that states no layers: a host that supplies its own theme keeps the
-/// platform's own ink rather than being given a colour no palette named.
-WidgetStateProperty<Color?>? _overlay(BuildContext context) {
-  final core.UniboxTheme theme =
-      UniboxScopeWidget.of(context).theme ?? core.UniboxTheme.none;
-  final Color? hover = _layerOf(theme, material.MaterialColorRole.hoverLayer);
-  final Color? focus = _layerOf(theme, material.MaterialColorRole.focusLayer);
-  final Color? pressed = _layerOf(
-    theme,
-    material.MaterialColorRole.pressedLayer,
-  );
-
-  if (hover == null || focus == null || pressed == null) {
-    return null;
-  }
-
-  return WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
-    if (states.contains(WidgetState.disabled)) return null;
-    if (states.contains(WidgetState.pressed)) return pressed;
-    if (states.contains(WidgetState.hovered)) return hover;
-    if (states.contains(WidgetState.focused)) return focus;
-    return null;
-  });
-}
-
-/// The colour [role] resolves to under [theme], or `null` when it states none.
-Color? _layerOf(core.UniboxTheme theme, material.MaterialColorRole role) {
-  final core.BoxColor? colour = theme.colorOf(role);
-
-  return colour == null ? null : Color(colour.value);
-}
-
 TextStyle _labelStyle(core.BoxTextStyle text) => TextStyle(
   fontSize: text.fontSize,
   fontFamily: text.fontFamily,
@@ -265,10 +224,6 @@ Widget _button(BuildContext context, core.UINode node, Widget? content) {
                 ? null
                 : Color(text!.color!.value),
           ),
-    // The layer a press and a hover paint, from the palette the tree is drawn with — see
-    // [_overlay]. Flutter's own buttons derive it from their foreground, which is a different
-    // tint on a filled button: a light wash of `onPrimary` where the page paints `onSurface`.
-    overlayColor: _overlay(context),
   );
 
   final Widget control = switch (button.variant) {
@@ -366,18 +321,17 @@ Widget _chip(BuildContext context, core.UINode node, Widget? content) {
   final OutlinedBorder shape = RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(declared.borderRadius ?? 0),
   );
-  // Flutter's own chip is 38 pixels tall whatever Material's 32 says — its padding is eight
-  // above and below a 20 pixel label, plus the line around it — and it follows a density step
-  // by two. So the step that paints the declared pill is half the distance between the two
-  // heights: -3 for the 32 a chip is, and -7 for the 24 a desk draws.
-  final VisualDensity density = VisualDensity(
-    vertical:
-        ((declared.height ?? material.MaterialChip.controlHeight) -
-            _chipHeight) /
-        2,
-  );
-  final core.BoxTextStyle? text = declared.textStyle;
-  final TextStyle? labelStyle = text == null ? null : _labelStyle(text);
+
+  // The pill is the declaration's, and the declaration's default is the one Flutter paints — so
+  // a chip that states nothing is passed nothing. A caller who asks for a tighter pill gets the
+  // step that carries the widget there: Flutter's chip follows a density step by two pixels,
+  // which the suite pins by measuring the declared heights.
+  final double declaredHeight =
+      declared.height ?? material.MaterialChip.controlHeight;
+  final VisualDensity? density =
+      declaredHeight == material.MaterialChip.controlHeight
+      ? null
+      : VisualDensity(vertical: (declaredHeight - _defaultPill) / 2);
 
   // A chip with a cross is the input chip; one without is a choice, and a chip that says it
   // is chosen is a filter. Those are the three Material draws, and the node says which it is
@@ -390,7 +344,6 @@ Widget _chip(BuildContext context, core.UINode node, Widget? content) {
       shape: shape,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       visualDensity: density,
-      labelStyle: labelStyle,
       label: label,
       avatar: avatar,
       deleteIcon: cross,
@@ -405,7 +358,6 @@ Widget _chip(BuildContext context, core.UINode node, Widget? content) {
       shape: shape,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       visualDensity: density,
-      labelStyle: labelStyle,
       label: label,
       avatar: avatar,
       selected: chip.selected,
@@ -417,7 +369,6 @@ Widget _chip(BuildContext context, core.UINode node, Widget? content) {
       shape: shape,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       visualDensity: density,
-      labelStyle: labelStyle,
       label: label,
       avatar: avatar,
       // The node drew its own glyph for a chosen chip; Flutter's checkmark would be a second one.
@@ -427,20 +378,21 @@ Widget _chip(BuildContext context, core.UINode node, Widget? content) {
     );
   }
 
-  // The pill the tree paints is 32 pixels tall inside a 48 pixel target, and Flutter's chip is
-  // a single box: handed the target's height it stretches, and a chip a third taller than the
-  // one on the page is a different component. The width is the label's, because a chip that
-  // filled its box would tint the whole row on hover; the height is the target's, which is what
-  // centres the pill and what a finger gets.
+  // The pill the tree paints sits inside a 48 pixel target, and Flutter's chip is a single box:
+  // handed the target's height it stretches, and a chip a third taller than the one on the page
+  // is a different component. The width is the label's, because a chip that filled its box would
+  // tint the whole row on hover; the height is the target's, which is what centres the pill and
+  // what a finger gets.
   return Align(alignment: Alignment.center, widthFactor: 1, child: pill);
 }
 
-/// The height Flutter's own chip paints at the standard density, measured by the suite.
+/// The pill Flutter's own chip paints at the standard density, measured by the suite.
 ///
-/// It is not a token — Material's pill is [material.MaterialChip.controlHeight] and the node
-/// states it. This is what the widget does with a pill it was not asked about, and the
-/// difference between the two is what a substituted chip has to be told to forget.
-const double _chipHeight = 38;
+/// It is not a token: [material.MaterialChip.controlHeight] is the pill a declaration states,
+/// and it is this number — which is why a chip at the default is passed no density at all.
+/// A caller that asks for another height is a chip that departs from the widget's own answer,
+/// and the difference is what the step is made of: Flutter follows a step by two pixels.
+const double _defaultPill = 38;
 
 Widget _iconButton(BuildContext context, core.UINode node, Widget? content) {
   final material.MaterialIconButton button =
@@ -479,8 +431,7 @@ Widget _iconButton(BuildContext context, core.UINode node, Widget? content) {
     side: border == null
         ? null
         : BorderSide(width: border.width, color: Color(border.color.value)),
-    // The same state layers the page paints — see [_overlay].
-  ).copyWith(overlayColor: _overlay(context));
+  );
   return switch (button.variant) {
     material.MaterialIconButtonVariant.standard => IconButton(
       onPressed: onPressed,
@@ -532,6 +483,14 @@ ThemeData materialThemeData(
     // than override — which is why the tree's own heights need to learn about density (see
     // the README): until they do, a substituted button is 8 pixels shorter than the drawn one
     // on a desktop, and the comparison page is where that shows.
+    // The state layers. Flutter's buttons derive theirs from their own foreground, which is
+    // what the tree states too, but a chip's ink well reads the theme's: left alone it hovers
+    // with `Colors.black` at four percent, a value neither Material's spec nor this palette
+    // names. Stated here, a native chip tints what the page tints.
+    hoverColor: of(palette.hoverLayer),
+    focusColor: of(palette.focusLayer),
+    highlightColor: of(palette.pressedLayer),
+    splashColor: of(palette.pressedLayer),
     colorScheme: ColorScheme(
       brightness: palette.colorScheme == core.BoxColorScheme.dark
           ? Brightness.dark

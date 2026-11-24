@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A colour role painted at an alpha is written as `color-mix(in srgb, var(--unibox-color-…) N%, transparent)`, because a custom property is a colour and CSS has no way to put an alpha on one. A state layer is exactly that mix. The background and the border of a box keep the alpha now; both used to write the bare custom property and lose it.
 - Clarify stateless shared regions, host-owned application behaviour and explicit optional handover in the guides and worked example.
 
 - Supply an embedded engine host during handover so Flutter startup preserves a long document’s scroll position before restoration. Bootstraps should pass `window.unibox.hostElement` to the engine.

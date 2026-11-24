@@ -362,6 +362,9 @@ final class MaterialButton extends Box {
         // The height Material paints, at the density this platform draws at — unless the
         // caller stated one, which is the tree's answer and wins.
         minHeight: height ?? density.adjust(_height),
+        // The layer is a tint of the label's own colour, which is Material's rule and what a
+        // native button paints: white on a filled one, the accent on an outlined one.
+        ink: foreground,
         // A well that is wider or taller than its label centres it, exactly as the fill
         // used to: a 64 pixel pill centres a 46 pixel label.
         mainAlign: MainAlign.center,
