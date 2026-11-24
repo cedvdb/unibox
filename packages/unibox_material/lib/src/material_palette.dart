@@ -338,18 +338,25 @@ final class MaterialPalette {
   /// The secondary accent kept in both schemes, a tone lower.
   final BoxColor secondaryFixedDim;
 
-  /// The layer Material paints while the pointer is on a control: 8% of
-  /// [onSurface].
+  /// The layer Material paints while the pointer is on a control whose content is
+  /// [onSurface]: 8% of it.
   ///
-  /// The layers are translucent colours rather than mixed ones, so they sit over
-  /// whatever the box is painted on — which is what a CSS state layer does, and
-  /// why one palette can tint three different surfaces.
+  /// A control tints its *own* ink, which is what a native control does: a filled button
+  /// hovers with `onPrimary`, a chip with its label colour. `materialSurface` takes that ink
+  /// and derives this layer from it, so this role is the one a control with no ink of its own
+  /// — ordinary text on a surface — is tinted with, and the one an application names when it
+  /// draws such a layer itself.
+  ///
+  /// The layers are translucent colours rather than mixed ones, so they sit over whatever the
+  /// box is painted on — which is what a CSS state layer does, and why one palette can tint
+  /// three different surfaces.
   BoxColor get hoverLayer => _layerOver(onSurface, 0.08);
 
-  /// The layer Material paints while a control has keyboard focus: 10%.
+  /// The layer Material paints while a control whose ink is [onSurface] has keyboard focus:
+  /// 10%.
   BoxColor get focusLayer => _layerOver(onSurface, 0.10);
 
-  /// The layer Material paints while a control is pressed: 10%.
+  /// The layer Material paints while a control whose ink is [onSurface] is pressed: 10%.
   BoxColor get pressedLayer => _layerOver(onSurface, 0.10);
 
   /// The layer Material paints over a control something is dragged onto: 16%.

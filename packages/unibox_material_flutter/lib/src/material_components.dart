@@ -138,47 +138,6 @@ VoidCallback? _action(
   };
 }
 
-/// The state layers a substituted control paints, in the palette's own colours.
-///
-/// A document paints a hover as `hoverLayer`, a keyboard focus as `focusLayer` and a press as
-/// `pressedLayer` — one shade of `onSurface`, whatever a control's fill is. Flutter's own
-/// buttons derive theirs from the *foreground* instead, so a filled button lightens with
-/// `onPrimary` on one target while the page darkens it with `onSurface`: the same control in
-/// two colours, which is what a page that holds the two renderings side by side shows.
-/// Handing the widget the palette's layers is what makes one declaration one hover.
-///
-/// `null` for a theme that states no layers: a host that supplies its own theme keeps the
-/// platform's own ink rather than being given a colour no palette named.
-WidgetStateProperty<Color?>? _overlay(BuildContext context) {
-  final core.UniboxTheme theme =
-      UniboxScopeWidget.of(context).theme ?? core.UniboxTheme.none;
-  final Color? hover = _layerOf(theme, material.MaterialColorRole.hoverLayer);
-  final Color? focus = _layerOf(theme, material.MaterialColorRole.focusLayer);
-  final Color? pressed = _layerOf(
-    theme,
-    material.MaterialColorRole.pressedLayer,
-  );
-
-  if (hover == null || focus == null || pressed == null) {
-    return null;
-  }
-
-  return WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
-    if (states.contains(WidgetState.disabled)) return null;
-    if (states.contains(WidgetState.pressed)) return pressed;
-    if (states.contains(WidgetState.hovered)) return hover;
-    if (states.contains(WidgetState.focused)) return focus;
-    return null;
-  });
-}
-
-/// The colour [role] resolves to under [theme], or `null` when it states none.
-Color? _layerOf(core.UniboxTheme theme, material.MaterialColorRole role) {
-  final core.BoxColor? colour = theme.colorOf(role);
-
-  return colour == null ? null : Color(colour.value);
-}
-
 TextStyle _labelStyle(core.BoxTextStyle text) => TextStyle(
   fontSize: text.fontSize,
   fontFamily: text.fontFamily,
@@ -265,10 +224,6 @@ Widget _button(BuildContext context, core.UINode node, Widget? content) {
                 ? null
                 : Color(text!.color!.value),
           ),
-    // The layer a press and a hover paint, from the palette the tree is drawn with — see
-    // [_overlay]. Flutter's own buttons derive it from their foreground, which is a different
-    // tint on a filled button: a light wash of `onPrimary` where the page paints `onSurface`.
-    overlayColor: _overlay(context),
   );
 
   final Widget control = switch (button.variant) {
@@ -476,8 +431,7 @@ Widget _iconButton(BuildContext context, core.UINode node, Widget? content) {
     side: border == null
         ? null
         : BorderSide(width: border.width, color: Color(border.color.value)),
-    // The same state layers the page paints — see [_overlay].
-  ).copyWith(overlayColor: _overlay(context));
+  );
   return switch (button.variant) {
     material.MaterialIconButtonVariant.standard => IconButton(
       onPressed: onPressed,
@@ -529,6 +483,14 @@ ThemeData materialThemeData(
     // than override — which is why the tree's own heights need to learn about density (see
     // the README): until they do, a substituted button is 8 pixels shorter than the drawn one
     // on a desktop, and the comparison page is where that shows.
+    // The state layers. Flutter's buttons derive theirs from their own foreground, which is
+    // what the tree states too, but a chip's ink well reads the theme's: left alone it hovers
+    // with `Colors.black` at four percent, a value neither Material's spec nor this palette
+    // names. Stated here, a native chip tints what the page tints.
+    hoverColor: of(palette.hoverLayer),
+    focusColor: of(palette.focusLayer),
+    highlightColor: of(palette.pressedLayer),
+    splashColor: of(palette.pressedLayer),
     colorScheme: ColorScheme(
       brightness: palette.colorScheme == core.BoxColorScheme.dark
           ? Brightness.dark

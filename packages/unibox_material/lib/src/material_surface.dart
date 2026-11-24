@@ -8,6 +8,15 @@ const BoxTransition materialSurfaceTransition = BoxTransition(
 );
 
 /// Declares a control's server surface without owning interaction state.
+///
+/// [ink] is the colour the control's own content is painted in, and it is what Material
+/// tints a state layer with: a hover is the ink at eight percent, a keyboard focus and a
+/// press ten. That is the rule a native control follows, so a control whose declaration
+/// states it is drawn with no state colour of its own by the renderer that substitutes it —
+/// the page and the application paint one tint, from one role.
+///
+/// A surface with no ink is tinted with `onSurface`, which is where a control whose content
+/// is ordinary text lands.
 UINode materialSurface({
   required UINode child,
   TapCallback? onTap,
@@ -18,6 +27,7 @@ UINode materialSurface({
   bool enabled = true,
   double? borderRadius,
   BoxColor? fill,
+  BoxColor? ink,
   BoxBorder? border,
   BoxSpacing? padding,
   BoxTransition? transition,
@@ -43,16 +53,12 @@ UINode materialSurface({
       crossAlign: crossAlign,
     ),
   ];
-  const Map<BoxState, BoxStyle> states = <BoxState, BoxStyle>{
-    BoxState.hover: BoxStyle(
-      backgroundColor: BoxColor.role(MaterialColorRole.hoverLayer),
-    ),
-    BoxState.focus: BoxStyle(
-      backgroundColor: BoxColor.role(MaterialColorRole.focusLayer),
-    ),
-    BoxState.pressed: BoxStyle(
-      backgroundColor: BoxColor.role(MaterialColorRole.pressedLayer),
-    ),
+  final BoxColor layer =
+      ink ?? const BoxColor.role(MaterialColorRole.onSurface);
+  final Map<BoxState, BoxStyle> states = <BoxState, BoxStyle>{
+    BoxState.hover: BoxStyle(backgroundColor: layer.withOpacity(0.08)),
+    BoxState.focus: BoxStyle(backgroundColor: layer.withOpacity(0.10)),
+    BoxState.pressed: BoxStyle(backgroundColor: layer.withOpacity(0.10)),
   };
   final Box target = url != null
       ? LinkNode(

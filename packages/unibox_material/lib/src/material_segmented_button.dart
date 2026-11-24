@@ -236,6 +236,8 @@ final class MaterialSegmentedButton extends Box {
               width: double.infinity,
               height: height,
               mainAlign: MainAlign.center,
+              // The layer is a tint of the segment's label, as a native segment paints it.
+              ink: foreground,
               transition: transition ?? materialSurfaceTransition,
               semantics: _semanticsOf(segment, selected: selected, link: link),
               child: Box(

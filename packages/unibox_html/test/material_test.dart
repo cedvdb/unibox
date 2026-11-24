@@ -128,14 +128,32 @@ void main() {
       for (final child in plan.children) ...elements(child),
     ];
 
-    test('tints controls without fading their labels', () {
-      for (final control in <core.UINode>[
-        MaterialButton.filled(label: const core.TextNode('Book'), onTap: () {}),
-        MaterialChip(label: const core.TextNode('Choice'), onTap: () {}),
-        MaterialChip(
-          label: const core.TextNode('Selected'),
-          selected: true,
-          onTap: () {},
+    test('tints a control with its own ink, as Material paints it', () {
+      // The layer is a tint of what the control draws: `onPrimary` on a filled button, the
+      // chip's label on a chip. It is a role at an alpha, so the page writes it as a
+      // `color-mix` of the custom property the theme owns — the same shade the application
+      // resolves, and the number a native control's own default hover is made of.
+      for (final (core.UINode control, String role) in <(core.UINode, String)>[
+        (
+          MaterialButton.filled(
+            label: const core.TextNode('Book'),
+            onTap: () {},
+          ),
+          'on-primary',
+        ),
+        // A chip's layer is the surface's own: a native chip takes it from the theme rather
+        // than from its label, so the page and the widget tint one colour.
+        (
+          MaterialChip(label: const core.TextNode('Choice'), onTap: () {}),
+          'on-surface',
+        ),
+        (
+          MaterialChip(
+            label: const core.TextNode('Selected'),
+            selected: true,
+            onTap: () {},
+          ),
+          'on-surface',
         ),
       ]) {
         final sheet = Stylesheet();
@@ -145,22 +163,21 @@ void main() {
           states: 0,
           frames: 0,
         )).join();
-        expect(
-          rules,
-          contains(':hover{background-color:var(--unibox-color-hover-layer)'),
-        );
-        expect(
-          rules,
-          contains(
-            ':focus-visible{background-color:var(--unibox-color-focus-layer)',
-          ),
-        );
-        expect(
-          rules,
-          contains(
-            ':active{background-color:var(--unibox-color-pressed-layer)',
-          ),
-        );
+
+        for (final (String pseudo, String percent) in <(String, String)>[
+          (':hover', '7.84'),
+          (':focus-visible', '10.2'),
+          (':active', '10.2'),
+        ]) {
+          expect(
+            rules,
+            contains(
+              '$pseudo{background-color:color-mix(in srgb, '
+              'var(--unibox-color-$role) $percent%, transparent)',
+            ),
+          );
+        }
+
         expect(rules, isNot(contains('opacity:0.92')));
         expect(
           elements(plan).where((e) => e.attributes['role'] == 'button'),
@@ -186,7 +203,10 @@ void main() {
       );
       expect(
         rules,
-        contains(':hover{background-color:var(--unibox-color-hover-layer)'),
+        contains(
+          ':hover{background-color:color-mix(in srgb, '
+          'var(--unibox-color-on-surface) 7.84%, transparent)',
+        ),
       );
     });
 

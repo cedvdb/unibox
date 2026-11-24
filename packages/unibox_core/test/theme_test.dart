@@ -55,6 +55,20 @@ void main() {
       expect(theme.resolve(BoxColor.black), BoxColor.black);
     });
 
+    test('paints a role at the alpha the tree states', () {
+      // The one thing a tree may state about a role besides which one it is: the layer Material
+      // tints a control with. The theme supplies the channels, the tree supplies the alpha, and
+      // both renderers paint the same shade from it.
+      expect(
+        theme.resolve(const BoxColor.role(AppColor.primary, 20)).value,
+        0x146750A4,
+      );
+      expect(
+        theme.resolve(const BoxColor.role(AppColor.primary)).value,
+        0xFF6750A4,
+      );
+    });
+
     test('throws for a role it does not define, naming it', () {
       expect(
         () => theme.resolve(const BoxColor.role(BrandColor.accent)),

@@ -58,12 +58,15 @@ CssDeclarations boxDeclarations(
   final int? flex = style.flex;
   final double? aspectRatio = style.aspectRatio;
 
+  // A role is written in a rule of its own, so a state can override it without a specificity
+  // fight. A role the tree paints at an alpha is a `color-mix` of its custom property, which
+  // is that same rule with the alpha kept — a state layer is exactly that.
   final String? roleBackground = backgroundColor == null
       ? null
-      : cssRoleReference(backgroundColor);
+      : _roleValue(backgroundColor);
   final String? roleBorder = border == null || !border.isVisible
       ? null
-      : cssRoleReference(border.color);
+      : _roleValue(border.color);
 
   final CssDeclarations declarations = CssDeclarations()
     ..add('box-sizing', 'border-box');
@@ -303,3 +306,11 @@ String? userAgentMargin(core.BoxElement element) =>
         element == core.BoxElement.figure
     ? '0'
     : null;
+
+/// The CSS for [color] when it names a role, or `null` when it carries its own channels.
+///
+/// A role with an alpha is still a role — a state layer names one — so it is written as the
+/// `color-mix` of its custom property that [cssColorOrRole] produces rather than as channels
+/// the tree does not own.
+String? _roleValue(core.BoxColor color) =>
+    cssRoleReference(color) == null ? null : cssColorOrRole(color);
