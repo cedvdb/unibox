@@ -26,14 +26,14 @@ void main() {
     test('draws the ladder\'s level one, not a stack of layers', () {
       const List<BoxShadow> shadows = MaterialCard.elevatedShadows;
 
-      // The table in `material_elevation.dart`: one shade at 34% black, one height. A card
-      // that stacked three layers read a level higher than the card in the design file,
-      // which is what the ladder replaced.
+      // The table in `material_elevation.dart`: one shade at 32% black, one height — the
+      // design's `0 0.5px 1px 0 rgba(0, 0, 0, 0.32)`. A card that stacked three layers read
+      // a level higher than the card in the design file, which is what the ladder replaced.
       expect(shadows, hasLength(1));
-      expect(shadows.single.offsetY, 0.55);
-      expect(shadows.single.blurRadius, 0.61);
+      expect(shadows.single.offsetY, 0.5);
+      expect(shadows.single.blurRadius, 0.004);
       expect(shadows.single.spreadRadius, 0);
-      expect(shadows.single.color.opacity, closeTo(0.34, 0.01));
+      expect(shadows.single.color.opacity, closeTo(0.32, 0.01));
     });
 
     test('keeps the children it is given, in order', () {

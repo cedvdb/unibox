@@ -277,4 +277,20 @@ void main() {
       expect(ruleOf(sheet, control), contains('pointer-events:auto'));
     });
   });
+
+  group('a resting card in a document', () {
+    test('casts the design\'s level-one shadow', () {
+      // The design states a resting card as `0 0.5px 1px 0 rgba(0, 0, 0, 0.32)` in a
+      // browser, and this is that string: half a pixel down, a whole pixel of blur, nothing
+      // spread, black at 32%. The radius the model states is far smaller because the layer
+      // doubles the deviation on the way out — this is the other end of `cssShadowBlur`.
+      final Stylesheet sheet = Stylesheet();
+      final ElementPlan card = planNode(const MaterialCard(), sheet);
+      final String rule = sheet
+          .rulesSince((classes: 0, states: 0, frames: 0))
+          .firstWhere((String rule) => rule.startsWith('.${card.className!}{'));
+
+      expect(rule, contains('box-shadow:0 0.5px 1px 0 rgba(0, 0, 0, 0.322)'));
+    });
+  });
 }

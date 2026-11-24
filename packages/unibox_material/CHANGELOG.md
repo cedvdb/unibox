@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **A resting card casts the design's level-one shadow.** `MaterialElevation.level1` — and the sheet that mirrors it — is now `0 0.5px 1px 0 rgba(0, 0, 0, 0.32)` in a browser: half a pixel down, a pixel of blur, nothing spread, black at 32%, where it was a wider and darker shade fitted to the ladder's first painted row. The token's Flutter radius is `0.004`, because the web layer doubles the deviation and adds half a pixel on the way out, so the smallest radius that still writes a whole CSS pixel is what paints the design's `1px`. A card in an application and a card on the page cast the same shadow, and the HTML suite pins the string.
 - Restore visible HTML hover, focus and pressed state layers on Material controls; preserve selected fills and suppress feedback on disabled controls. Flutter retains native ink.
 
 - Native controls own their ink; remove the custom `ink` arguments and honour declared button sizing and icon-button variants.

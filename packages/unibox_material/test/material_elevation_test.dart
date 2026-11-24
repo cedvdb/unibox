@@ -23,7 +23,7 @@ void main() {
       // shadow that grows wider as the card rises. Written down here because this package
       // cannot ask a designer's file what a level looks like.
       expect(MaterialElevation.level1, const <BoxShadow>[
-        BoxShadow(color: BoxColor(0x57000000), offsetY: 0.55, blurRadius: 0.61),
+        BoxShadow(color: BoxColor(0x52000000), offsetY: 0.5, blurRadius: 0.004),
       ]);
       expect(MaterialElevation.level2, const <BoxShadow>[
         BoxShadow(color: BoxColor(0x66000000), offsetY: 0.95, blurRadius: 2.35),
@@ -91,7 +91,7 @@ void main() {
 
       expect(
         MaterialElevation.level1.single.color.opacity,
-        closeTo(0.34, 0.01),
+        closeTo(0.32, 0.01),
       );
       expect(
         MaterialElevation.level5.single.color.opacity,
