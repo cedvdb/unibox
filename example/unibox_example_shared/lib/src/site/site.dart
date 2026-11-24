@@ -3,13 +3,15 @@ import 'package:unibox_material/unibox_material.dart';
 
 import '../theme.dart';
 import 'hero.dart';
-import 'handover.dart';
+import 'indexable.dart';
+import 'vocabulary.dart';
+import 'gallery.dart';
 import 'section.dart';
 
 /// The project source and documentation.
 const String repositoryUrl = 'https://github.com/cedvdb/unibox';
 
-/// A documentation page; application examples remain separate host compositions.
+/// The original landing-page structure, with the current shared example.
 UINode buildSitePage({
   required ShowcaseFrame frame,
   ExampleSeed seed = ExampleSeed.defaultSeed,
@@ -21,17 +23,57 @@ UINode buildSitePage({
     textStyle: MaterialTypography.bodyMedium.copyWith(color: palette.onSurface),
     children: <UINode>[
       siteSection(
-        vertical: 20,
+        vertical: 14,
         element: BoxElement.header,
-        child: const Box(
+        child: Box(
           width: double.infinity,
-          gap: 16,
-          wrap: true,
           direction: Axis.horizontal,
           mainAlign: MainAlign.spaceBetween,
+          crossAlign: CrossAlign.center,
+          gap: 16,
+          wrap: true,
           children: <UINode>[
-            TextNode('Unibox', style: MaterialTypography.titleLarge),
-            LinkNode(repositoryUrl, children: <UINode>[TextNode('GitHub')]),
+            Box(
+              direction: Axis.horizontal,
+              crossAlign: CrossAlign.center,
+              gap: 20,
+              children: <UINode>[
+                const LinkNode(
+                  './',
+                  children: <UINode>[
+                    TextNode('Unibox', style: MaterialTypography.titleMedium),
+                  ],
+                ),
+                Box(
+                  direction: Axis.horizontal,
+                  crossAlign: CrossAlign.center,
+                  height: 32,
+                  gap: 8,
+                  children: <UINode>[
+                    for (final choice in ExampleSeed.values)
+                      Box(
+                        width: 22,
+                        height: 22,
+                        borderRadius: 11,
+                        backgroundColor: ExamplePalette.materialFor(choice)
+                            .primary,
+                        border: BoxBorder(
+                          color: choice == seed
+                              ? palette.onSurface
+                              : palette.outlineVariant,
+                          width: choice == seed ? 2 : 1,
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+            const LinkNode(
+              repositoryUrl,
+              children: <UINode>[
+                TextNode('GH  GitHub', style: MaterialTypography.labelLarge),
+              ],
+            ),
           ],
         ),
       ),
@@ -40,7 +82,10 @@ UINode buildSitePage({
         semantics: const BoxSemantics(element: BoxElement.main),
         children: <UINode>[
           buildHeroSection(frame: frame, seed: seed),
-          buildHandoverSection(seed: seed),
+          buildIndexableSection(seed: seed),
+          buildVocabularySection(seed: seed),
+          buildMaterialSection(seed: seed),
+          buildTypographySection(seed: seed),
         ],
       ),
       siteSection(
@@ -51,13 +96,11 @@ UINode buildSitePage({
           gap: 24,
           wrap: true,
           children: <UINode>[
+            TextNode('Unibox — Flutter UI, searchable HTML.'),
+            LinkNode(repositoryUrl, children: <UINode>[TextNode('Source')]),
             LinkNode(
-              repositoryUrl,
-              children: <UINode>[TextNode('Documentation')],
-            ),
-            LinkNode(
-              'web/components/',
-              children: <UINode>[TextNode('Material components')],
+              '$repositoryUrl#readme',
+              children: <UINode>[TextNode('README')],
             ),
           ],
         ),

@@ -7,7 +7,19 @@ enum ExampleSeed {
   rose(BoxColor(0xffb3265e)),
 
   /// An alternative used to check that declarations do not hardcode the palette.
-  blue(BoxColor(0xff2d6cf3));
+  blue(BoxColor(0xff2d6cf3)),
+
+  /// A violet accent.
+  violet(BoxColor(0xff6750a4)),
+
+  /// A teal accent.
+  teal(BoxColor(0xff006d77)),
+
+  /// A green accent.
+  green(BoxColor(0xff2e7d32)),
+
+  /// An amber accent.
+  amber(BoxColor(0xffa86000));
 
   const ExampleSeed(this.color);
 

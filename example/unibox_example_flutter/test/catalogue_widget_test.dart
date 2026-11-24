@@ -19,7 +19,7 @@ void main() {
               child: FlutterLinkScope(
                 open: (String url) {},
                 child: renderFlutter(
-                  buildMaterialSection(),
+                  buildComponentReference(),
                   scope: core.UniboxScope(theme: MaterialPalette.lightTheme),
                   substitutions: materialComponents(),
                 ),
@@ -29,8 +29,8 @@ void main() {
         ),
       ),
     );
-    expect(find.byType(Card), findsOneWidget);
-    expect(find.byType(FilledButton), findsOneWidget);
+    expect(find.byType(Card), findsNWidgets(3));
+    expect(find.byType(FilledButton), findsNWidgets(2));
     expect(find.byType(SegmentedButton<int>), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

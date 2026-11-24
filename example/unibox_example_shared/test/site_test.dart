@@ -5,8 +5,9 @@ import 'package:unibox_example_shared/unibox_example_shared.dart';
 import 'support/tree.dart';
 
 void main() {
+  UINode frame({required String src, required String title}) => TextNode(title);
   test(
-    'shows HTML beside a live handover with only the two selling points',
+    'restores the original section order with the current matching examples',
     () {
       final sources = <String>[];
       final page = buildSitePage(
@@ -16,10 +17,20 @@ void main() {
         },
       );
       expect(sources, <String>['web/listings/', 'web/takeover/']);
-      final text = textsIn(page).join(' ');
-      expect(text, contains('One UI. Two renderers.'));
-      expect(text, contains('HTML first. Flutter next.'));
-      expect(text.split(RegExp(r'\s+')).length, lessThan(180));
+      final headings = flatten(page)
+          .whereType<TextNode>()
+          .where((node) => node.headingLevel != null && node.headingLevel! <= 2)
+          .map((node) => node.text)
+          .toList();
+      expect(headings, <String>[
+        'Flutter UI. Searchable HTML.',
+        'HTML and CSS',
+        'Flutter',
+        'Make Flutter Web pages indexable',
+        'Just boxes',
+        'Material',
+        'Typography',
+      ]);
       expect(
         validateTree(
           page,
@@ -28,6 +39,21 @@ void main() {
           ),
         ),
         isEmpty,
+      );
+    },
+  );
+  test(
+    'keeps the restored hero copy short and its branching diagram visible',
+    () {
+      final hero = buildHeroSection(frame: frame);
+      expect(
+        textsIn(hero).join(' ').split(RegExp(r'\s+')).length,
+        lessThan(110),
+      );
+      final keys = flatten(hero).map((node) => node.key);
+      expect(
+        keys,
+        containsAll(<String>['hero-flow-html', 'hero-flow-flutter']),
       );
     },
   );

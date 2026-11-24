@@ -7,6 +7,7 @@ export 'src/apartments.dart';
 export 'src/theme.dart';
 export 'src/site/gallery.dart';
 export 'src/site/hero.dart';
-export 'src/site/handover.dart';
+export 'src/site/indexable.dart';
+export 'src/site/vocabulary.dart';
 export 'src/site/section.dart';
 export 'src/site/site.dart';

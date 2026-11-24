@@ -345,19 +345,18 @@ baselines or budgets. Both measured pages score 100 in local Lighthouse runs;
 the compressed document is 5,727 bytes against the 5,854-byte baseline. These
 are local unthrottled measurements, not production latency claims.
 
-## 24 November: one declaration, two renderers, Flutter handover
+## 24 November: matching examples in the original visual presentation
 
 Both hosts render `buildListingExample` with identical content, layout, styling
-and action keys. Asset paths and callbacks are host inputs. The example does not
-add Flutter-only search, filters or explanatory shell content. The landing page
-centres on the two selling points, with a live handover next to the HTML reference;
-reference routes inspect renderers rather than promote standalone HTML usage.
+and action keys. Asset paths and callbacks are host inputs. The HTML reference
+sits beside a live Flutter handover; reference routes inspect renderers rather
+than promote standalone HTML usage.
 
-Tests require identical HTML trees for the reference and handover documents and
-exact initial Flutter text matching the shared declaration. Narrow/wide geometry,
-nonzero document scroll restoration and keyed action replay remain covered. The
-short landing page has a corresponding copy floor and a maximum-copy regression
-check; structural, renderer and performance requirements are retained.
+The original hero, branching diagram, indexability code cards and illustrated
+node vocabulary are restored around those newer examples. Material controls and
+all fifteen typography roles render inline, with no navigation links in either
+showcase. Tests pin the section order, short hero copy, absence of showcase links,
+matching example trees, narrow/wide layouts and real handover/replay.
 
 The earlier local override instructions are historical: Comover's submitted PR
 uses an immutable Unibox revision and portable lockfiles. Live Comover and emulator

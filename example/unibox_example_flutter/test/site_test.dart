@@ -33,7 +33,7 @@ void main() {
       addTearDown(tester.view.reset);
       await tester.pumpWidget(const SiteApp());
       await tester.pumpAndSettle();
-      expect(find.text('One UI. Two renderers.'), findsOneWidget);
+      expect(find.text('Flutter UI. Searchable HTML.'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   }

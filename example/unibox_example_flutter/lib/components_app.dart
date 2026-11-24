@@ -24,7 +24,7 @@ class ComponentsApp extends StatelessWidget {
       child: ExampleLinks(
         child: SingleChildScrollView(
           child: renderFlutter(
-            buildMaterialSection(listingsUrl: '../listings/'),
+            buildComponentReference(),
             scope: scope,
             substitutions: materialComponents(),
           ),

@@ -46,7 +46,7 @@ Document _listings({
 
 /// The optional vocabulary is demonstrated separately from the application.
 Document buildComponentsDocument({String? build}) => Document(
-  node: buildMaterialSection(listingsUrl: '../listings/'),
+  node: buildComponentReference(),
   head: DocumentHead(
     title: 'Material vocabulary — Unibox',
     description: 'Shared design values and a small set of components with native Flutter substitutions.',

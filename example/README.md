@@ -18,13 +18,17 @@ flutter pub get
 tool/site.sh --serve
 ```
 
+The landing page restores the original hero, indexability explanation and illustrated
+node vocabulary, followed by inline Material and typography specimens. Those
+specimens contain no navigation links.
+
 The left frame is the HTML reference. The right frame starts with that same HTML,
 then hands over to Flutter. Scroll or press **Save these homes** during loading;
 Flutter restores the position and replays the action, opening **Homes saved**.
 
 | Route | Purpose |
 | --- | --- |
-| `/` | Two renderers and live handover |
+| `/` | Original visual presentation, current examples and live handover |
 | `/web/takeover/` | Full-size handover demo |
 | `/web/listings/` | HTML reference for comparison |
 | `/flutter/listings/` | Direct Flutter rendering for inspection |
