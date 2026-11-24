@@ -1,5 +1,7 @@
 import 'package:unibox_core/unibox_core.dart';
 
+import 'material_palette.dart';
+
 /// The easing of a static document's state layers.
 const BoxTransition materialSurfaceTransition = BoxTransition(
   duration: Duration(milliseconds: 150),
@@ -30,7 +32,6 @@ UINode materialSurface({
   final List<BoxStyle> styles = <BoxStyle>[
     BoxStyle(
       borderRadius: borderRadius,
-      backgroundColor: fill,
       border: border,
       padding: padding,
       transition: transition,
@@ -43,32 +44,48 @@ UINode materialSurface({
     ),
   ];
   const Map<BoxState, BoxStyle> states = <BoxState, BoxStyle>{
-    BoxState.hover: BoxStyle(opacity: 0.92),
-    BoxState.focus: BoxStyle(opacity: 0.85),
-    BoxState.pressed: BoxStyle(opacity: 0.8),
+    BoxState.hover: BoxStyle(
+      backgroundColor: BoxColor.role(MaterialColorRole.hoverLayer),
+    ),
+    BoxState.focus: BoxStyle(
+      backgroundColor: BoxColor.role(MaterialColorRole.focusLayer),
+    ),
+    BoxState.pressed: BoxStyle(
+      backgroundColor: BoxColor.role(MaterialColorRole.pressedLayer),
+    ),
   };
-  if (url != null) {
-    return LinkNode(
-      url,
-      newTab: newTab,
-      onTap: onTap,
-      onLongPress: onLongPress,
-      onHover: onHover,
-      enabled: enabled,
-      styles: styles,
-      stateStyles: states,
-      semantics: semantics,
-      children: <UINode>[child],
-    );
-  }
+  final Box target = url != null
+      ? LinkNode(
+          url,
+          newTab: newTab,
+          onTap: onTap,
+          onLongPress: onLongPress,
+          onHover: onHover,
+          enabled: enabled,
+          styles: styles,
+          stateStyles: enabled ? states : const <BoxState, BoxStyle>{},
+          semantics: semantics,
+          children: <UINode>[child],
+        )
+      : Box(
+          onTap: onTap,
+          onLongPress: onLongPress,
+          onHover: onHover,
+          enabled: enabled,
+          styles: styles,
+          stateStyles: enabled ? states : const <BoxState, BoxStyle>{},
+          semantics: semantics,
+          children: <UINode>[child],
+        );
+  if (fill == null) return target;
+
+  // The translucent state layer paints over the resting fill, without fading the label
+  // or replacing a selected chip's colour. The target still owns every measurement.
   return Box(
-    onTap: onTap,
-    onLongPress: onLongPress,
-    onHover: onHover,
-    enabled: enabled,
-    styles: styles,
-    stateStyles: states,
-    semantics: semantics,
-    children: <UINode>[child],
+    width: width,
+    backgroundColor: fill,
+    borderRadius: borderRadius,
+    crossAlign: CrossAlign.stretch,
+    children: <UINode>[target],
   );
 }

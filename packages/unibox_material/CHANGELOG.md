@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Restore visible HTML hover, focus and pressed state layers on Material controls; preserve selected fills and suppress feedback on disabled controls. Flutter retains native ink.
+
 - Native controls own their ink; remove the custom `ink` arguments and honour declared button sizing and icon-button variants.
 
 - Reduce Material to palette, typography, cards, buttons, chips, segmented controls, codepoint icons and icon buttons. Remove custom ink, stateful controls, shapes and progress indicators.
