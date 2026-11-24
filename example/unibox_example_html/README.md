@@ -1,12 +1,14 @@
 # unibox_example_html
 
-The server-side documents for the example and site. The same pure Dart region
-declarations are rendered as HTML/CSS here and as native widgets by the Flutter host.
+Server documents composed around the stateless listing region. This host owns
+titles, descriptions, fonts, URLs and document structure. The primary document
+needs no JavaScript or Flutter bundle.
 
-The site and component catalogue are readable documents with ordinary links.
-The takeover example opts into the shared handover bridge and waits for explicit
-Flutter host readiness. No browser application client is compiled or shipped.
+A separate handover document opts into capture and waits for explicit Flutter
+host readiness. Its keyed save action is replayed once after restoration/reveal.
+The documentation site compares independent HTML and Flutter hosts; the optional
+Material vocabulary has its own page.
 
-Build with `tool/site.sh` from the repository root. Verify the built documents
-with `python3 tool/doc_check.py build/site` and actual handover/replay with
-`tool/boot_check.sh build/site`.
+From the repository root, run `tool/site.sh`, then
+`python3 tool/doc_check.py build/site` and `tool/boot_check.sh build/site`.
+See [the example guide](../README.md).

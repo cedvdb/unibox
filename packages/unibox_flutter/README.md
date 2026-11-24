@@ -67,13 +67,6 @@ with their target.
 | `onHover` / `hoverStyle`            | `MouseRegion` and the hovered token set             |
 | `onScroll`                          | `NotificationListener<ScrollUpdateNotification>` around the scroll view, reporting `metrics.pixels` when the notification's `depth` is zero |
 
-the commands become a `Path`, so the same value draws the same silhouette at any
-size, and the stroke is centred on the outline (half of it therefore lies outside a
-box whose outline touches its edge, as it does in the browser). `ClipPath` clips the
-pointer as well as the paint, so a shaped box that also says `overflow:
-Overflow.hidden` answers only inside its outline — a browser answers for the whole
-rectangle, which is one of the differences hit testing already had.
-
 The scroll offset is the one report whose **edges** differ from the browser's: an iOS
 bounce reports negative pixels and a value past the end, while `scrollTop` clamps at zero
 and at the content's height. In the middle of the range the two numbers agree, which is
@@ -570,38 +563,22 @@ an effect that wraps content needs. `FlutterWidgetNode` is the convenience for a
 widget payload with no child; a node carrying an implementation this target cannot
 draw, or two of them, is reported by `renderFlutter` instead of being skipped.
 
-## Stateful nodes
+## Stateful region adapters
 
-A [`StatefulNode`](../unibox_core/README.md#state) is rendered by `FlutterStateful`,
-written once for every node an application defines:
+Applications normally own state and rebuild stateless declarations from new values,
+as the [main example](../../example/README.md) does. An optional `StatefulNode`
+can encapsulate a bounded region whose store lifecycle belongs with its rendering.
+`FlutterStateful` creates the store, subscribes, calls `onMount`, and rebuilds on
+publication. Unmounting calls `onUnmount` and disposes the store.
 
-- a press a document recorded is replayed after the first frame by pressing the widget that
-  wears its key, so a platform button answers it as it answers a finger;
-- the store is created when the widget mounts, subscribed to, and `onMount` is
-  called; a rebuild with a node of the same type and key keeps the state, and a
-  different key starts again;
-- a rebuild with a node of the same type and key draws the *new* node's view, so a
-  parameter the view reads is always current — and `didUpdateWidget` hands the store
-  to `StatefulNode.update` first, so a parameter the store copied is repaired before
-  the view that reads it is built;
-- every notification rebuilds the view, and unmounting calls `onUnmount` and then
-  `dispose` on the store;
-- the view's tree is rendered in place, so it inherits the typography and the
-  layout of the boxes around it;
-- `substitutions` travels with the node for the reason `scope` does: the view is built
-  inside this widget, so a host that roots its application in a stateful node says it here
-  and nowhere else;
-- the view returns one tree; a dialog is an `OverlayNode` in it, presented through
-  the root overlay, so nothing in this layer is modal;
-- **when a document handed this application the page**, the widget keeps an
-  accessibility tree for the life of the state and, after its first frame, answers
-  `window.unibox.ready()` — which is what a takeover reveals on. Flutter ships
-  semantics off on the web, so without the tree a canvas that arrives this way has
-  one focusable thing in it until somebody finds Flutter's own placeholder. An
-  application opened at its own address was handed nothing and enables nothing, so
-  none of this costs a page that is not a takeover. An application that waits for
-  data of its own calls `uniboxReady()` when the data is in, and the page reveals
-  then instead of at the first frame.
+A new node of the same type and key keeps the store, reconciles copied parameters
+through `update`, then draws the new view. The view returns one tree and inherits
+its surrounding scope and typography. It does not become an application router.
+
+This adapter neither enables handover semantics nor signals content readiness.
+The Flutter host explicitly owns its `FlutterHandover` coordinator and completes
+it after the intended data and layout are ready. See the
+[handover contract](../../docs/takeover.md) for restoration and replay.
 
 ## Overlays
 

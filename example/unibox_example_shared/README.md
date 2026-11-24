@@ -1,11 +1,11 @@
 # unibox_example_shared
 
-Pure Dart declarations shared by the example's server HTML and Flutter host.
-The application sample owns its form state through the optional region adapter;
-the Material catalogue contains only the small supported native vocabulary.
+Pure Dart data and stateless declarations: an apartment card, a listing grid and
+sections of the documentation site. `buildListingRegion` accepts a supplied list
+and an optional save callback. It owns no search state, navigation or dialogs.
 
-The server reads a snapshot. Flutter installs the native Material map and the host
-signals handover readiness after the intended layout exists. No DOM application
-runtime, custom path token, ink store or progress-ring component is required.
+The server renders the region into its document. The Flutter app renders it
+among native widgets with `materialComponents()`. The separate Material section
+shows the optional supported vocabulary.
 
-See [the examples](../README.md) and [handover](../../docs/takeover.md).
+See [the worked examples](../README.md).

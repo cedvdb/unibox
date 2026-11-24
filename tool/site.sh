@@ -62,10 +62,8 @@ step 'Resolving the workspace'
 flutter pub get || fail 'flutter pub get'
 
 step 'Rendering the pages'
-# The site is one node tree and the example is another; one script writes all of
-# their documents, so the site and the app cannot disagree about a path. The commit is
-# asked for once and written into every document, so a stale tab can be told from a
-# live page without reading CSS class hashes.
+# Render the guide, static listings and separate optional handover document.
+# Include the source revision so an old browser tab can identify its build.
 build="$(git -C "$root" rev-parse HEAD 2>/dev/null || true)"
 rm -rf "$site"
 (cd example/unibox_example_html &&
@@ -98,13 +96,8 @@ cp -R example/unibox_example_flutter/build/web/. "$site/flutter/"
 # and a takeover document two directories below the build. The build used to rewrite Flutter's
 # generated loader into a second copy called `app.js`; that is gone with the reason for it.
 
-# A static host has no rewrite rule, so a Flutter route is a real file. The build's
-# absolute base href is what lets the copied document resolve its assets from a
-# deeper path. The build's root draws the site page, and the entries below it draw the
-# example on its own — the page the HTML rendering frames, and the one a reader opens to
-# compare the two renderings — and the components page, which exists to be compared with the
-# document at `web/components/`. The example is one page, and the sign-up form is a dialog
-# over it rather than an address of its own.
+# Static hosts need an entry file per Flutter destination. The shared listing
+# region appears inside an ordinary application; Material has a separate showcase.
 for route in listings components; do
   mkdir -p "$site/flutter/$route"
   cp "$site/flutter/index.html" "$site/flutter/$route/index.html"

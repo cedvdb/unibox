@@ -5,6 +5,7 @@ import 'package:unibox_flutter/unibox_flutter.dart';
 import 'package:unibox_material_flutter/unibox_material_flutter.dart';
 
 import 'surface.dart';
+import 'link_policy.dart';
 
 /// The supported Material vocabulary, drawn with native Flutter controls.
 class ComponentsApp extends StatelessWidget {
@@ -20,11 +21,10 @@ class ComponentsApp extends StatelessWidget {
       title: 'Unibox — native Material',
       scope: scope,
       palette: ExamplePalette.materialFor(ExampleSeed.defaultSeed),
-      child: FlutterLinkScope(
-        open: (String url) => debugPrint('Following $url'),
+      child: ExampleLinks(
         child: SingleChildScrollView(
           child: renderFlutter(
-            buildMaterialSection(),
+            buildMaterialSection(listingsUrl: '../listings/'),
             scope: scope,
             substitutions: materialComponents(),
           ),
