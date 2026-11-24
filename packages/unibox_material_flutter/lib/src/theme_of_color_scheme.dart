@@ -59,12 +59,15 @@ core.UniboxTheme uniboxThemeOf(
     material.MaterialColorRole.error: _of(scheme.error),
     material.MaterialColorRole.onError: _of(scheme.onError),
     material.MaterialColorRole.scrim: _of(scheme.scrim),
-    // The state layers are a percentage of the content's own colour over what is beneath, which
-    // a scheme has no field for: the model states them as the alpha a token is painted with.
-    material.MaterialColorRole.hoverLayer: _alpha(0.04),
-    material.MaterialColorRole.focusLayer: _alpha(0.12),
-    material.MaterialColorRole.pressedLayer: _alpha(0.12),
-    material.MaterialColorRole.draggedLayer: _alpha(0.16),
+    // The state layers are a tint of the content's own colour over what is beneath, which a
+    // scheme has no field for: the model states them as a shade of `onSurface` at Material's
+    // own percentages, and a theme built from a scheme has to answer the same colours a theme
+    // built from a seed does — a hover that is black at four percent on one path and
+    // `onSurface` at eight on the other is one declaration painted two ways.
+    material.MaterialColorRole.hoverLayer: _layerOver(scheme.onSurface, 0.08),
+    material.MaterialColorRole.focusLayer: _layerOver(scheme.onSurface, 0.10),
+    material.MaterialColorRole.pressedLayer: _layerOver(scheme.onSurface, 0.10),
+    material.MaterialColorRole.draggedLayer: _layerOver(scheme.onSurface, 0.16),
     ...also,
   },
 );
@@ -72,6 +75,7 @@ core.UniboxTheme uniboxThemeOf(
 /// A Flutter colour as the model's, alpha included.
 core.BoxColor _of(Color color) => core.BoxColor(color.toARGB32());
 
-/// Black at [alpha], which is how a state layer is painted: over whatever it covers.
-core.BoxColor _alpha(double alpha) =>
-    core.BoxColor((alpha * 255).round() << 24);
+/// [color] at [alpha], which is how a state layer is painted: over whatever it covers.
+core.BoxColor _layerOver(Color color, double alpha) => core.BoxColor(
+  ((alpha * 255).round() << 24) | (color.toARGB32() & 0xFFFFFF),
+);
