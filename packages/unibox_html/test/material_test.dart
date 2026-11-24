@@ -122,6 +122,90 @@ void main() {
     });
   });
 
+  group('Material state layers in a document', () {
+    List<ElementPlan> elements(ElementPlan plan) => <ElementPlan>[
+      plan,
+      for (final child in plan.children) ...elements(child),
+    ];
+
+    test('tints controls without fading their labels', () {
+      for (final control in <core.UINode>[
+        MaterialButton.filled(label: const core.TextNode('Book'), onTap: () {}),
+        MaterialChip(label: const core.TextNode('Choice'), onTap: () {}),
+        MaterialChip(
+          label: const core.TextNode('Selected'),
+          selected: true,
+          onTap: () {},
+        ),
+      ]) {
+        final sheet = Stylesheet();
+        final plan = planNode(control, sheet);
+        final rules = sheet.rulesSince((
+          classes: 0,
+          states: 0,
+          frames: 0,
+        )).join();
+        expect(
+          rules,
+          contains(':hover{background-color:var(--unibox-color-hover-layer)'),
+        );
+        expect(
+          rules,
+          contains(
+            ':focus-visible{background-color:var(--unibox-color-focus-layer)',
+          ),
+        );
+        expect(
+          rules,
+          contains(
+            ':active{background-color:var(--unibox-color-pressed-layer)',
+          ),
+        );
+        expect(rules, isNot(contains('opacity:0.92')));
+        expect(
+          elements(plan).where((e) => e.attributes['role'] == 'button'),
+          hasLength(1),
+        );
+      }
+    });
+
+    test('keeps the selected fill underneath the state layer', () {
+      final sheet = Stylesheet();
+      planNode(
+        MaterialChip(
+          label: const core.TextNode('Selected'),
+          selected: true,
+          onTap: () {},
+        ),
+        sheet,
+      );
+      final rules = sheet.rulesSince((classes: 0, states: 0, frames: 0)).join();
+      expect(
+        rules,
+        contains('background-color:var(--unibox-color-secondary-container)'),
+      );
+      expect(
+        rules,
+        contains(':hover{background-color:var(--unibox-color-hover-layer)'),
+      );
+    });
+
+    test('disabled controls have no hover or pressed layer', () {
+      final sheet = Stylesheet();
+      planNode(
+        MaterialChip(
+          label: const core.TextNode('Disabled'),
+          enabled: false,
+          onTap: () {},
+        ),
+        sheet,
+      );
+      final rules = sheet.rulesSince((classes: 0, states: 0, frames: 0)).join();
+      expect(rules, isNot(contains(':hover')));
+      expect(rules, isNot(contains(':active')));
+    });
+  });
+
   group('a Material control in a document', () {
     /// The declarations of the class [plan] wears.
     String ruleOf(Stylesheet sheet, ElementPlan plan) => sheet

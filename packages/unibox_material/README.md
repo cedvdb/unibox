@@ -28,7 +28,8 @@ font tree shaking and the glyph's native widget implementation.
 ## Server rendering
 
 Components are core-node declarations. HTML renders content, appearance, accessible
-selection and real destinations. Application callbacks run only in Flutter after
+selection and real destinations. Hover, keyboard focus and presses show CSS state
+layers without fading the labels; Flutter supplies its native ink ripple. Application callbacks run only in Flutter after
 handover; the server does not attach JavaScript interaction or run a store.
 
 ## Application-owned components

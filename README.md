@@ -69,6 +69,7 @@ the Flutter frame. The [example source](example/README.md) uses one
 The optional Material packages provide palette, typography, card, button, chip,
 segmented control and icon declarations. Install `materialComponents()` for their
 native Flutter substitutions; register const icon glyphs through `icons:`.
+HTML controls show CSS hover, focus and pressed layers; Flutter controls use native ink.
 See the [Material guide](packages/unibox_material/README.md).
 
 Applications can supply their own [native substitutions](packages/unibox_flutter/README.md#substitution).
