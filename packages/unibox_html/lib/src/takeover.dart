@@ -45,6 +45,9 @@ final class Takeover {
   final String boot;
 
   /// An existing direct child of the document body that hosts the Flutter engine.
+  ///
+  /// When omitted, the bridge creates a fixed host and exposes it as
+  /// `window.unibox.hostElement`; the bootstrap passes it to the engine.
   final String? hostId;
 
   /// When the boot starts.
@@ -54,12 +57,12 @@ final class Takeover {
   ///
   /// `onFrame` shows the engine's first frame; `onReady` waits for the application to say it has
   /// drawn the state it was given, which is the right answer for a page whose scroll offset and
-  /// press are being replayed. A takeover drawn by `unibox_flutter` needs no code of its own for
-  /// either: the renderer answers both.
+  /// press are being replayed. The application explicitly completes its handover
+  /// after destination content and layout are ready.
   final RevealPolicy reveal;
 
-  /// How long `RevealPolicy.onReady` waits before revealing anyway, and how long a page waits for
-  /// a frame at all before going back to being a document.
+  /// How long startup or content readiness can wait before retaining the document.
+  /// An application that is not ready is never revealed merely because time elapsed.
   final Duration readyTimeout;
 
   /// The name of the control while the application loads, for the reader who pressed it.

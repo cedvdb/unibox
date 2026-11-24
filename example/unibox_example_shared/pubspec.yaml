@@ -1,5 +1,5 @@
 name: unibox_example_shared
-description: The node tree of the Unibox example, shared by the Flutter app and the site.
+description: Stateless listing regions and guide declarations shared by server and Flutter hosts.
 publish_to: none
 version: 0.1.0
 resolution: workspace

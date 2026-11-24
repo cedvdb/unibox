@@ -4,31 +4,10 @@ import 'package:unibox_example_html/site/favicon.dart';
 import 'package:unibox_example_html/site/pages.dart';
 import 'package:unibox_html/unibox_html.dart';
 
-/// Writes the site to static files: one page, and the example it compares.
+/// Writes the guide, independent hosts and optional handover document to files.
 ///
-/// ```sh
-/// dart run bin/build_site.dart --out=build/site --build=$(git rev-parse HEAD) \
-///   --url=https://example.com/unibox/
-/// ```
-///
-/// `--dev` writes the same site with the takeover page inspectable from the address — see
-/// `buildTakeoverDocument`. It is `tool/site.sh --dev` from the repository root, and never what a
-/// deployment passes.
-///
-/// Three documents, one per address. `index.html` is the **site** — one page of four bars: the
-/// claim with the comparison inside it, the markup a search engine is served, the vocabulary
-/// that names the nodes the claim never drew, and the Material catalogue the page is drawn with,
-/// which closes it. `web/listings/` is the **example**: the same tree as the left frame of the
-/// comparison. `web/takeover/` is the same tree the other way — it prefetches the bundle
-/// `flutter build web` writes beside it and boots it when a reader arrives, so the page a
-/// crawler reads and the application a reader uses are one document.
-///
-/// `--url` is where the site is served from: with it, every page states its canonical address
-/// and a sitemap is written beside them from the same list. Without it, neither — a canonical
-/// address is not something a build can guess.
-///
-/// One document for the example, not one per state: the sign-up form is a dialog, and a dialog is
-/// not a page.
+/// Run `dart run bin/build_site.dart --out=build/site` from this package.
+/// `--url=` supplies canonical addresses; `--dev` enables handover diagnostics.
 void main(List<String> arguments) {
   final Directory out = Directory(_option(arguments, 'out') ?? 'build/site');
   // `tool/site.sh` passes the commit it writes into `version.txt`, so a document can name the

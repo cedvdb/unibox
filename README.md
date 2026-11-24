@@ -1,146 +1,199 @@
 # Unibox
 
 Declare a UI region once in pure Dart. Render it as HTML and CSS on the server,
-and as Flutter widgets in the application.
+and as Flutter widgets inside your application.
 
-Unibox is for the parts both surfaces need: cards, headings, listings, promotional
-bands and footers. The application owns routing, data, state and page composition.
-Maps, booking flows and other application interaction remain ordinary Flutter.
+A product description, listing card or editorial section may need to appear in
+both a readable web document and a Flutter app. Unibox lets those surfaces share
+content, structure and design values. The host keeps its own page composition,
+search, maps, navigation and application state.
 
-## Project status
+**Experimental and unpublished.** Resolve all Unibox packages from one commit.
+Breaking API removals are recorded in the package changelogs.
 
-Experimental and unpublished. Depend on one coherent commit across packages.
-Breaking spellings are removed outright; read each package's Unreleased changelog.
+## When it helps
 
-## How it works
+Use Unibox when the same content needs a server-rendered document and a Flutter
+presentation, and maintaining two implementations would make them drift.
+
+- Share listing cards between a public catalogue and your Flutter application.
+- Publish product details, articles or landing-page sections as HTML, while using
+  the same declarations in Flutter.
+- Optionally let a readable document hand over to a Flutter application after
+  the host has loaded its destination content and laid it out.
+
+Existing Flutter widgets are not automatically converted to HTML. Declare only
+the regions that need both targets. A Flutter-only screen can remain ordinary
+Flutter. A server document can remain a document, with no Flutter bundle at all.
+
+## One declaration, two hosts
+
+Keep the shared code in a pure Dart package. For example, `shared/summary.dart`:
 
 ```dart
-final region = Box(
+import 'package:unibox_core/unibox_core.dart' as ui;
+
+ui.UINode buildSummary({required String city, required int count}) => ui.Box(
   gap: 12,
-  children: <UINode>[
-    TextNode('Apartments', headingLevel: 1),
-    LinkNode('/apartments', children: <UINode>[TextNode('See all')]),
+  padding: const ui.BoxSpacing.all(20),
+  children: <ui.UINode>[
+    ui.TextNode('Homes in $city', headingLevel: 2, fontSize: 24),
+    ui.TextNode('$count homes to explore'),
+    const ui.LinkNode(
+      'https://example.com/homes',
+      children: <ui.UINode>[ui.TextNode('See all homes')],
+    ),
   ],
 );
-
-final html = toHtml(region);       // unibox_html, on the server
-final widget = region.toWidget(); // unibox_flutter, in the app
 ```
 
-Keep declarations in a pure Dart library. Flutter hosts import core with a prefix
-when its names overlap Flutter's. Core has no package dependencies. Collections
-passed into nodes and tokens must remain unchanged after construction: use const
-collections or unmodifiable snapshots.
-
-## Flutter SEO
-
-The server renders readable text, headings, image alternatives and real links.
-`toDocument` supplies metadata through `DocumentHead`. URLs, copy, canonical
-addresses, robots, deployment and indexing policy belong to the application.
-An HTML document is useful without Flutter and does not need a browser renderer.
-
-## The nodes
-
-See [the node reference](docs/nodes/README.md) for parameters and target mappings.
-The declaration vocabulary includes boxes, text, images, links, grids, stacks,
-positioned children, pagers, fields, overlays and stateful region adapters.
-Custom paths, rings and progress indicators are outside the vocabulary; supply
-host-owned artwork or native interaction through embeds or substitutions.
-
-## Styles, colours and typography
-
-Flat parameters override style bags, which merge left to right. State styles
-contribute their own tokens; disabled state wins. Defaults belong to the model,
-not to browser or Flutter defaults. Typography and writing direction can inherit.
-
-Colour roles resolve through a shared `UniboxScope` theme. Literal colours work
-without a theme. A host supplies its fonts and assets. Read the
-[core guide](packages/unibox_core/README.md) for defaults and precedence.
-
-## Material
-
-The optional Material vocabulary is deliberately small:
-
-| Declaration or value | Purpose |
-| --- | --- |
-| `MaterialPalette`, scheme variants | Shared colour roles and seed-derived schemes |
-| `MaterialTypography`, type roles | Shared type scale |
-| `MaterialCard` | Content surface |
-| `MaterialButton` | Native button variants and server actions/links |
-| `MaterialChip` | Labels, filters and removable selections |
-| `MaterialSegmentedButton` | A supplied selection or navigational destinations |
-| `MaterialIcon`, `MaterialIconButton` | Registered glyphs and native icon actions |
-
-Every component has a native Flutter substitution. Install `materialComponents()`
-from `unibox_material_flutter`; omitting a required mapping reports an error.
-Register const `IconData` values through its `icons` argument. There is no custom
-Flutter Material fallback and no Material-owned application store or ink runtime.
-The server still receives a useful declaration built from core nodes.
-
-See the [Material guide](packages/unibox_material/README.md) and
-[native mappings](packages/unibox_material_flutter/README.md).
-
-## Substitution
-
-The generic Flutter substitution map lets an application draw its own components
-with native widgets. Core structure remains the declaration's; a substitution
-preserves words, order, destinations, selection and actions. Native paint can
-vary. Test real shared regions when a handover needs close layout agreement.
-
-## Optional Flutter handover
-
-Handover is the transition between renderings, not an application runtime.
-Server helpers live in `package:unibox_html/handover.dart`, so the server does
-not require Flutter. The Flutter host uses `package:unibox_flutter/handover.dart`.
+The **server** owns the document and its metadata:
 
 ```dart
-// Server: opt into recording and a readiness-controlled transition.
-final document = toDocument(
-  region,
-  takeover: const Takeover(boot: '/flutter_bootstrap.js'),
-);
+import 'package:unibox_html/unibox_html.dart';
+import 'shared/summary.dart';
+
+void main() {
+  final html = toDocument(
+    buildSummary(city: 'Paris', count: 6),
+    head: const DocumentHead(title: 'Homes in Paris'),
+  );
+  print(html); // Return this from your server, or write it to a static file.
+}
 ```
 
-The application chooses when to boot and signals when the right route, data and
-layout are ready. `FlutterHandover.complete(controller: pageController)` restores
-the latest document offset to that explicit controller, reveals Flutter and
-replays at most one intercepted keyed action. A custom restoration callback can
-handle a different page composition. Direct Flutter entry needs no handover.
+The **Flutter host** places the region among its own widgets. This example uses
+`material_ui`, matching the pinned Flutter SDK:
 
-Normal browser links are followed normally. Only eligible actions intercepted
-by handover can replay; keys must be stable and unique across the document.
-Read [the handover contract](docs/takeover.md) before integrating mixed pages.
+```dart
+import 'package:material_ui/material_ui.dart';
+import 'package:unibox_flutter/unibox_flutter.dart';
+import 'shared/summary.dart';
+
+void main() => runApp(MaterialApp(
+  home: Scaffold(
+    appBar: AppBar(title: const Text('Find a home')),
+    body: SingleChildScrollView(
+      child: FlutterLinkScope(
+        open: (url) { /* Navigate using your application's link policy. */ },
+        child: renderFlutter(buildSummary(city: 'Paris', count: 6)),
+      ),
+    ),
+  ),
+));
+```
+
+These are separate entry points. Only the shared declaration imports core;
+the server does not import Flutter. In an application, pass loaded data and
+callbacks into the declaration and rebuild it when the host's state changes.
+
+The [worked example](example/README.md) uses this arrangement for six apartment
+cards. Its Flutter host adds native search, filters and a dialog. Its server
+publishes the listing region with headings, image alternatives and real links.
+
+## What is shared
+
+Unibox describes boxes, text, images, links, grids and other bounded regions.
+See the [node reference](docs/nodes/README.md) for the full vocabulary and
+[core guide](packages/unibox_core/README.md) for defaults.
+
+Flat parameters override style bags; bags merge left to right. State styles
+extend the resting appearance, and disabled state wins. Defaults belong to the
+model, so the renderers do not independently choose browser or Flutter defaults.
+Colour roles resolve through a shared theme. Hosts provide fonts and assets.
+Collections passed into declarations must stay immutable: use const values or
+unmodifiable snapshots.
+
+Content, order, destinations and accessible meaning should agree. Text shaping,
+line breaks and native component paint can differ. Shared contract tests hold
+primitive presentation to one expectation; real regions also need layout checks
+at representative widths and text sizes. Unibox does not promise pixel identity.
+
+## Optional Material vocabulary
+
+Core declarations do not require Material. The optional packages provide shared
+colour and typography values and a small set of component declarations:
+
+| Declaration or value | HTML and Flutter use |
+| --- | --- |
+| `MaterialPalette`, scheme variants | Shared colour roles |
+| `MaterialTypography`, type roles | Shared type scale |
+| `MaterialCard` | Content surfaces |
+| `MaterialButton` | Buttons and destinations |
+| `MaterialChip` | Labels, filters and removable selections |
+| `MaterialSegmentedButton` | Supplied selections and navigation choices |
+| `MaterialIcon`, `MaterialIconButton` | Codepoint glyphs and icon actions |
+
+On Flutter, install `materialComponents()` from `unibox_material_flutter`.
+Every component requires its native substitution; missing mappings report an
+error. Register any icon glyphs as const `IconData` values through `icons:`.
+The server renders the component's declaration as HTML/CSS. Selection and actions
+are supplied by the host; this package does not own an application store.
+
+An application can also define its own component declarations and use the
+[generic substitution map](packages/unibox_flutter/README.md#substitution) to
+render them with its own Flutter widgets. Substitutions preserve information and
+actions while allowing native paint and interaction.
+
+## Optional document-to-Flutter handover
+
+Handover is a separate integration. Use it when a document should remain readable
+while Flutter loads, then yield to the application on the same page.
+
+The server opts in through `Takeover` and the helpers in
+`package:unibox_html/handover.dart`. The Flutter host uses
+`package:unibox_flutter/handover.dart` and explicitly completes its
+`FlutterHandover` after the intended route, data and layout are ready.
+
+The host supplies the destination scroll controller or a restoration callback.
+Unibox restores the latest document offset before reveal and can replay one
+intercepted keyed action afterwards. Keys must be stable and unique across the
+document. Ordinary browser links retain their navigation behaviour. Startup
+failure or timeout retains the document.
+
+Different layouts can make absolute offsets approximate. Handover is not an
+HTML event runtime or automatic synchronisation of application state. See the
+[complete contract](docs/takeover.md) and the separate handover example before
+integrating it into a real page.
 
 ## What the host owns
 
-The host owns page composition, breakpoints that require alternative structures,
-application state, network requests, routing, fonts, native embeds, and readiness.
-The optional stateful adapter manages a region's store lifecycle; it does not
-provide an application router, data layer or browser application runtime.
+The host owns routing, data fetching, state, complex interaction, responsive page
+composition, assets and link policy. The server also owns URLs, copy, metadata,
+canonical addresses, deployment and indexing policy. Server HTML makes declared
+content available to readers and crawlers; search rankings are outside the library.
 
-## How the renderers stay in step
-
-`unibox_testing` defines shared presentation expectations. HTML tests inspect
-emitted output; Flutter tests inspect widgets and relevant geometry. Information
-must agree. Platform text shaping and native component paint can differ.
-Declaration tests do not replace rendered integration checks for real layouts.
+The optional stateful region adapter manages a bounded store lifecycle. It is
+not required by the main example and does not supply an application framework.
+There is no DOM application runtime or hydration package.
 
 ## Packages
 
 | Package | Responsibility |
 | --- | --- |
-| [unibox_core](packages/unibox_core/README.md) | Pure Dart declarations and tokens |
+| [unibox_core](packages/unibox_core/README.md) | Pure Dart declarations and tokens; no dependencies |
 | [unibox_html](packages/unibox_html/README.md) | Server HTML/CSS and optional server handover helpers |
-| [unibox_flutter](packages/unibox_flutter/README.md) | Flutter rendering, substitutions and optional handover |
-| [unibox_material](packages/unibox_material/README.md) | Small optional Material declarations and values |
-| [unibox_material_flutter](packages/unibox_material_flutter/README.md) | Native Material substitution map |
-| [unibox_testing](packages/unibox_testing/README.md) | Test-only presentation and behaviour contracts |
+| [unibox_flutter](packages/unibox_flutter/README.md) | Widgets, substitutions and optional handover |
+| [unibox_material](packages/unibox_material/README.md) | Optional Material declarations and design values |
+| [unibox_material_flutter](packages/unibox_material_flutter/README.md) | Native Material substitutions and theme conversion |
+| [unibox_testing](packages/unibox_testing/README.md) | Shared presentation and behaviour contracts |
 
-## Development
+## Try the examples
+
+Use the Flutter version in `.flutter-version`, then run from the repository root:
+
+```sh
+flutter pub get
+tool/site.sh --serve
+```
+
+The command prints the local address. The site compares the static document and
+independent Flutter app. The optional handover and Material vocabulary have their
+own pages. For a native Flutter run, use `flutter run` from
+`example/unibox_example_flutter`.
 
 Read [AGENTS.md](AGENTS.md), [design.md](design.md) and
-[the implementation plan](docs/plan-focused-rendering.md).
-Run `tool/verify.sh`; use `--docs` for public API or README changes.
-Use `tool/scale.sh` and `tool/performance.sh` for the relevant performance checks.
-See [the examples](example/README.md), [consumer instructions](AI_INSTRUCTIONS.md)
-and [maintenance](MAINTENANCE.md). Releases remain a human procedure.
+[consumer instructions](AI_INSTRUCTIONS.md) before changing the API.
+Run `tool/verify.sh --docs` for code and README changes. Site and handover checks
+are described in [the example guide](example/README.md); ongoing checks are in
+[maintenance](MAINTENANCE.md). Releases remain a human procedure.

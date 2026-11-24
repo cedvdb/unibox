@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Clarify stateless shared regions, host-owned application behaviour and explicit optional handover in the guides and worked example.
+
 - Remove custom paths and stroke caps; declare when a component requires a native widget substitution. Collection arguments must remain immutable after construction.
 
 - Keep equal shadow styles interchangeable as map and stylesheet cache keys.

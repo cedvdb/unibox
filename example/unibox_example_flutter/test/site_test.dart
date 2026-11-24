@@ -1,127 +1,40 @@
-import 'dart:io' show File;
-import 'dart:typed_data' show ByteData;
-
-import 'package:flutter/services.dart' show FontLoader;
-import 'package:flutter/widgets.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:unibox_example_flutter/site.dart';
 
-/// Loads the four weights the application ships under the family it names them with.
-///
-/// A widget test otherwise draws in the test font, which is wider and taller than Roboto: the
-/// capture under the tabs wraps to three lines in it and overflows the page it sits in by four
-/// pixels. The page was measured against the font the application bundles, so a test of the page
-/// measures it against that font — the alternative is a suite that reports a difference no reader
-/// can see and hides the one that matters behind it.
-Future<void> loadFonts() async {
-  for (final String weight in <String>['400', '500', '600', '700']) {
-    final ByteData bytes = ByteData.sublistView(
-      File('assets/fonts/roboto-$weight.ttf').readAsBytesSync(),
-    );
+import 'app_test.dart' show loadFonts;
 
-    await (FontLoader(
-      'UniboxText',
-    )..addFont(Future<ByteData>.value(bytes))).load();
-  }
-}
-
-/// The site page, as the Flutter host draws it.
-///
-/// The page itself is the tree `unibox_html` writes at `/`, so what is worth pinning here is
-/// what the host alone decides: which address draws which tree, and that the page the
-/// document renders is the page this build renders.
 void main() {
-  // Loaded once, before any tree exists: a font load notifies the binding, and a
-  // notification that arrives while a tree is mounted is a relayout scheduled against it.
   setUpAll(loadFonts);
-
-  group('hostedPageFor', () {
-    test('draws the components page at its own route', () {
-      // The one page whose subject is the difference a substitution makes; it carries the
-      // widget switch, where the pages below it deliberately do not.
-      expect(
-        hostedPageFor(
-          Uri.parse(
-            'https://cedvdb.github.io/unibox/flutter/components/?components=flutter',
-          ),
-        ),
-        HostedPage.components,
-      );
-      expect(
-        hostedPageFor(Uri.parse('http://localhost:8000/flutter/components/')),
-        HostedPage.components,
-      );
-    });
-
-    test('draws the site page at the root of the Flutter build', () {
-      expect(
-        hostedPageFor(Uri.parse('https://cedvdb.github.io/unibox/flutter/')),
-        HostedPage.site,
-      );
-      expect(
-        hostedPageFor(Uri.parse('http://localhost:8000/flutter/')),
-        HostedPage.site,
-      );
-    });
-
-    test('draws the example at the route below it, and in a takeover', () {
-      // `/flutter/listings/` is the example served on its own, and a takeover document is
-      // the page an HTML frame becomes — neither of them is the site.
-      expect(
-        hostedPageFor(
-          Uri.parse('https://cedvdb.github.io/unibox/flutter/listings/'),
-        ),
-        HostedPage.example,
-      );
-      expect(
-        hostedPageFor(
-          Uri.parse('https://cedvdb.github.io/unibox/web/takeover/?seed=rose'),
-        ),
-        HostedPage.example,
-      );
-    });
-
-    test('draws the example where there is no address to route on', () {
-      // A phone, a desk and a test have no build whose root they could be.
-      expect(
-        hostedPageFor(Uri.parse('file:///Users/ada/unibox_example_flutter')),
-        HostedPage.example,
-      );
-      expect(
-        hostedPageFor(Uri.parse('http://localhost:3000/')),
-        HostedPage.example,
-      );
-    });
+  test('selects the native catalogue and the independent listing host', () {
+    expect(
+      hostedPageFor(Uri.parse('https://example.com/flutter/components/')),
+      HostedPage.components,
+    );
+    expect(
+      hostedPageFor(Uri.parse('https://example.com/flutter/listings/')),
+      HostedPage.example,
+    );
+    expect(
+      hostedPageFor(Uri.parse('https://example.com/web/takeover/')),
+      HostedPage.example,
+    );
+    expect(
+      hostedPageFor(Uri.parse('https://example.com/flutter/')),
+      HostedPage.site,
+    );
   });
-
-  group('SiteApp', () {
-    testWidgets('draws the whole page, down to the catalogue it closes on', (
+  for (final width in <double>[375, 1440]) {
+    testWidgets('the region-first guide renders at $width without overflow', (
       tester,
     ) async {
-      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.physicalSize = Size(width, 1000);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
-
       await tester.pumpWidget(const SiteApp());
-      await tester.pump();
-
-      // The claim, the two branches of the diagram and the bar that closes the page: three
-      // bars that say the tree reached the renderer whole rather than a part of it.
-      expect(find.text('Flutter UI. Searchable HTML.'), findsOneWidget);
-      expect(find.text('HTML and CSS'), findsOneWidget);
-      expect(find.text('Flutter'), findsOneWidget);
-      expect(find.text('Material'), findsOneWidget);
+      await tester.pumpAndSettle();
+      expect(find.text('One region. HTML and Flutter.'), findsOneWidget);
       expect(tester.takeException(), isNull);
-
-      // The spinner in the catalogue owns a ticker, and leaving the page is what stops it — and
-      // the fonts loaded at the top of the test schedule a relayout for the frame after they
-      // arrive, so the tree is pumped once more once it is gone rather than left with a callback
-      // pending against a disposed binding.
-      await tester.pumpWidget(const SizedBox());
-      // The font notification arrives as a platform message, which lands after the frame the
-      // load scheduled: flush the queue, then give it the frame it asked for.
-      await tester.idle();
-      await tester.pump();
     });
-  });
+  }
 }

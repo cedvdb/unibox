@@ -19,8 +19,8 @@ UINode buildMaterialSection({
       children: <UINode>[
         siteHeading(
           palette,
-          title: 'Material',
-          lead: 'Declarations for HTML. Native controls in Flutter.',
+          title: 'A small optional Material vocabulary',
+          lead: 'Shared colour and type values, plus declarations with native Flutter substitutions. The application installs the mapping; native paint may differ while content and actions agree.',
         ),
         _specimen(
           'Cards',

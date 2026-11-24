@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Clarify stateless shared regions, host-owned application behaviour and explicit optional handover in the guides and worked example.
+
 - Aim keyed replay at a native control’s unique tap surface when it hugs inside a stretched wrapper.
 
 - Add explicit host-directed handover with page scroll restoration; require native mappings for components that declare them and remove custom path painting.

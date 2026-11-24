@@ -1,11 +1,13 @@
 # unibox_example_flutter
 
-The native Flutter host for the shared declarations. It supplies the surface,
-fonts, link policy and required Material substitution map. It does not define a
-second copy of the shared regions.
+An ordinary Flutter host around the shared listing region. Native search and a
+filter choose which apartments the declaration receives; its save callback opens
+a native dialog. The host owns page composition, state and its scroll controller.
 
-The handover example explicitly completes a `FlutterHandover` after its initial
-layout and disposes the coordinator with its host. The component catalogue uses
-native widgets only. The bootstrap can use an existing host supplied by the bridge.
+Direct entry works independently. Only the separate handover route completes a
+`FlutterHandover` after layout, using that controller and the host's root context.
+The Material page installs the native substitution map. Browser links navigate;
+other platforms show a copyable destination without another plugin dependency.
 
-See [the examples](../README.md) and [handover](../../docs/takeover.md).
+Run `flutter run` here, or build the complete site with `tool/site.sh` from the
+repository root. See [the example guide](../README.md).
