@@ -366,18 +366,17 @@ Widget _chip(BuildContext context, core.UINode node, Widget? content) {
   final OutlinedBorder shape = RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(declared.borderRadius ?? 0),
   );
-  // Flutter's own chip is 38 pixels tall whatever Material's 32 says — its padding is eight
-  // above and below a 20 pixel label, plus the line around it — and it follows a density step
-  // by two. So the step that paints the declared pill is half the distance between the two
-  // heights: -3 for the 32 a chip is, and -7 for the 24 a desk draws.
-  final VisualDensity density = VisualDensity(
-    vertical:
-        ((declared.height ?? material.MaterialChip.controlHeight) -
-            _chipHeight) /
-        2,
-  );
-  final core.BoxTextStyle? text = declared.textStyle;
-  final TextStyle? labelStyle = text == null ? null : _labelStyle(text);
+
+  // The pill is the declaration's, and the declaration's default is the one Flutter paints — so
+  // a chip that states nothing is passed nothing. A caller who asks for a tighter pill gets the
+  // step that carries the widget there: Flutter's chip follows a density step by two pixels,
+  // which the suite pins by measuring the declared heights.
+  final double declaredHeight =
+      declared.height ?? material.MaterialChip.controlHeight;
+  final VisualDensity? density =
+      declaredHeight == material.MaterialChip.controlHeight
+      ? null
+      : VisualDensity(vertical: (declaredHeight - _defaultPill) / 2);
 
   // A chip with a cross is the input chip; one without is a choice, and a chip that says it
   // is chosen is a filter. Those are the three Material draws, and the node says which it is
@@ -390,7 +389,6 @@ Widget _chip(BuildContext context, core.UINode node, Widget? content) {
       shape: shape,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       visualDensity: density,
-      labelStyle: labelStyle,
       label: label,
       avatar: avatar,
       deleteIcon: cross,
@@ -405,7 +403,6 @@ Widget _chip(BuildContext context, core.UINode node, Widget? content) {
       shape: shape,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       visualDensity: density,
-      labelStyle: labelStyle,
       label: label,
       avatar: avatar,
       selected: chip.selected,
@@ -417,7 +414,6 @@ Widget _chip(BuildContext context, core.UINode node, Widget? content) {
       shape: shape,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       visualDensity: density,
-      labelStyle: labelStyle,
       label: label,
       avatar: avatar,
       // The node drew its own glyph for a chosen chip; Flutter's checkmark would be a second one.
@@ -427,20 +423,21 @@ Widget _chip(BuildContext context, core.UINode node, Widget? content) {
     );
   }
 
-  // The pill the tree paints is 32 pixels tall inside a 48 pixel target, and Flutter's chip is
-  // a single box: handed the target's height it stretches, and a chip a third taller than the
-  // one on the page is a different component. The width is the label's, because a chip that
-  // filled its box would tint the whole row on hover; the height is the target's, which is what
-  // centres the pill and what a finger gets.
+  // The pill the tree paints sits inside a 48 pixel target, and Flutter's chip is a single box:
+  // handed the target's height it stretches, and a chip a third taller than the one on the page
+  // is a different component. The width is the label's, because a chip that filled its box would
+  // tint the whole row on hover; the height is the target's, which is what centres the pill and
+  // what a finger gets.
   return Align(alignment: Alignment.center, widthFactor: 1, child: pill);
 }
 
-/// The height Flutter's own chip paints at the standard density, measured by the suite.
+/// The pill Flutter's own chip paints at the standard density, measured by the suite.
 ///
-/// It is not a token — Material's pill is [material.MaterialChip.controlHeight] and the node
-/// states it. This is what the widget does with a pill it was not asked about, and the
-/// difference between the two is what a substituted chip has to be told to forget.
-const double _chipHeight = 38;
+/// It is not a token: [material.MaterialChip.controlHeight] is the pill a declaration states,
+/// and it is this number — which is why a chip at the default is passed no density at all.
+/// A caller that asks for another height is a chip that departs from the widget's own answer,
+/// and the difference is what the step is made of: Flutter follows a step by two pixels.
+const double _defaultPill = 38;
 
 Widget _iconButton(BuildContext context, core.UINode node, Widget? content) {
   final material.MaterialIconButton button =
