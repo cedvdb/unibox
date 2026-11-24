@@ -19,12 +19,14 @@ tool/site.sh --serve
 ```
 
 The landing page restores the original hero, indexability explanation and illustrated
-node vocabulary, followed by inline Material and typography specimens. Those
-specimens contain no navigation links.
+node vocabulary, then the type scale, and closes with the Material section as a
+comparison: the component reference written as markup, and the same declaration drawn
+by Flutter's own `Card`, `FilledButton`, `FilterChip` and `SegmentedButton` through
+`materialComponents()`. The specimens in the reference carry no navigation links.
 
-The left frame is the HTML reference. The right frame starts with that same HTML,
-then hands over to Flutter. Scroll or press **Save these homes** during loading;
-Flutter restores the position and replays the action, opening **Homes saved**.
+In the hero the left frame is the HTML reference and the right frame starts with that
+same HTML, then hands over to Flutter. Scroll or press **Save these homes** during
+loading; Flutter restores the position and replays the action, opening **Homes saved**.
 
 | Route | Purpose |
 | --- | --- |
@@ -32,7 +34,7 @@ Flutter restores the position and replays the action, opening **Homes saved**.
 | `/web/takeover/` | Full-size handover demo |
 | `/web/listings/` | HTML reference for comparison |
 | `/flutter/listings/` | Direct Flutter rendering for inspection |
-| `/web/components/`, `/flutter/components/` | Material component reference |
+| `/web/components/`, `/flutter/components/` | The two windows of the Material section: the component reference as HTML and with native substitutions |
 
 The reference routes inspect the renderers; the intended flow is HTML to Flutter.
 Hosts own routing, data and actions. They do not add a second version of this UI.

@@ -19,10 +19,15 @@ void main() {
       'Display large',
       'Headline medium',
       'Body medium',
-      'Colour roles',
     ]) {
       expect(html, contains(label));
     }
+  });
+
+  test('shows components and the type scale, not the palette', () {
+    // A colour role is a value the components name, not a specimen: the page compares a
+    // declaration with the native controls that draw it, and a swatch compares nothing.
+    expect(html, isNot(contains('Colour roles')));
   });
 
   test('writes each specimen as a named section', () {

@@ -18,9 +18,9 @@ import re
 import sys
 
 # The guide is intentionally brief: one declaration, two renderers and handover.
-# Keep its outline, comparison frames and destinations alongside a small copy floor.
+# Keep its outline, its two comparison pairs and its destinations alongside a small copy floor.
 DOCUMENTS = {
-    'index.html': {'words': 80, 'h1': 1, 'links': 4, 'iframes': 2},
+    'index.html': {'words': 80, 'h1': 1, 'links': 4, 'iframes': 4},
     'web/listings/index.html': {'words': 60, 'h1': 1, 'links': 1, 'inputs': 0},
     'web/takeover/index.html': {'words': 60, 'h1': 1, 'links': 1, 'inputs': 0},
 }

@@ -61,7 +61,9 @@ tool/site.sh --serve
 ```
 
 The site displays the same example through both renderers, with live handover in
-the Flutter frame. The [example source](example/README.md) uses one
+the Flutter frame. Its Material section holds the component reference to the same
+test: the same declarations written as markup in one window, and drawn by Flutter's
+own controls in the other. The [example source](example/README.md) uses one
 `buildListingExample` declaration for both targets, with the same content and layout.
 
 ## Material and custom components

@@ -16,7 +16,14 @@ void main() {
           return TextNode(title);
         },
       );
-      expect(sources, <String>['web/listings/', 'web/takeover/']);
+      expect(sources, <String>[
+        'web/listings/',
+        'web/takeover/',
+        // The Material section is the same declaration in both renderings, so it frames
+        // the component reference twice: once as markup, once as Flutter's own controls.
+        'web/components/',
+        'flutter/components/',
+      ]);
       final headings = flatten(page)
           .whereType<TextNode>()
           .where((node) => node.headingLevel != null && node.headingLevel! <= 2)

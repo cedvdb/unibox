@@ -9,9 +9,13 @@ void main() {
       contains('<title>Unibox — Flutter UI. Searchable HTML.</title>'),
     );
     expect(RegExp('<h1').allMatches(html), hasLength(1));
-    expect(RegExp('<iframe').allMatches(html), hasLength(2));
+    // Two pairs of windows: the example in both renderings, and the component reference
+    // in both renderings, so a reader compares declarations rather than claims.
+    expect(RegExp('<iframe').allMatches(html), hasLength(4));
     expect(html, contains('src="web/listings/"'));
     expect(html, contains('src="web/takeover/"'));
+    expect(html, contains('src="web/components/"'));
+    expect(html, contains('src="flutter/components/"'));
     expect(html, isNot(contains('src="flutter/listings/"')));
     expect(html, contains('Make Flutter Web pages indexable'));
     expect(html, contains('Just boxes'));

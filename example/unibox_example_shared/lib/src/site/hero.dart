@@ -5,15 +5,6 @@ import '../theme.dart';
 
 import 'section.dart';
 
-/// A frame of the comparison: the node that draws [src], which the host supplies.
-///
-/// A frame is an `EmbedNode` — an `<iframe>` on the web — which is the one thing this
-/// tree cannot describe, so it arrives as a builder instead of as an import.
-typedef ShowcaseFrame = UINode Function({
-  required String src,
-  required String title,
-});
-
 /// One Dart declaration branching into HTML and a live Flutter handover.
 UINode buildHeroSection({
   required ShowcaseFrame frame,

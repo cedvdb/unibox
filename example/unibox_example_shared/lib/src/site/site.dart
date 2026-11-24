@@ -84,7 +84,10 @@ UINode buildSitePage({
           buildHeroSection(frame: frame, seed: seed),
           buildIndexableSection(seed: seed),
           buildVocabularySection(seed: seed),
-          buildMaterialSection(seed: seed),
+          // The design system closes the page, and it does so as a comparison: the same
+          // component reference written as markup and drawn by Flutter's own controls,
+          // two windows of one size.
+          buildMaterialComparison(frame: frame, seed: seed),
           buildTypographySection(seed: seed),
         ],
       ),

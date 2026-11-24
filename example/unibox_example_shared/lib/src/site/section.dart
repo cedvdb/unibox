@@ -9,6 +9,17 @@ import 'package:unibox_material/unibox_material.dart';
 /// desk.
 const double siteMeasure = 1080;
 
+/// A frame of a comparison: the node that draws [src], which the host supplies.
+///
+/// A frame is an `EmbedNode` — an `<iframe>` on the web — which is the one thing a
+/// tree cannot describe, so it arrives as a builder instead of as an import. Two
+/// sections compare renderings side by side, and this is the shape both of them ask
+/// their host for.
+typedef ShowcaseFrame = UINode Function({
+  required String src,
+  required String title,
+});
+
 /// A section of the page: a full width background, and its content measured to
 /// [siteMeasure] and centred.
 ///

@@ -136,30 +136,113 @@ UINode buildMaterialSection({
             onSelect: _select,
           ),
         ),
-        _specimen(
-          'Colour roles',
-          GridNode(
-            minItemWidth: 180,
-            maxColumns: 4,
-            gap: 12,
-            children: <UINode>[
-              _swatch('Primary', palette.primary, palette.onPrimary),
-              _swatch(
-                'Secondary',
-                palette.secondaryContainer,
-                palette.onSecondaryContainer,
-              ),
-              _swatch('Tertiary', palette.tertiary, palette.onTertiary),
-              _swatch(
-                'Surface',
-                palette.surfaceContainerHighest,
-                palette.onSurface,
-              ),
-            ],
-          ),
+      ],
+    ),
+  );
+}
+
+/// The landing page's Material section: one declaration drawn by both renderers.
+///
+/// A claim that Flutter draws the same controls is worth more as two windows than as an
+/// adjective. The left frame is [buildComponentReference] written as markup; the right
+/// one is the same tree drawn by Flutter, where every control is the platform's own —
+/// `Card`, `FilledButton`, `FilterChip`, `SegmentedButton` — handed to it by
+/// `materialComponents`. Neither frame is a screenshot, so a reader compares two
+/// renderings of one declaration rather than two pictures of it.
+///
+/// The specimens live in the frames and not on this page: a copy here would be a third
+/// rendering to keep in step, and the values the page states in its own text are the type
+/// scale below.
+UINode buildMaterialComparison({
+  required ShowcaseFrame frame,
+  ExampleSeed seed = ExampleSeed.defaultSeed,
+}) {
+  final palette = ExamplePalette.materialFor(seed);
+  return siteSection(
+    background: palette.surface,
+    child: Box(
+      width: double.infinity,
+      gap: 32,
+      children: <UINode>[
+        siteHeading(
+          palette,
+          title: 'Material',
+          lead: 'Shared declarations. Native Flutter controls.',
+        ),
+        GridNode(
+          minItemWidth: 380,
+          maxColumns: 2,
+          gap: 20,
+          children: <UINode>[
+            _rendering(
+              palette,
+              label: 'HTML and CSS',
+              note:
+                  'Cards, buttons, chips and segments painted from the values, as '
+                  'markup a crawler can read.',
+              src: 'web/components/',
+              // The accessible name says which section the window belongs to: the page
+              // already frames the example as `Flutter`, and two frames with one name
+              // are two frames a screen reader cannot tell apart.
+              title: 'Material as HTML and CSS',
+              frame: frame,
+            ),
+            _rendering(
+              palette,
+              label: 'Flutter',
+              note:
+                  'The same declarations, drawn by Flutter\'s own Card, FilledButton, '
+                  'FilterChip and SegmentedButton.',
+              src: 'flutter/components/',
+              title: 'Material drawn by Flutter',
+              frame: frame,
+            ),
+          ],
         ),
       ],
     ),
+  );
+}
+
+/// One window of the comparison: what rendering it holds, and the frame itself.
+///
+/// The name is an `h3`, because the Material heading above it is the `h2`, and the window
+/// has a height of its own like the hero's: a frame is a window rather than a paragraph,
+/// and an `<iframe>` with no height is a sliver.
+///
+/// The note sits under the window rather than above it, which is where a figure's caption
+/// belongs and the only order that keeps the two windows on one line: a note that wraps to a
+/// second line above its frame would push one window down and end the comparison before it
+/// started.
+UINode _rendering(
+  MaterialPalette palette, {
+  required String label,
+  required String note,
+  required String src,
+  required String title,
+  required ShowcaseFrame frame,
+}) {
+  return Box(
+    width: double.infinity,
+    gap: 8,
+    children: <UINode>[
+      TextNode(label, style: MaterialTypography.titleLarge, headingLevel: 3),
+      Box(
+        width: double.infinity,
+        height: 540,
+        borderRadius: 18,
+        overflow: Overflow.hidden,
+        border: BoxBorder(color: palette.outlineVariant),
+        backgroundColor: palette.surface,
+        children: <UINode>[frame(src: src, title: title)],
+      ),
+      TextNode(
+        note,
+        style: MaterialTypography.bodySmall.copyWith(
+          color: palette.onSurfaceVariant,
+        ),
+      ),
+    ],
   );
 }
 
@@ -170,13 +253,6 @@ List<UINode> _cardText(String title) => <UINode>[
     style: MaterialTypography.bodyMedium,
   ),
 ];
-
-UINode _swatch(String name, BoxColor colour, BoxColor foreground) => Box(
-  padding: const BoxSpacing.all(20),
-  borderRadius: 12,
-  backgroundColor: colour,
-  children: <UINode>[TextNode(name, color: foreground)],
-);
 
 /// The Material type scale, displayed directly in the page.
 UINode buildTypographySection({ExampleSeed seed = ExampleSeed.defaultSeed}) {
