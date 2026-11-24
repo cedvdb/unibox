@@ -138,6 +138,47 @@ VoidCallback? _action(
   };
 }
 
+/// The state layers a substituted control paints, in the palette's own colours.
+///
+/// A document paints a hover as `hoverLayer`, a keyboard focus as `focusLayer` and a press as
+/// `pressedLayer` — one shade of `onSurface`, whatever a control's fill is. Flutter's own
+/// buttons derive theirs from the *foreground* instead, so a filled button lightens with
+/// `onPrimary` on one target while the page darkens it with `onSurface`: the same control in
+/// two colours, which is what a page that holds the two renderings side by side shows.
+/// Handing the widget the palette's layers is what makes one declaration one hover.
+///
+/// `null` for a theme that states no layers: a host that supplies its own theme keeps the
+/// platform's own ink rather than being given a colour no palette named.
+WidgetStateProperty<Color?>? _overlay(BuildContext context) {
+  final core.UniboxTheme theme =
+      UniboxScopeWidget.of(context).theme ?? core.UniboxTheme.none;
+  final Color? hover = _layerOf(theme, material.MaterialColorRole.hoverLayer);
+  final Color? focus = _layerOf(theme, material.MaterialColorRole.focusLayer);
+  final Color? pressed = _layerOf(
+    theme,
+    material.MaterialColorRole.pressedLayer,
+  );
+
+  if (hover == null || focus == null || pressed == null) {
+    return null;
+  }
+
+  return WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+    if (states.contains(WidgetState.disabled)) return null;
+    if (states.contains(WidgetState.pressed)) return pressed;
+    if (states.contains(WidgetState.hovered)) return hover;
+    if (states.contains(WidgetState.focused)) return focus;
+    return null;
+  });
+}
+
+/// The colour [role] resolves to under [theme], or `null` when it states none.
+Color? _layerOf(core.UniboxTheme theme, material.MaterialColorRole role) {
+  final core.BoxColor? colour = theme.colorOf(role);
+
+  return colour == null ? null : Color(colour.value);
+}
+
 TextStyle _labelStyle(core.BoxTextStyle text) => TextStyle(
   fontSize: text.fontSize,
   fontFamily: text.fontFamily,
@@ -224,6 +265,10 @@ Widget _button(BuildContext context, core.UINode node, Widget? content) {
                 ? null
                 : Color(text!.color!.value),
           ),
+    // The layer a press and a hover paint, from the palette the tree is drawn with — see
+    // [_overlay]. Flutter's own buttons derive it from their foreground, which is a different
+    // tint on a filled button: a light wash of `onPrimary` where the page paints `onSurface`.
+    overlayColor: _overlay(context),
   );
 
   final Widget control = switch (button.variant) {
@@ -253,7 +298,18 @@ Widget _button(BuildContext context, core.UINode node, Widget? content) {
     ),
   };
   return declared.width == null
-      ? Align(alignment: AlignmentDirectional.centerStart, child: control)
+      // A box of its own, at the size the label asks for, and never wider. The node's outer box
+      // *is* a row and this substitution replaces it, so the widget has to answer the same way
+      // the row does: hug the label, and left-align it when a parent hands over a width it did
+      // not use. `widthFactor: 1` is the whole of it — a plain `Align` fills the width a `Wrap`
+      // gives each child, which put every button in a wrapping row on a line of its own, and a
+      // `Row` feeds its child an unbounded width, which overflowed by fourteen pixels instead of
+      // letting a long label wrap.
+      ? Align(
+          alignment: AlignmentDirectional.centerStart,
+          widthFactor: 1,
+          child: control,
+        )
       : SizedBox(width: declared.width, child: control);
 }
 
@@ -310,16 +366,31 @@ Widget _chip(BuildContext context, core.UINode node, Widget? content) {
   final OutlinedBorder shape = RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(declared.borderRadius ?? 0),
   );
+  // Flutter's own chip is 38 pixels tall whatever Material's 32 says — its padding is eight
+  // above and below a 20 pixel label, plus the line around it — and it follows a density step
+  // by two. So the step that paints the declared pill is half the distance between the two
+  // heights: -3 for the 32 a chip is, and -7 for the 24 a desk draws.
+  final VisualDensity density = VisualDensity(
+    vertical:
+        ((declared.height ?? material.MaterialChip.controlHeight) -
+            _chipHeight) /
+        2,
+  );
+  final core.BoxTextStyle? text = declared.textStyle;
+  final TextStyle? labelStyle = text == null ? null : _labelStyle(text);
 
   // A chip with a cross is the input chip; one without is a choice, and a chip that says it
   // is chosen is a filter. Those are the three Material draws, and the node says which it is
   // by what it carries.
+  final Widget pill;
   if (chip.onDeleted != null) {
-    return InputChip(
+    pill = InputChip(
       selected: chip.selected,
       isEnabled: chip.enabled,
       shape: shape,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      visualDensity: density,
+      labelStyle: labelStyle,
       label: label,
       avatar: avatar,
       deleteIcon: cross,
@@ -329,30 +400,47 @@ Widget _chip(BuildContext context, core.UINode node, Widget? content) {
       // cross is the second way to the same end, not the only one.
       onPressed: onPressed,
     );
-  }
-
-  if (onPressed == null && chip.onDeleted == null) {
-    return RawChip(
+  } else if (onPressed == null && chip.onDeleted == null) {
+    pill = RawChip(
       shape: shape,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      visualDensity: density,
+      labelStyle: labelStyle,
       label: label,
       avatar: avatar,
       selected: chip.selected,
       isEnabled: chip.enabled,
       showCheckmark: false,
     );
+  } else {
+    pill = FilterChip(
+      shape: shape,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      visualDensity: density,
+      labelStyle: labelStyle,
+      label: label,
+      avatar: avatar,
+      // The node drew its own glyph for a chosen chip; Flutter's checkmark would be a second one.
+      showCheckmark: false,
+      selected: chip.selected,
+      onSelected: onPressed == null ? null : (bool _) => onPressed(),
+    );
   }
-  return FilterChip(
-    shape: shape,
-    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-    label: label,
-    avatar: avatar,
-    // The node drew its own glyph for a chosen chip; Flutter's checkmark would be a second one.
-    showCheckmark: false,
-    selected: chip.selected,
-    onSelected: onPressed == null ? null : (bool _) => onPressed(),
-  );
+
+  // The pill the tree paints is 32 pixels tall inside a 48 pixel target, and Flutter's chip is
+  // a single box: handed the target's height it stretches, and a chip a third taller than the
+  // one on the page is a different component. The width is the label's, because a chip that
+  // filled its box would tint the whole row on hover; the height is the target's, which is what
+  // centres the pill and what a finger gets.
+  return Align(alignment: Alignment.center, widthFactor: 1, child: pill);
 }
+
+/// The height Flutter's own chip paints at the standard density, measured by the suite.
+///
+/// It is not a token — Material's pill is [material.MaterialChip.controlHeight] and the node
+/// states it. This is what the widget does with a pill it was not asked about, and the
+/// difference between the two is what a substituted chip has to be told to forget.
+const double _chipHeight = 38;
 
 Widget _iconButton(BuildContext context, core.UINode node, Widget? content) {
   final material.MaterialIconButton button =
@@ -391,7 +479,8 @@ Widget _iconButton(BuildContext context, core.UINode node, Widget? content) {
     side: border == null
         ? null
         : BorderSide(width: border.width, color: Color(border.color.value)),
-  );
+    // The same state layers the page paints — see [_overlay].
+  ).copyWith(overlayColor: _overlay(context));
   return switch (button.variant) {
     material.MaterialIconButtonVariant.standard => IconButton(
       onPressed: onPressed,

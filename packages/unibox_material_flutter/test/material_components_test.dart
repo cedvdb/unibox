@@ -263,4 +263,112 @@ void main() {
     await tester.tap(find.byType(IconButton));
     expect(calls, 1);
   });
+
+  testWidgets('keeps a wrapping row of native buttons on one line', (
+    tester,
+  ) async {
+    // The tree declares a row that wraps; the substitution replaces that row with a widget, and
+    // a widget that fills the width a `Wrap` hands its children puts every button on a line of
+    // its own — which is what the page held beside it did not do.
+    await draw(
+      tester,
+      core.Box(
+        direction: core.Axis.horizontal,
+        wrap: true,
+        gap: 12,
+        children: <core.UINode>[
+          material.MaterialButton.filled(
+            label: const core.TextNode('Filled'),
+            onTap: () {},
+          ),
+          material.MaterialButton.tonal(
+            label: const core.TextNode('Tonal'),
+            onTap: () {},
+          ),
+          material.MaterialButton.outlined(
+            label: const core.TextNode('Outlined'),
+            onTap: () {},
+          ),
+          material.MaterialButton.text(
+            label: const core.TextNode('Text'),
+            onTap: () {},
+          ),
+        ],
+      ),
+    );
+
+    final List<Offset> at = <Offset>[
+      for (final String label in <String>[
+        'Filled',
+        'Tonal',
+        'Outlined',
+        'Text',
+      ])
+        tester.getTopLeft(find.text(label)),
+    ];
+
+    expect(
+      at.map((Offset top) => top.dy).toSet(),
+      hasLength(1),
+      reason: 'the four buttons share one line',
+    );
+    for (int i = 1; i < at.length; i++) {
+      expect(
+        at[i].dx,
+        greaterThan(at[i - 1].dx),
+        reason: 'the buttons keep the order the tree states',
+      );
+    }
+  });
+
+  testWidgets('paints the pill height a native chip is declared at', (
+    tester,
+  ) async {
+    // Material's chip is 32 pixels tall and the node states it; Flutter's own chip paints 38 at
+    // the standard density, so the substitution has to tell it which pill the tree asked for.
+    for (final double height in <double>[
+      material.MaterialChip.controlHeight,
+      40,
+    ]) {
+      await draw(
+        tester,
+        material.MaterialChip(
+          label: const core.TextNode('Two rooms'),
+          height: height,
+          onTap: () {},
+        ),
+      );
+
+      expect(tester.getSize(find.byType(FilterChip)).height, height);
+    }
+  });
+
+  testWidgets('hovers a native button with the palette state layer', (
+    tester,
+  ) async {
+    // Flutter's filled button hovers with `onPrimary`; the page hovers it with `onSurface`.
+    // One declaration, one hover: the widget is handed the palette's own layer.
+    await draw(
+      tester,
+      material.MaterialButton.filled(
+        label: const core.TextNode('Save'),
+        onTap: () {},
+      ),
+    );
+
+    final FilledButton button = tester.widget<FilledButton>(
+      find.byType(FilledButton),
+    );
+    final WidgetStateProperty<Color?> overlay = button.style!.overlayColor!;
+
+    expect(
+      overlay.resolve(<WidgetState>{WidgetState.hovered}),
+      Color(material.MaterialPalette.light.hoverLayer.value),
+    );
+    expect(
+      overlay.resolve(<WidgetState>{WidgetState.pressed}),
+      Color(material.MaterialPalette.light.pressedLayer.value),
+    );
+    expect(overlay.resolve(<WidgetState>{WidgetState.disabled}), isNull);
+  });
 }

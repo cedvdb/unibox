@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **One declaration, one hover, one row, one pill.** A substituted control now paints the layers the tree states: a native button and icon button hover, focus and press with the palette's `hoverLayer`, `focusLayer` and `pressedLayer` instead of Flutter's foreground-derived overlay, so a filled button tints `onSurface` on both targets rather than `onPrimary` on one. A row of native buttons in a wrapping box stays a row — the substitution answers with a row at the label's size, where an `Align` filled the width a `Wrap` hands its children and put every button on a line of its own. A native chip paints the pill the tree declares — 32 pixels, or the height the node states — centred in the tap target it is given, rather than stretched to that target and a third taller than the one on the page.
+- `uniboxThemeOf` states the state layers as shades of the scheme's `onSurface` at Material's own percentages, which is what `MaterialPalette` states; it used black at four and twelve percent before, so one theme hovered differently from the other.
 - Preserve declared card outlines, chip corners and compact targets, and button widths when substituting native controls; buttons without a width hug their labels.
 
 - Require native widget rendering for the retained vocabulary; preserve destinations, disabled state and chip selection. Unregistered icon glyphs are reported instead of approximated.

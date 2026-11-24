@@ -52,12 +52,23 @@ void main() {
     expect(theme.colors[BrandRole.star], star);
   });
 
-  test('states a state layer as the alpha it is painted with', () {
-    final core.UniboxTheme theme = uniboxThemeOf(scheme);
-    final core.BoxColor hover =
-        theme.colors[material.MaterialColorRole.hoverLayer]!;
+  test(
+    'states a state layer as a shade of the content colour the palette names',
+    () {
+      final core.UniboxTheme theme = uniboxThemeOf(scheme);
+      final core.BoxColor hover =
+          theme.colors[material.MaterialColorRole.hoverLayer]!;
+      final core.BoxColor pressed =
+          theme.colors[material.MaterialColorRole.pressedLayer]!;
 
-    // Four percent black: a scheme has no field for it, so it is a rule rather than a value.
-    expect(hover.value, 0x0A000000);
-  });
+      // Material's numbers over the scheme's own `onSurface`, which is what `MaterialPalette`
+      // states too: a theme read from a scheme and a theme grown from a seed have to answer the
+      // same layer, or one declaration is painted two ways. A hover was black at four percent
+      // here once — a scheme has no field for a layer, so it was written as a rule and the two
+      // rules disagreed.
+      final int onSurface = scheme.onSurface.toARGB32();
+      expect(hover.value, (20 << 24) | (onSurface & 0xFFFFFF));
+      expect(pressed.value, (26 << 24) | (onSurface & 0xFFFFFF));
+    },
+  );
 }

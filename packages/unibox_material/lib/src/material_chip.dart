@@ -46,6 +46,9 @@ final class MaterialChip extends Box {
        trailing = trailing,
        selected = selected,
        controlStyle = BoxStyle(
+         // The pill's own height, which a host drawing the platform's chip needs: Flutter's
+         // own chip is a different number tall, and it is told what to paint from this.
+         height: height,
          borderRadius: borderRadius,
          padding:
              padding ??
