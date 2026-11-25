@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.0
 
 - **A control tints its own ink, as Material does.** `materialSurface` takes the colour its content is painted in and derives the hover (8%), focus and press (10%) layers from it, rather than naming one palette layer for every control: a button passes its label colour, a chip its label, an icon button its glyph, a segment its label. A filled button therefore hovers with `onPrimary` on the page, which is what a native filled button paints, so a host states no overlay of its own. A chip states no ink: a native chip's ink well takes its layer from the theme, so the chip keeps the surface's own — and the palette's `hoverLayer`, `focusLayer` and `pressedLayer` are those layers.
 - **A chip is the pill Flutter draws, and a segment's line is the one it draws.** `MaterialChip.controlHeight` is 38 — a 20 pixel label, eight above and below, and the 1 pixel line — with insets of 8, where it was Material's table value of 32 with 6: a declaration that states a pill no native chip paints makes every substitution carry the difference, and this one had to be told a density step to come down to it. `MaterialSegmentedButton`'s default border was already `outline`, which is the colour Flutter's own segments use, so its substitution needs nothing stated either. Both stay parameters — `height`, `padding`, `borderRadius`, `labelStyle`, `border` — so an application that wants the tighter pill or a different line says so, and the host is told, rather than the other way round.

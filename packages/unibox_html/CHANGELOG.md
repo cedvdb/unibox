@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.0
 
 - A page that scrolls inside an element marks it `data-unibox-scroll-root`; the recorded page
   offset is that element's, and the window's when nothing is marked. A host that paints the
