@@ -1,0 +1,66 @@
+name: Publish
+
+# Pub.dev accepts automated publishing only from a workflow a tag push triggered, and only
+# for the version that tag names: `v0.1.1` publishes 0.1.1 and nothing else. The first
+# version of each package is published by hand, because pub.dev's automation cannot create
+# a package. `tool/publish.sh` publishes only what the tag names and is not on pub.dev yet.
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+# Flutter is read from `.flutter-version`, as in `ci.yml`: one file, so no workflow can
+# verify against a version the others do not.
+
+jobs:
+  check:
+    name: Publish check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - name: Read the Flutter version
+        id: flutter-version
+        run: echo "version=$(cat .flutter-version)" >> "$GITHUB_OUTPUT"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.flutter-version.outputs.version }}
+          channel: stable
+          cache: true
+      - name: Resolve the workspace
+        run: flutter pub get
+      # On every pull request: a missing LICENSE or a changelog that does not name the
+      # version fails here, before a tag exists rather than after it.
+      - name: Validate every archive
+        run: tool/publish.sh --check
+
+  publish:
+    name: Publish to pub.dev
+    if: github.event_name == 'push'
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write # OIDC: pub.dev verifies the repository and the tag, no secret
+    steps:
+      - uses: actions/checkout@v7
+      - name: Read the Flutter version
+        id: flutter-version
+        run: echo "version=$(cat .flutter-version)" >> "$GITHUB_OUTPUT"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.flutter-version.outputs.version }}
+          channel: stable
+          cache: true
+      - name: Resolve the workspace
+        run: flutter pub get
+      - name: The release gate
+        run: tool/verify.sh --docs
+      - name: Publish the versions the tag names
+        run: tool/publish.sh
