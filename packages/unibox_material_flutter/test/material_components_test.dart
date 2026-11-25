@@ -321,6 +321,30 @@ void main() {
     }
   });
 
+  testWidgets('centres the cross the way the page draws it', (tester) async {
+    // A glyph's line box is taller than its ink and the chip centres the box, so an eighteen
+    // pixel cross inherited the label's line height and sat off the middle of the pill — the
+    // page, which centres the box around the glyph, drew it centred. One em of line box is the
+    // box the glyph was cut for.
+    await draw(
+      tester,
+      material.MaterialChip(
+        label: const core.TextNode('Removable'),
+        trailing: const core.TextNode('×', fontSize: 18),
+        onTap: () {},
+        onRemove: () {},
+      ),
+    );
+
+    final DefaultTextStyle style = tester.widget<DefaultTextStyle>(
+      find
+          .ancestor(of: find.text('×'), matching: find.byType(DefaultTextStyle))
+          .first,
+    );
+
+    expect(style.style.height, 1);
+  });
+
   testWidgets('paints the pill height a native chip is declared at', (
     tester,
   ) async {

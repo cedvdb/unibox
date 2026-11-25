@@ -313,7 +313,14 @@ Widget _chip(BuildContext context, core.UINode node, Widget? content) {
       : renderNode(chip.leading!);
   final Widget? cross = chip.trailing == null
       ? null
-      : renderNode(chip.trailing!);
+      : DefaultTextStyle.merge(
+          // A glyph's line box is taller than its ink and the chip centres the box: an
+          // eighteen pixel cross inherited the label's 1.43 line height, which left it a few
+          // pixels below the middle of the pill while the page drew it centred. A line box of
+          // one em is the box the glyph was cut for.
+          style: const TextStyle(height: 1),
+          child: renderNode(chip.trailing!),
+        );
 
   final core.BoxStyle declared = chip.controlStyle.resolve(
     UniboxScopeWidget.of(context).theme ?? core.UniboxTheme.none,
