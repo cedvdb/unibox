@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- A page that scrolls inside an element marks it `data-unibox-scroll-root`; the recorded page
+  offset is that element's, and the window's when nothing is marked. A host that paints the
+  application into the viewport no longer loses the reader's place.
+
 - A colour role painted at an alpha is written as `color-mix(in srgb, var(--unibox-color-…) N%, transparent)`, because a custom property is a colour and CSS has no way to put an alpha on one. A state layer is exactly that mix. The background and the border of a box keep the alpha now; both used to write the bare custom property and lose it.
 - Clarify stateless shared regions, host-owned application behaviour and explicit optional handover in the guides and worked example.
 

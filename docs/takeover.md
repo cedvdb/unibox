@@ -58,6 +58,12 @@ The recorder tracks the latest document offset while the reader continues to
 scroll during loading. Keyed internal scroll regions have separate offsets.
 A page offset is never inferred from whichever Flutter scrollable happens to exist.
 
+A page that keeps the document still and scrolls inside an element marks that
+element with `data-unibox-scroll-root`: the recorded page offset is the element's,
+and the window's when nothing is marked. A host that paints the application into
+the viewport needs the mark — otherwise the window answers 0 however far the
+reader had scrolled.
+
 The host creates one `FlutterHandover` and calls it when routing, data and layout
 are ready:
 
