@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.0
 
 - Clarify stateless shared regions, host-owned application behaviour and explicit optional handover in the guides and worked example.
 

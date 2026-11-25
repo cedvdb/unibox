@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.0
 
 - A native chip's cross sits on the middle of the pill. It inherited the label's line height — a glyph's line box is taller than its ink, and the chip centres the box — so it hung a few pixels low while the page drew it centred; the delete icon's line box is one em now.
 - **A substituted control keeps its own state layers.** The hover, focus and press a native button and icon button paint are the widget's default again: the declaration tints the control's ink, which is the same rule, so the substitution states no overlay unless a node names one — an application that wants another colour says so in the tree, where the page reads it too. `materialThemeData` states `hoverColor`, `focusColor`, `highlightColor` and `splashColor` from the palette, because a chip's ink well reads those and Flutter's own default there is `Colors.black` at four percent.

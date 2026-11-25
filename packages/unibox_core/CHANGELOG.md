@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.0
 
 - **A colour role can state the alpha it is painted at.** `BoxColor.role(onPrimary, 20)` is the theme's colour at eight percent — the one thing a tree may say about a role besides which one it names — and `UniboxTheme.resolve` keeps the alpha when it answers the channels, so the same role is a layer in one place and a fill in another. It is what a Material state layer is made of: the page writes a `color-mix` of the custom property and the application resolves the same shade, and neither of them names a value.
 - Clarify stateless shared regions, host-owned application behaviour and explicit optional handover in the guides and worked example.

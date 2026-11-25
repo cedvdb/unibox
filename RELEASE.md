@@ -1,8 +1,9 @@
 # Releasing Unibox
 
 Six packages live in this workspace. Five are meant for pub.dev — `unibox_core`,
-`unibox_flutter`, `unibox_html`, `unibox_dom` and `unibox_material` — and `unibox_testing`
-stays development only, because it is the test contract and nothing an application needs.
+`unibox_material`, `unibox_html`, `unibox_flutter` and `unibox_material_flutter` — and
+`unibox_testing` stays development only, because it is the test contract and nothing an
+application needs.
 
 Every package carries `publish_to: none` on purpose: it keeps an accidental
 `dart pub publish` from leaving the workspace. Cutting a release therefore starts
@@ -21,33 +22,38 @@ checks, every suite and `dart doc` for each package — the same steps CI runs o
 
 ## The steps
 
-1. **Pick the version.** The five published packages move together: `unibox_flutter`,
-   `unibox_html`, `unibox_dom` and `unibox_material` depend on `unibox_core`, and their
-   `^0.1.0` constraints have to admit the new number.
+1. **Pick the version.** The five published packages move together: `unibox_material`,
+   `unibox_html`, `unibox_flutter` and `unibox_material_flutter` depend on `unibox_core`
+   (and `unibox_material_flutter` on both `unibox_material` and `unibox_flutter`), so
+   their `^0.1.0` constraints have to admit the new number.
 2. **Bump `version:`** in `packages/unibox_core/pubspec.yaml`,
-   `packages/unibox_flutter/pubspec.yaml`, `packages/unibox_html/pubspec.yaml`,
-   `packages/unibox_dom/pubspec.yaml` and `packages/unibox_material/pubspec.yaml`, and the
-   matching `unibox_core: ^x.y.z` constraints in the dependants.
-3. **Check the changelogs.** Each one describes the package as it stands under a
-   single `## x.y.z` heading — `0.1.0` today — with no `## Unreleased` section to
-   close, because nothing has been published yet. From the second release on, add a
-   new section above the released one, written as what changed for the user rather
-   than which file changed.
-4. **Remove `publish_to: none`** from the five packages being published. Leave it
-   in `unibox_testing`.
+   `packages/unibox_material/pubspec.yaml`, `packages/unibox_html/pubspec.yaml`,
+   `packages/unibox_flutter/pubspec.yaml` and
+   `packages/unibox_material_flutter/pubspec.yaml`, and the matching
+   `unibox_core: ^x.y.z` constraints in the dependants.
+3. **Move the changelogs.** Each published package carries a `CHANGELOG.md`; the first
+   release folded its pre-release `## Unreleased` section into `## 0.1.0`, which is what
+   `dart pub publish` checks for. From the second release on, add a new section above the
+   released one, written as what changed for the user rather than which file changed.
+4. **Remove `publish_to: none`** from the five packages being published, and leave it in
+   `unibox_testing`. The removal is deliberately not automated, and it is temporary: the
+   dry run and the publish then report a modified working tree, which is expected — put it
+   back afterwards with `git checkout -- packages/*/pubspec.yaml`.
 5. **Dry run each package**, in dependency order:
 
    ```shell
    (cd packages/unibox_core && dart pub publish --dry-run)
-   (cd packages/unibox_html && dart pub publish --dry-run)
-   (cd packages/unibox_dom && dart pub publish --dry-run)
-   (cd packages/unibox_flutter && dart pub publish --dry-run)
    (cd packages/unibox_material && dart pub publish --dry-run)
+   (cd packages/unibox_html && dart pub publish --dry-run)
+   (cd packages/unibox_flutter && dart pub publish --dry-run)
+   (cd packages/unibox_material_flutter && dart pub publish --dry-run)
    ```
 
-   The dry run is also the only check that the published archive holds what it
-   should: `dart pub publish` refuses a package whose `README`, `CHANGELOG` or
-   `LICENSE` is missing, and warns about files that should not ship.
+   `resolution: workspace` needs no change: a member of this workspace is publishable as
+   it stands. The dry run is also the only check that the published archive holds what it
+   should: `dart pub publish` refuses a package whose `README`, `CHANGELOG` or `LICENSE`
+   is missing, or whose changelog does not mention the version being published, and warns
+   about files that should not ship.
 6. **Publish in the same order**, so a renderer or the material package never
    depends on a core version that is not on pub.dev yet.
 7. **Tag** the repository with the version and push the tag.
@@ -63,7 +69,7 @@ checks, every suite and `dart doc` for each package — the same steps CI runs o
 ## Version policy
 
 `design.md` §5.7 has the rules: additions are minor, and renames and removals are
-breaking and made outright — the one consumer is this repository, so there is no old
-spelling to keep. Every published change is listed in the package `CHANGELOG.md`:
-before the first release the section describes the package as a whole, and after it
-each release gets its own section.
+breaking and made outright — the consumers today are Comover and this repository, and
+both range `^0.x` deliberately, so there is no old spelling to keep. Every published
+change is listed in the package `CHANGELOG.md`: the first release describes the package
+as a whole, and after it each release gets its own section.
