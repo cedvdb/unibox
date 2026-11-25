@@ -66,10 +66,11 @@ the workflow cannot run.
    `--check` runs `dart pub publish --dry-run` on each published package with the
    `publish_to: none` guard lifted. The publish run sends every package the tag names and
    pub.dev does not serve yet, waits for each version to be served before the next, and
-   restores the guard whatever happens. By hand it is the same list in the package
-   directories: `unibox_core`, `unibox_material`, `unibox_html`, `unibox_flutter`,
-   `unibox_material_flutter`. `resolution: workspace` needs no change: a member of this
-   workspace is publishable as it stands.
+   restores the guard whatever happens. A local publish asks for a one-time password on
+   each package; the workflow does not, because it authenticates through OIDC. By hand it
+   is the same list in the package directories: `unibox_core`, `unibox_material`,
+   `unibox_html`, `unibox_flutter`, `unibox_material_flutter`. `resolution: workspace`
+   needs no change: a member of this workspace is publishable as it stands.
 5. **Tag** the repository with the version and push the tag.
 
 ## What this repository does not do
