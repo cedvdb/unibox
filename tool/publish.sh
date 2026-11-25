@@ -128,14 +128,11 @@ fi
 for package in "${pending[@]}"; do
   printf '\n==> %s %s\n' "$package" "$version"
   # A warning exits 65, and the lifted guard is one, so a non-zero code alone is not a
-  # failure: the version pub.dev serves afterwards is what decides.
+  # failure: the version pub.dev serves afterwards is what decides. The output is not
+  # captured: a local publish asks for a one-time password on the terminal, and a prompt
+  # captured by `$(...)` is a prompt nobody can answer.
   status=0
-  output=$( (cd "packages/$package" && dart pub publish --force) 2>&1 ) || status=$?
-  printf '%s\n' "$output"
-  if grep -q "can't be published yet" <<<"$output"; then
-    echo "$package cannot be published" >&2
-    exit 1
-  fi
+  (cd "packages/$package" && dart pub publish --force) || status=$?
   if [ "$status" -ne 0 ] && [ "$status" -ne 65 ]; then
     echo "Publishing $package exited $status" >&2
     exit 1
