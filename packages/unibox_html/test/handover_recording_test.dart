@@ -64,6 +64,41 @@ assert(!listeners.click, 'recorder listener was not released');
     expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
   });
 
+  test('reads a marked page scroller, and the window when none is marked', () {
+    final String program =
+        '''
+const listeners = {};
+const state = { value: 'booting' };
+let marked = { isConnected: true, scrollLeft: 4, scrollTop: 320 };
+global.window = { scrollX: 12, scrollY: 240, addEventListener() {} };
+global.document = {
+  documentElement: { getAttribute: () => state.value },
+  querySelector: () => marked,
+  querySelectorAll: () => [],
+  addEventListener: (name, callback) => listeners[name] = callback
+};
+eval(${jsonEncode(scrollScript)});
+if (window.unibox.documentScroll().dy !== 320) throw Error('the marked scroller');
+window.scrollY = 620;
+listeners.scroll();
+if (window.unibox.documentScroll().dy !== 320) throw Error('the window moved a marked page');
+marked.isConnected = false;
+marked = { isConnected: true, scrollLeft: 0, scrollTop: 480 };
+if (window.unibox.documentScroll().dy !== 480) throw Error('a replaced scroller');
+marked.isConnected = false;
+marked = null;
+if (window.unibox.documentScroll().dy !== 620) throw Error('the window fallback');
+state.value = 'app';
+window.scrollY = 900;
+if (window.unibox.documentScroll().dy !== 620) throw Error('frozen after the reveal');
+''';
+    final ProcessResult result = Process.runSync('node', <String>[
+      '-e',
+      program,
+    ]);
+    expect(result.exitCode, 0, reason: '${result.stdout}\\n${result.stderr}');
+  });
+
   test('document position follows continued scrolling and keyed offsets are consumed once', () {
     final String program =
         '''
@@ -71,6 +106,7 @@ const listeners = {};
 global.window = { scrollX: 12, scrollY: 240, addEventListener() {} };
 global.document = {
   documentElement: { getAttribute: () => 'booting' },
+  querySelector: () => null,
   querySelectorAll: () => [],
   addEventListener: (name, callback) => listeners[name] = callback
 };

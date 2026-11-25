@@ -74,6 +74,18 @@ void main() {
       expect(scrollScript, contains('unibox.takeScroll = function'));
     });
 
+    test('reads the page scroller a host marks, or the window', () {
+      // A page that paints the application into the viewport keeps the document still, so
+      // the window would answer 0 forever: the mark is how a host names the box it scrolls.
+      expect(scrollScript, contains("'$scrollRootAttribute'"));
+      expect(
+        scrollScript,
+        contains("document.querySelector('[' + rootAttribute + ']')"),
+      );
+      expect(scrollScript, contains('window.scrollY'));
+      expect(scrollScript, contains('isConnected'));
+    });
+
     test(
       'reads the offsets at the moment it is asked, not the last scroll',
       () {
