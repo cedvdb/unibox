@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **A segment's label sits beside its icon, and the pair is centred.** `MaterialSegmentedButton` gave the label a share of the room beside the icon, so a page drew an unselected segment's icon against the segment's edge with the label centred away from it, while an application — which substitutes Material's own `SegmentedButton` — drew the two together. The label takes a zero share instead: it hugs its words and shrinks only when the room runs out, which is the `Flexible` Material puts there, and the row states that the pair is centred.
+
 ## 0.1.0
 
 - **A control tints its own ink, as Material does.** `materialSurface` takes the colour its content is painted in and derives the hover (8%), focus and press (10%) layers from it, rather than naming one palette layer for every control: a button passes its label colour, a chip its label, an icon button its glyph, a segment its label. A filled button therefore hovers with `onPrimary` on the page, which is what a native filled button paints, so a host states no overlay of its own. A chip states no ink: a native chip's ink well takes its layer from the theme, so the chip keeps the surface's own — and the palette's `hoverLayer`, `focusLayer` and `pressedLayer` are those layers.

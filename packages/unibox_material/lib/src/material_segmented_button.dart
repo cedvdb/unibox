@@ -254,12 +254,14 @@ final class MaterialSegmentedButton extends Box {
                       direction: Axis.horizontal,
                       crossAlign: CrossAlign.center,
                       gap: iconGap,
-                      // A row is as wide as its content, so the room the label asks for
-                      // needs a width to be a room of: the column bounds this row, and
-                      // without the width the row hugged the icon and the words — the
-                      // document centred the pair while Flutter filled the room beside
-                      // the icon.
+                      // A row is as wide as its content, so the room the pair is centred in
+                      // needs a width to be a room of: the column bounds this row.
+                      //
+                      // The label hugs its words (a zero share) and the pair is centred —
+                      // what Material's own control draws, and what the app substitutes for
+                      // this node. A label too long for the room still shrinks and cuts.
                       width: double.infinity,
+                      mainAlign: MainAlign.center,
                       children: <UINode>[
                         leading,
                         _labelOf(segment.label, beside: true),
@@ -323,16 +325,15 @@ final class MaterialSegmentedButton extends Box {
   /// too narrow for `count ×` that widest segment.
   ///
   /// [beside] is the shape with a node in front of it. The model's `flex` is a portion of
-  /// the parent and not "take what is left", so the label fills the room beside the
-  /// node: a short label is centred in that room rather than sitting against its icon,
-  /// and the row that holds the two states the width the room is measured against.
-  /// Flutter's own `SegmentedButton` uses a `Flexible` there, which this model has no
-  /// word for; the difference shows at a width where the label is much shorter than its
-  /// column, and it is the price of a label that can never overflow.
+  /// the parent and not "take what is left", so a zero share is the one that keeps the pair
+  /// together: the label stays as wide as its words and shrinks — and cuts — only when the
+  /// row runs out of room, which is the `Flexible` Material's own `SegmentedButton` puts
+  /// there. A share of the room would centre a short label in it instead, and the icon
+  /// would sit against the segment's edge while the browser drew it beside its words.
   static UINode _labelOf(UINode label, {bool beside = false}) => Box(
     // A column, at the one place that says so: the box fills the segment when it is the
-    // content's only child, and the room beside the node when it is the row's.
-    flex: beside ? 1 : null,
+    // content's only child, and hugs, still able to shrink, when it is the row's.
+    flex: beside ? 0 : null,
     width: beside ? null : double.infinity,
     // The room the text is given, and the cut when it is still too long: a node that
     // is not a text cannot say how it gives way, so it is clipped at the column.

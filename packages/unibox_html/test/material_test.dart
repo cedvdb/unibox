@@ -71,6 +71,68 @@ void main() {
     });
   });
 
+  group('a segment with an icon', () {
+    String renderIconSegment() => toHtml(
+      MaterialSegmentedButton(
+        selected: 1,
+        width: 300,
+        onSelect: (int index) {},
+        segments: const <MaterialSegment>[
+          MaterialSegment(
+            label: core.TextNode('Day'),
+            icon: core.TextNode('mark'),
+          ),
+          MaterialSegment(label: core.TextNode('Week')),
+        ],
+      ),
+      scope: core.UniboxScope(theme: MaterialPalette.light.theme),
+    );
+
+    /// The class the markup states on the box around [text], and the one on its parent.
+    (String, String) boxesAround(String html, String text) {
+      final int at = html.indexOf('>$text<');
+      final int label = html.lastIndexOf('<div class="', at);
+      final int row = html.lastIndexOf('<div class="', label - 1);
+      String classAt(int index) {
+        final int start = index + '<div class="'.length;
+        return html.substring(start, html.indexOf('"', start));
+      }
+
+      return (classAt(label), classAt(row));
+    }
+
+    /// The declarations of the one rule that styles [className].
+    String ruleOf(String html, String className) {
+      final RegExpMatch? rule = RegExp('\\.$className\\{([^}]*)\\}')
+          .firstMatch(html);
+      return rule?.group(1) ?? '';
+    }
+
+    test('centres the label beside its icon, hugging its words', () {
+      // The bug this pins: the label took a share of the room, so the page drew the icon
+      // against the segment's edge and the label centred away from it, while the app — which
+      // substitutes Material's own control — drew the two together. A zero share hugs, and
+      // still shrinks when the room runs out, which is the `Flexible` Material puts there.
+      final String html = renderIconSegment();
+      final (String label, String row) = boxesAround(html, 'Day');
+
+      expect(
+        ruleOf(html, label),
+        allOf(contains('flex-grow:0'), contains('flex-basis:auto')),
+        reason: 'the label hugs its words instead of taking the room',
+      );
+      expect(
+        ruleOf(html, row),
+        allOf(
+          contains('flex-direction:row'),
+          contains('justify-content:center'),
+          contains('width:100%'),
+        ),
+        reason: 'the pair is centred in the room the row was given',
+      );
+    });
+  });
+
   group('a filter chip in a document', () {
     String renderChip({bool selected = false, String? url}) => toHtml(
       MaterialChip(
