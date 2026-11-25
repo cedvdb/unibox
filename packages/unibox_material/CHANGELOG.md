@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.1
 
 - **A segment's label sits beside its icon, and the pair is centred.** `MaterialSegmentedButton` gave the label a share of the room beside the icon, so a page drew an unselected segment's icon against the segment's edge with the label centred away from it, while an application — which substitutes Material's own `SegmentedButton` — drew the two together. The label takes a zero share instead: it hugs its words and shrinks only when the room runs out, which is the `Flexible` Material puts there, and the row states that the pair is centred.
 
